@@ -238,10 +238,10 @@ class Matrix(object):
 
 
     def __str__(self):
-        return "Matrix " + convert.object2JSON(self.shape) + ": " + str(self.cube)
+        return "Matrix " + convert.value2json(self.shape) + ": " + str(self.cube)
 
     def __json__(self):
-        return convert.object2JSON(self.cube)
+        return convert.value2json(self.cube)
 
 
 Matrix.ZERO = Matrix(value=None)

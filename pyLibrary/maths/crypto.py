@@ -52,7 +52,7 @@ def encrypt(text, _key, salt=None):
     for _, d in Q.groupby(data, size=16):
         encrypted.extend(aes_cbc_256.encrypt_block(d))
     output.data = convert.bytearray2base64(encrypted)
-    json = convert.object2JSON(output)
+    json = convert.value2json(output)
 
     if DEBUG:
         test = decrypt(json, _key)
@@ -70,7 +70,7 @@ def decrypt(data, _key):
     if _key is None:
         Log.error("Expecting a key")
 
-    _input = convert.JSON2object(data)
+    _input = convert.json2value(data)
 
     # Initialize encryption using key and iv
     key_expander_256 = key_expander.KeyExpander(256)

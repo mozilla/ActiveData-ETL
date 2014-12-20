@@ -50,7 +50,7 @@ class Fake_ES():
         self.settings = wrap({"host":"fake", "index":"fake"})
         self.filename = settings.filename
         try:
-            self.data = convert.JSON2object(File(self.filename).read())
+            self.data = convert.json2value(File(self.filename).read())
         except IOError:
             self.data = Struct()
 
@@ -72,7 +72,7 @@ class Fake_ES():
 
         unwrap(self.data).update(records)
 
-        data_as_json = convert.object2JSON(self.data, pretty=True)
+        data_as_json = convert.value2json(self.data, pretty=True)
 
         File(self.filename).write(data_as_json)
         Log.note("{{num}} documents added", {"num": len(records)})

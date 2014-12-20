@@ -182,7 +182,7 @@ class ESQuery(object):
             for id in results.hits.hits._id:
                 command.append({"update": {"_id": id}})
                 command.append({"script": script})
-            content = ("\n".join(convert.object2JSON(c) for c in command)+"\n").encode('utf-8')
+            content = ("\n".join(convert.value2json(c) for c in command)+"\n").encode('utf-8')
             self.es.cluster._post(
                 self.es.path + "/_bulk",
                 data=content,

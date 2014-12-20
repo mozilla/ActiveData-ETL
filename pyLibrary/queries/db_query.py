@@ -412,7 +412,7 @@ def expand_json(rows):
         for k, json in list(r.items()):
             if isinstance(json, basestring) and json[0:1] in ("[", "{"):
                 try:
-                    value = convert.JSON2object(json)
+                    value = convert.json2value(json)
                     r[k] = value
                 except Exception, e:
                     pass

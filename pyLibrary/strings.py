@@ -78,7 +78,7 @@ def replace(value, find, replace):
 def json(value):
     from pyLibrary import convert
 
-    return convert.object2JSON(value)
+    return convert.value2json(value)
 
 
 def indent(value, prefix=u"\t", indent=None):

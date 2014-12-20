@@ -67,7 +67,7 @@ class Domain(object):
         )
 
     def __json__(self):
-        return convert.object2JSON(self.dict)
+        return convert.value2json(self.dict)
 
 
 class ValueDomain(Domain):

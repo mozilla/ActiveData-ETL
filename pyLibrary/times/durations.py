@@ -55,7 +55,7 @@ class Duration(object):
         elif Math.is_nan(value):
             return None
         else:
-            Log.error("Do not know type of object (" + convert.object2JSON(value) + ")of to make a Duration")
+            Log.error("Do not know type of object (" + convert.value2json(value) + ")of to make a Duration")
 
 
     def __add__(self, other):

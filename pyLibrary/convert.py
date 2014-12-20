@@ -31,7 +31,7 @@ from pyLibrary.structs.wraps import wrap, wrap_dot, unwrap
 """
 DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
 """
-def object2JSON(obj, pretty=False):
+def value2json(obj, pretty=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
@@ -42,8 +42,8 @@ def object2JSON(obj, pretty=False):
         Log.error("Can not encode into JSON: {{value}}", {"value": repr(obj)}, e)
 
 
-def JSON2object(json_string, params=None, flexible=False, paths=False):
-    with Profiler("JSON2Object"):
+def json2value(json_string, params=None, flexible=False, paths=False):
+    with Profiler("json2value"):
         try:
             if flexible:
                 # REMOVE """COMMENTS""", # COMMENTS, //COMMENTS, AND \n \r
@@ -165,7 +165,7 @@ def list2tab(rows):
 
     output = []
     for r in rows:
-        output.append("\t".join(object2JSON(r[k]) for k in keys))
+        output.append("\t".join(value2json(r[k]) for k in keys))
 
     return "\t".join(keys) + "\n" + "\n".join(output)
 

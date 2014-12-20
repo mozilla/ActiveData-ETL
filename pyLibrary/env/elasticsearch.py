@@ -112,7 +112,7 @@ class Index(object):
         self.cluster_metadata = None
         self.cluster._post(
             "/_aliases",
-            data=convert.unicode2utf8(convert.object2JSON({
+            data=convert.unicode2utf8(convert.value2json({
                 "actions": [
                     {"add": {"index": self.settings.index, "alias": self.settings.alias}}
                 ]
@@ -182,7 +182,7 @@ class Index(object):
 
         result = self.cluster.delete(
             self.path + "/_query",
-            data=convert.object2JSON(query),
+            data=convert.value2json(query),
             timeout=60
         )
 
@@ -208,12 +208,12 @@ class Index(object):
                 if "json" in r:
                     json = r["json"]
                 elif "value" in r:
-                    json = convert.object2JSON(r["value"])
+                    json = convert.value2json(r["value"])
                 else:
                     json = None
                     Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
-                lines.append('{"index":{"_id": ' + convert.object2JSON(id) + '}}')
+                lines.append('{"index":{"_id": ' + convert.value2json(id) + '}}')
                 lines.append(json)
             del records
 
@@ -274,10 +274,10 @@ class Index(object):
 
         response = self.cluster.put(
             "/" + self.settings.index + "/_settings",
-            data='{"index":{"refresh_interval":' + convert.object2JSON(interval) + '}}'
+            data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
         )
 
-        result = convert.JSON2object(utf82unicode(response.content))
+        result = convert.json2value(utf82unicode(response.content))
         if self.cluster.version.startswith("0.90."):
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
@@ -303,7 +303,7 @@ class Index(object):
                 Log.note("Query:\n{{query|indent}}", {"query": show_query})
             return self.cluster._post(
                 self.path + "/_search",
-                data=convert.object2JSON(query).encode("utf8"),
+                data=convert.value2json(query).encode("utf8"),
                 timeout=nvl(timeout, self.settings.timeout)
             )
         except Exception, e:
@@ -384,9 +384,9 @@ class Cluster(object):
             Log.error('schema_file attribute not suported.  Use {"$ref":<filename>} instead')
 
         if isinstance(schema, basestring):
-            schema = convert.JSON2object(schema, paths=True)
+            schema = convert.json2value(schema, paths=True)
         else:
-            schema = convert.JSON2object(convert.object2JSON(schema), paths=True)
+            schema = convert.json2value(convert.value2json(schema), paths=True)
 
         if not schema:
             schema = settings.schema
@@ -405,7 +405,7 @@ class Cluster(object):
 
         self._post(
             "/" + settings.index,
-            data=convert.object2JSON(schema).encode("utf8"),
+            data=convert.value2json(schema).encode("utf8"),
             headers={"Content-Type": "application/json"}
         )
         time.sleep(2)
@@ -461,7 +461,7 @@ class Cluster(object):
             response = requests.post(url, **kwargs)
             if self.debug:
                 Log.note(utf82unicode(response.content)[:130])
-            details = convert.JSON2object(utf82unicode(response.content))
+            details = convert.json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
@@ -486,7 +486,7 @@ class Cluster(object):
             response = requests.get(url, **kwargs)
             if self.debug:
                 Log.note(utf82unicode(response.content)[:130])
-            details = wrap(convert.JSON2object(utf82unicode(response.content)))
+            details = wrap(convert.json2value(utf82unicode(response.content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -512,7 +512,7 @@ class Cluster(object):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
             kwargs.setdefault("timeout", 60)
-            response = convert.JSON2object(utf82unicode(requests.delete(url, **kwargs).content))
+            response = convert.json2value(utf82unicode(requests.delete(url, **kwargs).content))
             if self.debug:
                 Log.note("delete response {{response}}", {"response": response})
             return response
