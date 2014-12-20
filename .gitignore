@@ -1,0 +1,6 @@
+/.idea
+/*.json
+/*.iml
+/pyLibrary/.svn
+/pyLibrary/*.pyc
+/vendor

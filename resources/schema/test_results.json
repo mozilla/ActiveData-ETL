@@ -1,0 +1,56 @@
+{
+	"settings": {
+		"index.store.throttle.type": "merge",
+		"index.number_of_replicas": 0,
+		"index.store.throttle.max_bytes_per_sec": "2mb",
+		"index.number_of_shards": 3
+	},
+	"mappings": {
+		"test_results": {
+			"_source": {
+				"compress": true
+			},
+			"dynamic_templates": [
+				{
+					"xperf": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match": "results_xperf.*"
+					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				}
+			],
+			"properties": {
+				"result": {
+					"properties": {
+						"test_name": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"ordering": {
+							"type": "integer"
+						},
+						"samples": {
+							"type": "double"
+						}
+					}
+				}
+			},
+			"_all": {
+				"enabled": false
+			}
+		}
+	}
+
+}
