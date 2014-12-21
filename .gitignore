@@ -4,3 +4,5 @@
 /pyLibrary/.svn
 /pyLibrary/*.pyc
 /vendor
+/results
+/pyLibrary/collections/*.pyc

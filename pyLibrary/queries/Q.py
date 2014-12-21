@@ -13,7 +13,7 @@ from __future__ import division
 import __builtin__
 
 from pyLibrary.collections import UNION, MIN
-from pyLibrary.queries import flat_list, query, group_by
+from pyLibrary.queries import flat_list, query, group_by, _normalize_select
 from pyLibrary.queries.filters import TRUE_FILTER, FALSE_FILTER
 from pyLibrary.queries.flat_list import FlatList
 from pyLibrary.queries.index import Index
@@ -225,10 +225,33 @@ def _tuple_deep(v, field, depth, record):
     return 0, None, record + (v.get(f, None), )
 
 
+def select_one(record, selection):
+    """
+    APPLY THE selection TO A SINGLE record
+    """
+    record = wrap(record)
+    selection = wrap(selection)
+
+    if isinstance(selection, dict):
+        selection = wrap(selection)
+        return record[selection.value]
+    elif isinstance(selection, basestring):
+        return record[selection]
+    elif isinstance(selection, list):
+        output = Struct()
+        for f in selection:
+            f = _normalize_select(f)
+            output[f.name]=record[f.value]
+        return output
+    else:
+        Log.error("Do not know how to handle")
+
 
 
 def select(data, field_name):
-# return list with values from field_name
+    """
+    return list with values from field_name
+    """
     if isinstance(data, Cube):
         return data._select(_normalize_selects(field_name))
 
@@ -237,6 +260,9 @@ def select(data, field_name):
 
     if isinstance(data, UniqueIndex):
         data = data._data.values()  # THE SELECT ROUTINE REQUIRES dicts, NOT Struct WHILE ITERATING
+
+    if isinstance(data, dict):
+        return select_one(data, field_name)
 
     if isinstance(field_name, dict):
         field_name = wrap(field_name)

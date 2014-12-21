@@ -25,7 +25,7 @@ from pyLibrary.structs import nvl, Struct
 
 
 DEBUG = True
-SLEEP_FOREVER = float("inf")  # A VALUE BIG ENOUGH TO APPEAR TO SLEEP FOREVER
+
 
 class Lock(object):
     """
@@ -349,7 +349,8 @@ class Thread(object):
             if duration > 0:
                 time.sleep(duration)
         else:
-            time.sleep(FOREVER)
+            while True:
+                time.sleep(10)
 
     @staticmethod
     def current():

@@ -29,9 +29,6 @@ from pyLibrary.structs.wraps import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue
 
 
-DEBUG = False
-
-
 class Index(object):
     """
     AN ElasticSearch INDEX LIFETIME MANAGEMENT TOOL
@@ -57,12 +54,11 @@ class Index(object):
             Log.error("must have a unique index name")
 
         settings = wrap(settings)
-        assert settings.index
-        assert settings.type
+        assert settings.index, "expecting index attribute"
+        assert settings.type, "expecting type attribute"
         settings.setdefault("explore_metadata", True)
 
-        self.debug = nvl(settings.debug, DEBUG)
-        globals()["DEBUG"] = OR(self.debug, DEBUG)
+        self.debug = settings.debug
         if self.debug:
             Log.note("elasticsearch debugging is on")
 
@@ -332,7 +328,7 @@ class Cluster(object):
 
         self.cluster_metadata = None
         settings.setdefault("port", 9200)
-        self.debug = nvl(settings.debug, DEBUG)
+        self.debug = settings.debug
         self.settings = settings
         self.version = None
         self.path = settings.host + ":" + unicode(settings.port)
@@ -455,7 +451,7 @@ class Cluster(object):
             if "data" in kwargs and not isinstance(kwargs["data"], str):
                 Log.error("data must be utf8 encoded string")
 
-            if DEBUG:
+            if self.debug:
                 Log.note("{{url}}:\n{{data|left(300)|indent}}", {"url": url, "data": kwargs["data"]})
 
             response = requests.post(url, **kwargs)
@@ -475,7 +471,7 @@ class Cluster(object):
 
             Log.error("Problem with call to {{url}}" + suggestion + "\n{{body}}", {
                 "url": url,
-                "body": kwargs["data"] if DEBUG else kwargs["data"][0:100]
+                "body": kwargs["data"] if self.debug else kwargs["data"][0:100]
             }, e)
 
     def get(self, path, **kwargs):
@@ -496,7 +492,7 @@ class Cluster(object):
     def put(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
 
-        if DEBUG:
+        if self.debug:
             Log.note("PUT {{url}}:\n{{data|indent}}", {"url": url, "data": kwargs["data"]})
         try:
             kwargs = wrap(kwargs)
