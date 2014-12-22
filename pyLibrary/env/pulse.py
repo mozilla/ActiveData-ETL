@@ -57,5 +57,6 @@ class Pulse(Thread):
                 Log.warning("pulse had problem", e)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.please_stop.go()
         self.pulse.disconnect()
         Thread.__exit__(self, exc_type, exc_val, exc_tb)
