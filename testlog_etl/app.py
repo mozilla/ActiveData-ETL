@@ -18,20 +18,26 @@ from pyLibrary.env.elasticsearch import Cluster
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.structs import wrap, set_default, Struct
+from pyLibrary.structs import wrap, set_default, Struct, nvl
 from pyLibrary.thread.threads import Thread
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 
 
 def got_result(es, data, message):
     meta = transform(wrap(data).payload)
     Log.note("{{data}}", {"data": meta})
 
+    found_log = False
     for name, url in meta.run.files.items():
         if "structured" in name and name.endswith(".log"):
-            results = process_log(name, url)
+            found_log = True
+            with Timer("Process log {{file}}", {"file": name}):
+                results = process_log(name, url)
             es.extend([{"value": set_default({"result": r}, meta)} for r in results])
-        else:
-            Log.note("NO STRUCTURED LOG")
+
+    if not found_log:
+        Log.note("NO STRUCTURED LOG")
 
     message.ack()
 
@@ -42,32 +48,53 @@ def process_log(name, url):
     tests = {}
     for line in response.iter_lines():
         num_lines += 1
+        try:
 
-        if "test_start" in line:
-            log = convert.json2value(convert.utf82unicode(line))
-            if log.action == "test_start":
-                tests[log.test] = Struct(
-                    test=log.test,
-                    start=log.time
-                )
+            if "test_start" in line:
+                log = convert.json2value(convert.utf82unicode(line))
+                if log.action == "test_start":
+                    if isinstance(log.test, list):
+                        log.test = " ".join(log.test)
+                    tests[log.test] = Struct(
+                        test=log.test,
+                        start=log.time
+                    )
 
-        if "test_end" in line:
-            log = convert.json2value(convert.utf82unicode(line))
-            if log.action == "test_end":
-                test = tests[log.test]
-                test.end = log.time
-                test.duration = test.end - test.start
-                test.runtime = test.extra.runtime
-                test.ok = (log.expected == None)
-                test.status = log.status
-                test.expected = log.expected
+            if "test_end" in line:
+                log = convert.json2value(convert.utf82unicode(line))
+                if log.action == "test_end":
+                    if isinstance(log.test, list):
+                        log.test = " ".join(log.test)
+                    if log.test in tests:
+                        test = tests[log.test]
+                        test.ok = not log.expected
+                        test.result = log.status
+                        test.expected = nvl(log.expected, log.status)
+                        test.end = log.time
+                        test.duration = test.end - test.start
+                        test.extra = test.extra
+                    else:
+                        tests[log.test] = Struct(
+                            ok=not log.expected,
+                            result=log.status,
+                            expected=nvl(log.expected, log.status),
+                            test=log.test,
+                            end=log.time,
+                            duration=test.extra.runtime,
+                            extra=log.extra
+                        )
+                        if test.duration:
+                            test.start = test.end - test.duration
 
-                if not test.ok:
-                    Log.note("Bad test {{result}}", {"result": test})
+                    if not test.ok:
+                        Log.note("Bad test {{result}}", {"result": test})
+        except Exception, e:
+            Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
     output = tests.values()
     Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": num_lines, "num_tests": len(output), "name": name})
     return output
+
 
 def transform(payload):
     output = Q.select_one(payload, [
@@ -100,8 +127,9 @@ def transform(payload):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
 
-    return output
+    output.run.timestamp = Date(output.run.timestamp).milli
 
+    return output
 
 
 def main():

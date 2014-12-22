@@ -469,7 +469,7 @@ class Cluster(object):
             else:
                 suggestion = ""
 
-            Log.error("Problem with call to {{url}}" + suggestion + "\n{{body}}", {
+            Log.error("Problem with call to {{url}}" + suggestion + "\n{{body|left(10000}}", {
                 "url": url,
                 "body": kwargs["data"] if self.debug else kwargs["data"][0:100]
             }, e)
