@@ -90,6 +90,10 @@ class Queue(object):
 
                 Log.warning("Tell me about what happened here", e)
 
+        from pyLibrary.debugs.logs import Log
+        Log.note ("queue iterator is done")
+
+
     def add(self, value):
         with self.lock:
             self.wait_for_queue_space()
@@ -146,7 +150,15 @@ class Queue(object):
                     if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
                         self.keep_running = False
                     return value
-                self.lock.wait()
+
+                try:
+                    self.lock.wait()
+                except Exception, e:
+                    pass
+
+            from pyLibrary.debugs.logs import Log
+            Log.note("queue stopped")
+
             return Thread.STOP
 
     def pop_all(self):
@@ -351,6 +363,26 @@ class Thread(object):
         else:
             while True:
                 time.sleep(10)
+
+
+    @staticmethod
+    def sleep_forever():
+        """
+        SLEEP UNTIL keyboard interrupt
+        """
+        if Thread.current() != MAIN_THREAD:
+            from pyLibrary.debugs.logs import Log
+            Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
+
+        try:
+            while True:
+                try:
+                    Thread.sleep(seconds=10)
+                except Exception, e:
+                    pass
+        except KeyboardInterrupt:
+            pass
+
 
     @staticmethod
     def current():

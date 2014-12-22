@@ -11,16 +11,17 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from mozillapulse.config import PulseConfiguration
+from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 
-from pyLibrary.structs import set_default, unwrap
-from pyLibrary.thread.threads import Thread
+from pyLibrary.structs import set_default, unwrap, wrap, nvl
+from pyLibrary.thread.threads import Thread, Queue
 from vendor.mozillapulse.consumers import GenericConsumer
 
 
 class Pulse(Thread):
 
-    def __init__(self, settings, callback):
+    def __init__(self, settings, queue=None):
         """
         settings IS A STRUCT WITH FOLLOWING PARAMETERS
 
@@ -43,20 +44,42 @@ class Pulse(Thread):
 
         callback - function that accepts "message" - executed upon receiving message
         """
+
+        if queue == None:
+            self.queue = Queue()
+        else:
+            self.queue = queue
+
         Thread.__init__(self, name="Pulse consumer for " + settings.exchange, target=self._worker)
         self.settings = set_default({"broker_timezone": "GMT"}, settings, PulseConfiguration.defaults)
-        self.settings.callback = callback
+        self.settings.callback = self._got_result
+        self.settings.user = nvl(self.settings.user, self.settings.username)
+
         self.pulse = GenericConsumer(self.settings, connect=True, **unwrap(self.settings))
         self.start()
+
+
+    def _got_result(self, data, message):
+        payload = wrap(data).payload
+        if self.settings.debug:
+            Log.note("{{data}}", {"data": payload})
+        self.queue.add(convert.value2json(payload))
+        message.ack()
 
     def _worker(self, please_stop):
         while not please_stop:
             try:
                 self.pulse.listen()
             except Exception, e:
-                Log.warning("pulse had problem", e)
+                if not please_stop:
+                    Log.warning("pulse had problem", e)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        Log.note("clean pulse exit")
         self.please_stop.go()
-        self.pulse.disconnect()
+        self.queue.close()
+        try:
+            self.pulse.disconnect()
+        except Exception, e:
+            Log.warning("Can not disconnect during pulse exit, ignoring", e)
         Thread.__exit__(self, exc_type, exc_val, exc_tb)

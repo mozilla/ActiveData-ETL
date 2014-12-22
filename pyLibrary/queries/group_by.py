@@ -153,14 +153,20 @@ def groupby_min_max_size(data, min_size=0, max_size=None, ):
         def _iter():
             g = 0
             out = StructList()
-            for i, d in enumerate(data):
-                out.append(d)
-                if (i + 1) % max_size == 0:
+            try:
+                for i, d in enumerate(data):
+                    out.append(d)
+                    if (i + 1) % max_size == 0:
+                        yield g, out
+                        g += 1
+                        out = StructList()
+                if out:
                     yield g, out
-                    g += 1
-                    out = StructList()
-            if out:
-                yield g, out
+            except Exception, e:
+                if out:
+                    # AT LEAST TRY TO RETURN WHAT HAS BEEN PROCESSED SO FAR
+                    yield g, out
+                Log.error("Problem inside Q.groupby", e)
 
         return _iter()
     elif not isinstance(data, Multiset):
