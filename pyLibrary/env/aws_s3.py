@@ -5,6 +5,19 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.structs import nvl
 
 
+class File(object):
+    def __init__(self, bucket, key):
+        self.bucket = bucket
+        self.key = key
+
+    def read(self):
+        return self.bucket.read(self.key)
+
+    def write(self, value):
+        self.bucket.write(self.key, value)
+
+
+
 class Bucket(object):
     def __init__(self, settings, public=False):
         """
@@ -53,6 +66,8 @@ class Bucket(object):
         if self.connection:
             self.connection.close()
 
+    def get_key(self, key):
+        return File(self, key)
 
     def read(self, key):
         try:

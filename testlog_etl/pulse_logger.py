@@ -14,38 +14,42 @@ from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env import aws_s3
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import Q
+from pyLibrary.structs import Struct
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 
+SYNCHRONIZATION_KEY = "0.json"
 ALREADY_RUNNING = "Another instance of pulse_logger is running!"
 
 
-def logger_startup(bucket):
+def logger_startup(synch):
     """
-    FIRGURE OUT IF WE SHOULD START TAKING STUFF OFF QUEUE, AND WHAT NUMBER TO START COUNTING AT
-
+    synch HAS read() AND write() SO SEPARATE INSTANCES CAN DETERMINE IF OTHERS ARE ALIVE
+    RAISE EXCEPTION IF SOME OTHER INSTANCE HAS BEEN DETECTED
     RETURN START OF COUNT (always >=1)
     """
 
-    start_time = Date.now().milli
+    start_time = Date.now().format()
     try:
-
-
-        json = bucket.read("0.json")
+        json = synch.read()
         last_run = convert.json2value(json)
         key = last_run.last_key
         if last_run.shutdown:
             start_time = last_run.shutdown
-            Log.note("0.json exists.  Starting at {{start_time}}", {"start_time": start_time})
+            Log.note("{{synchro_key}} exists.  Starting at {{start_time}}, {{num}}", {
+                "start_time": start_time,
+                "synchro_key=": SYNCHRONIZATION_KEY,
+                "num": key
+            })
         else:
             Log.note("Shutdown not detected, waiting 5minutes to see if existing pulse_logger is running...")
             for i in range(5 * 6):
                 Thread.sleep(seconds=10)
-                json = bucket.read("0.json")
+                json = synch.read()
                 last_run = convert.json2value(json)
                 if last_run.shutdown:
                     Log.note("Shutdown detected!  Resuming...")
-                    return last_run.last_key + 1
+                    return last_run.last_key + 1, start_time
                 if last_run.last_key > key:
                     Log.error(ALREADY_RUNNING)
                 Log.note("No activity, still waiting...")
@@ -54,21 +58,18 @@ def logger_startup(bucket):
     except Exception, e:
         if isinstance(e, Except) and e.contains("S3 read error") or e.contains(ALREADY_RUNNING):
             Log.error("Can not start", e)
-        Log.note("0.json does not exist.  Starting over {{start_time}}", {"start_time": start_time})
+        Log.note("{{synchro_key}} does not exist.  Starting over {{start_time}}", {
+            "start_time": start_time,
+            "synchro_key=": SYNCHRONIZATION_KEY
+        })
         key = 0
 
-    bucket.write("0.json", convert.value2json({
+    synch.write(convert.value2json({
         "startup": start_time,
         "last_key": key
     }))
     return key + 1, start_time
 
-
-def logger_ping(bucket, start_time, key):
-    bucket.write("0.json", convert.value2json({
-        "ping": start_time,
-        "last_key": key
-    }))
 
 
 def main():
@@ -78,16 +79,20 @@ def main():
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws_s3.Bucket(settings.destination) as bucket:
+                synch = bucket.get_key(SYNCHRONIZATION_KEY)
 
-                start, start_time = logger_startup(bucket)
-                key = start
+                start, start_time = logger_startup(synch)
+                key = Struct(value=start)
                 with Pulse(settings.source) as pulse:
                     def log_loop(please_stop):
                         for i, g in Q.groupby(pulse.queue, size=settings.param.size):
-                            key = i + start
-                            full_key = unicode(key) + "." + unicode(start_time) + ".json"
+                            key.value = i + start
+                            full_key = unicode(start_time) + "." + "{0:09d}".format(key.value) + ".json"
                             bucket.write(full_key, "\n".join(g))
-                            logger_ping(bucket, start_time, key)
+                            synch.write(convert.value2json({
+                                "ping": start_time,
+                                "last_key": key.value
+                            }))
                             Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {"num": len(g), "bucket": bucket.name, "key": full_key})
 
                     thread = Thread.run("pulse log loop", log_loop)
@@ -98,10 +103,10 @@ def main():
                     pulse.queue.close()
                     thread.stop()
                     thread.join()
-                    Log.note("write 0.json")
-                    bucket.write("0.json", convert.value2json({
+                    Log.note("write shutdown")
+                    synch.write(convert.value2json({
                         "shutdown": start_time,
-                        "last_key": key
+                        "last_key": key.value
                     }))
 
 
