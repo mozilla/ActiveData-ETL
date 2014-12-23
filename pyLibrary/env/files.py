@@ -103,7 +103,11 @@ class File(object):
         """
         path = self._filename.split("/")
         parts = path[-1].split(".")
-        parts[-1] = ext
+        if len(parts)==1:
+            parts.append(ext)
+        else:
+            parts[-1] = ext
+
         path[-1] = ".".join(parts)
         return File("/".join(path))
 

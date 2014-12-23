@@ -19,7 +19,7 @@ from types import ModuleType
 
 from pyLibrary.jsons import json_encoder
 from pyLibrary.thread import threads
-from pyLibrary.structs import nvl, Struct, split_field, join_field
+from pyLibrary.structs import nvl, Struct, split_field, join_field, set_default
 from pyLibrary.structs.wraps import listwrap, wrap, wrap_dot
 from pyLibrary.strings import indent, expand_template
 from pyLibrary.thread.threads import Thread
@@ -62,7 +62,7 @@ class Log(object):
                     pass  # OH WELL :(
 
         if settings.log_type == "file" or settings.file:
-            return Log_usingFile(file)
+            return Log_usingFile(settings.file)
         if settings.log_type == "file" or settings.filename:
             return Log_usingFile(settings.filename)
         if settings.log_type == "stream" or settings.stream:
@@ -73,6 +73,11 @@ class Log(object):
             from .log_usingElasticSearch import Log_usingElasticSearch
 
             return Log_usingElasticSearch(settings)
+        if settings.log_type == "email":
+            from .log_usingEmail import Log_usingEmail
+
+            return Log_usingEmail(settings)
+
 
     @classmethod
     def add_log(cls, log):
@@ -95,7 +100,7 @@ class Log(object):
 
         log_params = Struct(
             template=template,
-            params=nvl(params, {}).copy(),
+            params=set_default({}, params),
             timestamp=datetime.utcnow(),
         )
         if cls.trace:
@@ -244,10 +249,18 @@ class Log(object):
         sys.stderr.write(str_e)
 
 
-    # RUN ME FIRST TO SETUP THE THREADED LOGGING
     @classmethod
     def start(cls, settings=None):
-        ## http://victorlin.me/2012/08/good-logging-practice-in-python/
+        """
+        RUN ME FIRST TO SETUP THE THREADED LOGGING
+        http://victorlin.me/2012/08/good-logging-practice-in-python/
+
+        log - LIST OF PARAMETERS FOR LOGGER(S)
+        trace - SHOW MORE DETAILS IN EVERY LOG LINE (default False)
+        cprofile - True==ENABLE THE C-PROFILER THAT COMES WITH PYTHON (default False)
+        profile - True==ENABLE pyLibrary SIMPLE PROFILING (default False) (eg with Profiler("some description"):)
+        constants - UPDATE MODULE CONSTANTS AT STARTUP (PRIMARILY INTENDED TO CHANGE DEBUG STATE)
+        """
         if not settings:
             return
 
@@ -285,6 +298,7 @@ class Log(object):
 
         if settings.constants:
             cls.please_setup_constants = True
+
         if cls.please_setup_constants:
             sys_modules = sys.modules
             # ONE MODULE IS MISSING, THE CALLING MODULE
@@ -600,7 +614,7 @@ class Log_usingMulti(BaseLog):
 
 def write_profile(profile_settings, cprofiler):
     from pyLibrary import convert
-    from .files import File
+    from pyLibrary.env.files import File
     import pstats
 
     p = pstats.Stats(cprofiler)

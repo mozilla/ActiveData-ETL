@@ -63,7 +63,7 @@ class Profiler(object):
 
 def write(profile_settings):
     from pyLibrary import convert
-    from .files import File
+    from pyLibrary.env.files import File
 
     profs = list(profiles.values())
     for p in profs:

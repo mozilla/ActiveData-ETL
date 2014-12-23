@@ -366,7 +366,7 @@ class Thread(object):
 
 
     @staticmethod
-    def sleep_forever():
+    def wait_for_shutdown_signal():
         """
         SLEEP UNTIL keyboard interrupt
         """

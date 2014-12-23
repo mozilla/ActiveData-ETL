@@ -12,6 +12,7 @@ from __future__ import division
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Queue
 
+# YOU ARE READING AN INCOMPLETE IMPLEMENTATION
 
 class worker(object):
     def __init__(func, inbound, outbound, logging):

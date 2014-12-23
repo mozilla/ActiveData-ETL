@@ -8,10 +8,13 @@
 #
 from __future__ import unicode_literals
 from pyLibrary import convert
+from pyLibrary.collections.persistent_queue import PersistentQueue
 
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env import aws_s3
+from pyLibrary.env.emailer import Emailer
+from pyLibrary.env.files import File
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import Q
 from pyLibrary.structs import Struct
@@ -56,7 +59,7 @@ def logger_startup(synch):
             Log.note("No activity after 5minutes.  Resuming...")
 
     except Exception, e:
-        if isinstance(e, Except) and e.contains("S3 read error") or e.contains(ALREADY_RUNNING):
+        if isinstance(e, Except) and e.contains(aws_s3.READ_ERROR) or e.contains(ALREADY_RUNNING):
             Log.error("Can not start", e)
         Log.note("{{synchro_key}} does not exist.  Starting over {{start_time}}", {
             "start_time": start_time,
@@ -71,7 +74,6 @@ def logger_startup(synch):
     return key + 1, start_time
 
 
-
 def main():
     try:
         settings = startup.read_settings()
@@ -81,26 +83,40 @@ def main():
             with aws_s3.Bucket(settings.destination) as bucket:
                 synch = bucket.get_key(SYNCHRONIZATION_KEY)
 
-                start, start_time = logger_startup(synch)
+                if settings.param.debug:
+                    if settings.source.durable:
+                        Log.error("Can not run in debug mode with a durable queue")
+                    start = 1
+                    start_time = Date.now().format()
+                else:
+                    start, start_time = logger_startup(synch)
+
                 key = Struct(value=start)
-                with Pulse(settings.source) as pulse:
+                queue = PersistentQueue("pulse-logger-queue")
+
+                with Pulse(settings.source, queue=queue):
                     def log_loop(please_stop):
-                        for i, g in Q.groupby(pulse.queue, size=settings.param.size):
+                        for i, g in Q.groupby(queue, size=settings.param.size):
                             key.value = i + start
                             full_key = unicode(start_time) + "." + "{0:09d}".format(key.value) + ".json"
-                            bucket.write(full_key, "\n".join(g))
-                            synch.write(convert.value2json({
-                                "ping": start_time,
-                                "last_key": key.value
-                            }))
-                            Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {"num": len(g), "bucket": bucket.name, "key": full_key})
+                            try:
+                                bucket.write(full_key, "\n".join(g))
+                                synch.write(convert.value2json({
+                                    "ping": start_time,
+                                    "last_key": key.value
+                                }))
+                                Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {"num": len(g), "bucket": bucket.name, "key": full_key})
+                            except Exception, e:
+                                File.new_instance(full_key).write("\n".join(g))
+                                Log.warning("Problem writing {key}} to S3", {"key": full_key}, e)
+                            queue.commit()
 
                     thread = Thread.run("pulse log loop", log_loop)
 
-                    Thread.sleep_forever()
+                    Thread.wait_for_shutdown_signal()
 
                     Log.note("starting shutdown")
-                    pulse.queue.close()
+                    queue.close()
                     thread.stop()
                     thread.join()
                     Log.note("write shutdown")

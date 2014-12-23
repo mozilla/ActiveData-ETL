@@ -23,6 +23,8 @@ class Pulse(Thread):
 
     def __init__(self, settings, queue=None):
         """
+        queue (aka aelf.queue) WILL BE FILLED WITH PULSE PAYLOADS
+
         settings IS A STRUCT WITH FOLLOWING PARAMETERS
 
             exchange - name of the Pulse exchange
@@ -42,7 +44,6 @@ class Pulse(Thread):
             serializer - (default 'json')
             broker_timezone' - (default 'GMT')
 
-        callback - function that accepts "message" - executed upon receiving message
         """
 
         if queue == None:

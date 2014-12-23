@@ -5,6 +5,10 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.structs import nvl
 
 
+READ_ERROR="S3 read error"
+
+
+
 class File(object):
     def __init__(self, bucket, key):
         self.bucket = bucket
@@ -73,7 +77,7 @@ class Bucket(object):
         try:
             value = self.bucket.get_key(key)
         except Exception, e:
-            Log.error("S3 read error", e)
+            Log.error(READ_ERROR, e)
 
         if value == None:
             Log.error("{{key}} does not exist", {"key": key})
@@ -81,7 +85,7 @@ class Bucket(object):
         try:
             json = value.get_contents_as_string()
         except Exception, e:
-            Log.error("S3 read error", e)
+            Log.error(READ_ERROR, e)
 
         if json == None:
             return None
