@@ -11,12 +11,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from mozillapulse.config import PulseConfiguration
+from mozillapulse.consumers import GenericConsumer
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 
 from pyLibrary.structs import set_default, unwrap, wrap, nvl
 from pyLibrary.thread.threads import Thread, Queue
-from vendor.mozillapulse.consumers import GenericConsumer
 
 
 class Pulse(Thread):
