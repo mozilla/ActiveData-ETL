@@ -10,92 +10,97 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-import dumbdbm
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
-from pyLibrary.structs import Struct
-from pyLibrary.thread.threads import Lock, Thread
+from pyLibrary.structs import Struct, wrap
+from pyLibrary.thread.threads import Lock, Thread, Signal
 
 
 DEBUG = True
 
+
 class PersistentQueue(object):
     """
-    THREAD-SAFE, TRANSACTIONAL, PERSISTENT QUEUE
+    THREAD-SAFE, PERSISTENT QUEUE
     IT IS IMPORTANT YOU commit(), OTHERWISE NOTHING COMES OFF THE QUEUE
     """
 
-    def __init__(self, file):
+    def __init__(self, _file):
         """
         file - USES FILE FOR PERSISTENCE
         """
-        self.file = File.new_instance(file)
-        self.db = dumbdbm.open(self.file.abspath, "c")
+        self.file = File.new_instance(_file)
         self.lock = Lock("lock for persistent queue using file " + self.file.name)
+        self.please_stop = Signal()
+        self.db = Struct()
+        self.pending = []
 
-        try:
-            self.status = convert.json2value(convert.utf82unicode(self.db[b"status"]))
-            self.start=self.status.start
-
+        if self.file.exists:
+            for line in self.file:
+                try:
+                    delta = convert.json2value(line)
+                    apply_delta(self.db, delta)
+                except:
+                    pass
+            self.start = self.db.status.start
             if DEBUG:
                 Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
-        except Exception, e:
-            if DEBUG:
-                Log.note("New persistent queue {{name}}", {"name": self.file.abspath})
-            self.status = Struct(
+        else:
+            self.db.status = Struct(
                 start=0,
                 end=0
             )
-            self.start=self.status.start
+            self.start = self.db.status.start
+            if DEBUG:
+                Log.note("New persistent queue {{name}}", {"name": self.file.abspath})
 
+    def _apply(self, delta):
+        delta = wrap(delta)
+        apply_delta(self.db, delta)
+        self.pending.append(delta)
 
     def __iter__(self):
         """
         BLOCKING ITERATOR
         """
-        while self.db is not None:
+        while not self.please_stop:
             try:
                 value = self.pop()
                 if value is not Thread.STOP:
                     yield value
             except Exception, e:
                 Log.warning("Tell me about what happened here", e)
-        Log.note("queue iterator is done")
+        if DEBUG:
+            Log.note("queue iterator is done")
 
     def add(self, value):
         with self.lock:
-            if self.db is None:
+            if self.closed:
                 Log.error("Queue is closed")
 
-            self.db[str(self.status.end)] = convert.unicode2utf8(convert.value2json(value))
-            self.status.end += 1
-            self.db[b"status"] = convert.unicode2utf8(convert.value2json(self.status))
-            self.db._commit()
-        return self
+            if value is Thread.STOP:
+                if DEBUG:
+                    Log.note("Stop is seen in persistent queue")
+                self.please_stop.go()
+                return
 
-    def extend(self, values):
-        with self.lock:
-            if self.db is None:
-                Log.error("Queue is closed")
-
-            for v in values:
-                self.db[str(self.status.end)] = convert.unicode2utf8(convert.value2json(v))
-                self.status.end += 1
-            self.db[b"status"] = convert.unicode2utf8(convert.value2json(self.status))
-            self.db._commit()
+            self._apply({"add": {str(self.db.status.end): value}})
+            self.db.status.end += 1
+            self._apply({"add": {"status.end": self.db.status.end}})
+            self._commit()
         return self
 
     def __len__(self):
         with self.lock:
-            return self.status.end - self.start
+            return self.db.status.end - self.start
 
     def pop(self):
         with self.lock:
-            while self.db is not None:
-                if self.status.end > self.start:
-                    value = convert.json2value(convert.utf82unicode(self.db[str(self.start)]))
+            while not self.please_stop:
+                if self.db.status.end > self.start:
+                    value = self.db[str(self.start)]
                     self.start += 1
                     return value
 
@@ -103,8 +108,8 @@ class PersistentQueue(object):
                     self.lock.wait()
                 except Exception, e:
                     pass
-
-            Log.note("queue stopped")
+            if DEBUG:
+                Log.note("persistent queue stopped")
             return Thread.STOP
 
     def pop_all(self):
@@ -112,43 +117,76 @@ class PersistentQueue(object):
         NON-BLOCKING POP ALL IN QUEUE, IF ANY
         """
         with self.lock:
-            if self.db is None:
+            if self.please_stop:
                 return [Thread.STOP]
-            if self.status.end == self.start:
+            if self.db.status.end == self.start:
                 return []
 
             output = []
-            for i in range(self.start, self.status.end):
-                output.append(convert.json2value(convert.utf82unicode(self.db[str(i)])))
+            for i in range(self.start, self.db.status.end):
+                output.append(self.db[str(i)])
 
-            self.start = self.status.end
+            self.start = self.db.status.end
             return output
 
-    def commit(self):
-        if self.status.end==self.start:
-            if DEBUG:
-                Log.note("Clear persistent queue")
-            self.db.close()
-            self.file.set_extension("dat").delete()
-            self.file.set_extension("dir").delete()
-            self.file.set_extension("bak").delete()
-            self.db = dumbdbm.open(self.file.abspath, 'n')
-        else:
-            if DEBUG:
-                Log.note("{{num}} items removed from persistent queue, {{remaining}} remaining", {
-                    "num": self.status.start - self.start,
-                    "remaining": len(self)
-                })
-            for i in range(self.status.start, self.start):
-                del self.db[str(i)]
+    def rollback(self):
+        with self.lock:
+            if self.closed:
+                return
+            self.start = self.db.status.start
 
-            self.status.start = self.start
-            self.db[b"status"] = convert.unicode2utf8(convert.value2json(self.status))
-            self.db._commit()
+    def commit(self):
+        with self.lock:
+            if self.closed:
+                Log.error("Queue is closed, commit not allowed")
+
+            if self.db.status.end == self.start:
+                if DEBUG:
+                    Log.note("Clear persistent queue")
+                self.file.delete()
+                self.pending = []
+            else:
+                for i in range(self.db.status.start, self.start):
+                    self._apply({"remove": str(i)})
+
+                self.db.status.start = self.start
+                self._apply({"add": {"status.start": self.db.status.start}})
+                self._commit()
+
+    def _commit(self):
+        self.file.append("\n".join(convert.value2json(p) for p in self.pending))
+        self.pending = []
 
     def close(self):
+        self.please_stop.go()
         with self.lock:
-            self.commit()
-            self.db.close()
+            if self.db is None:
+                return
+
+            if self.db.status.end == self.start:
+                if DEBUG:
+                    Log.note("persistent queue clear and closed")
+                self.file.delete()
+            else:
+                if DEBUG:
+                    Log.note("persistent queue closed with {{num}} items left", {"num": len(self)})
+                for i in range(self.db.status.start, self.start):
+                    self._apply({"remove": str(i)})
+
+                self.db.status.start = self.start
+                self.file.write(convert.value2json({"add": self.db}) + "\n")
+
             self.db = None
 
+    @property
+    def closed(self):
+        with self.lock:
+            return self.db is None
+
+
+def apply_delta(value, delta):
+    if delta.add:
+        for k, v in delta.add.items():
+            value[k] = v
+    elif delta.remove:
+        value[delta.remove] = None

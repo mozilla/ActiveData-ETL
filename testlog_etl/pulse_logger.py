@@ -92,7 +92,7 @@ def main():
                     start, start_time = logger_startup(synch)
 
                 key = Struct(value=start)
-                queue = PersistentQueue("pulse-logger-queue")
+                queue = PersistentQueue("pulse-logger-queue.json")
 
                 with Pulse(settings.source, queue=queue):
                     def log_loop(please_stop):
@@ -105,25 +105,29 @@ def main():
                                     "ping": start_time,
                                     "last_key": key.value
                                 }))
+                                queue.commit()
                                 Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {"num": len(g), "bucket": bucket.name, "key": full_key})
                             except Exception, e:
-                                File.new_instance(full_key).write("\n".join(g))
-                                Log.warning("Problem writing {key}} to S3", {"key": full_key}, e)
-                            queue.commit()
+                                queue.rollback()
+                                if not queue.closed:
+                                    Log.warning("Problem writing {key}} to S3", {"key": full_key}, e)
+
+                            if please_stop:
+                                break
+                        Log.note("log_loop() completed on it's own")
 
                     thread = Thread.run("pulse log loop", log_loop)
-
                     Thread.wait_for_shutdown_signal()
 
-                    Log.note("starting shutdown")
-                    queue.close()
-                    thread.stop()
-                    thread.join()
-                    Log.note("write shutdown")
-                    synch.write(convert.value2json({
-                        "shutdown": start_time,
-                        "last_key": key.value
-                    }))
+                Log.note("starting shutdown")
+                thread.stop()
+                thread.join()
+                queue.close()
+                Log.note("write shutdown state to S3")
+                synch.write(convert.value2json({
+                    "shutdown": start_time,
+                    "last_key": key.value
+                }))
 
 
     except Exception, e:

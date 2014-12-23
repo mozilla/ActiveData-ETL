@@ -65,8 +65,12 @@ class Pulse(Thread):
         payload = wrap(data).payload
         if self.settings.debug:
             Log.note("{{data}}", {"data": payload})
-        self.queue.add(convert.value2json(payload))
-        message.ack()
+        try:
+            self.queue.add(convert.value2json(payload))
+            message.ack()
+        except Exception, e:
+            if not self.queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
+                raise e
 
     def _worker(self, please_stop):
         while not please_stop:
@@ -79,7 +83,12 @@ class Pulse(Thread):
     def __exit__(self, exc_type, exc_val, exc_tb):
         Log.note("clean pulse exit")
         self.please_stop.go()
-        self.queue.close()
+        try:
+            self.queue.add(Thread.STOP)
+            Log.note("stop put into queue")
+        except:
+            pass
+
         try:
             self.pulse.disconnect()
         except Exception, e:
