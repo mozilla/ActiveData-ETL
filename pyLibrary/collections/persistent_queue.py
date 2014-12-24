@@ -14,7 +14,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
-from pyLibrary.structs import Struct, wrap
+from pyLibrary.structs import Struct, wrap, nvl
 from pyLibrary.thread.threads import Lock, Thread, Signal
 
 
@@ -24,7 +24,7 @@ DEBUG = True
 class PersistentQueue(object):
     """
     THREAD-SAFE, PERSISTENT QUEUE
-    IT IS IMPORTANT YOU commit(), OTHERWISE NOTHING COMES OFF THE QUEUE
+    IT IS IMPORTANT YOU commit() or close(), OTHERWISE NOTHING COMES OFF THE QUEUE
     """
 
     def __init__(self, _file):
@@ -44,6 +44,8 @@ class PersistentQueue(object):
                     apply_delta(self.db, delta)
                 except:
                     pass
+            if self.db.status.start == None:  # HAPPENS WHEN ONLY ADDED TO QUEUE, THEN CRASH
+                self.db.status.start = 0
             self.start = self.db.status.start
             if DEBUG:
                 Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
@@ -145,12 +147,16 @@ class PersistentQueue(object):
                     Log.note("Clear persistent queue")
                 self.file.delete()
                 self.pending = []
+            elif self.db.status.end - self.start < 10:
+                # SIMPLY REWRITE FILE
+                self.file.write(convert.value2json({"add": self.db}) + "\n")
+                self.pending = []
             else:
+                self._apply({"add": {"status.start": self.db.status.start}})
                 for i in range(self.db.status.start, self.start):
                     self._apply({"remove": str(i)})
 
                 self.db.status.start = self.start
-                self._apply({"add": {"status.start": self.db.status.start}})
                 self._commit()
 
     def _commit(self):

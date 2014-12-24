@@ -41,7 +41,7 @@ def logger_startup(synch):
             start_time = last_run.shutdown
             Log.note("{{synchro_key}} exists.  Starting at {{start_time}}, {{num}}", {
                 "start_time": start_time,
-                "synchro_key=": SYNCHRONIZATION_KEY,
+                "synchro_key": SYNCHRONIZATION_KEY,
                 "num": key
             })
         else:
@@ -63,7 +63,7 @@ def logger_startup(synch):
             Log.error("Can not start", e)
         Log.note("{{synchro_key}} does not exist.  Starting over {{start_time}}", {
             "start_time": start_time,
-            "synchro_key=": SYNCHRONIZATION_KEY
+            "synchro_key": SYNCHRONIZATION_KEY
         })
         key = 0
 
@@ -110,7 +110,7 @@ def main():
                             except Exception, e:
                                 queue.rollback()
                                 if not queue.closed:
-                                    Log.warning("Problem writing {key}} to S3", {"key": full_key}, e)
+                                    Log.warning("Problem writing {{key}} to S3", {"key": full_key}, e)
 
                             if please_stop:
                                 break

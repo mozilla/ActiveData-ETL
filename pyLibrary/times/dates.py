@@ -13,9 +13,11 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from copy import copy
 
 from datetime import datetime, date, timedelta
 import math
+from pyLibrary.times.durations import Duration
 from pyLibrary.vendor.dateutil.parser import parse as parse_date
 try:
     import pytz
@@ -94,9 +96,30 @@ class Date(object):
     def addDay(self):
         return Date(self.value + timedelta(days=1))
 
-    def add(self, interval):
-        return Date(self.value+interval)
-
+    def add(self, other):
+        if isinstance(other, datetime):
+            return Date(self.value - other)
+        elif isinstance(other, date):
+            return Date(self.value - other)
+        elif isinstance(other, Date):
+            return Date(self.value - other.value)
+        elif isinstance(other, Duration):
+            if other.month:
+                if (self.value+timedelta(days=1)).month != self.value.month:
+                    # LAST DAY OF MONTH
+                    output = add_month(self.value+timedelta(days=1), other.month) - timedelta(day=1)
+                    return Date(output)
+                else:
+                    day = self.value.day
+                    num_days = (add_month(datetime(self.value.year, self.value.month, 1), other.month+1) - timedelta(days=1)).day
+                    day = min(day, num_days)
+                    curr = set_day(self.value, day)
+                    output = add_month(curr, other.month)
+                    return Date(output)
+            else:
+                return Date(self.milli + other.milli/1000)
+        else:
+            Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
 
     @staticmethod
     def now():
@@ -117,14 +140,49 @@ class Date(object):
         return str(self.value)
 
     def __sub__(self, other):
-        if isinstance(other, datetime):
-            return self.value - other
-        elif isinstance(other, date):
-            return self.value - other
-        elif isinstance(other, Date):
-            return self.value - other.value
-        else:
-            Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
+        return self.add(-other)
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
+
+    def __add__(self, other):
+        return self.add(other)
+
+
+def add_month(offset, months):
+    month = offset.month+months-1
+    year = offset.year
+    if not 0 <= month < 12:
+        year += int((month - (month % 12)) / 12)
+        month = (month % 12)
+    month += 1
+
+    output = datetime(
+        year=year,
+        month=month,
+        day=offset.day,
+        hour=offset.hour,
+        minute=offset.minute,
+        second=offset.second,
+        microsecond=offset.microsecond
+    )
+    return output
+
+
+def set_day(offset, day):
+    output = datetime(
+        year=offset.year,
+        month=offset.month,
+        day=day,
+        hour=offset.hour,
+        minute=offset.minute,
+        second=offset.second,
+        microsecond=offset.microsecond
+    )
+    return output
 
 
 def unicode2datetime(value, format=None):

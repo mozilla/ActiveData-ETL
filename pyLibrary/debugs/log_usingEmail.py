@@ -11,10 +11,17 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary.debugs.logs import BaseLog, Log
 
-from .logs import BaseLog
 from pyLibrary.env.emailer import Emailer
 from pyLibrary.strings import expand_template
+from pyLibrary.thread.threads import Lock
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import Duration
+
+
+WAIT_TO_SEND_MORE = Duration.HOUR
+
 
 
 class Log_usingEmail(BaseLog):
@@ -38,19 +45,32 @@ class Log_usingEmail(BaseLog):
         """
         assert settings.log_type == "email", "Expecing settings to be of type 'email'"
         self.settings = settings
+        self.accumulation = []
+        self.last_sent = Date.now()-Duration.YEAR
+        self.locker = Lock()
 
     def write(self, template, params):
-        if params.params.warning.template or params.params.warning.template:
-            try:
-                with Emailer(self.settings.emailer) as emailer:
-                    emailer.send_email(
-                        from_address=self.settings.from_address,
-                        to_addrs=self.settings.to_address,
-                        subject=self.settings.subject,
-                        text_data=expand_template(template, params)
-                    )
-            except Exception, e:
-                pass  # ALL HOPE IS LOST
+        with self.locker:
+            if params.params.warning.template or params.params.warning.template:
+                self.accumulation.append(expand_template(template, params))
+
+                if Date.now() > self.last_sent + WAIT_TO_SEND_MORE:
+                    self._send_email()
+
+
+    def _send_email(self):
+        try:
+            with Emailer(self.settings) as emailer:
+                emailer.send_email(
+                    from_address=self.settings.from_address,
+                    to_addrs=self.settings.to_address,
+                    subject=self.settings.subject,
+                    text_data="\n\n".join(self.accumulation)
+                )
+            self.last_sent = Date.now()
+            self.accumulation = []
+        except Exception, e:
+            Log.warning("Could not send", e)
 
 
 

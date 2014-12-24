@@ -14,7 +14,6 @@ from datetime import timedelta
 
 from pyLibrary import regex
 from pyLibrary.vendor.dateutil.relativedelta import relativedelta
-from pyLibrary import convert
 from pyLibrary.collections import MIN
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
@@ -55,6 +54,7 @@ class Duration(object):
         elif Math.is_nan(value):
             return None
         else:
+            from pyLibrary import convert
             Log.error("Do not know type of object (" + convert.value2json(value) + ")of to make a Duration")
 
 
@@ -69,6 +69,13 @@ class Duration(object):
         output.milli = self.milli * amount
         output.month = self.month * amount
         return output
+
+    def __neg__(self):
+        output = Duration(0)
+        output.milli = -self.milli
+        output.month = -self.month
+        return output
+
 
     def __rmul__(self, amount):
         output = Duration(0)
@@ -238,7 +245,7 @@ def _string2Duration(text):
         return Duration(0)
 
     amount, interval = regex.match(r"([\d\.]*)(.*)", text)
-    amount = convert.value2int(amount) if amount else 1
+    amount = int(amount) if amount else 1
 
     if MILLI_VALUES[interval] == None:
         Log.error(interval + " is not a recognized duration type (did you use the pural form by mistake?")

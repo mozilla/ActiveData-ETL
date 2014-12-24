@@ -65,17 +65,17 @@ class Log(object):
             return Log_usingFile(settings.file)
         if settings.log_type == "file" or settings.filename:
             return Log_usingFile(settings.filename)
+        if settings.log_type == "console":
+            from .log_usingStream import Log_usingStream
+            return Log_usingStream(sys.stdout)
         if settings.log_type == "stream" or settings.stream:
             from .log_usingStream import Log_usingStream
-
             return Log_usingStream(settings.stream)
         if settings.log_type == "elasticsearch" or settings.stream:
             from .log_usingElasticSearch import Log_usingElasticSearch
-
             return Log_usingElasticSearch(settings)
         if settings.log_type == "email":
             from .log_usingEmail import Log_usingEmail
-
             return Log_usingEmail(settings)
 
 
