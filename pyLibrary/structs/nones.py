@@ -22,7 +22,8 @@ class NullType(object):
         Null[x] == Null
         Null.x == Null
 
-    Null INSTANCES WILL TRACK THE
+    Null INSTANCES WILL TRACK THEIR OWN DEREFERENCE PATH SO
+    ASSIGNMENT CAN BE DONE
     """
 
     def __init__(self, obj=None, path=None):
@@ -41,6 +42,18 @@ class NullType(object):
 
     def __radd__(self, other):
         return Null
+
+    def __iadd__(self, other):
+        try:
+            d = _get(self, "__dict__")
+            o = d["_obj"]
+            path = d["_path"]
+            seq = split_field(path)
+
+            _assign(o, seq, other)
+        except Exception, e:
+            raise e
+        return other
 
     def __sub__(self, other):
         return Null

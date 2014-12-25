@@ -17,35 +17,39 @@ not have the features listed here.
 
  1. ```a.b == a["b"]```
  2. missing keys are handled gracefully, which is beneficial when being used in
-set operations (database operations) without raising exceptions
-```python
-    a = wrap({})
-    >>> a == {}
-    a.b == None
-    >>> True
-    a.b.c == None
-    >>> True
-    a[None] == None
-    >>> True
-'''
-missing keys are common when dealing with JSON, which is often almost anything.
-Unfortunately, you do loose the ability to perform <code>a is None</code>
-checks:  You must always use <code>a == None</code> instead.
- 3. remove an attribute by assigning ```None``` (eg ```a.b = None```)
+    set operations (database operations) without raising exceptions <pre>
+a = wrap({})
+&gt;&gt;&gt; a == {}
+a.b == None
+&gt;&gt;&gt; True
+a.b.c == None
+&gt;&gt;&gt; True
+a[None] == None
+&gt;&gt;&gt; True</pre>
+    missing keys are common when dealing with JSON, which is often almost anything.
+    Unfortunately, you do loose the ability to perform <code>a is None</code>
+    checks:  You must always use <code>a == None</code> instead.
+ 3. remove an attribute by assigning `None` (eg ```a.b = None```)
  4. you can access paths as a variable:  ```a["b.c"] == a.b.c```.  Of course,
  this creates a need to refer to literal dot (.), which can be done by
  escaping with backslash: ```a["b\\.c"] == a["b\.c"]```
- 5. you can set paths to values, missing dicts along the path are created:
-'''python
-    a = wrap({})
-    >>> a == {}
-    a["b.c"] = 42>
-    >>> a == {"b": {"c": 42}}
-'''
- 6. attribute names (keys) are corrected to unicode - it appears Python
+ 5. you can set paths to values, missing dicts along the path are created:<pre>
+a = wrap({})
+&gt;&gt;&gt; a == {}
+a["b.c"] = 42   # same as a.b.c = 42
+&gt;&gt;&gt; a == {"b": {"c": 42}}</pre>
+ 6. path assignment also works for the `+=` operator <pre>
+a = wrap({})
+&gt;&gt;&gt; a == {}
+a.b.c += 1
+&gt;&gt;&gt; a == {"b": {"c": 1}}
+a.b.c += 42
+&gt;&gt;&gt; a == {"b": {"c": 43}}
+</pre>
+ 7. attribute names (keys) are corrected to unicode - it appears Python
  object.getattribute() is called with str() even when using ```from __future__
  import unicode_literals```
- 7. by allowing dot notation, the IDE does tab completion and my spelling
+ 8. by allowing dot notation, the IDE does tab completion and my spelling
  mistakes get found at "compile time"
 
 ### Examples in the wild###
@@ -73,7 +77,6 @@ and does not look at field-does-not-exist-in-this-context (Database Null)
 
 Null is the new None
 --------------------
-
 ```None``` is a primitive that can not be extended, so we create a new type,
 ```NullType``` and instances, ```Null```, which are closed under the dot(.)
 and slice [::] operators.  In many ways, ```Null``` acts as both an impotent
@@ -98,13 +101,23 @@ NullTypes can also perform lazy assignment for increased expressibility.
     x == None
     >>> True
     x = 42
-    a.b == 42
+    a.b.c == 42
     >>> True
 ```
 in this case, specific ```Nulls```, like  ```x```, keep track of the path
 assignment so it can be used in later programming logic.  This feature proves
 useful when transforming hierarchical data; adding deep children to an
 incomplete tree.
+
+### Null Arithmetic ###
+
+When `Null` is part of arithmetic operation (boolean or otherwise) it results in ```Null```:
+
+ * ```a ∘ Null == Null```
+ * ```Null ∘ a == Null```
+
+where `∘` is any binary operator.
+
 
 
 Motivation for StructList

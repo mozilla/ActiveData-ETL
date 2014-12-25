@@ -57,6 +57,9 @@ class Log_usingEmail(BaseLog):
                 if Date.now() > self.last_sent + WAIT_TO_SEND_MORE:
                     self._send_email()
 
+    def stop(self):
+        with self.locker:
+            self._send_email()
 
     def _send_email(self):
         try:

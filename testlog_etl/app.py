@@ -24,7 +24,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 
-
 def process(settings, queue, please_stop):
     es = Cluster(settings.destination).get_or_create_index(settings.destination)
     with Pulse(settings.source, queue=queue):
@@ -34,12 +33,15 @@ def process(settings, queue, please_stop):
 
             found_log = False
             for name, url in meta.run.files.items():
-                if "structured" in name and name.endswith(".log"):
-                    found_log = True
-                    with Timer("Process log {{file}}", {"file": name}):
-                        results = process_log(name, url)
-                    meta.counts = results.counts
-                    es.extend([{"value": set_default({"result": t}, meta)} for t in results.tests])
+                try:
+                    if "structured" in name and name.endswith(".log"):
+                        found_log = True
+                        with Timer("Process log {{file}}", {"file": name}):
+                            results = process_log(name, url)
+                        meta.run.counts = results.counts
+                        es.extend([{"value": set_default({"result": t}, meta)} for t in results.tests])
+                except Exception, e:
+                    Log.error("Problem processing {{url}}", {"url": url}, e)
 
             if not found_log:
                 Log.note("NO STRUCTURED LOG")
@@ -47,30 +49,30 @@ def process(settings, queue, please_stop):
 
 def process_log(name, url):
     accumulator = LogSummary(name)
-    accumulator.suite_start()
 
-    response = requests.get(url, stream=True)
+    if url:
+        response = requests.get(url)
+    else:
+        response = {"content": ""}  # DUMMY CONTENT FOR null URL
+
     num_lines = 0
-    for line in response.iter_lines():
+    for line in response.content.split("\n"):
+        if line.strip() == "":
+            continue
         num_lines += 1
-        try:
-            if "test_start" in line:
-                log = convert.json2value(convert.utf82unicode(line))
-                if log.action == "test_start":
-                    accumulator.test_start(log)
-                    continue
+        log = convert.json2value(convert.utf82unicode(line))
 
-            if "test_end" in line:
-                log = convert.json2value(convert.utf82unicode(line))
-                if log.action == "test_end":
-                    accumulator.test_end(log)
-                    continue
+        # FIX log.test TO BE A STRING
+        if isinstance(log.test, list):
+            log.test = " ".join(log.test)
+        try:
+            accumulator.__getattribute__(log.action)(log)
         except Exception, e:
             Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
-    output = accumulator.suite_end()
+    output = accumulator.summary()
     output.counts.lines = num_lines
-    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": num_lines, "num_tests":  output.counts.total, "name": name})
+    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": num_lines, "num_tests": output.counts.total, "name": name})
     return output
 
 
@@ -80,7 +82,7 @@ class LogSummary(object):
         self.tests = {}
 
 
-    def suite_start(self):
+    def suite_start(self, log):
         pass
 
     def test_start(self, log):
@@ -91,41 +93,87 @@ class LogSummary(object):
             start=log.time
         )
 
-    def test_end(self, log):
-        if isinstance(log.test, list):
-            log.test = " ".join(log.test)
-        if log.test in self.tests:
-            test = self.tests[log.test]
-            test.ok = not log.expected
-            test.result = log.status
-            test.expected = nvl(log.expected, log.status)
-            test.end = log.time
-            test.duration = test.end - test.start
-            test.extra = test.extra
-        else:
+    def test_status(self, log):
+        test = self.tests.get(log.test, None)
+        if not test:
             self.tests[log.test] = test = Struct(
-                ok=not log.expected,
-                result=log.status,
-                expected=nvl(log.expected, log.status),
                 test=log.test,
-                end=log.time,
-                duration=log.extra.runtime,
-                extra=log.extra,
+                start=log.time,
                 missing_test_start=True
             )
-            if test.duration:
-                test.start = test.end - test.duration
+        test.last_log = log.time
+        test.stati[log.status.lower()] += 1
+
+    def process_output(self, log):
+        pass
+
+    def log(self, log):
+        if not log.test:
+            return
+
+        test = self.tests.get(log.test, None)
+        if not test:
+            self.tests[log.test] = test = Struct(
+                test=log.test,
+                start=log.time,
+                missing_test_start=True
+            )
+        test.last_log = log.time
+        test.counts.log_lines += 1
+
+    def crash(self, log):
+        if not log.test:
+            return
+
+        test = self.tests.get(log.test, None)
+        if not test:
+            self.tests[log.test] = test = Struct(
+                test=log.test,
+                start=log.time,
+                crash=True,
+                missing_test_start=True
+            )
+        test.last_log = log.time
+
+    def test_end(self, log):
+        test = self.tests.get(log.test, None)
+        if not test:
+            self.tests[log.test] = test = Struct(
+                test=log.test,
+                start=log.time,
+                missing_test_start=True
+            )
+
+        test.ok = not log.expected
+        test.result = log.status
+        test.expected = nvl(log.expected, log.status)
+        test.end = log.time
+        test.duration = nvl(test.end - test.start, log.extra.runtime)
+        test.extra = test.extra
 
         if not test.ok:
             Log.note("Bad test {{result}}", {"result": test})
 
-    def suite_end(self):
+
+    def suite_end(self, log):
+        pass
+
+    def summary(self):
         tests = wrap(self.tests.values())
+
+        for t in tests:
+            if not t.result:
+                t.result = "NONE"
+                t.end = t.last_log
+                t.duration = t.end - t.start
+                t.missing_test_end = True
+
         output = Struct(
             url=self.url,
             tests=tests
         )
         output.counts.total = len(tests)
+        output.counts.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for r in set(tests.select("result")):
