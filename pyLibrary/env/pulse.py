@@ -66,7 +66,7 @@ class Pulse(Thread):
         if self.settings.debug:
             Log.note("{{data}}", {"data": payload})
         try:
-            self.queue.add(convert.value2json(payload))
+            self.queue.add(payload)
             message.ack()
         except Exception, e:
             if not self.queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
