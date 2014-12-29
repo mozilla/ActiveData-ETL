@@ -22,6 +22,8 @@ import gc
 # THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
 # FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
 from pyLibrary.structs import nvl, Struct
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import Duration
 
 
 DEBUG = True
@@ -353,13 +355,36 @@ class Thread(object):
         return output
 
     @staticmethod
-    def sleep(seconds=None, till=None):
+    def sleep(seconds=None, till=None, please_stop=None):
+
+        if please_stop is not None or isinstance(till, Signal):
+            if isinstance(till, Signal):
+                please_stop = till
+                till = Date.MAX
+
+            if seconds is not None:
+                till = datetime.utcnow() + (Duration.SECOND * seconds)
+            elif till is None:
+                till = Date.MAX
+
+            while not please_stop:
+                if till > datetime.utcnow():
+                    time.sleep(1)
+            return
+
         if seconds is not None:
             time.sleep(seconds)
         elif till is not None:
-            duration = (till - datetime.utcnow()).total_seconds()
+            if isinstance(till, datetime):
+                duration = (till - datetime.utcnow()).total_seconds()
+            else:
+                duration = (till - datetime.utcnow()).total_seconds
+
             if duration > 0:
-                time.sleep(duration)
+                try:
+                    time.sleep(duration)
+                except Exception, e:
+                    raise e
         else:
             while True:
                 time.sleep(10)

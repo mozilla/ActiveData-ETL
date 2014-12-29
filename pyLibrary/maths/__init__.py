@@ -12,7 +12,7 @@ from __future__ import division
 import math
 import __builtin__
 
-from pyLibrary.debugs.logs import Log
+
 from pyLibrary.strings import find_first
 from pyLibrary.structs import Null, nvl
 
@@ -32,6 +32,7 @@ class Math(object):
     def bayesian_add(*args):
         a = args[0]
         if a >= 1 or a <= 0:
+            from pyLibrary.debugs.logs import Log
             Log.error("Only allowed values *between* zero and one")
 
         for b in args[1:]:
@@ -77,6 +78,7 @@ class Math(object):
                 return math.log(v)
             return math.log(v, base)
         except Exception, e:
+            from pyLibrary.debugs.logs import Log
             Log.error("error in log")
 
 
@@ -152,6 +154,7 @@ class Math(object):
                 m = pow(10, math.ceil(math.log10(abs(value))))
                 return __builtin__.round(value / m, digits) * m
             except Exception, e:
+                from pyLibrary.debugs.logs import Log
                 Log.error("not expected", e)
 
         return __builtin__.round(value, decimal)

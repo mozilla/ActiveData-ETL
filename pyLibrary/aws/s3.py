@@ -1,3 +1,15 @@
+# encoding: utf-8
+#
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+from __future__ import unicode_literals
+from __future__ import division
+
 import boto
 from pyLibrary import convert
 
@@ -20,6 +32,55 @@ class File(object):
     def write(self, value):
         self.bucket.write(self.key, value)
 
+
+class Connection(object):
+    def __init__(self, settings):
+        """
+        SETTINGS:
+        bucket - NAME OF THE BUCKET
+        aws_access_key_id - CREDENTIAL
+        aws_secret_access_key - CREDENTIAL
+        """
+        self.settings = settings
+        self.connection = None
+
+
+    def __enter__(self):
+        try:
+            if self.connection:
+                Log.error("Already connected")
+
+            aws_access_key_id=nvl(
+                self.settings.aws_access_key_id,
+                self.settings.access_key_id,
+                self.settings.username,
+                self.settings.user
+            )
+            aws_secret_access_key=nvl(
+                self.settings.aws_secret_access_key,
+                self.settings.secret_access_key,
+                self.settings.password
+            )
+            if aws_access_key_id == None or aws_secret_access_key == None:
+                Log.error("require aws_access_key_id and aws_secret_access_key to connect to S3")
+
+            self.connection = boto.connect_s3(
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key
+            )
+
+            return self
+        except Exception, e:
+            Log.error("Problem connecting to S3", e)
+
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.connection:
+            self.connection.close()
+
+
+    def get_bucket(self, name):
+        self.bucket = self.connection.get_bucket(name, validate=False)
 
 
 class Bucket(object):
@@ -73,6 +134,9 @@ class Bucket(object):
     def get_key(self, key):
         return File(self, key)
 
+    def keys(self, prefix=None):
+        return set(self.bucket.list(prefix=prefix))
+
     def read(self, key):
         try:
             value = self.bucket.get_key(key)
@@ -80,7 +144,7 @@ class Bucket(object):
             Log.error(READ_ERROR, e)
 
         if value == None:
-            Log.error("{{key}} does not exist", {"key": key})
+            return None
 
         try:
             json = value.get_contents_as_string()

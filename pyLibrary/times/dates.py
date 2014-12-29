@@ -13,12 +13,12 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from copy import copy
 
 from datetime import datetime, date, timedelta
 import math
-from pyLibrary.times.durations import Duration
+
 from pyLibrary.vendor.dateutil.parser import parse as parse_date
+
 try:
     import pytz
 except Exception, e:
@@ -28,8 +28,8 @@ from pyLibrary.strings import deformat
 
 class Date(object):
 
-    MIN = datetime(1, 1, 1)
-    MAX = datetime(2286, 11, 20, 17, 46, 39)
+    MIN = None
+    MAX = None
 
     def __init__(self, *args):
         try:
@@ -117,7 +117,7 @@ class Date(object):
                     output = add_month(curr, other.month)
                     return Date(output)
             else:
-                return Date(self.milli + other.milli/1000)
+                return Date(self.milli + other.milli)
         else:
             Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
 
@@ -140,16 +140,34 @@ class Date(object):
         return str(self.value)
 
     def __sub__(self, other):
+        if isinstance(other, datetime):
+            return Duration(self.milli-Date(other).milli)
+        if isinstance(other, Date):
+            return Duration(self.milli-other.milli)
+
         return self.add(-other)
 
     def __gt__(self, other):
+        if isinstance(other, datetime):
+            return self.value > other
+
         return self.value > other.value
 
     def __ge__(self, other):
+        if isinstance(other, datetime):
+            return self.value >= other
+
         return self.value >= other.value
 
     def __add__(self, other):
         return self.add(other)
+
+
+Date.MIN = Date(datetime(1, 1, 1))
+Date.MAX = Date(datetime(2286, 11, 20, 17, 46, 39))
+
+
+
 
 
 def add_month(offset, months):
@@ -237,3 +255,4 @@ def unicode2datetime(value, format=None):
 
 
 from pyLibrary.debugs.logs import Log
+from pyLibrary.times.durations import Duration

@@ -24,63 +24,91 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 
-def process(settings, queue, please_stop):
-    es = Cluster(settings.destination).get_or_create_index(settings.destination)
-    with Pulse(settings.source, queue=queue):
-        for data in queue:
-            meta = transform_buildbot(data)
-            Log.note("{{data}}", {"data": meta})
 
-            found_log = False
-            for name, url in meta.run.files.items():
-                try:
-                    if "structured" in name and name.endswith(".log"):
-                        found_log = True
-                        with Timer("Process log {{file}}", {"file": name}):
-                            results = process_log(name, url)
-                        meta.run.counts = results.counts
-                        es.extend([{"value": set_default({"result": t}, meta)} for t in results.tests])
-                except Exception, e:
-                    Log.error("Problem processing {{url}}", {"url": url}, e)
+def process_unittest(envelope, sink):
+    data = transform_buildbot(envelope.payload)
+    Log.note("{{data}}", {"data": data})
 
-            if not found_log:
-                Log.note("NO STRUCTURED LOG")
+    found_log = False
+    all_tests = []
+    for name, url in data.run.files.items():
+        try:
+            if "structured" in name and name.endswith(".log"):
+                found_log = True
+                with Timer("Process log {{file}}", {"file": name}):
+                    results = process_log(name, url)
+                data.run.counts = results.counts
+                all_tests.append(results.tests)
+        except Exception, e:
+            Log.error("Problem processing {{url}}", {"url": url}, e)
+
+    if found_log:
+        Log.note("NO STRUCTURED LOG")
+        return
+
+    data.etl = {
+        "name": "unittest",
+        "timestamp": Date.now().milli,
+        "source": data.etl,
+        "type": "join"
+    }
+
+    sink.write("\n".join([
+        set_default(
+            {
+                "result": t,
+                "etl": {
+                    "id": i
+                }
+            },
+            data
+        )
+        for i, t in enumerate(all_tests)
+    ]))
 
 
 def process_log(name, url):
-    accumulator = LogSummary(name)
+    accumulator = LogSummary()
+    accumulator.url = url
+    accumulator.counts.lines = 0
 
     if url:
         response = requests.get(url)
     else:
-        response = {"content": ""}  # DUMMY CONTENT FOR null URL
+        response = Struct(content="")  # DUMMY CONTENT FOR null URL
 
-    num_lines = 0
+
     for line in response.content.split("\n"):
         if line.strip() == "":
             continue
-        num_lines += 1
-        log = convert.json2value(convert.utf82unicode(line))
-
-        # FIX log.test TO BE A STRING
-        if isinstance(log.test, list):
-            log.test = " ".join(log.test)
         try:
+            accumulator.counts.lines += 1
+            log = convert.json2value(convert.utf82unicode(line))
+
+            # FIX log.test TO BE A STRING
+            if isinstance(log.test, list):
+                log.test = " ".join(log.test)
+
             accumulator.__getattribute__(log.action)(log)
         except Exception, e:
+            accumulator.counts.bad_lines += 1
             Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
-    output.counts.lines = num_lines
-    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": num_lines, "num_tests": output.counts.total, "name": name})
+    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": output.counts.lines, "num_tests": output.counts.total, "name": name})
     return output
 
 
 class LogSummary(object):
-    def __init__(self, url):
-        self.url = url
-        self.tests = {}
+    def __init__(self):
+        object.__setattr__(self, "tests", {})
+        object.__setattr__(self, "attr", Struct())
 
+    def __getattr__(self, item):
+        return object.__getattribute__(self, "attr")[item]
+
+    def __setattr__(self, key, value):
+        object.__getattribute__(self, "attr")[key] = value
 
     def suite_start(self, log):
         pass
@@ -168,10 +196,8 @@ class LogSummary(object):
                 t.duration = t.end - t.start
                 t.missing_test_end = True
 
-        output = Struct(
-            url=self.url,
-            tests=tests
-        )
+        output = self.attr
+        output.tests = tests
         output.counts.total = len(tests)
         output.counts.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
@@ -226,13 +252,12 @@ def main():
         Log.start(settings.debug)
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
-            queue = Queue()
+            es = Cluster(settings.destination).get_or_create_index(settings.destination)
+            pulse = Pulse(settings.source, target=functools.partial(process_unittest, sink=es))
 
-            thread = Thread.run("processing", process, settings, queue)
             Thread.wait_for_shutdown_signal()
-            queue.add(Thread.STOP)
-            thread.stop()
-            thread.join()
+            pulse.stop()
+            pulse.join()
 
     except Exception, e:
         Log.error("Problem with etl", e)

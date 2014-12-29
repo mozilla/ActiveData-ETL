@@ -10,12 +10,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from pyLibrary import regex
+from pyLibrary.times.dates import Date
 from pyLibrary.vendor.dateutil.relativedelta import relativedelta
 from pyLibrary.collections import MIN
-from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.structs.wraps import wrap
 
@@ -55,6 +55,7 @@ class Duration(object):
             return None
         else:
             from pyLibrary import convert
+            from pyLibrary.debugs.logs import Log
             Log.error("Do not know type of object (" + convert.value2json(value) + ")of to make a Duration")
 
 
@@ -63,6 +64,13 @@ class Duration(object):
         output.milli = self.milli + other.milli
         output.month = self.month + other.month
         return output
+
+    def __radd__(self, other):
+        if isinstance(other, datetime.datetime):
+            return Date(other).add(self)
+        elif isinstance(other, Date):
+            return other.add(self)
+        return self + other
 
     def __mul__(self, amount):
         output = Duration(0)
@@ -98,6 +106,7 @@ class Duration(object):
             else:
                 r = r - (self.month * MILLI_VALUES.month)
                 if r >= MILLI_VALUES.day * 31:
+                    from pyLibrary.debugs.logs import Log
                     Log.error("Do not know how to handle")
             r = MIN(29 / 30, (r + tod) / (MILLI_VALUES.day * 30))
 
@@ -132,10 +141,13 @@ class Duration(object):
         else:
             return time - relativedelta(months=self.month, seconds=self.milli/1000)
 
-
+    @property
+    def total_seconds(self):
+        return self.milli / 1000
 
     def floor(self, interval=None):
         if not isinstance(interval, Duration):
+            from pyLibrary.debugs.logs import Log
             Log.error("Expecting an interval as a Duration object")
 
         output = Duration(0)
@@ -248,6 +260,7 @@ def _string2Duration(text):
     amount = int(amount) if amount else 1
 
     if MILLI_VALUES[interval] == None:
+        from pyLibrary.debugs.logs import Log
         Log.error(interval + " is not a recognized duration type (did you use the pural form by mistake?")
 
     output = Duration(0)

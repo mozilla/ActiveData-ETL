@@ -32,6 +32,10 @@ class Random(object):
         return SEED.randrange(*args)
 
     @staticmethod
+    def range(*args):
+        return SEED.randrange(*args)
+
+    @staticmethod
     def float(*args):
         if args:
             return SEED.random()*args[0]

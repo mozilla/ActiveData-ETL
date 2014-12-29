@@ -72,13 +72,15 @@ class StructList(list):
     def select(self, key):
         output = []
         for v in _get(self, "list"):
-            try:
-                output.append(v.__getattribute__(key))
-            except Exception, e:
-                try:
-                    output.append(v.__getitem__(key))
-                except Exception, f:
-                    output.append(None)
+            output.append(unwrap(wrap(v)[key]))
+
+            # try:
+            #     output.append(v.__getattribute__(key))
+            # except Exception, e:
+            #     try:
+            #         output.append(v.__getitem__(key))
+            #     except Exception, f:
+            #         output.append(None)
 
         return StructList(output)
 

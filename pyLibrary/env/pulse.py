@@ -21,9 +21,11 @@ from pyLibrary.thread.threads import Thread, Queue
 
 class Pulse(Thread):
 
-    def __init__(self, settings, queue=None):
+    def __init__(self, settings, queue=None, target=None, start=None):
         """
         queue (aka aelf.queue) WILL BE FILLED WITH PULSE PAYLOADS
+        target WILL BE CALLED WITH PULSE PAYLOADS AND ack() IF COMPLETE$ED WITHOUT EXCEPTION
+        start - USED AS STARTING POINT FOR ASSIGNING THE _meta.count ATTRIBUTE
 
         settings IS A STRUCT WITH FOLLOWING PARAMETERS
 
@@ -46,10 +48,10 @@ class Pulse(Thread):
 
         """
 
-        if queue == None:
-            self.queue = Queue()
-        else:
-            self.queue = queue
+        self.queue = queue
+        self.pulse_target = target
+        if (queue == None and target == None) or (queue != None and target != None):
+            Log.error("Expecting a queue (for fast digesters) or a target (for slow digesters)")
 
         Thread.__init__(self, name="Pulse consumer for " + settings.exchange, target=self._worker)
         self.settings = set_default({"broker_timezone": "GMT"}, settings, PulseConfiguration.defaults)
@@ -58,19 +60,29 @@ class Pulse(Thread):
         self.settings.applabel = nvl(self.settings.applable, self.settings.queue, self.settings.queue_name)
 
         self.pulse = GenericConsumer(self.settings, connect=True, **unwrap(self.settings))
+        self.count = nvl(start, 0)
         self.start()
 
 
     def _got_result(self, data, message):
-        payload = wrap(data).payload
+        data = wrap(data)
         if self.settings.debug:
-            Log.note("{{data}}", {"data": payload})
-        try:
-            self.queue.add(payload)
-            message.ack()
-        except Exception, e:
-            if not self.queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
-                raise e
+            Log.note("{{data}}", {"data": data})
+        if self.queue != None:
+            try:
+                data._meta.count = self.count
+                self.count += 1
+                self.queue.add(data)
+                message.ack()
+            except Exception, e:
+                if not self.queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
+                    raise e
+        else:
+            try:
+                self.pulse_target(data)
+                message.ack()
+            except Exception, e:
+                Log.error("Problem processing Pule payload\n{{data|indent}}", {"data": data}, e)
 
     def _worker(self, please_stop):
         while not please_stop:

@@ -14,6 +14,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
+from pyLibrary.maths.randoms import Random
 from pyLibrary.structs import Struct, wrap, nvl
 from pyLibrary.thread.threads import Lock, Thread, Signal
 
@@ -98,6 +99,9 @@ class PersistentQueue(object):
         with self.lock:
             return self.db.status.end - self.start
 
+    def __getitem__(self, item):
+        return self.db[str(item+self.start)]
+
     def pop(self):
         with self.lock:
             while not self.please_stop:
@@ -147,12 +151,12 @@ class PersistentQueue(object):
                     Log.note("Clear persistent queue")
                 self.file.delete()
                 self.pending = []
-            elif self.db.status.end - self.start < 10:
-                # SIMPLY REWRITE FILE
+            elif self.db.status.end - self.start < 10 or Random.range(1000)==0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
+                # SIMPLY RE-WRITE FILE
                 self.file.write(convert.value2json({"add": self.db}) + "\n")
                 self.pending = []
             else:
-                self._apply({"add": {"status.start": self.db.status.start}})
+                self._apply({"add": {"status.start": self.start}})
                 for i in range(self.db.status.start, self.start):
                     self._apply({"remove": str(i)})
 
