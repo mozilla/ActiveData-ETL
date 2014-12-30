@@ -135,7 +135,7 @@ class Bucket(object):
         return File(self, key)
 
     def keys(self, prefix=None):
-        return set(self.bucket.list(prefix=prefix))
+        return set(k.key for k in self.bucket.list(prefix=prefix))
 
     def read(self, key):
         try:
@@ -160,7 +160,10 @@ class Bucket(object):
     def write(self, key, value):
         try:
             key = self.bucket.new_key(key)
-            key.set_contents_from_string(convert.unicode2utf8(value))
+            if isinstance(value, str):
+                key.set_contents_from_string(value)
+            else:
+                key.set_contents_from_string(convert.unicode2utf8(value))
             if self.settings.public:
                 key.set_acl('public-read')
         except Exception, e:
