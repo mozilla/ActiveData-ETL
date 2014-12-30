@@ -23,63 +23,62 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 
 def log_loop(settings, synch, queue, bucket, please_stop):
-    work_queue = aws.Queue(settings.work_queue)
-
-    for i, g in Q.groupby(queue, size=settings.param.size):
-        etl_header = wrap({
-            "name": "Pulse block",
-            "bucket": settings.destination.bucket,
-            "timestamp": Date.now().milli,
-            "id": synch.next_key,
-            "source": {
-                "id": unicode(MIN(g.select("_meta.count"))),
-                "name": "pulse.mozilla.org"
-            },
-            "type": "aggregation"
-        })
-        full_key = etl2key(etl_header)
-        try:
-            output = [etl_header]
-            output.extend(
-                set_default(
-                    {"etl": {
-                        "name": "Pulse block",
-                        "bucket": settings.destination.bucket,
-                        "timestamp": Date.now().milli,
-                        "id": synch.next_key,
-                        "source": {
-                            "name": "pulse.mozilla.org",
-                            "timestamp": Date(d._meta.sent).milli,
-                            "id": d._meta.count
-                        }
-                    }},
-                    d.payload
+    with aws.Queue(settings.work_queue) as work_queue:
+        for i, g in Q.groupby(queue, size=settings.param.size):
+            etl_header = wrap({
+                "name": "Pulse block",
+                "bucket": settings.destination.bucket,
+                "timestamp": Date.now().milli,
+                "id": synch.next_key,
+                "source": {
+                    "id": unicode(MIN(g.select("_meta.count"))),
+                    "name": "pulse.mozilla.org"
+                },
+                "type": "aggregation"
+            })
+            full_key = etl2key(etl_header)
+            try:
+                output = [etl_header]
+                output.extend(
+                    set_default(
+                        {"etl": {
+                            "name": "Pulse block",
+                            "bucket": settings.destination.bucket,
+                            "timestamp": Date.now().milli,
+                            "id": synch.next_key,
+                            "source": {
+                                "name": "pulse.mozilla.org",
+                                "timestamp": Date(d._meta.sent).milli,
+                                "id": d._meta.count
+                            }
+                        }},
+                        d.payload
+                    )
+                    for i, d in enumerate(g)
                 )
-                for i, d in enumerate(g)
-            )
-            bucket.write(full_key + ".json", "\n".join(convert.value2json(d) for d in output))
-            synch.advance()
-            synch.source_key = MAX(g.select("_meta.count")) + 1
+                bucket.write(full_key + ".json", "\n".join(convert.value2json(d) for d in output))
+                synch.advance()
+                synch.source_key = MAX(g.select("_meta.count")) + 1
 
-            work_queue.add({
-                "bucket": bucket.name,
-                "key": full_key
-            })
+                work_queue.add({
+                    "bucket": bucket.name,
+                    "key": full_key
+                })
 
-            synch.ping()
-            queue.commit()
-            Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {
-                "num": len(g),
-                "bucket": bucket.name,
-                "key": full_key
-            })
-        except Exception, e:
-            queue.rollback()
-            if not queue.closed:
-                Log.warning("Problem writing {{key}} to S3", {"key": full_key}, e)
+                synch.ping()
+                queue.commit()
+                Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {
+                    "num": len(g),
+                    "bucket": bucket.name,
+                    "key": full_key
+                })
+            except Exception, e:
+                queue.rollback()
+                if not queue.closed:
+                    Log.warning("Problem writing {{key}} to S3", {"key": full_key}, e)
 
-        if please_stop:
-            break
+            if please_stop:
+                break
     Log.note("log_loop() completed on it's own")
 
 

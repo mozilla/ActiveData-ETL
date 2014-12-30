@@ -391,16 +391,19 @@ class Thread(object):
 
 
     @staticmethod
-    def wait_for_shutdown_signal():
+    def wait_for_shutdown_signal(please_stop=False):
         """
         SLEEP UNTIL keyboard interrupt
+
+        please_stop - ASSIGN SIGNAL TO STOP EARLY
+
         """
         if Thread.current() != MAIN_THREAD:
             from pyLibrary.debugs.logs import Log
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
         try:
-            while True:
+            while not please_stop:
                 try:
                     Thread.sleep(seconds=10)
                 except Exception, e:

@@ -55,17 +55,20 @@ class Queue(object):
             aws_access_key_id=settings.aws_access_key_id,
             aws_secret_access_key=settings.aws_secret_access_key,
         )
-        # temp = conn.get_all_queues()
         self.queue = conn.get_queue(settings.name)
         if self.queue == None:
             Log.error("Can not find queue with name {{queue}} in region {{region}}", {"queue": settings.name, "region": settings.region})
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def add(self, message):
         m = Message()
         m.set_body(convert.value2json(message))
         self.queue.write(m)
-
 
     def pop(self):
         m = self.queue.read()
@@ -73,7 +76,6 @@ class Queue(object):
             return None
         self.pending.append(m)
         return convert.json2value(m.get_body())
-
 
     def commit(self):
         pending = self.pending

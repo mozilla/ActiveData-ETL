@@ -133,8 +133,10 @@ class NullType(object):
             d = _get(self, "__dict__")
             o = d["_obj"]
             path = d["_path"]
-            seq = split_field(path)+split_field(key)
+            if path is None:
+                return   # NO NEED TO DO ANYTHING
 
+            seq = split_field(path)+split_field(key)
             _assign(o, seq, value)
         except Exception, e:
             raise e

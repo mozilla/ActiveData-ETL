@@ -9,13 +9,14 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from distutils.command.clean import clean
 
 import boto
 from pyLibrary import convert
 from pyLibrary.aws import cleanup
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import nvl
+from pyLibrary.structs import nvl, Null
 
 
 READ_ERROR="S3 read error"
@@ -43,17 +44,19 @@ class Connection(object):
         aws_secret_access_key - CREDENTIAL
         """
         self.settings = settings
-        self.connection = None
+
+        try:
+            cleanup(self.settings)
+            self.connection = boto.connect_s3(
+                aws_access_key_id=self.settings.aws_access_key_id,
+                aws_secret_access_key=self.settings.aws_secret_access_key
+            )
+        except Exception, e:
+            Log.error("Problem connecting to S3", e)
 
 
     def __enter__(self):
-        try:
-            if self.connection:
-                Log.error("Already connected")
-            self.connection = boto.connect_s3(**cleanup(self.settings))
-            return self
-        except Exception, e:
-            Log.error("Problem connecting to S3", e)
+        return self
 
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -62,7 +65,9 @@ class Connection(object):
 
 
     def get_bucket(self, name):
-        self.bucket = self.connection.get_bucket(name, validate=False)
+        output = Bucket(Null)
+        output.bucket = self.connection.get_bucket(name, validate=False)
+        return output
 
 
 class Bucket(object):
@@ -78,36 +83,20 @@ class Bucket(object):
         self.connection = None
         self.bucket = None
 
+        if settings==None:
+            return
 
-    def __enter__(self):
         try:
-            if self.connection:
-                Log.error("Already connected")
-
-            aws_access_key_id=nvl(
-                self.settings.aws_access_key_id,
-                self.settings.access_key_id,
-                self.settings.username,
-                self.settings.user
-            )
-            aws_secret_access_key=nvl(
-                self.settings.aws_secret_access_key,
-                self.settings.secret_access_key,
-                self.settings.password
-            )
-            if aws_access_key_id == None or aws_secret_access_key == None:
-                Log.error("require aws_access_key_id and aws_secret_access_key to connect to S3")
-
-            self.connection = boto.connect_s3(
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key
-            )
-
+            self.connection = Connection(settings).connection
             self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
-            return self
         except Exception, e:
             Log.error("Problem connecting to {{bucket}}", {"bucket": self.settings.bucket}, e)
 
+
+
+
+    def __enter__(self):
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.connection:
