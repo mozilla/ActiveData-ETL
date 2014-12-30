@@ -73,6 +73,7 @@ class Log_usingEmail(BaseLog):
             self.last_sent = Date.now()
             self.accumulation = []
         except Exception, e:
+            self.last_sent = Date.now()
             Log.warning("Could not send", e)
 
 
