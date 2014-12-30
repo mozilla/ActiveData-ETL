@@ -12,6 +12,7 @@ from __future__ import division
 
 import boto
 from pyLibrary import convert
+from pyLibrary.aws import cleanup
 
 from pyLibrary.debugs.logs import Log
 from pyLibrary.structs import nvl
@@ -49,26 +50,7 @@ class Connection(object):
         try:
             if self.connection:
                 Log.error("Already connected")
-
-            aws_access_key_id=nvl(
-                self.settings.aws_access_key_id,
-                self.settings.access_key_id,
-                self.settings.username,
-                self.settings.user
-            )
-            aws_secret_access_key=nvl(
-                self.settings.aws_secret_access_key,
-                self.settings.secret_access_key,
-                self.settings.password
-            )
-            if aws_access_key_id == None or aws_secret_access_key == None:
-                Log.error("require aws_access_key_id and aws_secret_access_key to connect to S3")
-
-            self.connection = boto.connect_s3(
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key
-            )
-
+            self.connection = boto.connect_s3(**cleanup(self.settings))
             return self
         except Exception, e:
             Log.error("Problem connecting to S3", e)

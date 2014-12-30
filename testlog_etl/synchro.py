@@ -15,6 +15,7 @@ from pyLibrary.times.durations import Duration
 
 
 PING_PERIOD = Duration.MINUTE
+WAIT_FOR_ACTIVITY = PING_PERIOD * 2
 SYNCHRONIZATION_KEY = "0.json"
 
 
@@ -50,7 +51,7 @@ class SynchState(object):
                     "num": self.next_key
                 })
             else:
-                resume_time = Date(last_run.timestamp)+(PING_PERIOD*5)
+                resume_time = Date(last_run.timestamp) + WAIT_FOR_ACTIVITY
                 Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...", {"time": resume_time})
                 while resume_time > Date.now():
                     Thread.sleep(seconds=10)

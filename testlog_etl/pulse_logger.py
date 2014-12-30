@@ -23,6 +23,8 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 
 def log_loop(settings, synch, queue, bucket, please_stop):
+    work_queue = aws.Queue(settings.work_queue)
+
     for i, g in Q.groupby(queue, size=settings.param.size):
         etl_header = wrap({
             "name": "Pulse block",
@@ -59,9 +61,10 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             synch.advance()
             synch.source_key = MAX(g.select("_meta.count")) + 1
 
-            # ADD TO WORK QUEUE
-
-
+            work_queue.add({
+                "bucket": bucket.name,
+                "key": full_key
+            })
 
             synch.ping()
             queue.commit()
