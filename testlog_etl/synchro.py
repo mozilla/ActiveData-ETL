@@ -16,7 +16,7 @@ from pyLibrary.times.durations import Duration
 
 PING_PERIOD = Duration.MINUTE
 WAIT_FOR_ACTIVITY = PING_PERIOD * 2
-SYNCHRONIZATION_KEY = "0.json"
+SYNCHRONIZATION_KEY = "0"
 
 
 
