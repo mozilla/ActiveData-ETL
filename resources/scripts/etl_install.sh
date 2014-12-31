@@ -9,7 +9,7 @@ cd  /home/ec2-user
 sudo yum -y install git
 git clone https://github.com/klahnakoski/TestLog-ETL.git
 cd /home/ec2-user/TestLog-ETL/
-git checkout pulse-logger
+git checkout etl
 sudo pip install -r requirements.txt
 
 cat > etl_settings.json
