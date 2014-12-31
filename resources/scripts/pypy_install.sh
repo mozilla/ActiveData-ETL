@@ -18,7 +18,7 @@ sudo apt-get install git-core
 git clone https://github.com/klahnakoski/TestLog-ETL.git
 cd /home/ubuntu/temp/TestLog-ETL/
 git checkout etl
-sudo pip install -r requirements.txt
+sudo /home/ubuntu/temp/pypy-2.4.0-linux64/bin/pip install -r requirements.txt
 
 cat > etl_settings.json
 # PASTE SETTINGS FILE HERE
