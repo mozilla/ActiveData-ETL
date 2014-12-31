@@ -71,7 +71,7 @@ class Queue(object):
         self.queue.write(m)
 
     def pop(self):
-        m = self.queue.read()
+        m = self.queue.read(wait_time_seconds=1)
         if m == None:
             return None
         self.pending.append(m)
@@ -82,6 +82,9 @@ class Queue(object):
         self.pending = []
         for p in pending:
             self.queue.delete_message(p)
+
+    def rollback(self):
+        self.pending = []
 
     def close(self):
         self.commit()

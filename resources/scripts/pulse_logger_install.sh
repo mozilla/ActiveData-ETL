@@ -10,8 +10,7 @@ sudo yum -y install git
 git clone https://github.com/klahnakoski/TestLog-ETL.git
 cd /home/ec2-user/TestLog-ETL/
 git checkout pulse-logger
-sudo pip install boto
-sudo pip install MozillaPulse
+sudo pip install -r requirements.txt
 
 cat > pulse_logger_settings.json
 # PASTE SETTINGS FILE HERE

@@ -112,12 +112,14 @@ class ETL(Thread):
                 while not please_stop:
                     todo = self.work_queue.pop()
                     if todo == None:
+                        please_stop.go()
                         return
 
                     try:
                         self.pipe(todo)
                         self.work_queue.commit()
                     except Exception, e:
+                        self.work_queue.rollback()
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
