@@ -107,7 +107,7 @@ class Date(object):
             if other.month:
                 if (self.value+timedelta(days=1)).month != self.value.month:
                     # LAST DAY OF MONTH
-                    output = add_month(self.value+timedelta(days=1), other.month) - timedelta(day=1)
+                    output = add_month(self.value+timedelta(days=1), other.month) - timedelta(days=1)
                     return Date(output)
                 else:
                     day = self.value.day

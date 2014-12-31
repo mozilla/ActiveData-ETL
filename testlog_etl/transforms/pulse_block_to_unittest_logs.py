@@ -7,8 +7,6 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-import StringIO
-import zipfile
 
 import requests
 
@@ -18,11 +16,13 @@ from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.structs import wrap, Struct
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
 
 
 DEBUG = True
 DEBUG_SHOW_NO_LOG = False
+
+
+next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
 
 def process_pulse_block(source_key, source, dest_bucket):
@@ -30,6 +30,8 @@ def process_pulse_block(source_key, source, dest_bucket):
     SIMPLE CONVERT pulse_block INTO S3 LOGFILES
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
     """
+    output = []
+
     for i, line in enumerate(source.read().split("\n")):
         envelope = convert.json2value(line)
         if envelope._meta:
@@ -58,41 +60,43 @@ def process_pulse_block(source_key, source, dest_bucket):
             try:
                 if "structured" in name and name.endswith(".log"):
                     log_content = requests.get(url).content
-                    dest_key, dest_etl = etl_key(envelope, source_key, name, file_num)
+                    dest_key, dest_etl = etl_key(envelope, source_key, name)
 
                     dest_bucket.write(
-                        dest_key + ".json.zip",
-                        new_zipfile(
-                            dest_key + ".json",
-                            convert.unicode2utf8(convert.value2json(dest_etl)) + b"\n" +
-                            convert.unicode2utf8(line) + b"\n" +
-                            log_content
-                        )
+                        dest_key,
+                        convert.unicode2utf8(convert.value2json(dest_etl)) + b"\n" +
+                        convert.unicode2utf8(line) + b"\n" +
+                        log_content
                     )
                     file_num += 1
+                    output.append(dest_key)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {"url": url}, e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
 
+        return output
 
-def etl_key(envelope, source_key, name, file_num):
-    dest_key = \
-        unicode(envelope.data.builddate) + "." + \
-        envelope.data.revision[:12].lower() + "." + \
-        unicode(envelope.data.job_number) + "." + \
-        unicode(Date(envelope.data.timestamp).milli)[:-3] + "." + \
-        unicode(file_num)
+
+def etl_key(envelope, source_key, name):
+    num = next_key.get(source_key, 0)
+    next_key[source_key] = num + 1
+    dest_key = source_key + "." + unicode(num)
 
     if envelope.data.etl:
-        dest_etl = wrap({"id": file_num, "name": name, "source": envelope.data.etl, "type": "join"})
+        dest_etl = wrap({
+            "id": num,
+            "name": name,
+            "source": envelope.data.etl,
+            "type": "join"
+        })
     else:
         if source_key.endswith(".json"):
-            source_key = source_key[:-5]
+            Log.error("Not expected")
 
         dest_etl = wrap({
-            "id": file_num,
+            "id": num,
             "name": name,
             "source": {
                 "id": source_key
@@ -102,12 +106,7 @@ def etl_key(envelope, source_key, name, file_num):
     return dest_key, dest_etl
 
 
-def new_zipfile(filename, content):
-    buff = StringIO.StringIO()
-    archive = zipfile.ZipFile(buff, mode='w')
-    archive.writestr(filename, content)
-    archive.close()
-    return buff.getvalue()
+
 
 
 def loop(work_queue, conn, dest, please_stop):
@@ -118,7 +117,7 @@ def loop(work_queue, conn, dest, please_stop):
 
         with conn.get_bucket(todo.bucket) as source:
             try:
-                process_pulse_block(todo.key, source.get_key(todo.key + ".json"), dest)
+                process_pulse_block(todo.key, source.get_key(todo.key), dest)
                 work_queue.commit()
             except Exception, e:
                 Log.warning("could not processs {{key}}", {"key": todo.key}, e)

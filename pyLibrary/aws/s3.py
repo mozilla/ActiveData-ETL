@@ -9,18 +9,18 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from distutils.command.clean import clean
+import StringIO
+import zipfile
 
 import boto
+
 from pyLibrary import convert
 from pyLibrary.aws import cleanup
-
 from pyLibrary.debugs.logs import Log
 from pyLibrary.structs import nvl, Null
 
 
-READ_ERROR="S3 read error"
-
+READ_ERROR = "S3 read error"
 
 
 class File(object):
@@ -83,7 +83,7 @@ class Bucket(object):
         self.connection = None
         self.bucket = None
 
-        if settings==None:
+        if settings == None:
             return
 
         try:
@@ -91,8 +91,6 @@ class Bucket(object):
             self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
         except Exception, e:
             Log.error("Problem connecting to {{bucket}}", {"bucket": self.settings.bucket}, e)
-
-
 
 
     def __enter__(self):
@@ -106,16 +104,22 @@ class Bucket(object):
         return File(self, key)
 
     def keys(self, prefix=None):
-        return set(k.key for k in self.bucket.list(prefix=prefix))
+        return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
 
     def read(self, key):
+        if key.endswith(".json") or key.endswith(".zip"):
+            Log.error("Expecting a pure key")
+
         try:
-            value = self.bucket.get_key(key)
+            keys = list(self.bucket.list(prefix=key + ".json"))
+            if len(keys) == 0:
+                return None
+            elif len(keys) > 1:
+                Log.error("multiple keys with prefix={{prefix}}", {"prefix": key.key + ".json"})
+
+            value = keys[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
-
-        if value == None:
-            return None
 
         try:
             json = value.get_contents_as_string()
@@ -124,17 +128,34 @@ class Bucket(object):
 
         if json == None:
             return None
+
+        if key.endswith(".zip"):
+            json = _unzip(json)
+
         return convert.utf82unicode(json)
 
 
-
     def write(self, key, value):
+        if key.endswith(".json") or key.endswith(".zip"):
+            Log.error("Expecting a pure key")
+
         try:
-            key = self.bucket.new_key(key)
-            if isinstance(value, str):
-                key.set_contents_from_string(value)
+            if len(value) > 200 * 1000:
+                if isinstance(value, str):
+                    value = new_zipfile(key + ".json", value)
+                    key += ".json.zip"
+                else:
+                    value = new_zipfile(key + ".json", convert.unicode2utf8(value))
+                    key += ".json.zip"
             else:
-                key.set_contents_from_string(convert.unicode2utf8(value))
+                if isinstance(value, str):
+                    key += ".json"
+                else:
+                    key += ".json"
+
+            key = self.bucket.new_key(key)
+            key.set_contents_from_string(value)
+
             if self.settings.public:
                 key.set_acl('public-read')
         except Exception, e:
@@ -144,3 +165,24 @@ class Bucket(object):
     @property
     def name(self):
         return self.settings.bucket
+
+
+def strip_extension(key):
+    e = key.find(".json")
+    if e == -1:
+        return key
+    return key[:e]
+
+
+def new_zipfile(filename, content):
+    buff = StringIO.StringIO()
+    archive = zipfile.ZipFile(buff, mode='w')
+    archive.writestr(filename, content)
+    archive.close()
+    return buff.getvalue()
+
+
+def _unzip(compressed):
+    buff = StringIO.StringIO(compressed)
+    archive = zipfile.ZipFile(buff, mode='r')
+    return archive.read(archive.namelist()[0])

@@ -56,7 +56,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                     )
                     for i, d in enumerate(g)
                 )
-                bucket.write(full_key + ".json", "\n".join(convert.value2json(d) for d in output))
+                bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
                 synch.advance()
                 synch.source_key = MAX(g.select("_meta.count")) + 1
 
