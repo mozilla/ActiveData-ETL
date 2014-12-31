@@ -10,9 +10,11 @@
 from __future__ import unicode_literals
 from __future__ import division
 import StringIO
+import gzip
 import zipfile
 
 import boto
+from boto.s3.connection import Location
 
 from pyLibrary import convert
 from pyLibrary.aws import cleanup
@@ -47,10 +49,18 @@ class Connection(object):
 
         try:
             cleanup(self.settings)
-            self.connection = boto.connect_s3(
-                aws_access_key_id=self.settings.aws_access_key_id,
-                aws_secret_access_key=self.settings.aws_secret_access_key
-            )
+
+            if not settings.region:
+                self.connection = boto.connect_s3(
+                    aws_access_key_id=self.settings.aws_access_key_id,
+                    aws_secret_access_key=self.settings.aws_secret_access_key
+                )
+            else:
+                self.connection = boto.s3.connect_to_region(
+                    self.settings.region,
+                    aws_access_key_id=self.settings.aws_access_key_id,
+                    aws_secret_access_key=self.settings.aws_secret_access_key
+                )
         except Exception, e:
             Log.error("Problem connecting to S3", e)
 
@@ -131,6 +141,8 @@ class Bucket(object):
 
         if key.endswith(".zip"):
             json = _unzip(json)
+        elif key.endswith(".gz"):
+            json = _ungzip(json)
 
         return convert.utf82unicode(json)
 
@@ -143,10 +155,10 @@ class Bucket(object):
             if len(value) > 200 * 1000:
                 if isinstance(value, str):
                     value = new_zipfile(key + ".json", value)
-                    key += ".json.zip"
+                    key += ".json.gz"
                 else:
                     value = new_zipfile(key + ".json", convert.unicode2utf8(value))
-                    key += ".json.zip"
+                    key += ".json.gz"
             else:
                 if isinstance(value, str):
                     key += ".json"
@@ -159,7 +171,11 @@ class Bucket(object):
             if self.settings.public:
                 key.set_acl('public-read')
         except Exception, e:
-            Log.error("S3 write error", e)
+            Log.error("Problem writing {{bytes}} bytes to {{key}} in {{bucket}}", {
+                "key": key.key,
+                "bucket": self.bucket.name,
+                "bytes": len(value)
+            }, e)
 
 
     @property
@@ -176,11 +192,16 @@ def strip_extension(key):
 
 def new_zipfile(filename, content):
     buff = StringIO.StringIO()
-    archive = zipfile.ZipFile(buff, mode='w')
-    archive.writestr(filename, content)
+    archive = gzip.GzipFile(fileobj=buff, mode='w')
+    archive.write(content)
     archive.close()
     return buff.getvalue()
 
+
+def _ungzip(compressed):
+    buff = StringIO.StringIO(compressed)
+    archive = gzip.open(buff, mode='r')
+    return archive.read()
 
 def _unzip(compressed):
     buff = StringIO.StringIO(compressed)

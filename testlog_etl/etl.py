@@ -56,9 +56,8 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-
     def __init__(self, settings):
-        self.settings=settings
+        self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
         self.connection = aws.s3.Connection(self.settings.aws)
         Thread.__init__(self, "Main ETL Loop", self.loop)
@@ -75,12 +74,12 @@ class ETL(Thread):
         if not work_actions:
             Log.error("Could not process records from {{bucket}}", {"bucket": source_block.bucket})
 
-        if len(source_keys)>1:
+        if len(source_keys) > 1:
             source = ConcatSources([self.connection.get_bucket(source_block.bucket).get_key(k) for k in source_keys])
-            source_key=MIN(source_keys[0])
+            source_key = MIN(source_keys[0])
         else:
             source = self.connection.get_bucket(source_block.bucket).get_key(source_keys[0])
-            source_key=source_keys[0]
+            source_key = source_keys[0]
 
         for action in work_actions:
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
@@ -91,7 +90,7 @@ class ETL(Thread):
             try:
                 dest_bucket = self.connection.get_bucket(action.destination)
                 # INCOMPLETE
-                old_keys = set()#dest_bucket.keys(prefix=source_block.key)
+                old_keys = dest_bucket.keys(prefix=source_block.key)
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
 
                 for k in old_keys - new_keys:
@@ -116,11 +115,8 @@ class ETL(Thread):
                         return
 
                     try:
-                        keep_running = self.pipe(todo)
+                        self.pipe(todo)
                         self.work_queue.commit()
-                        if not keep_running:
-                            self.please_stop.go()
-                            return
                     except Exception, e:
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
@@ -130,11 +126,10 @@ def main():
         settings = startup.read_settings()
         Log.start(settings.debug)
 
-        with startup.SingleInstance(flavor_id=settings.args.filename):
-            thread = ETL(settings)
-            Thread.wait_for_shutdown_signal(thread.please_stop)
-            thread.stop()
-            thread.join()
+        thread = ETL(settings)
+        Thread.wait_for_shutdown_signal(thread.please_stop)
+        thread.stop()
+        thread.join()
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

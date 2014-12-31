@@ -52,7 +52,7 @@ def process_talos(source_key, source, dest_bucket):
                     s = line.find(TALOS_PREFIX)
                     if s >= 0:
                         line = line[s + len(TALOS_PREFIX):].strip()
-                        talos = convert.json2value(line)
+                        talos = convert.json2value(convert.utf82unicode(line))
                         dest_key, dest_etl = etl_key(envelope, source_key, "talos")
                         if min_dest_key is None:
                             min_dest_key = dest_key

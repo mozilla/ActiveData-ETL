@@ -59,7 +59,15 @@ def process_pulse_block(source_key, source, dest_bucket):
         for name, url in envelope.data.blobber_files.items():
             try:
                 if "structured" in name and name.endswith(".log"):
+                    if url == None:
+                        if DEBUG:
+                            Log.note("Line {{index}}: found structured log with null nam", {"index": i})
+                        continue
+
                     log_content = requests.get(url).content
+                    if DEBUG:
+                        Log.note("Line {{index}}: found structured log {{name}}", {"index": i, "name":name})
+
                     dest_key, dest_etl = etl_key(envelope, source_key, name)
 
                     dest_bucket.write(
@@ -76,7 +84,7 @@ def process_pulse_block(source_key, source, dest_bucket):
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
 
-        return output
+    return output
 
 
 def etl_key(envelope, source_key, name):
