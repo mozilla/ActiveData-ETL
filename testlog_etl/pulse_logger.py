@@ -55,7 +55,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                         d.payload
                     )
                     for i, d in enumerate(g)
-                    if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start
+                    # if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start
                 )
                 bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
                 synch.advance()
