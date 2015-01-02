@@ -2,6 +2,7 @@ from pyLibrary import convert
 from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
+from pyLibrary.queries import Q
 
 
 def main():
@@ -10,10 +11,15 @@ def main():
         Log.start(settings.debug)
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
-
-            Bucket(settings.destination).get_key("0").write(
-                convert.value2json({"action": "shutdown", "timestamp": 1420056396165, "next_key": 10000, "source_key": 1000000})
-            )
+            source = Bucket(settings.source)
+            destination = Bucket(settings.destination)
+            new_key = 9999
+            for k in Q.reverse(Q.sort(source.keys())):
+                nk = unicode(new_key)+":"+unicode(new_key*100)
+                value = source.read(k)
+                destination.write(nk, value)
+                Log.note("done {{from}} -> {{to}}", {"from":k, "to":nk})
+                new_key -= 1
 
     except Exception, e:
         Log.error("Problem with etl", e)
