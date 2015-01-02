@@ -158,7 +158,7 @@ Looks good, but this time let's use negative indices:
     my_list[-0:] == ['a', 'b', 'c', 'd', 'e']  # [] is expected
 ```
 
-Using negative idiocies ```[-num:]``` allows the programmer to slice relative to
+Using negative indices ```[-num:]``` allows the programmer to slice relative to
 the right rather than the left.  When ```num``` is a constant this problem is
 never revealed, but when ```num``` is a variable, then the inconsistency can
 reveal itself.
