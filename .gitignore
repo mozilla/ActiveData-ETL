@@ -8,3 +8,4 @@
 /pyLibrary/collections/*.pyc
 *.pyc
 nohup.out
+log.txt

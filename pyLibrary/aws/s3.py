@@ -41,6 +41,7 @@ class Connection(object):
     def __init__(self, settings):
         """
         SETTINGS:
+        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         bucket - NAME OF THE BUCKET
         aws_access_key_id - CREDENTIAL
         aws_secret_access_key - CREDENTIAL
@@ -84,6 +85,7 @@ class Bucket(object):
     def __init__(self, settings, public=False):
         """
         SETTINGS:
+        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         bucket - NAME OF THE BUCKET
         aws_access_key_id - CREDENTIAL
         aws_secret_access_key - CREDENTIAL
@@ -117,7 +119,10 @@ class Bucket(object):
         return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
 
     def read(self, key):
-        if key.endswith(".json") or key.endswith(".zip"):
+        if not isinstance(key, basestring):
+            Log.error("Expecting key to be a string")
+
+        if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
             Log.error("Expecting a pure key")
 
         try:

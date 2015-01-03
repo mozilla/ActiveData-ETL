@@ -76,7 +76,7 @@ def json2value(json_string, params=None, flexible=False, paths=False):
                 # REMOVE """COMMENTS""", # COMMENTS, //COMMENTS, AND \n \r
                 # DERIVED FROM https://github.com/jeads/datasource/blob/master/datasource/bases/BaseHub.py# L58
                 json_string = re.sub(r"\"\"\".*?\"\"\"", r"\n", json_string, flags=re.MULTILINE)
-                json_string = "".join(remove_line_comment(l) for l in json_string.split("\n"))
+                json_string = "\n".join(remove_line_comment(l) for l in json_string.split("\n"))
                 # ALLOW DICTIONARY'S NAME:VALUE LIST TO END WITH COMMA
                 json_string = re.sub(r",\s*\}", r"}", json_string)
 

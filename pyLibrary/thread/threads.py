@@ -405,7 +405,7 @@ class Thread(object):
         try:
             while not please_stop:
                 try:
-                    Thread.sleep(seconds=10)
+                    Thread.sleep(please_stop=please_stop)
                 except Exception, e:
                     pass
         except KeyboardInterrupt:
