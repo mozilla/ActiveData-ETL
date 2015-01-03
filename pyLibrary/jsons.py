@@ -37,7 +37,6 @@ json_decoder = json.JSONDecoder().decode
 use_pypy = False
 try:
     # UnicodeBuilder IS ABOUT 2x FASTER THAN list()
-    # use_pypy = True
     from __pypy__.builders import UnicodeBuilder
 
     use_pypy = True
@@ -224,18 +223,14 @@ for i in range(0x20):
     ESCAPE_DCT.setdefault(chr(i), u'\\u{0:04x}'.format(i))
 
 
-def json_scrub(value, debug=False):
+def json_scrub(value):
     """
     REMOVE/REPLACE VALUES THAT CAN NOT BE JSON-IZED
     """
-    return _scrub(value, debug)
+    return _scrub(value)
 
 
-def _scrub(value, debug):
-    if debug:
-        from pyLibrary.debugs.logs import Log
-        Log.note("scrubbing {{value}}", {"value": repr(value)})
-
+def _scrub(value):
     if value == None:
         return None
 
@@ -252,20 +247,14 @@ def _scrub(value, debug):
     elif isinstance(value, dict):
         output = {}
         for k, v in value.iteritems():
-            v = _scrub(v, debug)
+            v = _scrub(v)
             output[k] = v
-        if debug:
-            from pyLibrary.debugs.logs import Log
-            Log.note("returning {{value}}", {"value": repr(output)})
         return output
     elif type in (list, StructList):
         output = []
         for v in value:
-            v = _scrub(v, debug)
+            v = _scrub(v)
             output.append(v)
-        if debug:
-            from pyLibrary.debugs.logs import Log
-            Log.note("returning {{value}}", {"value": repr(output)})
         return output
     elif type.__name__ == "bool_":  # DEAR ME!  Numpy has it's own booleans (value==False could be used, but 0==False in Python.  DOH!)
         if value == False:
@@ -275,9 +264,6 @@ def _scrub(value, debug):
     elif hasattr(value, '__json__'):
         try:
             output=json._default_decoder.decode(value.__json__())
-            if debug:
-                from pyLibrary.debugs.logs import Log
-                Log.note("returning {{value}}", {"value": repr(output)})
             return output
         except Exception, e:
             from pyLibrary.debugs.logs import Log
@@ -286,16 +272,10 @@ def _scrub(value, debug):
     elif hasattr(value, '__iter__'):
         output = []
         for v in value:
-            v = _scrub(v, debug)
+            v = _scrub(v)
             output.append(v)
-        if debug:
-            from pyLibrary.debugs.logs import Log
-            Log.note("returning {{value}}", {"value": repr(output)})
         return output
     else:
-        if debug:
-            from pyLibrary.debugs.logs import Log
-            Log.note("returning {{value}}", {"value": repr(value)})
         return value
 
 
