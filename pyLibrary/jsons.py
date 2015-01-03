@@ -106,9 +106,11 @@ class cPythonJSONEncoder(object):
             return pretty_json(value)
 
         try:
-            return unicode(self.encoder.encode(json_scrub(value)))
+            scrubbed = json_scrub(value)
+            return unicode(self.encoder.encode(scrubbed))
         except Exception, e:
-            return unicode(self.encoder.encode(json_scrub(value, debug=True)))
+            from pyLibrary.debugs.logs import Log
+            Log.warning("problem serializing\n{{json|indent}}", {"json": pretty_json(value)}, e)
 
 
 def _value2json(value, _buffer):
