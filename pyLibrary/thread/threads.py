@@ -21,6 +21,7 @@ import gc
 # THIS THREADING MODULE IS PERMEATED BY THE please_stop SIGNAL.
 # THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
 # FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
+import signal
 from pyLibrary.structs import nvl, Struct
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
@@ -402,14 +403,20 @@ class Thread(object):
             from pyLibrary.debugs.logs import Log
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
+        if not isinstance(please_stop, Signal):
+            please_stop = Signal()
+
+        signal.signal(signal.SIGINT, please_stop.go)
+
         try:
             while not please_stop:
                 try:
                     Thread.sleep(please_stop=please_stop)
                 except Exception, e:
                     pass
-        except KeyboardInterrupt:
-            pass
+        except KeyboardInterrupt, SystemExit:
+            from pyLibrary.debugs.logs import Log
+            Log.error("Should never happen")
 
 
     @staticmethod

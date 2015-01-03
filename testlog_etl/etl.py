@@ -18,25 +18,28 @@ from testlog_etl.transforms.pulse_block_to_talos_logs import process_talos
 
 from pyLibrary import aws
 from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.structs import wrap, nvl
 
 from pyLibrary.structs.wraps import listwrap
 from pyLibrary.thread.threads import Thread
-from testlog_etl import key2etl
+
+
+NOTHING_DONE ="Could not process records from {{bucket}}"
+
 
 workers = wrap([
     {
         "name": "pulse2unittest",
         "source": "all-pulse-testing",
-        "destination": "all-unittest-testing",
+        "destination": "ekyle-unittest-testing",
         "transformer": process_pulse_block,
         "type": "join"
     },
     {
         "name": "pulse2talos",
         "source": "all-pulse-testing",
-        "destination": "etl-talos-testing",
+        "destination": "ekyle-talos-testing",
         "transformer": process_talos,
         "type": "join"
     }
@@ -66,13 +69,14 @@ class ETL(Thread):
 
     def pipe(self, source_block):
         """
+        source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
         """
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
         work_actions = [w for w in workers if w.source == source_block.bucket]
         if not work_actions:
-            Log.error("Could not process records from {{bucket}}", {"bucket": source_block.bucket})
+            Log.error(NOTHING_DONE, {"bucket": source_block.bucket})
 
         if len(source_keys) > 1:
             source = ConcatSources([self.connection.get_bucket(source_block.bucket).get_key(k) for k in source_keys])
@@ -108,7 +112,6 @@ class ETL(Thread):
             except Exception, e:
                 Log.error("Problem transforming", e)
 
-
     def loop(self, please_stop):
         with self.work_queue:
             with self.connection:
@@ -122,6 +125,8 @@ class ETL(Thread):
                         self.pipe(todo)
                         self.work_queue.commit()
                     except Exception, e:
+                        if isinstance(e, Except) and e.contains(NOTHING_DONE):
+                            continue
                         self.work_queue.rollback()
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
