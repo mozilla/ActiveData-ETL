@@ -27,6 +27,8 @@ def key2etl(key):
     if i == -1:
         i = key.find('(')
     if i == -1:
+        if key == 'None':
+            return Struct(id=-1)
         return Struct(id=int(key))
 
     if key[i] == '(':

@@ -31,15 +31,15 @@ NOTHING_DONE ="Could not process records from {{bucket}}"
 workers = wrap([
     {
         "name": "pulse2unittest",
-        "source": "all-pulse-testing",
-        "destination": "ekyle-unittest-testing",
+        "source": "ekyle-pulse-logger-dev",
+        "destination": "ekyle-unittest-dev",
         "transformer": process_pulse_block,
         "type": "join"
     },
     {
         "name": "pulse2talos",
-        "source": "all-pulse-testing",
-        "destination": "ekyle-talos-testing",
+        "source": "ekyle-pulse-logger-dev",
+        "destination": "ekyle-talos-dev",
         "transformer": process_talos,
         "type": "join"
     }
@@ -110,7 +110,12 @@ class ETL(Thread):
                     })
                 self.work_queue.commit()
             except Exception, e:
-                Log.error("Problem transforming", e)
+                Log.error("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
+                    "action": action.name,
+                    "source": source_block.bucket,
+                    "key": source_key,
+                    "destination": action.destination
+                }, e)
 
     def loop(self, please_stop):
         with self.work_queue:
@@ -125,9 +130,9 @@ class ETL(Thread):
                         self.pipe(todo)
                         self.work_queue.commit()
                     except Exception, e:
+                        self.work_queue.rollback()
                         if isinstance(e, Except) and e.contains(NOTHING_DONE):
                             continue
-                        self.work_queue.rollback()
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 

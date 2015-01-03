@@ -406,7 +406,13 @@ class Thread(object):
         if not isinstance(please_stop, Signal):
             please_stop = Signal()
 
-        signal.signal(signal.SIGINT, please_stop.go)
+        # DEOS NOT SEEM TO WOKR
+        # def stopper():
+        #     Log.note("caught breaker")
+        #     please_stop.go()
+        #
+        #
+        # signal.signal(signal.SIGINT, stopper)
 
         try:
             while not please_stop:
@@ -415,8 +421,7 @@ class Thread(object):
                 except Exception, e:
                     pass
         except KeyboardInterrupt, SystemExit:
-            from pyLibrary.debugs.logs import Log
-            Log.error("Should never happen")
+            pass
 
 
     @staticmethod
