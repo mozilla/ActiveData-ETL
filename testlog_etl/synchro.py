@@ -106,10 +106,10 @@ class SynchState(object):
     def _pinger(self, please_stop):
         while not please_stop:
             Log.note("pinger starting sleep")
-            Thread.sleep(till=Date(self.ping_time) + PING_PERIOD, please_stop=please_stop)
+            Thread.sleep(till=self.ping_time + PING_PERIOD, please_stop=please_stop)
             if please_stop:
                 break
-            if Date.now() < Date(self.ping_time) + PING_PERIOD:
+            if Date.now() < self.ping_time + PING_PERIOD:
                 continue
             self.ping()
         Log.note("pinger stopped")

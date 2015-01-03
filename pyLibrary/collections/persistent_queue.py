@@ -146,33 +146,25 @@ class PersistentQueue(object):
             if self.closed:
                 Log.error("Queue is closed, commit not allowed")
 
-            if self.db.status.end == self.start:
-                if DEBUG:
-                    Log.note("Clear persistent queue")
-                self.file.delete()
-                self.pending = []
-            elif self.db.status.end - self.start < 10 or  Random.range(1000)==0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
-                # SIMPLY RE-WRITE FILE
-                old_start = self.db.status.start
-                try:
+            old_start = self.db.status.start
+            try:
+
+                if self.db.status.end - self.start < 10 or Random.range(1000) == 0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
+                    # SIMPLY RE-WRITE FILE
+                    if DEBUG:
+                        Log.note("Re-write persistent queue")
                     self.db.status.start = self.start
                     self.file.write(convert.value2json({"add": self.db}) + "\n")
                     self.pending = []
-                except Exception, e:
-                    self.db.status.start = old_start
-                    raise e
-            else:
-                self._apply({"add": {"status.start": self.start}})
-                for i in range(self.db.status.start, self.start):
-                    self._apply({"remove": str(i)})
+                else:
+                    self._apply({"add": {"status.start": self.start}})
+                    for i in range(self.db.status.start, self.start):
+                        self._apply({"remove": str(i)})
 
-                old_start = self.db.status.start
-                try:
-                    self.db.status.start = self.start
                     self._commit()
-                except Exception, e:
-                    self.db.status.start = old_start
-                    raise e
+            except Exception, e:
+                self.db.status.start = old_start  # REALLY DOES NOTHING, WE LOST DATA AT THIS POINT
+                raise e
 
     def _commit(self):
         self.file.append("\n".join(convert.value2json(p) for p in self.pending))
