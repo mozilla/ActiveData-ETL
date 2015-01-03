@@ -461,14 +461,15 @@ class Except(Exception):
 
     def contains(self, value):
         if isinstance(value, basestring):
-            if self.message.find(value) >= 0:
+            if self.message.find(value) >= 0 or self.template.find(value) >= 0:
                 return True
 
         if self.type == value:
             return True
-        for c in self.cause:
-            if c.contains(value):
-                return True
+        if self.cause:
+            for c in self.cause:
+                if c.contains(value):
+                    return True
         return False
 
     def __str__(self):
