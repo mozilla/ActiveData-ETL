@@ -10,8 +10,9 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs.wraps import wrap, unwrap, tuplewrap
+from pyLibrary.dot import wrap, unwrap, tuplewrap
 
 class UniqueIndex(object):
     """
@@ -20,10 +21,11 @@ class UniqueIndex(object):
     STILL MAINTAINING list-LIKE FEATURES
     """
 
-    def __init__(self, keys):
+    def __init__(self, keys, fail_on_dup=True):
         self._data = {}
         self._keys = tuplewrap(keys)
         self.count = 0
+        self.fail_on_dup = fail_on_dup
 
     def __getitem__(self, key):
         try:
@@ -54,7 +56,14 @@ class UniqueIndex(object):
             self._data[key] = unwrap(val)
             self.count += 1
         elif d is not val:
-            Log.error("key already filled")
+            if self.fail_on_dup:
+                Log.error("key {{key|json}} already filled", {"key":key})
+            else:
+                Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}", {
+                    "key": key,
+                    "existing": d,
+                    "value": val
+                })
 
 
     def __contains__(self, key):

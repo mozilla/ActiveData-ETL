@@ -12,7 +12,7 @@ import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import Struct
+from pyLibrary.dot import Dict
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
@@ -32,7 +32,7 @@ def process_talos(source_key, source, dest_bucket):
         if envelope._meta:
             pass
         elif envelope.locale:
-            envelope = Struct(data=envelope)
+            envelope = Dict(data=envelope)
         elif envelope.source:
             continue
         elif envelope.pulse:
@@ -40,7 +40,7 @@ def process_talos(source_key, source, dest_bucket):
             def read():
                 return convert.unicode2utf8("\n".join(convert.value2json(p) for p in envelope.pulse))
 
-            temp = Struct(read=read)
+            temp = Dict(read=read)
             return process_talos(source_key, temp, dest_bucket)
         else:
             Log.error("Line {{index}}: Do not know how to handle line\n{{line}}", {"line": line, "index": i})

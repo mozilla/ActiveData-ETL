@@ -116,7 +116,7 @@ class Path(list):
 
     def last(self):
         """
-        RETURN LAST ELEMENT IN StructList [-1]
+        RETURN LAST ELEMENT IN DictList [-1]
         """
         return self.last.node
 

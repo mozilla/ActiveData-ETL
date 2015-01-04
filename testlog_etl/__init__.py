@@ -7,7 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary.structs import Struct
+from pyLibrary.dot import Dict
 
 
 def key2etl(key):
@@ -28,8 +28,8 @@ def key2etl(key):
         i = key.find('(')
     if i == -1:
         if key == 'None':
-            return Struct(id=-1)
-        return Struct(id=int(key))
+            return Dict(id=-1)
+        return Dict(id=int(key))
 
     if key[i] == '(':
         e = key.rfind(')')
@@ -39,7 +39,7 @@ def key2etl(key):
         if i == -1:
             i = key.find('.', start=e)
     else:
-        subkey = Struct(id=int(key[:i]))
+        subkey = Dict(id=int(key[:i]))
 
     if key[i] == ':':
         childkey = key2etl(key[i + 1:])

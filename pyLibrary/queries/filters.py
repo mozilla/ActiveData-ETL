@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary.collections import OR
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import wrap
 
 TRUE_FILTER = True
 FALSE_FILTER = False

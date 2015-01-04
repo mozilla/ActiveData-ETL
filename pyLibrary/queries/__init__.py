@@ -9,7 +9,7 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary.structs.dicts import Struct, nvl
+from pyLibrary.dot.dicts import Dict, nvl
 
 INDEX_CACHE = {}  # MATCH NAMES TO FULL CONNECTION INFO
 
@@ -21,7 +21,7 @@ def _normalize_select(select, schema=None):
             s = schema[select]
             if s:
                 return s.getSelect()
-        return Struct(
+        return Dict(
             name=select.rstrip("."),  # TRAILING DOT INDICATES THE VALUE, BUT IS INVALID FOR THE NAME
             value=select,
             aggregate="none"

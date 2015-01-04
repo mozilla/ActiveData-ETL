@@ -1,12 +1,12 @@
 from urlparse import urlparse
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.dot.dicts import Dict
 
 
 def URL(value):
 
     output = urlparse(value)
 
-    return Struct(
+    return Dict(
         protocol=output.scheme,
         host=output.netloc,
         port=output.port,

@@ -14,7 +14,7 @@ from mozillapulse.config import PulseConfiguration
 from mozillapulse.consumers import GenericConsumer
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import set_default, unwrap, wrap, nvl
+from pyLibrary.dot import set_default, unwrap, wrap, nvl
 from pyLibrary.thread.threads import Thread
 
 

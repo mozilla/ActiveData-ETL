@@ -9,7 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary.structs import split_field, _setdefault
+from pyLibrary.dot import split_field, _setdefault
 
 _get = object.__getattribute__
 _set = object.__setattr__

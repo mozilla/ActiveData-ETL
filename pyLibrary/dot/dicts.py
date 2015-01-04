@@ -10,7 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from copy import deepcopy
-from pyLibrary.structs import split_field, _getdefault, hash_value, literal_field, nvl
+from pyLibrary.dot import split_field, _getdefault, hash_value, literal_field, nvl
 
 _get = object.__getattribute__
 _set = object.__setattr__
@@ -18,9 +18,9 @@ _set = object.__setattr__
 DEBUG = False
 
 
-class Struct(dict):
+class Dict(dict):
     """
-    Struct is used to declare an instance of an anonymous type, and has good
+    Dict is used to declare an instance of an anonymous type, and has good
     features for manipulating JSON.  Anonymous types are necessary when
     writing sophisticated list comprehensions, or queries, and to keep them
     readable.  In many ways, dict() can act as an anonymous type, but it does
@@ -58,7 +58,7 @@ class Struct(dict):
     it only considers the legitimate-field-with-missing-value (Statistical Null)
     and does not look at field-does-not-exist-in-this-context (Database Null)
 
-    The Struct is a common pattern in many frameworks even though it goes by
+    The Dict is a common pattern in many frameworks even though it goes by
     different names, some examples are:
 
     * jinja2.environment.Environment.getattr()
@@ -67,6 +67,7 @@ class Struct(dict):
     * collections.namedtuple() - gives attribute names to tuple indicies
       effectively providing <code>a.b</code> rather than <code>a["b"]</code>
       offered by dicts
+    * DotDict allows dot notation, and path setting: https://github.com/mozilla/configman/blob/master/configman/dotdict.py
     * C# Linq requires anonymous types to avoid large amounts of boilerplate code.
     * D3 has many of these conventions ["The function's return value is
       then used to set each element's attribute. A null value will remove the
@@ -80,7 +81,7 @@ class Struct(dict):
     #  http://www.saltycrane.com/
     def __init__(self, **map):
         """
-        CALLING Struct(**something) WILL RESULT IN A COPY OF something, WHICH IS UNLIKELY TO BE USEFUL
+        CALLING Dict(**something) WILL RESULT IN A COPY OF something, WHICH IS UNLIKELY TO BE USEFUL
         USE wrap() INSTEAD
         """
         dict.__init__(self)
@@ -101,18 +102,18 @@ class Struct(dict):
 
     def __str__(self):
         try:
-            return "Struct("+dict.__str__(_get(self, "__dict__"))+")"
+            return "Dict("+dict.__str__(_get(self, "__dict__"))+")"
         except Exception, e:
             return "{}"
 
     def __repr__(self):
         try:
-            return "Struct("+dict.__repr__(_get(self, "__dict__"))+")"
+            return "Dict("+dict.__repr__(_get(self, "__dict__"))+")"
         except Exception, e:
-            return "Struct{}"
+            return "Dict{}"
 
     def __contains__(self, item):
-        if Struct.__getitem__(self, item):
+        if Dict.__getitem__(self, item):
             return True
         return False
 
@@ -232,7 +233,7 @@ class Struct(dict):
 
     def all_items(self):
         """
-        GET ALL KEY-VALUES OF LEAF NODES IN Struct
+        GET ALL KEY-VALUES OF LEAF NODES IN Dict
         """
         d = _get(self, "__dict__")
         output = []
@@ -335,5 +336,5 @@ def _str(value, depth):
 
 
 
-from pyLibrary.structs.nones import Null, NullType
-from pyLibrary.structs.wraps import unwrap, wrap
+from pyLibrary.dot.nones import Null, NullType
+from pyLibrary.dot import unwrap, wrap

@@ -12,9 +12,9 @@ from __future__ import division
 
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import AND, SUM, OR
-from pyLibrary.structs import nvl, split_field
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import listwrap, unwrap
+from pyLibrary.dot import nvl, split_field
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import listwrap, unwrap
 from pyLibrary.queries.es_query_util import aggregates
 from pyLibrary.queries import domains, es_query_util
 from pyLibrary.queries.filters import simplify, TRUE_FILTER
@@ -61,7 +61,7 @@ def es_fieldop(es, query):
         }
     }
     esQuery.size = nvl(query.limit, 200000)
-    esQuery.fields = StructList()
+    esQuery.fields = DictList()
     for s in select.value:
         if s == "*":
             esQuery.fields = None
@@ -218,7 +218,7 @@ def es_deepop(es, mvel, query):
 
     temp_query = query.copy()
     temp_query.select = select
-    temp_query.edges = StructList()
+    temp_query.edges = DictList()
     esQuery.facets.mvel = {
         "terms": {
             "script_field": mvel.code(temp_query),

@@ -19,7 +19,7 @@ from boto.s3.connection import Location
 from pyLibrary import convert
 from pyLibrary.aws import cleanup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import nvl, Null
+from pyLibrary.dot import nvl, Null
 
 
 READ_ERROR = "S3 read error"

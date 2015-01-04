@@ -12,38 +12,17 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from pyLibrary.collections import MIN
-
-from testlog_etl.transforms.pulse_block_to_unittest_logs import process_pulse_block
-from testlog_etl.transforms.pulse_block_to_talos_logs import process_talos
+from pyLibrary.env import elasticsearch
+from testlog_etl.dummy_sink import DummySink
 
 from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.structs import wrap, nvl
-
-from pyLibrary.structs.wraps import listwrap
+from pyLibrary.dot import wrap, nvl, listwrap
 from pyLibrary.thread.threads import Thread
 
 
 NOTHING_DONE ="Could not process records from {{bucket}}"
-
-
-workers = wrap([
-    {
-        "name": "pulse2unittest",
-        "source": "ekyle-pulse-logger-dev",
-        "destination": "ekyle-unittest-dev",
-        "transformer": process_pulse_block,
-        "type": "join"
-    },
-    {
-        "name": "pulse2talos",
-        "source": "ekyle-pulse-logger-dev",
-        "destination": "ekyle-talos-dev",
-        "transformer": process_talos,
-        "type": "join"
-    }
-])
 
 
 class ConcatSources(object):
@@ -92,7 +71,7 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                dest_bucket = self.connection.get_bucket(action.destination)
+                dest_bucket = get_destination(action.destination)
                 # INCOMPLETE
                 old_keys = dest_bucket.keys(prefix=source_block.key)
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
@@ -135,6 +114,15 @@ class ETL(Thread):
                             continue
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
+
+def get_destination(settings):
+    if settings == None:
+        return DummySink()
+    elif settings.aws_access_key_id:
+        # ASSUME BUCKET NAME
+        return aws.s3.Bucket(settings)
+    else:
+        return elasticsearch.Index(settings)
 
 def main():
     try:

@@ -12,7 +12,7 @@ from __future__ import division
 from collections import deque
 from pyLibrary.collections import INTERSECT
 from pyLibrary.graphs.paths import Step, Path
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.dot.dicts import Dict
 
 
 def dfs(graph, func, head, reverse=None):
@@ -80,7 +80,7 @@ def dominator(graph, head):
     # STATISTICALLY IDENTICAL PERF RESULTS, WE CAN ASSUME THEY ARE A DOMINATOR
 
     visited = set()
-    dom = Struct(output=None)
+    dom = Dict(output=None)
 
     def find_dominator(node, path, graph, todo):
         if dom.output:
