@@ -83,7 +83,6 @@ def log_loop(settings, synch, queue, bucket, please_stop):
     Log.note("log_loop() completed on it's own")
 
 
-
 def main():
     try:
         settings = startup.read_settings()
