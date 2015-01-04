@@ -17,7 +17,7 @@ from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries.filters import TRUE_FILTER
-from pyLibrary.structs import split_field, Struct, Null, join_field, nvl
+from pyLibrary.structs import split_field, Dict, Null, join_field, nvl
 from pyLibrary.structs.wraps import listwrap
 from pyLibrary.times.durations import Duration
 
@@ -152,7 +152,7 @@ class _MVEL(object):
         else:
             output = varName + ' = ' + '+"|"+'.join(["Value2Pipe("+v+")\n" for v in list]) + ';\n'
 
-        return Struct(
+        return Dict(
             head="".join(heads),
             body=output
         )
@@ -181,7 +181,7 @@ class _MVEL(object):
                 def fromTerm(term):
                     return domain.getPartByKey(term)
 
-                return Struct(
+                return Dict(
                     head="",
                     body='getDocValue('+convert.string2quote(domain.dimension.fields[0])+')'
                 ), fromTerm
@@ -206,7 +206,7 @@ class _MVEL(object):
                 for f in es_fields:
                     term.append('Value2Pipe(getDocValue('+convert.string2quote(f)+'))')
 
-                return Struct(
+                return Dict(
                     head="",
                     body='Value2Pipe('+('+"|"+'.join(term))+')'
                 ), fromTerm
@@ -304,7 +304,7 @@ class _MVEL(object):
             n = "_temp" + UID()
             self.functions[n] = code
 
-        return Struct(
+        return Dict(
             head='var ' + n + ' = function(){\n' + code + '\n};\n',
             body=n + '()\n'
         )
@@ -551,7 +551,7 @@ def addFunctions(mvel):
     """
     PREPEND THE REQUIRED MVEL FUNCTIONS TO THE CODE
     """
-    isAdded = Struct()            # SOME FUNCTIONS DEPEND ON OTHERS
+    isAdded = Dict()            # SOME FUNCTIONS DEPEND ON OTHERS
 
     head=[]
     body=mvel
@@ -568,7 +568,7 @@ def addFunctions(mvel):
             isAdded[func_name] = func_code
             head.append(func_code)
             mvel = func_code + mvel
-    return Struct(
+    return Dict(
         head="".join(head),
         body=body
     )

@@ -13,6 +13,7 @@ from __future__ import division
 
 from collections import Iterable
 from types import GeneratorType
+from pyLibrary import convert
 from pyLibrary.structs import nvl
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Queue, Thread
@@ -143,7 +144,7 @@ class worker_thread(Thread):
                 if DEBUG:
                     Log.note("{{name}} got a stop message", {"name": self.name})
                 got_stop_message = True
-                if OR(*(r != Thread.STOP for r in self.in_queue.queue)):
+                if self.in_queue:
                     Log.warning("programmer error, queue not empty. {{num}} requests lost:\n{{requests}}", {
                         "num": len(self.in_queue.queue),
                         "requests": list(self.in_queue.queue)[:5:] + list(self.in_queue.queue)[-5::]
@@ -178,8 +179,11 @@ class worker_thread(Thread):
                     "num": self.num_runs
                 })
 
-        if got_stop_message and self.in_queue.queue:
-            Log.warning("multithread programmer error, queue not empty. {{num}} requests lost", {"num": len(self.in_queue.queue)})
+        if got_stop_message and self.in_queue:
+            Log.warning("multithread programmer error, queue not empty. {{num}} requests lost\n{{sample|indent}}", {
+                "num": len(self.in_queue.queue),
+                "sample": convert.value2json([self.in_queue.queue[i] for i in range(min(5, len(self.in_queue.queue)))])
+            })
         if DEBUG:
             Log.note("{{thread}} DONE", {"thread": self.name})
 

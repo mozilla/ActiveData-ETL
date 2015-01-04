@@ -13,7 +13,7 @@ from __future__ import division
 from datetime import timedelta
 from time import clock
 
-from pyLibrary.structs import nvl, Struct
+from pyLibrary.structs import nvl, Dict
 from pyLibrary.structs.wraps import wrap
 from pyLibrary.debugs.logs import Log
 
@@ -32,7 +32,7 @@ class Timer:
 
     def __init__(self, description, param=None, debug=True):
         self.template = description
-        self.param = nvl(wrap(param), Struct())
+        self.param = nvl(wrap(param), Dict())
         self.debug = debug
 
     def __enter__(self):

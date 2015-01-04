@@ -18,7 +18,7 @@ from pyLibrary.env.elasticsearch import Cluster
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.structs import wrap, set_default, Struct, nvl
+from pyLibrary.structs import wrap, set_default, Dict, nvl
 from pyLibrary.thread.threads import Thread, Queue
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer

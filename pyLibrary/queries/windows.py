@@ -20,7 +20,7 @@ from pyLibrary.maths.stats import ZeroMoment, ZeroMoment2Stats
 
 
 # A VARIETY OF SLIDING WINDOW FUNCTIONS
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.lists import DictList
 
 
 class AggregationFunction(object):
@@ -98,7 +98,7 @@ class _Stats(WindowFunction):
     def __init__(self, middle=None):
         object.__init__(self)
         self.middle = middle
-        self.samples = StructList()
+        self.samples = DictList()
 
     def add(self, value):
         if value == None:

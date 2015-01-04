@@ -12,7 +12,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.structs import Struct, wrap, nvl, set_default
+from pyLibrary.structs import Dict, wrap, nvl, set_default
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
@@ -86,7 +86,7 @@ def process_unittest_log(lines):
 class LogSummary(object):
     def __init__(self):
         object.__setattr__(self, "tests", {})
-        object.__setattr__(self, "attr", Struct())
+        object.__setattr__(self, "attr", Dict())
 
     def __getattr__(self, item):
         return object.__getattribute__(self, "attr")[item]
@@ -100,7 +100,7 @@ class LogSummary(object):
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[log.test] = Struct(
+        self.tests[log.test] = Dict(
             test=log.test,
             start=log.time
         )
@@ -108,7 +108,7 @@ class LogSummary(object):
     def test_status(self, log):
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -125,7 +125,7 @@ class LogSummary(object):
 
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -139,7 +139,7 @@ class LogSummary(object):
 
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 crash=True,
@@ -150,7 +150,7 @@ class LogSummary(object):
     def test_end(self, log):
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True

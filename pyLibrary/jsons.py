@@ -18,8 +18,8 @@ import sys
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from pyLibrary.strings import utf82unicode
-from pyLibrary.structs.dicts import Struct
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.dicts import Dict
+from pyLibrary.structs.lists import DictList
 
 json_decoder = json.JSONDecoder().decode
 
@@ -125,7 +125,7 @@ def _value2json(value, _buffer):
             return
 
         type = value.__class__
-        if type in (dict, Struct):
+        if type in (dict, Dict):
             if value:
                 _dict2json(value, _buffer)
             else:
@@ -149,7 +149,7 @@ def _value2json(value, _buffer):
             append(_buffer, unicode(value))
         elif type is float:
             append(_buffer, unicode(repr(value)))
-        elif type in (set, list, tuple, StructList):
+        elif type in (set, list, tuple, DictList):
             _list2json(value, _buffer)
         elif type is date:
             append(_buffer, unicode(long(time.mktime(value.timetuple()) * 1000)))
@@ -250,7 +250,7 @@ def _scrub(value):
             v = _scrub(v)
             output[k] = v
         return output
-    elif type in (list, StructList):
+    elif type in (list, DictList):
         output = []
         for v in value:
             v = _scrub(v)

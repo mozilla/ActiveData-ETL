@@ -34,7 +34,10 @@ def nvl(*args):
 
 
 def zip(keys, values):
-    output = Struct()
+    """
+    CONVERT LIST OF KEY/VALUE PAIRS TO A DICT
+    """
+    output = Dict()
     for i, k in enumerate(keys):
         output[k] = values[i]
     return output
@@ -153,5 +156,5 @@ def _getdefault(obj, key):
 
 
 from pyLibrary.structs.nones import Null, NullType
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.structs.dicts import Dict
 from pyLibrary.structs.wraps import wrap, unwrap

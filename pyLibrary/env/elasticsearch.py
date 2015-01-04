@@ -10,21 +10,20 @@
 from __future__ import unicode_literals
 from __future__ import division
 from copy import deepcopy
-
 from datetime import datetime
 import re
 import time
+
 import requests
 
-from pyLibrary.collections import OR
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
 from pyLibrary.strings import utf82unicode
-from pyLibrary.structs import nvl, Null, Struct
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs import nvl, Null, Dict
+from pyLibrary.structs.lists import DictList
 from pyLibrary.structs.wraps import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue
 
@@ -546,7 +545,7 @@ def _scrub(r):
         elif Math.is_number(r):
             return convert.value2number(r)
         elif isinstance(r, dict):
-            if isinstance(r, Struct):
+            if isinstance(r, Dict):
                 r = object.__getattribute__(r, "__dict__")
             output = {}
             for k, v in r.items():
@@ -557,7 +556,7 @@ def _scrub(r):
                 return None
             return output
         elif hasattr(r, '__iter__'):
-            if isinstance(r, StructList):
+            if isinstance(r, DictList):
                 r = r.list
             output = []
             for v in r:

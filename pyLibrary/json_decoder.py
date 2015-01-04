@@ -12,7 +12,7 @@ from __future__ import division
 
 from pyLibrary.jsons import json_encoder, use_pypy, UnicodeBuilder
 from pyLibrary.structs import Null
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.lists import DictList
 from pyLibrary.structs.wraps import wrap, unwrap
 
 DEBUG = False
@@ -32,9 +32,9 @@ def decode(json):
     INEVITABLE JSON OUTPUT
     """
     var = ""
-    curr = StructList()
+    curr = DictList()
     mode = ARRAY
-    stack = StructList()
+    stack = DictList()
     # FIRST PASS SIMPLY GETS STRUCTURE
     i = 0
     while i < len(json):
@@ -307,7 +307,7 @@ class JSONList(object):
                 j = length
             else:
                 j = max(min(j, length), 0)
-            return StructList(self.list[i:j])
+            return DictList(self.list[i:j])
 
         if index < 0 or len(self.list) <= index:
             return Null
@@ -371,19 +371,19 @@ class JSONList(object):
         self._convert()
         output = list(self.list)
         output.extend(value)
-        return StructList(vals=output)
+        return DictList(vals=output)
 
     def __or__(self, value):
         self._convert()
         output = list(self.list)
         output.append(value)
-        return StructList(vals=output)
+        return DictList(vals=output)
 
     def __radd__(self, other):
         self._convert()
         output = list(other)
         output.extend(self.list)
-        return StructList(vals=output)
+        return DictList(vals=output)
 
     def right(self, num=None):
         """
@@ -391,10 +391,10 @@ class JSONList(object):
         """
         self._convert()
         if num == None:
-            return StructList([self.list[-1]])
+            return DictList([self.list[-1]])
         if num <= 0:
             return Null
-        return StructList(self.list[-num])
+        return DictList(self.list[-num])
 
     def leftBut(self, num):
         """
@@ -402,14 +402,14 @@ class JSONList(object):
         """
         self._convert()
         if num == None:
-            return StructList([self.list[:-1:]])
+            return DictList([self.list[:-1:]])
         if num <= 0:
             return Null
-        return StructList(self.list[:-num:])
+        return DictList(self.list[:-num:])
 
     def last(self):
         """
-        RETURN LAST ELEMENT IN StructList
+        RETURN LAST ELEMENT IN DictList
         """
         self._convert()
         if self.list:
@@ -419,9 +419,9 @@ class JSONList(object):
     def map(self, oper, includeNone=True):
         self._convert()
         if includeNone:
-            return StructList([oper(v) for v in self.list])
+            return DictList([oper(v) for v in self.list])
         else:
-            return StructList([oper(v) for v in self.list if v != None])
+            return DictList([oper(v) for v in self.list if v != None])
 
     def __json__(self):
         if self.json is not None:

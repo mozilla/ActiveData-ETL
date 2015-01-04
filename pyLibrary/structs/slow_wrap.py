@@ -10,8 +10,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 from types import GeneratorType
-from pyLibrary.structs.dicts import Struct
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.dicts import Dict
+from pyLibrary.structs.lists import DictList
 
 
 _get = object.__getattribute__
@@ -23,13 +23,13 @@ def slow_wrap(v):
 
 
 def _wrap_dict(v):
-    m = Struct()
+    m = Dict()
     _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
     return m
 
 
 def _wrap_list(v):
-    return StructList(v)
+    return DictList(v)
 
 
 def _wrap_generator(v):

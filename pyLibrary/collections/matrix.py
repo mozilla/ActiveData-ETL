@@ -14,7 +14,7 @@ from __future__ import division
 from pyLibrary.collections import PRODUCT, reverse, MAX, MIN, OR
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import Null, Struct, nvl
+from pyLibrary.structs import Null, Dict, nvl
 from pyLibrary.structs.wraps import wrap
 
 
@@ -264,7 +264,7 @@ def _min(depth, cube):
         return MIN(_min(depth - 1, c) for c in cube)
 
 
-aggregates = Struct(
+aggregates = Dict(
     max=_max,
     maximum=_max,
     min=_min,

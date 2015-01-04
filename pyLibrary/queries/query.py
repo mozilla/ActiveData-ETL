@@ -15,9 +15,9 @@ from pyLibrary.queries import MVEL, _normalize_select, INDEX_CACHE
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain
 from pyLibrary.queries.filters import TRUE_FILTER, simplify
-from pyLibrary.structs.dicts import Struct
-from pyLibrary.structs import nvl, split_field, join_field, Null
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.dicts import Dict
+from pyLibrary.structs import nvl, split_field, join_field, Null, set_default
+from pyLibrary.structs.lists import DictList
 from pyLibrary.structs.wraps import wrap, unwrap, listwrap
 
 
@@ -45,7 +45,7 @@ class Query(object):
         elif select:
             select = _normalize_select(select, schema=schema)
         else:
-            select = StructList()
+            select = DictList()
         self.select2index = {}  # MAP FROM NAME TO data INDEX
         for i, s in enumerate(listwrap(select)):
             self.select2index[s.name] = i
@@ -69,13 +69,13 @@ class Query(object):
     def __getitem__(self, item):
         if item == "from":
             return self.frum
-        return Struct.__getitem__(self, item)
+        return Dict.__getitem__(self, item)
 
     def copy(self):
         output = object.__new__(Query)
         source = object.__getattribute__(self, "__dict__")
         dest = object.__getattribute__(output, "__dict__")
-        structs.set_default(dest, source)
+        set_default(dest, source)
         return output
 
 
@@ -97,17 +97,17 @@ def _normalize_edge(edge, schema=None):
         if schema:
             e = schema[edge]
             if e:
-                return Struct(
+                return Dict(
                     name=edge,
                     domain=e.getDomain()
                 )
-        return Struct(
+        return Dict(
             name=edge,
             value=edge,
             domain=_normalize_domain(schema=schema)
         )
     else:
-        return Struct(
+        return Dict(
             name=nvl(edge.name, edge.value),
             value=edge.value,
             range=edge.range,
@@ -120,7 +120,7 @@ def _normalize_from(frum, schema=None):
     frum = wrap(frum)
 
     if isinstance(frum, basestring):
-        return Struct(name=frum)
+        return Dict(name=frum)
     elif isinstance(frum, dict) and (frum["from"] or isinstance(frum["from"], (list, set))):
         return Query(frum, schema=schema)
     else:
@@ -144,7 +144,7 @@ def _normalize_domain(domain=None, schema=None):
 
 
 def _normalize_window(window, schema=None):
-    return Struct(
+    return Dict(
         name=nvl(window.name, window.value),
         value=window.value,
         edges=[_normalize_edge(e, schema) for e in listwrap(window.edges)],
@@ -159,7 +159,7 @@ def _normalize_range(range):
     if range == None:
         return None
 
-    return Struct(
+    return Dict(
         min=range.min,
         max=range.max
     )
@@ -178,7 +178,7 @@ def _map_term_using_schema(master, path, term, schema_edges):
     """
     IF THE WHERE CLAUSE REFERS TO FIELDS IN THE SCHEMA, THEN EXPAND THEM
     """
-    output = StructList()
+    output = DictList()
     for k, v in term.items():
         dimension = schema_edges[k]
         if isinstance(dimension, Dimension):
@@ -281,7 +281,7 @@ def _where_terms(master, where, schema):
                 Log.error("programmer problem?", e)
         elif where.terms:
             # MAP TERM
-            output = StructList()
+            output = DictList()
             for k, v in where.terms.items():
                 if not isinstance(v, (list, set)):
                     Log.error("terms filter expects list of values")
@@ -327,9 +327,9 @@ def _normalize_sort(sort=None):
     """
 
     if not sort:
-        return StructList.EMPTY
+        return DictList.EMPTY
 
-    output = StructList()
+    output = DictList()
     for s in listwrap(sort):
         if isinstance(s, basestring):
             output.append({"field": s, "sort": 1})

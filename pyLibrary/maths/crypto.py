@@ -14,7 +14,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import Q
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.structs.dicts import Dict
 from pyLibrary.maths.randoms import Random
 from pyLibrary.vendor.aespython import key_expander, aes_cipher, cbc_mode
 
@@ -43,7 +43,7 @@ def encrypt(text, _key, salt=None):
     aes_cbc_256 = cbc_mode.CBCMode(aes_cipher_256, 16)
     aes_cbc_256.set_iv(salt)
 
-    output = Struct()
+    output = Dict()
     output.type = "AES256"
     output.salt = convert.bytearray2base64(salt)
     output.length = len(data)

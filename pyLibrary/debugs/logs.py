@@ -19,7 +19,7 @@ from types import ModuleType
 
 from pyLibrary.jsons import json_encoder
 from pyLibrary.thread import threads
-from pyLibrary.structs import nvl, Struct, split_field, join_field, set_default
+from pyLibrary.structs import nvl, Dict, split_field, join_field, set_default
 from pyLibrary.structs.wraps import listwrap, wrap, wrap_dot
 from pyLibrary.strings import indent, expand_template
 from pyLibrary.thread.threads import Thread
@@ -98,7 +98,7 @@ class Log(object):
     def note(cls, template, params=None, stack_depth=0):
         # USE replace() AS POOR MAN'S CHILD TEMPLATE
 
-        log_params = Struct(
+        log_params = Dict(
             template=template,
             params=set_default({}, params),
             timestamp=datetime.utcnow(),
@@ -496,7 +496,7 @@ class Except(Exception):
         return unicode(str(self))
 
     def __json__(self):
-        return json_encoder(Struct(
+        return json_encoder(Dict(
             type=self.type,
             template=self.template,
             params=self.params,
@@ -532,6 +532,7 @@ class Log_usingFile(BaseLog):
 
 
 class Log_usingThread(BaseLog):
+
     def __init__(self, logger):
         # DELAYED LOAD FOR THREADS MODULE
         from pyLibrary.thread.threads import Queue

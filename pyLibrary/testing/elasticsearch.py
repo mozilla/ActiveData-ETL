@@ -15,7 +15,7 @@ from pyLibrary.env.elasticsearch import Index, Cluster
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
 from pyLibrary.queries import Q
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.structs.dicts import Dict
 from pyLibrary.structs.wraps import unwrap, wrap
 
 def make_test_instance(name, settings):
@@ -52,7 +52,7 @@ class Fake_ES():
         try:
             self.data = convert.json2value(File(self.filename).read())
         except IOError:
-            self.data = Struct()
+            self.data = Dict()
 
 
     def search(self, query):

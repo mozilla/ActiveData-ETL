@@ -13,8 +13,8 @@ import re
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.structs import nvl, Struct
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs import nvl, Dict
+from pyLibrary.structs.lists import DictList
 from pyLibrary.structs.wraps import wrap, unwrap
 
 ALGEBRAIC = {"time", "duration", "numeric", "count", "datetime"}  # DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
@@ -52,7 +52,7 @@ class Domain(object):
 
     @property
     def dict(self):
-        return Struct(
+        return Dict(
             type=self.type,
             name=self.name,
             partitions=self.partitions,
@@ -105,8 +105,8 @@ class DefaultDomain(Domain):
     def __init__(self, **desc):
         Domain.__init__(self, **desc)
 
-        self.NULL = Struct(value=None)
-        self.partitions = StructList()
+        self.NULL = Dict(value=None)
+        self.partitions = DictList()
         self.map = dict()
         self.map[None] = self.NULL
 
@@ -121,7 +121,7 @@ class DefaultDomain(Domain):
         if canonical:
             return canonical
 
-        canonical = Struct(name=key, value=key)
+        canonical = Dict(name=key, value=key)
 
         self.partitions.append(canonical)
         self.map[key] = canonical
@@ -149,8 +149,8 @@ class SetDomain(Domain):
         Domain.__init__(self, **desc)
         desc = wrap(desc)
 
-        self.NULL = Struct(value=None)
-        self.partitions = StructList()
+        self.NULL = Dict(value=None)
+        self.partitions = DictList()
 
         if isinstance(desc.key, set):
             Log.error("problem")

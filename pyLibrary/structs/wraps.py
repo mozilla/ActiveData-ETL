@@ -12,7 +12,7 @@ from __future__ import division
 from types import NoneType, GeneratorType
 from pyLibrary.structs import split_field
 from pyLibrary.structs.nones import Null, NullType
-from pyLibrary.structs.dicts import Struct
+from pyLibrary.structs.dicts import Dict
 
 
 
@@ -27,11 +27,11 @@ def wrap(v):
     type_ = _get(v, "__class__")
 
     if type_ is dict:
-        m = Struct()
+        m = Dict()
         _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
         return m
     elif type_ is list:
-        return StructList(v)
+        return DictList(v)
     elif type_ is GeneratorType:
         return (wrap(vv) for vv in v)
     elif type_ is NoneType:
@@ -53,7 +53,7 @@ def _wrap_dot(value):
     if isinstance(value, (basestring, int, float)):
         return value
     if isinstance(value, dict):
-        if isinstance(value, Struct):
+        if isinstance(value, Dict):
             value = unwrap(value)
 
         output = {}
@@ -97,10 +97,10 @@ def _wrap_dot(value):
 
 def unwrap(v):
     _type = _get(v, "__class__")
-    if _type is Struct:
+    if _type is Dict:
         d = _get(v, "__dict__")
         return d
-    elif _type is StructList:
+    elif _type is DictList:
         return v.list
     elif _type is NullType:
         return None
@@ -150,4 +150,4 @@ def tuplewrap(value):
     return unwrap(value),
 
 
-from pyLibrary.structs.lists import StructList
+from pyLibrary.structs.lists import DictList
