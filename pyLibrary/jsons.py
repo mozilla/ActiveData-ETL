@@ -110,6 +110,7 @@ class cPythonJSONEncoder(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log
             Log.warning("problem serializing\n{{json|indent}}", {"json": pretty_json(value)}, e)
+            raise e
 
 
 def _value2json(value, _buffer):
