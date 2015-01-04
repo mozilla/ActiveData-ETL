@@ -55,6 +55,7 @@ class Date(object):
                     self.value = datetime(*args)
 
         except Exception, e:
+            from pyLibrary.debugs.logs import Log
             Log.error("Can not convert {{args}} to Date", {"args": args}, e)
 
     def floor(self, duration=None):
@@ -70,6 +71,7 @@ class Date(object):
         try:
             return self.value.strftime(format)
         except Exception, e:
+            from pyLibrary.debugs.logs import Log
             Log.error("Can not format {{value}} with {{format}}", {"value": self.value, "format": format}, e)
 
     @property
@@ -82,11 +84,13 @@ class Date(object):
             elif isinstance(self.value, date):
                 epoch = date(1970, 1, 1)
             else:
+                from pyLibrary.debugs.logs import Log
                 Log.error("Can not convert {{value}} of type {{type}}", {"value": self.value, "type": self.value.__class__})
 
             diff = self.value - epoch
             return long(diff.total_seconds()) * 1000L + long(diff.microseconds / 1000)
         except Exception, e:
+            from pyLibrary.debugs.logs import Log
             Log.error("Can not convert {{value}}", {"value": self.value}, e)
 
     @property
@@ -119,6 +123,7 @@ class Date(object):
             else:
                 return Date(self.milli + other.milli)
         else:
+            from pyLibrary.debugs.logs import Log
             Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
 
     @staticmethod
@@ -215,6 +220,7 @@ def unicode2datetime(value, format=None):
         try:
             return datetime.strptime(value, format)
         except Exception, e:
+            from pyLibrary.debugs.logs import Log
             Log.error("Can not format {{value}} with {{format}}", {"value": value, "format": format}, e)
 
     try:
@@ -251,8 +257,8 @@ def unicode2datetime(value, format=None):
         except Exception:
             pass
     else:
+        from pyLibrary.debugs.logs import Log
         Log.error("Can not interpret {{value}} as a datetime", {"value": value})
 
 
-from pyLibrary.debugs.logs import Log
 from pyLibrary.times.durations import Duration

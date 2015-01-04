@@ -14,8 +14,8 @@ from __future__ import division
 from pyLibrary.collections import PRODUCT, reverse, MAX, MIN, OR
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import Null, Dict, nvl
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import Null, Dict, nvl
+from pyLibrary.dot import wrap
 
 
 class Matrix(object):

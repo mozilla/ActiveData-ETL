@@ -14,7 +14,7 @@ from boto import sqs
 from boto.sqs.message import Message
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import unwrap, nvl
+from pyLibrary.dot import unwrap, nvl
 
 
 def cleanup(settings):

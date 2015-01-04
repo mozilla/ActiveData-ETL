@@ -13,8 +13,8 @@ from __future__ import division
 from datetime import timedelta
 from time import clock
 
-from pyLibrary.structs import nvl, Dict
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import nvl, Dict
+from pyLibrary.dot import wrap
 from pyLibrary.debugs.logs import Log
 
 

@@ -12,7 +12,7 @@ from __future__ import division
 
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import AND
-from pyLibrary.structs.wraps import listwrap, unwrap
+from pyLibrary.dot import listwrap, unwrap
 from pyLibrary.queries import es_query_util
 from pyLibrary.queries.es_query_util import aggregates, fix_es_stats, buildESQuery
 from pyLibrary.queries.filters import simplify

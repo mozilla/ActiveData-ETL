@@ -21,10 +21,10 @@ from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.query import Query, _normalize_where
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.MVEL import _MVEL
-from pyLibrary.structs.dicts import Dict
-from pyLibrary.structs import nvl, split_field
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot import nvl, split_field
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap
 
 class ESQuery(object):
     """

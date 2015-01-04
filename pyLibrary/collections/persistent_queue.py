@@ -15,7 +15,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
 from pyLibrary.maths.randoms import Random
-from pyLibrary.structs import Dict, wrap
+from pyLibrary.dot import Dict, wrap
 from pyLibrary.thread.threads import Lock, Thread, Signal
 
 

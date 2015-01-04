@@ -15,8 +15,8 @@ from pyLibrary.env.elasticsearch import Index, Cluster
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
 from pyLibrary.queries import Q
-from pyLibrary.structs.dicts import Dict
-from pyLibrary.structs.wraps import unwrap, wrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot import unwrap, wrap
 
 def make_test_instance(name, settings):
     if settings.filename:

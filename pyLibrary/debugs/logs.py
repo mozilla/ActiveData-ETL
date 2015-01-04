@@ -19,8 +19,8 @@ from types import ModuleType
 
 from pyLibrary.jsons import json_encoder
 from pyLibrary.thread import threads
-from pyLibrary.structs import nvl, Dict, split_field, join_field, set_default
-from pyLibrary.structs.wraps import listwrap, wrap, wrap_dot
+from pyLibrary.dot import nvl, Dict, split_field, join_field, set_default
+from pyLibrary.dot import listwrap, wrap, wrap_dot
 from pyLibrary.strings import indent, expand_template
 from pyLibrary.thread.threads import Thread
 

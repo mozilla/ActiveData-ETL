@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.queries.unique_index import UniqueIndex
 
-from pyLibrary.structs.wraps import wrap, unwrap, tuplewrap
+from pyLibrary.dot import wrap, unwrap, tuplewrap
 
 class Index(object):
     """

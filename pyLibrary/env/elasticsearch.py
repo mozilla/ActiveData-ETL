@@ -22,9 +22,9 @@ from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
 from pyLibrary.strings import utf82unicode
-from pyLibrary.structs import nvl, Null, Dict
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, unwrap
+from pyLibrary.dot import nvl, Null, Dict
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue
 
 

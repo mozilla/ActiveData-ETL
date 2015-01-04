@@ -20,7 +20,7 @@ from pyLibrary.maths.stats import ZeroMoment, ZeroMoment2Stats
 
 
 # A VARIETY OF SLIDING WINDOW FUNCTIONS
-from pyLibrary.structs.lists import DictList
+from pyLibrary.dot.lists import DictList
 
 
 class AggregationFunction(object):

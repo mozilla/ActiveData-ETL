@@ -11,9 +11,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary.jsons import json_encoder, use_pypy, UnicodeBuilder
-from pyLibrary.structs import Null
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, unwrap
+from pyLibrary.dot import Null
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, unwrap
 
 DEBUG = False
 

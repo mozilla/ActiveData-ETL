@@ -14,7 +14,7 @@ from pyLibrary import aws
 from pyLibrary import convert
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import wrap, Dict
+from pyLibrary.dot import wrap, Dict
 from pyLibrary.thread.threads import Thread
 
 

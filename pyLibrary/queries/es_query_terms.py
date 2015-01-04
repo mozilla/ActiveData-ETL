@@ -17,9 +17,9 @@ from pyLibrary.queries import es_query_util
 from pyLibrary.queries.es_query_util import aggregates, buildESQuery, compileEdges2Term
 from pyLibrary.queries.filters import simplify
 from pyLibrary.queries.cube import Cube
-from pyLibrary.structs import nvl
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap
 
 
 def is_terms(query):

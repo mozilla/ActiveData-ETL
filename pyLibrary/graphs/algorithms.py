@@ -12,7 +12,7 @@ from __future__ import division
 from collections import deque
 from pyLibrary.collections import INTERSECT
 from pyLibrary.graphs.paths import Step, Path
-from pyLibrary.structs.dicts import Dict
+from pyLibrary.dot.dicts import Dict
 
 
 def dfs(graph, func, head, reverse=None):

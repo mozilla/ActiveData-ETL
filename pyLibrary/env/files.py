@@ -16,8 +16,8 @@ import shutil
 
 from pyLibrary.strings import utf82unicode
 from pyLibrary.maths import crypto
-from pyLibrary.structs import nvl
-from pyLibrary.structs.wraps import listwrap, wrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot import listwrap, wrap
 from pyLibrary import convert
 
 

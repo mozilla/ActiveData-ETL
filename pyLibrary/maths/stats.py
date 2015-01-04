@@ -18,7 +18,7 @@ from pyLibrary import convert
 from pyLibrary.collections import OR
 from __init__ import almost_equal
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import nvl, Dict, Null
+from pyLibrary.dot import nvl, Dict, Null
 from pyLibrary.vendor import strangman
 
 

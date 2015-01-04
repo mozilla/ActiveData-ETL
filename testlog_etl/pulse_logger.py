@@ -15,7 +15,7 @@ from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import Q
-from pyLibrary.structs import set_default, wrap
+from pyLibrary.dot import set_default, wrap
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key

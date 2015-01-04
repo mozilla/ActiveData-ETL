@@ -14,9 +14,9 @@ import sys
 import math
 from pyLibrary.queries.cube import Cube
 from pyLibrary.queries.index import value2key
-from pyLibrary.structs.dicts import Dict
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import listwrap, wrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import listwrap, wrap
 from pyLibrary.debugs.logs import Log
 from pyLibrary.collections.multiset import Multiset
 

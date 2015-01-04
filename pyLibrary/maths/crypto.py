@@ -14,7 +14,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import Q
-from pyLibrary.structs.dicts import Dict
+from pyLibrary.dot.dicts import Dict
 from pyLibrary.maths.randoms import Random
 from pyLibrary.vendor.aespython import key_expander, aes_cipher, cbc_mode
 
@@ -81,7 +81,7 @@ def decrypt(data, _key):
 
     raw = convert.base642bytearray(_input.data)
     out_data = bytearray()
-    for i, e in Q.groupby(raw, size=16):
+    for _, e in Q.groupby(raw, size=16):
         out_data.extend(aes_cbc_256.decrypt_block(e))
 
     return str(out_data[:_input.length:]).decode("utf8")

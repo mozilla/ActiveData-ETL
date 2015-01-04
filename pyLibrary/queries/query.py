@@ -15,10 +15,10 @@ from pyLibrary.queries import MVEL, _normalize_select, INDEX_CACHE
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain
 from pyLibrary.queries.filters import TRUE_FILTER, simplify
-from pyLibrary.structs.dicts import Dict
-from pyLibrary.structs import nvl, split_field, join_field, Null, set_default
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, unwrap, listwrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot import nvl, split_field, join_field, Null, set_default
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, unwrap, listwrap
 
 
 class Query(object):

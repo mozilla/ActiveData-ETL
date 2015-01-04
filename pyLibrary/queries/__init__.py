@@ -9,7 +9,7 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary.structs.dicts import Dict, nvl
+from pyLibrary.dot.dicts import Dict, nvl
 
 INDEX_CACHE = {}  # MATCH NAMES TO FULL CONNECTION INFO
 

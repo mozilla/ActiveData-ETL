@@ -11,11 +11,11 @@ from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.collections import SUM
 from pyLibrary.queries.domains import Domain, ALGEBRAIC, KNOWN
-from pyLibrary.structs import Null, nvl, join_field, split_field, Dict
-from pyLibrary.structs.lists import DictList
+from pyLibrary.dot import Null, nvl, join_field, split_field, Dict
+from pyLibrary.dot.lists import DictList
 from pyLibrary.times.timer import Timer
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot import wrap, listwrap
 
 
 DEFAULT_QUERY_LIMIT = 20

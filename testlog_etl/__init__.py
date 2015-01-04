@@ -7,7 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary.structs import Dict
+from pyLibrary.dot import Dict
 
 
 def key2etl(key):

@@ -13,9 +13,9 @@ import re
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.structs import nvl, Dict
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, unwrap
+from pyLibrary.dot import nvl, Dict
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, unwrap
 
 ALGEBRAIC = {"time", "duration", "numeric", "count", "datetime"}  # DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
 KNOWN = {"set", "boolean", "duration", "time", "numeric"}    # DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME

@@ -22,9 +22,9 @@ from pyLibrary.queries.cube import Cube
 from pyLibrary.maths import Math
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.structs import set_default, Null, Dict, split_field, nvl, join_field
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import listwrap, wrap, unwrap
+from pyLibrary.dot import set_default, Null, Dict, split_field, nvl, join_field
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import listwrap, wrap, unwrap
 
 
 # A COLLECTION OF DATABASE OPERATORS (RELATIONAL ALGEBRA OPERATORS)
@@ -94,12 +94,12 @@ def index(data, keys=None):
     return o
 
 
-def unique_index(data, keys=None):
+def unique_index(data, keys=None, fail_on_dup=True):
     """
     RETURN dict THAT USES KEYS TO INDEX DATA
     ONLY ONE VALUE ALLOWED PER UNIQUE KEY
     """
-    o = UniqueIndex(listwrap(keys))
+    o = UniqueIndex(listwrap(keys), fail_on_dup=fail_on_dup)
 
     for d in data:
         try:

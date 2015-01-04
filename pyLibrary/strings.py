@@ -15,9 +15,9 @@ from datetime import datetime as builtin_datetime
 import re
 import math
 import __builtin__
-from pyLibrary.structs import nvl
+from pyLibrary.dot import nvl
 
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import wrap
 
 
 def datetime(value):
@@ -45,22 +45,28 @@ def unix(value):
 
     return str(convert.datetime2unix(value))
 
+
 def url(value):
     """
     CONVERT FROM dict OR string TO URL PARAMETERS
     """
     from pyLibrary import convert
+
     return convert.value2url(value)
+
 
 def html(value):
     """
     CONVERT FROM unicode TO HTML OF THE SAME
     """
     from pyLibrary import convert
+
     return convert.unicode2HTML(value)
+
 
 def upper(value):
     return value.upper()
+
 
 def lower(value):
     return value.lower()
@@ -72,8 +78,10 @@ def newline(value):
     """
     return "\n" + toString(value).lstrip("\n")
 
+
 def replace(value, find, replace):
     return value.replace(find, replace)
+
 
 def json(value):
     from pyLibrary import convert
@@ -109,17 +117,20 @@ def outdent(value):
 
         Log.error("can not outdent value", e)
 
+
 def round(value, decimal=None, digits=None):
-    value=float(value)
+    value = float(value)
     if digits != None:
         m = pow(10, math.ceil(math.log10(abs(value))))
         return __builtin__.round(value / m, digits) * m
 
     return __builtin__.round(value, decimal)
 
+
 def percent(value, decimal=None, digits=None):
-    per = round(value*100, decimal, digits)
-    return str(per)+"%"
+    per = round(value * 100, decimal, digits)
+    return str(per) + "%"
+
 
 def between(value, prefix, suffix):
     value = toString(value)
@@ -131,7 +142,7 @@ def between(value, prefix, suffix):
     if e == -1:
         return None
 
-    s = value.rfind(prefix, 0, e) + len(prefix) # WE KNOW THIS EXISTS, BUT THERE MAY BE A RIGHT-MORE ONE
+    s = value.rfind(prefix, 0, e) + len(prefix)  # WE KNOW THIS EXISTS, BUT THERE MAY BE A RIGHT-MORE ONE
     return value[s:e]
 
 
@@ -170,6 +181,7 @@ def find_first(value, find_arr, start=0):
 
 
 pattern = re.compile(r"\{\{([\w_\.]+(\|[^\}^\|]+)*)\}\}")
+
 
 def expand_template(template, value):
     """
@@ -242,12 +254,14 @@ def _simple_expand(template, seq):
                 Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}", {
                     "template": template
                 }, e)
-            return "[template expansion error: ("+str(e.message)+")]"
+            return "[template expansion error: (" + str(e.message) + ")]"
 
     return pattern.sub(replacer, template)
 
 
 delchars = {c.decode("latin1"): None for c in map(chr, range(256)) if not c.decode("latin1").isalnum()}
+
+
 def deformat(value):
     """
     REMOVE NON-ALPHANUMERIC CHARACTERS
@@ -266,14 +280,14 @@ def toString(val):
         return val.__json__()
     elif isinstance(val, timedelta):
         duration = val.total_seconds()
-        return unicode(round(duration, 3))+" seconds"
+        return unicode(round(duration, 3)) + " seconds"
 
     try:
         return unicode(val)
     except Exception, e:
         from pyLibrary.debugs.logs import Log
 
-        Log.error(str(type(val))+" type can not be converted to unicode", e)
+        Log.error(str(type(val)) + " type can not be converted to unicode", e)
 
 
 def edit_distance(s1, s2):
@@ -292,8 +306,8 @@ def edit_distance(s1, s2):
     for i, c1 in enumerate(s1):
         current_row = [i + 1]
         for j, c2 in enumerate(s2):
-            insertions = previous_row[j + 1] + 1 # j+1 instead of j since previous_row and current_row are one character longer
-            deletions = current_row[j] + 1       # than s2
+            insertions = previous_row[j + 1] + 1  # j+1 instead of j since previous_row and current_row are one character longer
+            deletions = current_row[j] + 1  # than s2
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
@@ -302,6 +316,8 @@ def edit_distance(s1, s2):
 
 
 DIFF_PREFIX = re.compile(r"@@ -(\d+(?:\s*,\d+)?) \+(\d+(?:\s*,\d+)?) @@")
+
+
 def apply_diff(text, diff, reverse=False):
     """
     SOME EXAMPLES OF diff
@@ -353,9 +369,9 @@ def apply_diff(text, diff, reverse=False):
         if remove[1] != 0:
             text = text[:remove[0] - 1] + text[remove[0] + remove[1] - 1:]
         text = text[:add[0] - 1] + [d[1:] for d in diff[1 + remove[1]:1 + remove[1] + add[1]]] + text[add[0] - 1:]
-        text = apply_diff(text, diff[add[1]+remove[1]+1:], reverse=reverse)
+        text = apply_diff(text, diff[add[1] + remove[1] + 1:], reverse=reverse)
     else:
-        text = apply_diff(text, diff[add[1]+remove[1]+1:], reverse=reverse)
+        text = apply_diff(text, diff[add[1] + remove[1] + 1:], reverse=reverse)
         if add[1] != 0:
             text = text[:add[0] - 1] + text[add[0] + add[1] - 1:]
         text = text[:remove[0] - 1] + [d[1:] for d in diff[1:1 + remove[1]]] + text[remove[0] - 1:]
@@ -394,4 +410,4 @@ def utf82unicode(value):
         except Exception, f:
             pass
 
-        Log.error("Can not explain conversion failure of "+type(value).__name__+"!", e)
+        Log.error("Can not explain conversion failure of " + type(value).__name__ + "!", e)

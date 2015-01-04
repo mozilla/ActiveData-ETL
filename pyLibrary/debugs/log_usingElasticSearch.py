@@ -14,7 +14,7 @@ from datetime import timedelta, datetime
 
 from pyLibrary import convert
 from pyLibrary.env.elasticsearch import Cluster
-from pyLibrary.structs import set_default
+from pyLibrary.dot import set_default
 from pyLibrary.thread.threads import Thread, Queue
 from .logs import BaseLog, Log
 

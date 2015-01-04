@@ -16,9 +16,9 @@ from pyLibrary.queries.query import Query
 from pyLibrary.sql.db import int_list_packer, SQL, DB
 from pyLibrary.debugs.logs import Log
 from pyLibrary.strings import indent, expand_template
-from pyLibrary.structs import nvl
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, listwrap, unwrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap, unwrap
 
 
 class DBQuery(object):

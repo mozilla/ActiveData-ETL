@@ -15,22 +15,14 @@ from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
 from testlog_etl.dummy_sink import DummySink
 
-from testlog_etl.transforms.pulse_block_to_unittest_logs import process_pulse_block
-from testlog_etl.transforms.pulse_block_to_talos_logs import process_talos
-
 from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.structs import wrap, nvl
-
-from pyLibrary.structs.wraps import listwrap
+from pyLibrary.dot import wrap, nvl, listwrap
 from pyLibrary.thread.threads import Thread
 
 
 NOTHING_DONE ="Could not process records from {{bucket}}"
-
-
-workers = wrap()
 
 
 class ConcatSources(object):

@@ -15,23 +15,24 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 
 
-def zeros(dim, dtype=None):
+def zeros(dim):
     if not isinstance(dim, tuple):
-        return [0]*dim
+        return [0] * dim
 
     if len(dim) == 1:
         return [0.0] * dim[0]
 
     return [zeros(dim[1::]) for i in range(dim[0])]
 
-def ones(dim, dtype=None):
+
+def ones(dim):
     if not isinstance(dim, tuple):
-        return [1.0]*dim
+        return [1.0] * dim
 
     if len(dim) == 1:
         return [1.0] * dim[0]
 
-    return [zeros(dim[1::]) for i in range(dim[0])]
+    return [zeros(dim[1::]) for _ in range(dim[0])]
 
 
 def _apply(func):
@@ -40,18 +41,17 @@ def _apply(func):
             return [output(v) for v in value]
         else:
             return func(value)
+
     return lambda v: array(output(v))
 
 
 def _reduce(func):
     def agg(values, axis, depth):
-
-
-        if depth==axis:
+        if depth == axis:
             return func
 
         if hasattr(values[0], "__iter__"):
-            return [calc(v) for v in values]
+            return [func(v) for v in values]
         else:
             return func(values)
 
@@ -70,7 +70,6 @@ def _reduce(func):
     return output
 
 
-
 def _binary_op(op):
     def output(a, b):
         if hasattr(a, "__iter__"):
@@ -83,7 +82,9 @@ def _binary_op(op):
                 return [output(a, bi) for bi in b]
             else:
                 return op(a, b)
-    return lambda a,b: array(output(a,b))
+
+    return lambda a, b: array(output(a, b))
+
 
 g = globals()
 MATH = g["math"].__dict__.copy()
@@ -103,7 +104,6 @@ MORE_MATH = {
 for k, f in MORE_MATH.items():
     g[k] = _apply(f)
 
-
 AGGS = {
     "min": min,
     "sum": sum,
@@ -111,15 +111,13 @@ AGGS = {
     "max": max,
     "argmax": max,
     "argmin": min,
-    "mean": lambda v: sum(v)/float(len(v)) if v else None,
-    "var": lambda vs: sum([v**2 for v in vs]) - (sum(vs)/float(len(vs)))**2
+    "mean": lambda v: sum(v) / float(len(v)) if v else None,
+    "var": lambda vs: sum([v ** 2 for v in vs]) - (sum(vs) / float(len(vs))) ** 2
 }
 for k, f in AGGS.items():  # AGGREGATION
     g[k] = _reduce(f)
 
-
-
-IGNORE =  [
+IGNORE = [
     "__array__",
     "__array_interface__",
     "__array_struct__",
@@ -127,9 +125,9 @@ IGNORE =  [
 ]
 
 
-
 def dot(a, b):
     Log.error("Not implemented yet")
+
 
 def transpose(a):
     raise NotImplementedError
@@ -137,6 +135,7 @@ def transpose(a):
 
 def seterr(*args, **kwargs):
     pass
+
 
 def allclose(a, b):
     try:
@@ -162,7 +161,7 @@ class _array:
         if item in IGNORE:
             pass
         else:
-            Log.error("operation {{op}} not found", {"op":item})
+            Log.error("operation {{op}} not found", {"op": item})
 
     def __iter__(self):
         return self._value.__iter__()
@@ -207,6 +206,7 @@ class _array:
                 return (len(val),) + _shape(val[0])
             else:
                 return ()
+
         return _shape(self._value)
 
     def astype(self, type):
@@ -216,13 +216,12 @@ class _array:
         pass
 
 
-
-#ADD AGGREGATES TO CLASS
+# ADD AGGREGATES TO CLASS
 for k, f in AGGS.items():
     _array.__dict__[k] = _reduce(f)
 
 # DEFINE THE OPERATORS ON CLASS
 for k, op in MORE_MATH.items():
-    _array.__dict__["__"  + k + "__"] = lambda self, other: _binary_op(op, self._value, other)
+    _array.__dict__["__" + k + "__"] = lambda self, other: _binary_op(op, self._value, other)
     _array.__dict__["__r" + k + "__"] = lambda self, other: _binary_op(op, self._value, other)
 

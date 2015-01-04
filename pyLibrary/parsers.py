@@ -1,5 +1,5 @@
 from urlparse import urlparse
-from pyLibrary.structs.dicts import Dict
+from pyLibrary.dot.dicts import Dict
 
 
 def URL(value):

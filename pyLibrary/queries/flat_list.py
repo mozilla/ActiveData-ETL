@@ -14,9 +14,9 @@ from __future__ import division
 import functools
 from pyLibrary.collections import MIN
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import split_field, nvl, Dict
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import split_field, nvl, Dict
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap
 
 
 class FlatList(list):

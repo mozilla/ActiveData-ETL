@@ -13,8 +13,8 @@ from __future__ import division
 from datetime import datetime
 from time import clock
 from pyLibrary.collections import MAX
-from pyLibrary.structs.wraps import wrap
-from pyLibrary.structs import Dict
+from pyLibrary.dot import wrap
+from pyLibrary.dot import Dict
 
 ON = False
 profiles = {}

@@ -12,7 +12,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.structs import Dict, wrap, nvl, set_default
+from pyLibrary.dot import Dict, wrap, nvl, set_default
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key

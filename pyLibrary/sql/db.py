@@ -18,8 +18,8 @@ from pymysql import connect, InterfaceError
 from pyLibrary.jsons import json_scrub
 from pyLibrary.maths import Math
 from pyLibrary.strings import expand_template, utf82unicode
-from pyLibrary.structs import nvl
-from pyLibrary.structs.wraps import wrap, listwrap, unwrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot import wrap, listwrap, unwrap
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.queries import Q

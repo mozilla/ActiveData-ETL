@@ -9,13 +9,13 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import structs
+from pyLibrary import dot
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import MAX, OR
 from pyLibrary.queries.query import _normalize_edge
-from pyLibrary.structs import Null
-from pyLibrary.structs.lists import DictList
-from pyLibrary.structs.wraps import wrap, wrap_dot, listwrap
+from pyLibrary.dot import Null
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, wrap_dot, listwrap
 from pyLibrary.debugs.logs import Log
 
 
@@ -94,7 +94,7 @@ class Cube(object):
         if len(self.edges) == 1 and wrap(self.edges[0]).domain.type == "index":
             # ITERATE AS LIST OF RECORDS
             keys = list(self.data.keys())
-            output = (structs.zip(keys, r) for r in zip(*self.data.values()))
+            output = (dot.zip(keys, r) for r in zip(*self.data.values()))
             return output
 
         Log.error("This is a multicube")

@@ -18,8 +18,8 @@ import sys
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from pyLibrary.strings import utf82unicode
-from pyLibrary.structs.dicts import Dict
-from pyLibrary.structs.lists import DictList
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot.lists import DictList
 
 json_decoder = json.JSONDecoder().decode
 

@@ -21,7 +21,7 @@ import gc
 # THIS THREADING MODULE IS PERMEATED BY THE please_stop SIGNAL.
 # THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
 # FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
-from pyLibrary.structs import nvl, Dict
+from pyLibrary.dot import nvl, Dict
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 
