@@ -11,7 +11,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.queries.db_query import esfilter2sqlwhere
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import wrap
 
 
 def find_holes(db, table_name, column_name, _range, filter=None):

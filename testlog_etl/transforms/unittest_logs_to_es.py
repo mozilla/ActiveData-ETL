@@ -7,44 +7,32 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-import functools
-
-import requests
-
+from StringIO import StringIO
 from pyLibrary import convert
-from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env.elasticsearch import Cluster
-from pyLibrary.env.pulse import Pulse
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.structs import wrap, set_default, Struct, nvl
-from pyLibrary.thread.threads import Thread, Queue
+from pyLibrary.dot import Dict, wrap, nvl, set_default
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
+from testlog_etl import etl2key
 
 
+def process_unittest(source_key, source, destination):
 
-def process_unittest(envelope, sink):
-    data = transform_buildbot(envelope.payload)
+    lines = StringIO(source.read())
+
+    etl_header = convert.json2value(lines.next())
+    data = transform_buildbot(convert.json2value(lines.next()))
     Log.note("{{data}}", {"data": data})
 
-    found_log = False
     all_tests = []
     for name, url in data.run.files.items():
         try:
-            if "structured" in name and name.endswith(".log"):
-                found_log = True
-                with Timer("Process log {{file}}", {"file": name}):
-                    results = process_log(name, url)
-                data.run.counts = results.counts
-                all_tests.append(results.tests)
+            with Timer("Process log {{file}}", {"file": name}):
+                all_tests = process_unittest_log(lines)
         except Exception, e:
-            Log.error("Problem processing {{url}}", {"url": url}, e)
-
-    if found_log:
-        Log.note("NO STRUCTURED LOG")
-        return
+            Log.error("Problem processing {{key}}", {"key": source_key}, e)
 
     data.etl = {
         "name": "unittest",
@@ -53,32 +41,28 @@ def process_unittest(envelope, sink):
         "type": "join"
     }
 
-    sink.write("\n".join([
-        set_default(
-            {
-                "result": t,
-                "etl": {
-                    "id": i
-                }
-            },
-            data
-        )
+    destination.extend([
+        {
+            "id": etl2key(data.etl),
+            "value": set_default(
+                {
+                    "result": t,
+                    "etl": {
+                        "id": i
+                    }
+                },
+                data
+            )
+        }
         for i, t in enumerate(all_tests)
-    ]))
+    ])
+
+    return range(len(all_tests))
 
 
-def process_log(name, url):
+def process_unittest_log(lines):
     accumulator = LogSummary()
-    accumulator.url = url
-    accumulator.counts.lines = 0
-
-    if url:
-        response = requests.get(url)
-    else:
-        response = Struct(content="")  # DUMMY CONTENT FOR null URL
-
-
-    for line in response.content.split("\n"):
+    for line in lines:
         if line.strip() == "":
             continue
         try:
@@ -102,7 +86,7 @@ def process_log(name, url):
 class LogSummary(object):
     def __init__(self):
         object.__setattr__(self, "tests", {})
-        object.__setattr__(self, "attr", Struct())
+        object.__setattr__(self, "attr", Dict())
 
     def __getattr__(self, item):
         return object.__getattribute__(self, "attr")[item]
@@ -116,7 +100,7 @@ class LogSummary(object):
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[log.test] = Struct(
+        self.tests[log.test] = Dict(
             test=log.test,
             start=log.time
         )
@@ -124,7 +108,7 @@ class LogSummary(object):
     def test_status(self, log):
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -141,7 +125,7 @@ class LogSummary(object):
 
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -155,7 +139,7 @@ class LogSummary(object):
 
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 crash=True,
@@ -166,7 +150,7 @@ class LogSummary(object):
     def test_end(self, log):
         test = self.tests.get(log.test, None)
         if not test:
-            self.tests[log.test] = test = Struct(
+            self.tests[log.test] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -245,25 +229,3 @@ def transform_buildbot(payload):
 
     return output
 
-
-def main():
-    try:
-        settings = startup.read_settings()
-        Log.start(settings.debug)
-
-        with startup.SingleInstance(flavor_id=settings.args.filename):
-            es = Cluster(settings.destination).get_or_create_index(settings.destination)
-            pulse = Pulse(settings.source, target=functools.partial(process_unittest, sink=es))
-
-            Thread.wait_for_shutdown_signal()
-            pulse.stop()
-            pulse.join()
-
-    except Exception, e:
-        Log.error("Problem with etl", e)
-    finally:
-        Log.stop()
-
-
-if __name__ == "__main__":
-    main()

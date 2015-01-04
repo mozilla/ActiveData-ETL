@@ -14,7 +14,7 @@ import __builtin__
 
 
 from pyLibrary.strings import find_first
-from pyLibrary.structs import Null, nvl
+from pyLibrary.dot import Null, nvl
 
 
 class Math(object):

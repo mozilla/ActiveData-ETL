@@ -19,9 +19,9 @@ from pyLibrary.queries.filters import simplify
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import domains, MVEL, filters
 from pyLibrary.queries.MVEL import UID
-from pyLibrary.structs import literal_field, nvl
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot import literal_field, nvl
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap
 
 
 def is_terms_stats(query):
@@ -39,7 +39,7 @@ def is_terms_stats(query):
 def es_terms_stats(esq, mvel, query):
     select = listwrap(query.select)
     facetEdges = []    # EDGES THAT WILL REQUIRE A FACET FOR EACH PART
-    termsEdges = StructList()
+    termsEdges = DictList()
     specialEdge = None
     special_index = -1
 
@@ -114,19 +114,19 @@ def es_terms_stats(esq, mvel, query):
         # GENERATE ALL COMBOS
         esFacets = getAllEdges(facetEdges)
 
-    calcTerm = compileEdges2Term(mvel, termsEdges, StructList())
+    calcTerm = compileEdges2Term(mvel, termsEdges, DictList())
     term2parts = calcTerm.term2parts
 
     if len(esFacets) * len(select) > 1000:
-        # WE HAVE SOME SERIOUS PERMUTATIONS, WE MUST ISSUE MULTIPLE QUERIES
+        Log.error("not implemented yet")  # WE HAVE SOME SERIOUS PERMUTATIONS, WE MUST ISSUE MULTIPLE QUERIES
         pass
 
     esQuery = buildESQuery(query)
 
     for s in select:
         for parts in esFacets:
-            condition = StructList()
-            constants = StructList()
+            condition = DictList()
+            constants = DictList()
             name = [literal_field(s.name)]
             for f, fedge in enumerate(facetEdges):
                 name.append(str(parts[f].dataIndex))
@@ -150,7 +150,7 @@ def es_terms_stats(esq, mvel, query):
 
     if specialEdge.domain.type not in domains.KNOWN:
         # WE BUILD THE PARTS BASED ON THE RESULTS WE RECEIVED
-        partitions = StructList()
+        partitions = DictList()
         map = {}
         for facetName, parts in data.facets.items():
             for stats in parts.terms:
@@ -223,7 +223,7 @@ def _getAllEdges(facetEdges, edgeDepth):
 
     deeper = _getAllEdges(facetEdges, edgeDepth + 1)
 
-    output = StructList()
+    output = DictList()
     partitions = edge.domain.partitions
     for part in partitions:
         for deep in deeper:

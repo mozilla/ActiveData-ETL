@@ -6,10 +6,10 @@ This library is solving the problem of consistency (closure) under the dot(.)
 and slice [::] operators.  The most significant difference is in the dealing
 with None, missing keys, and missing items in lists.
 
-Struct replaces dict
+Dict replaces dict
 --------------------
 
-```Struct``` is used to declare an instance of an anonymous type, and has good
+```Dict``` is used to declare an instance of an anonymous type, and has good
 features for manipulating JSON.  Anonymous types are necessary when
 writing sophisticated list comprehensions, or queries, and to keep them
 readable.  In many ways, dict() can act as an anonymous type, but it does
@@ -54,7 +54,7 @@ a.b.c += 42
 
 ### Examples in the wild###
 
-```Struct``` is a common pattern in many frameworks even though it goes by
+```Dict``` is a common pattern in many frameworks even though it goes by
 different names, some examples are:
 
  * ```jinja2.environment.Environment.getattr()```  to allow convenient dot notation
@@ -63,6 +63,7 @@ different names, some examples are:
  * ```collections.namedtuple()``` - gives attribute names to tuple indicies
   effectively providing <code>a.b</code> rather than <code>a["b"]</code>
      offered by dicts
+ * DotDict allows dot notation, and path setting: https://github.com/mozilla/configman/blob/master/configman/dotdict.py
  * C# Linq requires anonymous types to avoid large amounts of boilerplate code.
  * D3 has many of these conventions ["The function's return value is
   then used to set each element's attribute. A null value will remove the
@@ -111,7 +112,8 @@ incomplete tree.
 
 ### Null Arithmetic ###
 
-When `Null` is part of arithmetic operation (boolean or otherwise) it results in ```Null```:
+When `Null` is part of arithmetic operation (boolean or otherwise) it results
+in ```Null```:
 
  * ```a ∘ Null == Null```
  * ```Null ∘ a == Null```
@@ -119,12 +121,68 @@ When `Null` is part of arithmetic operation (boolean or otherwise) it results in
 where `∘` is any binary operator.
 
 
+DictList is "Flat"
+----------------------------------------
+`DictList` uses a *flat-list* assumption to interpret slicing and indexing
+operations.  This assumes lists are defined over all integer (**ℤ**)
+indices; defaulting to `Null` for indices not explicitly defined otherwise.
+This is distinctly different from Python's usual *loop-around*  assumption,
+where negative indices are interpreted modulo-the-list-length.
 
-Motivation for StructList
+    python_list = ['A', 'B', 'C']
+    struct_list = wrap(python_list)
+
+Here is table comparing behaviours
+
+| <br>`index`|*loop-around*<br>`python_list[index]`|*flat-list*<br>`struct_list[index]`|
+| ------:|:------------------:|:------------------:|
+|   -5   |     `<error>`      |       `Null`       |
+|   -4   |     `<error>`      |       `Null`       |
+|   -3   |        `A`         |       `Null`       |
+|   -2   |        `B`         |       `Null`       |
+|   -1   |        `C`         |       `Null`       |
+|    0   |        `A`         |        `A`         |
+|    1   |        `B`         |        `B`         |
+|    2   |        `C`         |        `C`         |
+|    3   |     `<error>`      |       `Null`       |
+|    4   |     `<error>`      |       `Null`       |
+|    5   |     `<error>`      |       `Null`       |
+
+The *flat list* assumption reduces exception handling and simplifies code for
+window functions.  For example, `Math.min(struct_list[a:b:])` is valid for
+all `a<=b`
+
+  * Python 2.x binary slicing `[:]` is disabled (see implementation issues below)
+  * Trinary slicing `[::]` uses the flat list definition
+
+When assuming a *flat-list*, we loose the *take-from-the-right* tricks gained
+from modulo arithmetic on the indicies. Therefore, we require extra methods
+to perform right-based slicing:
+
+  * **right()** - `struct_list.right(b)` same as `python_list[-b:]` except when `b<=0`
+  * **leftBut()** - `struct_list.leftBut(b)` same as `python_list[:-b]` except
+  when `b<=0` (read as "left, but for ...")
+
+For the sake of completness, we have two more convenience methods:
+
+  * `struct_list.left(b)` same as `struct_list[:b:]`
+  * `struct_list.rightBut(b)` same as `struct_list[b::]`
+
+DictList Dot (.) Operator
+----------------------------
+
+The dot operator on a `DictList` will return a list of property values
+
+    ```python
+    myList.name == [x["name"] for x in myList]
+    ```
+
+
+Motivation for DictList
 -------------------------
 
-```StructList``` is the final type required to to provide closure under the
-dot(.) and slice [::] operators.  Not only must ```StructList``` deal with
+```DictList``` is the final type required to to provide closure under the
+dot(.) and slice [::] operators.  Not only must ```DictList``` deal with
 ```Nulls``` (and ```Nones```) but also provide fixes to Python's inconsistent
 slice operator.
 
@@ -179,6 +237,8 @@ I advocate never using negative indices in the slice operator.  Rather, use the
     def right(_list, num):
         if num <= 0:
             return []
+        if num >= len(_list):
+            return _list
         return _list[-num:]
 ```
 

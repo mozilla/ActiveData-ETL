@@ -13,7 +13,7 @@ from __future__ import division
 import types
 import math
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.structs import Null
+from pyLibrary.dot import Null
 
 
 def reverse(values):

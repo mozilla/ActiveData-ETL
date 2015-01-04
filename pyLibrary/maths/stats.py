@@ -18,7 +18,7 @@ from pyLibrary import convert
 from pyLibrary.collections import OR
 from __init__ import almost_equal
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import nvl, Struct, Null
+from pyLibrary.dot import nvl, Dict, Null
 from pyLibrary.vendor import strangman
 
 
@@ -133,7 +133,7 @@ def ZeroMoment2Stats(z_moment):
         try:
             v = Stats2ZeroMoment(stats)
             for i in range(5):
-                assertAlmostEqualValue(v.S[i], Z[i], digits=6)
+                assertAlmostEqualValue(v.S[i], Z[i], places=7)
         except Exception, e:
             Log.error("Convertion failed.  Programmer error:\nfrom={{from|indent}},\nresult stats={{stats|indent}},\nexpected param={{expected|indent}}", {
                 "from": Z,
@@ -145,9 +145,9 @@ def ZeroMoment2Stats(z_moment):
     return stats
 
 
-class Stats(Struct):
+class Stats(Dict):
     def __init__(self, **kwargs):
-        Struct.__init__(self)
+        Dict.__init__(self)
 
         self.count = 0
         self.mean = None
@@ -208,9 +208,9 @@ class Stats(Struct):
     @property
     def __class__(self):
         """
-        TRICK JSON SERIALIZATION (AND OTHERS) THAT THIS IS JUST ANOTHER Struct
+        TRICK JSON SERIALIZATION (AND OTHERS) THAT THIS IS JUST ANOTHER Dict
         """
-        return Struct
+        return Dict
 
 
 class ZeroMoment(object):

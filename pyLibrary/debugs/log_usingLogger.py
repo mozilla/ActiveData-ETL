@@ -16,9 +16,9 @@ from datetime import timedelta
 import logging
 import sys
 
-from pyLibrary import structs
 from .log_usingStream import Log_usingStream, time_delta_pusher
 from .logs import BaseLog, DEBUG_LOGGING, Log
+from pyLibrary.dot import unwrap
 from pyLibrary.thread import threads
 from pyLibrary.thread.threads import Thread
 
@@ -83,7 +83,7 @@ def make_log_from_settings(settings):
             f.parent.create()
 
     settings['class'] = None
-    params = structs.unwrap(settings)
+    params = unwrap(settings)
     log_instance = constructor(**params)
     return log_instance
 

@@ -25,7 +25,7 @@ from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log
 from pyLibrary.strings import expand_template
-from pyLibrary.structs.wraps import wrap, wrap_dot, unwrap
+from pyLibrary.dot import wrap, wrap_dot, unwrap
 
 
 """

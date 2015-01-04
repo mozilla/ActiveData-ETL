@@ -17,9 +17,9 @@ from pyLibrary.queries import es_query_util
 from pyLibrary.queries.es_query_util import aggregates, buildESQuery, compileEdges2Term
 from pyLibrary.queries.filters import simplify
 from pyLibrary.queries.cube import Cube
-from pyLibrary.structs import nvl
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap
 
 
 def is_terms(query):
@@ -128,7 +128,7 @@ def _es_terms2(es, mvel, query):
         values2.update(f.terms.term)
     values2 = Q.sort(values2)
     term2index = {v: i for i, v in enumerate(values2)}
-    query.edges[1].domain.partitions = StructList([{"name": v, "value": v} for v in values2])
+    query.edges[1].domain.partitions = DictList([{"name": v, "value": v} for v in values2])
 
     # MAKE CUBE
     output = {}

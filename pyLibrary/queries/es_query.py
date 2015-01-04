@@ -21,10 +21,10 @@ from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.query import Query, _normalize_where
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.MVEL import _MVEL
-from pyLibrary.structs.dicts import Struct
-from pyLibrary.structs import nvl, split_field
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import wrap, listwrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot import nvl, split_field
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, listwrap
 
 class ESQuery(object):
     """
@@ -32,7 +32,7 @@ class ESQuery(object):
     """
     def __init__(self, es):
         self.es = es
-        self.edges = Struct()
+        self.edges = Dict()
         self.worker = None
         self.ready=False
 
@@ -109,7 +109,7 @@ class ESQuery(object):
         return self.edges[item]
 
     def normalize_edges(self, edges):
-        output = StructList()
+        output = DictList()
         for e in listwrap(edges):
             output.extend(self._normalize_edge(e))
         return output
@@ -169,7 +169,7 @@ class ESQuery(object):
         })
 
         # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
-        scripts = StructList()
+        scripts = DictList()
         for k, v in command.set.items():
             if not MVEL.isKeyword(k):
                 Log.error("Only support simple paths for now")

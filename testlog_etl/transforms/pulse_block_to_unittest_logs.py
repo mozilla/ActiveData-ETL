@@ -14,7 +14,7 @@ from pyLibrary import aws
 from pyLibrary import convert
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.structs import wrap, Struct
+from pyLibrary.dot import wrap, Dict
 from pyLibrary.thread.threads import Thread
 
 
@@ -39,7 +39,7 @@ def process_pulse_block(source_key, source, dest_bucket):
         elif envelope.locale:
             if DEBUG:
                 Log.note("Line {{index}}: found pulse message stripped of envelope", {"index": i})
-            envelope = Struct(data=envelope)
+            envelope = Dict(data=envelope)
         elif envelope.source:
             continue
         elif envelope.pulse:
@@ -49,7 +49,7 @@ def process_pulse_block(source_key, source, dest_bucket):
             def read():
                 return convert.unicode2utf8("\n".join(convert.value2json(p) for p in envelope.pulse))
 
-            temp = Struct(read=read)
+            temp = Dict(read=read)
 
             return process_pulse_block(source_key, temp, dest_bucket)
         else:

@@ -9,12 +9,13 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary import dot
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import MAX, OR
 from pyLibrary.queries.query import _normalize_edge
-from pyLibrary.structs import Null
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import wrap, wrap_dot, listwrap
+from pyLibrary.dot import Null
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap, wrap_dot, listwrap
 from pyLibrary.debugs.logs import Log
 
 
@@ -44,14 +45,14 @@ class Cube(object):
                     Log.error("not expecting a list of records")
 
                 data = {select.name: Matrix.ZERO}
-                self.edges = StructList.EMPTY
+                self.edges = DictList.EMPTY
             elif isinstance(data, dict):
                 # EXPECTING NO MORE THAN ONE rownum EDGE IN THE DATA
                 length = MAX([len(v) for v in data.values()])
                 if length >= 1:
                     self.edges = wrap([{"name": "rownum", "domain": {"type": "index"}}])
                 else:
-                    self.edges = StructList.EMPTY
+                    self.edges = DictList.EMPTY
             elif isinstance(data, list):
                 if isinstance(select, list):
                     Log.error("not expecting a list of records")
@@ -68,7 +69,7 @@ class Cube(object):
                     Log.error("not expecting a list of records")
 
                 data = {select.name: Matrix(value=data)}
-                self.edges = StructList.EMPTY
+                self.edges = DictList.EMPTY
         else:
             self.edges = edges
 
@@ -93,7 +94,7 @@ class Cube(object):
         if len(self.edges) == 1 and wrap(self.edges[0]).domain.type == "index":
             # ITERATE AS LIST OF RECORDS
             keys = list(self.data.keys())
-            output = (structs.zip(keys, r) for r in zip(*self.data.values()))
+            output = (dot.zip(keys, r) for r in zip(*self.data.values()))
             return output
 
         Log.error("This is a multicube")
@@ -257,7 +258,7 @@ class Cube(object):
         SLICE THIS CUBE IN TO ONES WITH LESS DIMENSIONALITY
         simple==True WILL HAVE GROUPS BASED ON PARTITION VALUE, NOT PARTITION OBJECTS
         """
-        edges = StructList([_normalize_edge(e) for e in edges])
+        edges = DictList([_normalize_edge(e) for e in edges])
 
         stacked = [e for e in self.edges if e.name in edges.name]
         remainder = [e for e in self.edges if e.name not in edges.name]

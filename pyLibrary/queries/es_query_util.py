@@ -20,10 +20,10 @@ from pyLibrary.env.elasticsearch import Index
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import domains, MVEL, filters
-from pyLibrary.structs.dicts import Struct
-from pyLibrary.structs import set_default, split_field, join_field, nvl
-from pyLibrary.structs.lists import StructList
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot import set_default, split_field, join_field, nvl
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import wrap
 from pyLibrary.times import durations
 
 
@@ -40,7 +40,7 @@ def loadColumns(es, frum):
     if isinstance(frum, basestring):
         if frum in INDEX_CACHE:
             return INDEX_CACHE[frum]
-        frum = Struct(
+        frum = Dict(
             name=frum
         )
     else:
@@ -133,7 +133,7 @@ def parseColumns(index_name, parent_path, esProperties):
     """
     RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
     """
-    columns = StructList()
+    columns = DictList()
     for name, property in esProperties.items():
         if parent_path:
             path = join_field(split_field(parent_path) + [name])
@@ -248,7 +248,7 @@ def compileTime2Term(edge):
                 return edge.domain.NULL
             return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)))
 
-    return Struct(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
+    return Dict(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
 
 
 # RETURN MVEL CODE THAT MAPS DURATION DOMAINS DOWN TO AN INTEGER AND
@@ -278,7 +278,7 @@ def compileDuration2Term(edge):
             return edge.domain.NULL
         return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)))
 
-    return Struct(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
+    return Dict(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
 
 
 # RETURN MVEL CODE THAT MAPS THE numeric DOMAIN DOWN TO AN INTEGER AND
@@ -322,7 +322,7 @@ def compileNumeric2Term(edge):
             return edge.domain.NULL
         return edge.domain.getPartByKey((value * edge.domain.interval) + offset)
 
-    return Struct(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
+    return Dict(toTerm={"head": "", "body": partition2int}, fromTerm=int2Partition)
 
 
 def compileString2Term(edge):
@@ -338,7 +338,7 @@ def compileString2Term(edge):
     def fromTerm(value):
         return edge.domain.getPartByKey(value)
 
-    return Struct(
+    return Dict(
         toTerm={"head": "", "body": value},
         fromTerm=fromTerm
     )
@@ -389,26 +389,26 @@ def compileEdges2Term(mvel_compiler, edges, constants):
     if len(edges) == 1 and edge0.domain.type in ["set", "default"]:
         # THE TERM RETURNED WILL BE A MEMBER OF THE GIVEN SET
         def temp(term):
-            return StructList([edge0.domain.getPartByKey(term)])
+            return DictList([edge0.domain.getPartByKey(term)])
 
         if edge0.value and MVEL.isKeyword(edge0.value):
-            return Struct(
+            return Dict(
                 field=edge0.value,
                 term2parts=temp
             )
         elif COUNT(edge0.domain.dimension.fields) == 1:
-            return Struct(
+            return Dict(
                 field=edge0.domain.dimension.fields[0],
                 term2parts=temp
             )
         elif not edge0.value and edge0.domain.partitions:
             script = mvel_compiler.Parts2TermScript(edge0.domain)
-            return Struct(
+            return Dict(
                 expression=script,
                 term2parts=temp
             )
         else:
-            return Struct(
+            return Dict(
                 expression=mvel_compiler.compile_expression(edge0.value, constants),
                 term2parts=temp
             )
@@ -421,7 +421,7 @@ def compileEdges2Term(mvel_compiler, edges, constants):
 
         if not e.value and fields:
             code, decode = mvel_compiler.Parts2Term(e.domain)
-            t = Struct(
+            t = Dict(
                 toTerm=code,
                 fromTerm=decode
             )
@@ -438,7 +438,7 @@ def compileEdges2Term(mvel_compiler, edges, constants):
                 return e.domain.getPartByKey(term)
 
             code, decode = mvel_compiler.Parts2Term(e.domain)
-            t = Struct(
+            t = Dict(
                 toTerm=code,
                 fromTerm=decode
             )
@@ -456,10 +456,10 @@ def compileEdges2Term(mvel_compiler, edges, constants):
     def temp(term):
         terms = term.split('|')
 
-        output = StructList([t2p(t) for t, t2p in zip(terms, fromTerm2Part)])
+        output = DictList([t2p(t) for t, t2p in zip(terms, fromTerm2Part)])
         return output
 
-    return Struct(
+    return Dict(
         expression=mvel_compiler.compile_expression("+'|'+".join(mvel_terms), constants),
         term2parts=temp
     )

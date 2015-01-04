@@ -18,8 +18,8 @@ from pymysql import connect, InterfaceError
 from pyLibrary.jsons import json_scrub
 from pyLibrary.maths import Math
 from pyLibrary.strings import expand_template, utf82unicode
-from pyLibrary.structs import nvl
-from pyLibrary.structs.wraps import wrap, listwrap, unwrap
+from pyLibrary.dot import nvl
+from pyLibrary.dot import wrap, listwrap, unwrap
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.queries import Q
@@ -493,7 +493,7 @@ class DB(object):
 
     def update(self, table_name, where_slice, new_values):
         """
-        where_slice - A Struct WHICH WILL BE USED TO MATCH ALL IN table
+        where_slice - A Dict WHICH WILL BE USED TO MATCH ALL IN table
                       eg {"id": 42}
         new_values  - A dict WITH COLUMN NAME, COLUMN VALUE PAIRS TO SET
         """

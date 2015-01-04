@@ -9,9 +9,9 @@
 #
 
 import unittest
-from pyLibrary.structs import nvl
+from pyLibrary.dot import nvl
 from pyLibrary.maths import Math
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import wrap
 from pyLibrary.strings import expand_template
 
 

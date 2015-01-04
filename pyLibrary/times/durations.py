@@ -17,7 +17,7 @@ from pyLibrary.times.dates import Date
 from pyLibrary.vendor.dateutil.relativedelta import relativedelta
 from pyLibrary.collections import MIN
 from pyLibrary.maths import Math
-from pyLibrary.structs.wraps import wrap
+from pyLibrary.dot import wrap
 
 
 class Duration(object):
