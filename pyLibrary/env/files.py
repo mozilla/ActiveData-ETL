@@ -16,7 +16,7 @@ import shutil
 
 from pyLibrary.strings import utf82unicode
 from pyLibrary.maths import crypto
-from pyLibrary.dot import nvl
+from pyLibrary.dot import nvl, set_default, split_field, join_field
 from pyLibrary.dot import listwrap, wrap
 from pyLibrary import convert
 
@@ -103,7 +103,7 @@ class File(object):
         """
         path = self._filename.split("/")
         parts = path[-1].split(".")
-        if len(parts)==1:
+        if len(parts) == 1:
             parts.append(ext)
         else:
             parts[-1] = ext
@@ -141,16 +141,17 @@ class File(object):
     def read_json(self, encoding="utf8"):
         content = self.read(encoding=encoding)
         value = convert.json2value(content, flexible=True, paths=True)
-        return wrap(self._replace_ref(value))
+        return wrap(self._replace_ref(value, [value]))
 
-    def _replace_ref(self, node):
+    def _replace_ref(self, node, path):
         if isinstance(node, dict):
             ref = node["$ref"]
+            node["$ref"] = None
             if not ref:
-                return_value=node
+                return_value = node
                 candidate = {}
                 for k, v in node.items():
-                    new_v = self._replace_ref(v)
+                    new_v = self._replace_ref(v, [v] + path)
                     candidate[k] = new_v
                     if new_v is not v:
                         return_value = candidate
@@ -159,16 +160,27 @@ class File(object):
             if ref.startswith("http://"):
                 import requests
 
-                return convert.json2value(requests.get(ref), flexible=True, paths=True)
+                return set_default({}, node, convert.json2value(requests.get(ref), flexible=True, paths=True))
             elif ref.startswith("file://"):
                 ref = ref[7::]
-
-            if ref.startswith("/"):
-                return File(ref).read_json(ref)
+                if ref.startswith("/"):
+                    return set_default({}, node, File(ref).read_json(ref))
+                else:
+                    return set_default({}, node, File.new_instance(self.parent, ref).read_json())
             else:
-                return File.new_instance(self.parent, ref).read_json()
+                # REFER TO SELF
+                if ref[0] == ".":
+                    # RELATIVE
+                    for i, p in enumerate(ref):
+                        if p != ".":
+                            ref_node = path[i][ref[i::]]
+                            return set_default({}, node, ref_node)
+                    return set_default({}, node, path[len(ref) - 1])
+                else:
+                    # ABSOLUTE
+                    return set_default({}, node, path[-1][ref])
         elif isinstance(node, list):
-            candidate = [self._replace_ref(n) for n in node]
+            candidate = [self._replace_ref(n, [n] + path) for n in node]
             if all(p[0] is p[1] for p in zip(candidate, node)):
                 return node
             return candidate
@@ -247,6 +259,7 @@ class File(object):
                 for c in content:
                     if isinstance(c, str):
                         from pyLibrary.debugs.logs import Log
+
                         Log.error("expecting to write unicode only")
 
                     output_file.write(c.encode("utf-8"))

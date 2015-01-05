@@ -79,6 +79,8 @@ def json2value(json_string, params=None, flexible=False, paths=False):
                 json_string = "\n".join(remove_line_comment(l) for l in json_string.split("\n"))
                 # ALLOW DICTIONARY'S NAME:VALUE LIST TO END WITH COMMA
                 json_string = re.sub(r",\s*\}", r"}", json_string)
+                # ALLOW LISTS TO END WITH COMMA
+                json_string = re.sub(r",\s*\]", r"]", json_string)
 
             if params:
                 params = dict([(k, value2quote(v)) for k, v in params.items()])
