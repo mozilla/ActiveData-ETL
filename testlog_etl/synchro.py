@@ -22,6 +22,11 @@ SYNCHRONIZATION_KEY = "0"
 
 class SynchState(object):
     def __init__(self, synch):
+        """
+        synch HAS read() AND write() SO SEPARATE INSTANCES CAN DETERMINE IF OTHERS ARE ALIVE
+        RAISE EXCEPTION IF SOME OTHER INSTANCE HAS BEEN DETECTED
+        RETURN START OF COUNT (always >=1)
+        """
         self.synch = synch
         self.pinger_thread = None
         self.next_key = 1
@@ -30,12 +35,6 @@ class SynchState(object):
 
 
     def startup(self):
-        """
-        synch HAS read() AND write() SO SEPARATE INSTANCES CAN DETERMINE IF OTHERS ARE ALIVE
-        RAISE EXCEPTION IF SOME OTHER INSTANCE HAS BEEN DETECTED
-        RETURN START OF COUNT (always >=1)
-        """
-
         try:
             json = self.synch.read()
             if json == None:
@@ -104,10 +103,10 @@ class SynchState(object):
         }))
 
     def _pinger(self, please_stop):
+        Log.note("pinger started")
         while not please_stop:
-            Log.note("pinger starting sleep")
             Thread.sleep(till=self.ping_time + PING_PERIOD, please_stop=please_stop)
-            if please_stop:
+            if please_stop:  #EXIT EARLY, OTHERWISE WE MAY OVERWRITE THE shutdown
                 break
             if Date.now() < self.ping_time + PING_PERIOD:
                 continue

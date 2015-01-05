@@ -12,55 +12,56 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
-from pyLibrary.dot import Dict, wrap, nvl, set_default
+from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 
 
 def process_unittest(source_key, source, destination):
-
     lines = StringIO(source.read())
 
     etl_header = convert.json2value(lines.next())
     data = transform_buildbot(convert.json2value(lines.next()))
     Log.note("{{data}}", {"data": data})
 
-    all_tests = []
-    for name, url in data.run.files.items():
-        try:
-            with Timer("Process log {{file}}", {"file": name}):
-                all_tests = process_unittest_log(lines)
-        except Exception, e:
-            Log.error("Problem processing {{key}}", {"key": source_key}, e)
+    timer = Timer("Process log {{file}}", {"file": etl_header.name})
+    try:
+        with timer:
+            all_tests = process_unittest_log(etl_header.name, lines)
+    except Exception, e:
+        Log.error("Problem processing {{key}}", {"key": source_key}, e)
 
     data.etl = {
         "name": "unittest",
         "timestamp": Date.now().milli,
-        "source": data.etl,
-        "type": "join"
+        "source": etl_header,
+        "type": "join",
+        "duration": timer.duration
     }
+    data.run.counts = all_tests.counts
 
-    destination.extend([
-        {
-            "id": etl2key(data.etl),
+    new_keys = []
+    for i, t in enumerate(all_tests.tests):
+        data.etl.id = i
+        key = etl2key(data.etl)
+        new_keys.append(key)
+
+        destination.add({
+            "id": key,
             "value": set_default(
                 {
                     "result": t,
-                    "etl": {
-                        "id": i
-                    }
+                    "etl": data.etl
                 },
                 data
             )
-        }
-        for i, t in enumerate(all_tests)
-    ])
+        })
 
-    return range(len(all_tests))
+    return new_keys
 
 
-def process_unittest_log(lines):
+def process_unittest_log(file_name, lines):
     accumulator = LogSummary()
     for line in lines:
         if line.strip() == "":
@@ -79,20 +80,14 @@ def process_unittest_log(lines):
             Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
-    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": output.counts.lines, "num_tests": output.counts.total, "name": name})
+    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": output.counts.lines, "num_tests": output.counts.total, "name": file_name})
     return output
 
 
-class LogSummary(object):
+class LogSummary(Dict):
     def __init__(self):
-        object.__setattr__(self, "tests", {})
-        object.__setattr__(self, "attr", Dict())
-
-    def __getattr__(self, item):
-        return object.__getattribute__(self, "attr")[item]
-
-    def __setattr__(self, key, value):
-        object.__getattribute__(self, "attr")[key] = value
+        Dict.__init__(self)
+        self.tests = Dict()
 
     def suite_start(self, log):
         pass
@@ -100,15 +95,15 @@ class LogSummary(object):
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[log.test] = Dict(
+        self.tests[literal_field(log.test)] = Dict(
             test=log.test,
             start=log.time
         )
 
     def test_status(self, log):
-        test = self.tests.get(log.test, None)
+        test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[log.test] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -123,9 +118,9 @@ class LogSummary(object):
         if not log.test:
             return
 
-        test = self.tests.get(log.test, None)
+        test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[log.test] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -137,9 +132,9 @@ class LogSummary(object):
         if not log.test:
             return
 
-        test = self.tests.get(log.test, None)
+        test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[log.test] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
                 start=log.time,
                 crash=True,
@@ -148,9 +143,9 @@ class LogSummary(object):
         test.last_log = log.time
 
     def test_end(self, log):
-        test = self.tests.get(log.test, None)
+        test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[log.test] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
                 start=log.time,
                 missing_test_start=True
@@ -171,7 +166,7 @@ class LogSummary(object):
         pass
 
     def summary(self):
-        tests = wrap(self.tests.values())
+        self.tests = tests = wrap(list(self.tests.values()))
 
         for t in tests:
             if not t.result:
@@ -180,18 +175,16 @@ class LogSummary(object):
                 t.duration = t.end - t.start
                 t.missing_test_end = True
 
-        output = self.attr
-        output.tests = tests
-        output.counts.total = len(tests)
-        output.counts.ok = len([t for t in tests if t.ok])
+        self.counts.total = len(tests)
+        self.counts.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for r in set(tests.select("result")):
-                output.counts[r.lower()] = len([t for t in tests if t.result == r])
+                self.counts[r.lower()] = len([t for t in tests if t.result == r])
         except Exception, e:
             Log.error("problem", e)
 
-        return output
+        return self
 
 
 def transform_buildbot(payload):
@@ -202,9 +195,9 @@ def transform_buildbot(payload):
         {"name": "build.id", "value": "buildid"},
         {"name": "build.type", "value": "buildtype"},
         {"name": "build.url", "value": "buildurl"},
-        {"name": "build.insertion_time", "value": "insertion_time"},
+        {"name": "run.insertion_time", "value": "insertion_time"},
         {"name": "run.job_number", "value": "job_number"},
-        {"name": "build.key", "value": "key"},
+        {"name": "run.key", "value": "key"},
         {"name": "build.locale", "value": "locale"},
         {"name": "run.logurl", "value": "logurl"},
         {"name": "machine.os", "value": "os"},

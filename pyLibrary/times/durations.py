@@ -36,7 +36,7 @@ class Duration(object):
         output = object.__new__(cls)
         if value == None:
             if kwargs:
-                output.milli = timedelta(**kwargs).total_seconds()*1000
+                output.milli = timedelta(**kwargs).total_seconds() * 1000
                 output.month = 0
                 return output
             else:
