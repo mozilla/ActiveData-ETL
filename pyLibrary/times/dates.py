@@ -152,16 +152,20 @@ class Date(object):
 
         return self.add(-other)
 
-    def __gt__(self, other):
-        if isinstance(other, datetime):
-            return self.value > other
+    def __lt__(self, other):
+        other = Date(other)
+        return self.value < other.value
 
+    def __le__(self, other):
+        other = Date(other)
+        return self.value <= other.value
+
+    def __gt__(self, other):
+        other = Date(other)
         return self.value > other.value
 
     def __ge__(self, other):
-        if isinstance(other, datetime):
-            return self.value >= other
-
+        other = Date(other)
         return self.value >= other.value
 
     def __add__(self, other):

@@ -7,10 +7,13 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
+# THIS THREADING MODULE IS PERMEATED BY THE please_stop SIGNAL.
+# THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
+# FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
+
 from __future__ import unicode_literals
 from __future__ import division
 from collections import deque
-
 from datetime import datetime, timedelta
 import thread
 import threading
@@ -18,15 +21,11 @@ import time
 import sys
 import gc
 
-# THIS THREADING MODULE IS PERMEATED BY THE please_stop SIGNAL.
-# THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
-# FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
 from pyLibrary.dot import nvl, Dict
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
 
 
 DEBUG = True
+MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 
 
 class Lock(object):
@@ -37,7 +36,7 @@ class Lock(object):
     def __init__(self, name=""):
         self.monitor = threading.Condition()
         # if not name:
-        #     if "extract_stack" not in globals():
+        # if "extract_stack" not in globals():
         #         from pyLibrary.debugs.logs import extract_stack
         #
         #     self.name = extract_stack(1)[0].method
@@ -93,7 +92,8 @@ class Queue(object):
                 Log.warning("Tell me about what happened here", e)
 
         from pyLibrary.debugs.logs import Log
-        Log.note ("queue iterator is done")
+
+        Log.note("queue iterator is done")
 
 
     def add(self, value):
@@ -163,6 +163,7 @@ class Queue(object):
                     pass
 
             from pyLibrary.debugs.logs import Log
+
             Log.note("queue stopped")
 
             return Thread.STOP
@@ -364,16 +365,17 @@ class Thread(object):
         if please_stop is not None or isinstance(till, Signal):
             if isinstance(till, Signal):
                 please_stop = till
-                till = Date.MAX
+                till = MAX_DATETIME
 
             if seconds is not None:
-                till = datetime.utcnow() + (Duration.SECOND * seconds)
+                till = datetime.utcnow() + timedelta(seconds=seconds)
             elif till is None:
-                till = Date.MAX
+                till = MAX_DATETIME
 
             while not please_stop:
-                if till > datetime.utcnow():
-                    time.sleep(1)
+                time.sleep(1)
+                if till < datetime.utcnow():
+                    break
             return
 
         if seconds is not None:
@@ -404,6 +406,7 @@ class Thread(object):
         """
         if Thread.current() != MAIN_THREAD:
             from pyLibrary.debugs.logs import Log
+
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
         if not isinstance(please_stop, Signal):
@@ -411,7 +414,7 @@ class Thread(object):
 
         # DEOS NOT SEEM TO WOKR
         # def stopper():
-        #     Log.note("caught breaker")
+        # Log.note("caught breaker")
         #     please_stop.go()
         #
         #
