@@ -25,6 +25,11 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:
         for i, g in Q.groupby(queue, size=settings.param.size):
+            Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}", {
+                "num": len(g),
+                "bucket": bucket.name
+            })
+
             etl_header = wrap({
                 "name": "Pulse block",
                 "bucket": settings.destination.bucket,

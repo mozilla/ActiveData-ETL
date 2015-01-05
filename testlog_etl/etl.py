@@ -41,7 +41,6 @@ class ETL(Thread):
     def __init__(self, settings):
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
-        self.connection = aws.s3.Connection(self.settings.aws)
         Thread.__init__(self, "Main ETL Loop", self.loop)
         self.start()
 
@@ -53,15 +52,15 @@ class ETL(Thread):
         """
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
-        work_actions = [w for w in workers if w.source == source_block.bucket]
+        work_actions = [w for w in self.settings.workers if w.source == source_block.bucket]
         if not work_actions:
             Log.error(NOTHING_DONE, {"bucket": source_block.bucket})
 
         if len(source_keys) > 1:
-            source = ConcatSources([self.connection.get_bucket(source_block.bucket).get_key(k) for k in source_keys])
+            source = ConcatSources([get_container(source_block.bucket).get_key(k) for k in source_keys])
             source_key = MIN(source_keys[0])
         else:
-            source = self.connection.get_bucket(source_block.bucket).get_key(source_keys[0])
+            source = get_container(source_block.bucket).get_key(source_keys[0])
             source_key = source_keys[0]
 
         for action in work_actions:
@@ -71,7 +70,7 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                dest_bucket = get_destination(action.destination)
+                dest_bucket = get_container(action.destination)
                 # INCOMPLETE
                 old_keys = dest_bucket.keys(prefix=source_block.key)
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
@@ -115,9 +114,10 @@ class ETL(Thread):
                         Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
-def get_destination(settings):
+def get_container(settings):
     if settings == None:
         return DummySink()
+
     elif settings.aws_access_key_id:
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
