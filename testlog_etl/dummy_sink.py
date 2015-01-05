@@ -7,6 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log
 
 
 class DummySink(object):
@@ -15,7 +17,16 @@ class DummySink(object):
         pass
 
     def add(self, value):
+        json = convert.value2json(value)
+        # Log.note("{{json}}", {"json": json})
+
+    def extend(self, values):
         pass
 
-    def extends(self, values):
-        pass
+    def keys(self, prefix=None):
+        return set([])
+
+
+    @property
+    def name(self):
+        return "DummySink"

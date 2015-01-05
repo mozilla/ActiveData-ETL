@@ -61,12 +61,8 @@ class Rev(object):
             self.path=[]
             return
         etl = key2etl(key)
-        self.path = []
-        while etl:
-            self.path.insert(0, etl.id)
-            while etl.type and etl.type != "join":
-                etl = etl.source
-            etl = etl.source
+        path = etl2path(etl)
+
 
     def __lt__(self, other):
         if not self.path or not other.path:

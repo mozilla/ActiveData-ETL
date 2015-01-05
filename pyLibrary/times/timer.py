@@ -18,7 +18,7 @@ from pyLibrary.dot import wrap
 from pyLibrary.debugs.logs import Log
 
 
-class Timer:
+class Timer(object):
     """
     USAGE:
     with Timer("doing hard time"):
@@ -34,6 +34,7 @@ class Timer:
         self.template = description
         self.param = nvl(wrap(param), Dict())
         self.debug = debug
+        self.interval = -1
 
     def __enter__(self):
         if self.debug:
@@ -52,4 +53,4 @@ class Timer:
 
     @property
     def duration(self):
-        return self.interval
+        return timedelta(seconds=self.interval)

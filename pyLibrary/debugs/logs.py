@@ -255,10 +255,12 @@ class Log(object):
         RUN ME FIRST TO SETUP THE THREADED LOGGING
         http://victorlin.me/2012/08/good-logging-practice-in-python/
 
-        log - LIST OF PARAMETERS FOR LOGGER(S)
-        trace - SHOW MORE DETAILS IN EVERY LOG LINE (default False)
-        cprofile - True==ENABLE THE C-PROFILER THAT COMES WITH PYTHON (default False)
-        profile - True==ENABLE pyLibrary SIMPLE PROFILING (default False) (eg with Profiler("some description"):)
+        log       - LIST OF PARAMETERS FOR LOGGER(S)
+        trace     - SHOW MORE DETAILS IN EVERY LOG LINE (default False)
+        cprofile  - True==ENABLE THE C-PROFILER THAT COMES WITH PYTHON (default False)
+                    USE THE LONG FORM TO SET THE FILENAME {"enabled": True, "filename": "cprofile.tab"}
+        profile   - True==ENABLE pyLibrary SIMPLE PROFILING (default False) (eg with Profiler("some description"):)
+                    USE THE LONG FORM TO SET FILENAME {"enabled": True, "filename": "profile.tab"}
         constants - UPDATE MODULE CONSTANTS AT STARTUP (PRIMARILY INTENDED TO CHANGE DEBUG STATE)
         """
         if not settings:

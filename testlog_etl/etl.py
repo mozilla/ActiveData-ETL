@@ -13,12 +13,14 @@ from __future__ import unicode_literals
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
+from pyLibrary.meta import get_function_by_name
+from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
 from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import wrap, nvl, listwrap
+from pyLibrary.dot import nvl, listwrap
 from pyLibrary.thread.threads import Thread
 
 
@@ -39,6 +41,10 @@ class ConcatSources(object):
 
 class ETL(Thread):
     def __init__(self, settings):
+        # FIND THE WORKERS METHODS
+        for w in settings.workers:
+            w.transformer = get_function_by_name(w.transformer)
+
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
         Thread.__init__(self, "Main ETL Loop", self.loop)
@@ -52,18 +58,20 @@ class ETL(Thread):
         """
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
-        work_actions = [w for w in self.settings.workers if w.source == source_block.bucket]
+        work_actions = [w for w in self.settings.workers if w.source.bucket == source_block.bucket]
         if not work_actions:
-            Log.error(NOTHING_DONE, {"bucket": source_block.bucket})
-
-        if len(source_keys) > 1:
-            source = ConcatSources([get_container(source_block.bucket).get_key(k) for k in source_keys])
-            source_key = MIN(source_keys[0])
-        else:
-            source = get_container(source_block.bucket).get_key(source_keys[0])
-            source_key = source_keys[0]
+            Log.note(NOTHING_DONE, {"bucket": source_block.bucket})
+            return
 
         for action in work_actions:
+            if len(source_keys) > 1:
+                multi_source = get_container(action.source)
+                source = ConcatSources([multi_source.get_key(k) for k in source_keys])
+                source_key = MIN(source_keys[0])
+            else:
+                source = get_container(action.source).get_key(source_keys[0])
+                source_key = source_keys[0]
+
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
                 "action": action.name,
                 "source": source_block.bucket,
@@ -81,48 +89,66 @@ class ETL(Thread):
                 for k in old_keys - new_keys:
                     dest_bucket.delete_key(k)
 
-                for k in old_keys | new_keys:
-                    self.work_queue.add({
-                        "bucket": action.destination,
-                        "key": k
-                    })
+                if isinstance(dest_bucket, aws.s3.Bucket):
+                    for k in old_keys | new_keys:
+                        self.work_queue.add({
+                            "bucket": action.destination,
+                            "key": k
+                        })
                 self.work_queue.commit()
             except Exception, e:
                 Log.error("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
                     "action": action.name,
                     "source": source_block.bucket,
                     "key": source_key,
-                    "destination": action.destination
+                    "destination": action.destination.name
                 }, e)
 
     def loop(self, please_stop):
         with self.work_queue:
-            with self.connection:
-                while not please_stop:
-                    todo = self.work_queue.pop()
-                    if todo == None:
-                        please_stop.go()
-                        return
+            while not please_stop:
+                todo = self.work_queue.pop()
+                if todo == None:
+                    please_stop.go()
+                    return
 
-                    try:
-                        self.pipe(todo)
-                        self.work_queue.commit()
-                    except Exception, e:
-                        self.work_queue.rollback()
-                        if isinstance(e, Except) and e.contains(NOTHING_DONE):
-                            continue
-                        Log.warning("could not processs {{key}}", {"key": todo.key}, e)
+                try:
+                    self.pipe(todo)
+                    self.work_queue.commit()
+                except Exception, e:
+                    self.work_queue.rollback()
+                    if isinstance(e, Except) and e.contains(NOTHING_DONE):
+                        continue
+                    Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
 def get_container(settings):
     if settings == None:
         return DummySink()
 
-    elif settings.aws_access_key_id:
+    elif nvl(settings.access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:
-        return elasticsearch.Index(settings)
+        output = elasticsearch.Index(settings)
+        # ADD keys() SO ETL LOP CAN FIND WHAT'S GETTING REPLACED
+        object.__setattr__(output, "keys", es_keys)
+
+def es_keys(self, prefix=None):
+    path = etl2path(key2etl(prefix))
+
+    result = self.search({
+        "fields":["_id"],
+        "filtered":{
+            "query":{"match_all":{}},
+            "filter":{"and":[{"term":{"etl"+(".source"*i)+".id": v}} for i, v in enumerate(path)]}
+        }
+    })
+
+    return result.hits.hits.fields._id
+
+
+
 
 def main():
     try:

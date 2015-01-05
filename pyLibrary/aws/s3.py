@@ -132,21 +132,21 @@ class Bucket(object):
             elif len(keys) > 1:
                 Log.error("multiple keys with prefix={{prefix}}", {"prefix": key.key + ".json"})
 
-            value = keys[0]
+            source = keys[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
 
         try:
-            json = value.get_contents_as_string()
+            json = source.get_contents_as_string()
         except Exception, e:
             Log.error(READ_ERROR, e)
 
         if json == None:
             return None
 
-        if key.endswith(".zip"):
+        if source.key.endswith(".zip"):
             json = _unzip(json)
-        elif key.endswith(".gz"):
+        elif source.key.endswith(".gz"):
             json = _ungzip(json)
 
         return convert.utf82unicode(json)
@@ -205,7 +205,7 @@ def new_zipfile(filename, content):
 
 def _ungzip(compressed):
     buff = StringIO.StringIO(compressed)
-    archive = gzip.open(buff, mode='r')
+    archive = gzip.GzipFile(fileobj=buff, mode='r')
     return archive.read()
 
 def _unzip(compressed):

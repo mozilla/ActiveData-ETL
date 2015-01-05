@@ -73,3 +73,16 @@ def etl2key(etl):
                 return unicode(etl.id) + ":" + etl2key(etl.source)
     else:
         return unicode(etl.id)
+
+
+def etl2path(etl):
+    """
+    CONVERT ETL TO A KEY PREFIX PATH
+    """
+    path = []
+    while etl:
+        path.insert(0, etl.id)
+        while etl.type and etl.type != "join":
+            etl = etl.source
+        etl = etl.source
+    return path

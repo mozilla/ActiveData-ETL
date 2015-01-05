@@ -44,3 +44,20 @@ def new_instance(settings):
         return constructor(**unwrap(settings))
     except Exception, e:
         Log.error("Can not create instance of {{name}}", {"name":".".join(path)}, e)
+
+def get_function_by_name(full_name):
+    """
+    RETURN FUNCTION
+    """
+
+    # IMPORT MODULE FOR HANDLER
+    path = full_name.split(".")
+    function_name = path[-1]
+    path = ".".join(path[:-1])
+    constructor = None
+    try:
+        temp = __import__(path, globals(), locals(), [function_name], -1)
+        output = object.__getattribute__(temp, function_name)
+        return output
+    except Exception, e:
+        Log.error("Can not find function {{name}}", {"name": full_name}, e)
