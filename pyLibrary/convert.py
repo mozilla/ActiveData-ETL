@@ -14,6 +14,7 @@ import StringIO
 import base64
 import cgi
 import datetime
+import hashlib
 import json
 import re
 import time
@@ -296,6 +297,11 @@ def base642bytearray(value):
 def bytearray2base64(value):
     return base64.b64encode(value)
 
+def bytearray2sha1(value):
+    if isinstance(value, unicode):
+        Log.error("can not convert unicode to sha1")
+    sha = hashlib.sha1(value)
+    return sha.hexdigest()
 
 def value2intlist(value):
     if value == None:

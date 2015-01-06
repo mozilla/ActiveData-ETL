@@ -19,7 +19,8 @@ from boto.s3.connection import Location
 from pyLibrary import convert
 from pyLibrary.aws import cleanup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, Null
+from pyLibrary.dot import nvl, Null, wrap
+from pyLibrary.times.dates import Date
 
 
 READ_ERROR = "S3 read error"
@@ -36,6 +37,9 @@ class File(object):
     def write(self, value):
         self.bucket.write(self.key, value)
 
+    @property
+    def meta(self):
+        return self.bucket.meta(self.key)
 
 class Connection(object):
     def __init__(self, settings):
@@ -82,6 +86,14 @@ class Connection(object):
 
 
 class Bucket(object):
+    """
+    STORE JSON, OR CR-DELIMITED LIST OF JSON, IN S3
+    THIS CLASS MANAGES THE ".json" EXTENSION, AND ".gz"
+    (ZIP/UNZIP) SHOULD THE FILE BE BIG ENOUGH TO
+    JUSTIFY IT
+    """
+
+
     def __init__(self, settings, public=False):
         """
         SETTINGS:
@@ -115,26 +127,44 @@ class Bucket(object):
     def get_key(self, key):
         return File(self, key)
 
-    def keys(self, prefix=None):
-        return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
-
-    def read(self, key):
-        if not isinstance(key, basestring):
-            Log.error("Expecting key to be a string")
-
+    def get_meta(self, key):
         if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
             Log.error("Expecting a pure key")
 
         try:
-            keys = list(self.bucket.list(prefix=key + ".json"))
-            if len(keys) == 0:
+            metas = wrap(list(self.bucket.list(prefix=key + ".json")))
+            if len(metas) == 0:
                 return None
-            elif len(keys) > 1:
-                Log.error("multiple keys with prefix={{prefix}}", {"prefix": key.key + ".json"})
+            elif len(metas) > 1:
+                Log.error("multiple keys with prefix={{prefix}}\n{{list|indent}}", {"prefix": metas[0].key + ".json", "list": metas.select("key")})
 
-            source = keys[0]
+            return metas[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
+
+    def keys(self, prefix=None):
+        return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
+
+    def metas(self, prefix=None):
+        """
+        RETURN THE METATDATA DESCRIPTORS
+        """
+
+        keys = self.bucket.list(prefix=prefix)
+        output = [
+            {
+                "key": strip_extension(k.key),
+                "etag": convert.quote2string(k.etag),
+                "expiry_date": Date(k.expiry_date),
+                "last_modified": Date(k.last_modified)
+            }
+            for k in keys
+        ]
+        return wrap(output)
+
+
+    def read(self, key):
+        source = self.get_meta(key)
 
         try:
             json = source.get_contents_as_string()
@@ -158,13 +188,16 @@ class Bucket(object):
 
         try:
             if len(value) > 200 * 1000:
+                self.bucket.delete_key(key + ".json")
                 if isinstance(value, str):
                     value = new_zipfile(key + ".json", value)
                     key += ".json.gz"
                 else:
                     value = new_zipfile(key + ".json", convert.unicode2utf8(value))
                     key += ".json.gz"
+
             else:
+                self.bucket.delete_key(key + ".json.gz")
                 if isinstance(value, str):
                     key += ".json"
                 else:

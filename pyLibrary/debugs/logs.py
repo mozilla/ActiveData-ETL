@@ -45,211 +45,6 @@ class Log(object):
     please_setup_constants = False  # we intend to manipulate module-level constants for debugging
 
     @classmethod
-    def new_instance(cls, settings):
-        settings = wrap(settings)
-
-        if settings["class"]:
-            if settings["class"].startswith("logging.handlers."):
-                from .log_usingLogger import Log_usingLogger
-
-                return Log_usingLogger(settings)
-            else:
-                try:
-                    from .log_usingLogger import make_log_from_settings
-
-                    return make_log_from_settings(settings)
-                except Exception, e:
-                    pass  # OH WELL :(
-
-        if settings.log_type == "file" or settings.file:
-            return Log_usingFile(settings.file)
-        if settings.log_type == "file" or settings.filename:
-            return Log_usingFile(settings.filename)
-        if settings.log_type == "console":
-            from .log_usingStream import Log_usingStream
-            return Log_usingStream(sys.stdout)
-        if settings.log_type == "stream" or settings.stream:
-            from .log_usingStream import Log_usingStream
-            return Log_usingStream(settings.stream)
-        if settings.log_type == "elasticsearch" or settings.stream:
-            from .log_usingElasticSearch import Log_usingElasticSearch
-            return Log_usingElasticSearch(settings)
-        if settings.log_type == "email":
-            from .log_usingEmail import Log_usingEmail
-            return Log_usingEmail(settings)
-
-
-    @classmethod
-    def add_log(cls, log):
-        cls.logging_multi.add_log(log)
-
-    @classmethod
-    def debug(cls, template=None, params=None):
-        """
-        USE THIS FOR DEBUGGING (AND EVENTUAL REMOVAL)
-        """
-        Log.note(nvl(template, ""), params, stack_depth=1)
-
-    @classmethod
-    def println(cls, template, params=None):
-        Log.note(template, params, stack_depth=1)
-
-    @classmethod
-    def note(cls, template, params=None, stack_depth=0):
-        # USE replace() AS POOR MAN'S CHILD TEMPLATE
-
-        log_params = Dict(
-            template=template,
-            params=set_default({}, params),
-            timestamp=datetime.utcnow(),
-        )
-        if cls.trace:
-            log_template = "{{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
-            f = sys._getframe(stack_depth + 1)
-            log_params.location = {
-                "line": f.f_lineno,
-                "file": f.f_code.co_filename,
-                "method": f.f_code.co_name
-            }
-            thread = Thread.current()
-            log_params.thread = {"name": thread.name, "id": thread.id}
-        else:
-            log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
-
-        cls.main_log.write(log_template, log_params)
-
-    @classmethod
-    def unexpected(cls, template, params=None, cause=None):
-        if isinstance(params, BaseException):
-            cause = params
-            params = None
-
-        if cause and not isinstance(cause, Except):
-            cause = Except(UNEXPECTED, unicode(cause), trace=extract_tb(0))
-
-        trace = extract_stack(1)
-        e = Except(UNEXPECTED, template, params, cause, trace)
-        Log.note(unicode(e), {
-            "warning": {
-                "template": template,
-                "params": params,
-                "cause": cause,
-                "trace": trace
-            }
-        })
-
-
-    @classmethod
-    def warning(
-        cls,
-        template,
-        params=None,
-        cause=None,
-        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
-    ):
-        if isinstance(params, BaseException):
-            cause = params
-            params = None
-
-        if cause and not isinstance(cause, Except):
-            cause = Except(ERROR, unicode(cause), trace=extract_tb(0))
-
-        trace = extract_stack(stack_depth + 1)
-        e = Except(WARNING, template, params, cause, trace)
-        Log.note(unicode(e), {
-            "warning": {# REDUNDANT INFO
-                "template": template,
-                "params": params,
-                "cause": cause,
-                "trace": trace
-            }
-        })
-
-
-    @classmethod
-    def error(
-        cls,
-        template, # human readable template
-        params=None, # parameters for template
-        cause=None, # pausible cause
-        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
-    ):
-        """
-        raise an exception with a trace for the cause too
-        """
-        if params and isinstance(listwrap(params)[0], BaseException):
-            cause = params
-            params = None
-
-        add_to_trace = False
-        if cause == None:
-            cause = []
-        elif isinstance(cause, list):
-            pass
-        elif isinstance(cause, Except):
-            cause = [cause]
-        else:
-            add_to_trace = True
-            if hasattr(cause, "message"):
-                cause = [Except(ERROR, unicode(cause.message), trace=extract_tb(stack_depth))]
-            else:
-                cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]
-
-        trace = extract_stack(1 + stack_depth)
-        if add_to_trace:
-            cause[0].trace.extend(trace[1:])
-
-        e = Except(ERROR, template, params, cause, trace)
-        raise e
-
-    @classmethod
-    def fatal(
-        cls,
-        template, # human readable template
-        params=None, # parameters for template
-        cause=None, # pausible cause
-        stack_depth=0    # stack trace offset (==1 if you do not want to report self)
-    ):
-        """
-        SEND TO STDERR
-        """
-        if params and isinstance(listwrap(params)[0], BaseException):
-            cause = params
-            params = None
-
-        if cause == None:
-            cause = []
-        elif isinstance(cause, list):
-            pass
-        elif isinstance(cause, Except):
-            cause = [cause]
-        else:
-            cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]
-
-        trace = extract_stack(1 + stack_depth)
-        e = Except(ERROR, template, params, cause, trace)
-        str_e = unicode(e)
-
-        error_mode = cls.error_mode
-        try:
-            if not error_mode:
-                cls.error_mode = True
-                Log.note(str_e, {
-                    "error": {
-                        "template": template,
-                        "params": params,
-                        "cause": cause,
-                        "trace": trace
-                    }
-                })
-        except Exception, f:
-            pass
-        cls.error_mode = error_mode
-
-        sys.stderr.write(str_e)
-
-
-    @classmethod
     def start(cls, settings=None):
         """
         RUN ME FIRST TO SETUP THE THREADED LOGGING
@@ -353,6 +148,217 @@ class Log(object):
         if profiles.ON and hasattr(cls, "settings"):
             profiles.write(cls.settings.profile)
         cls.main_log.stop()
+
+    @classmethod
+    def new_instance(cls, settings):
+        settings = wrap(settings)
+
+        if settings["class"]:
+            if settings["class"].startswith("logging.handlers."):
+                from .log_usingLogger import Log_usingLogger
+
+                return Log_usingLogger(settings)
+            else:
+                try:
+                    from .log_usingLogger import make_log_from_settings
+
+                    return make_log_from_settings(settings)
+                except Exception, e:
+                    pass  # OH WELL :(
+
+        if settings.log_type == "file" or settings.file:
+            return Log_usingFile(settings.file)
+        if settings.log_type == "file" or settings.filename:
+            return Log_usingFile(settings.filename)
+        if settings.log_type == "console":
+            from .log_usingStream import Log_usingStream
+            return Log_usingStream(sys.stdout)
+        if settings.log_type == "stream" or settings.stream:
+            from .log_usingStream import Log_usingStream
+            return Log_usingStream(settings.stream)
+        if settings.log_type == "elasticsearch" or settings.stream:
+            from .log_usingElasticSearch import Log_usingElasticSearch
+            return Log_usingElasticSearch(settings)
+        if settings.log_type == "email":
+            from .log_usingEmail import Log_usingEmail
+            return Log_usingEmail(settings)
+
+
+    @classmethod
+    def add_log(cls, log):
+        cls.logging_multi.add_log(log)
+
+    @classmethod
+    def debug(cls, template=None, params=None):
+        """
+        USE THIS FOR DEBUGGING (AND EVENTUAL REMOVAL)
+        """
+        Log.note(nvl(template, ""), params, stack_depth=1)
+
+    @classmethod
+    def println(cls, template, params=None):
+        Log.note(template, params, stack_depth=1)
+
+    @classmethod
+    def note(cls, template, params=None, stack_depth=0):
+        # USE replace() AS POOR MAN'S CHILD TEMPLATE
+
+        log_params = Dict(
+            template=template,
+            params=set_default({}, params),
+            timestamp=datetime.utcnow(),
+        )
+        if cls.trace:
+            log_template = "{{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
+            f = sys._getframe(stack_depth + 1)
+            log_params.location = {
+                "line": f.f_lineno,
+                "file": f.f_code.co_filename,
+                "method": f.f_code.co_name
+            }
+            thread = Thread.current()
+            log_params.thread = {"name": thread.name, "id": thread.id}
+        else:
+            log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
+
+        cls.main_log.write(log_template, log_params)
+
+    @classmethod
+    def unexpected(cls, template, params=None, cause=None):
+        if isinstance(params, BaseException):
+            cause = params
+            params = None
+
+        if cause and not isinstance(cause, Except):
+            cause = Except(UNEXPECTED, unicode(cause), trace=extract_tb(0))
+
+        trace = extract_stack(1)
+        e = Except(UNEXPECTED, template, params, cause, trace)
+        Log.note(
+            unicode(e),
+            {
+                "warning": {
+                    "template": template,
+                    "params": params,
+                    "cause": cause,
+                    "trace": trace
+                }
+            }
+        )
+
+
+    @classmethod
+    def warning(
+        cls,
+        template,
+        params=None,
+        cause=None,
+        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
+    ):
+        if isinstance(params, BaseException):
+            cause = params
+            params = None
+
+        if cause and not isinstance(cause, Except):
+            cause = Except(ERROR, unicode(cause), trace=extract_tb(0))
+
+        trace = extract_stack(stack_depth + 1)
+        e = Except(WARNING, template, params, cause, trace)
+        Log.note(
+            unicode(e),
+            {
+                "warning": {# REDUNDANT INFO
+                    "template": template,
+                    "params": params,
+                    "cause": cause,
+                    "trace": trace
+                }
+            },
+            stack_depth=stack_depth + 1
+        )
+
+
+    @classmethod
+    def error(
+        cls,
+        template, # human readable template
+        params=None, # parameters for template
+        cause=None, # pausible cause
+        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
+    ):
+        """
+        raise an exception with a trace for the cause too
+        """
+        if params and isinstance(listwrap(params)[0], BaseException):
+            cause = params
+            params = None
+
+        add_to_trace = False
+        if cause == None:
+            cause = []
+        elif isinstance(cause, list):
+            pass
+        elif isinstance(cause, Except):
+            cause = [cause]
+        else:
+            add_to_trace = True
+            if hasattr(cause, "message"):
+                cause = [Except(ERROR, unicode(cause.message), trace=extract_tb(stack_depth))]
+            else:
+                cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]
+
+        trace = extract_stack(1 + stack_depth)
+        if add_to_trace:
+            cause[0].trace.extend(trace[1:])
+
+        e = Except(ERROR, template, params, cause, trace)
+        raise e
+
+    @classmethod
+    def fatal(
+        cls,
+        template, # human readable template
+        params=None, # parameters for template
+        cause=None, # pausible cause
+        stack_depth=0    # stack trace offset (==1 if you do not want to report self)
+    ):
+        """
+        SEND TO STDERR
+        """
+        if params and isinstance(listwrap(params)[0], BaseException):
+            cause = params
+            params = None
+
+        if cause == None:
+            cause = []
+        elif isinstance(cause, list):
+            pass
+        elif isinstance(cause, Except):
+            cause = [cause]
+        else:
+            cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]
+
+        trace = extract_stack(1 + stack_depth)
+        e = Except(ERROR, template, params, cause, trace)
+        str_e = unicode(e)
+
+        error_mode = cls.error_mode
+        try:
+            if not error_mode:
+                cls.error_mode = True
+                Log.note(str_e, {
+                    "error": {
+                        "template": template,
+                        "params": params,
+                        "cause": cause,
+                        "trace": trace
+                    }
+                })
+        except Exception, f:
+            pass
+        cls.error_mode = error_mode
+
+        sys.stderr.write(str_e)
 
 
     def write(self):

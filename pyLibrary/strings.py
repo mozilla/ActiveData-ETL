@@ -15,6 +15,7 @@ from datetime import datetime as builtin_datetime
 import re
 import math
 import __builtin__
+import string
 from pyLibrary.dot import nvl
 
 from pyLibrary.dot import wrap
@@ -259,14 +260,23 @@ def _simple_expand(template, seq):
     return pattern.sub(replacer, template)
 
 
-delchars = {c.decode("latin1"): None for c in map(chr, range(256)) if not c.decode("latin1").isalnum()}
+delchars = "".join(c.decode("latin1") for c in map(chr, range(256)) if not c.decode("latin1").isalnum())
 
 
 def deformat(value):
     """
     REMOVE NON-ALPHANUMERIC CHARACTERS
+
+    FOR SOME REASON translate CAN NOT BE CALLED:
+        ERROR: translate() takes exactly one argument (2 given)
+	    File "C:\Python27\lib\string.py", line 493, in translate
     """
-    return value.translate(delchars)
+    output = []
+    for c in value:
+        if c in delchars:
+            continue
+        output.append(c)
+    return "".join(output)
 
 
 def toString(val):
