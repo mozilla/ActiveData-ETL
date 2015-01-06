@@ -52,9 +52,12 @@ class PersistentQueue(object):
             # SCRUB LOST VALUES
             lost = 0
             for k in self.db.keys():
-                if int(k) < self.start:
-                    self.db[k] = None
-                    lost += 1
+                try:
+                    if int(k) < self.start:
+                        self.db[k] = None
+                        lost += 1
+                except Exception:
+                    pass  # HAPPENS FOR self.db.status, BUT MAYBE OTHER PROPERTIES TOO
             if lost:
                 Log.warning("queue file had {{num}} items lost", {"num": "lost"})
 
