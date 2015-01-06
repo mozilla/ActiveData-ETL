@@ -48,6 +48,16 @@ class PersistentQueue(object):
             if self.db.status.start == None:  # HAPPENS WHEN ONLY ADDED TO QUEUE, THEN CRASH
                 self.db.status.start = 0
             self.start = self.db.status.start
+
+            # SCRUB LOST VALUES
+            lost = 0
+            for k in self.db.keys():
+                if int(k) < self.start:
+                    self.db[k] = None
+                    lost += 1
+            if lost:
+                Log.warning("queue file had {{num}} items lost", {"num": "lost"})
+
             if DEBUG:
                 Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
         else:
