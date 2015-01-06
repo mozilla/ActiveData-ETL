@@ -14,12 +14,13 @@ from __future__ import division
 from datetime import datetime
 import json
 import subprocess
+
 from pymysql import connect, InterfaceError
+
 from pyLibrary.jsons import json_scrub
 from pyLibrary.maths import Math
-from pyLibrary.strings import expand_template, utf82unicode
-from pyLibrary.dot import nvl
-from pyLibrary.dot import wrap, listwrap, unwrap
+from pyLibrary.strings import expand_template
+from pyLibrary.dot import nvl, wrap, listwrap, unwrap
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.queries import Q
@@ -717,7 +718,7 @@ json_encoder = json.JSONEncoder(
     separators=None,
     encoding='utf-8',
     default=None,
-    sort_keys=True   # <-- SEE?!  sort_keys==True
+    sort_keys=True   # <-- IMPORTANT!  sort_keys==True
 )
 
 

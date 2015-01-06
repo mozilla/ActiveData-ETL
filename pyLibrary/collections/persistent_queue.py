@@ -48,6 +48,16 @@ class PersistentQueue(object):
             if self.db.status.start == None:  # HAPPENS WHEN ONLY ADDED TO QUEUE, THEN CRASH
                 self.db.status.start = 0
             self.start = self.db.status.start
+
+            # SCRUB LOST VALUES
+            lost = 0
+            for k in self.db.keys():
+                if int(k) < self.start:
+                    self.db[k] = None
+                    lost += 1
+            if lost:
+                Log.warning("queue file had {{num}} items lost", {"num": "lost"})
+
             if DEBUG:
                 Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
         else:
@@ -148,6 +158,9 @@ class PersistentQueue(object):
 
             old_start = self.db.status.start
             try:
+                self._apply({"add": {"status.start": self.start}})
+                for i in range(self.db.status.start, self.start):
+                    self._apply({"remove": str(i)})
 
                 if self.db.status.end - self.start < 10 or Random.range(1000) == 0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
                     # SIMPLY RE-WRITE FILE
@@ -157,10 +170,6 @@ class PersistentQueue(object):
                     self.file.write(convert.value2json({"add": self.db}) + "\n")
                     self.pending = []
                 else:
-                    self._apply({"add": {"status.start": self.start}})
-                    for i in range(self.db.status.start, self.start):
-                        self._apply({"remove": str(i)})
-
                     self._commit()
             except Exception, e:
                 self.db.status.start = old_start  # REALLY DOES NOTHING, WE LOST DATA AT THIS POINT

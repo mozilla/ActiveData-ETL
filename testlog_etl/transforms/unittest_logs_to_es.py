@@ -17,20 +17,22 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 
+DEBUG = True
+
 
 def process_unittest(source_key, source, destination):
     lines = StringIO(source.read())
 
     etl_header = convert.json2value(lines.next())
     data = transform_buildbot(convert.json2value(lines.next()))
-    Log.note("{{data}}", {"data": data})
 
     timer = Timer("Process log {{file}}", {"file": etl_header.name})
     try:
         with timer:
-            all_tests = process_unittest_log(etl_header.name, lines)
+            summary = process_unittest_log(etl_header.name, lines)
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
+        raise e
 
     data.etl = {
         "name": "unittest",
@@ -39,10 +41,13 @@ def process_unittest(source_key, source, destination):
         "type": "join",
         "duration": timer.duration
     }
-    data.run.counts = all_tests.counts
+    data.run.counts = summary.counts
+
+    if DEBUG:
+        Log.note("Done\n{{data|indent}}", {"data": data})
 
     new_keys = []
-    for i, t in enumerate(all_tests.tests):
+    for i, t in enumerate(summary.tests):
         data.etl.id = i
         key = etl2key(data.etl)
         new_keys.append(key)

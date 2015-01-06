@@ -31,6 +31,11 @@ class Date(object):
     MIN = None
     MAX = None
 
+    def __new__(cls, *args, **kwargs):
+        if len(args) == 1 and args[0] == None:
+            return None
+        return object.__new__(cls, *args)
+
     def __init__(self, *args):
         try:
             if len(args) == 1:
@@ -252,7 +257,14 @@ def unicode2datetime(value, format=None):
         "%d%b%Y",
         "%d%b%y",
         "%d%B%Y",
-        "%d%B%y"
+        "%d%B%y",
+        "%Y%m%d%H%M%S",
+        "%d%m%Y%H%M%S",
+        "%d%m%y%H%M%S",
+        "%d%b%Y%H%M%S",
+        "%d%b%y%H%M%S",
+        "%d%B%Y%H%M%S",
+        "%d%B%y%H%M%S"
     ]
     value = deformat(value)
     for f in deformats:
