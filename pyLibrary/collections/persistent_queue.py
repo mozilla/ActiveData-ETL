@@ -59,7 +59,7 @@ class PersistentQueue(object):
                 except Exception:
                     pass  # HAPPENS FOR self.db.status, BUT MAYBE OTHER PROPERTIES TOO
             if lost:
-                Log.warning("queue file had {{num}} items lost", {"num": "lost"})
+                Log.warning("queue file had {{num}} items lost", {"num": lost})
 
             if DEBUG:
                 Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
