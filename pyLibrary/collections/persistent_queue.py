@@ -25,6 +25,10 @@ DEBUG = True
 class PersistentQueue(object):
     """
     THREAD-SAFE, PERSISTENT QUEUE
+
+    CAN HANDLE MANY PRODUCERS, BUT THE pop(), commit() IDIOM CAN HANDLE ONLY
+    ONE CONSUMER.
+
     IT IS IMPORTANT YOU commit() or close(), OTHERWISE NOTHING COMES OFF THE QUEUE
     """
 
@@ -53,7 +57,7 @@ class PersistentQueue(object):
             lost = 0
             for k in self.db.keys():
                 try:
-                    if int(k) < self.start:
+                    if k!="status" and int(k) < self.start:
                         self.db[k] = None
                         lost += 1
                 except Exception:
@@ -72,10 +76,15 @@ class PersistentQueue(object):
             if DEBUG:
                 Log.note("New persistent queue {{name}}", {"name": self.file.abspath})
 
-    def _apply(self, delta):
+    def _add_pending(self, delta):
         delta = wrap(delta)
-        apply_delta(self.db, delta)
         self.pending.append(delta)
+
+    def _apply_pending(self):
+        for delta in self.pending:
+            apply_delta(self.db, delta)
+        self.pending = []
+
 
     def __iter__(self):
         """
@@ -102,9 +111,9 @@ class PersistentQueue(object):
                 self.please_stop.go()
                 return
 
-            self._apply({"add": {str(self.db.status.end): value}})
+            self._add_pending({"add": {str(self.db.status.end): value}})
             self.db.status.end += 1
-            self._apply({"add": {"status.end": self.db.status.end}})
+            self._add_pending({"add": {"status.end": self.db.status.end}})
             self._commit()
         return self
 
@@ -113,7 +122,7 @@ class PersistentQueue(object):
             return self.db.status.end - self.start
 
     def __getitem__(self, item):
-        return self.db[str(item+self.start)]
+        return self.db[str(item + self.start)]
 
     def pop(self):
         with self.lock:
@@ -153,34 +162,37 @@ class PersistentQueue(object):
             if self.closed:
                 return
             self.start = self.db.status.start
+            self.pending = []
 
     def commit(self):
         with self.lock:
             if self.closed:
                 Log.error("Queue is closed, commit not allowed")
 
-            old_start = self.db.status.start
             try:
-                self._apply({"add": {"status.start": self.start}})
+                self._add_pending({"add": {"status.start": self.start}})
                 for i in range(self.db.status.start, self.start):
-                    self._apply({"remove": str(i)})
+                    self._add_pending({"remove": str(i)})
 
                 if self.db.status.end - self.start < 10 or Random.range(1000) == 0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
                     # SIMPLY RE-WRITE FILE
                     if DEBUG:
-                        Log.note("Re-write persistent queue")
-                    self.db.status.start = self.start
+                        Log.note("Re-write {{num_keys}} keys to persistent queue", {"num_keys": self.db.status.end - self.start})
+
+                        for k in self.db.keys():
+                            if k == "status" or int(k) >= self.db.status.start:
+                                continue
+                            Log.error("Not expecting {{key}}", {"key": k})
+                    self._commit()
                     self.file.write(convert.value2json({"add": self.db}) + "\n")
-                    self.pending = []
                 else:
                     self._commit()
             except Exception, e:
-                self.db.status.start = old_start  # REALLY DOES NOTHING, WE LOST DATA AT THIS POINT
                 raise e
 
     def _commit(self):
         self.file.append("\n".join(convert.value2json(p) for p in self.pending))
-        self.pending = []
+        self._apply_pending()
 
     def close(self):
         self.please_stop.go()
@@ -195,12 +207,14 @@ class PersistentQueue(object):
             else:
                 if DEBUG:
                     Log.note("persistent queue closed with {{num}} items left", {"num": len(self)})
-                for i in range(self.db.status.start, self.start):
-                    self._apply({"remove": str(i)})
-
-                self.db.status.start = self.start
-                self.file.write(convert.value2json({"add": self.db}) + "\n")
-
+                try:
+                    self._add_pending({"add": {"status.start": self.start}})
+                    for i in range(self.db.status.start, self.start):
+                        self._add_pending({"remove": str(i)})
+                    self.file.write(convert.value2json({"add": self.db}) + "\n" + ("\n".join(convert.value2json(p) for p in self.pending)) +"\n")
+                    self._apply_pending()
+                except Exception, e:
+                    raise e
             self.db = None
 
     @property
