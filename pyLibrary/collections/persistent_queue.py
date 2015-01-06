@@ -148,6 +148,9 @@ class PersistentQueue(object):
 
             old_start = self.db.status.start
             try:
+                self._apply({"add": {"status.start": self.start}})
+                for i in range(self.db.status.start, self.start):
+                    self._apply({"remove": str(i)})
 
                 if self.db.status.end - self.start < 10 or Random.range(1000) == 0:  # FORCE RE-WRITE TO LIMIT FILE SIZE
                     # SIMPLY RE-WRITE FILE
@@ -157,10 +160,6 @@ class PersistentQueue(object):
                     self.file.write(convert.value2json({"add": self.db}) + "\n")
                     self.pending = []
                 else:
-                    self._apply({"add": {"status.start": self.start}})
-                    for i in range(self.db.status.start, self.start):
-                        self._apply({"remove": str(i)})
-
                     self._commit()
             except Exception, e:
                 self.db.status.start = old_start  # REALLY DOES NOTHING, WE LOST DATA AT THIS POINT
