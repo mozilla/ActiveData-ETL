@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
+from copy import deepcopy
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import get_function_by_name
@@ -40,14 +41,15 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-    def __init__(self, settings, please_stop):
+    def __init__(self, name, settings, please_stop):
         # FIND THE WORKERS METHODS
+        settings = deepcopy(settings)
         for w in settings.workers:
             w.transformer = get_function_by_name(w.transformer)
 
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
-        Thread.__init__(self, "Main ETL Loop", self.loop, please_stop=please_stop)
+        Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
 
 
@@ -158,8 +160,8 @@ def main():
         stopper = Signal()
         threads = [None] * nvl(settings.param.threads, 1)
 
-        for i, _ in enumerate(threads):
-            threads[i] = ETL(settings, stopper)
+        for i, _ in enumerate(list(threads)):
+            threads[i] = ETL("ETL Loop " + unicode(i), settings, stopper)
 
         Thread.wait_for_shutdown_signal(stopper)
 
