@@ -3,6 +3,9 @@ export PYTHONPATH=.
 git checkout etl
 git pull origin etl
 
-# DO NOT HANG ONTO PROCESS (nohup)
-nohup python27 testlog_etl/etl.py --settings=etl_settings.json &
+python27 testlog_etl/etl.py --settings=etl_settings.json &
+disown -h
+tail -f  results/logs/etl.log
 
+# DO NOT HANG ONTO PROCESS (nohup)
+#nohup python27 testlog_etl/etl.py --settings=etl_settings.json &
