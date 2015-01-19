@@ -274,6 +274,10 @@ def char2ascii(char):
     return ord(char)
 
 
+def ascii2unicode(value):
+    return value.decode("latin1")
+
+
 def latin12hex(value):
     return value.encode("hex")
 

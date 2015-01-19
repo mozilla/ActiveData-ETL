@@ -114,10 +114,7 @@ def etl_key(envelope, source_key, name):
     return dest_key, dest_etl
 
 
-
-
-
-def loop(work_queue, conn, dest, please_stop):
+def _loop(work_queue, conn, dest, please_stop):
     while not please_stop:
         todo = work_queue.pop()
         if todo == None:
@@ -128,6 +125,7 @@ def loop(work_queue, conn, dest, please_stop):
                 process_pulse_block(todo.key, source.get_key(todo.key), dest)
                 work_queue.commit()
             except Exception, e:
+                work_queue.rollback()
                 Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
@@ -140,7 +138,7 @@ def main():
             with aws.Queue(settings.work_queue) as work_queue:
                 with aws.s3.Connection(settings.aws) as conn:
                     with aws.s3.Bucket(settings.destination) as dest:
-                        thread = Thread.run("main_loop", loop, work_queue, conn, dest)
+                        thread = Thread.run("main_loop", _loop, work_queue, conn, dest)
                         Thread.wait_for_shutdown_signal(thread.please_stop)
                         thread.stop()
                         thread.join()

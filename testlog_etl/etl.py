@@ -21,7 +21,7 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import nvl, listwrap
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Signal
 
 
 NOTHING_DONE ="Could not process records from {{bucket}}"
@@ -40,18 +40,18 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-    def __init__(self, settings):
+    def __init__(self, settings, please_stop):
         # FIND THE WORKERS METHODS
         for w in settings.workers:
             w.transformer = get_function_by_name(w.transformer)
 
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
-        Thread.__init__(self, "Main ETL Loop", self.loop)
+        Thread.__init__(self, "Main ETL Loop", self.loop, please_stop=please_stop)
         self.start()
 
 
-    def pipe(self, source_block):
+    def _pipe(self, source_block):
         """
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
@@ -113,7 +113,7 @@ class ETL(Thread):
                     return
 
                 try:
-                    self.pipe(todo)
+                    self._pipe(todo)
                     self.work_queue.commit()
                 except Exception, e:
                     self.work_queue.rollback()
@@ -155,10 +155,17 @@ def main():
         settings = startup.read_settings()
         Log.start(settings.debug)
 
-        thread = ETL(settings)
-        Thread.wait_for_shutdown_signal(thread.please_stop)
-        thread.stop()
-        thread.join()
+        stopper = Signal()
+        threads = [None] * nvl(settings.param.threads, 1)
+
+        for i, _ in enumerate(threads):
+            threads[i] = ETL(settings, stopper)
+
+        Thread.wait_for_shutdown_signal(stopper)
+
+        for thread in threads:
+            thread.stop()
+            thread.join()
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

@@ -1,0 +1,56 @@
+# encoding: utf-8
+#
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+
+
+from __future__ import unicode_literals
+from __future__ import division
+from pyLibrary import convert
+
+from pyLibrary.aws.s3 import Bucket
+from pyLibrary.debugs import startup
+from pyLibrary.debugs.logs import Log
+
+from pyLibrary.queries import Q
+from pyLibrary.times.timer import Timer
+
+
+def list_it(settings, filter):
+    with Timer("get all metadata"):
+        metas = Bucket(settings).metas()
+
+    filtered = Q.run({
+        "from": metas,
+        "where": filter,
+        "sort": "last_modified"
+    })
+    for meta in filtered:
+        Log.note("Read {{key}} {{timestamp}}", {"key": meta.key, "timestamp": meta.last_modified})
+
+
+def main():
+    try:
+        settings = startup.read_settings(defs={
+            "name": ["--filter", "--where"],
+            "help": "ES filter",
+            "type": str,
+            "dest": "filter",
+            "default": '{"match_all":{}}',
+            "required": True
+        })
+        Log.start(settings.debug)
+        list_it(settings.source, convert.json2value(convert.ascii2unicode(settings.args.filter)))
+    except Exception, e:
+        Log.error("Problem with etl", e)
+    finally:
+        Log.stop()
+
+
+if __name__ == "__main__":
+    main()

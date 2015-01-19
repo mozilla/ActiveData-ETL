@@ -17,7 +17,7 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
 
-
+# please test with 284:1107472
 def process_talos(source_key, source, dest_bucket):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
@@ -47,19 +47,21 @@ def process_talos(source_key, source, dest_bucket):
 
         if envelope.data.talos:
             try:
-                log_content = requests.get(envelope.data.logurl)
+                log_content = requests.get(envelope.data.logurl, stream=True)
                 for line in log_content.content.split("\n"):
                     s = line.find(TALOS_PREFIX)
-                    if s >= 0:
-                        line = line[s + len(TALOS_PREFIX):].strip()
-                        talos = convert.json2value(convert.utf82unicode(line))
-                        dest_key, dest_etl = etl_key(envelope, source_key, "talos")
-                        if min_dest_key is None:
-                            min_dest_key = dest_key
-                            min_dest_etl = dest_etl
+                    if s < 0:
+                        continue
 
-                        talos.etl = dest_etl
-                        all_talos.extend(talos)
+                    line = line[s + len(TALOS_PREFIX):].strip()
+                    talos = convert.json2value(convert.utf82unicode(line))
+                    dest_key, dest_etl = etl_key(envelope, source_key, "talos")
+                    if min_dest_key is None:
+                        min_dest_key = dest_key
+                        min_dest_etl = dest_etl
+
+                    talos.etl = dest_etl
+                    all_talos.extend(talos)
 
             except Exception, e:
                 Log.error("Problem processing {{url}}", {"url": envelope.data.logurl}, e)
