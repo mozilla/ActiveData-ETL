@@ -143,7 +143,10 @@ class File(object):
 
         content = self.read(encoding=encoding)
         value = convert.json2value(content, flexible=True, paths=True)
-        return net_json.expand(value, "file://" + self.abspath)
+        abspath = self.abspath
+        if os.sep == "\\":
+            abspath = "/" + abspath.replace(os.sep, "/")
+        return net_json.expand(value, "file://" + abspath)
 
     def is_directory(self):
         return os.path.isdir(self._filename)

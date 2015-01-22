@@ -21,7 +21,7 @@ def get(url):
     """
     USE son.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
-    if not url.find("://"):
+    if url.find("://")==-1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": url})
     doc = wrap({"$ref": url})
     return _replace_ref(doc, "", [doc])  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
@@ -32,9 +32,9 @@ def expand(doc, doc_url):
     ASSUMING YOU ALREADY PULED THE doc FROM doc_url, YOU CAN STILL USE THE
     EXPANDING FEATURE
     """
-    if not doc_url.find("://"):
+    if doc_url.find("://")==-1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": doc_url})
-    return _replace_ref(doc, "", [doc])  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    return _replace_ref(doc, doc_url, [doc])  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
 
 
 def _replace_ref(node, url, doc_path):
@@ -49,7 +49,7 @@ def _replace_ref(node, url, doc_path):
             return_value = node
             candidate = {}
             for k, v in node.items():
-                new_v = _replace_ref(v, url + "/" + convert.value2url(k), [v] + doc_path)
+                new_v = _replace_ref(v, url, [v] + doc_path)
                 candidate[k] = new_v
                 if new_v is not v:
                     return_value = candidate
@@ -62,15 +62,19 @@ def _replace_ref(node, url, doc_path):
 
         if ref.startswith("http://"):
             from pyLibrary.env import http
+
             new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
         elif ref.startswith("file://"):
-            ref = ref[7::]
-            if ref.startswith("/"):
-                if os.sep=="\\":
-                    ref=ref[1::]
-                new_value = File(ref).read_json()
-            else:
-                new_value = File.new_instance(url[7::], ref).read_json()
+            if ref[7] != "/":
+                # CONVERT RELATIVE TO ABSOLUTE
+                ref = ("/".join(url.split("/")[:-1])) + ref[6::]
+
+            path = ref[7::]
+            if os.sep == "\\":
+                path = path[1::]
+            content = File(path).read()
+            new_value = convert.json2value(content, flexible=True, paths=True)
+            new_value = _replace_ref(new_value, ref, [new_value])
         elif ref.startswith("env://"):
             # GET ENVIRONMENT VARIABLES
             ref = ref[6::]
@@ -78,7 +82,7 @@ def _replace_ref(node, url, doc_path):
                 new_value = convert.json2value(os.environ[ref])
             except Exception, e:
                 new_value = os.environ[ref]
-        elif ref.find("://"):
+        elif ref.find("://") >= 0:
             raise Log.error("unknown protocol {{scheme}}", {"scheme": ref.split("://")[0]})
         else:
             # REFER TO SELF
@@ -97,7 +101,7 @@ def _replace_ref(node, url, doc_path):
         if node:
             return set_default({}, node, new_value)
         else:
-            return new_value
+            return wrap(new_value)
 
     elif isinstance(node, list):
         candidate = [_replace_ref(n, url, [n] + doc_path) for n in node]

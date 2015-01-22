@@ -72,6 +72,13 @@ def remove_line_comment(line):
 
 
 def json2value(json_string, params=None, flexible=False, paths=False):
+    """
+    :param json_string: THE JSON
+    :param params: STANDARD JSON PARAMS
+    :param flexible: REMOVE COMMENTS
+    :param paths: ASSUME JSON KEYS ARE DOT-DELIMITED
+    :return: Python value
+    """
     with Profiler("json2value"):
         try:
             if flexible:
