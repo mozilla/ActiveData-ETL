@@ -219,6 +219,15 @@ def string2quote(value):
     return jsons.quote(value)
 
 
+def string2url(value):
+    if isinstance(value, unicode):
+        return "".join([_map2url[c] for c in unicode2latin1(value)])
+    elif isinstance(value, str):
+        return "".join([_map2url[c] for c in value])
+    else:
+        Log.error("Expecting a string")
+
+
 def value2url(value):
     if value == None:
         Log.error("")

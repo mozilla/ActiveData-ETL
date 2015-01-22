@@ -56,7 +56,7 @@ def read_settings(filename=None, defs=None):
             Log.error("Can not file settings file {{filename}}", {
                 "filename": settings_file.abspath
             })
-        settings = settings_file.read_json()
+        settings = net_json.get("file://"+settings_file.abspath)
         if defs:
             settings.args = _argparse(defs)
         return settings
@@ -78,7 +78,7 @@ def read_settings(filename=None, defs=None):
             })
             settings = Dict()
         else:
-            settings = settings_file.read_json()
+            settings = net_json.get("file://"+settings_file.abspath)
 
         settings.args = args
         return settings
