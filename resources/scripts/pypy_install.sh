@@ -13,10 +13,12 @@ cd /home/ubuntu/temp
 wget https://bootstrap.pypa.io/get-pip.py
 sudo pypy get-pip.py
 
-cd  /home/ec2-user
+cd  /home/ubuntu
 sudo apt-get install git-core
+
+cd  /home/ubuntu
 git clone https://github.com/klahnakoski/TestLog-ETL.git
-cd /home/ubuntu/temp/TestLog-ETL/
+cd /home/ubuntu/TestLog-ETL/
 git checkout etl
 sudo /home/ubuntu/temp/pypy-2.4.0-linux64/bin/pip install -r requirements.txt
 

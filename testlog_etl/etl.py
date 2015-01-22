@@ -19,7 +19,7 @@ from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
 from pyLibrary import aws
-from pyLibrary.debugs import startup
+from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import nvl, listwrap
 from pyLibrary.thread.threads import Thread, Signal
@@ -164,6 +164,7 @@ def main():
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)
+        constants.set(settings.constants)
 
         stopper = Signal()
         threads = [None] * nvl(settings.param.threads, 1)
