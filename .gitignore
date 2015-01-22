@@ -10,3 +10,4 @@
 nohup.out
 log.txt
 /*.tab
+/elasticsearch.yml

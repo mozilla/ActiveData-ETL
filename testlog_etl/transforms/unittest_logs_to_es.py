@@ -47,12 +47,13 @@ def process_unittest(source_key, source, destination):
         Log.note("Done\n{{data|indent}}", {"data": data})
 
     new_keys = []
+    new_data = []
     for i, t in enumerate(summary.tests):
         data.etl.id = i
         key = etl2key(data.etl)
         new_keys.append(key)
 
-        destination.add({
+        new_data.append({
             "id": key,
             "value": set_default(
                 {
@@ -62,7 +63,7 @@ def process_unittest(source_key, source, destination):
                 data
             )
         })
-
+    destination.extend(new_data)
     return new_keys
 
 

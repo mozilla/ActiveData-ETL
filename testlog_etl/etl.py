@@ -25,7 +25,7 @@ from pyLibrary.dot import nvl, listwrap
 from pyLibrary.thread.threads import Thread, Signal
 
 
-NOTHING_DONE ="Could not process records from {{bucket}}"
+NOTHING_DONE = "Could not process records from {{bucket}}"
 
 
 class ConcatSources(object):
@@ -60,9 +60,12 @@ class ETL(Thread):
         """
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
-        work_actions = [w for w in self.settings.workers if w.source.bucket == source_block.bucket]
+        bucket = source_block.bucket
+        if not isinstance(bucket, basestring):  # FIX MISTAKE
+            bucket=bucket.bucket
+        work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
         if not work_actions:
-            Log.note(NOTHING_DONE, {"bucket": source_block.bucket})
+            Log.note(NOTHING_DONE, {"bucket": source_block.bucket.bucket})
             return
 
         for action in work_actions:
@@ -76,7 +79,7 @@ class ETL(Thread):
 
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
                 "action": action.name,
-                "source": source_block.bucket,
+                "source": source_block.bucket.bucket,
                 "key": source_key
             })
             try:
@@ -94,7 +97,7 @@ class ETL(Thread):
                 if isinstance(dest_bucket, aws.s3.Bucket):
                     for k in old_keys | new_keys:
                         self.work_queue.add({
-                            "bucket": action.destination,
+                            "bucket": action.destination.bucket,
                             "key": k
                         })
                 self.work_queue.commit()
@@ -132,24 +135,29 @@ def get_container(settings):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:
-        output = elasticsearch.Index(settings)
-        # ADD keys() SO ETL LOP CAN FIND WHAT'S GETTING REPLACED
-        object.__setattr__(output, "keys", es_keys)
-
-def es_keys(self, prefix=None):
-    path = etl2path(key2etl(prefix))
-
-    result = self.search({
-        "fields":["_id"],
-        "filtered":{
-            "query":{"match_all":{}},
-            "filter":{"and":[{"term":{"etl"+(".source"*i)+".id": v}} for i, v in enumerate(path)]}
-        }
-    })
-
-    return result.hits.hits.fields._id
+        elasticsearch.Cluster(settings).get_or_create_index(settings)
+        return Index_w_Keys(settings)
 
 
+class Index_w_Keys(elasticsearch.Index):
+    def __init__(self, settings):
+        elasticsearch.Index.__init__(self, settings)
+
+    # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
+    def keys(self, prefix=None):
+        path = etl2path(key2etl(prefix))
+
+        result = self.search({
+            "fields": ["_id"],
+            "query": {
+                "filtered": {
+                    "query": {"match_all": {}},
+                    "filter": {"and": [{"term": {"etl" + (".source" * i) + ".id": v}} for i, v in enumerate(path)]}
+                }
+            }
+        })
+
+        return set(result.hits.hits.fields._id)
 
 
 def main():
