@@ -61,11 +61,14 @@ def _replace_ref(node, url, doc_path):
             ref = url.split("://")[0] + ":" + ref
 
         if ref.startswith("http://"):
+            from pyLibrary.env import http
             new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
         elif ref.startswith("file://"):
             ref = ref[7::]
             if ref.startswith("/"):
-                new_value = File(ref).read_json(ref)
+                if os.sep=="\\":
+                    ref=ref[1::]
+                new_value = File(ref).read_json()
             else:
                 new_value = File.new_instance(url[7::], ref).read_json()
         elif ref.startswith("env://"):

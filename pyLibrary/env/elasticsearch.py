@@ -14,10 +14,9 @@ from datetime import datetime
 import re
 import time
 
-import requests
-
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
 from pyLibrary.queries import Q
@@ -246,7 +245,7 @@ class Index(object):
                     Log.error("version not supported {{version}}", {"version":self.cluster.version})
 
             if self.debug:
-                Log.note("{{num}} items added", {"num": len(items)})
+                Log.note("{{num}} documents added", {"num": len(items)})
         except Exception, e:
             if e.message.startswith("sequence item "):
                 Log.error("problem with {{data}}", {"data": repr(lines[int(e.message[14:16].strip())])}, e)
@@ -453,7 +452,7 @@ class Cluster(object):
             if self.debug:
                 Log.note("{{url}}:\n{{data|left(300)|indent}}", {"url": url, "data": kwargs["data"]})
 
-            response = requests.post(url, **kwargs)
+            response = http.post(url, **kwargs)
             if self.debug:
                 Log.note(utf82unicode(response.content)[:130])
             details = convert.json2value(utf82unicode(response.content))
@@ -478,7 +477,7 @@ class Cluster(object):
         try:
             kwargs = wrap(kwargs)
             kwargs.setdefault("timeout", 600)
-            response = requests.get(url, **kwargs)
+            response = http.get(url, **kwargs)
             if self.debug:
                 Log.note(utf82unicode(response.content)[:130])
             details = wrap(convert.json2value(utf82unicode(response.content)))
@@ -496,7 +495,7 @@ class Cluster(object):
         try:
             kwargs = wrap(kwargs)
             kwargs.setdefault("timeout", 60)
-            response = requests.put(url, data=kwargs.data, **kwargs)
+            response = http.put(url, **kwargs)
             if self.debug:
                 Log.note(utf82unicode(response.content))
             return response
@@ -507,7 +506,7 @@ class Cluster(object):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
             kwargs.setdefault("timeout", 60)
-            response = convert.json2value(utf82unicode(requests.delete(url, **kwargs).content))
+            response = convert.json2value(utf82unicode(http.delete(url, **kwargs).content))
             if self.debug:
                 Log.note("delete response {{response}}", {"response": response})
             return response

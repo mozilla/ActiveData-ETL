@@ -141,6 +141,18 @@ class Duration(object):
         else:
             return time - relativedelta(months=self.month, seconds=self.milli/1000)
 
+    def __lt__(self, other):
+        return self.milli < Duration(other).milli
+
+    def __le__(self, other):
+        return self.milli <= Duration(other).milli
+
+    def __ge__(self, other):
+        return self.milli >= Duration(other).milli
+
+    def __gt__(self, other):
+        return self.milli > Duration(other).milli
+
     @property
     def total_seconds(self):
         return self.milli / 1000
