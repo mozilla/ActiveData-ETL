@@ -112,6 +112,8 @@ class Date(object):
             return Date(self.value - other)
         elif isinstance(other, Date):
             return Date(self.value - other.value)
+        elif isinstance(other, timedelta):
+            return Date(self.value + other)
         elif isinstance(other, Duration):
             if other.month:
                 if (self.value+timedelta(days=1)).month != self.value.month:

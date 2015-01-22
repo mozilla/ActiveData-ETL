@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import HTMLParser
 
 import StringIO
 import base64
@@ -243,6 +244,11 @@ def value2url(value):
     else:
         output = unicode(value)
     return output
+
+
+def html2unicode(value):
+    # http://stackoverflow.com/questions/57708/convert-xml-html-entities-into-unicode-string-in-python
+    return HTMLParser.HTMLParser().unescape(value)
 
 
 def unicode2html(value):

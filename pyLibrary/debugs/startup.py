@@ -14,10 +14,12 @@ import argparse
 import os
 import tempfile
 import sys
+from pyLibrary import net_json
+
 from pyLibrary.dot import listwrap, wrap, unwrap
-from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
+
 
 
 # PARAMETERS MATCH argparse.ArgumentParser.add_argument()
@@ -78,7 +80,11 @@ def read_settings(filename=None, defs=None):
             })
             settings = Dict()
         else:
-            settings = net_json.get("file://"+settings_file.abspath)
+            abspath = settings_file.abspath
+            if os.sep=="\\":
+                abspath = "/"+abspath.replace(os.sep, "/")
+
+            settings = net_json.get("file://"+abspath)
 
         settings.args = args
         return settings
@@ -101,7 +107,7 @@ class SingleInstance:
     def __init__(self, flavor_id=""):
         self.initialized = False
         appname = os.path.splitext(os.path.abspath(sys.argv[0]))[0]
-        basename = ((appname + '-%s') % flavor_id).replace("/", "-").replace(":", "").replace("\\", "-") + '.lock'
+        basename = ((appname + '-%s') % flavor_id).replace("/", "-").replace(":", "").replace("\\", "-").replace("-.-", "-") + '.lock'
         self.lockfile = os.path.normpath(tempfile.gettempdir() + '/' + basename)
 
 
