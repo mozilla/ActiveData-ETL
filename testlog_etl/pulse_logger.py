@@ -11,7 +11,7 @@ from pyLibrary import convert
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
 from pyLibrary import aws
-from pyLibrary.debugs import startup
+from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import Q
@@ -92,6 +92,7 @@ def main():
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)
+        constants.set(settings.constants)
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws.s3.Bucket(settings.destination) as bucket:

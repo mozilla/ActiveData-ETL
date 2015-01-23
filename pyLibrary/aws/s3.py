@@ -20,6 +20,7 @@ from pyLibrary import convert
 from pyLibrary.aws import cleanup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl, Null, wrap
+from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 
 
@@ -42,14 +43,15 @@ class File(object):
         return self.bucket.meta(self.key)
 
 class Connection(object):
-    def __init__(self, settings):
-        """
-        SETTINGS:
-        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        bucket - NAME OF THE BUCKET
-        aws_access_key_id - CREDENTIAL
-        aws_secret_access_key - CREDENTIAL
-        """
+    @use_settings
+    def __init__(
+        self,
+        bucket,  # NAME OF THE BUCKET
+        access_key_id,  # CREDENTIAL
+        secret_access_key,  # CREDENTIAL
+        region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
+        settings=None
+    ):
         self.settings = settings
 
         try:
@@ -57,14 +59,14 @@ class Connection(object):
 
             if not settings.region:
                 self.connection = boto.connect_s3(
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=self.settings.access_key_id,
+                    aws_secret_access_key=self.settings.secret_access_key
                 )
             else:
                 self.connection = boto.s3.connect_to_region(
                     self.settings.region,
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=self.settings.access_key_id,
+                    aws_secret_access_key=self.settings.secret_access_key
                 )
         except Exception, e:
             Log.error("Problem connecting to S3", e)
@@ -93,22 +95,19 @@ class Bucket(object):
     JUSTIFY IT
     """
 
-
-    def __init__(self, settings, public=False):
-        """
-        SETTINGS:
-        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        bucket - NAME OF THE BUCKET
-        aws_access_key_id - CREDENTIAL
-        aws_secret_access_key - CREDENTIAL
-        """
+    @use_settings
+    def __init__(
+        self,
+        bucket,  # NAME OF THE BUCKET
+        access_key_id,  # CREDENTIAL
+        secret_access_key,  # CREDENTIAL
+        region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
+        public=False,
+        settings=None
+    ):
         self.settings = settings
-        self.settings.public = nvl(self.settings.public, public)
         self.connection = None
         self.bucket = None
-
-        if settings == None:
-            return
 
         try:
             self.connection = Connection(settings).connection

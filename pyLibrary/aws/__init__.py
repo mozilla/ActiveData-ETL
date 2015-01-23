@@ -42,7 +42,6 @@ def cleanup(settings):
 
 class Queue(object):
     def __init__(self, settings):
-
         cleanup(settings)
         self.settings = settings
         self.pending = []

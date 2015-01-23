@@ -19,6 +19,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import Q
 from pyLibrary.strings import utf82unicode
 from pyLibrary.dot import nvl, Null, Dict
@@ -42,8 +43,8 @@ class Index(object):
     IF ANY YET.
 
     """
-
-    def __init__(self, settings):
+    @use_settings
+    def __init__(self, index, type, alias=None, explore_metadata=True, debug=False, settings=None):
         """
         settings.explore_metadata == True - IF PROBING THE CLUSTER FOR METATDATA IS ALLOWED
         settings.timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
@@ -51,9 +52,6 @@ class Index(object):
         if settings.index == settings.alias:
             Log.error("must have a unique index name")
 
-        settings = wrap(settings)
-        assert settings.index, "expecting index attribute"
-        assert settings.type, "expecting type attribute"
         settings.setdefault("explore_metadata", True)
 
         self.debug = settings.debug
@@ -314,24 +312,30 @@ class Index(object):
 
 
 class Cluster(object):
-    def __init__(self, settings):
+    @use_settings
+    def __init__(self, host, port=9200, settings=None):
         """
         settings.explore_metadata == True - IF PROBING THE CLUSTER FOR METATDATA IS ALLOWED
         settings.timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
         """
 
-        settings = wrap(settings)
-        assert settings.host, "Expecting cluster host name"
         settings.setdefault("explore_metadata", True)
 
         self.cluster_metadata = None
-        settings.setdefault("port", 9200)
         self.debug = settings.debug
         self.settings = settings
         self.version = None
         self.path = settings.host + ":" + unicode(settings.port)
 
-    def get_or_create_index(self, settings, schema=None, limit_replicas=None):
+    @use_settings
+    def get_or_create_index(
+        self,
+        index,
+        alias=None,
+        schema=None,
+        limit_replicas=None,
+        settings=None
+    ):
         settings = deepcopy(settings)
         aliases = self.get_aliases()
 
@@ -352,7 +356,8 @@ class Cluster(object):
             settings.index = indexes.last().index
         return Index(settings)
 
-    def get_index(self, settings):
+
+    def get_index(self, index, alias=None, settings=None):
         """
         TESTS THAT THE INDEX EXISTS BEFORE RETURNING A HANDLE
         """
@@ -366,7 +371,7 @@ class Cluster(object):
             return Index(settings)
         Log.error("Can not find index {{index_name}}", {"index_name": settings.index})
 
-    def create_index(self, settings, schema=None, limit_replicas=None):
+    def create_index(self, index, alias=None, schema=None, limit_replicas=None, settings=None):
         if not settings.alias:
             settings.alias = settings.index
             settings.index = proto_name(settings.alias)
@@ -384,8 +389,6 @@ class Cluster(object):
 
         if not schema:
             schema = settings.schema
-
-        limit_replicas = nvl(limit_replicas, settings.limit_replicas)
 
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
@@ -436,7 +439,6 @@ class Cluster(object):
         return self.cluster_metadata
 
     def _post(self, path, **kwargs):
-
         url = self.settings.host + ":" + unicode(self.settings.port) + path
 
         try:
