@@ -15,6 +15,7 @@ from boto.sqs.message import Message
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap, nvl
+from pyLibrary.meta import use_settings
 
 
 def cleanup(settings):
@@ -41,7 +42,15 @@ def cleanup(settings):
 
 
 class Queue(object):
-    def __init__(self, settings):
+    @use_settings
+    def __init__(
+        self,
+        name,
+        region,
+        access_key_id,
+        secret_access_key,
+        settings
+    ):
         cleanup(settings)
         self.settings = settings
         self.pending = []
