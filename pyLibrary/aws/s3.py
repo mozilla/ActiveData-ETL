@@ -10,16 +10,15 @@
 from __future__ import unicode_literals
 from __future__ import division
 import StringIO
-import gzip
 import zipfile
 
 import boto
 from boto.s3.connection import Location
 
 from pyLibrary import convert
-from pyLibrary.aws import cleanup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, Null, wrap
+from pyLibrary.dot import Null, wrap
+from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 
 
@@ -42,14 +41,14 @@ class File(object):
         return self.bucket.meta(self.key)
 
 class Connection(object):
-    def __init__(self, settings):
-        """
-        SETTINGS:
-        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        bucket - NAME OF THE BUCKET
-        aws_access_key_id - CREDENTIAL
-        aws_secret_access_key - CREDENTIAL
-        """
+    @use_settings
+    def __init__(
+        self,
+        access_key_id,  # CREDENTIAL
+        secret_access_key,  # CREDENTIAL
+        region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
+        settings=None
+    ):
         self.settings = settings
 
         try:
@@ -78,9 +77,10 @@ class Connection(object):
 
 
     def get_bucket(self, name):
-        output = Bucket(Null)
+        output = SkeletonBucket()
         output.bucket = self.connection.get_bucket(name, validate=False)
         return output
+
 
 
 class Bucket(object):
@@ -91,22 +91,19 @@ class Bucket(object):
     JUSTIFY IT
     """
 
-
-    def __init__(self, settings, public=False):
-        """
-        SETTINGS:
-        region - NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        bucket - NAME OF THE BUCKET
-        aws_access_key_id - CREDENTIAL
-        aws_secret_access_key - CREDENTIAL
-        """
+    @use_settings
+    def __init__(
+        self,
+        bucket,  # NAME OF THE BUCKET
+        access_key_id,  # CREDENTIAL
+        secret_access_key,  # CREDENTIAL
+        region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
+        public=False,
+        settings=None
+    ):
         self.settings = settings
-        self.settings.public = nvl(self.settings.public, public)
         self.connection = None
         self.bucket = None
-
-        if settings == None:
-            return
 
         try:
             self.connection = Connection(settings).connection
@@ -145,7 +142,7 @@ class Bucket(object):
 
     def metas(self, prefix=None):
         """
-        RETURN THE METATDATA DESCRIPTORS
+        RETURN THE METATDATA DESCRIPTORS FOR EACH KEY
         """
 
         keys = self.bucket.list(prefix=prefix)
@@ -217,6 +214,17 @@ class Bucket(object):
     @property
     def name(self):
         return self.settings.bucket
+
+
+class SkeletonBucket(Bucket):
+    """
+    LET CALLER WORRY ABOUT SETTING PROPERTIES
+    """
+    def __init__(self):
+        object.__init__(self)
+        self.connection = None
+        self.bucket = None
+
 
 
 def strip_extension(key):

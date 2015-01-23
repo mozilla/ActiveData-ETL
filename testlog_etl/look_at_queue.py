@@ -22,24 +22,7 @@ from pyLibrary.queries import Q
 from pyLibrary.times.timer import Timer
 
 
-def list_s3(settings, filter):
-    """
-    LIST THE KEYS AND TIMESTAMPS FOUND IN AN S3 BUCKET
-    """
-
-    with Timer("get all metadata"):
-        metas = Bucket(settings).metas()
-
-    filtered = Q.run({
-        "from": metas,
-        "where": filter,
-        "sort": "last_modified"
-    })
-    for meta in filtered:
-        Log.note("Read {{key}} {{timestamp}}", {"key": meta.key, "timestamp": meta.last_modified})
-
-
-def list_queue(settings, num=10):
+def list_queue(settings, num):
     queue = aws.Queue(settings)
     for i in range(num):
         content = queue.pop()
@@ -50,15 +33,15 @@ def list_queue(settings, num=10):
 def main():
     try:
         settings = startup.read_settings(defs={
-            "name": ["--filter", "--where"],
-            "help": "ES filter",
-            "type": str,
-            "dest": "filter",
-            "default": '{"match_all":{}}',
-            "required": True
+            "name": ["--num"],
+            "help": "number to show",
+            "type": int,
+            "dest": "num",
+            "default": '10',
+            "required": False
         })
         Log.start(settings.debug)
-        list_s3(settings.source, convert.json2value(convert.ascii2unicode(settings.args.filter)))
+        list_queue(settings.source, settings.args.num)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

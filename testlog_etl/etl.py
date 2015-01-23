@@ -12,19 +12,23 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from copy import deepcopy
+import sys
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import get_function_by_name
+from pyLibrary.meta import get_function_by_name, use_settings
+from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
 from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
+from pyLibrary import dot
 from pyLibrary.dot import nvl, listwrap
 from pyLibrary.thread.threads import Thread, Signal
 
 
+EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 NOTHING_DONE = "No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}"
 
 
@@ -41,11 +45,20 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-    def __init__(self, name, settings, please_stop):
+    @use_settings
+    def __init__(
+        self,
+        name,
+        work_queue,
+        workers,
+        please_stop,
+        wait_forever=False,
+        settings=None
+    ):
         # FIND THE WORKERS METHODS
-        settings = deepcopy(settings)
+        settings.workers = deepcopy(settings.workers)
         for w in settings.workers:
-            w.transformer = get_function_by_name(w.transformer)
+            w.transformer = dot.get_attr(sys.modules, w.transformer)
 
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
@@ -115,10 +128,15 @@ class ETL(Thread):
     def loop(self, please_stop):
         with self.work_queue:
             while not please_stop:
-                todo = self.work_queue.pop()
-                if todo == None:
-                    please_stop.go()
-                    return
+                if self.settings.wait_forever:
+                    todo = None
+                    while not please_stop and not todo:
+                        todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
+                else:
+                    todo = self.work_queue.pop()
+                    if todo == None:
+                        please_stop.go()
+                        return
 
                 try:
                     self._pipe(todo)
@@ -173,7 +191,13 @@ def main():
         threads = [None] * nvl(settings.param.threads, 1)
 
         for i, _ in enumerate(list(threads)):
-            threads[i] = ETL("ETL Loop " + unicode(i), settings, stopper)
+            threads[i] = ETL(
+                name="ETL Loop " + unicode(i),
+                work_queue=settings.work_queue,
+                workers=settings.workers,
+                settings=settings.param,
+                please_stop=stopper
+            )
 
         Thread.wait_for_shutdown_signal(stopper)
 

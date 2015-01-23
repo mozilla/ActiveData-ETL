@@ -40,6 +40,8 @@ def zip(keys, values):
     """
     output = Dict()
     for i, k in enumerate(keys):
+        if i >= len(values):
+            break
         output[k] = values[i]
     return output
 

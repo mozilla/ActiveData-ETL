@@ -24,12 +24,11 @@ def set(constants):
     if not constants:
         return
     constants = wrap(constants)
-    sys_modules = sys.modules
 
     for k, new_value in constants.leaves():
         errors = []
         try:
-            old_value = dot.set_attr(sys_modules, k, new_value)
+            old_value = dot.set_attr(sys.modules, k, new_value)
             continue
         except Exception, e:
             errors.append[e]
