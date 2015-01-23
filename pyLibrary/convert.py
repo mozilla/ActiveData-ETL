@@ -28,7 +28,7 @@ from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log
 from pyLibrary.strings import expand_template
-from pyLibrary.dot import wrap, wrap_dot, unwrap
+from pyLibrary.dot import wrap, wrap_dot, unwrap, Dict
 
 
 """
@@ -428,6 +428,22 @@ def bytes2zip(bytes):
     return buff.getvalue()
 
 
+def ini2value(ini_content):
+    """
+    INI FILE CONTENT TO Dict
+    """
+    from ConfigParser import ConfigParser
+
+    buff = StringIO.StringIO(ini_content)
+    config = ConfigParser()
+    config._read(buff, "dummy")
+
+    output = {}
+    for section in config.sections():
+        output[section]=s = {}
+        for k, v in config.items(section):
+            s[k]=v
+    return wrap(output)
 
 
 

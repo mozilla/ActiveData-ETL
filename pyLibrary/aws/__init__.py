@@ -26,8 +26,8 @@ class Queue(object):
         self,
         name,
         region,
-        access_key_id,
-        secret_access_key,
+        aws_access_key_id,
+        aws_secret_access_key,
         settings=None
     ):
         self.settings = settings
@@ -38,8 +38,8 @@ class Queue(object):
 
         conn = sqs.connect_to_region(
             region_name=settings.region,
-            aws_access_key_id=settings.access_key_id,
-            aws_secret_access_key=settings.secret_access_key,
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
         )
         self.queue = conn.get_queue(settings.name)
         if self.queue == None:

@@ -24,7 +24,10 @@ def get(url):
     if url.find("://")==-1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": url})
     doc = wrap({"$ref": url})
-    return _replace_ref(doc, "", [doc])  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+
+    phase1 = _replace_ref(doc, "")  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase2 = _replace_locals(phase1, [phase1])
+    return wrap(phase2)
 
 
 def expand(doc, doc_url):
@@ -34,10 +37,13 @@ def expand(doc, doc_url):
     """
     if doc_url.find("://")==-1:
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": doc_url})
-    return _replace_ref(doc, doc_url, [doc])  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+
+    phase1 = _replace_ref(doc, doc_url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase2 = _replace_locals(phase1, [phase1])
+    return wrap(phase2)
 
 
-def _replace_ref(node, url, doc_path):
+def _replace_ref(node, url):
     if url.endswith("/"):
         url = url[:-1]
 
@@ -49,7 +55,7 @@ def _replace_ref(node, url, doc_path):
             return_value = node
             candidate = {}
             for k, v in node.items():
-                new_v = _replace_ref(v, url, [v] + doc_path)
+                new_v = _replace_ref(v, url)
                 candidate[k] = new_v
                 if new_v is not v:
                     return_value = candidate
@@ -65,16 +71,27 @@ def _replace_ref(node, url, doc_path):
 
             new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
         elif ref.startswith("file://"):
-            if ref[7] != "/":
+            if ref[7] == "~":
+                if os.sep == "\\":
+                    ref = "file:///" + os.path.expanduser("~").replace(os.sep, "/")+ref[8:]
+                else:
+                    ref = "file://" + os.path.expanduser(ref[7::])
+            elif ref[7] != "/":
                 # CONVERT RELATIVE TO ABSOLUTE
                 ref = ("/".join(url.split("/")[:-1])) + ref[6::]
 
-            path = ref[7::]
-            if os.sep == "\\":
-                path = path[1::]
+            path = ref[7::] if os.sep != "\\" else ref[8::]
+
             content = File(path).read()
-            new_value = convert.json2value(content, flexible=True, paths=True)
-            new_value = _replace_ref(new_value, ref, [new_value])
+            try:
+                new_value = convert.json2value(content, flexible=True, paths=True)
+            except Exception, e:
+                try:
+                    new_value = convert.ini2value(content)
+                except Exception, f:
+                    raise Log.error("Can not interpret content of {{file}}", {"file": path})
+
+            new_value = _replace_ref(new_value, ref)
         elif ref.startswith("env://"):
             # GET ENVIRONMENT VARIABLES
             ref = ref[6::]
@@ -84,6 +101,39 @@ def _replace_ref(node, url, doc_path):
                 new_value = os.environ[ref]
         elif ref.find("://") >= 0:
             raise Log.error("unknown protocol {{scheme}}", {"scheme": ref.split("://")[0]})
+        else:
+            #DO NOT TOUCH LOCAL REF YET
+            node["$ref"] = ref
+            return node
+
+        if node:
+            return set_default({}, node, new_value)
+        else:
+            return wrap(new_value)
+
+    elif isinstance(node, list):
+        candidate = [_replace_ref(n, url) for n in node]
+        if all(p[0] is p[1] for p in zip(candidate, node)):
+            return node
+        return candidate
+
+    return node
+
+
+def _replace_locals(node, doc_path):
+    if isinstance(node, dict):
+        ref, node["$ref"] = node["$ref"], None
+
+        if not ref:
+            # RECURS
+            return_value = node
+            candidate = {}
+            for k, v in node.items():
+                new_v = _replace_locals(v, [v] + doc_path)
+                candidate[k] = new_v
+                if new_v is not v:
+                    return_value = candidate
+            return return_value
         else:
             # REFER TO SELF
             if ref[0] == ".":
@@ -104,7 +154,7 @@ def _replace_ref(node, url, doc_path):
             return wrap(new_value)
 
     elif isinstance(node, list):
-        candidate = [_replace_ref(n, url, [n] + doc_path) for n in node]
+        candidate = [_replace_locals(n, [n] + doc_path) for n in node]
         if all(p[0] is p[1] for p in zip(candidate, node)):
             return node
         return candidate

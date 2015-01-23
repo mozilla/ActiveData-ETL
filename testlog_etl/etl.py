@@ -152,7 +152,7 @@ def get_container(settings):
     if settings == None:
         return DummySink()
 
-    elif nvl(settings.access_key_id, settings.aws_access_key_id):
+    elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:

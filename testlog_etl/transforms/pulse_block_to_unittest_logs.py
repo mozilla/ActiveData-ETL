@@ -31,14 +31,13 @@ def process_pulse_block(source_key, source, dest_bucket):
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
     """
     output = []
-
+    num_missing_envelope = 0
     for i, line in enumerate(source.read().split("\n")):
         envelope = convert.json2value(line)
         if envelope._meta:
             pass
         elif envelope.locale:
-            if DEBUG:
-                Log.note("Line {{index}}: found pulse message stripped of envelope", {"index": i})
+            num_missing_envelope+=1
             envelope = Dict(data=envelope)
         elif envelope.source:
             continue
@@ -83,6 +82,9 @@ def process_pulse_block(source_key, source, dest_bucket):
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
+
+    if num_missing_envelope:
+        Log.warning("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
 
     return output
 
