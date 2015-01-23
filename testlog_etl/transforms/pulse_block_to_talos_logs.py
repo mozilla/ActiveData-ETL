@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import requests
 
 from pyLibrary import convert
+from pyLibrary.aws.s3 import _unzip
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
@@ -48,7 +49,14 @@ def process_talos(source_key, source, dest_bucket):
         if envelope.data.talos:
             try:
                 log_content = requests.get(envelope.data.logurl, stream=True)
-                for line in log_content.content.split("\n"):
+                bytes = log_content.content
+                if envelope.data.logurl.endswith(".gz"):
+                    try:
+                        bytes= convert.zip2bytes(bytes)
+                    except Exception, e:
+                        pass
+
+                for line in bytes.split("\n"):
                     s = line.find(TALOS_PREFIX)
                     if s < 0:
                         continue

@@ -15,6 +15,7 @@ import StringIO
 import base64
 import cgi
 import datetime
+import gzip
 import hashlib
 import json
 import re
@@ -406,6 +407,38 @@ def pipe2value(value):
         return output
 
     return [pipe2value(v) for v in output.split("|")]
+
+
+def zip2bytes(compressed):
+    """
+    UNZIP DATA
+    """
+    buff = StringIO.StringIO(compressed)
+    archive = gzip.GzipFile(fileobj=buff, mode='r')
+    return archive.read()
+
+def bytes2zip(bytes):
+    """
+    RETURN COMPRESSED BYTES
+    """
+    buff = StringIO.StringIO()
+    archive = gzip.GzipFile(fileobj=buff, mode='w')
+    archive.write(bytes)
+    archive.close()
+    return buff.getvalue()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 _map2url = {chr(i): latin12unicode(chr(i)) for i in range(32, 256)}

@@ -53,18 +53,16 @@ class Connection(object):
         self.settings = settings
 
         try:
-            cleanup(self.settings)
-
             if not settings.region:
                 self.connection = boto.connect_s3(
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=self.settings.access_key_id,
+                    aws_secret_access_key=self.settings.secret_access_key
                 )
             else:
                 self.connection = boto.s3.connect_to_region(
                     self.settings.region,
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=self.settings.access_key_id,
+                    aws_secret_access_key=self.settings.secret_access_key
                 )
         except Exception, e:
             Log.error("Problem connecting to S3", e)
@@ -177,7 +175,7 @@ class Bucket(object):
         if source.key.endswith(".zip"):
             json = _unzip(json)
         elif source.key.endswith(".gz"):
-            json = _ungzip(json)
+            json = convert.zip2bytes(json)
 
         return convert.utf82unicode(json)
 
@@ -190,10 +188,10 @@ class Bucket(object):
             if len(value) > 200 * 1000:
                 self.bucket.delete_key(key + ".json")
                 if isinstance(value, str):
-                    value = new_zipfile(key + ".json", value)
+                    value = convert.bytes2zip(value)
                     key += ".json.gz"
                 else:
-                    value = new_zipfile(key + ".json", convert.unicode2utf8(value))
+                    value = convert.bytes2zip(convert.unicode2utf8(value))
                     key += ".json.gz"
 
             else:
@@ -228,18 +226,6 @@ def strip_extension(key):
     return key[:e]
 
 
-def new_zipfile(filename, content):
-    buff = StringIO.StringIO()
-    archive = gzip.GzipFile(fileobj=buff, mode='w')
-    archive.write(content)
-    archive.close()
-    return buff.getvalue()
-
-
-def _ungzip(compressed):
-    buff = StringIO.StringIO(compressed)
-    archive = gzip.GzipFile(fileobj=buff, mode='r')
-    return archive.read()
 
 def _unzip(compressed):
     buff = StringIO.StringIO(compressed)

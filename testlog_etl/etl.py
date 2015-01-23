@@ -19,13 +19,13 @@ from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
 from pyLibrary import aws
-from pyLibrary.debugs import startup
+from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import nvl, listwrap
 from pyLibrary.thread.threads import Thread, Signal
 
 
-NOTHING_DONE = "Could not process records from {{bucket}}"
+NOTHING_DONE = "No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}"
 
 
 class ConcatSources(object):
@@ -60,12 +60,15 @@ class ETL(Thread):
         """
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
+        if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
+            source_block.bucket=source_block.bucket.bucket
         bucket = source_block.bucket
-        if not isinstance(bucket, basestring):  # FIX MISTAKE
-            bucket=bucket.bucket
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
         if not work_actions:
-            Log.note(NOTHING_DONE, {"bucket": source_block.bucket.bucket})
+            Log.note(NOTHING_DONE, {
+                "bucket": source_block.bucket,
+                "message": source_block
+            })
             return
 
         for action in work_actions:
@@ -79,7 +82,7 @@ class ETL(Thread):
 
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
                 "action": action.name,
-                "source": source_block.bucket.bucket,
+                "source": source_block.bucket,
                 "key": source_key
             })
             try:
@@ -164,6 +167,7 @@ def main():
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)
+        constants.set(settings.constants)
 
         stopper = Signal()
         threads = [None] * nvl(settings.param.threads, 1)
