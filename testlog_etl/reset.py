@@ -2,7 +2,7 @@ from pyLibrary import aws
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from testlog_etl import key2etl
+from testlog_etl import key2etl, etl2path
 
 
 def main():
@@ -38,12 +38,14 @@ def main():
             with aws.Queue(settings.work_queue) as work_queue:
                 source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
-                start = Rev(settings.args.start)
-                end = Rev(settings.args.end)
+                start = Version(settings.args.start)
+                end = Version(settings.args.end)
 
-                for k in source.keys():
-                    p = Rev(k)
+                all_keys = source.keys()
+                for k in all_keys:
+                    p = Version(k)
                     if start <= p < end:
+                        Log.note("Adding {{key}}", {"key":k})
                         work_queue.add({
                             "bucket": settings.args.bucket,
                             "key": k
@@ -55,38 +57,45 @@ def main():
         Log.stop()
 
 
-class Rev(object):
+class Version(object):
+    """
+    BOX A VERSION NUMBER SO IT CAN BE COMPARED USING >, >=, ==, !=, <=, < OPERATORS
+    """
+
+
     def __init__(self, key):
         if key == None:
             self.path=[]
             return
         etl = key2etl(key)
-        path = etl2path(etl)
+        self.path = etl2path(etl)
 
 
     def __lt__(self, other):
         if not self.path or not other.path:
             return True
-        return comparePath(self.path, other.path) == -1
+        return comparePath(self.path, other.path) == 1
 
     def __le__(self, other):
         if not self.path or not other.path:
             return True
-        return comparePath(self.path, other.path) <= 0
+        return comparePath(self.path, other.path) >= 0
 
     def __gt__(self, other):
         if not self.path or not other.path:
             return True
-        return comparePath(self.path, other.path) == 1
+        return comparePath(self.path, other.path) == -1
 
     def __ge__(self, other):
         if not self.path or not other.path:
             return True
-        return comparePath(self.path, other.path) >= 0
+        return comparePath(self.path, other.path) <= 0
 
 
 def comparePath(a, b):
     # ASSUME a AND b ARE VERSION NUMBERS, RETURN THE COMPARISON
+    # a < b  == 1
+    # a > b  == -1
     e = 0
     for i in range(min(len(a), len(b))):
         if a[i] != b[i]:
