@@ -66,30 +66,44 @@ def _replace_ref(node, url):
             # REQUIRES THE CURRENT DOCUMENT'S SCHEME
             ref = url.split("://")[0] + ":" + ref
 
+        if ref.find("#") >= 0:
+            # LOOKING FOR THE IN-DOCUMENT REFERENCE (EXPECTED DOT-SEPARATED
+            # PATH INTO DOCUMENT)
+            ref, doc_path = ref.split("#")
+        else:
+            doc_path = None
+
         if ref.startswith("http://"):
             from pyLibrary.env import http
 
             new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
         elif ref.startswith("file://"):
             if ref[7] == "~":
+                home_path = os.path.expanduser("~")
                 if os.sep == "\\":
-                    ref = "file:///" + os.path.expanduser("~").replace(os.sep, "/")+ref[8:]
-                else:
-                    ref = "file://" + os.path.expanduser(ref[7::])
+                    home_path = home_path.replace(os.sep, "/")
+                if home_path.endswith("/"):
+                    home_path = home_path[:-1]
+
+                ref = "file:///" + home_path + "/" + ref[8:]
             elif ref[7] != "/":
                 # CONVERT RELATIVE TO ABSOLUTE
                 ref = ("/".join(url.split("/")[:-1])) + ref[6::]
 
             path = ref[7::] if os.sep != "\\" else ref[8::]
 
-            content = File(path).read()
+            try:
+                content = File(path).read()
+            except Exception, e:
+                Log.error("Could not read file {{filename}}", {"filename":path})
+
             try:
                 new_value = convert.json2value(content, flexible=True, paths=True)
             except Exception, e:
                 try:
                     new_value = convert.ini2value(content)
                 except Exception, f:
-                    raise Log.error("Can not interpret content of {{file}}", {"file": path})
+                    raise Log.error("Can not read {{file}}", {"file": path}, e)
 
             new_value = _replace_ref(new_value, ref)
         elif ref.startswith("env://"):
@@ -105,6 +119,9 @@ def _replace_ref(node, url):
             #DO NOT TOUCH LOCAL REF YET
             node["$ref"] = ref
             return node
+
+        if doc_path:
+            new_value = new_value[doc_path]
 
         if node:
             return set_default({}, node, new_value)
