@@ -86,7 +86,7 @@ def _replace_ref(node, url):
                 if home_path.endswith("/"):
                     home_path = home_path[:-1]
 
-                ref = "file:///" + home_path + "/" + ref[8:]
+                ref = "file:///" + home_path + ref[8:]
             elif ref[7] != "/":
                 # CONVERT RELATIVE TO ABSOLUTE
                 ref = ("/".join(url.split("/")[:-1])) + ref[6::]
@@ -124,7 +124,7 @@ def _replace_ref(node, url):
         if doc_path:
             new_value = new_value[doc_path]
 
-        if node:
+        if isinstance(new_value, dict):
             return set_default({}, node, new_value)
         else:
             return wrap(new_value)
