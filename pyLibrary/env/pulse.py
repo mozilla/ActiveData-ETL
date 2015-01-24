@@ -50,6 +50,7 @@ class Pulse(Thread):
         self.settings.callback = self._got_result
         self.settings.user = nvl(self.settings.user, self.settings.username)
         self.settings.applabel = nvl(self.settings.applable, self.settings.queue, self.settings.queue_name)
+        self.settings.self = None
 
         self.pulse = GenericConsumer(self.settings, connect=True, **unwrap(self.settings))
         self.count = nvl(start, 0)

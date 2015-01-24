@@ -67,10 +67,17 @@ def get_function_by_name(full_name):
 
 def use_settings(func):
     """
-    THIS DECORATOR WILL PUT ALL PRAMETERS INTO THE settings PARAMETER AND
+    THIS DECORATOR WILL PUT ALL PARAMETERS INTO THE settings PARAMETER AND
     PUT ALL settings PARAMETERS INTO THE FUNCTION PARAMETERS.  THIS HAS BOTH
     THE BENEFIT OF HAVING ALL PARAMETERS IN ONE PLACE (settings) AND ALL
-    PARAMETERS ARE EXPLICIT FOR CLARITY
+    PARAMETERS ARE EXPLICIT FOR CLARITY.
+
+    PARAMETER ASSIGNMENT MAY NOT BE UNIQUE, THEY CAN COME FROM EXPLICIT
+    CALL PARAMETERS, OR FROM THE settings PARAMETER.  IN THESE CASES,
+    PARAMETER VALUES ARE CHOSEN IN THE FOLLOWING ORDER:
+    1) EXPLICT CALL PARAMETERS
+    2) PARAMETERS FOUND IN settings
+    3) DEFAULT VALUES ASSIGNED IN FUNCTION DEFINITION
     """
 
     params = func.func_code.co_varnames[:func.func_code.co_argcount]
@@ -84,14 +91,30 @@ def use_settings(func):
 
     def wrapper(*args, **kwargs):
         try:
-            if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], dict):
-                # ASSUME SINGLE PARAMETER IS A SETTING
-                args[0]["settings"] = args[0]
-                packed = params_pack(params, args[0], defaults)
-                return func(**packed)
+            if func.func_name == "__init__" and "settings" in kwargs:
+                packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), kwargs["settings"], defaults)
+                return func(args[0], **packed)
+            elif func.func_name == "__init__" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], dict):
+                # ASSUME SECOND UNNAMED PARAM IS settings
+                packed = params_pack(params, args[1], defaults)
+                return func(args[0], **packed)
+            elif func.func_name == "__init__":
+                # DO NOT INCLUDE self IN SETTINGS
+                packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), defaults)
+                return func(args[0], **packed)
+            elif params[0] == "self" and "settings" in kwargs:
+                packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), kwargs["settings"], defaults)
+                return func(args[0], **packed)
             elif params[0] == "self" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], dict):
+                # ASSUME SECOND UNNAMED PARAM IS settings
+                packed = params_pack(params, args[1], defaults)
+                return func(args[0], **packed)
+            elif params[0] == "self":
+                packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), defaults)
+                return func(args[0], **packed)
+            elif len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], dict):
                 # ASSUME SINGLE PARAMETER IS A SETTING
-                packed = params_pack(params, {"self": args[0]}, args[1], defaults)
+                packed = params_pack(params, args[0], defaults)
                 return func(**packed)
             elif "settings" in kwargs and isinstance(kwargs["settings"], dict):
                 # PUT args INTO SETTINGS
