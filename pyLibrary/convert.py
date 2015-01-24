@@ -10,7 +10,6 @@
 from __future__ import unicode_literals
 from __future__ import division
 import HTMLParser
-
 import StringIO
 import base64
 import cgi
@@ -21,14 +20,15 @@ import json
 import re
 import time
 
-from pyLibrary import jsons
-from pyLibrary.times.dates import Date
-from pyLibrary.jsons import json_encoder
+# from pyLibrary import jsons
+from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log
+from pyLibrary.jsons import quote
+from pyLibrary.jsons.encoder import encode
 from pyLibrary.strings import expand_template
-from pyLibrary.dot import wrap, wrap_dot, unwrap, Dict
+from pyLibrary.times.dates import Date
 
 
 """
@@ -36,7 +36,7 @@ DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
 """
 def value2json(obj, pretty=False):
     try:
-        json = json_encoder(obj, pretty=pretty)
+        json = encode(obj, pretty=pretty)
         if json == None:
             Log.note(str(type(obj)) + " is not valid{{type}}JSON", {"type": " (pretty) " if pretty else " "})
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
@@ -225,7 +225,7 @@ def value2quote(value):
 
 
 def string2quote(value):
-    return jsons.quote(value)
+    return quote(value)
 
 
 def string2url(value):

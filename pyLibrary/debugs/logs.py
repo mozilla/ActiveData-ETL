@@ -16,12 +16,10 @@ from datetime import datetime
 import sys
 
 from pyLibrary.debugs import constants
-from pyLibrary.jsons import json_encoder
-from pyLibrary.thread import threads
-from pyLibrary.dot import nvl, Dict, set_default
-from pyLibrary.dot import listwrap, wrap
+from pyLibrary.dot import nvl, Dict, set_default, listwrap, wrap
+from pyLibrary.jsons.encoder import encode
+from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.strings import indent, expand_template
-from pyLibrary.thread.threads import Thread
 
 
 DEBUG_LOGGING = False
@@ -460,7 +458,7 @@ class Except(Exception):
         return unicode(str(self))
 
     def __json__(self):
-        return json_encoder(Dict(
+        return encode(Dict(
             type=self.type,
             template=self.template,
             params=self.params,
@@ -488,7 +486,7 @@ class Log_usingFile(BaseLog):
             self.file.backup()
             self.file.delete()
 
-        self.file_lock = threads.Lock("file lock for logging")
+        self.file_lock = Lock("file lock for logging")
 
     def write(self, template, params):
         with self.file_lock:
