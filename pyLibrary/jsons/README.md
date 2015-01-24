@@ -1,3 +1,10 @@
+jsons.encode.encoder()
+---------------------
+
+Fast JSON encoder used in `convert.value2json()`.  Run the [speedtest](https://github.com/klahnakoski/pyLibrary/blob/master/tests/speedtest_json.py)
+to compare with default implementation and ujson
+
+
 jsons.ref
 ---------
 

@@ -106,12 +106,12 @@ def main():
                     if settings.source.durable:
                         synch.startup()
 
-                queue = PersistentQueue("pulse-logger-queue.json")
+                queue = PersistentQueue(settings.param.queue_file)
                 if queue:
                     last_item = queue[len(queue) - 1]
                     synch.source_key = last_item._meta.count + 1
 
-                with Pulse(settings.source, queue=queue, start=synch.source_key):
+                with Pulse(settings=settings.source, queue=queue, start=synch.source_key):
                     thread = Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal()
 

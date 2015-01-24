@@ -5,11 +5,6 @@ General conversion library with functions in the form `<from_type> "2" <to_type>
 Most of these functions are simple wrappers around common Python functions,
 some are more esoteric.  A few are special implementations.
 
-pyLibrary.jsons
----------------
-
-Fast JSON encoder used in `convert.value2json()`
-
 
 pyLibrary.strings.expand_template()
 -----------------------------------

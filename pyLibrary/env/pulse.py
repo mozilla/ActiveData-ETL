@@ -26,7 +26,7 @@ class Pulse(Thread):
         queue,  # (aka self.queue) WILL BE FILLED WITH PULSE PAYLOADS
         exchange,  # name of the Pulse exchange
         topic,  # message name pattern to subscribe to  ('#' is wildcard)
-        host,  # url to connect (default 'pulse.mozilla.org'),
+        host='pulse.mozilla.org',  # url to connect,
         port=5671,  # tcp port
         user=None,
         password=None,

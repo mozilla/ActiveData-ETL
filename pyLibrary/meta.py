@@ -109,7 +109,7 @@ def use_settings(func):
                     "func_name": func.func_name,
                     "missing": missing
                 }, e, stack_depth=1)
-            raise e
+            Log.error("Unexpected", e)
     return wrapper
 
 
