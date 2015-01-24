@@ -347,7 +347,8 @@ class Cluster(object):
             (a.index == settings.index and (a.alias == None or a.alias == settings.alias ))
         ], "index")
         if not indexes:
-            self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
+            output = self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
+            return output
         elif indexes.last().alias != None:
             settings.alias = indexes.last().alias
             settings.index = indexes.last().index

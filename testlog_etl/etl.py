@@ -122,7 +122,7 @@ class ETL(Thread):
                     "action": action.name,
                     "source": source_block.bucket,
                     "key": source_key,
-                    "destination": action.destination.name
+                    "destination": nvl(action.destination.name, action.destination.index)
                 }, e)
 
     def loop(self, please_stop):

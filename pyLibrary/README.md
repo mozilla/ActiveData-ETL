@@ -48,10 +48,9 @@ Multiline comments are also allowed, using either Python's triple-quotes
 
 ###Reference other JSON###
 
-The `$ref` key is special.  Its value is interpreted as a URL, which is loaded
-and expected to be more JSON
+The `$ref` key is special.  Its value is interpreted as a URL pointing to more JSON
 
-**Absolute Internal References**
+**Absolute Internal Reference**
 
 The simplest form of URL is an absolute reference to a node in the same
 document:
@@ -77,7 +76,7 @@ The object with the `$ref` is replaced with the value it points to:
 
 References that start with dot (`.`) are relative, with each additional dot
 referring to successive parents.   In this case the `..` refers to the
-ref-object's parent, and expands just like the pevious example:
+ref-object's parent, and expands just like the previous example:
 
 ```python
     {
@@ -88,8 +87,8 @@ ref-object's parent, and expands just like the pevious example:
 
 **File References**
 
-Configuration is often stored on the local filesystem.  You can in line the
-JSON fouhnd in a file by using the `file://` scheme:
+Configuration is often stored on the local filesystem.  You can in-line the
+JSON found in a file by using the `file://` scheme:
 
 It is good practice to store sensitive data in a secure place...
 
@@ -121,7 +120,7 @@ which will be expanded at run-time to:
     }
 ```
 
-Please notice the trimple slash (`///`) is referring to an absolute file
+Please notice the triple slash (`///`) is referring to an absolute file
 reference.
 
 **Object References**
@@ -159,7 +158,7 @@ Here is the same again, but this example can be anywhere in the filesystem.
 
 **HTTP Reference**
 
-Configuration can be stored remotly, especially in the case of larger
+Configuration can be stored remotely, especially in the case of larger
 configurations which are too unwieldy to inline:
 
 ```python
@@ -171,7 +170,7 @@ configurations which are too unwieldy to inline:
 **Scheme-Relative Reference**
 
 You are also able to leave the scheme off, so that whole constellations of
-configuration can refer to each other no matter if they are on the local
+configuration files can refer to each other no matter if they are on the local
 filesystem, or remote:
 
 ```python

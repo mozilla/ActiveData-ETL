@@ -21,6 +21,15 @@
 					}
 				},
 				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match": "id"
+					}
+				},
+				{
 					"default_strings": {
 						"mapping": {
 							"index": "not_analyzed",
