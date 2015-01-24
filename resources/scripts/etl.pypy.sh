@@ -1,7 +1,10 @@
 cd /home/ubuntu/TestLog-ETL/
-export PYTHONPATH=.
+git checkout etl
+git pull origin etl
+
 
 # DO NOT HANG ONTO PROCESS (nohup)
+export PYTHONPATH=.
 pypy testlog_etl/etl.py --settings=etl_settings.json &
 disown -h
 tail -f  results/logs/etl.log

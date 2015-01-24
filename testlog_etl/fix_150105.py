@@ -19,7 +19,7 @@ from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl
 
-from pyLibrary.jsons import json_scrub
+from pyLibrary import jsons
 from pyLibrary.queries import Q
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
@@ -104,7 +104,7 @@ def json_encode(value):
     FOR PUTTING JSON INTO DATABASE (sort_keys=True)
     dicts CAN BE USED AS KEYS
     """
-    return json_encoder.encode(json_scrub(value))
+    return json_encoder.encode(jsons.scrub(value))
 
 
 def main():

@@ -17,7 +17,7 @@ import subprocess
 
 from pymysql import connect, InterfaceError
 
-from pyLibrary.jsons import json_scrub
+from pyLibrary import jsons
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.strings import expand_template
@@ -41,7 +41,7 @@ class DB(object):
     Parameterize SQL by name rather than by position.  Return records as objects
     rather than tuples.
     """
-    @use_setting
+    @use_settings
     def __init__(
         self,
         host,
@@ -749,5 +749,5 @@ def json_encode(value):
     FOR PUTTING JSON INTO DATABASE (sort_keys=True)
     dicts CAN BE USED AS KEYS
     """
-    return unicode(json_encoder.encode(json_scrub(value)))
+    return unicode(json_encoder.encode(jsons.scrub(value)))
 

@@ -44,8 +44,8 @@ class Connection(object):
     @use_settings
     def __init__(
         self,
-        access_key_id,  # CREDENTIAL
-        secret_access_key,  # CREDENTIAL
+        aws_access_key_id,  # CREDENTIAL
+        aws_secret_access_key,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         settings=None
     ):
@@ -54,14 +54,14 @@ class Connection(object):
         try:
             if not settings.region:
                 self.connection = boto.connect_s3(
-                    aws_access_key_id=self.settings.access_key_id,
-                    aws_secret_access_key=self.settings.secret_access_key
+                    aws_access_key_id=self.settings.aws_access_key_id,
+                    aws_secret_access_key=self.settings.aws_secret_access_key
                 )
             else:
                 self.connection = boto.s3.connect_to_region(
                     self.settings.region,
-                    aws_access_key_id=self.settings.access_key_id,
-                    aws_secret_access_key=self.settings.secret_access_key
+                    aws_access_key_id=self.settings.aws_access_key_id,
+                    aws_secret_access_key=self.settings.aws_secret_access_key
                 )
         except Exception, e:
             Log.error("Problem connecting to S3", e)
@@ -95,8 +95,8 @@ class Bucket(object):
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
-        access_key_id,  # CREDENTIAL
-        secret_access_key,  # CREDENTIAL
+        aws_access_key_id,  # CREDENTIAL
+        aws_secret_access_key,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         settings=None

@@ -48,8 +48,12 @@ def process_talos(source_key, source, dest_bucket):
 
         if envelope.data.talos:
             try:
-                log_content = requests.get(envelope.data.logurl, stream=True)
-                bytes = log_content.content
+                response = requests.get(envelope.data.logurl, stream=True)
+                if response.status_code == 404:
+                    Log.warning("Talos log missing {{url}}", {"url": envelope.data.logurl})
+                    continue
+
+                bytes = response.content
                 if envelope.data.logurl.endswith(".gz"):
                     try:
                         bytes= convert.zip2bytes(bytes)

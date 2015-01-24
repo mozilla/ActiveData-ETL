@@ -28,7 +28,10 @@ def process_unittest(source_key, source, destination):
     etl_header = convert.json2value(lines.next())
     data = transform_buildbot(convert.json2value(lines.next()))
 
-    timer = Timer("Process log {{file}}", {"file": etl_header.name})
+    timer = Timer("Process log {{file}} for {{key}}", {
+        "file": etl_header.name,
+        "key":source_key
+    })
     try:
         with timer:
             summary = process_unittest_log(etl_header.name, lines)

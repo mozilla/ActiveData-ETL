@@ -104,6 +104,9 @@ class ETL(Thread):
                 old_keys = dest_bucket.keys(prefix=source_block.key)
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
 
+                if not new_keys:
+                    Log.warning("Expecting some new keys")
+
                 if not new_keys and old_keys:
                     Log.error("Expecting some new keys after etl, especially if there were some old ones")
 
@@ -122,7 +125,7 @@ class ETL(Thread):
                     "action": action.name,
                     "source": source_block.bucket,
                     "key": source_key,
-                    "destination": action.destination.name
+                    "destination": nvl(action.destination.name, action.destination.index)
                 }, e)
 
     def loop(self, please_stop):
@@ -152,7 +155,7 @@ def get_container(settings):
     if settings == None:
         return DummySink()
 
-    elif nvl(settings.access_key_id, settings.aws_access_key_id):
+    elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:
