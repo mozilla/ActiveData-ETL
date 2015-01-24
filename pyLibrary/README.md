@@ -13,6 +13,9 @@ Fast JSON encoder used in `convert.value2json()`
 pyLibrary.net_json
 ------------------
 
+
+
+
 A JSON-like storage format intended for configuration files
 
 Load your settings easily:
@@ -215,6 +218,8 @@ the dot-delimited path into the document:
     }
 ```
 
+
+also see [http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html](http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html)
 
 pyLibrary.strings.expand_template()
 -----------------------------------

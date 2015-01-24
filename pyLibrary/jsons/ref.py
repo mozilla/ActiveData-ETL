@@ -10,9 +10,8 @@
 
 
 import os
-from pyLibrary.debugs.logs import Log
 
-from pyLibrary.env.files import File
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, wrap
 from pyLibrary import convert
 
@@ -78,6 +77,8 @@ def _replace_ref(node, url):
 
             new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
         elif ref.startswith("file://"):
+            from pyLibrary.env.files import File
+
             if ref[7] == "~":
                 home_path = os.path.expanduser("~")
                 if os.sep == "\\":
