@@ -13,16 +13,13 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import datetime
-import os
 import sys
-from types import ModuleType
-from pyLibrary import dot
-from pyLibrary.debugs import constants
 
+from pyLibrary.debugs import constants
 from pyLibrary.jsons import json_encoder
 from pyLibrary.thread import threads
-from pyLibrary.dot import nvl, Dict, split_field, join_field, set_default
-from pyLibrary.dot import listwrap, wrap, wrap_dot
+from pyLibrary.dot import nvl, Dict, set_default
+from pyLibrary.dot import listwrap, wrap
 from pyLibrary.strings import indent, expand_template
 from pyLibrary.thread.threads import Thread
 

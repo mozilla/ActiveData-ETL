@@ -347,7 +347,7 @@ class Cluster(object):
             (a.index == settings.index and (a.alias == None or a.alias == settings.alias ))
         ], "index")
         if not indexes:
-            self.create_index(settings, schema, limit_replicas=limit_replicas)
+            self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
         elif indexes.last().alias != None:
             settings.alias = indexes.last().alias
             settings.index = indexes.last().index
@@ -371,7 +371,15 @@ class Cluster(object):
             return Index(settings)
         Log.error("Can not find index {{index_name}}", {"index_name": settings.index})
 
-    def create_index(self, index, alias=None, schema=None, limit_replicas=None, settings=None):
+    @use_settings
+    def create_index(
+        self,
+        index,
+        alias=None,
+        schema=None,
+        limit_replicas=None,
+        settings=None
+    ):
         if not settings.alias:
             settings.alias = settings.index
             settings.index = proto_name(settings.alias)
