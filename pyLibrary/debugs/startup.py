@@ -120,11 +120,7 @@ class SingleInstance:
                     os.unlink(self.lockfile)
                 self.fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
             except Exception, e:
-                Log.note("\n"+
-                    "**********************************************************************\n"+
-                    "** Another instance is already running, quitting.\n"+
-                    "**********************************************************************\n"
-                )
+                Log.alarm("Another instance is already running, quitting.")
                 sys.exit(-1)
         else: # non Windows
             import fcntl

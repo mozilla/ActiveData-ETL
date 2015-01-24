@@ -50,7 +50,7 @@ def process_talos(source_key, source, dest_bucket):
             try:
                 response = requests.get(envelope.data.logurl, stream=True)
                 if response.status_code == 404:
-                    Log.warning("Talos log missing {{url}}", {"url": envelope.data.logurl})
+                    Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
                     continue
 
                 bytes = response.content

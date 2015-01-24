@@ -63,7 +63,8 @@ def process_pulse_block(source_key, source, dest_bucket):
                             Log.note("Line {{index}}: found structured log with null nam", {"index": i})
                         continue
 
-                    log_content = requests.get(url).content
+                    response = requests.get(url)
+                    log_content = response.content
                     if DEBUG:
                         Log.note("Line {{index}}: found structured log {{name}}", {"index": i, "name":name})
 
@@ -84,7 +85,7 @@ def process_pulse_block(source_key, source, dest_bucket):
             Log.note("No structured log {{json}}", {"json": envelope.data})
 
     if num_missing_envelope:
-        Log.warning("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
+        Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
 
     return output
 

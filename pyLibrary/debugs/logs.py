@@ -200,6 +200,12 @@ class Log(object):
             }
         )
 
+    @classmethod
+    def alarm(cls, template, params=None, stack_depth=0):
+        # USE replace() AS POOR MAN'S CHILD TEMPLATE
+
+        template = ("*" * 80) + "\n" + indent(template, prefix="** ").strip() + "\n" + ("*" * 80)
+        Log.note(template, params=params, stack_depth=stack_depth + 1)
 
     @classmethod
     def warning(
