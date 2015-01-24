@@ -139,14 +139,14 @@ class File(object):
                 return content
 
     def read_json(self, encoding="utf8"):
-        from pyLibrary import net_json
+        from pyLibrary.jsons import ref
 
         content = self.read(encoding=encoding)
         value = convert.json2value(content, flexible=True, paths=True)
         abspath = self.abspath
         if os.sep == "\\":
             abspath = "/" + abspath.replace(os.sep, "/")
-        return net_json.expand(value, "file://" + abspath)
+        return ref.expand(value, "file://" + abspath)
 
     def is_directory(self):
         return os.path.isdir(self._filename)

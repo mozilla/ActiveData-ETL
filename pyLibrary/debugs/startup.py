@@ -14,7 +14,7 @@ import argparse
 import os
 import tempfile
 import sys
-from pyLibrary import net_json
+from pyLibrary.jsons import ref
 
 from pyLibrary.dot import listwrap, wrap, unwrap
 from pyLibrary.debugs.logs import Log
@@ -58,7 +58,7 @@ def read_settings(filename=None, defs=None):
             Log.error("Can not file settings file {{filename}}", {
                 "filename": settings_file.abspath
             })
-        settings = net_json.get("file://"+settings_file.abspath)
+        settings = ref.get("file://"+settings_file.abspath)
         if defs:
             settings.args = _argparse(defs)
         return settings
@@ -84,7 +84,7 @@ def read_settings(filename=None, defs=None):
             if os.sep=="\\":
                 abspath = "/"+abspath.replace(os.sep, "/")
 
-            settings = net_json.get("file://"+abspath)
+            settings = ref.get("file://"+abspath)
 
         settings.args = args
         return settings
