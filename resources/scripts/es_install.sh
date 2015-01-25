@@ -51,15 +51,14 @@ cat >elasticsearch.yml
 
 
 #COPY CONFIG FILE TO ES DIR
-cd /usr/local/elasticsearch
 sudo cp /home/ec2-user/elasticsearch.yml config/elasticsearch.yml
+
+cd /usr/local/elasticsearch
 
 export ES_MIN_MEM=8G
 export ES_MAX_MEM=8G
 
-# SHOW CURRENT PID FOR KILLING LATER
-sudo bin/elasticsearch -p current_pid.txt
-
 # RUN IN BACKGROUND
-bin/elasticsearch -d -p current_pid.txt
+sudo bin/elasticsearch -p current_pid.txt &
 disown -h
+tail -f logs/ekyle-aws-1.log

@@ -33,7 +33,7 @@ class Pulse(Thread):
         vhost="/",
         start=0,  # USED AS STARTING POINT FOR ASSIGNING THE _meta.count ATTRIBUTE
         ssl=True,
-        applabel='',
+        applabel=None,
         heartbeat=False,  # True to also get the Pulse heartbeat message
         durable=False,  # True to keep queue after shutdown
         serializer='json',
@@ -50,7 +50,6 @@ class Pulse(Thread):
         self.settings.callback = self._got_result
         self.settings.user = nvl(self.settings.user, self.settings.username)
         self.settings.applabel = nvl(self.settings.applable, self.settings.queue, self.settings.queue_name)
-        self.settings.self = None
 
         self.pulse = GenericConsumer(self.settings, connect=True, **unwrap(self.settings))
         self.count = nvl(start, 0)

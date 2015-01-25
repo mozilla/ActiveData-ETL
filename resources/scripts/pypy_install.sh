@@ -22,6 +22,3 @@ cd /home/ubuntu/TestLog-ETL/
 git checkout etl
 sudo /home/ubuntu/temp/pypy-2.4.0-linux64/bin/pip install -r requirements.txt
 
-cat > etl_settings.json
-# PASTE SETTINGS FILE HERE
-# CTRL-D WHEN DONE
