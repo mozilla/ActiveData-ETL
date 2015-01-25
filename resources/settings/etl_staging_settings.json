@@ -49,7 +49,7 @@
 					"index" : "unittest",
 					"type" : "test_results",
 					"timeout" : 300,
-					"schema" : {"$ref": "//resources/schema/test_results.json"},
+					"schema" : {"$ref": "//../schema/test_results.json"},
 					"debug": true,
 					"limit_replicas": true
 				},
