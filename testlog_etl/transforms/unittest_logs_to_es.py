@@ -231,6 +231,8 @@ def transform_buildbot(payload):
 
     output.run.timestamp = Date(output.run.timestamp).milli
 
+    output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
+
     return output
 
 

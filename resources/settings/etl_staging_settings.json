@@ -60,13 +60,7 @@
 	"debug": {
 		"trace": true,
 		"log": [
-			{
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/etl.log",
-				"maxBytes": 10000000,
-				"backupCount": 100,
-				"encoding": "utf8"
-			},
+			{"log_type":"console"},
 			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
