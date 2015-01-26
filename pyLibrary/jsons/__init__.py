@@ -7,16 +7,6 @@ import re
 
 from pyLibrary.dot import DictList
 
-_imported = False
-
-
-def do_imports():
-    if _imported:
-        return
-    globals()["_imported"] = True
-    from pyLibrary.convert import datetime2milli, utf82unicode
-
-
 ESCAPE_DCT = {
     u"\\": u"\\\\",
     u"\"": u"\\\"",
@@ -35,12 +25,17 @@ def replace(match):
 def quote(value):
     return "\""+ESCAPE.sub(replace, value)+"\""
 
-
+datetime2milli = None
+utf82unicode = None
 def scrub(value):
     """
     REMOVE/REPLACE VALUES THAT CAN NOT BE JSON-IZED
     """
-    do_imports()
+    global datetime2milli
+    global utf82unicode
+    if not datetime2milli:
+        from pyLibrary.convert import datetime2milli, utf82unicode
+
     return _scrub(value)
 
 

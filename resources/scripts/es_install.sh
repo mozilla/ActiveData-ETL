@@ -1,4 +1,9 @@
 
+# FOR AMAZON AMI ONLY
+# ENSURE THE FOLLOWING FILE HAS BEEN UPLOADED FIRST
+# /home/ec2-user/elasticsearch.yml
+
+
 cd /home/ec2-user/
 wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz
 tar zxfv elasticsearch-1.4.2.tar.gz
@@ -36,22 +41,16 @@ sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/f
 #TEST IT IS WORKING
 sudo mount -a
 
-#MAKE THE CONFIG FILE
-cd /home/ec2-user
-cat >elasticsearch.yml
-# PASTE SETTINGS FILE HERE
-# CTRL-D WHEN DONE
-
-
-
-
+# COPY CONFIG FILE TO
 
 
 
 
 
 #COPY CONFIG FILE TO ES DIR
-sudo cp /home/ec2-user/elasticsearch.yml config/elasticsearch.yml
+sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo chmod 600 /usr/local/elasticsearch/config/elasticsearch.yml
+
 
 cd /usr/local/elasticsearch
 
@@ -61,4 +60,5 @@ export ES_MAX_MEM=8G
 # RUN IN BACKGROUND
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
+cd /usr/local/elasticsearch
 tail -f logs/ekyle-aws-1.log

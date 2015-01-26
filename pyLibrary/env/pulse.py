@@ -23,7 +23,7 @@ class Pulse(Thread):
     def __init__(
         self,
         target,  # WILL BE CALLED WITH PULSE PAYLOADS AND ack() IF COMPLETE$ED WITHOUT EXCEPTION
-        queue,  # (aka self.queue) WILL BE FILLED WITH PULSE PAYLOADS
+        target_queue,  # (aka self.queue) WILL BE FILLED WITH PULSE PAYLOADS
         exchange,  # name of the Pulse exchange
         topic,  # message name pattern to subscribe to  ('#' is wildcard)
         host='pulse.mozilla.org',  # url to connect,
@@ -40,18 +40,18 @@ class Pulse(Thread):
         broker_timezone='GMT',
         settings=None
     ):
-        self.queue = queue
+        self.target_queue = target_queue
         self.pulse_target = target
-        if (queue == None and target == None) or (queue != None and target != None):
+        if (target_queue == None and target == None) or (target_queue != None and target != None):
             Log.error("Expecting a queue (for fast digesters) or a target (for slow digesters)")
 
         Thread.__init__(self, name="Pulse consumer for " + settings.exchange, target=self._worker)
         self.settings = settings
-        self.settings.callback = self._got_result
-        self.settings.user = nvl(self.settings.user, self.settings.username)
-        self.settings.applabel = nvl(self.settings.applable, self.settings.queue, self.settings.queue_name)
+        settings.callback = self._got_result
+        settings.user = nvl(settings.user, settings.username)
+        settings.applabel = nvl(settings.applable, settings.queue, settings.queue_name)
 
-        self.pulse = GenericConsumer(self.settings, connect=True, **unwrap(self.settings))
+        self.pulse = GenericConsumer(settings, connect=True, **unwrap(settings))
         self.count = nvl(start, 0)
         self.start()
 
@@ -60,14 +60,14 @@ class Pulse(Thread):
         data = wrap(data)
         if self.settings.debug:
             Log.note("{{data}}", {"data": data})
-        if self.queue != None:
+        if self.target_queue != None:
             try:
                 data._meta.count = self.count
                 self.count += 1
-                self.queue.add(data)
+                self.target_queue.add(data)
                 message.ack()
             except Exception, e:
-                if not self.queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
+                if not self.target_queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
                     raise e
         else:
             try:
@@ -88,7 +88,7 @@ class Pulse(Thread):
         Log.note("clean pulse exit")
         self.please_stop.go()
         try:
-            self.queue.add(Thread.STOP)
+            self.target_queue.add(Thread.STOP)
             Log.note("stop put into queue")
         except:
             pass

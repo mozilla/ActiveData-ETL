@@ -21,10 +21,11 @@ import re
 import time
 
 # from pyLibrary import jsons
+from pyLibrary import strings
 from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.jsons import quote
 from pyLibrary.jsons.encoder import encode
 from pyLibrary.strings import expand_template
@@ -107,6 +108,23 @@ def json2value(json_string, params=None, flexible=False, paths=False):
             return value
 
         except Exception, e:
+            e = Except.wrap(e)
+            if e.contains("Expecting '") and e.contains("' delimiter: line"):
+                line_index = int(strings.between(e.message, " line ", " column ")) - 1
+                column = int(strings.between(e.message, " column ", " "))-1
+                line = json_string.split("\n")[line_index]
+                if column > 20:
+                    sample = "..." + line[column - 20:]
+                    pointer = "   " + (" " * 20) + "^"
+                else:
+                    sample = line
+                    pointer = (" " * column) + "^"
+
+                if len(sample) > 43:
+                    sample = sample[:43] + "..."
+
+                Log.error("Can not decode JSON at:\n\t"+sample+"\n\t"+pointer+"\n")
+
             Log.error("Can not decode JSON:\n\t" + str(json_string), e)
 
 
