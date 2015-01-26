@@ -41,11 +41,6 @@ sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/f
 #TEST IT IS WORKING
 sudo mount -a
 
-# COPY CONFIG FILE TO
-
-
-
-
 
 #COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
@@ -54,8 +49,8 @@ sudo chmod 600 /usr/local/elasticsearch/config/elasticsearch.yml
 
 cd /usr/local/elasticsearch
 
-export ES_MIN_MEM=8G
-export ES_MAX_MEM=8G
+export ES_MIN_MEM=12g
+export ES_MAX_MEM=12g
 
 # RUN IN BACKGROUND
 sudo bin/elasticsearch -p current_pid.txt &

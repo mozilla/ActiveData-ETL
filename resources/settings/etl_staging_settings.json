@@ -44,7 +44,7 @@
 				"bucket": "ekyle-unittest"
 			},
 			"destination":	{
-					"host" : "http://172.31.0.7",
+					"host" : "http://54.148.242.195",
 					"port" : 9200,
 					"index" : "unittest",
 					"type" : "test_results",

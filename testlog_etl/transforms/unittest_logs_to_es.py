@@ -27,10 +27,11 @@ def process_unittest(source_key, source, destination):
 
     etl_header = convert.json2value(lines.next())
 
+    # FIX ETL IDS
     e = etl_header
     while e:
-        if not Math.is_integer(e.id):
-            Log.error("")
+        if isinstance(e, basestring):
+            e.id = int(e.id.split(":")[0])
         e = e.source
 
 
