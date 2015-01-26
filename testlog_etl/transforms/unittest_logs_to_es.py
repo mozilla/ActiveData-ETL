@@ -30,7 +30,7 @@ def process_unittest(source_key, source, destination):
     # FIX ETL IDS
     e = etl_header
     while e:
-        if isinstance(e, basestring):
+        if isinstance(e.id, basestring):
             e.id = int(e.id.split(":")[0])
         e = e.source
 
