@@ -15,6 +15,8 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, wrap
 from pyLibrary import convert
 
+DEBUG = True
+
 
 def get(url):
     """

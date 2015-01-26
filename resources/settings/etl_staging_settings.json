@@ -62,6 +62,13 @@
 		"log": [
 			{"log_type":"console"},
 			{
+				"class": "logging.handlers.RotatingFileHandler",
+				"filename": "./results/logs/etl.log",
+				"maxBytes": 10000000,
+				"backupCount": 100,
+				"encoding": "utf8"
+			},
+			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
