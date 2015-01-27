@@ -56,4 +56,7 @@ export ES_MAX_MEM=12g
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
 cd /usr/local/elasticsearch
+
+
+cd /usr/local/elasticsearch
 tail -f logs/ekyle-aws-1.log

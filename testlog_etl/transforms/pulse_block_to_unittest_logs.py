@@ -12,6 +12,7 @@ import requests
 
 from pyLibrary import aws
 from pyLibrary import convert
+from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
@@ -33,6 +34,8 @@ def process_pulse_block(source_key, source, dest_bucket):
     output = []
     num_missing_envelope = 0
     for i, line in enumerate(source.read().split("\n")):
+        if line.strip()=="":
+            continue
         envelope = convert.json2value(line)
         if envelope._meta:
             pass
@@ -123,7 +126,7 @@ def _loop(work_queue, conn, dest, please_stop):
         if todo == None:
             return
 
-        with conn.get_bucket(todo.bucket) as source:
+        with Bucket(todo.bucket) as source:
             try:
                 process_pulse_block(todo.key, source.get_key(todo.key), dest)
                 work_queue.commit()
@@ -139,7 +142,7 @@ def main():
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws.Queue(settings.work_queue) as work_queue:
-                with aws.s3.Connection(settings.aws) as conn:
+                with aws.s3.Connection(settings.destination) as conn:
                     with aws.s3.Bucket(settings.destination) as dest:
                         thread = Thread.run("main_loop", _loop, work_queue, conn, dest)
                         Thread.wait_for_shutdown_signal(thread.please_stop)
