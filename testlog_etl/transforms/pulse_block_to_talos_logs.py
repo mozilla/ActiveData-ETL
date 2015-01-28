@@ -18,7 +18,6 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
 
-# please test with 284:1107472
 def process_talos(source_key, source, dest_bucket):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
@@ -48,7 +47,7 @@ def process_talos(source_key, source, dest_bucket):
 
         if envelope.data.talos:
             try:
-                response = requests.get(envelope.data.logurl, stream=True)
+                response = requests.get(envelope.data.logurl)
                 if response.status_code == 404:
                     Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
                     continue

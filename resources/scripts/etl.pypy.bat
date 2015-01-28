@@ -1,2 +1,2 @@
 set PYTHONPATH=.
-pypy testlog_etl/etl.py --settings=etl_settings.json
+pypy testlog_etl/etl.py --settings=resources\settings\etl_settings.json
