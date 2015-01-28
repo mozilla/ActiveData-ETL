@@ -121,7 +121,10 @@ def read_blobber_file(pulse_line, name, url):
                 try:
                     blobber_line = blobber_line.decode("utf8")
                 except Exception, e:
-                    blobber_line = "<looks like binary>"
+                    if len(blobber_line)>40:
+                        blobber_line = convert.bytes2hex(blobber_line[:40]) + "..."
+                    else:
+                        blobber_line = convert.bytes2hex(blobber_line)
 
                 Log.note("Not JSON: {{line}}", {
                     "name": name,

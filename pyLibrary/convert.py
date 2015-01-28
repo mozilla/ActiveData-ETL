@@ -330,18 +330,18 @@ def hex2bytearray(value):
     return bytearray(value.decode("hex"))
 
 
-def bytearray2hex(value):
-    return value.decode("latin1").encode("hex")
+def bytes2hex(value, separator=" "):
+    return separator.join("%02X" % ord(x) for x in value)
 
 
 def base642bytearray(value):
     return bytearray(base64.b64decode(value))
 
 
-def bytearray2base64(value):
+def bytes2base64(value):
     return base64.b64encode(value)
 
-def bytearray2sha1(value):
+def bytes2sha1(value):
     if isinstance(value, unicode):
         Log.error("can not convert unicode to sha1")
     sha = hashlib.sha1(value)

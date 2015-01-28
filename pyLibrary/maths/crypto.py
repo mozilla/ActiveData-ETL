@@ -45,13 +45,13 @@ def encrypt(text, _key, salt=None):
 
     output = Dict()
     output.type = "AES256"
-    output.salt = convert.bytearray2base64(salt)
+    output.salt = convert.bytes2base64(salt)
     output.length = len(data)
 
     encrypted = bytearray()
     for _, d in Q.groupby(data, size=16):
         encrypted.extend(aes_cbc_256.encrypt_block(d))
-    output.data = convert.bytearray2base64(encrypted)
+    output.data = convert.bytes2base64(encrypted)
     json = convert.value2json(output)
 
     if DEBUG:

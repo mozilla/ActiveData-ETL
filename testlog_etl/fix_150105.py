@@ -79,7 +79,7 @@ def extract_records(bucket, min_date, max_date, dest_key):
                     Log.error("can not decode json", e)
                 if not value.locale:
                     continue
-                uid = convert.bytearray2sha1(json_encode(value))
+                uid = convert.bytes2sha1(json_encode(value))
                 records[uid] = r
         except Exception, e:
             Log.error("Problem with {{key}} {{timestamp}}", {"key": meta.key, "timestamp": meta.last_modified})
