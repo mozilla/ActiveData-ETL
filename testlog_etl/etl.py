@@ -103,7 +103,7 @@ class ETL(Thread):
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
 
                 if not new_keys:
-                    Log.warning("Expecting some new keys")
+                    Log.warning("Expecting some new keys after processing {{key}}", {"key": source_key})
 
                 old_keys = dest_bucket.keys(prefix=source_block.key)
                 if not new_keys and old_keys:

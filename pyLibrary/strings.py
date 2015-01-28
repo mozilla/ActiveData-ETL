@@ -15,6 +15,7 @@ from datetime import datetime as builtin_datetime
 import re
 import math
 import __builtin__
+
 from pyLibrary.dot import nvl, wrap
 
 
@@ -166,6 +167,28 @@ def left(value, len):
     if len <= 0:
         return u""
     return value[0:len]
+
+
+def split(value, sep="\n"):
+    # GENERATOR VERSION OF split()
+    s = 0
+    len_sep = len(sep)
+    n = value.find(sep, s)
+    while n > -1:
+        yield value[s:n]
+        s = n + len_sep
+        n = value.find(sep, s)
+    yield value[s:]
+
+def common_prefix(*args):
+    prefix = args[0]
+    for a in args[1:]:
+        for i in range(min(len(prefix), len(a))):
+            if a[i] != prefix[i]:
+                prefix = prefix[:i]
+                break
+    return prefix
+
 
 
 def find_first(value, find_arr, start=0):

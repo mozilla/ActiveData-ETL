@@ -1,13 +1,17 @@
-jsons.encode.encoder()
----------------------
+
+
+
+
+
+Function: jsons.encode.encoder()
+--------------------------------
 
 Fast JSON encoder used in `convert.value2json()`.  Run the [speedtest](https://github.com/klahnakoski/pyLibrary/blob/master/tests/speedtest_json.py)
 to compare with default implementation and ujson
 
 
 jsons.ref
----------
-
+=========
 
 A JSON-like storage format intended for configuration files
 
@@ -210,6 +214,22 @@ the dot-delimited path into the document:
         "password": {"$ref": "//~/password.json#email.password"}
     }
 ```
+
+**Environment Variables Reference**
+
+json.ref uses the unconventionsl `env` scheme for accessing environment variables:
+
+```python
+    {
+        "host": "mail.example.com",
+        "username": "ekyle"
+        "password": {"$ref": "env://MAIL_PASSWORD"}
+    }
+```
+
+
+
+
 
 
 also see [http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html](http://tools.ietf.org/id/draft-pbryan-zyp-json-ref-03.html)

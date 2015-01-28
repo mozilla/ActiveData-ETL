@@ -66,9 +66,12 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 synch.advance()
                 synch.source_key = MAX(g.select("_meta.count")) + 1
 
+                now = Date.now()
                 work_queue.add({
                     "bucket": bucket.name,
-                    "key": full_key
+                    "key": full_key,
+                    "timestamp":now.milli,
+                    "date/time":now.format()
                 })
 
                 synch.ping()

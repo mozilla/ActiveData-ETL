@@ -11,9 +11,9 @@ from __future__ import unicode_literals
 import requests
 
 from pyLibrary import convert
-from pyLibrary.aws.s3 import _unzip
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
+from pyLibrary import strings
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
@@ -28,7 +28,7 @@ def process_talos(source_key, source, dest_bucket):
     min_dest_key = None
     min_dest_etl = None
 
-    for i, line in enumerate(source.read().split("\n")):
+    for i, line in enumerate(strings.split(source.read())):
         envelope = convert.json2value(line)
         if envelope._meta:
             pass
@@ -56,11 +56,11 @@ def process_talos(source_key, source, dest_bucket):
                 bytes = response.content
                 if envelope.data.logurl.endswith(".gz"):
                     try:
-                        bytes= convert.zip2bytes(bytes)
+                        bytes = convert.zip2bytes(bytes)
                     except Exception, e:
                         pass
 
-                for line in bytes.split("\n"):
+                for line in strings.split(bytes):
                     s = line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
@@ -76,7 +76,10 @@ def process_talos(source_key, source, dest_bucket):
                     all_talos.extend(talos)
 
             except Exception, e:
-                Log.error("Problem processing {{url}}", {"url": envelope.data.logurl}, e)
+                Log.error("Problem processing {{url}} bytes is {{desc_bytes}}", {
+                    "url": envelope.data.logurl,
+                    "desc_bytes": repr(bytes)
+                }, e)
 
     if all_talos:
         Log.note("found {{num}} talos records", {"num": len(all_talos)})

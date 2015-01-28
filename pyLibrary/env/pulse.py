@@ -58,12 +58,13 @@ class Pulse(Thread):
 
     def _got_result(self, data, message):
         data = wrap(data)
+        data._meta.count = self.count
+        self.count += 1
+
         if self.settings.debug:
             Log.note("{{data}}", {"data": data})
         if self.target_queue != None:
             try:
-                data._meta.count = self.count
-                self.count += 1
                 self.target_queue.add(data)
                 message.ack()
             except Exception, e:
@@ -74,7 +75,7 @@ class Pulse(Thread):
                 self.pulse_target(data)
                 message.ack()
             except Exception, e:
-                Log.error("Problem processing Pule payload\n{{data|indent}}", {"data": data}, e)
+                Log.error("Problem processing Pulse payload\n{{data|indent}}", {"data": data}, e)
 
     def _worker(self, please_stop):
         while not please_stop:

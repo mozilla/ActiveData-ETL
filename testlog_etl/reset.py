@@ -1,7 +1,9 @@
-from pyLibrary import aws
+from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
+from pyLibrary.queries import Q
+from pyLibrary.times.dates import Date
 from testlog_etl import key2etl, etl2path
 
 
@@ -38,17 +40,21 @@ def main():
             with aws.Queue(settings.work_queue) as work_queue:
                 source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
+                prefix = strings.common_prefix(settings.args.start, settings.args.end)
                 start = Version(settings.args.start)
                 end = Version(settings.args.end)
 
-                all_keys = source.keys()
-                for k in all_keys:
+                all_keys = source.keys(prefix=prefix)
+                for k in Q.sort(all_keys):
                     p = Version(k)
                     if start <= p < end:
                         Log.note("Adding {{key}}", {"key":k})
+                        now = Date.now()
                         work_queue.add({
                             "bucket": settings.args.bucket,
-                            "key": k
+                            "key": k,
+                            "timestamp":now.milli,
+                           "date/time":now.format()
                         })
 
     except Exception, e:

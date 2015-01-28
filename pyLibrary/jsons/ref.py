@@ -44,6 +44,7 @@ def expand(doc, doc_url):
     return wrap(phase2)
 
 
+
 def _replace_ref(node, url):
     if url.endswith("/"):
         url = url[:-1]
@@ -74,50 +75,14 @@ def _replace_ref(node, url):
         else:
             doc_path = None
 
-        if ref.startswith("http://"):
-            from pyLibrary.env import http
-
-            new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
-        elif ref.startswith("file://"):
-            from pyLibrary.env.files import File
-
-            if ref[7] == "~":
-                home_path = os.path.expanduser("~")
-                if os.sep == "\\":
-                    home_path = home_path.replace(os.sep, "/")
-                if home_path.endswith("/"):
-                    home_path = home_path[:-1]
-
-                ref = "file:///" + home_path + ref[8:]
-            elif ref[7] != "/":
-                # CONVERT RELATIVE TO ABSOLUTE
-                ref = ("/".join(url.split("/")[:-1])) + ref[6::]
-
-            path = ref[7::] if os.sep != "\\" else ref[8::]
-
-            try:
-                content = File(path).read()
-            except Exception, e:
-                Log.error("Could not read file {{filename}}", {"filename":path})
-
-            try:
-                new_value = convert.json2value(content, flexible=True, paths=True)
-            except Exception, e:
-                try:
-                    new_value = convert.ini2value(content)
-                except Exception, f:
-                    raise Log.error("Can not read {{file}}", {"file": path}, e)
-
-            new_value = _replace_ref(new_value, ref)
-        elif ref.startswith("env://"):
-            # GET ENVIRONMENT VARIABLES
-            ref = ref[6::]
-            try:
-                new_value = convert.json2value(os.environ[ref])
-            except Exception, e:
-                new_value = os.environ[ref]
-        elif ref.find("://") >= 0:
-            raise Log.error("unknown protocol {{scheme}}", {"scheme": ref.split("://")[0]})
+        # FIND THE SCHEME AND LOAD IT
+        scheme_end = ref.find("://")
+        if scheme_end >= -1:
+            scheme_name = ref[:scheme_end]
+            if scheme_name in scheme_loaders:
+                new_value = scheme_loaders[scheme_name](ref, url)
+            else:
+                raise Log.error("unknown protocol {{scheme}}", {"scheme": scheme_name})
         else:
             #DO NOT TOUCH LOCAL REF YET
             node["$ref"] = ref
@@ -180,3 +145,62 @@ def _replace_locals(node, doc_path):
         return candidate
 
     return node
+
+
+
+###############################################################################
+## SCHEME LOADERS ARE BELOW THIS LINE
+###############################################################################
+
+def get_file(ref, url):
+    from pyLibrary.env.files import File
+
+    if ref[7] == "~":
+        home_path = os.path.expanduser("~")
+        if os.sep == "\\":
+            home_path = home_path.replace(os.sep, "/")
+        if home_path.endswith("/"):
+            home_path = home_path[:-1]
+
+        ref = "file:///" + home_path + ref[8:]
+    elif ref[7] != "/":
+        # CONVERT RELATIVE TO ABSOLUTE
+        ref = ("/".join(url.split("/")[:-1])) + ref[6::]
+    path = ref[7::] if os.sep != "\\" else ref[8::]
+    try:
+        content = File(path).read()
+    except Exception, e:
+        Log.error("Could not read file {{filename}}", {"filename": path})
+    try:
+        new_value = convert.json2value(content, flexible=True, paths=True)
+    except Exception, e:
+        try:
+            new_value = convert.ini2value(content)
+        except Exception, f:
+            raise Log.error("Can not read {{file}}", {"file": path}, e)
+    new_value = _replace_ref(new_value, ref)
+    return new_value
+
+
+def get_http(ref, url):
+    from pyLibrary.env import http
+
+    new_value = convert.json2value(http.get(ref), flexible=True, paths=True)
+    return new_value
+
+
+def get_env(ref, url):
+    # GET ENVIRONMENT VARIABLES
+    ref = ref[6::]
+    try:
+        new_value = convert.json2value(os.environ[ref])
+    except Exception, e:
+        new_value = os.environ[ref]
+    return new_value
+
+
+scheme_loaders = {
+    "http": get_http,
+    "file": get_file,
+    "env": get_env
+}

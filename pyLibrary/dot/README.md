@@ -63,7 +63,8 @@ different names and slightly different variations, some examples are:
  * `collections.namedtuple()` - gives attribute names to tuple indicies
   effectively providing <code>a.b</code> rather than <code>a["b"]</code>
      offered by dicts
- * [configman's DotDict](https://github.com/mozilla/configman/blob/master/configman/dotdict.py) allows dot notation, and path setting:
+ * [configman's DotDict](https://github.com/mozilla/configman/blob/master/configman/dotdict.py) allows dot notation, and path setting
+ * [Fabric's _AttributeDict](https://github.com/fabric/fabric/blob/19f5cffaada0f6f6132cd06742acd34e65cf1977/fabric/utils.py#L216) allows dot notation
  * C# Linq requires anonymous types to avoid large amounts of boilerplate code.
  * D3 has many of these conventions ["The function's return value is
   then used to set each element's attribute. A null value will remove the

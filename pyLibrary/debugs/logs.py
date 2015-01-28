@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import datetime
+import os
 import sys
 
 from pyLibrary.debugs import constants
@@ -162,12 +163,16 @@ class Log(object):
             params=set_default({}, params),
             timestamp=datetime.utcnow(),
         )
+
+        if not template.startswith("\n") and template.find("\n") > -1:
+            template = "\n" + template
+
         if cls.trace:
             log_template = "{{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
             f = sys._getframe(stack_depth + 1)
             log_params.location = {
                 "line": f.f_lineno,
-                "file": f.f_code.co_filename,
+                "file": f.f_code.co_filename.split(os.sep)[-1],
                 "method": f.f_code.co_name
             }
             thread = Thread.current()
@@ -206,6 +211,10 @@ class Log(object):
 
         template = ("*" * 80) + "\n" + indent(template, prefix="** ").strip() + "\n" + ("*" * 80)
         Log.note(template, params=params, stack_depth=stack_depth + 1)
+
+    @classmethod
+    def alert(cls, template, params=None, stack_depth=0):
+        return Log.alarm(template, params, stack_depth+1)
 
     @classmethod
     def warning(
@@ -323,6 +332,9 @@ class Log(object):
 
     def write(self):
         raise NotImplementedError
+
+
+
 
 
 def extract_stack(start=0):
@@ -608,7 +620,5 @@ if not Log.main_log:
     from log_usingStream import Log_usingStream
 
     Log.main_log = Log_usingStream("sys.stdout")
-
-
 
 
