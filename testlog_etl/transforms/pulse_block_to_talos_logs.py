@@ -59,7 +59,7 @@ def process_talos(source_key, source, dest_bucket):
                     except Exception, e:
                         pass
 
-                for line in strings.split(bytes):
+                for line in bytes.split("\n"):
                     s = line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
