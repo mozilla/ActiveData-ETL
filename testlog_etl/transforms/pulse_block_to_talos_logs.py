@@ -11,6 +11,8 @@ from __future__ import unicode_literals
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
+from pyLibrary.env import http
+from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
@@ -45,6 +47,8 @@ def process_talos(source_key, source, dest_bucket):
             Log.error("Line {{index}}: Do not know how to handle line\n{{line}}", {"line": line, "index": i})
 
         if envelope.data.talos:
+            bytes = None
+
             try:
                 with Timer("Read {{url}}", {"url":envelope.data.logurl}):
                     response = http.get(envelope.data.logurl)
