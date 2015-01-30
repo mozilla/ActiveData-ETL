@@ -60,7 +60,7 @@
 	"debug": {
 		"trace": true,
 		"log": [
-//			{"log_type":"console"},
+			{"log_type":"console"},
 //			{
 //				"class": "logging.handlers.RotatingFileHandler",
 //				"filename": "./results/logs/etl.log",
