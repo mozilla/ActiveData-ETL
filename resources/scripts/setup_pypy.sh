@@ -1,4 +1,4 @@
-# USE THIS TO INSTALL INTO UBUNTU EC2 INSTANCE
+# USE THIS TO INSTALL PYPY ONTO UBUNTU EC2 INSTANCE
 
 mkdir /home/ubuntu/temp
 cd /home/ubuntu/temp
@@ -14,7 +14,7 @@ wget https://bootstrap.pypa.io/get-pip.py
 sudo pypy get-pip.py
 
 cd  /home/ubuntu
-sudo apt-get install git-core
+sudo apt-get -y install git-core
 
 cd  /home/ubuntu
 git clone https://github.com/klahnakoski/TestLog-ETL.git
