@@ -168,6 +168,7 @@ def get_file(ref, url):
         ref = ("/".join(url.split("/")[:-1])) + ref[6::]
     path = ref[7::] if os.sep != "\\" else ref[8::]
     try:
+        Log.note("reading file {{file}} (from {{url}})", {"file": path, "url":ref})
         content = File(path).read()
     except Exception, e:
         Log.error("Could not read file {{filename}}", {"filename": path})
