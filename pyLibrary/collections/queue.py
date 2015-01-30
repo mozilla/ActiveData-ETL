@@ -40,6 +40,9 @@ class Queue(object):
             return self
         self.list.append(value)
 
+    def push(self, value):
+        self.add(value)
+
     def extend(self, values):
         for v in values:
             self.add(v)

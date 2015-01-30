@@ -43,7 +43,7 @@ class Log_usingStream(BaseLog):
         if use_UTF8:
             def utf8_appender(value):
                 if isinstance(value, unicode):
-                    value = value.encode('utf-8')
+                    value = value.encode('utf8')
                 self.stream.write(value)
 
             appender = utf8_appender

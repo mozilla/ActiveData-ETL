@@ -73,19 +73,7 @@ def read_settings(filename=None, defs=None):
             "required": False
         })
         args = _argparse(defs)
-        settings_file = File(args.filename)
-        if not settings_file.exists:
-            Log.warning("Can not read settings file {{filename}}", {
-                "filename": settings_file.abspath
-            })
-            settings = Dict()
-        else:
-            abspath = settings_file.abspath
-            if os.sep=="\\":
-                abspath = "/"+abspath.replace(os.sep, "/")
-
-            settings = ref.get("file://"+abspath)
-
+        settings = ref.get("file://" + args.filename.replace(os.sep, "/"))
         settings.args = args
         return settings
 

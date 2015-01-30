@@ -136,7 +136,7 @@ Here is the same, using a relative file reference; which is relative to the
 file that contains
 
 ```python
-    {#LOCATED IN C:\users\kyle\config.json
+    {#LOCATED IN C:\users\kyle\dev-debug.json
         "host": "example.com",
         "port": "8080",
         "$ref": "file://password.json"
@@ -182,7 +182,7 @@ filesystem, or remote:
 And, of course, relative references are also allowed:
 
 ```python
-    {# LOCATED AT http://example.com/sources/config.json
+    {# LOCATED AT http://example.com/sources/dev-debug.json
         "schema":{"$ref": "//sources/my_db.json"}
     }
 ```

@@ -10,10 +10,11 @@
 
 
 import os
-
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, wrap
 from pyLibrary import convert
+from pyLibrary.debugs.logs import Log
+
+from pyLibrary.dot import set_default, wrap
+
 
 DEBUG = True
 
@@ -23,10 +24,18 @@ def get(url):
     USE son.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
     if url.find("://")==-1:
+
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": url})
+    if url.startswith("file://") and url[7] != "/":
+        # RELATIVE
+        url = "file:///" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+
+    if url[url.find("://") + 3] != "/":
+
+        Log.error("{{url}} must be absolute", {"url": url})
     doc = wrap({"$ref": url})
 
-    phase1 = _replace_ref(doc, "")  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase1 = _replace_ref(doc, '')  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals(phase1, [phase1])
     return wrap(phase2)
 
@@ -37,6 +46,7 @@ def expand(doc, doc_url):
     EXPANDING FEATURE
     """
     if doc_url.find("://")==-1:
+
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": doc_url})
 
     phase1 = _replace_ref(doc, doc_url)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
@@ -82,6 +92,7 @@ def _replace_ref(node, url):
             if scheme_name in scheme_loaders:
                 new_value = scheme_loaders[scheme_name](ref, url)
             else:
+
                 raise Log.error("unknown protocol {{scheme}}", {"scheme": scheme_name})
         else:
             #DO NOT TOUCH LOCAL REF YET
@@ -168,9 +179,11 @@ def get_file(ref, url):
         ref = ("/".join(url.split("/")[:-1])) + ref[6::]
     path = ref[7::] if os.sep != "\\" else ref[8::]
     try:
+
         Log.note("reading file {{file}} (from {{url}})", {"file": path, "url":ref})
         content = File(path).read()
     except Exception, e:
+
         Log.error("Could not read file {{filename}}", {"filename": path})
     try:
         new_value = convert.json2value(content, flexible=True, paths=True)
@@ -205,3 +218,6 @@ scheme_loaders = {
     "file": get_file,
     "env": get_env
 }
+
+
+# from pyLibrary import convert
