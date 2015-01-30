@@ -33,11 +33,11 @@ def process_pulse_block(source_key, source, dest_bucket):
     """
     output = []
     num_missing_envelope = 0
-    for i, line in enumerate(strings.split(source.read())):
+    for i, line in enumerate(convert.json2value(source.read()).split("\n")):
         try:
             if line.strip()=="":
                 continue
-            envelope = convert.json2value(line)
+            envelope = line
             if envelope._meta:
                 pass
             elif envelope.locale:
@@ -68,8 +68,8 @@ def process_pulse_block(source_key, source, dest_bucket):
                         Log.note("Line {{index}}: found structured log with null nam", {"index": i})
                     continue
 
-                blobber_lines = read_blobber_file(i, name, url)
-                if not blobber_lines:
+                log_content = read_blobber_file(i, name, url)
+                if not log_content:
                     continue
 
                 dest_key, dest_etl = etl_key(envelope, source_key, name)
@@ -84,7 +84,7 @@ def process_pulse_block(source_key, source, dest_bucket):
                     dest_key,
                     convert.unicode2utf8(convert.value2json(dest_etl)) + b"\n" +  # ETL HEADER
                     convert.unicode2utf8(line) + b"\n" +  # PULSE MESSAGE
-                    b"\n".join(blobber_lines)
+                    log_content
                 )
                 file_num += 1
                 output.append(dest_key)
@@ -100,32 +100,40 @@ def process_pulse_block(source_key, source, dest_bucket):
     return output
 
 
-def read_blobber_file(pulse_line, name, url):
-    response = requests.get(url, stream=True)
+def read_blobber_file(line_number, name, url):
+    """
+    :param line_number:  for debugging
+    :param name:  for debugging
+    :param url:  for debugging
+    :return:  RETURNS BYTES **NOT** UNICODE
+    """
+    response = requests.get(url)
+    log = response.content
+
+    try:
+        log = convert.utf82unicode(log)
+    except Exception, e:
+        if DEBUG:
+            Log.note("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
+                "index": line_number,
+                "name": name,
+                "url": url
+            })
+        return None
 
     # DETECT IF THIS IS A STRUCTURED LOG
     total = 0  # ENSURE WE HAVE A SIDE EFFECT
     count = 0
     bad = 0
-    blobber_lines=[]
-    for blobber_line in response.iter_lines():
+    for blobber_line in log.split("\n"):
         if not blobber_line.strip():
             continue
-        blobber_lines.append(blobber_line)
 
         try:
-            total += len(convert.json2value(convert.utf82unicode(blobber_line)))
+            total += len(convert.json2value(blobber_line))
             count += 1
         except Exception, e:
             if DEBUG:
-                try:
-                    blobber_line = blobber_line.decode("utf8")
-                except Exception, e:
-                    if len(blobber_line)>40:
-                        blobber_line = convert.bytes2hex(blobber_line[:40]) + "..."
-                    else:
-                        blobber_line = convert.bytes2hex(blobber_line)
-
                 Log.note("Not JSON: {{line}}", {
                     "name": name,
                     "line": blobber_line
@@ -136,12 +144,12 @@ def read_blobber_file(pulse_line, name, url):
 
     if bad > 4 and DEBUG:
         Log.note("Line {{index}}: {{name}} is NOT structured log", {
-            "index": pulse_line,
+            "index": line_number,
             "name": name
         })
         return None
 
-    return blobber_lines
+    return log
 
 
 def etl_key(envelope, source_key, name):

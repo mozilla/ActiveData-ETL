@@ -171,6 +171,7 @@ def left(value, len):
 
 def split(value, sep="\n"):
     # GENERATOR VERSION OF split()
+    # SOMETHING TERRIBLE HAPPENS, SOMETIMES, IN PYPY
     s = 0
     len_sep = len(sep)
     n = value.find(sep, s)
@@ -179,6 +180,7 @@ def split(value, sep="\n"):
         s = n + len_sep
         n = value.find(sep, s)
     yield value[s:]
+    value = None
 
 def common_prefix(*args):
     prefix = args[0]
