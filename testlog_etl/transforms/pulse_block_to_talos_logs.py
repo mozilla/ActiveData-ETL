@@ -61,13 +61,13 @@ def process_talos(source_key, source, dest_bucket):
                     except Exception, e:
                         pass
 
-                for line in bytes.split("\n"):
-                    s = line.find(TALOS_PREFIX)
+                for talos_line in bytes.split("\n"):
+                    s = talos_line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
 
-                    line = line[s + len(TALOS_PREFIX):].strip()
-                    talos = convert.json2value(convert.utf82unicode(line))
+                    talos_line = talos_line[s + len(TALOS_PREFIX):].strip()
+                    talos = convert.json2value(convert.utf82unicode(talos_line))
                     dest_key, dest_etl = etl_key(envelope, source_key, "talos")
                     if min_dest_key is None:
                         min_dest_key = dest_key
