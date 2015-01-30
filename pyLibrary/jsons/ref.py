@@ -31,7 +31,7 @@ def get(url):
         if os.sep == "\\":
             url = "file:///" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
         else:
-            url = "file://" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+            url = "file://" + os.getcwd() + "/" + url[7:]
 
 
 
