@@ -54,7 +54,7 @@
 				},
 			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
 			"type": "join"
-		},
+		}
 	],
 	"debug": {
 		"trace": true,

@@ -97,7 +97,6 @@ def _replace_ref(node, url):
             if scheme_name in scheme_loaders:
                 new_value = scheme_loaders[scheme_name](ref, url)
             else:
-
                 raise Log.error("unknown protocol {{scheme}}", {"scheme": scheme_name})
         else:
             #DO NOT TOUCH LOCAL REF YET

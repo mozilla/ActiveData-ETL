@@ -103,15 +103,23 @@ class ETL(Thread):
                 dest_bucket = get_container(action.destination)
                 new_keys = set(action.transformer(source_key, source, dest_bucket))
 
-                if not new_keys:
-                    Log.warning("Expecting some new keys after processing {{key}}", {"key": source_key})
-
                 old_keys = dest_bucket.keys(prefix=source_block.key)
                 if not new_keys and old_keys:
-                    Log.error("Expecting some new keys after etl, especially if there were some old ones")
+                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}", {
+                        "old_keys": old_keys,
+                        "source_key": source_key
+                    })
+                    continue
+                elif not new_keys:
+                    Log.alert("Expecting some new keys after processing {{source_key}}", {
+                        "old_keys": old_keys,
+                        "source_key": source_key
+                    })
+                    continue
+
 
                 for k in old_keys - new_keys:
-                    Log.note("delete keys? {{list}}", {"list": sorted(old_keys - new_keys)})
+                    Log.note("delete keys?\n{{list}}", {"list": sorted(old_keys - new_keys)})
                     # dest_bucket.delete_key(k)
 
                 if isinstance(dest_bucket, aws.s3.Bucket):
