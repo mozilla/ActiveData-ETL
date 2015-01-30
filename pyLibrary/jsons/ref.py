@@ -28,7 +28,12 @@ def get(url):
         Log.error("{{url}} must have a prototcol (eg http://) declared", {"url": url})
     if url.startswith("file://") and url[7] != "/":
         # RELATIVE
-        url = "file:///" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+        if os.sep == "\\":
+            url = "file:///" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+        else:
+            url = "file://" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+
+
 
     if url[url.find("://") + 3] != "/":
 
@@ -179,7 +184,6 @@ def get_file(ref, url):
         ref = ("/".join(url.split("/")[:-1])) + ref[6::]
     path = ref[7::] if os.sep != "\\" else ref[8::]
     try:
-
         Log.note("reading file {{file}} (from {{url}})", {"file": path, "url":ref})
         content = File(path).read()
     except Exception, e:
