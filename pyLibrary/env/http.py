@@ -26,6 +26,7 @@ from pyLibrary.dot import Dict
 
 
 default_headers = Dict()  # TODO: MAKE THIS VARIABLE A SPECIAL TYPE OF EXPECTED MODULE PARAMETER SO IT COMPLAINS IF NOT SET
+default_timeout = 600
 _warning_sent = False
 
 def request(method, url, **kwargs):
@@ -46,32 +47,39 @@ def request(method, url, **kwargs):
 
 def get(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
+    kwargs.setdefault('timeout', default_timeout)
     return request('get', url, **kwargs)
 
 
 def options(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
+    kwargs.setdefault('timeout', default_timeout)
     return request('options', url, **kwargs)
 
 
 def head(url, **kwargs):
     kwargs.setdefault('allow_redirects', False)
+    kwargs.setdefault('timeout', default_timeout)
     return request('head', url, **kwargs)
 
 
 def post(url, data=None, **kwargs):
+    kwargs.setdefault('timeout', default_timeout)
     return request('post', url, data=data, **kwargs)
 
 
 def put(url, data=None, **kwargs):
+    kwargs.setdefault('timeout', default_timeout)
     return request('put', url, data=data, **kwargs)
 
 
 def patch(url, data=None, **kwargs):
+    kwargs.setdefault('timeout', default_timeout)
     return request('patch', url,  data=data, **kwargs)
 
 
 def delete(url, **kwargs):
+    kwargs.setdefault('timeout', default_timeout)
     return request('delete', url, **kwargs)
 
 

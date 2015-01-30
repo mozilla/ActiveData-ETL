@@ -75,15 +75,16 @@ class ETL(Thread):
         source_keys = listwrap(nvl(source_block.key, source_block.keys))
 
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
-            source_block.bucket=source_block.bucket.bucket
+            source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
+
         if not work_actions:
             Log.note(NOTHING_DONE, {
                 "bucket": source_block.bucket,
                 "message": source_block
             })
-            return
+            return not self.settings.keep_unknown_on_queue
 
         for action in work_actions:
             if len(source_keys) > 1:
@@ -135,9 +136,7 @@ class ETL(Thread):
                     "key": source_key,
                     "destination": nvl(action.destination.name, action.destination.index)
                 }, e)
-            finally:
-                gc.collect()
-
+        return True
 
     def loop(self, please_stop):
         with self.work_queue:
@@ -153,10 +152,13 @@ class ETL(Thread):
                         return
 
                 try:
-                    self._pipe(todo)
-                    self.work_queue.commit()
+                    is_ok = self._pipe(todo)
+                    if is_ok:
+                        self.work_queue.commit()
+                    else:
+                        self.work_queue.rollback()
                 except Exception, e:
-                    self.work_queue.rollback()
+
                     if isinstance(e, Except) and e.contains(NOTHING_DONE):
                         continue
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)

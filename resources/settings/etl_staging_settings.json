@@ -5,7 +5,8 @@
 	},
 	"param": {
 		"threads": 4,
-		"wait_forever": true
+		"wait_forever": true,
+		"keep_unknown_on_queue": true
 	},
 	"constants":{
 		"pyLibrary.env.http.default_headers":{"From":"https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"}
@@ -37,25 +38,25 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join"
 		},
-//		{
-//			"name": "unittest2es",
-//			"source": {
-//				"$ref":"file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-unittest"
-//			},
-//			"destination":	{
-//					"host" : "http://172.31.0.7",
-//					"port" : 9200,
-//					"index" : "unittest",
-//					"type" : "test_results",
-//					"timeout" : 300,
-//					"schema" : {"$ref": "//../schema/test_results.json"},
-//					"debug": true,
-//					"limit_replicas": true
-//				},
-//			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
-//			"type": "join"
-//		},
+		{
+			"name": "unittest2es",
+			"source": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket": "ekyle-unittest"
+			},
+			"destination":	{
+					"host" : "http://172.31.0.7",
+					"port" : 9200,
+					"index" : "unittest",
+					"type" : "test_results",
+					"timeout" : 300,
+					"schema" : {"$ref": "//../schema/test_results.json"},
+					"debug": true,
+					"limit_replicas": true
+				},
+			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+			"type": "join"
+		},
 	],
 	"debug": {
 		"trace": true,
