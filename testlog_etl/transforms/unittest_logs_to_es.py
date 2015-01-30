@@ -23,9 +23,9 @@ DEBUG = True
 
 
 def process_unittest(source_key, source, destination):
-    lines = StringIO(source.read())
+    lines = source.read().split("\n")
 
-    etl_header = convert.json2value(lines.next())
+    etl_header = convert.json2value(lines[0])
 
     # FIX ETL IDS
     e = etl_header
@@ -35,7 +35,7 @@ def process_unittest(source_key, source, destination):
         e = e.source
 
 
-    data = transform_buildbot(convert.json2value(lines.next()))
+    data = transform_buildbot(convert.json2value(lines[1]))
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
@@ -43,7 +43,7 @@ def process_unittest(source_key, source, destination):
     })
     try:
         with timer:
-            summary = process_unittest_log(etl_header.name, lines)
+            summary = process_unittest_log(etl_header.name, lines[2:])
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e

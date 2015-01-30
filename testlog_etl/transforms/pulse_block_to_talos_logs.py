@@ -27,7 +27,10 @@ def process_talos(source_key, source, dest_bucket):
     min_dest_key = None
     min_dest_etl = None
 
-    for i, line in enumerate(convert.json2value(source.read()).split("\n")):
+    for i, line in enumerate(source.read().split("\n")):
+        if not line.strip():
+            continue
+        envelope=convert.json2value(line)
         if envelope._meta:
             pass
         elif envelope.locale:

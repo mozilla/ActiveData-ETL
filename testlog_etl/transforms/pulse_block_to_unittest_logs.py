@@ -33,11 +33,11 @@ def process_pulse_block(source_key, source, dest_bucket):
     """
     output = []
     num_missing_envelope = 0
-    for i, line in enumerate(convert.json2value(source.read()).split("\n")):
+    for i, line in enumerate(source.read().split("\n")):
         try:
-            if line.strip()=="":
+            if not line.strip():
                 continue
-            envelope = line
+            envelope = convert.json2value(line)
             if envelope._meta:
                 pass
             elif envelope.locale:
