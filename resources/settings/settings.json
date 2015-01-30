@@ -1,0 +1,34 @@
+{
+
+	"source": {
+		"exchange": "exchange/build/normalized",
+		"topic": "unittest.#",
+		"durable": false,
+		"$ref": "file://~/private.json#pulse_user"
+	},
+	"destination": {
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "unittest",
+		"type": "test_results",
+		"timeout": 800,
+		"schema": {"$ref": "file://resources/schema/test_results.json"},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"debug": {
+		"log": [
+			{
+				"class": "logging.handlers.RotatingFileHandler",
+				"filename": "./results/logs/unittests_extract.log",
+				"maxBytes": 10000000,
+				"backupCount": 100,
+				"encoding": "utf8"
+			},
+			{
+				"log_type": "stream",
+				"stream": "sys.stdout"
+			}
+		]
+	}
+}

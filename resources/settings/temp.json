@@ -1,0 +1,63 @@
+{
+	"work_queue": {
+		"name": "ekyle-unittest-testing",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"workers":[
+	    {
+	        "name": "pulse2unittest",
+	        "source": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket":"ekyle-pulse-logger-dev"
+	        },
+	        "destination": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket":"ekyle-unittest-dev"
+	        },
+	        "transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
+	        "type": "join"
+	    },
+	    {
+	        "name": "pulse2talos",
+			"source": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket":"ekyle-pulse-logger-dev"
+			},
+			"destination": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket":"ekyle-talos-dev"
+			},
+	        "transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
+	        "type": "join"
+	    },
+	    {
+	        "name": "unittest2es",
+	        "source": {
+                "$ref":"file://~/private.json#aws_credentials",
+                "bucket":"ekyle-unittest-dev"
+            },
+	        "destination": null,
+	        "transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+	        "type": "join"
+	    },
+	],
+	"debug":{
+		"log":[
+			{"log_type":"console"},
+			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/etl.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 100,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type":"email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "Problem in ETL",
+				"$ref":"file://~/private.json#email"
+			}
+		]
+	}
+}
