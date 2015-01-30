@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from copy import deepcopy
 import sys
+import gc
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import get_function_by_name, use_settings
@@ -127,6 +128,9 @@ class ETL(Thread):
                     "key": source_key,
                     "destination": nvl(action.destination.name, action.destination.index)
                 }, e)
+            finally:
+                gc.collect()
+
 
     def loop(self, please_stop):
         with self.work_queue:
