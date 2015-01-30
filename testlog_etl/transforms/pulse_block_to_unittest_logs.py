@@ -65,7 +65,7 @@ def process_pulse_block(source_key, source, dest_bucket):
             try:
                 if url == None:
                     if DEBUG:
-                        Log.note("Line {{index}}: found structured log with null nam", {"index": i})
+                        Log.note("Line {{index}}: found structured log with NULL url", {"index": i})
                     continue
 
                 log_content = read_blobber_file(i, name, url)
@@ -178,41 +178,3 @@ def etl_key(envelope, source_key, name):
             "type": "join"
         })
     return dest_key, dest_etl
-
-
-def _loop(work_queue, conn, dest, please_stop):
-    while not please_stop:
-        todo = work_queue.pop()
-        if todo == None:
-            return
-
-        with Bucket(todo.bucket) as source:
-            try:
-                process_pulse_block(todo.key, source.get_key(todo.key), dest)
-                work_queue.commit()
-            except Exception, e:
-                work_queue.rollback()
-                Log.warning("could not processs {{key}}", {"key": todo.key}, e)
-
-
-def main():
-    try:
-        settings = startup.read_settings()
-        Log.start(settings.debug)
-
-        with startup.SingleInstance(flavor_id=settings.args.filename):
-            with aws.Queue(settings.work_queue) as work_queue:
-                with aws.s3.Connection(settings.destination) as conn:
-                    with aws.s3.Bucket(settings.destination) as dest:
-                        thread = Thread.run("main_loop", _loop, work_queue, conn, dest)
-                        Thread.wait_for_shutdown_signal(thread.please_stop)
-                        thread.stop()
-                        thread.join()
-    except Exception, e:
-        Log.error("Problem with etl", e)
-    finally:
-        Log.stop()
-
-
-if __name__ == "__main__":
-    main()

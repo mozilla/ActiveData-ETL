@@ -120,7 +120,6 @@ class ETL(Thread):
                             "bucket": action.destination.bucket,
                             "key": k
                         })
-                self.work_queue.commit()
             except Exception, e:
                 Log.error("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
                     "action": action.name,

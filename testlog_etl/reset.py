@@ -1,3 +1,13 @@
+# encoding: utf-8
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+from __future__ import unicode_literals
+
 from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
@@ -40,21 +50,25 @@ def main():
             with aws.Queue(settings.work_queue) as work_queue:
                 source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
-                prefix = strings.common_prefix(settings.args.start, settings.args.end)
+                if settings.args.end and settings.args.start:
+                    prefix = strings.common_prefix(settings.args.start, settings.args.end)
+                else:
+                    prefix = None
                 start = Version(settings.args.start)
                 end = Version(settings.args.end)
 
                 all_keys = source.keys(prefix=prefix)
-                for k in Q.sort(all_keys):
-                    p = Version(k)
+                all_keys = [(k, Version(k)) for k in all_keys]
+                all_keys = Q.sort(all_keys, 1)
+                for k, p in all_keys:
                     if start <= p < end:
-                        Log.note("Adding {{key}}", {"key":k})
+                        Log.note("Adding {{key}}", {"key": k})
                         now = Date.now()
                         work_queue.add({
                             "bucket": settings.args.bucket,
                             "key": k,
                             "timestamp":now.milli,
-                           "date/time":now.format()
+                            "date/time":now.format()
                         })
 
     except Exception, e:
@@ -97,6 +111,14 @@ class Version(object):
             return True
         return comparePath(self.path, other.path) <= 0
 
+    def __str__(self):
+        return b".".join(str(p) for p in self.path)
+
+    def __unicode__(self):
+        return ".".join(unicode(p) for p in self.path)
+
+    def __json__(self):
+        return "\".".join(unicode(p) for p in self.path)+"\""
 
 def comparePath(a, b):
     # ASSUME a AND b ARE VERSION NUMBERS, RETURN THE COMPARISON
