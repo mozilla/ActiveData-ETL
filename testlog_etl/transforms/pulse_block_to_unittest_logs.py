@@ -8,15 +8,15 @@
 #
 from __future__ import unicode_literals
 
-import requests
-
 from pyLibrary import aws
-from pyLibrary import convert, strings
+from pyLibrary import convert
 from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
+from pyLibrary.env import http
 from pyLibrary.thread.threads import Thread
+from pyLibrary.times.timer import Timer
 
 
 DEBUG = True
@@ -107,8 +107,9 @@ def read_blobber_file(line_number, name, url):
     :param url:  for debugging
     :return:  RETURNS BYTES **NOT** UNICODE
     """
-    response = requests.get(url)
-    log = response.content
+    with Timer("Read {{url}}", {"url": url}, debug=DEBUG):
+        response = http.get(url)
+        log = response.content
 
     try:
         log = convert.utf82unicode(log)
