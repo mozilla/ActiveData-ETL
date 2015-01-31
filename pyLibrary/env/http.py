@@ -19,10 +19,13 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import gc
 
 from requests import sessions, Response
 
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
+from pyLibrary.maths import Math
 
 
 default_headers = Dict()  # TODO: MAKE THIS VARIABLE A SPECIAL TYPE OF EXPECTED MODULE PARAMETER SO IT COMPLAINS IF NOT SET
@@ -84,7 +87,6 @@ def delete(url, **kwargs):
 
 
 class HttpResponse(Response):
-
     def __new__(cls, resp):
         resp.__class__ = HttpResponse
         return resp
@@ -97,12 +99,21 @@ class HttpResponse(Response):
         # Response.content WILL LEAK MEMORY (?BECAUSE OF PYPY"S POOR HANDLING OF GENERATORS?)
         # THE TIGHT, SIMPLE, LOOP TO FILL blocks PREVENTS THAT LEAK
         blocks = []
-        while self.raw._fp.fp is not None:
-            d = self.raw.read(amt=8 * 1024, decode_content=True)
-            blocks.append(d)
-        output = b"".join(blocks)
-        self.close()
+        try:
+            while self.raw._fp.fp is not None:
+                d = self.raw.read(amt=8 * 1024, decode_content=True)
+                blocks.append(d)
+        finally:
+            self.close()
+
+        try:
+            output = b"".join(blocks)
+        except Exception, e:
+            total_len = Math.sum(len(b) for b in blocks)
+            del blocks
+            gc.collect()
+            Log.error("Too much data ({{num_bytes|comma}} bytes)", {"num_bytes": total_len})
+
+        del blocks  # BE VERY CERTAIN WE DO NOT HANG ON TO THIS MEMORY
         return output
-
-
 
