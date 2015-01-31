@@ -4,7 +4,7 @@
 		"$ref":"file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 1,
+		"threads": 4,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true
 	},
