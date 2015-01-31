@@ -12,32 +12,32 @@
 		"pyLibrary.env.http.default_headers":{"From":"https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"}
 	},
 	"workers": [
-		{
-			"name": "pulse2unittest",
-			"source": {
-				"$ref":"file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
-			},
-			"destination": {
-				"$ref":"file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
-			"type": "join"
-		},
 //		{
-//			"name": "pulse2talos",
+//			"name": "pulse2unittest",
 //			"source": {
 //				"$ref":"file://~/private.json#aws_credentials",
 //				"bucket": "ekyle-pulse-logger"
 //			},
 //			"destination": {
 //				"$ref":"file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-talos"
+//				"bucket": "ekyle-unittest"
 //			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
+//			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
 //			"type": "join"
 //		},
+		{
+			"name": "pulse2talos",
+			"source": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger"
+			},
+			"destination": {
+				"$ref":"file://~/private.json#aws_credentials",
+				"bucket": "ekyle-talos"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
+			"type": "join"
+		},
 //		{
 //			"name": "unittest2es",
 //			"source": {

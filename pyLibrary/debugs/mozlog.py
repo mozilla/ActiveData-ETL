@@ -17,43 +17,49 @@ def use_mozlog():
     try:
         from pyLibrary.debugs.mozlog.structured import structuredlog
 
-        global logger
+
+        for n in ["debug", "println", "note", "unexpected", "warning", "error"]:
+            copy_attr(n)
+
         logger = structuredlog.get_default_logger()
-        ToMozLog.logger = logger
-        ToMozLog.old_class = Log
-        globals()["Log"] = ToMozLog
+        setattr(Log, "moz_logger", logger)
     except:
         pass
+
+
+def copy_attr(name):
+    setattr(Log, "_old_"+name, getattr(Log, name))
+    setattr(Log, name, getattr(ToMozLog, name))
+
 
 
 class ToMozLog(object):
     """
     MAP CALLS pyLibrary.debugs.logs.Log TO mozlog.structured.structuredlog.StructuredLogger
     """
-    logger = None
-    old_class = None
+    moz_logger = None
 
     @classmethod
     def debug(cls, template=None, params=None):
-        cls.logger.debug(expand_template(template, params))
+        cls.moz_logger.debug(expand_template(template, params))
 
     @classmethod
     def println(cls, template, params=None):
-        cls.logger.debug(expand_template(template, params))
+        cls.moz_logger.debug(expand_template(template, params))
 
     @classmethod
     def note(cls, template, params=None, stack_depth=0):
-        cls.logger.debug(expand_template(template, params))
+        cls.moz_logger.debug(expand_template(template, params))
 
     @classmethod
     def unexpected(cls, template, params=None, cause=None):
-        cls.logger.error(expand_template(template, params))
+        cls.moz_logger.error(expand_template(template, params))
 
     @classmethod
     def warning(cls, template, params=None, *args, **kwargs):
-        cls.logger.warn(expand_template(template, params))
+        cls.moz_logger.warn(expand_template(template, params))
 
     @classmethod
     def error(cls, template, params=None, cause=None, stack_depth=0):
-        cls.logger.error(expand_template(template, params))
-        cls.old_class.error(template, params, cause, stack_depth)
+        cls.moz_logger.error(expand_template(template, params))
+        cls._old_error(template, params, cause, stack_depth)
