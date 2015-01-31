@@ -92,9 +92,7 @@ def process_pulse_block(source_key, source, dest_bucket):
                 output.append(dest_key)
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
-            finally:
-                tr.print_diff()
-                Thread.sleep(3)
+
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
@@ -102,6 +100,8 @@ def process_pulse_block(source_key, source, dest_bucket):
     if num_missing_envelope:
         Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
 
+    tr.print_diff()
+    Thread.sleep(20)
     return output
 
 
