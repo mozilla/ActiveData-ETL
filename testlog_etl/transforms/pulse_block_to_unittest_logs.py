@@ -111,7 +111,6 @@ def process_pulse_block(source_key, source, dest_bucket):
         Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
 
     tr.print_diff()
-    Thread.sleep(20)
     return output
 
 
