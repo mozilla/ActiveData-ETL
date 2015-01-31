@@ -127,7 +127,7 @@ class ETL(Thread):
                 if isinstance(action._destination, aws.s3.Bucket):
                     for k in old_keys | new_keys:
                         self.work_queue.add({
-                            "bucket": action._destination.bucket,
+                            "bucket": action.destination.bucket,
                             "key": k
                         })
             except Exception, e:
