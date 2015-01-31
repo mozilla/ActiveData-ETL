@@ -30,7 +30,6 @@ from pyLibrary.thread.threads import Thread, Signal
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
-NOTHING_DONE = "No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}"
 
 
 class ConcatSources(object):
@@ -69,7 +68,7 @@ class ETL(Thread):
         self.start()
 
 
-    def _pipe(self, source_block):
+    def _dispatch_work(self, source_block):
         """
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
@@ -82,7 +81,7 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note(NOTHING_DONE, {
+            Log.note( "No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}", {
                 "bucket": source_block.bucket,
                 "message": source_block
             })
@@ -153,15 +152,13 @@ class ETL(Thread):
                         return
 
                 try:
-                    is_ok = self._pipe(todo)
+                    is_ok = self._dispatch_work(todo)
                     if is_ok:
                         self.work_queue.commit()
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-
-                    if isinstance(e, Except) and e.contains(NOTHING_DONE):
-                        continue
+                    self.work_queue.rollback()
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
