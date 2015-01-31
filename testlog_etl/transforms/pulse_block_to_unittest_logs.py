@@ -33,6 +33,8 @@ def process_pulse_block(source_key, source, dest_bucket):
     """
     output = []
     num_missing_envelope = 0
+    tr = tracker.SummaryTracker()
+
     for i, line in enumerate(source.read().split("\n")):
         try:
             if not line.strip():
@@ -62,7 +64,6 @@ def process_pulse_block(source_key, source, dest_bucket):
 
         file_num = 0
         for name, url in envelope.data.blobber_files.items():
-            tr = tracker.SummaryTracker()
             try:
                 if url == None:
                     if DEBUG:
