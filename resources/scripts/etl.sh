@@ -1,4 +1,4 @@
-cd /home/ec2-user/TestLog-ETL/
+cd /home/ubuntu/TestLog-ETL/
 export PYTHONPATH=.
 git checkout etl
 git pull origin etl

@@ -25,6 +25,7 @@ DEBUG_SHOW_NO_LOG = False
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
+tr = tracker.SummaryTracker()
 
 def process_pulse_block(source_key, source, dest_bucket):
     """
@@ -33,7 +34,6 @@ def process_pulse_block(source_key, source, dest_bucket):
     """
     output = []
     num_missing_envelope = 0
-    tr = tracker.SummaryTracker()
 
     for i, line in enumerate(source.read().split("\n")):
         try:
@@ -94,7 +94,7 @@ def process_pulse_block(source_key, source, dest_bucket):
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
             finally:
                 tr.print_diff()
-                Thread.sleep(20)
+                Thread.sleep(3)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
