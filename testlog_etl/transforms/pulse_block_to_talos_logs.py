@@ -15,7 +15,7 @@ from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
-TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
+TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
 def process_talos(source_key, source, dest_bucket):
     """
@@ -63,7 +63,7 @@ def process_talos(source_key, source, dest_bucket):
                     except Exception, e:
                         pass
 
-                for talos_line in bytes.split("\n"):
+                for talos_line in bytes.split(b"\n"):
                     s = talos_line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
