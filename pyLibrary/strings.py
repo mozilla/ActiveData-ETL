@@ -169,6 +169,13 @@ def left(value, len):
     return value[0:len]
 
 
+def comma(value):
+    """
+    FORMAT WITH THOUSANDS COMMA (,) SEPARATOR
+    """
+    return "{:,}".format(value)
+
+
 def split(value, sep="\n"):
     # GENERATOR VERSION OF split()
     # SOMETHING TERRIBLE HAPPENS, SOMETIMES, IN PYPY

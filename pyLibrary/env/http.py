@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from requests import sessions
+from requests import sessions, Response
 
 from pyLibrary.dot import Dict
 
@@ -48,38 +48,61 @@ def request(method, url, **kwargs):
 def get(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
-    return request('get', url, **kwargs)
+    return HttpResponse(request('get', url, **kwargs))
 
 
 def options(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
-    return request('options', url, **kwargs)
+    return HttpResponse(request('options', url, **kwargs))
 
 
 def head(url, **kwargs):
     kwargs.setdefault('allow_redirects', False)
     kwargs.setdefault('timeout', default_timeout)
-    return request('head', url, **kwargs)
+    return HttpResponse(request('head', url, **kwargs))
 
 
 def post(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    return request('post', url, data=data, **kwargs)
+    return HttpResponse(request('post', url, data=data, **kwargs))
 
 
 def put(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    return request('put', url, data=data, **kwargs)
+    return HttpResponse(request('put', url, data=data, **kwargs))
 
 
 def patch(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    return request('patch', url,  data=data, **kwargs)
+    return HttpResponse(request('patch', url,  data=data, **kwargs))
 
 
 def delete(url, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    return request('delete', url, **kwargs)
+    return HttpResponse(request('delete', url, **kwargs))
+
+
+class HttpResponse(Response):
+
+    def __new__(cls, resp):
+        resp.__class__ = HttpResponse
+        return resp
+
+    def __init__(self, resp):
+        pass
+
+    @property
+    def content(self):
+        # Response.content WILL LEAK MEMORY (?BECAUSE OF PYPY"S POOR HANDLING OF GENERATORS?)
+        # THE TIGHT, SIMPLE, LOOP TO FILL blocks PREVENTS THAT LEAK
+        blocks = []
+        while self.raw._fp.fp is not None:
+            d = self.raw.read(amt=8 * 1024, decode_content=True)
+            blocks.append(d)
+        output = b"".join(blocks)
+        self.close()
+        return output
+
 
 
