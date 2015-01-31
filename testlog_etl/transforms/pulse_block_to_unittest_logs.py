@@ -8,10 +8,10 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import aws
+from pympler import tracker
+from time import sleep
+
 from pyLibrary import convert
-from pyLibrary.aws.s3 import Bucket
-from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
@@ -62,6 +62,7 @@ def process_pulse_block(source_key, source, dest_bucket):
 
         file_num = 0
         for name, url in envelope.data.blobber_files.items():
+            tr = tracker.SummaryTracker()
             try:
                 if url == None:
                     if DEBUG:
@@ -90,6 +91,9 @@ def process_pulse_block(source_key, source, dest_bucket):
                 output.append(dest_key)
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
+            finally:
+                tr.print_diff()
+                Thread.sleep(20)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})

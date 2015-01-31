@@ -60,6 +60,8 @@ class ETL(Thread):
         settings.workers = deepcopy(settings.workers)
         for w in settings.workers:
             w.transformer = dot.get_attr(sys.modules, w.transformer)
+            w._source = get_container(w.source)
+            w._destination = get_container(w.destination)
 
         self.settings = settings
         self.work_queue = aws.Queue(self.settings.work_queue)
@@ -88,11 +90,11 @@ class ETL(Thread):
 
         for action in work_actions:
             if len(source_keys) > 1:
-                multi_source = get_container(action.source)
+                multi_source = action._source
                 source = ConcatSources([multi_source.get_key(k) for k in source_keys])
                 source_key = MIN(source_keys[0])
             else:
-                source = get_container(action.source).get_key(source_keys[0])
+                source = action._source.get_key(source_keys[0])
                 source_key = source_keys[0]
 
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
@@ -101,10 +103,9 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                dest_bucket = get_container(action.destination)
-                new_keys = set(action.transformer(source_key, source, dest_bucket))
+                new_keys = set(action.transformer(source_key, source, action._destination))
 
-                old_keys = dest_bucket.keys(prefix=source_block.key)
+                old_keys = action._destination.keys(prefix=source_block.key)
                 if not new_keys and old_keys:
                     Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}", {
                         "old_keys": old_keys,
@@ -123,10 +124,10 @@ class ETL(Thread):
                     Log.note("delete keys?\n{{list}}", {"list": sorted(old_keys - new_keys)})
                     # dest_bucket.delete_key(k)
 
-                if isinstance(dest_bucket, aws.s3.Bucket):
+                if isinstance(action._destination, aws.s3.Bucket):
                     for k in old_keys | new_keys:
                         self.work_queue.add({
-                            "bucket": action.destination.bucket,
+                            "bucket": action._destination.bucket,
                             "key": k
                         })
             except Exception, e:
@@ -165,6 +166,9 @@ class ETL(Thread):
 
 
 def get_container(settings):
+    if isinstance(settings, (Index_w_Keys, aws.s3.Bucket)):
+        return settings
+
     if settings == None:
         return DummySink()
 
