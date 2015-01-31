@@ -58,9 +58,18 @@ def process_pulse_block(source_key, source, dest_bucket):
 
                 return process_pulse_block(source_key, temp, dest_bucket)
             else:
-                Log.error("Line {{index}}: Do not know how to handle line\n{{line}}", {"line": line, "index": i})
+                Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
+                    "line": line,
+                    "index": i,
+                    "key":source_key
+                })
         except Exception, e:
-            Log.error("Line {{index}}: Problem with  line\n{{line}}", {"line": line, "index": i})
+            Log.error("Line {{index}}: Problem with  line for key {{key}}\n{{line}}", {
+                "line": line,
+                "index": i,
+                "key":source_key
+            })
+
 
         file_num = 0
         for name, url in envelope.data.blobber_files.items():
@@ -92,7 +101,8 @@ def process_pulse_block(source_key, source, dest_bucket):
                 output.append(dest_key)
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
-
+            finally:
+                tr.print_diff()
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": envelope.data})
