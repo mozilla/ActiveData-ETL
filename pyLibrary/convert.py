@@ -380,7 +380,7 @@ def value2number(v):
 
 
 def utf82unicode(value):
-    return unicode(value.decode('utf8'))
+    return value.decode('utf8')
 
 
 def unicode2utf8(value):
