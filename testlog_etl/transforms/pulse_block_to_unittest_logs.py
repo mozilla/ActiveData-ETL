@@ -116,7 +116,7 @@ def read_blobber_file(line_number, name, url):
     """
     with Timer("Read {{url}}", {"url": url}, debug=DEBUG):
         response = http.get(url, stream=True)
-        log = response.content
+        log = response.all_content
         if DEBUG:
             Log.note("Length: {{length|comma}} (from {{content_length|comma}})", {
                 "length": len(log),

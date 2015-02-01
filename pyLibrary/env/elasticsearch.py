@@ -269,16 +269,16 @@ class Index(object):
             data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
         )
 
-        result = convert.json2value(utf82unicode(response.content))
+        result = convert.json2value(utf82unicode(response.all_content))
         if self.cluster.version.startswith("0.90."):
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
-                    "error": utf82unicode(response.content)
+                    "error": utf82unicode(response.all_content)
                 })
         elif self.cluster.version.startswith("1.4."):
             if not result.acknowledged:
                 Log.error("Can not set refresh interval ({{error}})", {
-                    "error": utf82unicode(response.content)
+                    "error": utf82unicode(response.all_content)
                 })
         else:
             Log.error("Do not know how to handle ES version {{version}}", {"version":self.cluster.version})
@@ -465,8 +465,8 @@ class Cluster(object):
 
             response = http.post(url, **kwargs)
             if self.debug:
-                Log.note(utf82unicode(response.content)[:130])
-            details = convert.json2value(utf82unicode(response.content))
+                Log.note(utf82unicode(response.all_content)[:130])
+            details = convert.json2value(utf82unicode(response.all_content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
@@ -490,8 +490,8 @@ class Cluster(object):
             kwargs.setdefault("timeout", 600)
             response = http.get(url, **kwargs)
             if self.debug:
-                Log.note(utf82unicode(response.content)[:130])
-            details = wrap(convert.json2value(utf82unicode(response.content)))
+                Log.note(utf82unicode(response.all_content)[:130])
+            details = wrap(convert.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -508,7 +508,7 @@ class Cluster(object):
             kwargs.setdefault("timeout", 60)
             response = http.put(url, **kwargs)
             if self.debug:
-                Log.note(utf82unicode(response.content))
+                Log.note(utf82unicode(response.all_content))
             return response
         except Exception, e:
             Log.error("Problem with call to {{url}}", {"url": url}, e)
@@ -517,7 +517,7 @@ class Cluster(object):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
             kwargs.setdefault("timeout", 60)
-            response = convert.json2value(utf82unicode(http.delete(url, **kwargs).content))
+            response = convert.json2value(utf82unicode(http.delete(url, **kwargs).all_content))
             if self.debug:
                 Log.note("delete response {{response}}", {"response": response})
             return response

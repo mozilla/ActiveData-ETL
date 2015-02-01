@@ -55,7 +55,7 @@ def process_talos(source_key, source, dest_bucket):
                     if response.status_code == 404:
                         Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
                         continue
-                    bytes = response.content
+                    bytes = response.all_content
 
                 if envelope.data.logurl.endswith(".gz"):
                     try:

@@ -51,38 +51,45 @@ def request(method, url, **kwargs):
 def get(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('get', url, **kwargs))
 
 
 def options(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('options', url, **kwargs))
 
 
 def head(url, **kwargs):
     kwargs.setdefault('allow_redirects', False)
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('head', url, **kwargs))
 
 
 def post(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('post', url, data=data, **kwargs))
 
 
 def put(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('put', url, data=data, **kwargs))
 
 
 def patch(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('patch', url,  data=data, **kwargs))
 
 
 def delete(url, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
+    kwargs["stream"]=True
     return HttpResponse(request('delete', url, **kwargs))
 
 
@@ -93,11 +100,15 @@ class HttpResponse(Response):
 
     def __init__(self, resp):
         pass
+        self._cached_content = None
 
     @property
-    def content(self):
+    def all_content(self):
         # Response.content WILL LEAK MEMORY (?BECAUSE OF PYPY"S POOR HANDLING OF GENERATORS?)
         # THE TIGHT, SIMPLE, LOOP TO FILL blocks PREVENTS THAT LEAK
+        if self._cached_content is not None:
+            return self._cached_content
+
         blocks = []
         try:
             while self.raw._fp.fp is not None:
@@ -107,7 +118,7 @@ class HttpResponse(Response):
             self.close()
 
         try:
-            output = b"".join(blocks)
+            self._cached_content = b"".join(blocks)
         except Exception, e:
             total_len = Math.sum(len(b) for b in blocks)
             del blocks
@@ -115,5 +126,5 @@ class HttpResponse(Response):
             Log.error("Too much data ({{num_bytes|comma}} bytes)", {"num_bytes": total_len})
 
         del blocks  # BE VERY CERTAIN WE DO NOT HANG ON TO THIS MEMORY
-        return output
+        return self._cached_content
 
