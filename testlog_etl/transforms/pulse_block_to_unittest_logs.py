@@ -7,7 +7,6 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
@@ -115,7 +114,7 @@ def read_blobber_file(line_number, name, url):
     :return:  RETURNS BYTES **NOT** UNICODE
     """
     with Timer("Read {{url}}", {"url": url}, debug=DEBUG):
-        response = http.get(url, stream=True)
+        response = http.get(url)
         log = response.all_content
         if DEBUG:
             Log.note("Length: {{length|comma}} (from {{content_length|comma}})", {

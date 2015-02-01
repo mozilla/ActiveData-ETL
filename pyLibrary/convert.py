@@ -18,6 +18,7 @@ import gzip
 import hashlib
 import json
 import re
+from tempfile import TemporaryFile
 import time
 
 from pyLibrary import strings
@@ -25,6 +26,7 @@ from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.env.files_string import FileString
 from pyLibrary.jsons import quote
 from pyLibrary.jsons.encoder import encode
 from pyLibrary.strings import expand_template
@@ -438,6 +440,15 @@ def bytes2zip(bytes):
     """
     RETURN COMPRESSED BYTES
     """
+    if hasattr(bytes, "read"):
+        output = TemporaryFile()
+        archive = gzip.GzipFile(fileobj=output, mode='w')
+        bytes.seek(0)
+        archive.writelines(bytes)
+        archive.close()
+        output.seek(0)
+        return FileString(output)
+
     buff = StringIO.StringIO()
     archive = gzip.GzipFile(fileobj=buff, mode='w')
     archive.write(bytes)

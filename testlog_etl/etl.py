@@ -119,9 +119,12 @@ class ETL(Thread):
                     continue
 
 
-                for k in old_keys - new_keys:
-                    Log.note("delete keys?\n{{list}}", {"list": sorted(old_keys - new_keys)})
-                    # dest_bucket.delete_key(k)
+                delete_me = old_keys - new_keys
+                if delete_me:
+                    Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
+                    for k in delete_me:
+                        pass
+                        # dest_bucket.delete_key(k)
 
                 if isinstance(action._destination, aws.s3.Bucket):
                     for k in old_keys | new_keys:

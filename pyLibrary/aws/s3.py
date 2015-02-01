@@ -17,7 +17,7 @@ from boto.s3.connection import Location
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, wrap
+from pyLibrary.dot import wrap
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 
@@ -182,7 +182,20 @@ class Bucket(object):
             Log.error("Expecting a pure key")
 
         try:
-            if len(value) > 200 * 1000:
+            if hasattr(value, "read"):
+                storage = self.bucket.new_key(key + ".json.gz")
+                string_length = len(value)
+                value = convert.bytes2zip(value)
+                file_length = len(value)
+                Log.note("Sending contents with length {{file_length|pipe}} (from string with length {{string_length}})", {"file_length": file_length, "string_length":string_length})
+                value.seek(0)
+                storage.set_contents_from_file(value)
+
+                if self.settings.public:
+                    storage.set_acl('public-read')
+                return
+
+            if len(value) > 20 * 1000:
                 self.bucket.delete_key(key + ".json")
                 if isinstance(value, str):
                     value = convert.bytes2zip(value)
@@ -198,14 +211,14 @@ class Bucket(object):
                 else:
                     key += ".json"
 
-            key = self.bucket.new_key(key)
-            key.set_contents_from_string(value)
+            storage = self.bucket.new_key(key)
+            storage.set_contents_from_string(value)
 
             if self.settings.public:
                 key.set_acl('public-read')
         except Exception, e:
             Log.error("Problem writing {{bytes}} bytes to {{key}} in {{bucket}}", {
-                "key": key.key,
+                "key": storage.key,
                 "bucket": self.bucket.name,
                 "bytes": len(value)
             }, e)

@@ -12,26 +12,23 @@
 # EG
 # {"debug.constants":{
 # "pyLibrary.env.http.default_headers={
-#         "From":"klahnakoski@mozilla.com"
+# "From":"klahnakoski@mozilla.com"
 #     }
 # }}
 
 
 from __future__ import unicode_literals
 from __future__ import division
-from collections import deque
 import gc
-import os
-from tempfile import mkstemp, TemporaryFile
 
 from requests import sessions, Response
-from pyLibrary import strings
 
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
-from pyLibrary.maths import Math
+from pyLibrary.env.files_string import FileString
 
-FILE_SIZE_LIMIT = 1 * 1024 * 1024
+
+FILE_SIZE_LIMIT = 100 * 1024 * 1024
 MIN_READ_SIZE = 8 * 1024
 default_headers = Dict()  # TODO: MAKE THIS VARIABLE A SPECIAL TYPE OF EXPECTED MODULE PARAMETER SO IT COMPLAINS IF NOT SET
 default_timeout = 600
@@ -116,14 +113,14 @@ class HttpResponse(Response):
             return self._cached_content
 
         total_bytes = 0
-        blocks = deque()
+        blocks = []
         try:
             while self.raw._fp.fp is not None:
                 d = self.raw.read(amt=MIN_READ_SIZE, decode_content=True)
                 blocks.append(d)
                 total_bytes += len(d)
                 if total_bytes > FILE_SIZE_LIMIT:
-                    return FakeContent(blocks, self.raw)
+                    return FileString(blocks, self.raw)
         finally:
             self.close()
 
@@ -137,42 +134,3 @@ class HttpResponse(Response):
         del blocks  # BE VERY CERTAIN WE DO NOT HANG ON TO THIS MEMORY
         return self._cached_content
 
-
-
-class FakeContent(object):
-
-    def __init__(self, blocks, raw):
-        self.file=TemporaryFile()
-        for b in blocks:
-            self.file.write(b)
-        while raw._fp.fp is not None:
-            self.file.write(raw.read(amt=MIN_READ_SIZE, decode_content=True))
-
-    def decode(self, encoding):
-        if encoding!="utf8":
-            Log.error("can not handle {{encoding}}", {"encoding":encoding})
-        self.encoding = encoding
-        return self
-
-    def split(self, sep):
-        if sep!="\n":
-            Log.error("Can only split by lines")
-        self.file.seek(0)
-        return (l.decode(self.encoding) for l in self.file)
-
-    def __len__(self):
-        return os.path.getsize(self.file.name)
-
-    def __add__(self, other):
-        self.file.seek(0, 2)
-        self.file.write(other)
-
-    def __radd__(self, other):
-        new_file = TemporaryFile()
-        new_file.write(other)
-        self.file.seek(0)
-        for l in self.file:
-            new_file.write(l)
-        self.file.close()
-        self.file=new_file
-        return self
