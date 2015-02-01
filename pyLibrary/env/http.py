@@ -11,7 +11,7 @@
 # WITH ADDED default_headers THAT CAN BE SET USING pyLibrary.debugs.settings
 # EG
 # {"debug.constants":{
-#     "pyLibrary.env.http.default_headers={
+# "pyLibrary.env.http.default_headers={
 #         "From":"klahnakoski@mozilla.com"
 #     }
 # }}
@@ -27,14 +27,15 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.maths import Math
 
-
+FILE_SIZE_LIMIT = 100 * 1024 * 1024
 default_headers = Dict()  # TODO: MAKE THIS VARIABLE A SPECIAL TYPE OF EXPECTED MODULE PARAMETER SO IT COMPLAINS IF NOT SET
 default_timeout = 600
 _warning_sent = False
 
+
 def request(method, url, **kwargs):
     if not default_headers and not _warning_sent:
-        globals()["_warning_sent"]=True
+        globals()["_warning_sent"] = True
         from pyLibrary.debugs.logs import Log
 
         Log.warning("The pyLibrary.env.http module was meant to add extra "
@@ -51,45 +52,45 @@ def request(method, url, **kwargs):
 def get(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('get', url, **kwargs))
 
 
 def options(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('options', url, **kwargs))
 
 
 def head(url, **kwargs):
     kwargs.setdefault('allow_redirects', False)
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('head', url, **kwargs))
 
 
 def post(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('post', url, data=data, **kwargs))
 
 
 def put(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('put', url, data=data, **kwargs))
 
 
 def patch(url, data=None, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
-    return HttpResponse(request('patch', url,  data=data, **kwargs))
+    kwargs["stream"] = True
+    return HttpResponse(request('patch', url, data=data, **kwargs))
 
 
 def delete(url, **kwargs):
     kwargs.setdefault('timeout', default_timeout)
-    kwargs["stream"]=True
+    kwargs["stream"] = True
     return HttpResponse(request('delete', url, **kwargs))
 
 
@@ -109,21 +110,25 @@ class HttpResponse(Response):
         if self._cached_content is not None:
             return self._cached_content
 
+        total_bytes = 0
         blocks = []
         try:
             while self.raw._fp.fp is not None:
                 d = self.raw.read(amt=8 * 1024, decode_content=True)
                 blocks.append(d)
+                total_bytes += len(d)
+                if total_bytes > FILE_SIZE_LIMIT:
+                    del blocks
+                    Log.error("Too much data (over {{num_bytes|comma}} bytes)", {"num_bytes": total_bytes})
         finally:
             self.close()
 
         try:
             self._cached_content = b"".join(blocks)
         except Exception, e:
-            total_len = Math.sum(len(b) for b in blocks)
             del blocks
             gc.collect()
-            Log.error("Too much data ({{num_bytes|comma}} bytes)", {"num_bytes": total_len})
+            Log.error("Too much data ({{num_bytes|comma}} bytes)", {"num_bytes": total_bytes})
 
         del blocks  # BE VERY CERTAIN WE DO NOT HANG ON TO THIS MEMORY
         return self._cached_content
