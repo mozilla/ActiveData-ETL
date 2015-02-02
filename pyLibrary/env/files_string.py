@@ -13,7 +13,7 @@
 # {"debug.constants":{
 # "pyLibrary.env.http.default_headers={
 # "From":"klahnakoski@mozilla.com"
-#     }
+# }
 # }}
 
 
@@ -25,6 +25,7 @@ from pyLibrary.debugs.logs import Log
 
 
 MIN_READ_SIZE = 8 * 1024
+MAX_STRING_SIZE = 1 * 1024 * 1024
 
 
 class FileString(object):
@@ -32,17 +33,8 @@ class FileString(object):
     ACTS LIKE A STRING, BUT IS A FILE
     """
 
-    def __init__(self, blocks, raw=None):
-        if hasattr(blocks, "read"):
-            self.file = blocks
-            return
-
-        self.file = TemporaryFile()
-        for b in blocks:
-            self.file.write(b)
-        while raw._fp.fp is not None:
-            self.file.write(raw.read(amt=MIN_READ_SIZE, decode_content=True))
-
+    def __init__(self, file):
+        self.file = file
 
     def decode(self, encoding):
         if encoding != "utf8":
@@ -54,7 +46,7 @@ class FileString(object):
         if sep != "\n":
             Log.error("Can only split by lines")
         self.file.seek(0)
-        return (l.decode(self.encoding) for l in self.file)
+        return LazyLines(self.file, self.encoding)
 
     def __len__(self):
         return os.path.getsize(self.file.name)
@@ -81,3 +73,69 @@ class FileString(object):
     def __iter__(self):
         self.file.seek(0)
         return self.file
+
+
+def safe_size(source):
+    """
+    READ THE source UP TO SOME LIMIT, THEN COPY TO A FILE IF TOO BIG
+    """
+
+    total_bytes = 0
+    bytes = []
+    b = source.read(MIN_READ_SIZE)
+    while b:
+        total_bytes += len(b)
+        bytes.append(b)
+        if total_bytes > MAX_STRING_SIZE:
+            data = FileString(TemporaryFile())
+            for bb in bytes:
+                data.write(bb)
+            del bytes
+            del bb
+            b = source.read(MIN_READ_SIZE)
+            while b:
+                data.write(b)
+                b = source.read(MIN_READ_SIZE)
+            data.seek(0)
+            return data
+        b = source.read(MIN_READ_SIZE)
+
+    data = b"".join(bytes)
+    del bytes
+    return data
+
+
+class LazyLines(object):
+    def __init__(self, source, encoding):
+        self.iter = (l.decode(encoding) for l in source)
+        self.last = None
+        self.next = 0
+
+    def __getslice__(self, i, j):
+        if i == self.next:
+            return self
+        Log.error("Do not know how to slice this generator")
+
+    def __iter__(self):
+        def output():
+            while True:
+                self.last = self.iter.next()
+                self.next += 1
+                yield self.last
+
+        return output()
+
+    def __getitem__(self, item):
+        try:
+            if item == self.next:
+                self.last = self.iter.next()
+                self.next += 1
+                return self.last
+            elif item == self.next - 1:
+                return self.last
+            else:
+                Log.error("can not index out-of-order too much")
+        except Exception, e:
+            Log.error("Problem indexing", e)
+
+

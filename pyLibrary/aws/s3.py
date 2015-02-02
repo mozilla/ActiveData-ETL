@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 import StringIO
+from tempfile import TemporaryFile
 import zipfile
 
 import boto
@@ -18,11 +19,14 @@ from boto.s3.connection import Location
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
+from pyLibrary.env.files_string import FileString, safe_size
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 
 
 READ_ERROR = "S3 read error"
+MAX_FILE_SIZE = 100*1024*1024
+
 
 
 class File(object):
@@ -162,7 +166,7 @@ class Bucket(object):
         source = self.get_meta(key)
 
         try:
-            json = source.get_contents_as_string()
+            json = safe_size(source)
         except Exception, e:
             Log.error(READ_ERROR, e)
 
@@ -187,7 +191,7 @@ class Bucket(object):
                 string_length = len(value)
                 value = convert.bytes2zip(value)
                 file_length = len(value)
-                Log.note("Sending contents with length {{file_length|pipe}} (from string with length {{string_length}})", {"file_length": file_length, "string_length":string_length})
+                Log.note("Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})", {"file_length": file_length, "string_length":string_length})
                 value.seek(0)
                 storage.set_contents_from_file(value)
 
