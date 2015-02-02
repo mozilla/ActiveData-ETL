@@ -68,7 +68,9 @@ class FileString(object):
         return getattr(self.file, attr)
 
     def __del__(self):
-        self.file.close()
+        self.file, temp = None, self.file
+        if temp:
+            temp.close()
 
     def __iter__(self):
         self.file.seek(0)
