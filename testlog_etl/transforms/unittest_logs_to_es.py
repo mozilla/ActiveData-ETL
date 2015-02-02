@@ -36,7 +36,7 @@ def process_unittest(source_key, source, destination):
         e = e.source
 
 
-    summary = transform_buildbot(convert.json2value(lines[1]))
+    bb_summary = transform_buildbot(convert.json2value(lines[1]))
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
@@ -49,25 +49,25 @@ def process_unittest(source_key, source, destination):
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e
 
-    summary.etl = {
+    bb_summary.etl = {
         "name": "unittest",
         "timestamp": Date.now().milli,
         "source": etl_header,
         "type": "join",
         "duration": timer.duration
     }
-    summary.run.counts = summary.counts
-    summary.run.counts.bytes = total_bytes
+    bb_summary.run.counts = summary.counts
+    bb_summary.run.counts.bytes = total_bytes
 
     if DEBUG:
-        Log.note("Done\n{{data|indent}}", {"data": summary})
+        Log.note("Done\n{{data|indent}}", {"data": bb_summary})
 
     new_keys = []
     new_data = []
     for i, t in enumerate(summary.tests):
-        summary.etl.id = i
+        bb_summary.etl.id = i
 
-        key = etl2key(summary.etl)
+        key = etl2key(bb_summary.etl)
         new_keys.append(key)
 
         new_data.append({
@@ -75,9 +75,9 @@ def process_unittest(source_key, source, destination):
             "value": set_default(
                 {
                     "result": t,
-                    "etl": summary.etl
+                    "etl": bb_summary.etl.copy()
                 },
-                summary
+                bb_summary
             )
         })
     destination.extend(new_data)
@@ -91,7 +91,7 @@ def process_unittest_log(file_name, lines):
             continue
         try:
             accumulator.counts.lines += 1
-            log = convert.json2value(convert.utf82unicode(line))
+            log = convert.json2value(line)
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
