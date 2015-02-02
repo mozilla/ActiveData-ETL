@@ -113,6 +113,9 @@ def read_blobber_file(line_number, name, url):
     :param url:  for debugging
     :return:  RETURNS BYTES **NOT** UNICODE
     """
+    if name in ["emulator-5554.log", "qemu.log"] or any(map(name.endswith, [".png", ".html"])):
+        return None
+
     with Timer("Read {{url}}", {"url": url}, debug=DEBUG):
         response = http.get(url)
         log = response.all_content
@@ -134,27 +137,28 @@ def read_blobber_file(line_number, name, url):
         return None
 
     # DETECT IF THIS IS A STRUCTURED LOG
-    total = 0  # ENSURE WE HAVE A SIDE EFFECT
-    count = 0
-    bad = 0
-    for blobber_line in log.split("\n"):
-        if not blobber_line.strip():
-            continue
+    try:
+        total = 0  # ENSURE WE HAVE A SIDE EFFECT
+        count = 0
+        bad = 0
+        for blobber_line in log.split("\n"):
+            if not blobber_line.strip():
+                continue
 
-        try:
-            total += len(convert.json2value(blobber_line))
-            count += 1
-        except Exception, e:
-            if DEBUG:
-                Log.note("Not JSON: {{line}}", {
-                    "name": name,
-                    "line": blobber_line
-                })
-            bad += 1
-            if bad > 4:
-                break
+            try:
+                total += len(convert.json2value(blobber_line))
+                count += 1
+            except Exception, e:
+                if DEBUG:
+                    Log.note("Not JSON: {{line}}", {
+                        "name": name,
+                        "line": blobber_line
+                    })
+                bad += 1
+                if bad > 4:
+                    Log.error("Too many bad lines")
 
-    if bad > 4 and DEBUG:
+    except Exception, e:
         Log.note("Line {{index}}: {{name}} is NOT structured log", {
             "index": line_number,
             "name": name

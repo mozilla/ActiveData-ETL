@@ -271,7 +271,7 @@ class Log(object):
             cause = [cause]
         else:
             add_to_trace = True
-            if hasattr(cause, "message"):
+            if hasattr(cause, "message") and cause.message:
                 cause = [Except(ERROR, unicode(cause.message), trace=extract_tb(stack_depth))]
             else:
                 cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]

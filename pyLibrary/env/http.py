@@ -19,13 +19,10 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-import gc
 
 from requests import sessions, Response
-
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
-from pyLibrary.env.files_string import FileString
+from pyLibrary.dot import Dict, nvl
+from pyLibrary.env.files_string import safe_size
 
 
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -109,28 +106,18 @@ class HttpResponse(Response):
     def all_content(self):
         # Response.content WILL LEAK MEMORY (?BECAUSE OF PYPY"S POOR HANDLING OF GENERATORS?)
         # THE TIGHT, SIMPLE, LOOP TO FILL blocks PREVENTS THAT LEAK
-        if self._cached_content is not None:
-            return self._cached_content
+        if self._cached_content is None:
+            def read(size=None):
+                if self.raw._fp.fp is not None:
+                    return self.raw.read(amt=nvl(size, MIN_READ_SIZE), decode_content=True)
+                else:
+                    self.close()
+                    return None
 
-        total_bytes = 0
-        blocks = []
-        try:
-            while self.raw._fp.fp is not None:
-                d = self.raw.read(amt=MIN_READ_SIZE, decode_content=True)
-                blocks.append(d)
-                total_bytes += len(d)
-                if total_bytes > FILE_SIZE_LIMIT:
-                    return FileString(blocks, self.raw)
-        finally:
-            self.close()
+            self._cached_content = safe_size(Dict(read=read))
 
-        try:
-            self._cached_content = b"".join(blocks)
-        except Exception, e:
-            del blocks
-            gc.collect()
-            Log.error("Too much data ({{num_bytes|comma}} bytes)", {"num_bytes": total_bytes})
+        if hasattr(self._cached_content, "read"):
+            self._cached_content.seek(0)
 
-        del blocks  # BE VERY CERTAIN WE DO NOT HANG ON TO THIS MEMORY
         return self._cached_content
 
