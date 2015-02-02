@@ -22,7 +22,9 @@ DEBUG = True
 
 
 def process_unittest(source_key, source, destination):
-    lines = source.read().split("\n")
+    all_data = source.read()
+    total_bytes = len(all_data)
+    lines = all_data.split("\n")
 
     etl_header = convert.json2value(lines[0])
 
@@ -34,7 +36,7 @@ def process_unittest(source_key, source, destination):
         e = e.source
 
 
-    data = transform_buildbot(convert.json2value(lines[1]))
+    summary = transform_buildbot(convert.json2value(lines[1]))
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
@@ -47,23 +49,25 @@ def process_unittest(source_key, source, destination):
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e
 
-    data.etl = {
+    summary.etl = {
         "name": "unittest",
         "timestamp": Date.now().milli,
         "source": etl_header,
         "type": "join",
         "duration": timer.duration
     }
-    data.run.counts = summary.counts
+    summary.run.counts = summary.counts
+    summary.run.counts.bytes = total_bytes
 
     if DEBUG:
-        Log.note("Done\n{{data|indent}}", {"data": data})
+        Log.note("Done\n{{data|indent}}", {"data": summary})
 
     new_keys = []
     new_data = []
     for i, t in enumerate(summary.tests):
-        data.etl.id = i
-        key = etl2key(data.etl)
+        summary.etl.id = i
+
+        key = etl2key(summary.etl)
         new_keys.append(key)
 
         new_data.append({
@@ -71,9 +75,9 @@ def process_unittest(source_key, source, destination):
             "value": set_default(
                 {
                     "result": t,
-                    "etl": data.etl
+                    "etl": summary.etl
                 },
-                data
+                summary
             )
         })
     destination.extend(new_data)
