@@ -56,14 +56,14 @@ class ETL(Thread):
         settings=None
     ):
         # FIND THE WORKERS METHODS
-        settings.workers = deepcopy(settings.workers)
+        settings.workers = deepcopy(workers)
         for w in settings.workers:
             w.transformer = dot.get_attr(sys.modules, w.transformer)
             w._source = get_container(w.source)
             w._destination = get_container(w.destination)
 
         self.settings = settings
-        self.work_queue = aws.Queue(self.settings.work_queue)
+        self.work_queue = aws.Queue(work_queue)
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
 

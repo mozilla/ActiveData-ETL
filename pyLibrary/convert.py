@@ -16,6 +16,7 @@ import cgi
 import datetime
 import gzip
 import hashlib
+from io import BytesIO
 import json
 import re
 from tempfile import TemporaryFile
@@ -29,6 +30,7 @@ from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env.files_string import FileString
 from pyLibrary.jsons import quote
 from pyLibrary.jsons.encoder import encode
+from pyLibrary.lazy.unzip import LazyZip, LazyUnzip
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 
@@ -432,7 +434,7 @@ def zip2bytes(compressed):
     """
     UNZIP DATA
     """
-    buff = StringIO.StringIO(compressed)
+    buff = BytesIO(compressed)
     archive = gzip.GzipFile(fileobj=buff, mode='r')
     return archive.read()
 
@@ -440,16 +442,7 @@ def bytes2zip(bytes):
     """
     RETURN COMPRESSED BYTES
     """
-    if hasattr(bytes, "read"):
-        output = TemporaryFile()
-        archive = gzip.GzipFile(fileobj=output, mode='w')
-        bytes.seek(0)
-        archive.writelines(bytes)
-        archive.close()
-        output.seek(0)
-        return FileString(output)
-
-    buff = StringIO.StringIO()
+    buff = BytesIO()
     archive = gzip.GzipFile(fileobj=buff, mode='w')
     archive.write(bytes)
     archive.close()

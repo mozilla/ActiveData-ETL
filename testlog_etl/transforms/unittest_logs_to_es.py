@@ -7,7 +7,6 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from StringIO import StringIO
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
@@ -243,34 +242,3 @@ def transform_buildbot(payload):
     output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
 
     return output
-
-
-# FOR structured-catalog PROJECT
-try:
-    from pyLibrary.debugs.mozlog.structured.reader import LogHandler
-    class StoreResultsHandler(LogHandler):
-        def __init__(self, buildbot_json, datastore):
-            LogHandler.__init__(self)
-            # LOG PROCESSING REQUIRES CONTEXT, ETL PATH, AND THE BUILDBOT JSON IN
-            # FIRST TWO LINES
-            self.content = [
-                convert.value2json({"name":"dummy"}),
-                buildbot_json
-            ]
-            self.store = datastore
-
-        def __getattr__(self, key):
-            """
-            Remember everything
-            """
-            def accumulate(msg):
-                self.content.append[msg]
-            return accumulate
-
-        def close(self):
-            """
-            Must be called to know when log processing is done
-            """
-            process_unittest("dummy value", self.content, self.store)
-except Exception, e:
-    pass
