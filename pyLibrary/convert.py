@@ -433,7 +433,7 @@ def zip2bytes(compressed):
     """
     UNZIP DATA
     """
-    if hasattr(bytes, "read"):
+    if hasattr(compressed, "read"):
         buff = compressed
     else:
         buff = BytesIO(compressed)
