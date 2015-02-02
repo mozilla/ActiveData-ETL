@@ -49,7 +49,11 @@ class FileString(object):
         return LazyLines(self.file, self.encoding)
 
     def __len__(self):
-        return os.path.getsize(self.file.name)
+        temp = self.file.tell()
+        self.file.seek(0, 2)
+        file_length = self.file.tell()
+        self.file.seek(temp)
+        return file_length
 
     def __add__(self, other):
         self.file.seek(0, 2)
