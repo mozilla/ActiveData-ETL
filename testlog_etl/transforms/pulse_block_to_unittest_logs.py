@@ -30,7 +30,7 @@ def process_pulse_block(source_key, source, dest_bucket):
     output = []
     num_missing_envelope = 0
 
-    for i, line in enumerate(source.read().split("\n")):
+    for i, line in enumerate(source.read_lines()):
         try:
             if not line.strip():
                 continue
@@ -74,22 +74,23 @@ def process_pulse_block(source_key, source, dest_bucket):
                         Log.note("Line {{index}}: found structured log with NULL url", {"index": i})
                     continue
 
-                log_content = read_blobber_file(i, name, url)
+                log_content, num_lines = read_blobber_file(i, name, url)
                 if not log_content:
                     continue
 
                 dest_key, dest_etl = etl_key(envelope, source_key, name)
                 if DEBUG:
-                    Log.note("Line {{index}}: found structured log {{name}} for {{key}}", {
+                    Log.note("Line {{index}}: found structured log {{name}} with {{num_lines}} lines (key={{key}})", {
                         "index": i,
                         "name": name,
-                        "key": dest_key
+                        "key": dest_key,
+                        "num_lines": num_lines
                     })
 
-                dest_bucket.write(
+                dest_bucket.write_lines(
                     dest_key,
-                    convert.unicode2utf8(convert.value2json(dest_etl)) + b"\n" +  # ETL HEADER
-                    convert.unicode2utf8(line) + b"\n" +  # PULSE MESSAGE
+                    convert.value2json(dest_etl),  # ETL HEADER
+                    line,  # PULSE MESSAGE
                     log_content
                 )
                 file_num += 1
@@ -114,34 +115,27 @@ def read_blobber_file(line_number, name, url):
     :return:  RETURNS BYTES **NOT** UNICODE
     """
     if name in ["emulator-5554.log", "qemu.log"] or any(map(name.endswith, [".png", ".html"])):
-        return None
+        return None, 0
 
-    with Timer("Read {{url}}", {"url": url}, debug=DEBUG):
+    with Timer("Read {{name}}: {{url}}", {"name":name, "url": url}, debug=DEBUG):
         response = http.get(url)
-        log = response.all_content
-        if DEBUG:
-            Log.note("Length: {{length|comma}} (from {{content_length|comma}})", {
-                "length": len(log),
-                "content_length": response.headers["content-length"]
-            })
-
-    try:
-        log = convert.utf82unicode(log)
-    except Exception, e:
-        if DEBUG:
-            Log.note("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
-                "index": line_number,
-                "name": name,
-                "url": url
-            })
-        return None
+        try:
+            logs = response.all_lines
+        except Exception, e:
+            if DEBUG:
+                Log.warning("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
+                    "index": line_number,
+                    "name": name,
+                    "url": url
+                }, e)
+            return None, 0
 
     # DETECT IF THIS IS A STRUCTURED LOG
     try:
         total = 0  # ENSURE WE HAVE A SIDE EFFECT
         count = 0
         bad = 0
-        for blobber_line in log.split("\n"):
+        for blobber_line in logs:
             if not blobber_line.strip():
                 continue
 
@@ -159,13 +153,14 @@ def read_blobber_file(line_number, name, url):
                     Log.error("Too many bad lines")
 
     except Exception, e:
-        Log.note("Line {{index}}: {{name}} is NOT structured log", {
-            "index": line_number,
-            "name": name
-        })
-        return None
+        if DEBUG:
+            Log.note("Line {{index}}: {{name}} is NOT structured log", {
+                "index": line_number,
+                "name": name
+            })
+        return None, 0
 
-    return log
+    return logs, count
 
 
 def etl_key(envelope, source_key, name):

@@ -22,9 +22,9 @@ DEBUG = True
 
 
 def process_unittest(source_key, source, destination):
-    all_data = source.read()
-    total_bytes = len(all_data)
-    lines = all_data.split("\n")
+    lines = source.read_lines()
+    # total_bytes = len(all_data)
+    # lines = all_data.split("\n")
 
     etl_header = convert.json2value(lines[0])
 
@@ -54,10 +54,10 @@ def process_unittest(source_key, source, destination):
         "timestamp": Date.now().milli,
         "source": etl_header,
         "type": "join",
-        "duration": timer.duration
+        "duration": timer.duration.total_seconds()
     }
     bb_summary.run.counts = summary.counts
-    bb_summary.run.counts.bytes = total_bytes
+    # bb_summary.run.counts.bytes = total_bytes
 
     if DEBUG:
         Log.note("Done\n{{data|indent}}", {"data": bb_summary})

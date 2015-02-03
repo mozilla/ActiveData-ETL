@@ -434,12 +434,12 @@ def zip2bytes(compressed):
     UNZIP DATA
     """
     if hasattr(compressed, "read"):
-        buff = compressed
-    else:
-        buff = BytesIO(compressed)
+        return gzip.GzipFile(fileobj=compressed, mode='r')
 
+    buff = BytesIO(compressed)
     archive = gzip.GzipFile(fileobj=buff, mode='r')
     return safe_size(archive)
+
 
 def bytes2zip(bytes):
     """

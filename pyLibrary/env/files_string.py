@@ -19,13 +19,17 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-import os
+import gzip
+from io import BytesIO
 from tempfile import TemporaryFile
+import zlib
+
 from pyLibrary.debugs.logs import Log
+from pyLibrary.maths import Math
 
 
 MIN_READ_SIZE = 8 * 1024
-MAX_STRING_SIZE = 1 * 1024 * 1024
+MAX_STRING_SIZE = 1 * 1024 #* 1024
 
 
 class FileString(object):
@@ -46,7 +50,7 @@ class FileString(object):
         if sep != "\n":
             Log.error("Can only split by lines")
         self.file.seek(0)
-        return LazyLines(self.file, self.encoding)
+        return LazyLines(self.file)
 
     def __len__(self):
         temp = self.file.tell()
@@ -54,6 +58,11 @@ class FileString(object):
         file_length = self.file.tell()
         self.file.seek(temp)
         return file_length
+
+    def __getslice__(self, i, j):
+        self.file.seek(i)
+        output = self.file.read(j-i).decode(self.encoding)
+        return output
 
     def __add__(self, other):
         self.file.seek(0, 2)
@@ -112,36 +121,131 @@ def safe_size(source):
 
 
 class LazyLines(object):
-    def __init__(self, source, encoding):
-        self.iter = (l.decode(encoding) for l in source)
-        self.last = None
-        self.next = 0
+    """
+    SIMPLE LINE ITERATOR, BUT WITH A BIT OF CACHING TO LOOK LIKE AN ARRAY
+    """
+
+    def __init__(self, source):
+        """
+        ASSUME source IS A LINE ITERATOR OVER utf8 ENCODED BYTE STREAM
+        """
+        self.source = source
+        self._iter = self.__iter__()
+        self._last = None
+        self._next = 0
 
     def __getslice__(self, i, j):
-        if i == self.next:
-            return self
+        if i == self._next:
+            return self._iter
         Log.error("Do not know how to slice this generator")
 
     def __iter__(self):
         def output():
-            while True:
-                self.last = self.iter.next()
-                self.next += 1
-                yield self.last
+            for v in self.source:
+                self._last = v.decode("utf8")
+                self._next += 1
+                yield self._last
 
         return output()
 
     def __getitem__(self, item):
         try:
-            if item == self.next:
-                self.last = self.iter.next()
-                self.next += 1
-                return self.last
-            elif item == self.next - 1:
-                return self.last
+            if item == self._next:
+                return self._iter.next()
+            elif item == self._next - 1:
+                return self._last
             else:
                 Log.error("can not index out-of-order too much")
         except Exception, e:
             Log.error("Problem indexing", e)
 
 
+
+
+class CompressedLines(LazyLines):
+    """
+    KEEP COMPRESSED HTTP (content-type: gzip) IN BYTES ARRAY
+    WHILE PULLING OUT ONE LINE AT A TIME FOR PROCESSING
+    """
+
+    def __init__(self, compressed):
+        """
+        USED compressed BYTES TO DELIVER LINES OF TEXT
+        LIKE LazyLines, BUT HAS POTENTIAL TO seek()
+        """
+        LazyLines.__init__(self, None)
+        self.compressed = compressed
+        self._iter = self.__iter__()
+
+    def __iter__(self):
+        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+
+        def blocks():
+            for i in range(0, Math.ceiling(len(self.compressed), MIN_READ_SIZE), MIN_READ_SIZE):
+                yield decompressor.decompress(self.compressed[i: i + MIN_READ_SIZE])
+
+        return LazyLines(ibytes2ilines(blocks())).__iter__()
+
+    def __getslice__(self, i, j):
+        if i == self._next:
+            return self._iter
+        Log.error("Do not know how to slice this generator")
+
+    def __getitem__(self, item):
+        try:
+            if item == self._next:
+                self._last = self._iter.next()
+                self._next += 1
+                return self._last
+            elif item == self._next - 1:
+                return self._last
+            else:
+                Log.error("can not index out-of-order too much")
+        except Exception, e:
+            Log.error("Problem indexing", e)
+
+
+    def __radd__(self, other):
+        new_file = TemporaryFile()
+        new_file.write(other)
+        self.file.seek(0)
+        for l in self.file:
+            new_file.write(l)
+        new_file.seek(0)
+        return FileString(new_file)
+
+
+def ibytes2ilines(stream):
+    """
+    CONVERT A GENERATOR OF (ARBITRARY-SIZED) byte BLOCKS
+    TO A LINE (CR-DELIMITED) GENERATOR
+    """
+    buffer = stream.next()
+    s = 0
+    e = buffer.find(b"\n")
+    while True:
+        while e == -1:
+            try:
+                buffer = buffer[s:] + stream.next()
+                s = 0
+                e = buffer.find(b"\n")
+            except StopIteration:
+                yield buffer[s:]
+                return
+
+        yield buffer[s:e]
+        s = e + 1
+        e = buffer.find(b"\n", s)
+
+
+class GzipLines(CompressedLines):
+    """
+    SAME AS CompressedLines, BUT USING THE GzipFile FORMAT FOR COMPRESSED BYTES
+    """
+
+    def __init__(self, compressed):
+        CompressedLines.__init__(self, compressed)
+
+    def __iter__(self):
+        buff = BytesIO(self.compressed)
+        return LazyLines(gzip.GzipFile(fileobj=buff, mode='r')).__iter__()
