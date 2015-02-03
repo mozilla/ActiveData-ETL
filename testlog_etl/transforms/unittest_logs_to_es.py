@@ -23,8 +23,6 @@ DEBUG = True
 
 def process_unittest(source_key, source, destination):
     lines = source.read_lines()
-    # total_bytes = len(all_data)
-    # lines = all_data.split("\n")
 
     etl_header = convert.json2value(lines[0])
 
@@ -57,7 +55,6 @@ def process_unittest(source_key, source, destination):
         "duration": timer.duration.total_seconds()
     }
     bb_summary.run.counts = summary.counts
-    # bb_summary.run.counts.bytes = total_bytes
 
     if DEBUG:
         Log.note("Done\n{{data|indent}}", {"data": bb_summary})
@@ -87,6 +84,8 @@ def process_unittest(source_key, source, destination):
 def process_unittest_log(file_name, lines):
     accumulator = LogSummary()
     for line in lines:
+        accumulator.counts.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
+
         if line.strip() == "":
             continue
         try:

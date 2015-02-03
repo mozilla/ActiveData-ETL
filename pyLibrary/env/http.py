@@ -19,13 +19,13 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from itertools import imap
 
 from requests import sessions, Response
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, nvl
-from pyLibrary.env.files_string import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines
+from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines
 
 
 FILE_SIZE_LIMIT = 100 * 1024 * 1024

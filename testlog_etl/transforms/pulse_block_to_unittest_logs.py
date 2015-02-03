@@ -59,11 +59,11 @@ def process_pulse_block(source_key, source, dest_bucket):
                     "key":source_key
                 })
         except Exception, e:
-            Log.error("Line {{index}}: Problem with  line for key {{key}}\n{{line}}", {
+            Log.error("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
                 "line": line,
                 "index": i,
-                "key":source_key
-            })
+                "key": source_key
+            }, e)
 
 
         file_num = 0

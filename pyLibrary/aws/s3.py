@@ -20,7 +20,7 @@ from boto.s3.connection import Location
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
-from pyLibrary.env.files_string import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
+from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 

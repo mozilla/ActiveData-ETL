@@ -27,7 +27,7 @@ from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.env.files_string import FileString, safe_size
+from pyLibrary.env.big_data import FileString, safe_size
 from pyLibrary.jsons import quote
 from pyLibrary.jsons.encoder import encode
 from pyLibrary.strings import expand_template

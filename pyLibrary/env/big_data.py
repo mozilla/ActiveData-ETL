@@ -29,7 +29,7 @@ from pyLibrary.maths import Math
 
 
 MIN_READ_SIZE = 8 * 1024
-MAX_STRING_SIZE = 1 * 1024 #* 1024
+MAX_STRING_SIZE = 1 * 1024 * 1024
 
 
 class FileString(object):
@@ -173,8 +173,8 @@ class CompressedLines(LazyLines):
         USED compressed BYTES TO DELIVER LINES OF TEXT
         LIKE LazyLines, BUT HAS POTENTIAL TO seek()
         """
-        LazyLines.__init__(self, None)
         self.compressed = compressed
+        LazyLines.__init__(self, None)
         self._iter = self.__iter__()
 
     def __iter__(self):
