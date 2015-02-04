@@ -78,23 +78,25 @@ def process_pulse_block(source_key, source, dest_bucket):
                 if not log_content:
                     continue
 
-                dest_key, dest_etl = etl_key(envelope, source_key, name)
-                if DEBUG:
-                    Log.note("Line {{index}}: found structured log {{name}} with {{num_lines}} lines (key={{key}})", {
+                with Timer(
+                    "Copied {{name}} with {{num_lines}} lines (key={{key}})",
+                    {
                         "index": i,
                         "name": name,
-                        "key": dest_key,
                         "num_lines": num_lines
-                    })
+                    },
+                    debug=DEBUG
+                ):
+                    dest_key, dest_etl = etl_key(envelope, source_key, name)
 
-                dest_bucket.write_lines(
-                    dest_key,
-                    convert.value2json(dest_etl),  # ETL HEADER
-                    line,  # PULSE MESSAGE
-                    log_content
-                )
-                file_num += 1
-                output.append(dest_key)
+                    dest_bucket.write_lines(
+                        dest_key,
+                        convert.value2json(dest_etl),  # ETL HEADER
+                        line,  # PULSE MESSAGE
+                        log_content
+                    )
+                    file_num += 1
+                    output.append(dest_key)
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
 

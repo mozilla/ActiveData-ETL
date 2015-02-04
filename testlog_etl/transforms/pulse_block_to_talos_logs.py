@@ -55,15 +55,9 @@ def process_talos(source_key, source, dest_bucket):
                     if response.status_code == 404:
                         Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
                         continue
-                    bytes = response.all_content
+                    all_lines = response.all_lines
 
-                if envelope.data.logurl.endswith(".gz"):
-                    try:
-                        bytes = convert.zip2bytes(bytes)
-                    except Exception, e:
-                        pass
-
-                for talos_line in bytes.split(b"\n"):
+                for talos_line in all_lines:
                     s = talos_line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
@@ -79,9 +73,8 @@ def process_talos(source_key, source, dest_bucket):
                     all_talos.extend(talos)
 
             except Exception, e:
-                Log.error("Problem processing {{url}} bytes is {{desc_bytes}}", {
-                    "url": envelope.data.logurl,
-                    "desc_bytes": repr(bytes)
+                Log.error("Problem processing {{url}}", {
+                    "url": envelope.data.logurl
                 }, e)
 
     if all_talos:

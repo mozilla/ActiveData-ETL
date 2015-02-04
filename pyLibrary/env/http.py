@@ -110,9 +110,9 @@ class HttpResponse(Response):
         # Response.content WILL LEAK MEMORY (?BECAUSE OF PYPY"S POOR HANDLING OF GENERATORS?)
         # THE TIGHT, SIMPLE, LOOP TO FILL blocks PREVENTS THAT LEAK
         if self._cached_content is None:
-            def read(size=None):
+            def read(size):
                 if self.raw._fp.fp is not None:
-                    return self.raw.read(amt=nvl(size, MIN_READ_SIZE), decode_content=True)
+                    return self.raw.read(amt=size, decode_content=True)
                 else:
                     self.close()
                     return None
@@ -127,16 +127,13 @@ class HttpResponse(Response):
     @property
     def all_lines(self):
         try:
-            if int(self.headers["content-length"]) < MAX_STRING_SIZE:
-                content = self.raw.read(decode_content=False)
-                if self.headers.get('content-encoding') == 'gzip':
-                    return CompressedLines(content)
-                elif self.headers.get('content-type') == 'application/zip':
-                    return GzipLines(content)
-                else:
-                    return convert.utf82unicode(content).split("\n")
+            content = self.raw.read(decode_content=False)
+            if self.headers.get('content-encoding') == 'gzip':
+                return CompressedLines(content)
+            elif self.headers.get('content-type') == 'application/zip':
+                return GzipLines(content)
             else:
-                return LazyLines(self.all_content)
+                return convert.utf82unicode(content).split("\n")
         except Exception, e:
             Log.error("Not JSON", e)
         finally:

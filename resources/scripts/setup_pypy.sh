@@ -10,7 +10,8 @@ sudo swapon /media/swapfile.img
 #DOWNLOAD PYPY
 mkdir /home/ubuntu/temp
 cd /home/ubuntu/temp
-wget https://bitbucket.org/pypy/pypy/downloads/pypy-2.4.0-linux64.tar.bz2
+# wget https://bitbucket.org/pypy/pypy/downloads/pypy-2.4.0-linux64.tar.bz2
+wget https://bitbucket.org/pypy/pypy/downloads/pypy-2.5.0-linux64.tar.bz2
 tar xfj pypy-2.4.0-linux64.tar.bz2
 
 # MUST GO TO DIR TO MAKE LINK

@@ -7,6 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from __future__ import division
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
@@ -49,7 +50,7 @@ def process_unittest(source_key, source, destination):
 
     bb_summary.etl = {
         "name": "unittest",
-        "timestamp": Date.now().milli,
+        "timestamp": Date.now().milli / 1000,
         "source": etl_header,
         "type": "join",
         "duration": timer.duration.total_seconds()
@@ -102,7 +103,12 @@ def process_unittest_log(file_name, lines):
             Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
-    Log.note("{{num_lines}} lines and {{num_tests}} tests in {{name}}", {"num_lines": output.counts.lines, "num_tests": output.counts.total, "name": file_name})
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}}", {
+        "num_bytes": output.counts.bytes,
+        "num_lines": output.counts.lines,
+        "num_tests": output.counts.total,
+        "name": file_name
+    })
     return output
 
 

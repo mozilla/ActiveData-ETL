@@ -235,7 +235,7 @@ class Bucket(object):
             storage.set_contents_from_string(value)
 
             if self.settings.public:
-                key.set_acl('public-read')
+                storage.set_acl('public-read')
         except Exception, e:
             Log.error("Problem writing {{bytes}} bytes to {{key}} in {{bucket}}", {
                 "key": storage.key,

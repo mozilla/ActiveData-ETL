@@ -218,6 +218,7 @@ def main():
                 please_stop=stopper
             )
 
+        wait_for_exit(stopper)
         Thread.wait_for_shutdown_signal(stopper)
 
         for thread in threads:
@@ -227,6 +228,23 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
+
+
+
+
+def readloop(please_stop):
+    while not please_stop:
+        command = sys.stdin.readline()
+        if command.strip() == "exit":
+            break
+    please_stop.go()
+
+def wait_for_exit(please_stop):
+    Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
+
+
+
+
 
 
 if __name__ == "__main__":

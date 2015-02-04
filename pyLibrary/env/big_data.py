@@ -93,6 +93,7 @@ class FileString(object):
 def safe_size(source):
     """
     READ THE source UP TO SOME LIMIT, THEN COPY TO A FILE IF TOO BIG
+    RETURN A str() OR A FileString()
     """
 
     total_bytes = 0
@@ -109,9 +110,12 @@ def safe_size(source):
             del bb
             b = source.read(MIN_READ_SIZE)
             while b:
+                total_bytes += len(b)
                 data.write(b)
                 b = source.read(MIN_READ_SIZE)
             data.seek(0)
+            Log.note("Using file of size {{length}} instead of str()", {"length": total_bytes})
+
             return data
         b = source.read(MIN_READ_SIZE)
 
@@ -178,17 +182,7 @@ class CompressedLines(LazyLines):
         self._iter = self.__iter__()
 
     def __iter__(self):
-        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-
-        def blocks():
-            for i in range(0, Math.ceiling(len(self.compressed), MIN_READ_SIZE), MIN_READ_SIZE):
-                try:
-                    block=self.compressed[i: i + MIN_READ_SIZE]
-                    yield decompressor.decompress(block)
-                except Exception, e:
-                    Log.error("Not expected", e)
-
-        return LazyLines(ibytes2ilines(blocks())).__iter__()
+        return LazyLines(ibytes2ilines(bytes2ibytes(self.compressed, MIN_READ_SIZE))).__iter__()
 
     def __getslice__(self, i, j):
         if i == self._next:
@@ -219,6 +213,23 @@ class CompressedLines(LazyLines):
         return FileString(new_file)
 
 
+def bytes2ibytes(compressed, size):
+    """
+    CONVERT AN ARRAY TO A BYTE-BLOCK GENERATOR
+    USEFUL IN THE CASE WHEN WE WANT TO LIMIT HOW MUCH WE FEED ANOTHER
+    GENERATOR (LIKE A DECOMPRESSOR)
+    """
+
+    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+
+    for i in range(0, Math.ceiling(len(compressed), size), size):
+        try:
+            block = compressed[i: i + size]
+            yield decompressor.decompress(block)
+        except Exception, e:
+            Log.error("Not expected", e)
+
+
 def ibytes2ilines(stream):
     """
     CONVERT A GENERATOR OF (ARBITRARY-SIZED) byte BLOCKS
@@ -235,6 +246,7 @@ def ibytes2ilines(stream):
                 e = buffer.find(b"\n")
             except StopIteration:
                 yield buffer[s:]
+                del stream
                 return
 
         yield buffer[s:e]
