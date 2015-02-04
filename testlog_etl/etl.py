@@ -81,7 +81,7 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note( "No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}", {
+            Log.note("No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}", {
                 "bucket": source_block.bucket,
                 "message": source_block
             })
@@ -117,7 +117,6 @@ class ETL(Thread):
                         "source_key": source_key
                     })
                     continue
-
 
                 delete_me = old_keys - new_keys
                 if delete_me:

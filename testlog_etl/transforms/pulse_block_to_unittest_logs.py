@@ -59,7 +59,7 @@ def process_pulse_block(source_key, source, dest_bucket):
                     "key":source_key
                 })
         except Exception, e:
-            Log.error("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
+            Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
                 "line": line,
                 "index": i,
                 "key": source_key
@@ -122,12 +122,19 @@ def read_blobber_file(line_number, name, url):
         try:
             logs = response.all_lines
         except Exception, e:
-            if DEBUG:
-                Log.warning("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
+            if name.endswith("_raw.log"):
+                Log.error("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
                     "index": line_number,
                     "name": name,
                     "url": url
                 }, e)
+
+            if DEBUG:
+                Log.note("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
+                    "index": line_number,
+                    "name": name,
+                    "url": url
+                })
             return None, 0
 
     # DETECT IF THIS IS A STRUCTURED LOG
@@ -153,6 +160,11 @@ def read_blobber_file(line_number, name, url):
                     Log.error("Too many bad lines")
 
     except Exception, e:
+        if name.endswith("_raw.log"):
+            Log.error("Line {{index}}: {{name}} is NOT structured log", {
+                "index": line_number,
+                "name": name
+            }, e)
         if DEBUG:
             Log.note("Line {{index}}: {{name}} is NOT structured log", {
                 "index": line_number,

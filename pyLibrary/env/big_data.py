@@ -182,7 +182,11 @@ class CompressedLines(LazyLines):
 
         def blocks():
             for i in range(0, Math.ceiling(len(self.compressed), MIN_READ_SIZE), MIN_READ_SIZE):
-                yield decompressor.decompress(self.compressed[i: i + MIN_READ_SIZE])
+                try:
+                    block=self.compressed[i: i + MIN_READ_SIZE]
+                    yield decompressor.decompress(block)
+                except Exception, e:
+                    Log.error("Not expected", e)
 
         return LazyLines(ibytes2ilines(blocks())).__iter__()
 

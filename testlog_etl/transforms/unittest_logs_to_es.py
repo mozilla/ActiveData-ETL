@@ -57,7 +57,7 @@ def process_unittest(source_key, source, destination):
     bb_summary.run.counts = summary.counts
 
     if DEBUG:
-        Log.note("Done\n{{data|indent}}", {"data": bb_summary})
+        Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.counts})
 
     new_keys = []
     new_data = []

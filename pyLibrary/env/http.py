@@ -25,7 +25,7 @@ from requests import sessions, Response
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, nvl
-from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines
+from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines, GzipLines
 
 
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -128,14 +128,16 @@ class HttpResponse(Response):
     def all_lines(self):
         try:
             if int(self.headers["content-length"]) < MAX_STRING_SIZE:
-                content = self.content
+                content = self.raw.read(decode_content=False)
                 if self.headers.get('content-encoding') == 'gzip':
                     return CompressedLines(content)
+                elif self.headers.get('content-type') == 'application/zip':
+                    return GzipLines(content)
                 else:
                     return convert.utf82unicode(content).split("\n")
             else:
                 return LazyLines(self.all_content)
         except Exception, e:
-            Log.error("Not expected", e)
+            Log.error("Not JSON", e)
         finally:
             self.close()
