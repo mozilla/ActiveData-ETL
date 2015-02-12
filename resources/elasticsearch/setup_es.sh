@@ -28,7 +28,7 @@ sudo bin/plugin -install mobz/elasticsearch-head
 # ââxvda1 202:1    0   8G  0 part /
 # xvdb    202:16   0   1T  0 disk
 
-# ENSURE THIS RETURNS "data", WHICH INDICATES NO FILESYTEM EXISTS
+# ENSURE THIS RETURNS "data", WHICH INDICATES NO FILESYSTEM EXISTS
 #[ec2-user@ip-172-31-0-7 dev]$ sudo file -s /dev/xvdb
 #/dev/xvdb: data
 
@@ -46,6 +46,7 @@ sudo mount -a
 sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo chmod 600 /usr/local/elasticsearch/config/elasticsearch.yml
 
+sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 cd /usr/local/elasticsearch
 

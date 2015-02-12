@@ -1,4 +1,4 @@
-# USE THIS TO INSTALL INTO STANDARD EC2 INSTANCE
+# USE THIS TO INSTALL INTO AMAZON LINUX INSTANCE
 sudo yum -y install python27
 mkdir  /home/ec2-user/temp
 cd  /home/ec2-user/temp

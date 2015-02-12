@@ -22,6 +22,7 @@ from __future__ import division
 import gzip
 from io import BytesIO
 from tempfile import TemporaryFile
+import zipfile
 import zlib
 
 from pyLibrary.debugs.logs import Log
@@ -61,7 +62,7 @@ class FileString(object):
 
     def __getslice__(self, i, j):
         self.file.seek(i)
-        output = self.file.read(j-i).decode(self.encoding)
+        output = self.file.read(j - i).decode(self.encoding)
         return output
 
     def __add__(self, other):
@@ -164,8 +165,6 @@ class LazyLines(object):
             Log.error("Problem indexing", e)
 
 
-
-
 class CompressedLines(LazyLines):
     """
     KEEP COMPRESSED HTTP (content-type: gzip) IN BYTES ARRAY
@@ -253,6 +252,17 @@ def ibytes2ilines(stream):
         s = e + 1
         e = buffer.find(b"\n", s)
 
+def sbytes2ilines(stream):
+    """
+    CONVERT A STREAM OF (ARBITRARY-SIZED) byte BLOCKS
+    TO A LINE (CR-DELIMITED) GENERATOR
+    """
+    def read():
+        output = stream.read(MIN_READ_SIZE)
+        return output
+
+    return ibytes2ilines({"next": read})
+
 
 class GzipLines(CompressedLines):
     """
@@ -265,3 +275,21 @@ class GzipLines(CompressedLines):
     def __iter__(self):
         buff = BytesIO(self.compressed)
         return LazyLines(gzip.GzipFile(fileobj=buff, mode='r')).__iter__()
+
+
+class ZipfileLines(CompressedLines):
+    """
+    SAME AS CompressedLines, BUT USING THE GzipFile FORMAT FOR COMPRESSED BYTES
+    """
+
+    def __init__(self, compressed):
+        CompressedLines.__init__(self, compressed)
+
+    def __iter__(self):
+        buff = BytesIO(self.compressed)
+        archive = zipfile.ZipFile(buff, mode='r')
+        names = archive.namelist()
+        if len(names) != 1:
+            Log.error("*.zip file has {{num}} files, expecting only one.", {"num": len(names)})
+        stream = archive.open(names[0], "r")
+        return LazyLines(sbytes2ilines(stream)).__iter__()

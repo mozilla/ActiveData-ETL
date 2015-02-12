@@ -79,7 +79,7 @@ def process_pulse_block(source_key, source, dest_bucket):
                     continue
 
                 with Timer(
-                    "Copied {{name}} with {{num_lines}} lines (key={{key}})",
+                    "Copied {{name}} with {{num_lines}} lines)",
                     {
                         "index": i,
                         "name": name,

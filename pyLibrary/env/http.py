@@ -25,7 +25,7 @@ from requests import sessions, Response
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, nvl
-from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines, GzipLines
+from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, CompressedLines, LazyLines, GzipLines, ZipfileLines
 
 
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -131,7 +131,7 @@ class HttpResponse(Response):
             if self.headers.get('content-encoding') == 'gzip':
                 return CompressedLines(content)
             elif self.headers.get('content-type') == 'application/zip':
-                return GzipLines(content)
+                return ZipfileLines(content)
             else:
                 return convert.utf82unicode(content).split("\n")
         except Exception, e:
