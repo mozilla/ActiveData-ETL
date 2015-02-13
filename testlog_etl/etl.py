@@ -203,8 +203,8 @@ class Index_w_Keys(elasticsearch.Index):
 def main():
     try:
         settings = startup.read_settings()
-        Log.start(settings.debug)
         constants.set(settings.constants)
+        Log.start(settings.debug)
 
         stopper = Signal()
         threads = [None] * nvl(settings.param.threads, 1)
