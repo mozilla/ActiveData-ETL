@@ -68,10 +68,10 @@
 		"log": [
 			{
 				"log_type": "console"
-			}            ,
+			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://54.148.242.195",
+				"host": "http://172.31.0.7",
 				"index": "debug",
 				"type": "unittest_etl"
 			}
