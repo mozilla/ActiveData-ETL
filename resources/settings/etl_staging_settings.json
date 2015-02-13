@@ -34,7 +34,8 @@
 			},
 			"destination": {
 				"$ref":"file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos"
+				"bucket": "ekyle-talos",
+				"public": true
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join"

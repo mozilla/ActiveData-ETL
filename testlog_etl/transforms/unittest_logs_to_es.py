@@ -15,6 +15,7 @@ from pyLibrary.maths import Math
 from pyLibrary.queries import Q
 from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
 from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 
@@ -34,7 +35,6 @@ def process_unittest(source_key, source, destination):
             e.id = int(e.id.split(":")[0])
         e = e.source
 
-
     bb_summary = transform_buildbot(convert.json2value(lines[1]))
 
     timer = Timer("Process log {{file}} for {{key}}", {
@@ -49,6 +49,7 @@ def process_unittest(source_key, source, destination):
         raise e
 
     bb_summary.etl = {
+        "id": 0,
         "name": "unittest",
         "timestamp": Date.now().milli / 1000,
         "source": etl_header,
@@ -59,14 +60,18 @@ def process_unittest(source_key, source, destination):
     bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
 
     if DEBUG:
+        age = Date.now() - Date(int(bb_summary.run.stats.start_time * 1000))
+        if age > Duration.DAY:
+            Log.alert("Test is {{days|round(decimal=1)}} days old", {"days": age / Duration.DAY})
         Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.stats})
 
     new_keys = []
     new_data = []
     for i, t in enumerate(summary.tests):
-        bb_summary.etl.id = i
+        etl = bb_summary.etl.copy()
+        etl.id = i
 
-        key = etl2key(bb_summary.etl)
+        key = etl2key(etl)
         new_keys.append(key)
 
         new_data.append({
@@ -74,7 +79,7 @@ def process_unittest(source_key, source, destination):
             "value": set_default(
                 {
                     "result": t,
-                    "etl": bb_summary.etl.copy()
+                    "etl": etl
                 },
                 bb_summary
             )
@@ -131,7 +136,7 @@ class LogSummary(Dict):
             log.test = " ".join(log.test)
         self.tests[literal_field(log.test)] = Dict(
             test=log.test,
-            start=log.time
+            start_time=log.time
         )
 
     def test_status(self, log):
@@ -139,10 +144,10 @@ class LogSummary(Dict):
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
-                start=log.time,
+                start_time=log.time,
                 missing_test_start=True
             )
-        test.last_log = log.time
+        test.last_log_time = log.time
         test.stati[log.status.lower()] += 1
 
     def process_output(self, log):
@@ -156,10 +161,10 @@ class LogSummary(Dict):
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
-                start=log.time,
+                start_time=log.time,
                 missing_test_start=True
             )
-        test.last_log = log.time
+        test.last_log_time = log.time
         test.stats.log_lines += 1
 
     def crash(self, log):
@@ -170,26 +175,26 @@ class LogSummary(Dict):
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
-                start=log.time,
+                start_time=log.time,
                 crash=True,
                 missing_test_start=True
             )
-        test.last_log = log.time
+        test.last_log_time = log.time
 
     def test_end(self, log):
         test = self.tests[literal_field(log.test)]
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
-                start=log.time,
+                start_time=log.time,
                 missing_test_start=True
             )
 
         test.ok = not log.expected
         test.result = log.status
         test.expected = nvl(log.expected, log.status)
-        test.end = log.time
-        test.duration = nvl(test.end - test.start, log.extra.runtime)
+        test.end_time = log.time
+        test.duration = nvl(test.end_time - test.start_time, log.extra.runtime)
         test.extra = test.extra
 
         if not test.ok:
@@ -205,8 +210,8 @@ class LogSummary(Dict):
         for t in tests:
             if not t.result:
                 t.result = "NONE"
-                t.end = t.last_log
-                t.duration = t.end - t.start
+                t.end_time = t.last_log_time
+                t.duration = t.end_time - t.start_time
                 t.missing_test_end = True
 
         self.stats.total = len(tests)
@@ -252,7 +257,7 @@ def transform_buildbot(payload):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
 
-    output.run.timestamp = Date(output.run.timestamp).milli
+    output.run.timestamp = Date(output.run.timestamp).milli / 1000
 
     output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
 
