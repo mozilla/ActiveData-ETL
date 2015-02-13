@@ -40,9 +40,9 @@ class Domain(object):
         desc = wrap(desc)
         self.name = nvl(desc.name, desc.type)
         self.type = desc.type
-        self.min = desc.min
-        self.max = desc.max
-        self.interval = desc.interval
+        # self.min = desc.min
+        # self.max = desc.max
+        # self.interval = desc.interval
         self.value = desc.value
         self.key = desc.key
         self.label = desc.label
@@ -51,21 +51,19 @@ class Domain(object):
         self.dimension = desc.dimension
 
     def __copy__(self):
-        return Domain(**unwrap(self.dict))
+        return Domain(**self.__dict__())
 
     def copy(self):
-        return Domain(**unwrap(self.dict))
+        return Domain(**self.__dict__())
 
-
-    @property
-    def dict(self):
+    def __dict__(self):
         return Dict(
             type=self.type,
             name=self.name,
             partitions=self.partitions,
-            min=self.min,
-            max=self.max,
-            interval=self.interval,
+            # min=self.min,
+            # max=self.max,
+            # interval=self.interval,
             value=self.value,
             key=self.key,
             label=self.label,
@@ -74,7 +72,7 @@ class Domain(object):
         )
 
     def __json__(self):
-        return convert.value2json(self.dict)
+        return convert.value2json(self.__dict__())
 
 
 class ValueDomain(Domain):
@@ -116,6 +114,7 @@ class DefaultDomain(Domain):
         self.partitions = DictList()
         self.map = dict()
         self.map[None] = self.NULL
+        self.where = None
 
     def compare(self, a, b):
         return value_compare(a.value, b.value)
@@ -124,7 +123,7 @@ class DefaultDomain(Domain):
         return self.getPartByKey(part.value)
 
     def getPartByKey(self, key):
-        canonical = self.map.get(key, None)
+        canonical = self.map.get(key)
         if canonical:
             return canonical
 
@@ -220,7 +219,7 @@ class SimpleSetDomain(Domain):
 
     def getIndexByKey(self, key):
         try:
-            output = self.order.get(key, None)
+            output = self.order.get(key)
             if output is None:
                 return len(self.partitions)
             return output
@@ -230,7 +229,7 @@ class SimpleSetDomain(Domain):
 
     def getPartByKey(self, key):
         try:
-            canonical = self.map.get(key, None)
+            canonical = self.map.get(key)
             if not canonical:
                 return self.NULL
             return canonical
@@ -323,7 +322,7 @@ class SetDomain(Domain):
 
     def getIndexByKey(self, key):
         try:
-            output = self.order.get(key, None)
+            output = self.order.get(key)
             if output is None:
                 return len(self.partitions)
             return output

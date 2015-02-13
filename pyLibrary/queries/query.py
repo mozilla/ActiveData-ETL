@@ -11,14 +11,16 @@ from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.collections import AND, reverse
 from pyLibrary.debugs.logs import Log
+from pyLibrary.maths import Math
 from pyLibrary.queries import MVEL, _normalize_select, INDEX_CACHE
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain
-from pyLibrary.queries.filters import TRUE_FILTER, simplify
+from pyLibrary.queries.filters import TRUE_FILTER, simplify_esfilter
 from pyLibrary.dot.dicts import Dict
 from pyLibrary.dot import nvl, split_field, join_field, Null, set_default
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap, listwrap
+from pyLibrary.queries.from_es import wrap_from
 
 
 class Query(object):
@@ -37,7 +39,8 @@ class Query(object):
         object.__init__(self)
         query = wrap(query)
 
-        self.name = query.name
+        # self.name = query.name
+        self.format = query.format
 
         select = query.select
         if isinstance(select, list):
@@ -45,14 +48,18 @@ class Query(object):
         elif select:
             select = _normalize_select(select, schema=schema)
         else:
-            select = DictList()
+            if query.edges:
+                select = {"name": "__row__", "value": ".", "aggregate": "count"}
+            else:
+                select = {"name": "__all__", "value": "*", "aggregate": "none"}
+
         self.select2index = {}  # MAP FROM NAME TO data INDEX
         for i, s in enumerate(listwrap(select)):
             self.select2index[s.name] = i
         self.select = select
 
         self.edges = _normalize_edges(query.edges, schema=schema)
-        self.frum = _normalize_from(query["from"], schema=schema)
+        self.frum = wrap_from(query["from"], schema=schema)
         self.where = _normalize_where(query.where, schema=schema)
 
         self.window = [_normalize_window(w) for w in listwrap(query.window)]
@@ -114,6 +121,20 @@ def _normalize_edge(edge, schema=None):
             domain=_normalize_domain(schema=schema)
         )
     else:
+        if not edge.name and not isinstance(edge.value, basestring):
+            Log.error("You must name compound edges: {{edge}}", {"edge":edge})
+
+        if isinstance(edge.value, (dict, list)) and not edge.domain:
+            # COMPLEX EDGE IS SHORT HAND
+            domain = _normalize_domain(schema=schema)
+            domain.dimension = Dict(fields=edge.value)
+
+            return Dict(
+                name=edge.name,
+                allowNulls=False if edge.allowNulls is False else True,
+                domain=domain
+            )
+
         return Dict(
             name=nvl(edge.name, edge.value),
             value=edge.value,
@@ -123,15 +144,6 @@ def _normalize_edge(edge, schema=None):
         )
 
 
-def _normalize_from(frum, schema=None):
-    frum = wrap(frum)
-
-    if isinstance(frum, basestring):
-        return Dict(name=frum)
-    elif isinstance(frum, dict) and (frum["from"] or isinstance(frum["from"], (list, set))):
-        return Query(frum, schema=schema)
-    else:
-        return frum
 
 
 def _normalize_domain(domain=None, schema=None):
@@ -177,7 +189,7 @@ def _normalize_where(where, schema=None):
         return TRUE_FILTER
     if schema == None:
         return where
-    where = simplify(_where_terms(where, where, schema))
+    where = simplify_esfilter(_where_terms(where, where, schema))
     return where
 
 
@@ -338,7 +350,7 @@ def _normalize_sort(sort=None):
 
     output = DictList()
     for s in listwrap(sort):
-        if isinstance(s, basestring):
+        if isinstance(s, basestring) or Math.is_integer(s):
             output.append({"field": s, "sort": 1})
         else:
             output.append({"field": nvl(s.field, s.value), "sort": nvl(sort_direction[s.sort], 1)})

@@ -11,9 +11,11 @@
 from __future__ import unicode_literals
 from __future__ import division
 import __builtin__
+from pyLibrary import dot
 
 from pyLibrary.collections import UNION, MIN
 from pyLibrary.queries import flat_list, query, group_by, _normalize_select
+from pyLibrary.queries.container import Container
 from pyLibrary.queries.filters import TRUE_FILTER, FALSE_FILTER
 from pyLibrary.queries.flat_list import FlatList
 from pyLibrary.queries.index import Index
@@ -35,7 +37,10 @@ from pyLibrary.dot import listwrap, wrap, unwrap
 def run(query):
     query = Query(query)
     frum = query["from"]
-    if isinstance(frum, list):
+    if isinstance(frum, Container):
+        with frum:
+            return frum.query(query)
+    elif isinstance(frum, list):
         pass
     elif isinstance(frum, Cube):
         pass
@@ -217,12 +222,12 @@ def _tuple_deep(v, field, depth, record):
         return 0, None, record + (field.value(v), )
 
     for i, f in enumerate(field.value[depth:len(field.value) - 1:]):
-        v = v.get(f, None)
+        v = v.get(f)
         if isinstance(v, list):
             return depth + i + 1, v, record
 
     f = field.value.last()
-    return 0, None, record + (v.get(f, None), )
+    return 0, None, record + (v.get(f), )
 
 
 def select_one(record, selection):
@@ -340,7 +345,7 @@ def _select_deep(v, field, depth, record):
         return 0, None
 
     for i, f in enumerate(field.value[depth:len(field.value) - 1:]):
-        v = v.get(f, None)
+        v = v.get(f)
         if v is None:
             return 0, None
         if isinstance(v, list):
@@ -351,7 +356,7 @@ def _select_deep(v, field, depth, record):
         if not f:  # NO NAME FIELD INDICATES SELECT VALUE
             record[field.name] = v
         else:
-            record[field.name] = v.get(f, None)
+            record[field.name] = v.get(f)
     except Exception, e:
         Log.error("{{value}} does not have {{field}} property", {"value": v, "field": f}, e)
     return 0, None
@@ -380,7 +385,7 @@ def _select_deep_meta(field, depth):
     if prefix:
         def assign(source, destination):
             for i, f in enumerate(prefix):
-                source = source.get(f, None)
+                source = source.get(f)
                 if source is None:
                     return 0, None
                 if isinstance(source, list):
@@ -391,7 +396,7 @@ def _select_deep_meta(field, depth):
                 if not f:  # NO NAME FIELD INDICATES SELECT VALUE
                     destination[name] = source
                 else:
-                    destination[name] = source.get(f, None)
+                    destination[name] = source.get(f)
             except Exception, e:
                 Log.error("{{value}} does not have {{field}} property", {"value": source, "field": f}, e)
             return 0, None
@@ -406,7 +411,7 @@ def _select_deep_meta(field, depth):
         else:
             def assign(source, destination):
                 try:
-                    destination[name] = source.get(f, None)
+                    destination[name] = source.get(f)
                 except Exception, e:
                     Log.error("{{value}} does not have {{field}} property", {"value": source, "field": f}, e)
                 return 0, None

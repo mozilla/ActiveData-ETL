@@ -16,12 +16,11 @@ from pyLibrary import convert
 from pyLibrary import strings
 from pyLibrary.collections import COUNT
 from pyLibrary.maths import stats
-from pyLibrary.env.elasticsearch import Index
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import domains, MVEL, filters
 from pyLibrary.dot.dicts import Dict
-from pyLibrary.dot import set_default, split_field, join_field, nvl, Null
+from pyLibrary.dot import split_field, join_field, nvl
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap
 from pyLibrary.times import durations
@@ -30,53 +29,44 @@ from pyLibrary.times import durations
 TrueFilter = {"match_all": {}}
 DEBUG = False
 
-INDEX_CACHE = {}  # MATCH NAMES TO FULL CONNECTION INFO
+INDEX_CACHE = {}  # MATCH NAMES TO ES URL AND COLUMNS eg {name:{"url":url, "columns":columns"}}
 
 
 def loadColumns(es, frum):
     """
     ENSURE COLUMNS FOR GIVEN INDEX/QUERY ARE LOADED, AND MVEL COMPILATION WORKS BETTER
     """
+
+
     if isinstance(frum, basestring):
-        if frum in INDEX_CACHE:
-            return INDEX_CACHE[frum]
-        frum = Dict(
-            name=frum
-        )
-    else:
-        if not frum.name:
-            Log.error("Expecting from clause to have a name")
+        frum=Dict(name=frum)
 
-        if frum.name in INDEX_CACHE:
-            return INDEX_CACHE[frum.name]
+    output = INDEX_CACHE.get(frum.name)
+    if output:
+        # VERIFY es IS CONSITENT
+        if frum.url != output.url:
+            Log.error("Using {{name}} for two different containers\n\t{{existing}}\n\t{{new}}", {
+                "name": frum.name,
+                "existing": output.es.url,
+                "new": frum.url
+            })
+        return output
 
-    # FILL frum WITH DEFAULTS FROM es.settings
-    set_default(frum, es.settings)
+    path = split_field(frum.name)
+    if len(path) > 1:
+        #LOAD THE PARENT (WHICH WILL FILL THE INDEX_CACHE WITH NESTED CHILDREN)
+        loadColumns(es, path[0])
+        return INDEX_CACHE[frum.name]
 
-    if not frum.host:
-        Log.error("must have host defined")
-
-    # DETERMINE IF THE es IS FUNCTIONALLY DIFFERENT
-    diff = False
-    for k, v in es.settings.items():
-        if k != "name" and v != frum[k]:
-            diff = True
-    if diff:
-        es = Index(frum)
-
-    output = wrap(frum).copy()
     schema = es.get_schema()
     properties = schema.properties
+    output = Dict()
+    output.name = frum.name
+    output.url = frum.url
     output.es = es
+    output.columns = parseColumns("dummy value", frum.name, properties)
 
-    root = split_field(frum.name)[0]
-    if root != frum.name:
-        INDEX_CACHE[frum.name] = output
-        loadColumns(es, root)
-    else:
-        INDEX_CACHE[root] = output
-        output.columns = parseColumns(frum.index, root, properties)
-
+    INDEX_CACHE[frum.name] = output
     return output
 
 
@@ -122,14 +112,14 @@ def buildESQuery(query):
                 "query": {
                     "match_all": {}
                 },
-                "filter": filters.simplify(query.where)
+                "filter": filters.simplify_esfilter(query.where)
             }
         }
 
     return output
 
 
-def parseColumns(index_name, parent_path, esProperties):
+def parseColumns(_dummy_, parent_path, esProperties):
     """
     RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
     """
@@ -157,7 +147,7 @@ def parseColumns(index_name, parent_path, esProperties):
             continue
 
         if property.properties:
-            childColumns = parseColumns(index_name, path, property.properties)
+            childColumns = parseColumns(_dummy_, path, property.properties)
             columns.extend(childColumns)
             columns.append({
                 "name": join_field(split_field(path)[1::]),
@@ -492,6 +482,30 @@ aggregates = {
     "N": "count",
     "X0": "count",
     "X1": "total",
+    "X2": "sum_of_squares",
+    "std": "std_deviation",
+    "stddev": "std_deviation",
+    "var": "variance",
+    "variance": "variance"
+}
+
+# FOR ELASTICSEARCH aggs
+aggregates1_4 = {
+    "none": "none",
+    "one": "count",
+    "sum": "sum",
+    "add": "sum",
+    "count": "count",
+    "maximum": "max",
+    "minimum": "min",
+    "max": "max",
+    "min": "min",
+    "mean": "avg",
+    "average": "avg",
+    "avg": "avg",
+    "N": "count",
+    "X0": "count",
+    "X1": "sum",
     "X2": "sum_of_squares",
     "std": "std_deviation",
     "stddev": "std_deviation",

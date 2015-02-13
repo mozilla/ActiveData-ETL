@@ -9,7 +9,8 @@
 		"keep_unknown_on_queue": true
 	},
 	"constants":{
-		"pyLibrary.env.http.default_headers":{"From":"https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"}
+		"pyLibrary.env.http.default_headers":{"From":"https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"},
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"workers": [
 		{

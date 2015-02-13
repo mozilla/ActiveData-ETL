@@ -55,10 +55,11 @@ def process_unittest(source_key, source, destination):
         "type": "join",
         "duration": timer.duration.total_seconds()
     }
-    bb_summary.run.counts = summary.counts
+    bb_summary.run.stats = summary.stats
+    bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
 
     if DEBUG:
-        Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.counts})
+        Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.stats})
 
     new_keys = []
     new_data = []
@@ -85,28 +86,33 @@ def process_unittest(source_key, source, destination):
 def process_unittest_log(file_name, lines):
     accumulator = LogSummary()
     for line in lines:
-        accumulator.counts.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
+        accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
 
         if line.strip() == "":
             continue
         try:
-            accumulator.counts.lines += 1
+            accumulator.stats.lines += 1
             log = convert.json2value(line)
+            log.time = log.time/1000
+            accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
+            accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
+
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
             accumulator.__getattribute__(log.action)(log)
+
         except Exception, e:
-            accumulator.counts.bad_lines += 1
+            accumulator.stats.bad_lines += 1
             Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}}", {
-        "num_bytes": output.counts.bytes,
-        "num_lines": output.counts.lines,
-        "num_tests": output.counts.total,
+        "num_bytes": output.stats.bytes,
+        "num_lines": output.stats.lines,
+        "num_tests": output.stats.total,
         "name": file_name
     })
     return output
@@ -154,7 +160,7 @@ class LogSummary(Dict):
                 missing_test_start=True
             )
         test.last_log = log.time
-        test.counts.log_lines += 1
+        test.stats.log_lines += 1
 
     def crash(self, log):
         if not log.test:
@@ -203,12 +209,12 @@ class LogSummary(Dict):
                 t.duration = t.end - t.start
                 t.missing_test_end = True
 
-        self.counts.total = len(tests)
-        self.counts.ok = len([t for t in tests if t.ok])
+        self.stats.total = len(tests)
+        self.stats.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for r in set(tests.select("result")):
-                self.counts[r.lower()] = len([t for t in tests if t.result == r])
+                self.stats[r.lower()] = len([t for t in tests if t.result == r])
         except Exception, e:
             Log.error("problem", e)
 

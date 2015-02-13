@@ -20,7 +20,6 @@ from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import Q
 from pyLibrary.strings import utf82unicode
 from pyLibrary.dot import nvl, Null, Dict
 from pyLibrary.dot.lists import DictList
@@ -46,15 +45,16 @@ class Index(object):
     @use_settings
     def __init__(self, index, type, alias=None, explore_metadata=True, debug=False, settings=None):
         """
-        settings.explore_metadata == True - IF PROBING THE CLUSTER FOR METATDATA IS ALLOWED
-        settings.timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
+
+        index - NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
+        type - SCHEMA NAME
+        explore_metadata == True - IF PROBING THE CLUSTER FOR METATDATA IS ALLOWED
+        timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
         """
-        if settings.index == settings.alias:
+        if index == alias:
             Log.error("must have a unique index name")
 
-        settings.setdefault("explore_metadata", True)
-
-        self.debug = settings.debug
+        self.debug = debug
         if self.debug:
             Log.note("elasticsearch debugging is on")
 
@@ -62,15 +62,15 @@ class Index(object):
         self.cluster = Cluster(settings)
 
         try:
-            index = self.get_index(settings.index)
-            if index and settings.alias==None:
+            index = self.get_index(index)
+            if index and alias==None:
                 settings.alias = settings.index
                 settings.index = index
         except Exception, e:
             # EXPLORING (get_metadata()) IS NOT ALLOWED ON THE PUBLIC CLUSTER
             pass
 
-        self.path = "/" + settings.index + "/" + settings.type
+        self.path = "/" + index + "/" + type
 
 
     def get_schema(self):
@@ -153,6 +153,9 @@ class Index(object):
                 return False
         return True
 
+    def flush(self):
+        self.cluster._post("/" + self.settings.index + "/_refresh")
+
     def delete_record(self, filter):
         self.cluster.get_metadata()
 
@@ -193,7 +196,7 @@ class Index(object):
         lines = []
         try:
             for r in records:
-                id = r.get("id", None)
+                id = r.get("id")
                 if id == None:
                     id = Random.hex(40)
 
@@ -336,6 +339,8 @@ class Cluster(object):
         limit_replicas=None,
         settings=None
     ):
+        from pyLibrary.queries import Q
+
         settings = deepcopy(settings)
         aliases = self.get_aliases()
 
@@ -396,9 +401,6 @@ class Cluster(object):
         else:
             schema = convert.json2value(convert.value2json(schema), paths=True)
 
-        if not schema:
-            schema = settings.schema
-
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
             health = self.get("/_cluster/health")
@@ -446,6 +448,7 @@ class Cluster(object):
         else:
             Log.error("Metadata exploration has been disabled")
         return self.cluster_metadata
+
 
     def _post(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path

@@ -9,6 +9,8 @@
 #
 
 import unittest
+from pyLibrary import dot
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl
 from pyLibrary.maths import Math
 from pyLibrary.dot import wrap
@@ -16,6 +18,17 @@ from pyLibrary.strings import expand_template
 
 
 class FuzzyTestCase(unittest.TestCase):
+    """
+    COMPARE STRUCTURE AND NUMBERS!
+
+    ONLY THE ATTRIBUTES IN THE expected STRUCTURE ARE TESTED TO EXIST
+    EXTRA ATTRIBUTES ARE IGNORED.
+
+    NUMBERS ARE MATCHED BY ...
+    * places (SAME, UP TO GIVEN SIGNIFICANT DIGITS)
+    * digits (SAME, UP TO GIVEN DECIMAL PLACES, WITH NEGATIVE MEANING LEFT-OF-UNITS)
+    * delta (MAXIMUM ABSOLUTE DIFFERENCE FROM expected)
+    """
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
@@ -28,11 +41,11 @@ class FuzzyTestCase(unittest.TestCase):
         """
         self.default_places=places
 
-    def assertAlmostEqual(self, first, second, msg=None, digits=None, places=None, delta=None):
+    def assertAlmostEqual(self, test_value, expected, msg=None, digits=None, places=None, delta=None):
         if delta or digits:
-            assertAlmostEqual(first, second, msg=msg, digits=digits, places=places, delta=delta)
+            assertAlmostEqual(test_value, expected, msg=msg, digits=digits, places=places, delta=delta)
         else:
-            assertAlmostEqual(first, second, msg=msg, digits=digits, places=nvl(places, self.default_places), delta=delta)
+            assertAlmostEqual(test_value, expected, msg=msg, digits=digits, places=nvl(places, self.default_places), delta=delta)
 
     def assertEqual(self, first, second, msg=None, digits=None, places=None, delta=None):
         self.assertAlmostEqual(first, second, msg=msg, digits=digits, places=places, delta=delta)
@@ -40,7 +53,7 @@ class FuzzyTestCase(unittest.TestCase):
 
 def zipall(*args):
     """
-    LOOP THROUGH LONGEST OF THE LISTS
+    LOOP THROUGH LONGEST OF THE LISTS, None-FILL THE REMAINDER
     """
     iters = [a.__iter__() for a in args]
 
@@ -60,11 +73,18 @@ def zipall(*args):
 
 def assertAlmostEqual(test, expected, digits=None, places=None, msg=None, delta=None):
     if isinstance(expected, dict):
-        test = wrap({"value": test})
         expected = wrap(expected)
         for k, v2 in expected.items():
-            v1 = test["value." + unicode(k)]
-            assertAlmostEqual(v1, v2, msg=msg, digits=digits, places=places, delta=delta)
+            try:
+                v1 = dot.get_attr(test, k)
+                assertAlmostEqual(v1, v2, msg=msg, digits=digits, places=places, delta=delta)
+            except Exception, e:
+                Log.error("{{test|json}} does not match expected {{expected|json}}", {
+                    "test": test,
+                    "expected": expected
+                }, e)
+
+
     elif hasattr(test, "__iter__") and hasattr(expected, "__iter__"):
         for a, b in zipall(test, expected):
             assertAlmostEqual(a, b, msg=msg, digits=digits, places=places, delta=delta)
@@ -80,6 +100,9 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
     if test == expected:
         # shortcut
         return
+
+    if not Math.is_number(expected):
+        return test == expected
 
     num_param = 0
     if digits != None:
@@ -116,7 +139,7 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
         except Exception, e:
             pass
 
-        standardMsg = expand_template("{{test}} != {{expected}} within {{places}} places", locals())
+        standardMsg = expand_template("{{test|json}} != {{expected|json}} within {{places}} places", locals())
 
     raise AssertionError(nvl(msg, "") + ": (" + standardMsg + ")")
 

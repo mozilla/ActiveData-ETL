@@ -109,6 +109,9 @@ class NullType(object):
     def __iter__(self):
         return _zero_list.__iter__()
 
+    def __deepcopy__(self, memo):
+        return None
+
     def last(self):
         """
         IN CASE self IS INTERPRETED AS A list
@@ -184,7 +187,7 @@ def _assign(obj, path, value, force=True):
             _setdefault(obj, path0, value)
         return
 
-    old_value = obj.get(path0, None)
+    old_value = obj.get(path0)
     if old_value == None:
         if value == None:
             return

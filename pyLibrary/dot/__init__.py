@@ -27,7 +27,7 @@ def inverse(d):
 
 
 def nvl(*args):
-    # pick the first none-null value
+    # pick the first not null value
     for a in args:
         if a != None:
             return wrap(a)
@@ -90,7 +90,7 @@ def _setdefault(obj, key, value):
     """
     DO NOT USE __dict__.setdefault(obj, key, value), IT DOES NOT CHECK FOR obj[key] == None
     """
-    v = obj.get(key, None)
+    v = obj.get(key)
     if v == None:
         obj[key] = value
         return value
@@ -103,16 +103,17 @@ def set_default(*params):
     UPDATES FIRST dict WITH THE MERGE RESULT, WHERE MERGE RESULT IS DEFINED AS:
     FOR EACH LEAF, RETURN THE HIGHEST PRIORITY LEAF VALUE
     """
-    agg = params[0] if params[0] != None else {}
+    p0 = params[0]
+    agg = p0 if p0 or isinstance(p0, dict) else {}
     for p in params[1:]:
         p = unwrap(p)
         if p is None:
             continue
-        _all_default(agg, p)
+        _all_default(agg, p, seen={})
     return wrap(agg)
 
 
-def _all_default(d, default):
+def _all_default(d, default, seen=None):
     """
     ANY VALUE NOT SET WILL BE SET BY THE default
     THIS IS RECURSIVE
@@ -120,12 +121,18 @@ def _all_default(d, default):
     if default is None:
         return
     for k, default_value in default.items():
-        # existing_value = d.get(k, None)
+        # existing_value = d.get(k)
         existing_value = _get_attr(d, [k])
+
         if existing_value == None:
             _set_attr(d, [k], default_value)
         elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, dict)) and isinstance(default_value, dict):
-            _all_default(existing_value, default_value)
+            df = seen.get(id(existing_value))
+            if df:
+                _set_attr(d, [k], df)
+            else:
+                seen[id(existing_value)] = default_value
+                _all_default(existing_value, default_value, seen)
 
 
 def _getdefault(obj, key):
@@ -270,10 +277,10 @@ def wrap(v):
         return m
     elif type_ is list:
         return DictList(v)
-    elif type_ is GeneratorType:
-        return (wrap(vv) for vv in v)
     elif type_ is NoneType:
         return Null
+    elif type_ is GeneratorType:
+        return (wrap(vv) for vv in v)
     else:
         return v
 
