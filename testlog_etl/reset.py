@@ -7,6 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from __future__ import division
 
 from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection
@@ -67,7 +68,7 @@ def main():
                         work_queue.add({
                             "bucket": settings.args.bucket,
                             "key": k,
-                            "timestamp":now.milli,
+                            "timestamp":now.milli/1000,
                             "date/time":now.format()
                         })
 

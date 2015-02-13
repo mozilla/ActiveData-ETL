@@ -455,7 +455,8 @@ class Thread(object):
                 except Exception, e:
                     pass
         except KeyboardInterrupt, SystemExit:
-            pass
+            please_stop.go()
+            Log.alert("SIGINT Detected!  Stopping...")
 
 
     @staticmethod

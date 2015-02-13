@@ -7,6 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from __future__ import division
+
 from pyLibrary import convert
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
@@ -33,7 +35,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             etl_header = wrap({
                 "name": "Pulse block",
                 "bucket": settings.destination.bucket,
-                "timestamp": Date.now().milli,
+                "timestamp": Date.now().milli / 1000,
                 "id": synch.next_key,
                 "source": {
                     "id": unicode(MIN(g.select("_meta.count"))),
@@ -49,11 +51,11 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                         {"etl": {
                             "name": "Pulse block",
                             "bucket": settings.destination.bucket,
-                            "timestamp": Date.now().milli,
+                            "timestamp": Date.now().milli / 1000,
                             "id": synch.next_key,
                             "source": {
                                 "name": "pulse.mozilla.org",
-                                "timestamp": Date(d._meta.sent).milli,
+                                "timestamp": Date(d._meta.sent).milli / 1000,
                                 "id": d._meta.count
                             }
                         }},
@@ -70,8 +72,8 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 work_queue.add({
                     "bucket": bucket.name,
                     "key": full_key,
-                    "timestamp":now.milli,
-                    "date/time":now.format()
+                    "timestamp": now.milli / 1000,
+                    "date/time": now.format()
                 })
 
                 synch.ping()
