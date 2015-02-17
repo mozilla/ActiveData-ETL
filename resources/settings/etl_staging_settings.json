@@ -74,7 +74,7 @@
 				"host": "http://172.31.0.7",
 				"index": "debug",
 				"type": "unittest_etl"
-			}
+			},
 
 //			{
 //				"class": "logging.handlers.RotatingFileHandler",
