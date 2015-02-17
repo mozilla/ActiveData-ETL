@@ -25,8 +25,8 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary import dot
-from pyLibrary.dot import nvl, listwrap
-from pyLibrary.thread.threads import Thread, Signal
+from pyLibrary.dot import nvl, listwrap, Dict
+from pyLibrary.thread.threads import Thread, Signal, Queue
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -63,7 +63,10 @@ class ETL(Thread):
             w._destination = get_container(w.destination)
 
         self.settings = settings
-        self.work_queue = aws.Queue(work_queue)
+        if isinstance(work_queue, dict):
+            self.work_queue = aws.Queue(work_queue)
+        else:
+            self.work_queue=work_queue
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
 
@@ -146,7 +149,10 @@ class ETL(Thread):
                 if self.settings.wait_forever:
                     todo = None
                     while not please_stop and not todo:
-                        todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
+                        if isinstance(self.work_queue, aws.Queue):
+                            todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
+                        else:
+                            todo = self.work_queue.pop()
                 else:
                     todo = self.work_queue.pop()
                     if todo == None:
@@ -160,7 +166,10 @@ class ETL(Thread):
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-                    self.work_queue.rollback()
+                    try:
+                        self.work_queue.rollback()
+                    except Exception:
+                        pass
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
@@ -202,9 +211,19 @@ class Index_w_Keys(elasticsearch.Index):
 
 def main():
     try:
-        settings = startup.read_settings()
+        settings = startup.read_settings(defs=[{
+            "name": ["--id"],
+            "help": "id to process",
+            "type": str,
+            "dest": "id",
+            "required": False
+        }])
         constants.set(settings.constants)
         Log.start(settings.debug)
+
+        if settings.args.id:
+            etl_one(settings)
+            return
 
         stopper = Signal()
         threads = [None] * nvl(settings.param.threads, 1)
@@ -230,6 +249,29 @@ def main():
         Log.stop()
 
 
+def etl_one(settings):
+    queue = Queue()
+
+    if len(settings.args.id.split("."))==2:
+        queue.add(Dict(
+            bucket=[w for w in settings.workers if w.name=="unittest2es"][0].source.bucket,
+            key=settings.args.id
+        ))
+
+    stopper = Signal()
+    thread = ETL(
+        name="ETL Loop Test",
+        work_queue=queue,
+        workers=settings.workers,
+        settings=settings.param,
+        please_stop=stopper
+    )
+
+    wait_for_exit(stopper)
+    Thread.wait_for_shutdown_signal(stopper)
+
+    thread.stop()
+    thread.join()
 
 
 def readloop(please_stop):

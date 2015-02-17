@@ -60,7 +60,7 @@ def process_unittest(source_key, source, destination):
     bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
 
     if DEBUG:
-        age = Date.now() - Date(int(bb_summary.run.stats.start_time * 1000))
+        age = Date.now() - Date(bb_summary.run.stats.start_time * 1000)
         if age > Duration.DAY:
             Log.alert("Test is {{days|round(decimal=1)}} days old", {"days": age / Duration.DAY})
         Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.stats})
@@ -111,7 +111,7 @@ def process_unittest_log(file_name, lines):
 
         except Exception, e:
             accumulator.stats.bad_lines += 1
-            Log.warning("Problem with line\n{{line|indent}}", {"line": line}, e)
+            Log.warning("Problem with line (ignored)\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}}", {
