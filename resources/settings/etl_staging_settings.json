@@ -83,14 +83,14 @@
 //				"backupCount": 100,
 //				"encoding": "utf8"
 //			},
-//			{
-//				"log_type": "email",
-//				"from_address": "klahnakoski@mozilla.com",
-//				"to_address": "klahnakoski@mozilla.com",
-//				"subject": "[Developer Alert][STAGING] Problem in ETL",
-//				"$ref":"file://~/private.json#email"
-//
-//			}
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[Developer Alert][STAGING] Problem in ETL",
+				"$ref":"file://~/private.json#email"
+
+			}
 		]
 	}
 }

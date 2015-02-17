@@ -1,8 +1,9 @@
 cd /home/ubuntu/TestLog-ETL/
-export PYTHONPATH=.
 git checkout etl
 git pull origin etl
 
+
+export PYTHONPATH=.
 python testlog_etl/etl.py --settings=resources/settings/etl_staging_settings.json &
 disown -h
 tail -f  results/logs/etl.log
