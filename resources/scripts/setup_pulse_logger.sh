@@ -12,6 +12,6 @@ cd /home/ec2-user/TestLog-ETL/
 git checkout pulse-logger
 sudo pip install -r requirements.txt
 
-cat > pulse_logger_settings.json
+cat > pulse_logger_staging_settings.json
 # PASTE SETTINGS FILE HERE
 # CTRL-D WHEN DONE

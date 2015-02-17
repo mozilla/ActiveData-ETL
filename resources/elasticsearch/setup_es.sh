@@ -1,7 +1,10 @@
 
 # FOR AMAZON AMI ONLY
-# ENSURE THE FOLLOWING FILE HAS BEEN UPLOADED FIRST
+# ENSURE THE FOLLOWING FILES HAVE BEEN UPLOADED FIRST
 # /home/ec2-user/elasticsearch.yml
+# /home/ec2-user/elasticsearch.in.sh
+
+# NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
 
 cd /home/ec2-user/
@@ -13,11 +16,15 @@ cd /usr/local/elasticsearch/
 
 # BE SURE TO MATCH THE PUGLIN WITH ES VERSION
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
+
 sudo bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.4.1
+
 
 #ES HEAD IS WONDERFUL!
 #http://54.69.134.49:9200/_plugin/head/
+
 sudo bin/plugin -install mobz/elasticsearch-head
+
 
 #MOUNT AND FORMAT THE EBS VOLUME
 
@@ -42,10 +49,12 @@ sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/f
 sudo mount -a
 
 
-#COPY CONFIG FILE TO ES DIR
+# COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo chmod 600 /usr/local/elasticsearch/config/elasticsearch.yml
 
+# FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK, THIS SCRIPT
+# SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 cd /usr/local/elasticsearch

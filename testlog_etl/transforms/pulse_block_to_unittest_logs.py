@@ -15,7 +15,7 @@ from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
 
 
-DEBUG = True
+DEBUG = False
 DEBUG_SHOW_NO_LOG = False
 
 
