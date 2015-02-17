@@ -166,15 +166,19 @@ class SimpleSetDomain(Domain):
             Log.error("problem")
 
         if isinstance(desc.partitions[0], basestring):
-            # ASSMUE PARTS ARE STRINGS, CONVERT TO REAL PART OBJECTS
-            self.key = ("value", )
-            self.order[None]=len(desc.partitions)
+            # ASSUME PARTS ARE STRINGS, CONVERT TO REAL PART OBJECTS
+            self.key = "value"
+            self.map = {}
+            self.order[None] = len(desc.partitions)
             for i, p in enumerate(desc.partitions):
-                part = {"name": p, "value": p}
+                part = {"name": p, "value": p, "dataIndex":i}
                 self.partitions.append(part)
                 self.map[p] = part
                 self.order[p] = i
-        elif desc.partitions and desc.dimension.fields and len(desc.dimension.fields) > 1:
+            self.label = nvl(self.label, "name")
+            return
+
+        if desc.partitions and desc.dimension.fields and len(desc.dimension.fields) > 1:
             self.key = desc.key
             self.map = UniqueIndex(keys=desc.dimension.fields)
         elif desc.partitions and isinstance(desc.key, (list, set)):
@@ -186,6 +190,13 @@ class SimpleSetDomain(Domain):
             self.map = UniqueIndex(keys=desc.key)
             # self.key = UNION(set(d[desc.key].keys()) for d in desc.partitions)
             # self.map = UniqueIndex(keys=self.key)
+        elif len(desc.partitions)==0:
+            # CREATE AN EMPTY DOMAIN
+            self.key = "value"
+            self.map = {}
+            self.order[None] = 0
+            self.label = nvl(self.label, "name")
+            return
         elif desc.key == None:
             Log.error("Domains must have keys")
         elif self.key:
@@ -235,6 +246,12 @@ class SimpleSetDomain(Domain):
             return canonical
         except Exception, e:
             Log.error("problem", e)
+
+    def getPartByIndex(self, index):
+        return self.partitions[index]
+
+    def getKeyByIndex(self, index):
+        return self.partitions[index][self.key]
 
     def getKey(self, part):
         return part[self.key]
@@ -341,6 +358,9 @@ class SetDomain(Domain):
 
     def getKey(self, part):
         return part[self.key]
+
+    def getKeyByIndex(self, index):
+        return self.partitions[index][self.key]
 
     def getEnd(self, part):
         if self.value:

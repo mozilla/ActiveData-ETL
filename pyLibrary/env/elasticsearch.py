@@ -56,7 +56,7 @@ class Index(object):
 
         self.debug = debug
         if self.debug:
-            Log.alert("elasticsearch debugging is on")
+            Log.alert("elasticsearch debugging on index {{index}} is on", {"index": settings.index})
 
         self.settings = settings
         self.cluster = Cluster(settings)
