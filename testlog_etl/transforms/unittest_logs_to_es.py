@@ -111,7 +111,13 @@ def process_unittest_log(file_name, lines):
 
         except Exception, e:
             accumulator.stats.bad_lines += 1
-            Log.warning("Problem with line (ignored)\n{{line|indent}}", {"line": line}, e)
+            if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
+                # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
+                # StartTime=1409123984798
+                # CrashTime=1498346728
+                pass
+            else:
+                Log.warning("Problem with line (ignored)\n{{line|indent}}", {"line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}}", {

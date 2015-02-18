@@ -257,6 +257,12 @@ def etl_one(settings):
             bucket=[w for w in settings.workers if w.name=="unittest2es"][0].source.bucket,
             key=settings.args.id
         ))
+    elif len(settings.args.id.split("."))==1:
+        queue.add(Dict(
+            bucket=[w for w in settings.workers if w.name=="pulse2unittest"][0].source.bucket,
+            key=settings.args.id
+        ))
+
 
     stopper = Signal()
     thread = ETL(

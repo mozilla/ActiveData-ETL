@@ -8,4 +8,5 @@ sudo cp /home/ubuntu/TestLog-ETL/resources/supervisor/etl.conf /etc/supervisor/c
 
 sudo supervisorctl reread
 sudo supervisorctl update
+sudo supervisorctl restart all
 sudo supervisorctl
