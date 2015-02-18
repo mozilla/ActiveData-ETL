@@ -161,6 +161,10 @@ def read_blobber_file(line_number, name, url):
                 if bad > 4:
                     Log.error("Too many bad lines")
 
+        if count == 0:
+            # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
+            Log.error("No JSON lines found")
+
     except Exception, e:
         if name.endswith("_raw.log"):
             Log.error("Line {{index}}: {{name}} is NOT structured log", {

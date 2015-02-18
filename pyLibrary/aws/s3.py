@@ -151,7 +151,7 @@ class Bucket(object):
 
     def metas(self, prefix=None):
         """
-        RETURN THE METATDATA DESCRIPTORS FOR EACH KEY
+        RETURN THE METADATA DESCRIPTORS FOR EACH KEY
         """
 
         keys = self.bucket.list(prefix=prefix)
@@ -194,7 +194,12 @@ class Bucket(object):
                 return convert.utf82unicode(source.read(key)).split("\n")
 
         if source.key.endswith(".gz"):
-            buff = BytesIO(safe_size(source))
+            bytes = safe_size(source)
+            if isinstance(bytes, str):
+                buff = BytesIO()
+            else:
+                # SWAP OUT FILE REFERENCE
+                bytes.file, buff = None, bytes.file
             archive = gzip.GzipFile(fileobj=buff, mode='r')
             return LazyLines(archive)
         else:

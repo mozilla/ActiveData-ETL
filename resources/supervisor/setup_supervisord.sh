@@ -1,4 +1,5 @@
 sudo apt-get install -y supervisor
+
 sudo service supervisor start
 
 cd /home/ubuntu

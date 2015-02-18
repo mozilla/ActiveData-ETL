@@ -99,7 +99,9 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
         return
 
     if not Math.is_number(expected):
-        return test == expected
+        if test != expected:
+            raise AssertionError(expand_template("{{test}} != {{expected}}", locals()))
+        return
 
     num_param = 0
     if digits != None:

@@ -13,7 +13,7 @@
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 500000
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"workers": [
 		{
@@ -51,7 +51,7 @@
 				"bucket": "ekyle-unittest"
 			},
 			"destination": {
-				"host": "http://54.148.242.195",
+				"host": "http://52.10.116.229",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_results",
@@ -64,7 +64,7 @@
 			},
 			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
 			"type": "join"
-		},
+		}
 	],
 	"debug": {
 		"trace": true,
@@ -78,7 +78,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://54.148.242.195",
+				"host": "http://52.10.116.229",
 				"index": "debug",
 				"type": "unittest_etl"
 			}

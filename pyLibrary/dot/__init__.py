@@ -176,7 +176,7 @@ def set_attr(obj, path, value):
         return _set_attr(obj, split_field(path), value)
     except Exception, e:
         from pyLibrary.debugs.logs import Log
-        if e.contains(PATH_NOT_FOUND):
+        if PATH_NOT_FOUND in e:
             Log.error(PATH_NOT_FOUND+": {{path}}", {"path":path})
         else:
             Log.error("Problem setting value", e)
@@ -190,7 +190,7 @@ def get_attr(obj, path):
         return _get_attr(obj, split_field(path))
     except Exception, e:
         from pyLibrary.debugs.logs import Log
-        if e.contains(PATH_NOT_FOUND):
+        if PATH_NOT_FOUND in e:
             Log.error(PATH_NOT_FOUND+": {{path}}", {"path":path})
         else:
             Log.error("Problem setting value", e)
