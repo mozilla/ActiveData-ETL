@@ -196,7 +196,7 @@ class Bucket(object):
         if source.key.endswith(".gz"):
             bytes = safe_size(source)
             if isinstance(bytes, str):
-                buff = BytesIO()
+                buff = BytesIO(bytes)
             else:
                 # SWAP OUT FILE REFERENCE
                 bytes.file, buff = None, bytes.file
