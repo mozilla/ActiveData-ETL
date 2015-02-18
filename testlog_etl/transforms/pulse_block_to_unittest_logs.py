@@ -166,7 +166,7 @@ def read_blobber_file(line_number, name, url):
             Log.error("No JSON lines found")
 
     except Exception, e:
-        if name.endswith("_raw.log"):
+        if name.endswith("_raw.log") and "No JSON lines found" not in e:
             Log.error("Line {{index}}: {{name}} is NOT structured log", {
                 "index": line_number,
                 "name": name
