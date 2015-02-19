@@ -25,7 +25,7 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary import dot
-from pyLibrary.dot import nvl, listwrap, Dict
+from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.thread.threads import Thread, Signal, Queue
 
 
@@ -66,7 +66,7 @@ class ETL(Thread):
         if isinstance(work_queue, dict):
             self.work_queue = aws.Queue(work_queue)
         else:
-            self.work_queue=work_queue
+            self.work_queue = work_queue
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
 
@@ -130,10 +130,10 @@ class ETL(Thread):
 
                 if isinstance(action._destination, aws.s3.Bucket):
                     for k in old_keys | new_keys:
-                        self.work_queue.add({
-                            "bucket": action.destination.bucket,
-                            "key": k
-                        })
+                        self.work_queue.add(Dict(
+                            bucket=action.destination.bucket,
+                            key=k
+                        ))
             except Exception, e:
                 Log.error("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
                     "action": action.name,
@@ -166,10 +166,7 @@ class ETL(Thread):
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-                    try:
-                        self.work_queue.rollback()
-                    except Exception:
-                        pass
+                    self.work_queue.rollback()
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
 
@@ -212,12 +209,12 @@ class Index_w_Keys(elasticsearch.Index):
 def main():
     try:
         settings = startup.read_settings(defs=[{
-            "name": ["--id"],
-            "help": "id to process",
-            "type": str,
-            "dest": "id",
-            "required": False
-        }])
+                                                   "name": ["--id"],
+                                                   "help": "id to process",
+                                                   "type": str,
+                                                   "dest": "id",
+                                                   "required": False
+                                               }])
         constants.set(settings.constants)
         Log.start(settings.debug)
 
@@ -251,18 +248,20 @@ def main():
 
 def etl_one(settings):
     queue = Queue()
+    queue.__setattr__(b"commit", Null)
+    queue.__setattr__(b"rollback", Null)
 
-    if len(settings.args.id.split("."))==2:
+
+    if len(settings.args.id.split(".")) == 2:
         queue.add(Dict(
-            bucket=[w for w in settings.workers if w.name=="unittest2es"][0].source.bucket,
+            bucket=[w for w in settings.workers if w.name == "unittest2es"][0].source.bucket,
             key=settings.args.id
         ))
-    elif len(settings.args.id.split("."))==1:
+    elif len(settings.args.id.split(".")) == 1:
         queue.add(Dict(
-            bucket=[w for w in settings.workers if w.name=="pulse2unittest"][0].source.bucket,
+            bucket=[w for w in settings.workers if w.name == "pulse2unittest"][0].source.bucket,
             key=settings.args.id
         ))
-
 
     stopper = Signal()
     thread = ETL(
@@ -287,12 +286,9 @@ def readloop(please_stop):
             break
     please_stop.go()
 
+
 def wait_for_exit(please_stop):
     Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
-
-
-
-
 
 
 if __name__ == "__main__":

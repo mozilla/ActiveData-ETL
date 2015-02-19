@@ -43,7 +43,7 @@ def process_unittest(source_key, source, destination):
     })
     try:
         with timer:
-            summary = process_unittest_log(etl_header.name, lines[2:])
+            summary = process_unittest_log(source_key, etl_header.name, lines[2:])
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e
@@ -88,7 +88,7 @@ def process_unittest(source_key, source, destination):
     return new_keys
 
 
-def process_unittest_log(file_name, lines):
+def process_unittest_log(source_key, file_name, lines):
     accumulator = LogSummary()
     for line in lines:
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
@@ -117,10 +117,11 @@ def process_unittest_log(file_name, lines):
                 # CrashTime=1498346728
                 pass
             else:
-                Log.warning("Problem with line (ignored)\n{{line|indent}}", {"line": line}, e)
+                Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}}", {
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
+        "key":source_key,
         "num_bytes": output.stats.bytes,
         "num_lines": output.stats.lines,
         "num_tests": output.stats.total,
