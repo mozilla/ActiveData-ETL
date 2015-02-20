@@ -147,6 +147,9 @@ class LogSummary(Dict):
         )
 
     def test_status(self, log):
+        if not log.test:
+            Log.error("log has blank 'test' property! Do not know how to hanlde.")
+
         test = self.tests[literal_field(log.test)]
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
