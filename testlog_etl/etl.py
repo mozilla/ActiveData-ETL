@@ -17,6 +17,8 @@ import gc
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import get_function_by_name, use_settings
+from pyLibrary.testing import fuzzytestcase
+from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
@@ -26,7 +28,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary import dot
 from pyLibrary.dot import nvl, listwrap, Dict, Null
-from pyLibrary.thread.threads import Thread, Signal, Queue
+from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -169,6 +171,9 @@ class ETL(Thread):
                     self.work_queue.rollback()
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
+es_sinks_locker = Lock()
+es_sinks = []  # LIST OF (settings, es) PAIRS
+
 
 def get_container(settings):
     if isinstance(settings, (Index_w_Keys, aws.s3.Bucket)):
@@ -181,19 +186,33 @@ def get_container(settings):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:
-        elasticsearch.Cluster(settings).get_or_create_index(settings)
-        return Index_w_Keys(settings)
+        with es_sinks_locker:
+            for e in es_sinks:
+                try:
+                    fuzzytestcase.assertAlmostEqual(e[0], settings)
+                    return e[1]
+                except Exception, _:
+                    pass
+            elasticsearch.Cluster(settings).get_or_create_index(settings)
+            output = Index_w_Keys(settings)
+            es_sinks.append((settings, output))
 
 
-class Index_w_Keys(elasticsearch.Index):
+class Index_w_Keys(object):
+    """
+    MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
+    AND THREADED QUEUE
+    """
+
     def __init__(self, settings):
-        elasticsearch.Index.__init__(self, settings)
+        self.es = elasticsearch.Index(settings)
+        self.queue = self.es.threaded_queue(size=1000)
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
         path = etl2path(key2etl(prefix))
 
-        result = self.search({
+        result = self.es.search({
             "fields": ["_id"],
             "query": {
                 "filtered": {
@@ -204,6 +223,13 @@ class Index_w_Keys(elasticsearch.Index):
         })
 
         return set(result.hits.hits.fields._id)
+
+    def extend(self, documents):
+        self.queue.extend(documents)
+
+    def add(self, doc):
+        self.queue.add(doc)
+
 
 
 def main():
@@ -247,7 +273,7 @@ def main():
 
 
 def etl_one(settings):
-    queue = Queue()
+    queue = Queue("temp work queue")
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 

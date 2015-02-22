@@ -77,7 +77,7 @@ class Queue(object):
      IS DIFFICULT TO USE JUST BETWEEN THREADS (SERIALIZATION REQUIRED)
     """
 
-    def __init__(self, max=None, silent=False):
+    def __init__(self, name, max=None, silent=False):
         """
         max - LIMIT THE NUMBER IN THE QUEUE, IF TOO MANY add() AND extend() WILL BLOCK
         silent - COMPLAIN IF THE READERS ARE TOO SLOW
@@ -85,7 +85,7 @@ class Queue(object):
         self.max = nvl(max, 2 ** 10)
         self.silent = silent
         self.keep_running = True
-        self.lock = Lock("lock for queue")
+        self.lock = Lock("lock for queue " + name)
         self.queue = deque()
         self.next_warning = datetime.utcnow()  # FOR DEBUGGING
         self.gc_count = 0
@@ -136,7 +136,8 @@ class Queue(object):
                     now = datetime.utcnow()
                     if self.next_warning < now:
                         self.next_warning = now + timedelta(seconds=wait_time)
-                        Log.warning("Queue is full ({{num}} items), thread(s) have been waiting {{wait_time}} sec", {
+                        Log.warning("Queue {{name}} is full ({{num}} items), thread(s) have been waiting {{wait_time}} sec", {
+                            "name": self.name,
                             "num": len(self.queue),
                             "wait_time": wait_time
                         })
@@ -553,6 +554,7 @@ class ThreadedQueue(Queue):
 
     def __init__(
         self,
+        name,
         queue,  # THE SLOWER QUEUE
         size=None,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
         max=None,  # SET THE MAXIMUM SIZE OF THE QUEUE, WRITERS WILL BLOCK IF QUEUE IS OVER THIS LIMIT
@@ -566,7 +568,7 @@ class ThreadedQueue(Queue):
         max = nvl(max, size)  # REASONABLE DEFAULT
         period = nvl(period, Duration.SECOND)
 
-        Queue.__init__(self, max=max, silent=silent)
+        Queue.__init__(self, name=name, max=max, silent=silent)
 
         def worker_bee(please_stop):
             please_stop.on_go(lambda: self.add(Thread.STOP))

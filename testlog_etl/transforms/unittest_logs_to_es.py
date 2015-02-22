@@ -158,7 +158,7 @@ class LogSummary(Dict):
                 missing_test_start=True
             )
         test.last_log_time = log.time
-        test.stati[log.status.lower()] += 1
+        test.stats[log.status.lower()] += 1
 
     def process_output(self, log):
         pass

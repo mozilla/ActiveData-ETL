@@ -308,7 +308,7 @@ class Index(object):
             }, e)
 
     def threaded_queue(self, size=None, period=None):
-        return ThreadedQueue(self, size=size, period=period)
+        return ThreadedQueue("elasticsearch: "+self.settings.index, self, size=size, period=period)
 
     def delete(self):
         self.cluster.delete_index(index=self.settings.index)
