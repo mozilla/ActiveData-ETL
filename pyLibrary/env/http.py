@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import StringIO
+import gzip
 
 from requests import sessions, Response
 
@@ -48,7 +50,14 @@ def request(method, url, **kwargs):
 
     session = sessions.Session()
     session.headers.update(default_headers)
-    return session.request(method=method, url=url, **kwargs)
+
+    if len(kwargs.get("data", [])) > 1000:
+        compressed = convert.bytes2zip(kwargs["data"])
+        kwargs["headers"]['content-encoding'] = 'gzip'
+        kwargs["data"] = compressed
+        return session.request(method=method, url=url, **kwargs)
+    else:
+        return session.request(method=method, url=url, **kwargs)
 
 
 def get(url, **kwargs):
