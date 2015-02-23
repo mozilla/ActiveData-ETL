@@ -573,45 +573,38 @@ class ThreadedQueue(Queue):
         def worker_bee(please_stop):
             please_stop.on_go(lambda: self.add(Thread.STOP))
 
-            buffer = deque()
+            _buffer = deque()
             next_time = Date.now() + period
 
             while not please_stop:
                 try:
-                    items = self.pop_all()
-                    if items:
-                        for i, item in enumerate(items):
-                            if item is Thread.STOP:
-                                queue.extend(buffer)
-                                please_stop.go()
-                                return
-                            elif item is None:
-                                pass
-                            else:
-                                buffer.append(item)
+                    item = self.pop(till=next_time)
+                    if item is Thread.STOP:
+                        queue.extend(_buffer)
+                        please_stop.go()
+                        return
+                    elif item is None:
+                        pass
                     else:
-                        item = self.pop(till=next_time)
-                        if item is Thread.STOP:
-                            queue.extend(buffer)
-                            please_stop.go()
-                            return
-                        elif item is None:
-                            pass
-                        else:
-                            buffer.append(item)
+                        _buffer.append(item)
                 except Exception, e:
-                    Log.warning("Unexpected problem", e)
+                    Log.warning("Unexpected problem", {
+                        "name": name,
+                    }, e)
 
                 try:
-                    if len(buffer) >= batch_size or Date.now() > next_time:
+                    if len(_buffer) >= batch_size or Date.now() > next_time:
                         next_time = Date.now() + period
-                        if buffer:
-                            queue.extend(buffer)
-                            buffer = deque()
+                        if _buffer:
+                            queue.extend(_buffer)
+                            _buffer = deque()
                 except Exception, e:
-                    Log.warning("Problem with pushing {{num}} items to data sink", {"num": len(buffer)}, e)
+                    Log.warning("Problem with {{name}} pushing {{num}} items to data sink", {
+                        "name": name,
+                        "num": len(_buffer)
+                    }, e)
 
-        self.thread = Thread.run("threaded queue " + unicode(id(self)), worker_bee)
+        self.thread = Thread.run("threaded queue for " + name, worker_bee)
 
 
     def __enter__(self):

@@ -51,6 +51,8 @@ def request(method, url, **kwargs):
     session = sessions.Session()
     session.headers.update(default_headers)
 
+    kwargs['timeout'] = nvl(kwargs.get('timeout'), default_timeout)
+
     if len(kwargs.get("data", [])) > 1000:
         compressed = convert.bytes2zip(kwargs["data"])
         kwargs["headers"]['content-encoding'] = 'gzip'
@@ -62,45 +64,38 @@ def request(method, url, **kwargs):
 
 def get(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('get', url, **kwargs))
 
 
 def options(url, **kwargs):
     kwargs.setdefault('allow_redirects', True)
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('options', url, **kwargs))
 
 
 def head(url, **kwargs):
     kwargs.setdefault('allow_redirects', False)
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('head', url, **kwargs))
 
 
 def post(url, data=None, **kwargs):
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('post', url, data=data, **kwargs))
 
 
 def put(url, data=None, **kwargs):
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('put', url, data=data, **kwargs))
 
 
 def patch(url, data=None, **kwargs):
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('patch', url, data=data, **kwargs))
 
 
 def delete(url, **kwargs):
-    kwargs.setdefault('timeout', default_timeout)
     kwargs["stream"] = True
     return HttpResponse(request('delete', url, **kwargs))
 

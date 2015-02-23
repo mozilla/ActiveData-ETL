@@ -460,11 +460,7 @@ class Cluster(object):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
 
         try:
-            kwargs = wrap(kwargs)
-            kwargs.setdefault("timeout", 600)
-            kwargs.headers["Accept-Encoding"] = "gzip,deflate"
-            kwargs = unwrap(kwargs)
-
+            wrap(kwargs).headers["Accept-Encoding"] = "gzip,deflate"
 
             if "data" in kwargs and not isinstance(kwargs["data"], str):
                 Log.error("data must be utf8 encoded string")
@@ -496,7 +492,6 @@ class Cluster(object):
     def get(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
-            kwargs.setdefault("timeout", 600)
             response = http.get(url, **kwargs)
             if self.debug:
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
