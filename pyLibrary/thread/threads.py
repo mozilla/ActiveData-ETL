@@ -573,20 +573,32 @@ class ThreadedQueue(Queue):
         def worker_bee(please_stop):
             please_stop.on_go(lambda: self.add(Thread.STOP))
 
-            buffer = []
+            buffer = deque()
             next_time = Date.now() + period
 
             while not please_stop:
                 try:
-                    item = self.pop(till=next_time)
-                    if item is Thread.STOP:
-                        queue.extend(buffer)
-                        please_stop.go()
-                        break
-                    elif item is None:
-                        pass
+                    items = self.pop_all()
+                    if items:
+                        for i, item in enumerate(items):
+                            if item is Thread.STOP:
+                                queue.extend(buffer)
+                                please_stop.go()
+                                return
+                            elif item is None:
+                                pass
+                            else:
+                                buffer.append(item)
                     else:
-                        buffer.append(item)
+                        item = self.pop(till=next_time)
+                        if item is Thread.STOP:
+                            queue.extend(buffer)
+                            please_stop.go()
+                            return
+                        elif item is None:
+                            pass
+                        else:
+                            buffer.append(item)
                 except Exception, e:
                     Log.warning("Unexpected problem", e)
 
@@ -595,7 +607,7 @@ class ThreadedQueue(Queue):
                         next_time = Date.now() + period
                         if buffer:
                             queue.extend(buffer)
-                            buffer = []
+                            buffer = deque()
                 except Exception, e:
                     Log.warning("Problem with pushing {{num}} items to data sink", {"num": len(buffer)}, e)
 
