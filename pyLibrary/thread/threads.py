@@ -565,7 +565,7 @@ class ThreadedQueue(Queue):
         if not Log:
             _late_import()
 
-        max_size = nvl(max_size, batch_size)  # REASONABLE DEFAULT
+        max_size = nvl(max_size, batch_size * 2)  # REASONABLE DEFAULT
         period = nvl(period, Duration.SECOND)
 
         Queue.__init__(self, name=name, max=max_size, silent=silent)
