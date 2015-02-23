@@ -165,16 +165,19 @@ def strip(value):
     REMOVE WHITESPACE (INCLUDING CONTROL CHARACTERS)
     """
     s = 0
-    for s, c in enumerate(value):
-        if ord(c) > 32:
-            break
-
     e = len(value)
-    for e in reversed(range(s, len(value))):
-        if ord(value[e]) > 32:
+    while s < e:
+        if ord(value[s]) > 32:
             break
+        s += 1
+    else:
+        return ""
 
-    return value[s:e + 1]
+    for i in reversed(range(s, e)):
+        if ord(value[i]) > 32:
+            return value[s:i + 1]
+
+    return ""
 
 
 

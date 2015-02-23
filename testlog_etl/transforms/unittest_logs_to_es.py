@@ -94,7 +94,7 @@ def process_unittest_log(source_key, file_name, lines):
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
         line = strings.strip(line)
 
-        if line  == "":
+        if line == "":
             continue
         try:
             accumulator.stats.lines += 1
