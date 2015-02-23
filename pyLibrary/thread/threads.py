@@ -557,19 +557,18 @@ class ThreadedQueue(Queue):
         self,
         name,
         queue,  # THE SLOWER QUEUE
-        size=None,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
-        max=None,  # SET THE MAXIMUM SIZE OF THE QUEUE, WRITERS WILL BLOCK IF QUEUE IS OVER THIS LIMIT
+        batch_size=900,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
+        max_size=None,  # SET THE MAXIMUM SIZE OF THE QUEUE, WRITERS WILL BLOCK IF QUEUE IS OVER THIS LIMIT
         period=None,  # MAX TIME BETWEEN FLUSHES TO SLOWER QUEUE
         silent=False  # WRITES WILL COMPLAIN IF THEY ARE WAITING TOO LONG
     ):
         if not Log:
             _late_import()
 
-        size = nvl(size, 900)  # REASONABLE DEFAULT
-        max = nvl(max, size)  # REASONABLE DEFAULT
+        max_size = nvl(max_size, batch_size)  # REASONABLE DEFAULT
         period = nvl(period, Duration.SECOND)
 
-        Queue.__init__(self, name=name, max=max, silent=silent)
+        Queue.__init__(self, name=name, max=max_size, silent=silent)
 
         def worker_bee(please_stop):
             please_stop.on_go(lambda: self.add(Thread.STOP))
@@ -592,7 +591,7 @@ class ThreadedQueue(Queue):
                     Log.warning("Unexpected problem", e)
 
                 try:
-                    if len(buffer) >= size or Date.now() > next_time:
+                    if len(buffer) >= batch_size or Date.now() > next_time:
                         next_time = Date.now() + period
                         if buffer:
                             queue.extend(buffer)

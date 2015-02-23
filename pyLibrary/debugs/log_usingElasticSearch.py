@@ -29,7 +29,7 @@ class Log_usingElasticSearch(BaseLog):
             limit_replicas=True,
             settings=settings
         )
-        self.queue = self.es.threaded_queue(size=100)
+        self.queue = self.es.threaded_queue(batch_size=100)
 
     def write(self, template, params):
         try:
