@@ -20,7 +20,7 @@ from .logs import BaseLog
 class Log_usingElasticSearch(BaseLog):
 
     @use_settings
-    def __init__(self, host, index, type="log", settings=None):
+    def __init__(self, host, index, type="log", max_size=1000, batch_size=100, settings=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
@@ -29,7 +29,7 @@ class Log_usingElasticSearch(BaseLog):
             limit_replicas=True,
             settings=settings
         )
-        self.queue = self.es.threaded_queue(max_size=1000, batch_size=100)
+        self.queue = self.es.threaded_queue(max_size=max_size, batch_size=batch_size)
 
     def write(self, template, params):
         try:

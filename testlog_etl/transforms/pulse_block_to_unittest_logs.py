@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
@@ -32,7 +32,8 @@ def process_pulse_block(source_key, source, dest_bucket):
 
     for i, line in enumerate(source.read_lines()):
         try:
-            if not line.strip():
+            line = strings.strip(line)
+            if not line:
                 continue
             envelope = convert.json2value(line)
             if envelope._meta:
@@ -145,7 +146,8 @@ def read_blobber_file(line_number, name, url):
         count = 0
         bad = 0
         for blobber_line in logs:
-            if not blobber_line.strip():
+            blobber_line = strings.strip(blobber_line)
+            if not blobber_line:
                 continue
 
             try:

@@ -13,23 +13,20 @@ from __future__ import unicode_literals
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from copy import deepcopy
 import sys
-import gc
+
+from pyLibrary import aws, dot, strings
 from pyLibrary.collections import MIN
+from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import get_function_by_name, use_settings
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
-
-from pyLibrary import aws
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log, Except
-from pyLibrary import dot
-from pyLibrary.dot import nvl, listwrap, Dict, Null
-from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -310,7 +307,7 @@ def etl_one(settings):
 def readloop(please_stop):
     while not please_stop:
         command = sys.stdin.readline()
-        if command.strip() == "exit":
+        if strings.strip(command) == "exit":
             break
     please_stop.go()
 

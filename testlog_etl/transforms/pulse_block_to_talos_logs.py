@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
@@ -27,7 +27,8 @@ def process_talos(source_key, source, dest_bucket):
     min_dest_etl = None
 
     for i, line in enumerate(source.read().split("\n")):
-        if not line.strip():
+        line = strings.strip(line)
+        if not line:
             continue
         envelope=convert.json2value(line)
         if envelope._meta:
@@ -62,7 +63,7 @@ def process_talos(source_key, source, dest_bucket):
                     if s < 0:
                         continue
 
-                    talos_line = talos_line[s + len(TALOS_PREFIX):].strip()
+                    talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
                     talos = convert.json2value(convert.utf82unicode(talos_line))
                     dest_key, dest_etl = etl_key(envelope, source_key, "talos")
                     if min_dest_key is None:

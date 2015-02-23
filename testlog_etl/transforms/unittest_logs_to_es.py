@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -92,8 +92,9 @@ def process_unittest_log(source_key, file_name, lines):
     accumulator = LogSummary()
     for line in lines:
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
+        line = strings.strip(line)
 
-        if line.strip() == "":
+        if line  == "":
             continue
         try:
             accumulator.stats.lines += 1

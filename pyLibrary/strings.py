@@ -160,6 +160,29 @@ def find(value, find, start=0):
         return i
 
 
+def strip(value):
+    """
+    REMOVE WHITESPACE (INCLUDING CONTROL CHARACTERS)
+    """
+    s = 0
+    for s, c in enumerate(value):
+        if ord(c) > 32:
+            break
+
+    e = len(value)
+    for e in reversed(range(s, len(value))):
+        if ord(value[e]) > 32:
+            break
+
+    return value[s:e + 1]
+
+
+
+
+def trim(value):
+    return strip(value)
+
+
 def between(value, prefix, suffix):
     value = toString(value)
     s = value.find(prefix)
