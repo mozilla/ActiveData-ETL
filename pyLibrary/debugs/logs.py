@@ -18,7 +18,7 @@ import sys
 
 from pyLibrary.debugs import constants
 from pyLibrary.dot import nvl, Dict, set_default, listwrap, wrap
-from pyLibrary.jsons.encoder import encode
+from pyLibrary.jsons.encoder import json_encoder
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.strings import indent, expand_template
 
@@ -408,7 +408,6 @@ def extract_tb(start):
 def format_trace(tbs, start=0):
     trace = []
     for d in tbs[start::]:
-        d["file"] = d["file"].replace("/", "\\")
         item = expand_template('File "{{file}}", line {{line}}, in {{method}}\n', d)
         trace.append(item)
     return "".join(trace)
@@ -491,7 +490,7 @@ class Except(Exception):
     def __unicode__(self):
         return unicode(str(self))
 
-    def __dict__(self):
+    def as_dict(self):
         return Dict(
             type=self.type,
             template=self.template,
@@ -501,7 +500,7 @@ class Except(Exception):
         )
 
     def __json__(self):
-        return encode(self.__dict__())
+        return json_encoder(self.as_dict())
 
 
 class BaseLog(object):

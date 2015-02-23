@@ -73,10 +73,16 @@ class Index(object):
         self.path = "/" + index + "/" + type
 
 
-    def get_schema(self):
+    def get_schema(self, retry=True):
         if self.settings.explore_metadata:
             indices = self.cluster.get_metadata().indices
             index = indices[self.settings.index]
+
+            if index == None and retry:
+                #TRY AGAIN, JUST IN CASE
+                self.cluster.cluster_metadata = None
+                return self.get_schema(retry=False)
+
             if not index.mappings[self.settings.type]:
                 Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})", self.settings)
             return index.mappings[self.settings.type]
@@ -339,12 +345,12 @@ class Cluster(object):
         limit_replicas=None,
         settings=None
     ):
-        from pyLibrary.queries import Q
+        from pyLibrary.queries import qb
 
         settings = deepcopy(settings)
         aliases = self.get_aliases()
 
-        indexes = Q.sort([
+        indexes = qb.sort([
             a
             for a in aliases
             if (a.alias == settings.index and settings.alias == None) or

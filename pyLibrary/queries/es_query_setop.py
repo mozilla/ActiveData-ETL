@@ -12,7 +12,7 @@ from __future__ import division
 
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import AND, SUM, OR, UNION
-from pyLibrary.dot import nvl, split_field, set_default, Dict
+from pyLibrary.dot import nvl, split_field, set_default, Dict, unwraplist
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import listwrap, unwrap
 from pyLibrary.queries.es_query_util import aggregates
@@ -103,9 +103,12 @@ def es_fieldop(es, query):
                 if s.value == ".":
                     r[s.name] = row[source]
                 else:
-                    r[s.name] = row[source][s.value]
+                    r[s.name] = unwraplist(row[source][s.value])
             data.append(r)
-        return Dict(data=data)
+        return Dict(
+            meta={"format":"list"},
+            data=data
+        )
     elif query.format == "table":
         header = [s.name for s in select]
         map = {s.name: i for i, s in enumerate(select)} # MAP FROM name TO COLUMN INDEX
@@ -116,9 +119,10 @@ def es_fieldop(es, query):
                 if s.value == ".":
                     r[map[s.name]] = row[source]
                 else:
-                    r[map[s.name]] = row[source][s.value]
+                    r[map[s.name]] = unwraplist(row[source][s.value])
             data.append(r)
         return Dict(
+            meta={"format":"table"},
             header=header,
             data=data
         )
@@ -131,11 +135,11 @@ def es_fieldop(es, query):
                 elif isinstance(s.value, dict):
                     # for k, v in s.value.items():
                     #     matricies[join_field(split_field(s.name)+[k])] = Matrix.wrap([unwrap(t.fields)[v] for t in T])
-                    matricies[s.name] = Matrix.wrap([{k: unwrap(t[source][v]) for k, v in s.value.items()} for t in T])
+                    matricies[s.name] = Matrix.wrap([{k: unwraplist(t[source][v]) for k, v in s.value.items()} for t in T])
                 elif isinstance(s.value, list):
-                    matricies[s.name] = Matrix.wrap([tuple(unwrap(t[source][ss]) for ss in s.value) for t in T])
+                    matricies[s.name] = Matrix.wrap([tuple(unwraplist(t[source][ss]) for ss in s.value) for t in T])
                 else:
-                    matricies[s.name] = Matrix.wrap([unwrap(t[source][s.value]) for t in T])
+                    matricies[s.name] = Matrix.wrap([unwraplist(t[source][s.value]) for t in T])
             except Exception, e:
                 Log.error("", e)
 
@@ -278,7 +282,7 @@ def es_deepop(es, mvel, query):
     rows = MVEL.unpack_terms(data.facets.mvel, query.edges)
     terms = zip(*rows)
 
-    # NUMBER ALL EDGES FOR Qb INDEXING
+    # NUMBER ALL EDGES FOR qb INDEXING
     edges = query.edges
     for f, e in enumerate(edges):
         for r in terms[f]:

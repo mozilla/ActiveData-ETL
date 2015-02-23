@@ -18,7 +18,7 @@ from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 
-from pyLibrary.queries import Q
+from pyLibrary.queries import qb
 from pyLibrary.times.timer import Timer
 
 
@@ -30,7 +30,7 @@ def list_s3(settings, filter):
     with Timer("get all metadata"):
         metas = Bucket(settings).metas()
 
-    filtered = Q.run({
+    filtered = qb.run({
         "from": metas,
         "where": filter,
         "sort": "last_modified"

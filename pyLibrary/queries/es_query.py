@@ -13,7 +13,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import MVEL, Q
+from pyLibrary.queries import MVEL, qb
 from pyLibrary.queries.container import Container
 from pyLibrary.queries.es_query_aggop import is_aggop, es_aggop
 from pyLibrary.queries.es_query_aggs import es_aggsop, is_aggsop
@@ -33,7 +33,7 @@ from pyLibrary.dot import wrap, listwrap
 
 class ESQuery(Container):
     """
-    SEND GENERAL Qb QUERIES TO ElasticSearch
+    SEND GENERAL qb QUERIES TO ElasticSearch
     """
 
     @use_settings
@@ -45,14 +45,13 @@ class ESQuery(Container):
         self.worker = None
         self.ready = False
 
-
-    def __dict__(self):
+    def as_dict(self):
         settings = self.settings.copy()
         settings.settings = None
         return settings
 
     def __json__(self):
-        return convert.value2json(self.__dict__())
+        return convert.value2json(self.as_dict())
 
 
     def __enter__(self):
@@ -90,7 +89,7 @@ class ESQuery(Container):
             result = self.query(frum)
             q2 = query.copy()
             q2.frum = result
-            return Q.run(q2)
+            return qb.run(q2)
 
         try:
             frum = loadColumns(self._es, query["from"])

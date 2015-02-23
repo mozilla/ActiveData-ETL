@@ -20,7 +20,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl
 
 from pyLibrary import jsons
-from pyLibrary.queries import Q
+from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -60,7 +60,7 @@ def find_missing(settings):
 def extract_records(bucket, min_date, max_date, dest_key):
     records = {}
     metas = bucket.metas()
-    filtered = Q.run({
+    filtered = qb.run({
         "from": metas,
         "where": {"or":[
             {"range": {"last_modified": {"gte": min_date, "lt": max_date}}},

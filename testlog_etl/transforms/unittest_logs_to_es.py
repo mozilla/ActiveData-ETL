@@ -12,7 +12,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
-from pyLibrary.queries import Q
+from pyLibrary.queries import qb
 from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
@@ -237,7 +237,7 @@ class LogSummary(Dict):
 
 
 def transform_buildbot(payload):
-    output = Q.select_one(payload, [
+    output = qb.select_one(payload, [
         {"name": "run.files", "value": "blobber_files"},
         {"name": "build.date", "value": "builddate"},
         {"name": "build.name", "value": "buildername"},

@@ -34,7 +34,11 @@ class Cube(object):
 
         self.is_value = False if isinstance(select, list) else True
         self.select = select
-        self.meta = Dict()       # PUT EXTRA MARKUP HERE
+        self.meta = Dict(format="cube")       # PUT EXTRA MARKUP HERE
+        self.is_none = False
+
+        if not all(data.values()):
+            is_none = True
 
         # ENSURE frum IS PROPER FORM
         if isinstance(select, list):
@@ -103,6 +107,8 @@ class Cube(object):
 
     @property
     def value(self):
+        if self.is_none:
+            return Null
         if self.edges:
             Log.error("can not get value of with dimension")
         if isinstance(self.select, list):
@@ -248,8 +254,8 @@ class Cube(object):
     def filter(self, where):
         if len(self.edges)==1 and self.edges[0].domain.type=="index":
             # USE THE STANDARD LIST FILTER
-            from pyLibrary.queries import Q
-            return Q.filter(where, self.data.values()[0].cube)
+            from pyLibrary.queries import qb
+            return qb.filter(where, self.data.values()[0].cube)
         else:
             # FILTER DOES NOT ALTER DIMESIONS, JUST WHETHER THERE ARE VALUES IN THE CELLS
             Log.unexpected("Incomplete")
@@ -331,7 +337,7 @@ class Cube(object):
         else:
             return float(self.data)
 
-    def __dict__(self):
+    def as_dict(self):
         return Dict(
             select=self.select,
             edges=self.edges,
@@ -340,4 +346,4 @@ class Cube(object):
         )
 
     def __json__(self):
-        return convert.value2json(self.__dict__())
+        return convert.value2json(self.as_dict())

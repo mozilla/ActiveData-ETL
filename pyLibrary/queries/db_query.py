@@ -23,7 +23,7 @@ from pyLibrary.dot import wrap, listwrap, unwrap
 
 class DBQuery(object):
     """
-    Qb to MySQL DATABASE QUERIES
+    qb to MySQL DATABASE QUERIES
     """
     @use_settings
     def __init__(
@@ -42,17 +42,17 @@ class DBQuery(object):
         self.settings = settings
         self._db = DB(settings)
 
-    def __dict__(self):
+    def as_dict(self):
         settings = self.settings.copy()
         settings.settings = None
         return unwrap(settings)
 
     def __json__(self):
-        return convert.value2json(self.__dict__())
+        return convert.value2json(self.as_dict())
 
     def query(self, query, stacked=False):
         """
-        TRANSLATE Qb QUERY ON SINGLE TABLE TO SQL QUERY
+        TRANSLATE qb QUERY ON SINGLE TABLE TO SQL QUERY
         """
         from pyLibrary.queries.query import Query
         query = Query(query)

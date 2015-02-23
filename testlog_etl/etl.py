@@ -17,6 +17,7 @@ import gc
 from pyLibrary.collections import MIN
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import get_function_by_name, use_settings
+from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.durations import Duration
@@ -196,6 +197,7 @@ def get_container(settings):
             elasticsearch.Cluster(settings).get_or_create_index(settings)
             output = Index_w_Keys(settings)
             es_sinks.append((settings, output))
+            return output
 
 
 class Index_w_Keys(object):
@@ -210,7 +212,7 @@ class Index_w_Keys(object):
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
-        path = etl2path(key2etl(prefix))
+        path = qb.reverse(etl2path(key2etl(prefix)))
 
         result = self.es.search({
             "fields": ["_id"],

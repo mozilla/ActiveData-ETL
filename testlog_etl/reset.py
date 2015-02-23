@@ -13,7 +13,7 @@ from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.queries import Q
+from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from testlog_etl import key2etl, etl2path
 
@@ -60,7 +60,7 @@ def main():
 
                 all_keys = source.keys(prefix=prefix)
                 all_keys = [(k, Version(k)) for k in all_keys]
-                all_keys = Q.sort(all_keys, 1)
+                all_keys = qb.sort(all_keys, 1)
                 for k, p in all_keys:
                     if start <= p < end:
                         Log.note("Adding {{key}}", {"key": k})

@@ -140,6 +140,26 @@ def percent(value, decimal=None, digits=None):
     return str(per) + "%"
 
 
+def find(value, find, start=0):
+    """
+    MUCH MORE USEFUL VERSION OF string.find()
+    """
+    l = len(value)
+    if isinstance(find, list):
+        m = l
+        for f in find:
+            i = value.find(f, start)
+            if i == -1:
+                continue
+            m = min(m, i)
+        return m
+    else:
+        i = value.find(find, start)
+        if i == -1:
+            return l
+        return i
+
+
 def between(value, prefix, suffix):
     value = toString(value)
     s = value.find(prefix)
@@ -336,9 +356,9 @@ def toString(val):
     if val == None:
         return ""
     elif isinstance(val, (dict, list, set)):
-        from pyLibrary.jsons.encoder import encode
+        from pyLibrary.jsons.encoder import json_encoder
 
-        return encode(val, pretty=True)
+        return json_encoder(val, pretty=True)
     elif hasattr(val, "__json__"):
         return val.__json__()
     elif isinstance(val, timedelta):

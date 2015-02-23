@@ -16,7 +16,7 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.pulse import Pulse
-from pyLibrary.queries import Q
+from pyLibrary.queries import qb
 from pyLibrary.dot import set_default, wrap
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
@@ -26,7 +26,7 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:
-        for i, g in Q.groupby(queue, size=settings.param.size):
+        for i, g in qb.groupby(queue, size=settings.param.size):
             Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}", {
                 "num": len(g),
                 "bucket": bucket.name
