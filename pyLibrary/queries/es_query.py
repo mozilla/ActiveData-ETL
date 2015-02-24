@@ -116,6 +116,12 @@ class ESQuery(Container):
         Log.error("Can not handle")
 
 
+    def get_column_names(self):
+        # GET METADATA FOR INDEX
+        # LIST ALL COLUMNS
+        frum = loadColumns(self._es, self)
+        return frum.columns.name
+
     def addDimension(self, dim):
         if isinstance(dim, list):
             Log.error("Expecting dimension to be a object, not a list:\n{{dim}}", {"dim": dim})

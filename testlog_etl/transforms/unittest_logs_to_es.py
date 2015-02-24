@@ -54,7 +54,7 @@ def process_unittest(source_key, source, destination):
         "timestamp": Date.now().unix,
         "source": etl_header,
         "type": "join",
-        "duration": timer.duration.total_seconds()
+        "duration": timer.duration
     }
     bb_summary.run.stats = summary.stats
     bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time

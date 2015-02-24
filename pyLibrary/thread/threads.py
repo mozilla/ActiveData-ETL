@@ -557,7 +557,7 @@ class ThreadedQueue(Queue):
         self,
         name,
         queue,  # THE SLOWER QUEUE
-        batch_size=900,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
+        batch_size=None,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
         max_size=None,  # SET THE MAXIMUM SIZE OF THE QUEUE, WRITERS WILL BLOCK IF QUEUE IS OVER THIS LIMIT
         period=None,  # MAX TIME BETWEEN FLUSHES TO SLOWER QUEUE
         silent=False  # WRITES WILL COMPLAIN IF THEY ARE WAITING TOO LONG
@@ -565,6 +565,7 @@ class ThreadedQueue(Queue):
         if not Log:
             _late_import()
 
+        batch_size = nvl(batch_size, int(max_size/2), 900)
         max_size = nvl(max_size, batch_size * 2)  # REASONABLE DEFAULT
         period = nvl(period, Duration.SECOND)
 

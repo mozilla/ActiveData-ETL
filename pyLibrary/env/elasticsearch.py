@@ -484,10 +484,15 @@ class Cluster(object):
             else:
                 suggestion = ""
 
-            Log.error("Problem with call to {{url}}" + suggestion + "\n{{body|left(10000}}", {
-                "url": url,
-                "body": kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100]
-            }, e)
+            if kwargs.get("data"):
+                Log.error("Problem with call to {{url}}" + suggestion + "\n{{body|left(10000}}", {
+                    "url": url,
+                    "body": kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100]
+                }, e)
+            else:
+                Log.error("Problem with call to {{url}}" + suggestion, {"url": url}, e)
+
+
 
     def get(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path

@@ -53,7 +53,7 @@ def request(method, url, **kwargs):
 
     kwargs['timeout'] = nvl(kwargs.get('timeout'), default_timeout)
 
-    if len(kwargs.get("data", [])) > 1000:
+    if len(nvl(kwargs.get("data"))) > 1000:
         compressed = convert.bytes2zip(kwargs["data"])
         kwargs["headers"]['content-encoding'] = 'gzip'
         kwargs["data"] = compressed

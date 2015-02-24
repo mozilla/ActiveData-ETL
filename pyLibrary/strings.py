@@ -189,7 +189,8 @@ def trim(value):
 def between(value, prefix, suffix):
     value = toString(value)
     s = value.find(prefix)
-    if s == -1: return None
+    if s == -1:
+        return None
     s += len(prefix)
 
     e = value.find(suffix, s)
