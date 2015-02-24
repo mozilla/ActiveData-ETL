@@ -51,7 +51,7 @@ def process_unittest(source_key, source, destination):
     bb_summary.etl = {
         "id": 0,
         "name": "unittest",
-        "timestamp": Date.now().milli / 1000,
+        "timestamp": Date.now().unix,
         "source": etl_header,
         "type": "join",
         "duration": timer.duration.total_seconds()
@@ -268,7 +268,7 @@ def transform_buildbot(payload):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
 
-    output.run.timestamp = Date(output.run.timestamp).milli / 1000
+    output.run.timestamp = Date(output.run.timestamp).unix
 
     output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
 
