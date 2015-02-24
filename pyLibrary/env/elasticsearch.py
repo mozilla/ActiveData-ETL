@@ -273,18 +273,24 @@ class Index(object):
         else:
             interval = unicode(seconds) + "s"
 
-        response = self.cluster.put(
-            "/" + self.settings.index + "/_settings",
-            data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
-        )
-
-        result = convert.json2value(utf82unicode(response.content))
         if self.cluster.version.startswith("0.90."):
+            response = self.cluster.put(
+                "/" + self.settings.index + "/_settings",
+                data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
+            )
+
+            result = convert.json2value(utf82unicode(response.content))
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.content)
                 })
         elif self.cluster.version.startswith("1.4."):
+            response = self.cluster.put(
+                "/" + self.settings.index + "/_settings",
+                data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}')
+            )
+
+            result = convert.json2value(utf82unicode(response.content))
             if not result.acknowledged:
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.content)
@@ -514,8 +520,6 @@ class Cluster(object):
             sample = kwargs["data"][:300]
             Log.note("PUT {{url}}:\n{{data|indent}}", {"url": url, "data": sample})
         try:
-            kwargs = wrap(kwargs)
-            kwargs.setdefault("timeout", 60)
             response = http.put(url, **kwargs)
             if self.debug:
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[0:300:]})
@@ -526,7 +530,6 @@ class Cluster(object):
     def delete(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
-            kwargs.setdefault("timeout", 60)
             response = convert.json2value(utf82unicode(http.delete(url, **kwargs).content))
             if self.debug:
                 Log.note("delete response {{response}}", {"response": response})
