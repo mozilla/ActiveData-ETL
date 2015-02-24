@@ -205,6 +205,7 @@ class Index_w_Keys(object):
 
     def __init__(self, settings):
         self.es = elasticsearch.Index(settings)
+        self.es.set_refresh_interval(-1)
         self.queue = self.es.threaded_queue(max_size=10000, batch_size=2000, silent=True)
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
