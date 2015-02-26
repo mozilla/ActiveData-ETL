@@ -7,10 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-import re
-import math
 from pyLibrary import strings
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import wrap
 from pyLibrary.parsers import Log
 from pyLibrary.queries import qb
 
@@ -99,6 +97,5 @@ def etl2path(etl):
         return qb.reverse(path)
     except Exception, e:
         Log.error("Can not get path {{etl}}", {"etl": etl}, e)
-
 
 from . import transforms

@@ -11,6 +11,7 @@ from __future__ import division
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
@@ -21,6 +22,11 @@ from testlog_etl import etl2key
 
 
 DEBUG = True
+
+
+
+# GET THE GIT REVISION NUMBER
+git_revision = get_git_revision()
 
 
 def process_unittest(source_key, source, destination):
@@ -54,7 +60,8 @@ def process_unittest(source_key, source, destination):
         "timestamp": Date.now().unix,
         "source": etl_header,
         "type": "join",
-        "duration": timer.duration
+        "revision": git_revision,
+        "duration": timer.duration.seconds
     }
     bb_summary.run.stats = summary.stats
     bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time

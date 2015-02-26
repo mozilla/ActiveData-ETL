@@ -109,17 +109,30 @@ class Index(object):
             if re.match(re.escape(prefix) + "\\d{8}_\\d{6}", a.index) and a.index != name:
                 self.cluster.delete_index(a.index)
 
-    def add_alias(self):
-        self.cluster_metadata = None
-        self.cluster._post(
-            "/_aliases",
-            data=convert.unicode2utf8(convert.value2json({
-                "actions": [
-                    {"add": {"index": self.settings.index, "alias": self.settings.alias}}
-                ]
-            })),
-            timeout=nvl(self.settings.timeout, 30)
-        )
+    def add_alias(self, alias=None):
+        if alias:
+            self.cluster_metadata = None
+            self.cluster._post(
+                "/_aliases",
+                data=convert.unicode2utf8(convert.value2json({
+                    "actions": [
+                        {"add": {"index": self.settings.index, "alias": alias}}
+                    ]
+                })),
+                timeout=nvl(self.settings.timeout, 30)
+            )
+        else:
+            # SET ALIAS ACCORDING TO LIFECYCLE RULES
+            self.cluster_metadata = None
+            self.cluster._post(
+                "/_aliases",
+                data=convert.unicode2utf8(convert.value2json({
+                    "actions": [
+                        {"add": {"index": self.settings.index, "alias": self.settings.alias}}
+                    ]
+                })),
+                timeout=nvl(self.settings.timeout, 30)
+            )
 
     def get_proto(self, alias):
         """
@@ -392,6 +405,21 @@ class Cluster(object):
             return Index(settings)
         Log.error("Can not find index {{index_name}}", {"index_name": settings.index})
 
+    def get_alias(self, alias):
+        """
+        RETURN REFERENCE TO ALIAS (MANY INDEXES)
+        USER MUST BE SURE NOT TO SEND UPDATES
+        """
+        aliases = self.get_aliases()
+        if alias in aliases.alias:
+            settings = self.settings.copy()
+            settings.alias = alias
+            settings.index = alias
+            return Index(settings)
+        Log.error("Can not find any index with alias {{alias_name}}", {"alias_name": alias})
+
+
+
     @use_settings
     def create_index(
         self,
@@ -409,7 +437,7 @@ class Cluster(object):
             Log.error("Expecting index name to conform to pattern")
 
         if settings.schema_file:
-            Log.error('schema_file attribute not suported.  Use {"$ref":<filename>} instead')
+            Log.error('schema_file attribute not supported.  Use {"$ref":<filename>} instead')
 
         if isinstance(schema, basestring):
             schema = convert.json2value(schema, paths=True)
@@ -600,4 +628,48 @@ def _scrub(r):
     except Exception, e:
         Log.warning("Can not scrub: {{json}}", {"json": r})
 
+
+
+class Alias(object):
+    @use_settings
+    def __init__(self, type, alias, explore_metadata=True, debug=False, settings=None):
+        """
+        alias - NAME OF THE ALIAS
+        type - SCHEMA NAME
+        explore_metadata == True - IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
+        timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
+        """
+        self.debug = debug
+        if self.debug:
+            Log.alert("elasticsearch debugging on index {{index}} is on", {"index": settings.index})
+
+        self.settings = settings
+        self.cluster = Cluster(settings)
+
+        self.path = "/" + alias + "/" + type
+
+    @property
+    def url(self):
+        return self.cluster.path + "/" + self.path
+
+    def search(self, query, timeout=None):
+        query = wrap(query)
+        try:
+            if self.debug:
+                if len(query.facets.keys()) > 20:
+                    show_query = query.copy()
+                    show_query.facets = {k: "..." for k in query.facets.keys()}
+                else:
+                    show_query = query
+                Log.note("Query:\n{{query|indent}}", {"query": show_query})
+            return self.cluster._post(
+                self.path + "/_search",
+                data=convert.value2json(query).encode("utf8"),
+                timeout=nvl(timeout, self.settings.timeout)
+            )
+        except Exception, e:
+            Log.error("Problem with search (path={{path}}):\n{{query|indent}}", {
+                "path": self.path + "/_search",
+                "query": query
+            }, e)
 

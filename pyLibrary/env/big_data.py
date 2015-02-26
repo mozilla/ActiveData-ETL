@@ -97,6 +97,9 @@ def safe_size(source):
     RETURN A str() OR A FileString()
     """
 
+    if source is None:
+        return None
+
     total_bytes = 0
     bytes = []
     b = source.read(MIN_READ_SIZE)

@@ -18,21 +18,20 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, listwrap, Dict, Null
+from pyLibrary.dot import nvl, listwrap, Dict, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import Duration, DAY
 from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
-
-git_revision = None;
 
 
 class ConcatSources(object):
@@ -205,17 +204,36 @@ class Index_w_Keys(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE
     """
+    es = None
+
 
     def __init__(self, settings):
-        self.es = elasticsearch.Index(settings)
-        self.es.set_refresh_interval(-1)
-        self.queue = self.es.threaded_queue(max_size=10000, batch_size=2000, silent=True)
+        self.settings=settings
+        self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
+        if not Index_w_Keys.es:
+            Index_w_Keys.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+        pass
+
+    def _get_queue(self, timestamp):
+        date = timestamp.floor(DAY)
+
+        queue = self.indicies.get(date.unix)
+        if queue==None:
+            name = self.settings.index + "_" + date.format("%Y-%m-%d")
+            es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
+            es.add_alias(self.settings.index)
+            es.set_refresh_interval(-1)
+            queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=True)
+            self.indicies[date.unix] = queue
+
+        return queue
+
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
         path = qb.reverse(etl2path(key2etl(prefix)))
 
-        result = self.es.search({
+        result = Index_w_Keys.es.search({
             "fields": ["_id"],
             "query": {
                 "filtered": {
@@ -228,15 +246,18 @@ class Index_w_Keys(object):
         return set(result.hits.hits.fields._id)
 
     def extend(self, documents):
-        self.queue.extend(documents)
+        for d in wrap(documents):
+            queue = self._get_queue(Date(d.value.build.date))
+            queue.add(d)
 
     def add(self, doc):
-        self.queue.add(doc)
+        queue = self._get_queue(Date(wrap(doc).value.build.date))
+        queue.add(doc)
 
 
 
 def main():
-    global git_revision
+
 
     try:
         settings = startup.read_settings(defs=[{
@@ -248,9 +269,6 @@ def main():
         }])
         constants.set(settings.constants)
         Log.start(settings.debug)
-
-        # GET THE GIT REVISION NUMBER
-        git_revision = get_git_revision()
 
         if settings.args.id:
             etl_one(settings)

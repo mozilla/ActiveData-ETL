@@ -145,8 +145,13 @@ in `Null`:
  * `a ∘ Null == Null`
  * `Null ∘ a == Null`
 
-where `∘` is any binary operator.
+where `∘` is most binary operators.  `and` and `or` are exceptions, and behave
+as expected:
 
+ * `True or Null == True`
+ * `False or Null == Null`
+ * `False and Null == False`
+ * `True and Null == Null`
 
 DictList is "Flat"
 ----------------------------------------

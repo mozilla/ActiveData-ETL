@@ -27,7 +27,7 @@ from pyLibrary.times.timer import Timer
 
 
 READ_ERROR = "S3 read error"
-MAX_FILE_SIZE = 100*1024*1024
+MAX_FILE_SIZE = 100 * 1024 * 1024
 
 class File(object):
     def __init__(self, bucket, key):
