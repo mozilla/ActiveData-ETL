@@ -208,10 +208,6 @@ class LogSummary(Dict):
         test.duration = nvl(test.end_time - test.start_time, log.extra.runtime)
         test.extra = test.extra
 
-        if not test.ok:
-            Log.note("Bad test {{result}}", {"result": test})
-
-
     def suite_end(self, log):
         pass
 

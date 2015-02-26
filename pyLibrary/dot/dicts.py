@@ -30,6 +30,9 @@ class Dict(dict):
         IS UNLIKELY TO BE USEFUL. USE wrap() INSTEAD
         """
         dict.__init__(self)
+        if not map:
+            return
+
         if DEBUG:
             d = _get(self, "__dict__")
             for k, v in map.items():

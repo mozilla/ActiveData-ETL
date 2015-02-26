@@ -20,6 +20,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
@@ -30,6 +31,8 @@ from testlog_etl.dummy_sink import DummySink
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
+
+git_revision = None;
 
 
 class ConcatSources(object):
@@ -233,16 +236,21 @@ class Index_w_Keys(object):
 
 
 def main():
+    global git_revision
+
     try:
         settings = startup.read_settings(defs=[{
-                                                   "name": ["--id"],
-                                                   "help": "id to process",
-                                                   "type": str,
-                                                   "dest": "id",
-                                                   "required": False
-                                               }])
+            "name": ["--id"],
+            "help": "id to process",
+            "type": str,
+            "dest": "id",
+            "required": False
+        }])
         constants.set(settings.constants)
         Log.start(settings.debug)
+
+        # GET THE GIT REVISION NUMBER
+        git_revision = get_git_revision()
 
         if settings.args.id:
             etl_one(settings)
