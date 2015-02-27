@@ -82,6 +82,31 @@ def transform_buildbot(payload):
     output.run.timestamp = payload.timestamp
     output.build.branch = payload.tree
 
+    # JUST IN CASE THERE ARE MORE PROPERTIES
+    output.other = payload
+    payload.blobber_files = None
+    payload.builddate = None
+    payload.buildername = None
+    payload.buildid = None
+    payload.buildtype = None
+    payload.buildurl = None
+    payload.insertion_time = None
+    payload.job_number = None
+    payload.key = None
+    payload.locale = None
+    payload.logurl = None
+    payload.os = None
+    payload.platform = None
+    payload.product = None
+    payload.release = None
+    payload.revision = None
+    payload.slave = None
+    payload.status = None
+    payload.talos = None
+    payload.test = None
+    payload.timestamp = None
+    payload.tree = None
+
     path = output.run.suite.split("-")
     if Math.is_integer(path[-1]):
         output.run.chunk = int(path[-1])
