@@ -10,16 +10,18 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from signal import CTRL_C_EVENT, SIGINT
+
 
 import subprocess
 
 try:
     from _subprocess import CREATE_NEW_PROCESS_GROUP
+    from signal import CTRL_C_EVENT
     is_windows = True
 
     flags = CREATE_NEW_PROCESS_GROUP
 except Exception, e:
+    from signal import SIGINT
     is_windows = False
     flags = None
 
