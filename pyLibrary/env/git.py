@@ -11,41 +11,24 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-
-import subprocess
-
-try:
-    from _subprocess import CREATE_NEW_PROCESS_GROUP, CREATE_NEW_CONSOLE
-
-    flags = CREATE_NEW_PROCESS_GROUP
-except Exception, e:
-    flags = None
-
+from pyLibrary.env.processes import Process
 
 
 def get_git_revision():
     """
     GET THE CURRENT GIT REVISION
     """
-    proc = subprocess.Popen(
-        ["git", "log", "-1"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=-1,
-        creationflags=flags
-    )
+    proc = Process(["git", "log", "-1"])
 
     try:
         while True:
-            line = proc.stdout.readline().strip()
+            line = proc.readline().strip()
             if not line:
                 continue
             if line.startswith("commit "):
                 return line[7:]
     finally:
         try:
-            proc.wait()
+            proc.join()
         except Exception:
             pass
-
