@@ -15,6 +15,7 @@ from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
 
 
@@ -60,7 +61,8 @@ def main():
 
                 all_keys = source.keys(prefix=prefix)
                 all_keys = [(k, Version(k)) for k in all_keys]
-                all_keys = qb.sort(all_keys, 1)
+                with Timer("sorting {{num}} keys", {"num":len(all_keys)}):
+                    all_keys = qb.sort(all_keys, 1)
                 for k, p in all_keys:
                     if start <= p < end:
                         Log.note("Adding {{key}}", {"key": k})
@@ -144,12 +146,5 @@ def comparePath(a, b):
     return 0
 
 
-
-
-
-
-
 if __name__ == "__main__":
     main()
-
-

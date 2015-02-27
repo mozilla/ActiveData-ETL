@@ -56,7 +56,6 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
     return keys
 
 
-
 def transform_buildbot(payload):
     output = Dict()
     output.run.files = payload.blobber_files
@@ -90,6 +89,7 @@ def transform_buildbot(payload):
     payload.buildid = None
     payload.buildtype = None
     payload.buildurl = None
+    payload.etl = None
     payload.insertion_time = None
     payload.job_number = None
     payload.key = None
