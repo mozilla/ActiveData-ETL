@@ -11,25 +11,22 @@ from __future__ import division
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
 from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
+from testlog_etl.transforms import git_revision
+from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
 
 DEBUG = True
 
 
 
-# GET THE GIT REVISION NUMBER
-git_revision = get_git_revision()
 
-
-def process_unittest(source_key, source, destination):
+def process_unittest(source_key, source, destination, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
@@ -239,40 +236,3 @@ class LogSummary(Dict):
 
         return self
 
-
-def transform_buildbot(payload):
-    output = qb.select_one(payload, [
-        {"name": "run.files", "value": "blobber_files"},
-        {"name": "build.date", "value": "builddate"},
-        {"name": "build.name", "value": "buildername"},
-        {"name": "build.id", "value": "buildid"},
-        {"name": "build.type", "value": "buildtype"},
-        {"name": "build.url", "value": "buildurl"},
-        {"name": "run.insertion_time", "value": "insertion_time"},
-        {"name": "run.job_number", "value": "job_number"},
-        {"name": "run.key", "value": "key"},
-        {"name": "build.locale", "value": "locale"},
-        {"name": "run.logurl", "value": "logurl"},
-        {"name": "machine.os", "value": "os"},
-        {"name": "machine.platform", "value": "platform"},
-        {"name": "build.product", "value": "product"},
-        {"name": "build.release", "value": "release"},
-        {"name": "build.revision", "value": "revision"},
-        {"name": "machine.name", "value": "slave"},
-        {"name": "run.status", "value": "status"},
-        {"name": "run.talos", "value": "talos"},
-        {"name": "run.suite", "value": "test"},
-        {"name": "run.timestamp", "value": "timestamp"},
-        {"name": "build.branch", "value": "tree"},
-    ])
-
-    path = output.run.suite.split("-")
-    if Math.is_integer(path[-1]):
-        output.run.chunk = int(path[-1])
-        output.run.suite = "-".join(path[:-1])
-
-    output.run.timestamp = Date(output.run.timestamp).unix
-
-    output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
-
-    return output

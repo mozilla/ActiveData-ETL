@@ -17,7 +17,7 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
 TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
-def process_talos(source_key, source, dest_bucket):
+def process_talos(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """

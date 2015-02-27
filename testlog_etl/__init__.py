@@ -71,7 +71,7 @@ def etl2key(etl):
                     return unicode(etl.id) + ":" + etl2key(etl.source)
             else:
                 if etl.type == "join":
-                    return "(" + etl2key(etl.source) + ")." + unicode(etl.id)
+                    return etl2key(etl.source) + "." + unicode(etl.id)
                 else:
                     return unicode(etl.id) + ":(" + etl2key(etl.source) + ")"
         else:

@@ -60,7 +60,10 @@ class ETL(Thread):
         # FIND THE WORKERS METHODS
         settings.workers = deepcopy(workers)
         for w in settings.workers:
-            w.transformer = dot.get_attr(sys.modules, w.transformer)
+            t_name = w.transformer
+            w.transformer = dot.get_attr(sys.modules, t_name)
+            if not w.transformer:
+                Log.error("Can not find {{path}} to transformer", {"path": t_name})
             w._source = get_container(w.source)
             w._destination = get_container(w.destination)
 
@@ -107,7 +110,7 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                new_keys = set(action.transformer(source_key, source, action._destination))
+                new_keys = set(action.transformer(source_key, source, action._destination, self.please_stop))
 
                 old_keys = action._destination.keys(prefix=source_block.key)
                 if not new_keys and old_keys:
@@ -176,7 +179,7 @@ es_sinks = []  # LIST OF (settings, es) PAIRS
 
 
 def get_container(settings):
-    if isinstance(settings, (Index_w_Keys, aws.s3.Bucket)):
+    if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
         return settings
 
     if settings == None:
@@ -193,13 +196,18 @@ def get_container(settings):
                     return e[1]
                 except Exception, _:
                     pass
-            elasticsearch.Cluster(settings).get_or_create_index(settings)
-            output = Index_w_Keys(settings)
+            output = elasticsearch.Cluster(settings).get_or_create_index(settings)
+            if settings.use_daily is not False:
+                output = MultiDayIndex(settings)
+            else:
+                output = output.threaded_queue(max_size=2000, batch_size=1000)
+                setattr(output, "keys", lambda prefix: set())
+
             es_sinks.append((settings, output))
             return output
 
 
-class Index_w_Keys(object):
+class MultiDayIndex(object):
     """
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE
@@ -210,8 +218,8 @@ class Index_w_Keys(object):
     def __init__(self, settings):
         self.settings=settings
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
-        if not Index_w_Keys.es:
-            Index_w_Keys.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+        if not MultiDayIndex.es:
+            MultiDayIndex.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         pass
 
     def _get_queue(self, timestamp):
@@ -222,7 +230,7 @@ class Index_w_Keys(object):
             name = self.settings.index + "_" + date.format("%Y-%m-%d")
             es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
             es.add_alias(self.settings.index)
-            es.set_refresh_interval(-1)
+            es.set_refresh_interval(seconds=60 * 60)
             queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=True)
             self.indicies[date.unix] = queue
 
@@ -233,7 +241,7 @@ class Index_w_Keys(object):
     def keys(self, prefix=None):
         path = qb.reverse(etl2path(key2etl(prefix)))
 
-        result = Index_w_Keys.es.search({
+        result = MultiDayIndex.es.search({
             "fields": ["_id"],
             "query": {
                 "filtered": {

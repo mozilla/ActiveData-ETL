@@ -574,7 +574,7 @@ class ThreadedQueue(Queue):
         def worker_bee(please_stop):
             please_stop.on_go(lambda: self.add(Thread.STOP))
 
-            _buffer = deque()
+            _buffer = []
             next_time = Date.now() + period
 
             while not please_stop:
@@ -598,7 +598,7 @@ class ThreadedQueue(Queue):
                         next_time = Date.now() + period
                         if _buffer:
                             queue.extend(_buffer)
-                            _buffer = deque()
+                            _buffer = []
                 except Exception, e:
                     Log.warning("Problem with {{name}} pushing {{num}} items to data sink", {
                         "name": name,

@@ -207,17 +207,28 @@ def _get_attr(obj, path):
             return _get_attr(obj.__dict__[attr_name], path[1:])
         elif attr_name in dir(obj):
             return _get_attr(obj[attr_name], path[1:])
+
+        # TRY FILESYSTEM
+        from pyLibrary.env.files import File
+        if File.new_instance(File(obj.__file__).parent, attr_name).set_extension("py").exists:
+            try:
+                # THIS CASE IS WHEN THE __init__.py DOES NOT IMPORT THE SUBDIR FILE
+                # WE CAN STILL PUT THE PATH TO THE FILE IN THE from CLAUSE
+                output = __import__(obj.__name__ + "." + attr_name, globals(), locals(), [path[1]], 0)
+                return _get_attr(output, path[1:])
+            except Exception, e:
+                pass
+
+        # TRY A CASE-INSENSITIVE MATCH
+        attr_name = lower_match(attr_name, dir(obj))
+        if not attr_name:
+            from pyLibrary.debugs.logs import Log
+            Log.error(PATH_NOT_FOUND)
+        elif len(attr_name)>1:
+            from pyLibrary.debugs.logs import Log
+            Log.error(AMBIGUOUS_PATH_FOUND+" {{paths}}", {"paths":attr_name})
         else:
-            # TRY A CASE-INSENSITIVE MATCH
-            attr_name = lower_match(attr_name, dir(obj))
-            if not attr_name:
-                from pyLibrary.debugs.logs import Log
-                Log.error(PATH_NOT_FOUND)
-            elif len(attr_name)>1:
-                from pyLibrary.debugs.logs import Log
-                Log.error(AMBIGUOUS_PATH_FOUND+" {{paths}}", {"paths":attr_name})
-            else:
-                return _get_attr(obj[attr_name[0]], path[1:])
+            return _get_attr(obj[attr_name[0]], path[1:])
     try:
         obj = _get(obj, attr_name)
         return _get_attr(obj, path[1:])
@@ -273,7 +284,7 @@ def _wrap_dict(v):
 
 _wrappers = {
     dict: _wrap_dict,
-    NoneType: lambda: Null,
+    NoneType: lambda v: Null,
     list: lambda v: DictList(v),
     GeneratorType: lambda v: (wrap(vv) for vv in v),
 }
@@ -283,7 +294,10 @@ def wrap(v):
     # TODO: TIME IF THIS IS FASTER (ON cPython AND PyPy)
     # 25% FASTER, MAYBE?
     type_ = _get(v, "__class__")
-    return _wrappers.get(type_, lambda x: x)(v)
+    try:
+        return _wrappers.get(type_, lambda x: x)(v)
+    except Exception, e:
+        pass
 
     # if type_ is dict:
     #     m = Dict()

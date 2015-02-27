@@ -22,7 +22,7 @@ DEBUG_SHOW_NO_LOG = False
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
 
-def process_pulse_block(source_key, source, dest_bucket):
+def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO S3 LOGFILES
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
@@ -31,6 +31,9 @@ def process_pulse_block(source_key, source, dest_bucket):
     num_missing_envelope = 0
 
     for i, line in enumerate(source.read_lines()):
+        if please_stop:
+            Log.error("Stopping early")
+
         try:
             line = strings.strip(line)
             if not line:

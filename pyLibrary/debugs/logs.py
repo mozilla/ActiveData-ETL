@@ -86,6 +86,7 @@ class Log(object):
             from pyLibrary.debugs import profiles
 
             if isinstance(settings.profile, bool):
+                profiles.ON = True
                 settings.profile = {"enabled": True, "filename": "profile.tab"}
 
             if settings.profile.enabled:
