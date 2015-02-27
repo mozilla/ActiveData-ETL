@@ -256,13 +256,14 @@ class MultiDayIndex(object):
     def extend(self, documents):
         for d in wrap(documents):
             try:
-                queue = self._get_queue(Date(d.value.build.date))
+                queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
                 queue.add(d)
             except Exception, e:
                 Log.error("problem with {{doc|json}}", {"doc":d.value})
 
     def add(self, doc):
-        queue = self._get_queue(Date(wrap(doc).value.build.date))
+        d = wrap(doc)
+        queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
         queue.add(doc)
 
 
