@@ -20,6 +20,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl, listwrap, Dict, Null, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.files import File
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
@@ -27,6 +28,7 @@ from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration, DAY
+from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
 
@@ -317,8 +319,15 @@ def etl_one(settings):
 
 
     if len(settings.args.id.split(".")) == 2:
+        worker=[w for w in settings.workers if w.name == "unittest2es"][0]
+
+        with Timer("get file from s3"):
+            bucket = aws.s3.Bucket(settings=worker.source)
+            bites = bucket.read_bytes(settings.args.id)
+            File("results/" + settings.args.id.replace(":", "_") + ".json.gz").write_bytes(bites)
+
         queue.add(Dict(
-            bucket=[w for w in settings.workers if w.name == "unittest2es"][0].source.bucket,
+            bucket=worker.source.bucket,
             key=settings.args.id
         ))
     elif len(settings.args.id.split(".")) == 1:

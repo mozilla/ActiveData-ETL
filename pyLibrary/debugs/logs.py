@@ -58,20 +58,12 @@ class Log(object):
         """
         if not settings:
             return
+        settings = wrap(settings)
 
         cls.settings = settings
         cls.trace = cls.trace | nvl(settings.trace, False)
         if cls.trace:
             from pyLibrary.thread.threads import Thread
-
-        if not settings.log:
-            return
-
-        cls.logging_multi = Log_usingMulti()
-        cls.main_log = Log_usingThread(cls.logging_multi)
-
-        for log in listwrap(settings.log):
-            Log.add_log(Log.new_instance(log))
 
         if settings.cprofile:
             if isinstance(settings.cprofile, bool):
@@ -94,6 +86,18 @@ class Log(object):
 
         if settings.constants:
             constants.set(settings.constants)
+
+        if not settings.log:
+            return
+
+        cls.logging_multi = Log_usingMulti()
+        cls.main_log = Log_usingThread(cls.logging_multi)
+
+        for log in listwrap(settings.log):
+            Log.add_log(Log.new_instance(log))
+
+
+
 
     @classmethod
     def stop(cls):

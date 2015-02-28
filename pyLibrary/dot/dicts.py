@@ -124,8 +124,10 @@ class Dict(dict):
             return wrap(output)
         except Exception:
             d = _get(self, "__dict__")
-            if isinstance(key, str):
-                key = key.decode("utf8")
+            if isinstance(key, unicode):
+                from pyLibrary.debugs.logs import Log
+
+                Log.error("not expected")
 
             return NullType(d, key)
 

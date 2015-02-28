@@ -575,11 +575,12 @@ class ThreadedQueue(Queue):
             please_stop.on_go(lambda: self.add(Thread.STOP))
 
             _buffer = []
-            next_time = Date.now() + period
+            next_time = Date.now() + period   # THE TIME WE SHOULD DO A PUSH
 
             while not please_stop:
                 try:
                     item = self.pop(till=next_time)
+                    now = Date.now()
                     if item is Thread.STOP:
                         queue.extend(_buffer)
                         please_stop.go()
@@ -587,6 +588,8 @@ class ThreadedQueue(Queue):
                     elif item is None:
                         pass
                     else:
+                        if not _buffer:
+                            next_time = now + period  # NO NEED TO SEND TOO EARLY
                         _buffer.append(item)
                 except Exception, e:
                     Log.warning("Unexpected problem", {
@@ -594,8 +597,8 @@ class ThreadedQueue(Queue):
                     }, e)
 
                 try:
-                    if len(_buffer) >= batch_size or Date.now() > next_time:
-                        next_time = Date.now() + period
+                    if len(_buffer) >= batch_size or now > next_time:
+                        next_time = now + period
                         if _buffer:
                             queue.extend(_buffer)
                             _buffer = []
@@ -606,6 +609,22 @@ class ThreadedQueue(Queue):
                     }, e)
 
         self.thread = Thread.run("threaded queue for " + name, worker_bee)
+
+
+    def add(self, value):
+        with self.lock:
+            self.wait_for_queue_space()
+            if self.keep_running:
+                self.queue.append(value)
+        return self
+
+    def extend(self, values):
+        with self.lock:
+            # ONCE THE queue IS BELOW LIMIT, ALLOW ADDING MORE
+            self.wait_for_queue_space()
+            if self.keep_running:
+                self.queue.extend(values)
+        return self
 
 
     def __enter__(self):

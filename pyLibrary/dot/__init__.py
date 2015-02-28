@@ -276,41 +276,21 @@ def lower_match(value, candidates):
     return [v for v in candidates if v.lower()==value.lower()]
 
 
-
-def _wrap_dict(v):
-    m = Dict()
-    _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
-    return m
-
-_wrappers = {
-    dict: _wrap_dict,
-    NoneType: lambda v: Null,
-    list: lambda v: DictList(v),
-    GeneratorType: lambda v: (wrap(vv) for vv in v),
-}
-
-
 def wrap(v):
-    # TODO: TIME IF THIS IS FASTER (ON cPython AND PyPy)
-    # 25% FASTER, MAYBE?
     type_ = _get(v, "__class__")
-    try:
-        return _wrappers.get(type_, lambda x: x)(v)
-    except Exception, e:
-        pass
 
-    # if type_ is dict:
-    #     m = Dict()
-    #     _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
-    #     return m
-    # elif type_ is NoneType:
-    #     return Null
-    # elif type_ is list:
-    #     return DictList(v)
-    # elif type_ is GeneratorType:
-    #     return (wrap(vv) for vv in v)
-    # else:
-    #     return v
+    if type_ is dict:
+        m = Dict()
+        _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
+        return m
+    elif type_ is NoneType:
+        return Null
+    elif type_ is list:
+        return DictList(v)
+    elif type_ is GeneratorType:
+        return (wrap(vv) for vv in v)
+    else:
+        return v
 
 
 def wrap_dot(value):

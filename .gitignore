@@ -12,3 +12,4 @@ log.txt
 /*.tab
 /elasticsearch.yml
 /resources/elasticsearch/*.yml
+/tests/results

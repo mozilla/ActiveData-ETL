@@ -185,6 +185,10 @@ class Bucket(object):
 
         return convert.utf82unicode(json)
 
+    def read_bytes(self, key):
+        source = self.get_meta(key)
+        return safe_size(source)
+
     def read_lines(self, key):
         source = self.get_meta(key)
         if source.size < MAX_STRING_SIZE:

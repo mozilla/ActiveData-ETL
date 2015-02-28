@@ -12,12 +12,13 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 
 DEBUG = False
+DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
-
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -60,7 +61,7 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                 Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
                     "line": line,
                     "index": i,
-                    "key":source_key
+                    "key": source_key
                 })
         except Exception, e:
             Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
@@ -69,6 +70,8 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                 "key": source_key
             }, e)
 
+        if DEBUG or DEBUG_SHOW_LINE:
+            Log.note("Source {{key}}, buildid = {{buildid}}", {"key": source_key, "buildid": envelope.data.builddate})
 
         file_num = 0
         for name, url in envelope.data.blobber_files.items():
@@ -117,13 +120,13 @@ def read_blobber_file(line_number, name, url):
     """
     :param line_number:  for debugging
     :param name:  for debugging
-    :param url:  for debugging
+    :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
     if name in ["emulator-5554.log", "qemu.log"] or any(map(name.endswith, [".png", ".html"])):
         return None, 0
 
-    with Timer("Read {{name}}: {{url}}", {"name":name, "url": url}, debug=DEBUG):
+    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG or DEBUG_SHOW_LINE):
         response = http.get(url)
         try:
             logs = response.all_lines
@@ -144,44 +147,45 @@ def read_blobber_file(line_number, name, url):
             return None, 0
 
     # DETECT IF THIS IS A STRUCTURED LOG
-    try:
-        total = 0  # ENSURE WE HAVE A SIDE EFFECT
-        count = 0
-        bad = 0
-        for blobber_line in logs:
-            blobber_line = strings.strip(blobber_line)
-            if not blobber_line:
-                continue
+    with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG or DEBUG_SHOW_LINE):
+        try:
+            total = 0  # ENSURE WE HAVE A SIDE EFFECT
+            count = 0
+            bad = 0
+            for blobber_line in logs:
+                blobber_line = strings.strip(blobber_line)
+                if not blobber_line:
+                    continue
 
-            try:
-                total += len(convert.json2value(blobber_line))
-                count += 1
-            except Exception, e:
-                if DEBUG:
-                    Log.note("Not JSON: {{line}}", {
-                        "name": name,
-                        "line": blobber_line
-                    })
-                bad += 1
-                if bad > 4:
-                    Log.error("Too many bad lines")
+                try:
+                    total += len(convert.json2value(blobber_line))
+                    count += 1
+                except Exception, e:
+                    if DEBUG:
+                        Log.note("Not JSON: {{line}}", {
+                            "name": name,
+                            "line": blobber_line
+                        })
+                    bad += 1
+                    if bad > 4:
+                        Log.error("Too many bad lines")
 
-        if count == 0:
-            # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
-            Log.error("No JSON lines found")
+            if count == 0:
+                # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
+                Log.error("No JSON lines found")
 
-    except Exception, e:
-        if name.endswith("_raw.log") and "No JSON lines found" not in e:
-            Log.error("Line {{index}}: {{name}} is NOT structured log", {
-                "index": line_number,
-                "name": name
-            }, e)
-        if DEBUG:
-            Log.note("Line {{index}}: {{name}} is NOT structured log", {
-                "index": line_number,
-                "name": name
-            })
-        return None, 0
+        except Exception, e:
+            if name.endswith("_raw.log") and "No JSON lines found" not in e:
+                Log.error("Line {{index}}: {{name}} is NOT structured log", {
+                    "index": line_number,
+                    "name": name
+                }, e)
+            if DEBUG:
+                Log.note("Line {{index}}: {{name}} is NOT structured log", {
+                    "index": line_number,
+                    "name": name
+                })
+            return None, 0
 
     return logs, count
 
@@ -196,7 +200,8 @@ def etl_key(envelope, source_key, name):
             "id": num,
             "name": name,
             "source": envelope.data.etl,
-            "type": "join"
+            "type": "join",
+            "timestamp": Date.now().unix
         })
     else:
         if source_key.endswith(".json"):
@@ -208,6 +213,7 @@ def etl_key(envelope, source_key, name):
             "source": {
                 "id": source_key
             },
-            "type": "join"
+            "type": "join",
+            "timestamp": Date.now().unix
         })
     return dest_key, dest_etl

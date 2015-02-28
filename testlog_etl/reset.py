@@ -60,19 +60,20 @@ def main():
                 end = Version(settings.args.end)
 
                 all_keys = source.keys(prefix=prefix)
-                all_keys = [(k, Version(k)) for k in all_keys]
+                with Timer("filtering {{num}} keys", {"num":len(all_keys)}):
+                    all_keys = [(k, Version(k)) for k in all_keys if k.find("None") == -1]
+                    all_keys = [(k, p) for k, p in all_keys if start <= p < end]
                 with Timer("sorting {{num}} keys", {"num":len(all_keys)}):
                     all_keys = qb.sort(all_keys, 1)
                 for k, p in all_keys:
-                    if start <= p < end:
-                        Log.note("Adding {{key}}", {"key": k})
-                        now = Date.now()
-                        work_queue.add({
-                            "bucket": settings.args.bucket,
-                            "key": k,
-                            "timestamp":now.milli/1000,
-                            "date/time":now.format()
-                        })
+                    Log.note("Adding {{key}}", {"key": k})
+                    now = Date.now()
+                    work_queue.add({
+                        "bucket": settings.args.bucket,
+                        "key": k,
+                        "timestamp":now.milli/1000,
+                        "date/time":now.format()
+                    })
 
     except Exception, e:
         Log.error("Problem with etl", e)

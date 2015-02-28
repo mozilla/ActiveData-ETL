@@ -23,8 +23,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest",
-				"public": true
+				"bucket": "ekyle-unittest"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
 			"type": "join"
@@ -43,7 +42,7 @@
 				"type" : "pulse_log",
 				"timeout" : 300,
 				"schema" : {"$ref": "//../schema/pulse_logs.json"},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": true
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
@@ -57,8 +56,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos",
-				"public": true
+				"bucket": "ekyle-talos"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join"
@@ -78,7 +76,7 @@
 				"schema": {
 					"$ref": "//../schema/test_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": true
 			},
 			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",

@@ -42,7 +42,7 @@ def process_unittest(source_key, source, destination, please_stop=None):
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
-        "key":source_key
+        "key": source_key
     })
     try:
         with timer:

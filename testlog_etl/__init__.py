@@ -44,7 +44,10 @@ def _parse_key(elements):
     EXPECTING ALTERNATING LIST OF operands AND operators
     """
     if isinstance(elements, basestring):
-        return {"id": int(elements)}
+        try:
+            return {"id": int(elements)}
+        except Exception, e:
+            Log.error("problem", e)
     if isinstance(elements, list) and len(elements) == 1:
         if isinstance(elements[0], basestring):
             return {"id": int(elements[0])}
