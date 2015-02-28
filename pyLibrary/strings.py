@@ -164,6 +164,9 @@ def strip(value):
     """
     REMOVE WHITESPACE (INCLUDING CONTROL CHARACTERS)
     """
+    if not value or (ord(value[0]) > 32 and ord(value[-1]) > 32):
+        return value
+
     s = 0
     e = len(value)
     while s < e:

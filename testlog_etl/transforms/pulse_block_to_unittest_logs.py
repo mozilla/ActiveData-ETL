@@ -19,6 +19,7 @@ from pyLibrary.times.timer import Timer
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
+STRUCTURED_LOG_ENDINGS = ["structured_logs.log", "_structured_full.log", '_raw.log']
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -145,6 +146,10 @@ def read_blobber_file(line_number, name, url):
                     "url": url
                 })
             return None, 0
+
+    if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):
+        # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
+        return logs, "unknown"
 
     # DETECT IF THIS IS A STRUCTURED LOG
     with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG or DEBUG_SHOW_LINE):

@@ -369,7 +369,7 @@ def int2hex(value, size):
     return (("0" * size) + hex(value)[2:])[-size:]
 
 
-def hex2bytearray(value):
+def hex2bytes(value):
     return bytearray(value.decode("hex"))
 
 

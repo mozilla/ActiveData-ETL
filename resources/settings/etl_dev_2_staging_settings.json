@@ -87,11 +87,11 @@
 		}
 	],
 	"debug": {
-//		"trace": true,
-//		"cprofile": {
-//			"enabled": true,
-//			"filename": "./results/profile.tab"
-//		},
+		"trace": true,
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/profile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"

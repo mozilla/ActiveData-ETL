@@ -27,7 +27,7 @@ class TestEtlSpeed(FuzzyTestCase):
             "trace": True,
             "cprofile": {
                 "enabled": True,
-                "filename": "tests/results/profile.tab"
+                "filename": "tests/results/test_51586_profile.tab"
             }
         }
         Log.start(debug_settings)
@@ -46,7 +46,7 @@ class TestEtlSpeed(FuzzyTestCase):
             "trace": True,
             "cprofile": {
                 "enabled": True,
-                "filename": "tests/results/profile.tab"
+                "filename": "tests/results/test_read_blobber_file_profile.tab"
             }
         }
         Log.start(debug_settings)
