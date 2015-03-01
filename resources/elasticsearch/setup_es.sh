@@ -11,7 +11,7 @@ cd /home/ec2-user/
 wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz
 tar zxfv elasticsearch-1.4.2.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-1.4.2/* /usr/local//elasticsearch/
+sudo cp -R elasticsearch-1.4.2/* /usr/local/elasticsearch/
 cd /usr/local/elasticsearch/
 
 # BE SURE TO MATCH THE PUGLIN WITH ES VERSION
