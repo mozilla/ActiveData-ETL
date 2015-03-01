@@ -57,7 +57,7 @@ class Queue(object):
         m.set_body(convert.value2json(message))
         self.queue.write(m)
 
-    def pop(self, wait=Duration.SECOND):
+    def pop(self, wait=Duration.SECOND, till=None):
         m = self.queue.read(wait_time_seconds=Math.floor(wait.total_seconds))
         if not m:
             return None

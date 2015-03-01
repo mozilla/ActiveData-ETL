@@ -161,7 +161,10 @@ class ETL(Thread):
                         else:
                             todo = self.work_queue.pop()
                 else:
-                    todo = self.work_queue.pop()
+                    if isinstance(self.work_queue, aws.Queue):
+                        todo = self.work_queue.pop()
+                    else:
+                        todo = self.work_queue.pop(till=Date.now())
                     if todo == None:
                         please_stop.go()
                         return
@@ -317,6 +320,7 @@ def etl_one(settings):
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 
+    settings.param.wait_forever = False
 
     if len(settings.args.id.split(".")) == 2:
         worker=[w for w in settings.workers if w.name == "unittest2es"][0]

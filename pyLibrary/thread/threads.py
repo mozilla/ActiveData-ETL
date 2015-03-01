@@ -174,12 +174,14 @@ class Queue(object):
                     except Exception, e:
                         pass
             else:
-                while self.keep_running and Date.now() < till:
+                while self.keep_running:
                     if self.queue:
                         value = self.queue.popleft()
                         if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
                             self.keep_running = False
                         return value
+                    elif Date.now() > till:
+                        break
 
                     try:
                         self.lock.wait(till=till)
@@ -579,18 +581,30 @@ class ThreadedQueue(Queue):
 
             while not please_stop:
                 try:
+                    if not _buffer:
+                        item = self.pop()
+                        now = Date.now()
+
+                        if item is Thread.STOP:
+                            queue.extend(_buffer)
+                            please_stop.go()
+                            return
+                        elif item is not None:
+                            _buffer.append(item)
+
+                        next_time = now + period  # NO NEED TO SEND TOO EARLY
+                        continue
+
                     item = self.pop(till=next_time)
                     now = Date.now()
+
                     if item is Thread.STOP:
                         queue.extend(_buffer)
                         please_stop.go()
                         return
-                    elif item is None:
-                        pass
-                    else:
-                        if not _buffer:
-                            next_time = now + period  # NO NEED TO SEND TOO EARLY
+                    elif item is not None:
                         _buffer.append(item)
+
                 except Exception, e:
                     Log.warning("Unexpected problem", {
                         "name": name,
