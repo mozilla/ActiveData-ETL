@@ -122,6 +122,8 @@ def process_unittest_log(source_key, file_name, lines):
                 # CrashTime=1498346728
                 pass
             else:
+                if len(line) > 1000:
+                    line = line[:1000] + "..."
                 Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
 
     output = accumulator.summary()

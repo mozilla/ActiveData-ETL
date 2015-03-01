@@ -53,7 +53,8 @@ def main():
                 source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
                 if settings.args.end and settings.args.start:
-                    prefix = strings.common_prefix(settings.args.start, settings.args.end)
+                    up_to = str(int(settings.args.end) - 1)
+                    prefix = strings.common_prefix(settings.args.start, up_to)
                 else:
                     prefix = None
                 start = Version(settings.args.start)
@@ -63,7 +64,7 @@ def main():
                 with Timer("filtering {{num}} keys", {"num":len(all_keys)}):
                     all_keys = [(k, Version(k)) for k in all_keys if k.find("None") == -1]
                     all_keys = [(k, p) for k, p in all_keys if start <= p < end]
-                with Timer("sorting {{num}} keys", {"num":len(all_keys)}):
+                with Timer("sorting {{num}} keys", {"num": len(all_keys)}):
                     all_keys = qb.sort(all_keys, 1)
                 for k, p in all_keys:
                     Log.note("Adding {{key}}", {"key": k})
@@ -71,8 +72,8 @@ def main():
                     work_queue.add({
                         "bucket": settings.args.bucket,
                         "key": k,
-                        "timestamp":now.milli/1000,
-                        "date/time":now.format()
+                        "timestamp": now.milli / 1000,
+                        "date/time": now.format()
                     })
 
     except Exception, e:
