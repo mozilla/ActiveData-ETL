@@ -6,19 +6,9 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-
-# MIMICS THE requests API (http://docs.python-requests.org/en/latest/)
-# WITH ADDED default_headers THAT CAN BE SET USING pyLibrary.debugs.settings
-# EG
-# {"debug.constants":{
-# "pyLibrary.env.http.default_headers={
-# "From":"klahnakoski@mozilla.com"
-# }
-# }}
-
-
 from __future__ import unicode_literals
 from __future__ import division
+
 import gzip
 from io import BytesIO
 from tempfile import TemporaryFile
