@@ -72,7 +72,7 @@ def main():
                     work_queue.add({
                         "bucket": settings.args.bucket,
                         "key": k,
-                        "timestamp": now.milli / 1000,
+                        "timestamp": now.unix,
                         "date/time": now.format()
                     })
 

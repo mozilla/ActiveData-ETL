@@ -247,6 +247,7 @@ def ibytes2ilines(stream):
             try:
                 next_block = stream.next()
                 _buffer = _buffer[s:] + next_block
+                s = 0
                 e = _buffer.find(b"\n")
             except StopIteration:
                 _buffer = _buffer[s:]

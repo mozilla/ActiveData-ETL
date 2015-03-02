@@ -72,14 +72,14 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
             }, e)
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, buildid = {{buildid}}", {"key": source_key, "buildid": envelope.data.builddate})
+            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {"key": source_key, "line":i, "buildid": envelope.data.builddate})
 
         file_num = 0
         for name, url in envelope.data.blobber_files.items():
             try:
                 if url == None:
                     if DEBUG:
-                        Log.note("Line {{index}}: found structured log with NULL url", {"index": i})
+                        Log.note("Line {{line}}: found structured log with NULL url", {"line": i})
                     continue
 
                 log_content, num_lines = read_blobber_file(i, name, url)
@@ -87,9 +87,9 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                     continue
 
                 with Timer(
-                    "Copied {{name}} with {{num_lines}} lines)",
+                    "Copied {{line}}, {{name}} with {{num_lines}} lines",
                     {
-                        "index": i,
+                        "line": i,
                         "name": name,
                         "num_lines": num_lines
                     },
@@ -105,6 +105,12 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                     )
                     file_num += 1
                     output.append(dest_key)
+
+                    if DEBUG_SHOW_LINE:
+                        Log.note("Copied {{key}}: {{url}}", {
+                            "key": dest_key,
+                            "url": url
+                        })
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
 
@@ -127,21 +133,21 @@ def read_blobber_file(line_number, name, url):
     if name in ["emulator-5554.log", "qemu.log"] or any(map(name.endswith, [".png", ".html"])):
         return None, 0
 
-    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG or DEBUG_SHOW_LINE):
+    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
         response = http.get(url)
         try:
             logs = response.all_lines
         except Exception, e:
             if name.endswith("_raw.log"):
-                Log.error("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
-                    "index": line_number,
+                Log.error("Line {{line}}: {{name}} = {{url}} is NOT structured log", {
+                    "line": line_number,
                     "name": name,
                     "url": url
                 }, e)
 
             if DEBUG:
-                Log.note("Line {{index}}: {{name}} = {{url}} is NOT structured log", {
-                    "index": line_number,
+                Log.note("Line {{line}}: {{name}} = {{url}} is NOT structured log", {
+                    "line": line_number,
                     "name": name,
                     "url": url
                 })
@@ -152,7 +158,7 @@ def read_blobber_file(line_number, name, url):
         return logs, "unknown"
 
     # DETECT IF THIS IS A STRUCTURED LOG
-    with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG or DEBUG_SHOW_LINE):
+    with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG):
         try:
             total = 0  # ENSURE WE HAVE A SIDE EFFECT
             count = 0
@@ -181,13 +187,13 @@ def read_blobber_file(line_number, name, url):
 
         except Exception, e:
             if name.endswith("_raw.log") and "No JSON lines found" not in e:
-                Log.error("Line {{index}}: {{name}} is NOT structured log", {
-                    "index": line_number,
+                Log.error("Line {{line}}: {{name}} is NOT structured log", {
+                    "line": line_number,
                     "name": name
                 }, e)
             if DEBUG:
-                Log.note("Line {{index}}: {{name}} is NOT structured log", {
-                    "index": line_number,
+                Log.note("Line {{line}}: {{name}} is NOT structured log", {
+                    "line": line_number,
                     "name": name
                 })
             return None, 0

@@ -243,6 +243,7 @@ class Index(object):
             except Exception, e:
                 Log.error("can not make request body from\n{{lines|indent}}", {"lines": lines}, e)
 
+
             response = self.cluster._post(
                 self.path + "/_bulk",
                 data=data_bytes,

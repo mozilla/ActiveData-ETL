@@ -266,7 +266,7 @@ class Bucket(object):
                 for ll in l:
                     archive.write(ll.encode("utf8"))
                     archive.write(b"\n")
-                    count+=1
+                    count += 1
             else:
                 archive.write(l.encode("utf8"))
                 archive.write(b"\n")

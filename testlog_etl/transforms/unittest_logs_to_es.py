@@ -107,15 +107,14 @@ def process_unittest_log(source_key, file_name, lines):
             accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
             accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
 
-
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
             accumulator.__getattribute__(log.action)(log)
-
         except Exception, e:
             accumulator.stats.bad_lines += 1
+
             if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
                 # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
                 # StartTime=1409123984798
@@ -132,6 +131,7 @@ def process_unittest_log(source_key, file_name, lines):
         "num_bytes": output.stats.bytes,
         "num_lines": output.stats.lines,
         "num_tests": output.stats.total,
+        "bad_lines": output.stats.bad_lines,
         "name": file_name
     })
     return output

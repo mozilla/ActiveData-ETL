@@ -15,6 +15,8 @@ from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
 
+DEBUG = False
+
 TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
 def process_talos(source_key, source, dest_bucket, please_stop=None):
@@ -51,7 +53,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
             bytes = None
 
             try:
-                with Timer("Read {{url}}", {"url":envelope.data.logurl}):
+                with Timer("Read {{url}}", {"url":envelope.data.logurl}, debug=DEBUG):
                     response = http.get(envelope.data.logurl)
                     if response.status_code == 404:
                         Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
