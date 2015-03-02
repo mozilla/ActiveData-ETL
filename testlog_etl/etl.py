@@ -335,7 +335,7 @@ def etl_one(settings):
             key=settings.args.id
         ))
     elif len(settings.args.id.split(".")) == 1:
-        worker = [w for w in settings.workers if w.name == "pulse2unittest"][0]
+        worker = [w for w in settings.workers if w.name in ["pulse2unittest", "pulse2es"]][0]
         if settings.args.id.find(":")>=0:
             queue.add(Dict(
                 bucket=worker.source.bucket,

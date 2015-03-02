@@ -15,7 +15,7 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.dot import Dict
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
+from testlog_etl import etl2key, key2etl
 
 DEBUG = True
 
@@ -27,10 +27,16 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
+    if etl_header.locale:
+        # EARLY VERSION ETL DID NOT ADD AN ETL HEADER
+        start = 0
+        etl_header = key2etl(source_key)
+    else:
+        start = 1
 
     keys = []
     records=[]
-    for i, line in enumerate(lines[1:]):
+    for i, line in enumerate(lines[start:]):
         line = strings.strip(line)
         if not line:
             continue
