@@ -115,15 +115,16 @@ def process_unittest_log(source_key, file_name, lines):
         except Exception, e:
             accumulator.stats.bad_lines += 1
 
-            if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
-                # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
-                # StartTime=1409123984798
-                # CrashTime=1498346728
-                pass
-            else:
-                if len(line) > 1000:
-                    line = line[:1000] + "..."
-                Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
+            # TODO: TURN BACK ON
+            # if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
+            #     # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
+            #     # StartTime=1409123984798
+            #     # CrashTime=1498346728
+            #     pass
+            # else:
+            #     if len(line) > 1000:
+            #         line = line[:1000] + "..."
+            #     Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
