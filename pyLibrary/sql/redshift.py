@@ -52,7 +52,12 @@ class Redshift(object):
         self.connection.commit()
         return output
 
-    def execute(self, command, param=None):
+    def execute(
+        self,
+        command,
+        param=None,
+        retry=True     # IF command FAILS, JUST THROW ERROR
+    ):
         if param:
             command = expand_template(command, self.quote_param(param))
 
@@ -72,7 +77,8 @@ class Redshift(object):
                 # TODO: FIGURE OUT WHY rollback() DOES NOT HELP
                 self.connection.close()
                 self._connect()
-                Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
+                if not retry:
+                    Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
 
     def insert(self, table_name, record):
         keys = record.keys()

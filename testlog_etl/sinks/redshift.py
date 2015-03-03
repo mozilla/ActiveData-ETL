@@ -37,7 +37,7 @@ class Json2Redshift(object):
                 )""", {
                 "table_name": self.pg.quote_column(settings.table),
                 "columns": SQL(",\n".join(self.pg.quote_column(c.name) + " " + self.pg.es_type2pg_type(c.type) for c in self.columns))
-            })
+            }, retry=False)
         except Exception, e:
             if "already exists" in e:
                 Log.alert("Table {{table}} exists in Redshift", {"table": settings.table})
