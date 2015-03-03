@@ -46,11 +46,15 @@ class Redshift(object):
     def query(self, sql, param=None):
         if param:
             sql = expand_template(sql, self.quote_param(param))
-        with self.connection.cursor() as curs:
+
+        with Closer(self.connection.cursor()) as curs:
             curs.execute(sql)
             output = curs.fetchall()
         self.connection.commit()
         return output
+
+
+
 
     def execute(
         self,
@@ -68,7 +72,7 @@ class Redshift(object):
                     if not self.connection:
                         self._connect()
 
-                with self.connection.cursor() as curs:
+                with Closer(self.connection.cursor()) as curs:
                     curs.execute(command)
                 self.connection.commit()
                 done = True
@@ -159,3 +163,21 @@ PG_TYPES = {
     "string": "character varying",
     "long": "bigint"
 }
+
+
+class Closer(object):
+
+    def __init__(self, resource):
+        self.resource=resource
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            self.resource.close()
+        except Exception, e:
+            pass
+
+    def __getattr__(self, item):
+        return getattr(self.resource, item)
