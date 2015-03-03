@@ -79,7 +79,7 @@ class Redshift(object):
             except Exception, e:
                 try:
                     self.connection.rollback()
-                # TODO: FIGURE OUT WHY rollback() DOES NOT HELP
+                    # TODO: FIGURE OUT WHY rollback() DOES NOT HELP
                     self.connection.close()
                 except Exception, f:
                     pass

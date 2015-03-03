@@ -612,10 +612,10 @@ class ThreadedQueue(Queue):
 
                 try:
                     if len(_buffer) >= batch_size or now > next_time:
-                        next_time = now + period
                         if _buffer:
                             queue.extend(_buffer)
                             _buffer = []
+                        next_time = now + period
                 except Exception, e:
                     Log.warning("Problem with {{name}} pushing {{num}} items to data sink", {
                         "name": name,
