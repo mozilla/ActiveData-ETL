@@ -56,17 +56,23 @@ class Redshift(object):
         if param:
             command = expand_template(command, self.quote_param(param))
 
-        try:
-            with self.locker:
-                if not self.connection:
-                    self._connect()
+        done = False
+        while not done:
+            try:
+                with self.locker:
+                    if not self.connection:
+                        self._connect()
 
-            with self.connection.cursor() as curs:
-                curs.execute(command)
-            self.connection.commit()
-        except Exception, e:
-            self.connection.rollback()
-            Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
+                with self.connection.cursor() as curs:
+                    curs.execute(command)
+                self.connection.commit()
+                done = True
+            except Exception, e:
+                self.connection.rollback()
+                # TODO: FIGURE OUT WHY rollback() DOES NOT HELP
+                self.connection.close()
+                self._connect()
+                Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
 
     def insert(self, table_name, record):
         keys = record.keys()
