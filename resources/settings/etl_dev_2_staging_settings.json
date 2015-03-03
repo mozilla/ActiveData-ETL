@@ -86,13 +86,13 @@
 			"type": "join"
 		},
 		{
-			"name": "unittest2pg",
+			"name": "unittest2redshift",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-unittest"
 			},
 			"destination": {
-				"type":"postgres",
+				"type":"redshift",
 				"host": "ekyle-redshift-test.cishavsxiep4.us-west-2.redshift.amazonaws.com",
 				"port": 5439,
 				"database":"unittest",

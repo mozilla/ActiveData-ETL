@@ -56,7 +56,8 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos"
+				"bucket": "ekyle-talos",
+				"public": true
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join"
@@ -78,6 +79,28 @@
 				},
 				"debug": false,
 				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+			"type": "join"
+		},
+		{
+			"name": "unittest2redshift",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-unittest"
+			},
+			"destination": {
+				"type":"redshift",
+				"host": "ekyle-redshift-test.cishavsxiep4.us-west-2.redshift.amazonaws.com",
+				"port": 5439,
+				"database":"unittest",
+				"table": "test_results",
+				"$ref": "file://~/private.json#redshift",
+				"mapping": {
+					"$ref": "//../schema/redshift.json"
+				},
+				"timeout": 300,
+				"debug": true
 			},
 			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
 			"type": "join"

@@ -210,7 +210,7 @@ def get_container(settings):
 
     if settings == None:
         return DummySink()
-    elif settings.type == "postgres":
+    elif settings.type == "redshift":
         for e in sinks:
             try:
                 fuzzytestcase.assertAlmostEqual(e[0], settings)
