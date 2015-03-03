@@ -109,6 +109,8 @@ def _scrub(value):
             v = _scrub(v)
             output.append(v)
         return output
+    elif hasattr(value, '__call__'):
+        return repr(value)
     else:
         return value
 

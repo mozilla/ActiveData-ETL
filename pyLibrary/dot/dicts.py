@@ -188,9 +188,9 @@ class Dict(dict):
         output = []
         for k, v in self.items():
             if isinstance(v, dict):
-                output.extend(wrap(v).leaves(prefix=prefix+literal_field(k)+"."))
+                output.extend(wrap(v).leaves(prefix=prefix + literal_field(k) + "."))
             else:
-                output.append((prefix+literal_field(k), v))
+                output.append((prefix + literal_field(k), v))
         return output
 
     def all_items(self):

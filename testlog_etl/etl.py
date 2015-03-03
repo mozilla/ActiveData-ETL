@@ -18,19 +18,20 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, listwrap, Dict, Null, wrap
+from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.files import File
-from pyLibrary.env.git import get_git_revision
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration, DAY
+from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
-from testlog_etl import key2etl, etl2path
 from testlog_etl.dummy_sink import DummySink
+from testlog_etl.sinks.multi_day_index import MultiDayIndex
+from testlog_etl.sinks.redshift import Json2Redshift
+from testlog_etl.sinks.split import Split
+from testlog_etl.sinks.threaded import Threaded
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -60,14 +61,28 @@ class ETL(Thread):
         settings=None
     ):
         # FIND THE WORKERS METHODS
-        settings.workers = deepcopy(workers)
-        for w in settings.workers:
-            t_name = w.transformer
-            w.transformer = dot.get_attr(sys.modules, t_name)
-            if not w.transformer:
-                Log.error("Can not find {{path}} to transformer", {"path": t_name})
-            w._source = get_container(w.source)
-            w._destination = get_container(w.destination)
+        settings.workers = []
+        for w in workers:
+            w = deepcopy(w)
+
+            for existing_worker in settings.workers:
+                try:
+                    fuzzytestcase.assertAlmostEqual(existing_worker.source, w.source)
+                    fuzzytestcase.assertAlmostEqual(existing_worker.transformer, w.transformer)
+                    # SAME SOURCE AND TRANSFORMER, MERGE THE destinations
+                except Exception, e:
+                    continue
+                destination = get_container(w.destination)
+                existing_worker._destination = Split(existing_worker._destination, destination)
+                break
+            else:
+                t_name = w.transformer
+                w._transformer = dot.get_attr(sys.modules, t_name)
+                if not w._transformer:
+                    Log.error("Can not find {{path}} to transformer", {"path": t_name})
+                w._source = get_container(w.source)
+                w._destination = get_container(w.destination)
+                settings.workers.append(w)
 
         self.settings = settings
         if isinstance(work_queue, dict):
@@ -112,9 +127,15 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                new_keys = set(action.transformer(source_key, source, action._destination, self.please_stop))
-
                 old_keys = action._destination.keys(prefix=source_block.key)
+                new_keys = set(action._transformer(source_key, source, action._destination, self.please_stop))
+
+                # DUE TO BUGS THIS INVARIANT IS NOW BROKEN
+                # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
+                # for n in new_keys:
+                #     if not n.startswith(source_key):
+                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", {"new_key": n, "source_key": source_key})
+
                 if not new_keys and old_keys:
                     Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}", {
                         "old_keys": old_keys,
@@ -179,8 +200,8 @@ class ETL(Thread):
                     self.work_queue.rollback()
                     Log.warning("could not processs {{key}}", {"key": todo.key}, e)
 
-es_sinks_locker = Lock()
-es_sinks = []  # LIST OF (settings, es) PAIRS
+sinks_locker = Lock()
+sinks = []  # LIST OF (settings, sink) PAIRS
 
 
 def get_container(settings):
@@ -189,13 +210,23 @@ def get_container(settings):
 
     if settings == None:
         return DummySink()
-
+    elif settings.type == "postgres":
+        for e in sinks:
+            try:
+                fuzzytestcase.assertAlmostEqual(e[0], settings)
+                return e[1]
+            except Exception, _:
+                pass
+        sink = Json2Redshift(settings=settings)
+        output = Threaded(sink)
+        sinks.append((settings, output))
+        return output
     elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
         return aws.s3.Bucket(settings)
     else:
-        with es_sinks_locker:
-            for e in es_sinks:
+        with sinks_locker:
+            for e in sinks:
                 try:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
@@ -208,73 +239,12 @@ def get_container(settings):
                 output = output.threaded_queue(max_size=2000, batch_size=1000)
                 setattr(output, "keys", lambda prefix: set())
 
-            es_sinks.append((settings, output))
+            sinks.append((settings, output))
             return output
-
-
-class MultiDayIndex(object):
-    """
-    MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
-    AND THREADED QUEUE
-    """
-    es = None
-
-
-    def __init__(self, settings):
-        self.settings=settings
-        self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
-        if not MultiDayIndex.es:
-            MultiDayIndex.es = elasticsearch.Alias(alias=settings.index, settings=settings)
-        pass
-
-    def _get_queue(self, timestamp):
-        date = timestamp.floor(DAY)
-
-        queue = self.indicies.get(date.unix)
-        if queue==None:
-            name = self.settings.index + "_" + date.format("%Y-%m-%d")
-            es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
-            es.add_alias(self.settings.index)
-            es.set_refresh_interval(seconds=60 * 60)
-            queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=True)
-            self.indicies[date.unix] = queue
-
-        return queue
-
-
-    # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
-    def keys(self, prefix=None):
-        path = qb.reverse(etl2path(key2etl(prefix)))
-
-        result = MultiDayIndex.es.search({
-            "fields": ["_id"],
-            "query": {
-                "filtered": {
-                    "query": {"match_all": {}},
-                    "filter": {"and": [{"term": {"etl" + (".source" * i) + ".id": v}} for i, v in enumerate(path)]}
-                }
-            }
-        })
-
-        return set(result.hits.hits.fields._id)
-
-    def extend(self, documents):
-        for d in wrap(documents):
-            try:
-                queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
-                queue.add(d)
-            except Exception, e:
-                Log.error("Can not decide on index by build.date: {{doc|json}}", {"doc": d.value})
-
-    def add(self, doc):
-        d = wrap(doc)
-        queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
-        queue.add(doc)
 
 
 
 def main():
-
 
     try:
         settings = startup.read_settings(defs=[{
@@ -323,11 +293,12 @@ def etl_one(settings):
     settings.param.wait_forever = False
 
     if len(settings.args.id.split(".")) == 2:
-        worker=[w for w in settings.workers if w.name == "unittest2es"][0]
+        worker=[w for w in settings.workers if w.name in ["unittest2es", "unittest2pg"]][0]
 
         with Timer("get file from s3"):
             bucket = aws.s3.Bucket(settings=worker.source)
             bites = bucket.read_bytes(settings.args.id)
+
             File("results/" + settings.args.id.replace(":", "_") + ".json.gz").write_bytes(bites)
 
         queue.add(Dict(

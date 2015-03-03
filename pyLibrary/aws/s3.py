@@ -140,7 +140,7 @@ class Bucket(object):
             if len(metas) == 0:
                 return None
             elif len(metas) > 1:
-                Log.error("multiple keys with prefix={{prefix}}\n{{list|indent}}", {"prefix": metas[0].key + ".json", "list": metas.select("key")})
+                Log.error("multiple keys with prefix={{prefix}}\n{{list|indent}}", {"prefix": metas[0].name + ".json", "list": [k.name for k in metas]})
 
             return metas[0]
         except Exception, e:

@@ -116,6 +116,14 @@ class Version(object):
             return True
         return comparePath(self.path, other.path) <= 0
 
+    def __contains__(self, item):
+        if len(item.path) < len(self.path):
+            return False
+        for s, p in zip(self.path, item.path):
+            if s != p:
+                return False
+        return True
+
     def __str__(self):
         return b".".join(str(p) for p in self.path)
 
@@ -124,6 +132,7 @@ class Version(object):
 
     def __json__(self):
         return "\".".join(unicode(p) for p in self.path)+"\""
+
 
 def comparePath(a, b):
     # ASSUME a AND b ARE VERSION NUMBERS, RETURN THE COMPARISON

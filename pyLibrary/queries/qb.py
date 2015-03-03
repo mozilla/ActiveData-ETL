@@ -419,7 +419,7 @@ def _select_deep_meta(field, depth):
 
 
 def get_columns(data):
-    return [{"name": n} for n in UNION(set(d.keys()) for d in data)]
+    return wrap([{"name": n} for n in UNION(set(d.keys()) for d in data)])
 
 
 def sort(data, fieldnames=None):

@@ -1,0 +1,299 @@
+{  //SNAGGED FROM ES METADATA
+	"test_results": {
+		"properties": {
+			"result": {
+				"properties": {
+					"last_log_time": {
+						"type": "double"
+					},
+					"result": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"expected": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"duration": {
+						"type": "double"
+					},
+					"test": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"end_time": {
+						"type": "double"
+					},
+					"stats": {
+						"properties": {
+							"fail": {
+								"type": "long"
+							},
+							"notrun": {
+								"type": "long"
+							},
+							"timeout": {
+								"type": "long"
+							},
+							"pass": {
+								"type": "long"
+							}
+						}
+					},
+					"missing_test_end": {
+						"type": "boolean"
+					},
+					"start_time": {
+						"type": "double"
+					},
+					"ok": {
+						"type": "boolean"
+					},
+					"missing_test_start": {
+						"type": "boolean"
+					},
+					"crash": {
+						"type": "boolean"
+					}
+				}
+			},
+			"other": {
+				"type": "object"
+			},
+			"run": {
+				"properties": {
+					"timestamp": {
+						"type": "double"
+					},
+					"job_number": {
+						"type": "long"
+					},
+					"files": {
+						"type":"nested",
+						"properties": {
+							"name": {
+								"index": "not_analyzed",
+								"type": "string"
+							},
+							"url": {
+								"index": "not_analyzed",
+								"type": "string"
+							}
+						}
+					},
+					"chunk": {
+						"type": "long"
+					},
+					"status": {
+						"type": "long"
+					},
+					"stats": {
+						"properties": {
+							"total": {
+								"type": "long"
+							},
+							"bytes": {
+								"type": "long"
+							},
+							"error": {
+								"type": "long"
+							},
+							"bad_lines": {
+								"type": "long"
+							},
+							"skip": {
+								"type": "long"
+							},
+							"pass": {
+								"type": "long"
+							},
+							"duration": {
+								"type": "double"
+							},
+							"fail": {
+								"type": "long"
+							},
+							"end_time": {
+								"type": "double"
+							},
+							"start_time": {
+								"type": "double"
+							},
+							"none": {
+								"type": "long"
+							},
+							"lines": {
+								"type": "long"
+							},
+							"ok": {
+								"type": "long"
+							},
+							"timeout": {
+								"type": "long"
+							},
+							"crash": {
+								"type": "long"
+							}
+						}
+					},
+					"talos": {
+						"type": "boolean"
+					},
+					"suite": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"insertion_time": {
+						"type": "long"
+					},
+					"key": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"logurl": {
+						"index": "not_analyzed",
+						"type": "string"
+					}
+				}
+			},
+			"machine": {
+				"properties": {
+					"platform": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"os": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"name": {
+						"index": "not_analyzed",
+						"type": "string"
+					}
+				}
+			},
+			"build": {
+				"properties": {
+					"product": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"id": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"revision": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"name": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"locale": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"branch": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"type": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"date": {
+						"type": "long"
+					},
+					"release": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"url": {
+						"index": "not_analyzed",
+						"type": "string"
+					}
+				}
+			},
+			"etl": {
+				"properties": {
+					"timestamp": {
+						"type": "double"
+					},
+					"id": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"revision": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"duration": {
+						"type": "long"
+					},
+					"source": {
+						"properties": {
+							"timestamp": {
+								"type": "double"
+							},
+							"id": {
+								"index": "not_analyzed",
+								"type": "string"
+							},
+							"source": {
+								"properties": {
+									"timestamp": {
+										"type": "long"
+									},
+									"id": {
+										"index": "not_analyzed",
+										"type": "string"
+									},
+									"source": {
+										"properties": {
+											"timestamp": {
+												"type": "long"
+											},
+											"id": {
+												"index": "not_analyzed",
+												"type": "string"
+											},
+											"name": {
+												"index": "not_analyzed",
+												"type": "string"
+											}
+										}
+									},
+									"name": {
+										"index": "not_analyzed",
+										"type": "string"
+									},
+									"bucket": {
+										"index": "not_analyzed",
+										"type": "string"
+									}
+								}
+							},
+							"name": {
+								"index": "not_analyzed",
+								"type": "string"
+							},
+							"type": {
+								"index": "not_analyzed",
+								"type": "string"
+							}
+						}
+					},
+					"name": {
+						"index": "not_analyzed",
+						"type": "string"
+					},
+					"type": {
+						"index": "not_analyzed",
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}

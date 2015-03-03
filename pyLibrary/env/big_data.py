@@ -18,6 +18,9 @@ import zlib
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 
+# LIBRARY TO DEAL WITH BIG DATA ARRAYS AS ITERATORS OVER (IR)REGULAR SIZED
+# BLOCKS, OR AS ITERATORS OVER LINES
+
 
 MIN_READ_SIZE = 8 * 1024
 MAX_STRING_SIZE = 1 * 1024 * 1024
@@ -182,6 +185,17 @@ class CompressedLines(LazyLines):
     def __getslice__(self, i, j):
         if i == self._next:
             return self._iter
+
+        if i == 0:
+            return self.__iter__()
+
+        if i == self._next - 1:
+            def output():
+                yield self._last
+                for v in self._iter:
+                    yield v
+
+            return output()
         Log.error("Do not know how to slice this generator")
 
     def __getitem__(self, item):
