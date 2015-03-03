@@ -7,7 +7,7 @@ wget https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 
 # WE REQUIRE psycopg2 FOR REDSHIFT
-sudo apt-get install python-psycopg2
+sudo apt-get -y install python-psycopg2
 
 cd  /home/ubuntu
 sudo apt-get -y install git-core
