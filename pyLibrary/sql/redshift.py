@@ -77,9 +77,13 @@ class Redshift(object):
                 self.connection.commit()
                 done = True
             except Exception, e:
-                self.connection.rollback()
+                try:
+                    self.connection.rollback()
                 # TODO: FIGURE OUT WHY rollback() DOES NOT HELP
-                self.connection.close()
+                    self.connection.close()
+                except Exception, f:
+                    pass
+                self.connection = None
                 self._connect()
                 if not retry:
                     Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
