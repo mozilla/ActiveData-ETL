@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
-from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
+from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header
 
 DEBUG = False
 
@@ -67,7 +67,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
 
                     talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
                     talos = convert.json2value(convert.utf82unicode(talos_line))
-                    dest_key, dest_etl = etl_key(envelope, source_key, "talos")
+                    dest_key, dest_etl = make_etl_header(envelope, source_key, "talos")
                     if min_dest_key is None:
                         min_dest_key = dest_key
                         min_dest_etl = dest_etl

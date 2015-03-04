@@ -26,7 +26,7 @@ DEBUG = True
 
 
 
-def process_unittest(source_key, source, destination, please_stop=None):
+def process_unittest_in_s3(source_key, source, destination, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
@@ -39,6 +39,11 @@ def process_unittest(source_key, source, destination, please_stop=None):
         e = e.source
 
     bb_summary = transform_buildbot(convert.json2value(lines[1]))
+    unittest_log = lines[2:]
+    return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
+
+
+def process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=None):
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
@@ -46,7 +51,7 @@ def process_unittest(source_key, source, destination, please_stop=None):
     })
     try:
         with timer:
-            summary = process_unittest_log(source_key, etl_header.name, lines[2:])
+            summary = accumulate_logs(source_key, etl_header.name, unittest_log)
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e
@@ -92,7 +97,7 @@ def process_unittest(source_key, source, destination, please_stop=None):
     return new_keys
 
 
-def process_unittest_log(source_key, file_name, lines):
+def accumulate_logs(source_key, file_name, lines):
     accumulator = LogSummary()
     for line in lines:
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE

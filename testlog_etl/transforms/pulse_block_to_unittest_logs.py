@@ -24,7 +24,7 @@ STRUCTURED_LOG_ENDINGS = ["structured_logs.log", "_structured_full.log", '_raw.l
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
 
-def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
+def process_pulse_block(source_key, source, destination, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO S3 LOGFILES
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
@@ -40,24 +40,24 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
             line = strings.strip(line)
             if not line:
                 continue
-            envelope = convert.json2value(line)
-            if envelope._meta:
+            pulse_record = convert.json2value(line)
+            if pulse_record._meta:
                 pass
-            elif envelope.locale:
+            elif pulse_record.locale:
                 num_missing_envelope += 1
-                envelope = Dict(data=envelope)
-            elif envelope.source:
+                pulse_record = Dict(data=pulse_record)
+            elif pulse_record.source:
                 continue
-            elif envelope.pulse:
+            elif pulse_record.pulse:
                 if DEBUG:
                     Log.note("Line {{index}}: found pulse array", {"index": i})
                 # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
                 def read():
-                    return convert.unicode2utf8("\n".join(convert.value2json(p) for p in envelope.pulse))
+                    return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
 
                 temp = Dict(read=read)
 
-                return process_pulse_block(source_key, temp, dest_bucket)
+                return process_pulse_block(source_key, temp, destination)
             else:
                 Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
                     "line": line,
@@ -72,17 +72,17 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
             }, e)
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {"key": source_key, "line":i, "buildid": envelope.data.builddate})
+            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {"key": source_key, "line":i, "buildid": pulse_record.data.builddate})
 
         file_num = 0
-        for name, url in envelope.data.blobber_files.items():
+        for name, url in pulse_record.data.blobber_files.items():
             try:
                 if url == None:
                     if DEBUG:
                         Log.note("Line {{line}}: found structured log with NULL url", {"line": i})
                     continue
 
-                log_content, num_lines = read_blobber_file(i, name, url)
+                log_content, num_lines = verify_blobber_file(i, name, url)
                 if not log_content:
                     continue
 
@@ -95,9 +95,10 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    dest_key, dest_etl = etl_key(envelope, source_key, name)
+                    dest_key, dest_etl = make_etl_header(pulse_record, source_key, name)
 
-                    dest_bucket.write_lines(
+
+                    destination.write_lines(
                         dest_key,
                         convert.value2json(dest_etl),  # ETL HEADER
                         line,  # PULSE MESSAGE
@@ -115,7 +116,7 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
                 Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
-            Log.note("No structured log {{json}}", {"json": envelope.data})
+            Log.note("No structured log {{json}}", {"json": pulse_record.data})
 
     if num_missing_envelope:
         Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
@@ -123,7 +124,7 @@ def process_pulse_block(source_key, source, dest_bucket, please_stop=None):
     return output
 
 
-def read_blobber_file(line_number, name, url):
+def verify_blobber_file(line_number, name, url):
     """
     :param line_number:  for debugging
     :param name:  for debugging
@@ -201,7 +202,7 @@ def read_blobber_file(line_number, name, url):
     return logs, count
 
 
-def etl_key(envelope, source_key, name):
+def make_etl_header(envelope, source_key, name):
     num = next_key.get(source_key, 0)
     next_key[source_key] = num + 1
     dest_key = source_key + "." + unicode(num)
