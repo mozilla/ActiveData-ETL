@@ -72,7 +72,7 @@ def process_talos(source_key, source, destination, please_stop=None):
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=None)
 
                     file_num += 1
-                    output.extend(new_keys)
+                    output.append(dest_key)
 
                     if DEBUG_SHOW_LINE:
                         Log.note("Copied {{key}}: {{url}}", {

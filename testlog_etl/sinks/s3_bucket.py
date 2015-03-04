@@ -14,6 +14,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, literal_field
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
+from pyLibrary.testing import fuzzytestcase
 from testlog_etl import etl2key, key2etl
 
 
@@ -63,7 +64,16 @@ class S3Bucket(object):
         if meta is not None:
             documents = UniqueIndex(keys="etl.id", data=documents)
             old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, self.bucket.read_lines(key)))
-            documents = documents | (old_docs - documents)
+            residual = old_docs - documents
+            # IS IT CHEAPER TO SEE IF THERE IS A DIFF, RATHER THAN WRITE NEW DATA TO S3?
+            if residual:
+                documents = documents | residual
+            else:
+                try:
+                    fuzzytestcase.assertAlmostEqual(old_docs._data, documents._data)
+                    return
+                except Exception, _:
+                    pass
 
         self.bucket.write_lines(key, map(convert.value2json, documents))
 
