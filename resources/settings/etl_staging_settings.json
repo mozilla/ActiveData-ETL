@@ -15,19 +15,19 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"workers": [
-		{
-			"name": "pulse2unittest",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest",
-				"public": true
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
-			"type": "join"
+//		{
+//			"name": "pulse2unittest",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-pulse-logger"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-unittest",
+//				"public": true
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
+//			"type": "join"
 		},
 		{
 			"name": "pulse2es",
