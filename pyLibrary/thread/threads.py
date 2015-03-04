@@ -23,7 +23,7 @@ import gc
 
 from pyLibrary.dot import nvl, Dict
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import Duration, SECOND
 
 
 Log=None
@@ -569,7 +569,8 @@ class ThreadedQueue(Queue):
 
         batch_size = nvl(batch_size, int(max_size/2), 900)
         max_size = nvl(max_size, batch_size * 2)  # REASONABLE DEFAULT
-        period = nvl(period, Duration.SECOND)
+        period = nvl(period, SECOND)
+        bit_more_time = 5 * SECOND
 
         Queue.__init__(self, name=name, max=max_size, silent=silent)
 
@@ -612,10 +613,15 @@ class ThreadedQueue(Queue):
 
                 try:
                     if len(_buffer) >= batch_size or now > next_time:
+                        next_time = now + period
                         if _buffer:
                             queue.extend(_buffer)
                             _buffer = []
-                        next_time = now + period
+                            # A LITTLE MORE TIME TO FILL THE NEXT BUFFER
+                            now = Date.now()
+                            if now > next_time:
+                                next_time = now + bit_more_time
+
                 except Exception, e:
                     Log.warning("Problem with {{name}} pushing {{num}} items to data sink", {
                         "name": name,
