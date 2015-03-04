@@ -10,9 +10,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert, strings
+from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict
+from pyLibrary.dot import Dict, wrap
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key, key2etl
@@ -36,30 +37,66 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
 
     keys = []
     records=[]
+    stats = Dict()
     for i, line in enumerate(lines[start:]):
-        line = strings.strip(line)
-        if not line:
+        pulse_record = scrub_pulse_record(source_key, i, line, stats)
+        if not pulse_record:
             continue
-        envelope = convert.json2value(line)
-        if envelope._meta:
-            pass
-        elif envelope.locale:
-            envelope = Dict(data=envelope)
 
         with Profiler("transform_buildbot"):
-            record = transform_buildbot(envelope.data)
+            record = transform_buildbot(pulse_record.data)
             record.etl = {
                 "id": i,
                 "source": etl_header,
                 "type": "join",
                 "revision": git_revision,
-                "_meta": envelope._meta,
+                "_meta": pulse_record._meta,
             }
         key = etl2key(record.etl)
         keys.append(key)
         records.append({"id": key, "value": record})
     destination.extend(records)
     return keys
+
+
+def scrub_pulse_record(source_key, i, line, stats):
+    try:
+        line = strings.strip(line)
+        if not line:
+            return None
+        pulse_record = convert.json2value(line)
+        if pulse_record._meta:
+            return pulse_record
+        elif pulse_record.locale:
+            stats.num_missing_envelope += 1
+            pulse_record = wrap({"data": pulse_record})
+            return pulse_record
+        elif pulse_record.source:
+            return None
+        elif pulse_record.pulse:
+            Log.error("Does this happen?")
+            if DEBUG:
+                Log.note("Line {{index}}: found pulse array", {"index": i})
+            # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
+            def read():
+                return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
+
+            temp = Dict(read=read)
+
+            return process_pulse_block(source_key, temp, destination)
+        else:
+            Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
+                "line": line,
+                "index": i,
+                "key": source_key
+            })
+    except Exception, e:
+        Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
+            "line": line,
+            "index": i,
+            "key": source_key
+        }, e)
+
 
 
 def transform_buildbot(payload):
@@ -84,7 +121,7 @@ def transform_buildbot(payload):
     output.run.status = payload.status
     output.run.talos = payload.talos
     output.run.suite = payload.test
-    output.run.timestamp = payload.timestamp
+    output.run.timestamp = Date(payload.timestamp).unix
     output.build.branch = payload.tree
 
     # JUST IN CASE THERE ARE MORE PROPERTIES
@@ -117,8 +154,6 @@ def transform_buildbot(payload):
     if Math.is_integer(path[-1]):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
-
-    output.run.timestamp = Date(output.run.timestamp).unix
 
     output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
 

@@ -17,7 +17,7 @@ from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_unittest_logs import verify_blobber_file
-from testlog_etl.transforms.unittest_logs_to_es import process_unittest
+from testlog_etl.transforms.unittest_logs_to_es import process_unittest, process_unittest_in_s3
 
 
 class TestEtlSpeed(FuzzyTestCase):
@@ -37,7 +37,7 @@ class TestEtlSpeed(FuzzyTestCase):
         source = Dict(read_lines=lambda: GzipLines(content))
         with Accumulator(File("tests/results/51586_5124145.52.json")) as destination:
             with Timer("ETL file"):
-                process_unittest(source_key, source, destination, please_stop=None)
+                process_unittest_in_s3(source_key, source, destination, please_stop=None)
         Log.stop()
 
 

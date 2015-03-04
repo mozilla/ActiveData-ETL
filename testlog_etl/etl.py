@@ -30,6 +30,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
+from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
 from testlog_etl.sinks.threaded import Threaded
 
@@ -79,7 +80,7 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer", {"path": t_name})
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", {"path": t_name})
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -106,9 +107,10 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note("No worker defined for records from {{bucket}}, skipping.\n{{message|indent}}", {
+            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}", {
                 "bucket": source_block.bucket,
-                "message": source_block
+                "message": source_block,
+                "action": "skipping" if self.settings.keep_unknown_on_queue else "deleting"
             })
             return not self.settings.keep_unknown_on_queue
 
@@ -223,7 +225,7 @@ def get_container(settings):
         return output
     elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
-        return aws.s3.Bucket(settings)
+        return S3Bucket(settings)
     else:
         with sinks_locker:
             for e in sinks:

@@ -36,14 +36,16 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger"
 			},
-			"destination":	{
+			"destination": {
 				"use_daily": false,
-				"host" : "http://52.10.189.133",
-				"port" : 9200,
-				"index" : "pulse",
-				"type" : "pulse_log",
-				"timeout" : 300,
-				"schema" : {"$ref": "//../schema/pulse_logs.json"},
+				"host": "http://52.10.189.133",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../schema/pulse_logs.json"
+				},
 				"debug": true,
 				"limit_replicas": true
 			},
@@ -65,25 +67,38 @@
 			"type": "join"
 		},
 		{
-			"name": "unittest2es",
+			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest"
+				"bucket": "ekyle-pulse-logger"
 			},
 			"destination": {
-				"host": "http://52.10.189.133",
-				"port": 9200,
-				"index": "unittest",
-				"type": "test_results",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../schema/test_results.json"
-				},
-				"debug": true,
-				"limit_replicas": true
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result"
 			},
-			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
 			"type": "join"
+		}
+//		{
+//			"name": "unittest2es",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-unittest"
+//			},
+//			"destination": {
+//				"host": "http://52.10.189.133",
+//				"port": 9200,
+//				"index": "unittest",
+//				"type": "test_results",
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../schema/test_results.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": true
+//			},
+//			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+//			"type": "join"
 //		},
 //		{
 //			"name": "unittest2redshift",
@@ -106,7 +121,7 @@
 //			},
 //			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
 //			"type": "join"
-		}
+//		}
 	],
 	"debug": {
 		"trace": true,

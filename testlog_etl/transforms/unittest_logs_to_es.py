@@ -43,7 +43,7 @@ def process_unittest_in_s3(source_key, source, destination, please_stop=None):
     return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
 
 
-def process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=None):
+def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
 
     timer = Timer("Process log {{file}} for {{key}}", {
         "file": etl_header.name,
@@ -56,7 +56,7 @@ def process_unittest(source_key, etl_header, bb_summary, unittest_log, destinati
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
         raise e
 
-    bb_summary.etl = {
+    buildbot_summary.etl = {
         "id": 0,
         "name": "unittest",
         "timestamp": Date.now().unix,
@@ -65,19 +65,19 @@ def process_unittest(source_key, etl_header, bb_summary, unittest_log, destinati
         "revision": git_revision,
         "duration": timer.duration.seconds
     }
-    bb_summary.run.stats = summary.stats
-    bb_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
+    buildbot_summary.run.stats = summary.stats
+    buildbot_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
 
     if DEBUG:
-        age = Date.now() - Date(bb_summary.run.stats.start_time * 1000)
+        age = Date.now() - Date(buildbot_summary.run.stats.start_time * 1000)
         if age > Duration.DAY:
             Log.alert("Test is {{days|round(decimal=1)}} days old", {"days": age / Duration.DAY})
-        Log.note("Done\n{{data|indent}}", {"data": bb_summary.run.stats})
+        Log.note("Done\n{{data|indent}}", {"data": buildbot_summary.run.stats})
 
     new_keys = []
     new_data = []
     for i, t in enumerate(summary.tests):
-        etl = bb_summary.etl.copy()
+        etl = buildbot_summary.etl.copy()
         etl.id = i
 
         key = etl2key(etl)
@@ -90,7 +90,7 @@ def process_unittest(source_key, etl_header, bb_summary, unittest_log, destinati
                     "result": t,
                     "etl": etl
                 },
-                bb_summary
+                buildbot_summary
             )
         })
     destination.extend(new_data)

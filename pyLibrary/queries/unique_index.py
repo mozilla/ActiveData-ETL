@@ -21,11 +21,14 @@ class UniqueIndex(object):
     STILL MAINTAINING list-LIKE FEATURES
     """
 
-    def __init__(self, keys, fail_on_dup=True):
+    def __init__(self, keys, data=None, fail_on_dup=True):
         self._data = {}
         self._keys = tuplewrap(keys)
         self.count = 0
         self.fail_on_dup = fail_on_dup
+        if data:
+            for d in data:
+                self.add(d)
 
     def __getitem__(self, key):
         try:

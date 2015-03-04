@@ -13,6 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
+from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header
 
 DEBUG = False
@@ -27,58 +28,43 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     all_talos = []
     min_dest_key = None
     min_dest_etl = None
+    stats = Dict()
 
     for i, line in enumerate(source.read().split("\n")):
-        line = strings.strip(line)
-        if not line:
+        pulse_record = scrub_pulse_record(source_key, i, line, stats)
+        if not pulse_record:
             continue
-        envelope=convert.json2value(line)
-        if envelope._meta:
-            pass
-        elif envelope.locale:
-            envelope = Dict(data=envelope)
-        elif envelope.source:
+
+        if not pulse_record.data.talos:
             continue
-        elif envelope.pulse:
-            # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-            def read():
-                return convert.unicode2utf8("\n".join(convert.value2json(p) for p in envelope.pulse))
 
-            temp = Dict(read=read)
-            return process_talos(source_key, temp, dest_bucket)
-        else:
-            Log.error("Line {{index}}: Do not know how to handle line\n{{line}}", {"line": line, "index": i})
+        try:
+            with Timer("Read {{url}}", {"url":pulse_record.data.logurl}, debug=DEBUG):
+                response = http.get(pulse_record.data.logurl)
+                if response.status_code == 404:
+                    Log.alarm("Talos log missing {{url}}", {"url": pulse_record.data.logurl})
+                    continue
+                all_lines = response.all_lines
 
-        if envelope.data.talos:
-            bytes = None
+            for talos_line in all_lines:
+                s = talos_line.find(TALOS_PREFIX)
+                if s < 0:
+                    continue
 
-            try:
-                with Timer("Read {{url}}", {"url":envelope.data.logurl}, debug=DEBUG):
-                    response = http.get(envelope.data.logurl)
-                    if response.status_code == 404:
-                        Log.alarm("Talos log missing {{url}}", {"url": envelope.data.logurl})
-                        continue
-                    all_lines = response.all_lines
+                talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
+                talos = convert.json2value(convert.utf82unicode(talos_line))
+                dest_key, dest_etl = make_etl_header(pulse_record, source_key, "talos")
+                if min_dest_key is None:
+                    min_dest_key = dest_key
+                    min_dest_etl = dest_etl
 
-                for talos_line in all_lines:
-                    s = talos_line.find(TALOS_PREFIX)
-                    if s < 0:
-                        continue
+                talos.etl = dest_etl
+                all_talos.extend(talos)
 
-                    talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
-                    talos = convert.json2value(convert.utf82unicode(talos_line))
-                    dest_key, dest_etl = make_etl_header(envelope, source_key, "talos")
-                    if min_dest_key is None:
-                        min_dest_key = dest_key
-                        min_dest_etl = dest_etl
-
-                    talos.etl = dest_etl
-                    all_talos.extend(talos)
-
-            except Exception, e:
-                Log.error("Problem processing {{url}}", {
-                    "url": envelope.data.logurl
-                }, e)
+        except Exception, e:
+            Log.error("Problem processing {{url}}", {
+                "url": pulse_record.data.logurl
+            }, e)
 
     if all_talos:
         Log.note("found {{num}} talos records", {"num": len(all_talos)})

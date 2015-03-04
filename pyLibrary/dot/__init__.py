@@ -140,7 +140,7 @@ def _getdefault(obj, key):
     TRY BOTH ATTRIBUTE AND ITEM ACCESS, OR RETURN Null
     """
     try:
-        return obj.__getattribute__(key)
+        return getattr(obj, key)
     except Exception, e:
         pass
 
@@ -151,15 +151,15 @@ def _getdefault(obj, key):
 
     try:
         if float(key) == round(float(key), 0):
-            return eval("obj["+key+"]")
+            return obj[int(key)]
     except Exception, f:
         pass
 
-    try:
-        return eval("obj."+unicode(key))
-    except Exception, f:
-        pass
-
+    # TODO: FIGURE OUT WHY THIS WAS EVER HERE (AND MAKE A TEST)
+    # try:
+    #     return eval("obj."+unicode(key))
+    # except Exception, f:
+    #     pass
     return NullType(obj, key)
 
 

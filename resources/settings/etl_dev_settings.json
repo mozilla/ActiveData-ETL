@@ -4,40 +4,45 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 1
+		"threads": 1,
+		"keep_unknown_on_queue": false
 	},
-	"constants":{
-		"pyLibrary.env.http.default_headers":{"From":"https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"}
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
 	},
 	"workers": [
-		{
-			"name": "pulse2unittest",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest-dev",
-				"debug":true
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
-			"type": "join"
-		},
+//		{
+//			"name": "pulse2unittest",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-pulse-logger-dev"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-unittest-dev",
+//				"debug":true
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
+//			"type": "join"
+//		},
 		{
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger-dev"
 			},
-			"destination":	{
+			"destination": {
 				"use_daily": false,
-				"host" : "http://localhost",
-				"port" : 9200,
-				"index" : "pulse",
-				"type" : "pulse_log",
-				"timeout" : 300,
-				"schema" : {"$ref": "//../schema/pulse_logs.json"},
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../schema/pulse_logs.json"
+				},
 				"debug": true,
 				"limit_replicas": true
 			},
@@ -58,24 +63,38 @@
 			"type": "join"
 		},
 		{
-			"name": "unittest2es",
+			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-unittest-dev"
+				"bucket": "ekyle-pulse-logger-dev"
 			},
-			"destination":	{
-				"host" : "http://localhost",
-				"port" : 9200,
-				"index" : "unittest",
-				"type" : "test_results",
-				"timeout" : 300,
-				"schema" : {"$ref": "//../schema/test_results.json"},
-				"debug": true,
-				"limit_replicas": true
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result-dev"
 			},
-			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
 			"type": "join"
 		}
+//
+//		{
+//			"name": "unittest2es",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-unittest-dev"
+//			},
+//			"destination":	{
+//				"host" : "http://localhost",
+//				"port" : 9200,
+//				"index" : "unittest",
+//				"type" : "test_results",
+//				"timeout" : 300,
+//				"schema" : {"$ref": "//../schema/test_results.json"},
+//				"debug": true,
+//				"limit_replicas": true
+//			},
+//			"transformer": "testlog_etl.transforms.unittest_logs_to_es.process_unittest",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,
@@ -99,7 +118,7 @@
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[Developer Alert][DEV] Problem in ETL",
-				"$ref":"file://~/private.json#email"
+				"$ref": "file://~/private.json#email"
 			}
 		]
 	}

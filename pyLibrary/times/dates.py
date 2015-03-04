@@ -33,7 +33,7 @@ class Date(object):
 
     def __new__(cls, *args, **kwargs):
         if len(args) == 1 and args[0] == None:
-            return None
+            return Null
         return object.__new__(cls, *args)
 
     def __init__(self, *args):

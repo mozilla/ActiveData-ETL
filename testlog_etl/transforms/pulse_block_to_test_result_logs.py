@@ -13,6 +13,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.times.timer import Timer
+from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, verify_blobber_file
 from testlog_etl.transforms.unittest_logs_to_es import process_unittest
 
@@ -22,55 +23,28 @@ DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 
 
-def process_pulse_block(source_key, source, destination, please_stop=None):
+def process_talos(source_key, source, destination, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO S3 LOGFILES
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
     """
     output = []
-    num_missing_envelope = 0
+    stats = Dict()
 
     for i, line in enumerate(source.read_lines()):
         if please_stop:
             Log.error("Stopping early")
 
-        try:
-            line = strings.strip(line)
-            if not line:
-                continue
-            pulse_record = convert.json2value(line)
-            if pulse_record._meta:
-                pass
-            elif pulse_record.locale:
-                num_missing_envelope += 1
-                pulse_record = Dict(data=pulse_record)
-            elif pulse_record.source:
-                continue
-            elif pulse_record.pulse:
-                if DEBUG:
-                    Log.note("Line {{index}}: found pulse array", {"index": i})
-                # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-                def read():
-                    return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
-
-                temp = Dict(read=read)
-
-                return process_pulse_block(source_key, temp, destination)
-            else:
-                Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
-                    "line": line,
-                    "index": i,
-                    "key": source_key
-                })
-        except Exception, e:
-            Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
-                "line": line,
-                "index": i,
-                "key": source_key
-            }, e)
+        pulse_record = scrub_pulse_record(source_key, i, line, stats)
+        if not pulse_record:
+            continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {"key": source_key, "line":i, "buildid": pulse_record.data.builddate})
+            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {
+                "key": source_key,
+                "line": i,
+                "buildid": pulse_record.data.builddate
+            })
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
@@ -94,11 +68,11 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
                     debug=DEBUG
                 ):
                     dest_key, dest_etl = make_etl_header(pulse_record, source_key, name)
-
-                    process_unittest(dest_key, dest_etl, pulse_record, log_content, destination, please_stop=None)
+                    buildbot_summary = transform_buildbot(pulse_record.data)
+                    new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=None)
 
                     file_num += 1
-                    output.append(dest_key)
+                    output.extend(new_keys)
 
                     if DEBUG_SHOW_LINE:
                         Log.note("Copied {{key}}: {{url}}", {
@@ -111,7 +85,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": pulse_record.data})
 
-    if num_missing_envelope:
-        Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": num_missing_envelope})
+    if stats.num_missing_envelope:
+        Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": stats.num_missing_envelope})
 
     return output
