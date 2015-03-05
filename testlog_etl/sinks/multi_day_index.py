@@ -12,36 +12,37 @@ from pyLibrary.dot import nvl, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
+from pyLibrary.times.durations import WEEK
 from testlog_etl import key2etl, etl2path
 
 
 class MultiDayIndex(object):
     """
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
-    AND THREADED QUEUE
+    AND THREADED QUEUE AND SPLIT DATA BY
     """
     es = None
 
 
     def __init__(self, settings):
-        self.settings=settings
+        self.settings = settings
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
         if not MultiDayIndex.es:
             MultiDayIndex.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         pass
 
-    def _get_queue(self, timestamp):
-        date = timestamp.floor(DAY)
+    def _get_queue(self, d):
+        date = Date(nvl(d.value.build.date, d.value.run.timestamp)).floor(WEEK)
+        name = self.settings.index + "_" + date.format("%Y-%m-%d")
+        uid = date.unix
 
-        queue = self.indicies.get(date.unix)
+        queue = self.indicies.get(uid)
         if queue==None:
-            name = self.settings.index + "_" + date.format("%Y-%m-%d")
             es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
             es.add_alias(self.settings.index)
             es.set_refresh_interval(seconds=60 * 60)
             queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=True)
-            self.indicies[date.unix] = queue
+            self.indicies[uid] = queue
 
         return queue
 
@@ -65,7 +66,7 @@ class MultiDayIndex(object):
     def extend(self, documents):
         for d in wrap(documents):
             try:
-                queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
+                queue = self._get_queue(d)
                 queue.add(d)
             except Exception, e:
                 Log.error("Can not decide on index by build.date: {{doc|json}}", {"doc": d.value})

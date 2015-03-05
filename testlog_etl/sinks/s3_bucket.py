@@ -43,7 +43,10 @@ class S3Bucket(object):
         for m in metas:
             for line in self.bucket.read_lines(m.key):
                 try:
-                    id = etl2key(convert.json2value(line).etl)
+                    id = convert.json2value(line)._id
+                    if id == None:
+                        continue
+
                     output.append(id)
                 except Exception, _:
                     pass
@@ -52,11 +55,14 @@ class S3Bucket(object):
     def extend(self, documents):
         parts = Dict()
         for d in wrap(documents):
-            parent_key = literal_field(etl2key(key2etl(d.id).source))
-            parts[parent_key] += [d.value]
+            parent_key = etl2key(key2etl(d.id).source)
+            d.value._id = parent_key
+            parts[literal_field(parent_key)] += [d.value]
 
         for k, docs in parts.items():
             self._extend(k, docs)
+
+        return parts.keys()
 
 
     def _extend(self, key, documents):

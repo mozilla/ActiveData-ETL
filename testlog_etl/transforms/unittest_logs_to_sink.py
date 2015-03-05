@@ -24,8 +24,6 @@ from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 DEBUG = True
 
 
-
-
 def process_unittest_in_s3(source_key, source, destination, please_stop=None):
     lines = source.read_lines()
 

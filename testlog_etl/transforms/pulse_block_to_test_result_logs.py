@@ -9,13 +9,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, verify_blobber_file
-from testlog_etl.transforms.unittest_logs_to_es import process_unittest
+from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 
 
 DEBUG = True

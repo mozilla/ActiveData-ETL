@@ -1,0 +1,26 @@
+{
+	"redshift": {
+		"type": "redshift",
+		"host": "ekyle-redshift-test.cishavsxiep4.us-west-2.redshift.amazonaws.com",
+		"port": 5439,
+		"database": "unittest",
+		"table": "test_results",
+		"$ref": "file://~/private.json#redshift",
+		"mapping": {
+			"$ref": "//../schema/redshift.json"
+		},
+		"timeout": 300,
+		"debug": true
+	},
+	"meta": {
+		"bucket": "ekyle-metadata",
+		"jsonspath": "push_to_redshift",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-test-result"
+	},
+
+
+}

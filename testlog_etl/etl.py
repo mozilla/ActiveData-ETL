@@ -158,7 +158,7 @@ class ETL(Thread):
                         pass
                         # dest_bucket.delete_key(k)
 
-                if isinstance(action._destination, aws.s3.Bucket):
+                if isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
                         self.work_queue.add(Dict(
                             bucket=action.destination.bucket,
@@ -354,7 +354,6 @@ def readloop(please_stop):
 
 def wait_for_exit(please_stop):
     Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
-
 
 if __name__ == "__main__":
     main()

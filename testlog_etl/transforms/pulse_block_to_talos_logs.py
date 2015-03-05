@@ -13,6 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
+from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header
 
@@ -24,10 +25,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """
-    output = []
     all_talos = []
-    min_dest_key = None
-    min_dest_etl = None
     stats = Dict()
 
     for i, line in enumerate(source.read().split("\n")):
@@ -53,12 +51,10 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
 
                 talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
                 talos = convert.json2value(convert.utf82unicode(talos_line))
-                dest_key, dest_etl = make_etl_header(pulse_record, source_key, "talos")
-                if min_dest_key is None:
-                    min_dest_key = dest_key
-                    min_dest_etl = dest_etl
 
-                talos.etl = dest_etl
+                for t in talos:
+                    _, dest_etl = make_etl_header(pulse_record, source_key, "talos")
+                    t.etl = dest_etl
                 all_talos.extend(talos)
 
         except Exception, e:
@@ -66,13 +62,8 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
                 "url": pulse_record.data.logurl
             }, e)
 
+    output = set()
     if all_talos:
         Log.note("found {{num}} talos records", {"num": len(all_talos)})
-        dest_bucket.write(
-            min_dest_key,
-            convert.unicode2utf8(convert.value2json(min_dest_etl)) + b"\n" +
-            convert.unicode2utf8("\n".join(convert.value2json(t) for t in all_talos))
-        )
-        output.append(source_key)
-
+        output = dest_bucket.extend({"id": etl2key(t.etl), "value": t} for t in all_talos)
     return output
