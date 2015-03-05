@@ -30,28 +30,28 @@
 //			"transformer": "testlog_etl.transforms.pulse_block_to_unittest_logs.process_pulse_block",
 //			"type": "join"
 //		},
-//		{
-//			"name": "pulse2es",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger"
-//			},
-//			"destination": {
-//				"use_daily": false,
-//				"host": "http://52.10.189.133",
-//				"port": 9200,
-//				"index": "pulse",
-//				"type": "pulse_log",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../schema/pulse_logs.json"
-//				},
-//				"debug": true,
-//				"limit_replicas": true
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
-//			"type": "join"
-//		},
+		{
+			"name": "pulse2es",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger"
+			},
+			"destination": {
+				"use_daily": false,
+				"host": "http://52.10.189.133",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../schema/pulse_logs.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
+			"type": "join"
+		},
 		{
 			"name": "pulse2talos",
 			"source": {
@@ -66,19 +66,19 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-test-result"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
-//			"type": "join"
-//		}
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
+			"type": "join"
+		}
 //		{
 //			"name": "unittest2es",
 //			"source": {

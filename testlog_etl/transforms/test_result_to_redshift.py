@@ -28,51 +28,59 @@ class PushToRedshift(object):
         INDEX_CACHE[redshift.table] = wrap({"name": redshift.table})  # HACK TO GET parse_columns TO WORK
         columns = parse_columns(redshift.table, redshift.mapping.test_results.properties)
         nested = [c.name for c in columns if c.type == "nested"]
-        self.columns = [c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n + ".") for n in nested)]
+        self.columns = wrap([{"name": "_id", "type": "string"}] + [c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n + ".") for n in nested)])
 
         # CONVERT TO jsonpaths
-        jsonpaths = {"jsonpaths": ["$._id"] + [
-            "$" + "".join("[" + convert.string2quote(p) + "]" for p in split_field(c.name)) for c in columns
+        jsonpaths = {"jsonpaths": [
+            "$" + "".join("[" + convert.string2quote(p) + "]" for p in split_field(c.name)) for c in self.columns
         ]}
+        content=convert.value2json(jsonpaths)
+        content=content.replace("\\\"", "'")
 
         # PUSH MAPPING TO S3
-        s3.Bucket(meta).write(meta.jsonspath, convert.value2json(jsonpaths))
+        s3.Bucket(meta).write(meta.jsonspath, content)
 
         self.db = Redshift(self.settings.redshift)
 
     def add(self, key):
         # SEND COMMAND TO REDSHIFT TO LOAD IT
 
-        self.db.execute("""
-            COPY {{table_name}} [ {{columns}} ]
-            FROM {{s3_source}}
-            CREDENTIALS {{credentials}}
-            JSON {{jsonspath}}
-            GZIP
-            """, {
-            "s3_source": "s3://" + self.source.bucket + "/" + key,
-            "table_name": self.db.quote_column(self.settings.redshift.table),
-            "columns": SQL(",".join(self.db.quote_column(self.columns.name))),
-            "credentials": "aws_access_key_id=" + self.settings.meta.aws_access_key_id + ";aws_secret_access_key=" + self.settings.meta.aws_secret_access_key,
-            "jsonspath": self.settings.meta.jsonspath
-        }
+        self.db.execute(
+            """
+                COPY {{table_name}} ({{columns}})
+                FROM {{s3_source}}
+                CREDENTIALS {{credentials}}
+                JSON {{jsonspath}}
+                TRUNCATECOLUMNS
+                GZIP
+            """,
+            {
+                "s3_source": "s3://" + self.settings.source.bucket + "/" + key,
+                "table_name": self.db.quote_column(self.settings.redshift.table),
+                "columns": SQL(",".join(map(self.db.quote_column, self.columns.name))),
+                "credentials": "aws_access_key_id=" + self.settings.meta.aws_access_key_id + ";aws_secret_access_key=" + self.settings.meta.aws_secret_access_key,
+                "jsonspath": "s3://" + self.settings.meta.bucket + "/" + self.settings.meta.jsonspath + ".json"
+            },
+            retry=False
         )
 
     def extend(self, keys):
-        keyname = "add_to_redshift_" + Random.hex(20) + ".json"
+        keyname = "add_to_redshift_" + Random.hex(20)
         manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + k} for k in keys]}
         s3.Bucket(self.settings.meta).write(keyname, convert.value2json(manifest))
 
         self.db.execute("""
-            COPY {{table_name}} [ {{columns}} ]
+            COPY {{table_name}} ({{columns}})
             FROM {{s3_source}}
             CREDENTIALS {{credentials}}
             JSON {{jsonspath}}
+            TRUNCATECOLUMNS
             GZIP
             """, {
-            "s3_source": "s3://" + self.meta.bucket + "/" + keyname,
+            "s3_source": "s3://" + self.meta.bucket + "/" + keyname+ ".json",
             "table_name": self.db.quote_column(self.settings.redshift.table),
             "columns": SQL(",".join(self.db.quote_column(self.columns.name))),
             "credentials": "aws_access_key_id=" + self.settings.meta.aws_access_key_id + ";aws_secret_access_key=" + self.settings.meta.aws_secret_access_key,
+            "jsonspath": "s3://" + self.settings.meta.bucket + "/" + self.settings.meta.jsonspath + ".json"
         }
         )
