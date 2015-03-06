@@ -1,0 +1,25 @@
+cluster.name: ekyle-aws-1
+bootstrap.mlockall: true
+path.data: /data
+path.logs: /data/logs
+cloud:
+    aws:
+        region: us-west-2
+        protocol: https
+        ec2:
+            protocol: https
+discovery.type: ec2
+discovery.zen.ping.multicast.enabled: false
+discovery.zen.minimum_master_nodes: 2
+index.number_of_shards: 1
+index.number_of_replicas: 0
+index.translog.interval: 60s
+index.translog.flush_threshold_size: 1gb
+indices.memory.index_buffer_size: 20%
+http.compression: true
+http.cors.allow-origin: "/.*/"
+http.cors.enabled: true
+http.compression: true
+http.max_content_length: 1000mb
+http.timeout: 600
+threadpool.bulk.queue_size: 3000

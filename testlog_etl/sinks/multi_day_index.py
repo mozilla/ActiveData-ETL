@@ -16,6 +16,9 @@ from pyLibrary.times.durations import WEEK
 from testlog_etl import key2etl, etl2path
 
 
+NEW_INDEX_INTERVAL = WEEK
+
+
 class MultiDayIndex(object):
     """
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
@@ -32,7 +35,7 @@ class MultiDayIndex(object):
         pass
 
     def _get_queue(self, d):
-        date = Date(nvl(d.value.build.date, d.value.run.timestamp)).floor(WEEK)
+        date = Date(nvl(d.value.build.date, d.value.run.timestamp)).floor(NEW_INDEX_INTERVAL)
         name = self.settings.index + "_" + date.format("%Y-%m-%d")
         uid = date.unix
 

@@ -1,5 +1,18 @@
 
 # FOR AMAZON AMI ONLY
+# ENSURE THE EC@ INSTANCE IS GIVEN A ROLE THAT ALLOWS IT ACCESS TO S3 AND DISCOVERY
+# THIS EXAMPLE WORKS, BUT YOU MAY FIND IT TOO PERMISSIVE
+# {
+#   "Version": "2012-10-17",
+#   "Statement": [
+#     {
+#       "Effect": "Allow",
+#       "NotAction": "iam:*",
+#       "Resource": "*"
+#     }
+#   ]
+# }
+
 # ENSURE THE FOLLOWING FILES HAVE BEEN UPLOADED FIRST
 # /home/ec2-user/elasticsearch.yml
 # /home/ec2-user/elasticsearch.in.sh
@@ -49,21 +62,17 @@ sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/f
 #TEST IT IS WORKING
 sudo mount -a
 
-
 # COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
-sudo chmod 600 /usr/local/elasticsearch/config/elasticsearch.yml
 
-# FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK, THIS SCRIPT
-# SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
+# FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
+# THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
-cd /usr/local/elasticsearch
-
+# RUN IN BACKGROUND
 export ES_MIN_MEM=12g
 export ES_MAX_MEM=12g
-
-# RUN IN BACKGROUND
+cd /usr/local/elasticsearch
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
 cd /usr/local/elasticsearch

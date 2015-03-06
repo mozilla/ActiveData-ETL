@@ -28,7 +28,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     all_talos = []
     stats = Dict()
 
-    for i, line in enumerate(source.read().split("\n")):
+    for i, line in enumerate(source.read_lines()):
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         if not pulse_record:
             continue
