@@ -7,12 +7,15 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from math import log10
 from pyLibrary import convert
 from pyLibrary.aws import s3
 
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, literal_field
+from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
+from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import fuzzytestcase
 from testlog_etl import etl2key, key2etl
@@ -51,6 +54,43 @@ class S3Bucket(object):
                 except Exception, _:
                     pass
         return set(output)
+
+    def find_keys(self, start, count):
+        digits = int(Math.ceiling(log10(count-1)))
+        prefix = unicode(start)[:-digits]
+
+        metas = self.bucket.metas(prefix=prefix)
+        return set(metas.key)
+
+    def find_largest_key(self):
+        #FIND KEY WITH MOST DIGITS
+        acc = ""
+        max_length = -1
+        while max_length==-1 or len(acc) < max_length - 2:
+            prefix = None
+            for i in reversed(range(10)):
+                min_digit = 9 - len(acc)
+                suffix = "9" * min_digit
+                while min_digit > 0:
+                    candidates = self.bucket.metas(prefix=acc + unicode(i) + suffix)
+                    if candidates:
+                        for c in candidates:
+                            p = c.key.split(":")[0].split(".")[0]
+                            if len(p) > max_length:
+                                prefix = unicode(i + 1)
+                                max_length = len(p)
+                        break
+                    else:
+                        min_digit -= 1
+                        suffix = "9" * min_digit
+            if prefix is None:
+                acc = unicode(int(acc + ("0" * (max_length - len(acc)))) - 1)
+                break
+            acc = acc + prefix
+
+        max_key = qb.sort(self.bucket.metas(prefix=acc).key).last()
+        max_key = int(max_key.split(":")[0].split(".")[0]) + 1
+        return max_key
 
     def extend(self, documents):
         parts = Dict()

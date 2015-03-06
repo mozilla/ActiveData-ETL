@@ -52,6 +52,10 @@ class Queue(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    def __len__(self):
+        attrib = self.queue.get_attributes("ApproximateNumberOfMessages")
+        return int(attrib['ApproximateNumberOfMessages'])
+
     def add(self, message):
         m = Message()
         m.set_body(convert.value2json(message))

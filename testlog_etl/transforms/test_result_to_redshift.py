@@ -84,3 +84,6 @@ class PushToRedshift(object):
             "jsonspath": "s3://" + self.settings.meta.bucket + "/" + self.settings.meta.jsonspath + ".json"
         }
         )
+
+
+process_test_result_logs()
