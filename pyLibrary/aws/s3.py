@@ -136,11 +136,13 @@ class Bucket(object):
             Log.error("Expecting a pure key")
 
         try:
-            metas = wrap(list(self.bucket.list(prefix=key + ".json")))
+            metas = list(self.bucket.list(prefix=key))
+            metas = wrap([m for m in metas if m.name.find(".json") != -1])
+
             if len(metas) == 0:
                 return None
             elif len(metas) > 1:
-                Log.warning("multiple keys with prefix={{prefix}}: {{list}}", {"prefix": key + ".json", "list": [k.name for k in metas]})
+                Log.warning("multiple keys with prefix={{prefix}}: {{list}}", {"prefix": key, "list": [k.name for k in metas]})
                 favorite = None
                 for k in metas:
                     if k.name.endswith(".gz"):
@@ -156,12 +158,25 @@ class Bucket(object):
     def keys(self, prefix=None):
         return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
 
-    def metas(self, prefix=None):
+    def metas(self, prefix=None, limit=None):
         """
         RETURN THE METADATA DESCRIPTORS FOR EACH KEY
         """
 
         keys = self.bucket.list(prefix=prefix)
+        if limit:
+            output = []
+            for i, k in enumerate(keys):
+                output.append({
+                    "key": strip_extension(k.key),
+                    "etag": convert.quote2string(k.etag),
+                    "expiry_date": Date(k.expiry_date),
+                    "last_modified": Date(k.last_modified)
+                })
+                if i >= limit:
+                    break
+            return wrap(output)
+
         output = [
             {
                 "key": strip_extension(k.key),
@@ -202,9 +217,9 @@ class Bucket(object):
             Log.error("{{key}} does not exist", {"key": key})
         if source.size < MAX_STRING_SIZE:
             if source.key.endswith(".gz"):
-                return GzipLines(source.read(key))
+                return GzipLines(source.read())
             else:
-                return convert.utf82unicode(source.read(key)).split("\n")
+                return convert.utf82unicode(source.read()).split("\n")
 
         if source.key.endswith(".gz"):
             bytes = safe_size(source)

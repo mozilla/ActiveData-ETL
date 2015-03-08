@@ -18,6 +18,7 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import fuzzytestcase
+from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
 
 
@@ -55,48 +56,29 @@ class S3Bucket(object):
                     pass
         return set(output)
 
-    def find_keys(self, start, count):
-        digits = int(Math.ceiling(log10(count-1)))
+    def find_keys(self, start, count, filter=None):
+        digits = int(Math.ceiling(log10(count - 1)))
         prefix = unicode(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
         return set(metas.key)
 
     def find_largest_key(self):
-        #FIND KEY WITH MOST DIGITS
-        acc = ""
-        max_length = -1
-        while max_length==-1 or len(acc) < max_length - 2:
-            prefix = None
-            for i in reversed(range(10)):
-                min_digit = 9 - len(acc)
-                suffix = "9" * min_digit
-                while min_digit > 0:
-                    candidates = self.bucket.metas(prefix=acc + unicode(i) + suffix)
-                    if candidates:
-                        for c in candidates:
-                            p = c.key.split(":")[0].split(".")[0]
-                            if len(p) > max_length:
-                                prefix = unicode(i + 1)
-                                max_length = len(p)
-                        break
-                    else:
-                        min_digit -= 1
-                        suffix = "9" * min_digit
-            if prefix is None:
-                acc = unicode(int(acc + ("0" * (max_length - len(acc)))) - 1)
-                break
-            acc = acc + prefix
-
-        max_key = qb.sort(self.bucket.metas(prefix=acc).key).last()
-        max_key = int(max_key.split(":")[0].split(".")[0]) + 1
-        return max_key
+        """
+        FIND LARGEST VERSION NUMBER (with dots (.) and colons(:)) IN
+        THE KEYS OF AN S3 BUCKET.
+        """
+        with Timer("Full scan for max key"):
+            maxi = 0
+            for k in self.bucket.bucket.list(delimiter=":"):
+                maxi = max(maxi, int(k.name[:-1]))
+            return maxi
 
     def extend(self, documents):
         parts = Dict()
         for d in wrap(documents):
             parent_key = etl2key(key2etl(d.id).source)
-            d.value._id = parent_key
+            d.value._id = d.id
             parts[literal_field(parent_key)] += [d.value]
 
         for k, docs in parts.items():
@@ -125,3 +107,7 @@ class S3Bucket(object):
 
     def add(self, dco):
         Log.error("Not supported")
+
+
+def key_prefix(key):
+    return key.split(":")[0].split(".")[0]

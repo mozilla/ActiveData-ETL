@@ -12,24 +12,25 @@ from __future__ import division
 from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import join_field, Dict, literal_field
+from pyLibrary.dot import Dict, literal_field
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import MINUTE
+from testlog_etl.sinks.s3_bucket import key_prefix
 from testlog_etl.etl import get_container
+
 
 MAX_QUEUE_SIZE = 1000
 ETL_DEPTH = 4
 START_KEY = 50000
 MIN_KEY = 0
-BLOCK_SIZE=100
+BLOCK_SIZE = 100
 
 done_min = START_KEY
 done_max = START_KEY
 current_revision = []
 counter = Dict()
+
 
 def setup(source, destination, settings):
     global done_min
@@ -43,7 +44,8 @@ def setup(source, destination, settings):
         max_id = Math.floor(max_id, BLOCK_SIZE)
         done_min = done_max = max_id
 
-    # FIND CURRENT REVISION
+        # FIND CURRENT REVISION
+
 
 def backfill(source, destination, work_queue, settings):
     global done_min
@@ -60,7 +62,7 @@ def backfill(source, destination, work_queue, settings):
             new_keys = source.find_keys(done_max, BLOCK_SIZE)
             if not new_keys:
                 break
-            Log.note("Add {{num}} new keys", {"num":len(new_keys)})
+            Log.note("Add {{num}} new keys", {"num": len(new_keys)})
             add_to_queue(work_queue, new_keys, source.settings.bucket)
             done_max += BLOCK_SIZE
             wait_for_queue(work_queue)
@@ -68,23 +70,28 @@ def backfill(source, destination, work_queue, settings):
         # BACKFILL
         while done_min >= MIN_KEY:
             done = destination.find_keys(done_min - BLOCK_SIZE, BLOCK_SIZE, filter={"term": {"etl.revision": current_revision}})
+            done = set(map(key_prefix, done))
             existing = source.find_keys(done_min - BLOCK_SIZE, BLOCK_SIZE)
+            existing = set(map(key_prefix, existing))
+
+            Log.note("verified {{block}} block", {"block": done_min})
             redo = existing - done
-            if redo:
-                break
-            add_to_queue(work_queue, redo, source.settings.bucket)
             done_min -= BLOCK_SIZE
-            wait_for_queue(work_queue)
+            if redo:
+                Log.note("Refreshing {{num}} keys", {"num": len(redo)})
+                add_to_queue(work_queue, redo, source.settings.bucket)
+                wait_for_queue(work_queue)
 
 
 def wait_for_queue(work_queue):
     """
     SLEEP UNTIL WORK QUEU IS EMPTY ENOUGH FOR MORE
     """
+    # return
     while True:
         if len(work_queue) < MAX_QUEUE_SIZE:
             break
-        Thread.sleep(seconds=5*60)
+        Thread.sleep(seconds=5 * 60)
 
 
 def add_to_queue(work_queue, redo, bucket_name):
@@ -111,6 +118,7 @@ def main():
 
         source = get_container(settings.source)
         destination = get_container(settings.destination)
+
         work_queue = aws.Queue(settings.work_queue)
         backfill(source, destination, work_queue, settings)
     except Exception, e:

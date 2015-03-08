@@ -32,6 +32,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
     """
     output = []
     stats=Dict()
+    next_key[source_key]=0  #RESET COUNTER
 
     for i, line in enumerate(source.read_lines()):
         if please_stop:
@@ -42,7 +43,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {"key": source_key, "line":i, "buildid": pulse_record.data.builddate})
+            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid|quote}}", {"key": source_key, "line":i, "buildid": pulse_record.data.builddate})
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
@@ -172,7 +173,7 @@ def verify_blobber_file(line_number, name, url):
 
 
 def make_etl_header(envelope, source_key, name):
-    num = next_key.get(source_key, 0)
+    num = next_key[source_key]
     next_key[source_key] = num + 1
     dest_key = source_key + "." + unicode(num)
 

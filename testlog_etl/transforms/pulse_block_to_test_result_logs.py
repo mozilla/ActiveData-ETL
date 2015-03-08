@@ -13,11 +13,11 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, verify_blobber_file
+from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, verify_blobber_file, next_key
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 
 
-DEBUG = True
+DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 
@@ -29,6 +29,7 @@ def process_talos(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
+    next_key[source_key]=0
 
     for i, line in enumerate(source.read_lines()):
         if please_stop:
@@ -39,7 +40,7 @@ def process_talos(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line={{line}}, buildid = {{buildid}}", {
+            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid}}", {
                 "key": source_key,
                 "line": i,
                 "buildid": pulse_record.data.builddate
@@ -58,7 +59,7 @@ def process_talos(source_key, source, destination, please_stop=None):
                     continue
 
                 with Timer(
-                    "Copied {{line}}, {{name}} with {{num_lines}} lines",
+                    "ETLed line {{line}}, {{name}} with {{num_lines}} lines",
                     {
                         "line": i,
                         "name": name,
@@ -74,7 +75,7 @@ def process_talos(source_key, source, destination, please_stop=None):
                     output.append(dest_key)
 
                     if DEBUG_SHOW_LINE:
-                        Log.note("Copied {{key}}: {{url}}", {
+                        Log.note("ETLed line {{key}}: {{url}}", {
                             "key": dest_key,
                             "url": url
                         })
