@@ -30,7 +30,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
-from testlog_etl.sinks.s3_bucket import S3Bucket
+from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 from testlog_etl.sinks.split import Split
 from testlog_etl.sinks.threaded import Threaded
 

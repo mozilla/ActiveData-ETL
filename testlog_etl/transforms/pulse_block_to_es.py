@@ -36,7 +36,7 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
         start = 1
 
     keys = []
-    records=[]
+    records = []
     stats = Dict()
     for i, line in enumerate(lines[start:]):
         pulse_record = scrub_pulse_record(source_key, i, line, stats)

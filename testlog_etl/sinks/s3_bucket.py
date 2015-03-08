@@ -110,4 +110,4 @@ class S3Bucket(object):
 
 
 def key_prefix(key):
-    return key.split(":")[0].split(".")[0]
+    return int(key.split(":")[0].split(".")[0])
