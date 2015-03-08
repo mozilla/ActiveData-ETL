@@ -68,10 +68,14 @@ class S3Bucket(object):
         FIND LARGEST VERSION NUMBER (with dots (.) and colons(:)) IN
         THE KEYS OF AN S3 BUCKET.
         """
-        with Timer("Full scan for max key"):
+        with Timer("Full scan of {{bucket}} for max key", {"bucket":self.bucket.name}):
             maxi = 0
             for k in self.bucket.bucket.list(delimiter=":"):
-                maxi = max(maxi, int(k.name[:-1]))
+                try:
+                    v = key_prefix(k.name)
+                    maxi = max(maxi, v)
+                except Exception, e:
+                    self.bucket.bucket.delete_key(k.name)
             return maxi
 
     def extend(self, documents):

@@ -79,7 +79,7 @@ def backfill(source, destination, work_queue, settings):
             done_min -= BLOCK_SIZE
             if redo:
                 Log.note("Refreshing {{num}} keys", {"num": len(redo)})
-                add_to_queue(work_queue, redo, source.settings.bucket)
+                add_to_queue(work_queue, map(unicode, redo), source.settings.bucket)
                 wait_for_queue(work_queue)
 
 

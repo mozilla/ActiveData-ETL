@@ -15,7 +15,7 @@ from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header
+from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, next_key
 
 DEBUG = False
 
@@ -27,6 +27,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     """
     all_talos = []
     stats = Dict()
+    next_key[source_key]=0
 
     for i, line in enumerate(source.read_lines()):
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
