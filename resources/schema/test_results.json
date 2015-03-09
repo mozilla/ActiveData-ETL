@@ -10,6 +10,11 @@
 			"_source": {
 				"compress": true
 			},
+			"_id" : {
+				"index": "not_analyzed",
+				"type": "string",
+				"store": true
+	        },
 			"dynamic_templates": [
 				{
 					"xperf": {

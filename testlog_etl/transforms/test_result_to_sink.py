@@ -10,10 +10,18 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
+from pyLibrary.debugs.logs import Log
 
 
 def process_test_result(source_key, source, destination, please_stop=None):
-    lines = source.read_lines()
+
+    try:
+        lines = source.read_lines()
+    except Exception, e:
+        if "does not exist" in e:
+            return set()
+        else:
+            Log.error("Problem reading lines", e)
 
     keys=[]
     data = []

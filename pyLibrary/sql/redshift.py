@@ -164,7 +164,7 @@ PG_TYPES = {
     "boolean": "boolean",
     "double": "double precision",
     "float": "double precision",
-    "string": "character varying",
+    "string": "VARCHAR",
     "long": "bigint"
 }
 
