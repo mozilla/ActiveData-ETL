@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from testlog_etl.transforms.test_result_to_redshift import PushToRedshift
+from testlog_etl.transforms.test_result_to_redshift import CopyToRedshift
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        pusher = PushToRedshift(settings)
+        pusher = CopyToRedshift(settings)
 
         if settings.args.id:
             if settings.args.id=="all":

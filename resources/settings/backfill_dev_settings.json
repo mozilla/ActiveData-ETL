@@ -10,5 +10,13 @@
 	"destination": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
 	}
 }

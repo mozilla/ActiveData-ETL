@@ -12,12 +12,13 @@ from __future__ import division
 import StringIO
 import gzip
 from io import BytesIO
+
 import zipfile
 
 import boto
 from boto.s3.connection import Location
 
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
@@ -148,11 +149,18 @@ class Bucket(object):
                         self.bucket.delete_key(m.key)
                     return None
 
-                Log.error("multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}", {
-                    "bucket": self.name,
-                    "prefix": key,
-                    "list": [k.name for k in metas]
-                })
+                favorite = None
+                for m in metas:
+                    residule = strings.between(m.key, key, ".json")
+                    if residule == "":
+                        favorite = m
+                    if residule.find(".") >= 0:
+                        Log.error("multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}", {
+                            "bucket": self.name,
+                            "prefix": key,
+                            "list": [k.name for k in metas]
+                        })
+                return favorite
 
             return metas[0]
         except Exception, e:

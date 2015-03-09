@@ -11,17 +11,26 @@ from __future__ import unicode_literals
 from pyLibrary import convert
 from pyLibrary.aws import s3
 from pyLibrary.dot import wrap, split_field
+from pyLibrary.jsons import Log
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.qb_usingES_util import parse_columns, INDEX_CACHE
 from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
+from testlog_etl.sinks.redshift import Json2Redshift
+from testlog_etl.sinks.s3_bucket import S3Bucket
 
 
-class PushToRedshift(object):
+class CopyToRedshift(object):
 
     @use_settings
-    def __init__(self, redshift, meta, settings=None):
+    def __init__(
+        self,
+        redshift,  # SETTINGS TO CONNECT TO TABLE IN REDSHIFT
+        meta,      # POINT TO S3 BUCKET TO HOLD REDSHIFT COMMAND STRUCTURES
+        source,     # THE BUCKET USED TO FILL REDSHIFT
+        settings=None
+    ):
         # MAKE MAPPING FILE
         self.pg = Redshift(redshift)
         self.settings = settings
@@ -85,5 +94,9 @@ class PushToRedshift(object):
         }
         )
 
+def process_test_result_logs(source_key, source, destination, please_stop=None):
+    if isinstance(destination, Json2Redshift) and isinstance(source, S3Bucket):
+        destination.copy(source_key, source)
+    Log.error("Do not know how to handle")
 
-process_test_result_logs()
+

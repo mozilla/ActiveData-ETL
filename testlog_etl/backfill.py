@@ -91,6 +91,7 @@ def wait_for_queue(work_queue):
     while True:
         if len(work_queue) < MAX_QUEUE_SIZE:
             break
+        Log.note("sleep for 5min")
         Thread.sleep(seconds=5 * 60)
 
 
