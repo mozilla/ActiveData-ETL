@@ -95,7 +95,13 @@ class S3Bucket(object):
         meta = self.bucket.get_meta(key)
         if meta is not None:
             documents = UniqueIndex(keys="etl.id", data=documents)
-            old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, self.bucket.read_lines(key)))
+            try:
+                content = self.bucket.read_lines(key)
+                old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
+            except Exception, _:
+                # OLD FORMAT (etl header, followed by list of records)
+                old_docs = UniqueIndex(keys="etl.id")
+
             residual = old_docs - documents
             # IS IT CHEAPER TO SEE IF THERE IS A DIFF, RATHER THAN WRITE NEW DATA TO S3?
             if residual:

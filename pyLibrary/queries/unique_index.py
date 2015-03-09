@@ -54,6 +54,9 @@ class UniqueIndex(object):
 
     def add(self, val):
         key = value2key(self._keys, val)
+        if key == None:
+            Log.error("Expecting key to not be None")
+
         d = self._data.get(key)
         if d is None:
             self._data[key] = unwrap(val)

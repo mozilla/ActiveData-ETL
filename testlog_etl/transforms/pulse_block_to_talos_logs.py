@@ -66,5 +66,5 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     output = set()
     if all_talos:
         Log.note("found {{num}} talos records", {"num": len(all_talos)})
-        output = dest_bucket.extend({"id": etl2key(t.etl), "value": t} for t in all_talos)
+        output = dest_bucket.extend([{"id": source_key + "." + unicode(t.etl.id), "value": t} for t in all_talos])
     return output

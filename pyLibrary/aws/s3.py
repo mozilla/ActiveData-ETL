@@ -142,14 +142,17 @@ class Bucket(object):
             if len(metas) == 0:
                 return None
             elif len(metas) > 1:
-                Log.warning("multiple keys with prefix={{prefix}}: {{list}}", {"prefix": key, "list": [k.name for k in metas]})
-                favorite = None
-                for k in metas:
-                    if k.name.endswith(".gz"):
-                        favorite = k
-                    else:
-                        self.bucket.delete_key(k.name)
-                return favorite
+                if self.name=="ekyle-talos" and key.find(".")==-1:
+                    #VERY SPECIFIC CONDITIONS TO ALLOW DELETE, DELETE ME IN THE FUTURE (Now==March2015)
+                    for m in metas:
+                        self.bucket.delete_key(m.key)
+                    return None
+
+                Log.error("multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}", {
+                    "bucket": self.name,
+                    "prefix": key,
+                    "list": [k.name for k in metas]
+                })
 
             return metas[0]
         except Exception, e:
