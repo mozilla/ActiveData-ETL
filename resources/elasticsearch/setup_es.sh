@@ -19,6 +19,18 @@
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
+# ORACLE'S JAVA VERISON 8 IS APPARENTLY MUCH FASTER
+# YOU MUST AGREE TO ORACLE'S LICENSE TERMS TO USE THIS COMMAND
+cd /home/ec2-user/
+mkdir temp
+cd temp
+wget -c --no-cookies --no-check-certificate --header "Cookie: s_cc=true; s_nr=1425654197863; s_sq=%5B%5BB%5D%5D; oraclelicense=accept-securebackup-cookie; gpw_e24=http%3A%2F%2Fwww.oracle.com%2Ftechnetwork%2Fjava%2Fjavase%2Fdownloads%2Fjre8-downloads-2133155.html" "http://download.oracle.com/otn-pub/java/jdk/8u40-b25/jre-8u40-linux-x64.rpm" --output-document="jdk-8u5-linux-x64.rpm"
+sudo rpm -i jdk-8u5-linux-x64.rpm
+sudo alternatives --install /usr/bin/java java /usr/java/default/bin/java 20000
+export JAVA_HOME=/usr/java/default
+
+#CHECK IT IS 1.8
+java -version
 
 cd /home/ec2-user/
 wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz

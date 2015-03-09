@@ -76,9 +76,20 @@ class Queue(object):
             self.queue.delete_message(p)
 
     def rollback(self):
-        if self.pending and self.settings.debug:
-            Log.alert("{{num}} messages returned to queue", {"num":len(self.pending)})
-        self.pending = []
+        if self.pending:
+            pending = self.pending
+            self.pending = []
+
+            for p in pending:
+                m = Message()
+                m.set_body(p.get_body())
+                self.queue.write(m)
+
+            for p in pending:
+                self.queue.delete_message(p)
+
+            if self.settings.debug:
+                Log.alert("{{num}} messages returned to queue", {"num": len(pending)})
 
     def close(self):
         self.commit()

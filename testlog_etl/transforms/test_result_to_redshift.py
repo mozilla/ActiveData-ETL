@@ -17,8 +17,10 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries.qb_usingES_util import parse_columns, INDEX_CACHE
 from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
+from pyLibrary.thread.threads import Lock
+from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.redshift import Json2Redshift
-from testlog_etl.sinks.s3_bucket import S3Bucket
+from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 
 
 class CopyToRedshift(object):
@@ -74,6 +76,7 @@ class CopyToRedshift(object):
         )
 
     def extend(self, keys):
+        Log.error("Not tested yet")
         keyname = "add_to_redshift_" + Random.hex(20)
         manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + k} for k in keys]}
         s3.Bucket(self.settings.meta).write(keyname, convert.value2json(manifest))
@@ -94,9 +97,25 @@ class CopyToRedshift(object):
         }
         )
 
-def process_test_result_logs(source_key, source, destination, please_stop=None):
-    if isinstance(destination, Json2Redshift) and isinstance(source, S3Bucket):
-        destination.copy(source_key, source)
+
+done_locker = Lock()
+copy_done = set()
+
+def process_test_result(source_key, source, destination, please_stop=None):
+    if isinstance(destination, Json2Redshift) and isinstance(source, s3.File):
+        with done_locker:
+            prefix = key_prefix(source_key)
+            if prefix in copy_done:
+                return set()
+            copy_done.add(prefix)
+
+        destination.db.execute("DELETE FROM {{table}} WHERE _id LIKE {{prefix}} || ':%'", {
+            "table": destination.db.quote_column(destination.settings.table),
+            "prefix": unicode(prefix)
+        })
+        with Timer("COPY to Redshift"):
+            destination.copy(unicode(prefix) + ":", source)
+        return set()
     Log.error("Do not know how to handle")
 
 

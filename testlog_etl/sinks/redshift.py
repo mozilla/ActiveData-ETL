@@ -18,6 +18,7 @@ from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
 from pyLibrary.times.timer import Timer
 from testlog_etl.reset import Version
+from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 class Json2Redshift(object):
@@ -39,7 +40,7 @@ class Json2Redshift(object):
         INDEX_CACHE[settings.table] = wrap({"name":settings.table})  # HACK TO GET parse_columns TO WORK
         columns = parse_columns(settings.table, settings.mapping.test_results.properties)
         nested = [c.name for c in columns if c.type == "nested"]
-        self.columns = [c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n+".") for n in nested)]
+        self.columns = wrap([c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n+".") for n in nested)])
 
         try:
             self.db.execute("""
@@ -67,12 +68,9 @@ class Json2Redshift(object):
         s3.Bucket(meta).write(meta.jsonspath, content)
 
     def keys(self, prefix):
-        if ":" in prefix:
-            pre_prefix = prefix.split(":")[0]
-
         candidates = self.db.query("SELECT _id FROM {{table}} WHERE _id LIKE {{prefix}} || '%'", {
             "table": self.db.quote_column(self.settings.table),
-            "prefix": pre_prefix
+            "prefix": key_prefix(prefix)
         })
 
         output = set()
@@ -108,7 +106,7 @@ class Json2Redshift(object):
                 GZIP
             """,
             {
-                "s3_source": "s3://" + source.bucket + "/" + key,
+                "s3_source": "s3://" + self.settings.source.bucket + "/" + key,
                 "table_name": self.db.quote_column(self.settings.table),
                 "columns": SQL(",".join(map(self.db.quote_column, self.columns.name))),
                 "credentials": "aws_access_key_id=" + self.settings.meta.aws_access_key_id + ";aws_secret_access_key=" + self.settings.meta.aws_secret_access_key,

@@ -78,7 +78,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         etl = buildbot_summary.etl.copy()
         etl.id = i
 
-        key = etl2key(etl)
+        key = source_key + "." + unicode(i)
         new_keys.append(key)
 
         new_data.append({

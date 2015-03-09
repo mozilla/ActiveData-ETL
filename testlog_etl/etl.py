@@ -129,8 +129,15 @@ class ETL(Thread):
                 "key": source_key
             })
             try:
-                old_keys = action._destination.keys(prefix=source_block.key)
+                if action.transform_type == "bulk":
+                    old_keys = set()
+                else:
+                    old_keys = action._destination.keys(prefix=source_block.key)
+
                 new_keys = set(action._transformer(source_key, source, action._destination, self.please_stop))
+
+                if action.transform_type == "bulk":
+                    continue
 
                 # DUE TO BUGS THIS INVARIANT IS NOW BROKEN
                 # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
@@ -220,12 +227,21 @@ def get_container(settings):
             except Exception, _:
                 pass
         sink = Json2Redshift(settings=settings)
-        output = Threaded(sink)
-        sinks.append((settings, output))
-        return output
+        # sink = Threaded(sink)
+        sinks.append((settings, sink))
+        return sink
     elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
-        return S3Bucket(settings)
+        with sinks_locker:
+            for e in sinks:
+                try:
+                    fuzzytestcase.assertAlmostEqual(e[0], settings)
+                    return e[1]
+                except Exception, _:
+                    pass
+            output =  S3Bucket(settings)
+            sinks.append((settings, output))
+            return output
     else:
         with sinks_locker:
             for e in sinks:
@@ -293,40 +309,57 @@ def etl_one(settings):
     queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
+    already_in_queue = set()
+    for w in settings.workers:
+        source = get_container(w.source)
+        if id(source) in already_in_queue:
+            continue
+        try:
+            data = source.get_key(settings.args.id)
+            if data != None:
+                already_in_queue.add(id(source))
+                queue.add(Dict(
+                    bucket=w.source.bucket,
+                    key=settings.args.id
+                ))
+        except Exception, _:
+            pass
 
-    if len(settings.args.id.split(".")) == 2:
-        worker=[w for w in settings.workers if w.name in ["unittest2es", "unittest2pg"]][0]
 
-        with Timer("get file from s3"):
-            bucket = aws.s3.Bucket(settings=worker.source)
-            bites = bucket.read_bytes(settings.args.id)
 
-            File("results/" + settings.args.id.replace(":", "_") + ".json.gz").write_bytes(bites)
-
-        queue.add(Dict(
-            bucket=worker.source.bucket,
-            key=settings.args.id
-        ))
-    elif len(settings.args.id.split(".")) == 1:
-        worker = [w for w in settings.workers if w.name in ["pulse2unittest", "pulse2es"]][0]
-        if settings.args.id.find(":")>=0:
-            queue.add(Dict(
-                bucket=worker.source.bucket,
-                key=settings.args.id
-            ))
-        else:
-            bucket = aws.s3.Bucket(settings=worker.source)
-            keys = list(bucket.keys(prefix=settings.args.id))
-            if len(keys) != 1:
-                Log.error("id {{id}} can not be found", {"id": settings.args.id})
-            else:
-                Log.note("id {{id}} found", {"id": keys[0]})
-
-            queue.add(Dict(
-                bucket=worker.source.bucket,
-                key=keys[0]
-            ))
-
+    # if len(settings.args.id.split(".")) == 2:
+    #     worker=[w for w in settings.workers if w.name in ["unittest2es", "unittest2pg"]][0]
+    #
+    #     with Timer("get file from s3"):
+    #         bucket = aws.s3.Bucket(settings=worker.source)
+    #         bites = bucket.read_bytes(settings.args.id)
+    #
+    #         File("results/" + settings.args.id.replace(":", "_") + ".json.gz").write_bytes(bites)
+    #
+    #     queue.add(Dict(
+    #         bucket=worker.source.bucket,
+    #         key=settings.args.id
+    #     ))
+    # elif len(settings.args.id.split(".")) == 1:
+    #     worker = [w for w in settings.workers if w.name in ["pulse2unittest", "pulse2es"]][0]
+    #     if settings.args.id.find(":")>=0:
+    #         queue.add(Dict(
+    #             bucket=worker.source.bucket,
+    #             key=settings.args.id
+    #         ))
+    #     else:
+    #         bucket = aws.s3.Bucket(settings=worker.source)
+    #         keys = list(bucket.keys(prefix=settings.args.id))
+    #         if len(keys) != 1:
+    #             Log.error("id {{id}} can not be found", {"id": settings.args.id})
+    #         else:
+    #             Log.note("id {{id}} found", {"id": keys[0]})
+    #
+    #         queue.add(Dict(
+    #             bucket=worker.source.bucket,
+    #             key=keys[0]
+    #         ))
+    #
 
     stopper = Signal()
     thread = ETL(
