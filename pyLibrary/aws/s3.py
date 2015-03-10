@@ -131,6 +131,7 @@ class Bucket(object):
             self.connection.close()
 
     def get_key(self, key):
+        key = strip_extension(self.get_meta(key).key)
         return File(self, key)
 
     def delete_key(self, key):
@@ -165,10 +166,10 @@ class Bucket(object):
                             "prefix": key,
                             "list": [k.name for k in metas]
                         })
-                self._verify_key_format(strings.between(favorite.key, None, ".json"))
+                self._verify_key_format(strip_extension(favorite.key))
                 return favorite
 
-            self._verify_key_format(strings.between(metas[0].key, None, ".json"))
+            self._verify_key_format(strip_extension(metas[0].key))
             return metas[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
@@ -330,8 +331,8 @@ class Bucket(object):
     def _verify_key_format(self, key):
         if self.key_format != _scrub_key(key):
             Log.error("key {{key}} in bucket {{bucket}} is of the wrong format", {
-                "key":key,
-                "bucket":self.bucket.name
+                "key": key,
+                "bucket": self.bucket.name
             })
 
 

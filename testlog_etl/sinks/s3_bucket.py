@@ -43,18 +43,7 @@ class S3Bucket(object):
 
     def keys(self, prefix):
         metas = self.bucket.metas(prefix=prefix)
-        output = []
-        for m in metas:
-            for line in self.bucket.read_lines(m.key):
-                try:
-                    id = convert.json2value(line)._id
-                    if id == None:
-                        continue
-
-                    output.append(id)
-                except Exception, _:
-                    pass
-        return set(output)
+        return set(metas.key)
 
     def find_keys(self, start, count, filter=None):
         digits = int(Math.ceiling(log10(count - 1)))

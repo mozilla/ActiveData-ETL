@@ -121,7 +121,7 @@ class ETL(Thread):
                 source_key = MIN(source_keys[0])
             else:
                 source = action._source.get_key(source_keys[0])
-                source_key = source_keys[0]
+                source_key = source.key
 
             Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
                 "action": action.name,
