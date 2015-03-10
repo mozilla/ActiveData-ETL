@@ -65,29 +65,29 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
 			"type": "join"
 		},
-		{
-			"name":"load es",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
-			},
-			"destination": {
-				"use_daily": true,
-				"host": "http://52.10.189.133",
-				"port": 9200,
-				"index": "unittest",
-				"type": "test_result",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../schema/test_results.json"
-				},
-				"debug": true,
-				"limit_replicas": true
-			},
-			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
-			"type": "join"
-
-		},
+//		{
+//			"name":"load es",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-test-result"
+//			},
+//			"destination": {
+//				"use_daily": true,
+//				"host": "http://52.10.189.133",
+//				"port": 9200,
+//				"index": "unittest",
+//				"type": "test_result",
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../schema/test_results.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": true
+//			},
+//			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
+//			"type": "join"
+//
+//		},
 		{
 			"name":"load redshift",
 			"source": {
