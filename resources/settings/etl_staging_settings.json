@@ -70,7 +70,7 @@
 			},
 			"destination": {
 				"use_daily": true,
-				"host": "http://52.10.189.133",
+				"host": "http://172.31.0.146",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
