@@ -165,10 +165,10 @@ class Bucket(object):
                             "prefix": key,
                             "list": [k.name for k in metas]
                         })
-                self._verify_key_format(favorite.key)
+                self._verify_key_format(strings.between(favorite.key, None, ".json"))
                 return favorite
 
-            self._verify_key_format(metas[0].key)
+            self._verify_key_format(strings.between(metas[0].key, None, ".json"))
             return metas[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
@@ -329,7 +329,10 @@ class Bucket(object):
 
     def _verify_key_format(self, key):
         if self.key_format != _scrub_key(key):
-            Log.error("key {{key}} is of the wrong format", {"key":key})
+            Log.error("key {{key}} in bucket {{bucket}} is of the wrong format", {
+                "key":key,
+                "bucket":self.bucket.name
+            })
 
 
 class SkeletonBucket(Bucket):
