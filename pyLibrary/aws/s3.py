@@ -20,7 +20,7 @@ from boto.s3.connection import Location
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Null
+from pyLibrary.dot import wrap, Null, nvl
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
@@ -146,7 +146,7 @@ class Bucket(object):
             Log.error("Expecting a pure key")
 
         try:
-            metas = list(self.bucket.list(prefix=key+"."))
+            metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
             if self.name == "ekyle-talos" and key.find(".") == -1:
@@ -155,13 +155,17 @@ class Bucket(object):
                     self.bucket.delete_key(m.key)
                 return Null
 
+            perfect = Null
             favorite = Null
             too_many = False
             for m in metas:
                 try:
                     simple = strip_extension(m.key)
                     self._verify_key_format(simple)
-                    if favorite:
+                    if simple == key:
+                        perfect = m
+                        too_many = False
+                    if favorite and not perfect:
                         too_many = True
                     favorite = m
                 except Exception, _:
@@ -173,7 +177,7 @@ class Bucket(object):
                     "prefix": key,
                     "list": [k.name for k in metas]
                 })
-            return favorite
+            return nvl(perfect, favorite)
         except Exception, e:
             Log.error(READ_ERROR, e)
 
