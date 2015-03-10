@@ -11,17 +11,22 @@ from __future__ import division
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
+from pyLibrary.thread.threads import Lock
 
+
+is_done_lock=Lock()
+is_done = set()
 
 def process_test_result(source_key, source, destination, please_stop=None):
+    if source.bucket.name == "ekyle-test-result" and len(source_key.split(".")) == 3:
+        source_key = ".".join(source_key.split(".")[:-1])
+        with is_done_lock:
+            if source_key in is_done:
+                return set()
+            is_done.add(source_key)
+            source.key = source_key
 
-    try:
-        lines = source.read_lines()
-    except Exception, e:
-        if "does not exist" in e:
-            return set()
-        else:
-            Log.error("Problem reading lines", e)
+    lines = source.read_lines()
 
     keys=[]
     data = []

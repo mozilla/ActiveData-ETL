@@ -1,10 +1,11 @@
 {
 	"work_queue": {
 		"name": "ekyle-etl",
+		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 4,
+		"threads": 1,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true
 	},
@@ -15,53 +16,6 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"workers": [
-		{
-			"name": "pulse2es",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
-			},
-			"destination":	{
-				"use_daily": false,
-				"host" : "http://172.31.0.146",
-				"port" : 9200,
-				"index" : "pulse",
-				"type" : "pulse_log",
-				"timeout" : 300,
-				"schema" : {"$ref": "//../schema/pulse_logs.json"},
-				"debug": false,
-				"limit_replicas": true
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
-			"type": "join"
-		},
-		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos",
-				"public": true
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
-			"type": "join"
-		},
-		{
-			"name": "pulse2test_result",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
-			"type": "join"
-		}
 		{
 			"name":"load es",
 			"source": {
@@ -119,27 +73,19 @@
 	],
 	"debug": {
 		"trace": true,
-//		"cprofile": {
-//			"enabled": true,
-//			"filename": "./results/profile.tab"
-//		},
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/profile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://172.31.0.146",
+				"host": "http://52.10.189.133",
 				"index": "debug",
-				"type": "unittest_etl"
-			},
-			{
-				"log_type": "email",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Developer Alert][STAGING] Problem in ETL",
-				"$ref":"file://~/private.json#email"
-
+				"type": "copy_to_sinks"
 			}
 		]
 	}

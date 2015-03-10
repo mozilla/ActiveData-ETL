@@ -15,6 +15,7 @@ from boto.sqs.message import Message
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import wrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.times.durations import Duration
@@ -57,6 +58,10 @@ class Queue(object):
         return int(attrib['ApproximateNumberOfMessages'])
 
     def add(self, message):
+        message = wrap(message)
+        if message.bucket.startswith("ekyle-test-result") and len(message.key.split(".")) == 3:
+            Log.error("not expected")
+
         m = Message()
         m.set_body(convert.value2json(message))
         self.queue.write(m)
