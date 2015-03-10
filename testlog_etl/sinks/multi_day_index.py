@@ -77,5 +77,5 @@ class MultiDayIndex(object):
 
     def add(self, doc):
         d = wrap(doc)
-        queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.timestamp)))
+        queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.insertion_time, d.value.run.timestamp)))
         queue.add(doc)

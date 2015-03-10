@@ -158,21 +158,22 @@ class ETL(Thread):
                     })
                     continue
 
+                for k in new_keys:
+                    if len(k.split(".")) == 3:
+                        Log.error("two dots not supported")
+
                 delete_me = old_keys - new_keys
                 if delete_me:
                     if action.destination.bucket=="ekyle-test-result":
                         for k in delete_me:
-                            if len(k.split(".")) == 2:  # DEFINITELY TO BE REMOVED
-                                action._destination.delete_key(k)
-                    Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
-                    for k in delete_me:
-                        pass
-                        # dest_bucket.delete_key(k)
+                            action._destination.delete_key(k)
+                    else:
+                        Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
+                        # for k in delete_me:
+                        #     dest_bucket.delete_key(k)
 
                 if isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
-                        if len(k.split(".")) == 3:
-                            Log.error("two dots not supported")
                         self.work_queue.add(Dict(
                             bucket=action.destination.bucket,
                             key=k
