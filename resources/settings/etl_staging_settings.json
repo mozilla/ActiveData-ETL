@@ -61,7 +61,7 @@
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
 			"type": "join"
-		}
+		},
 		{
 			"name":"load es",
 			"source": {
