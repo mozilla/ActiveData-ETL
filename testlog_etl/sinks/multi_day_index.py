@@ -24,15 +24,13 @@ class MultiDayIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    es = None
-
-
     def __init__(self, settings):
         self.settings = settings
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
-        if not MultiDayIndex.es:
-            MultiDayIndex.es = elasticsearch.Alias(alias=settings.index, settings=settings)
-        pass
+        self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+        #ENSURE WE HAVE ONE INDEX
+        dummy = wrap({"value": {"build": {"date": Date.now().unix}}})
+        self._get_queue(dummy)
 
     def _get_queue(self, d):
         date = Date(nvl(d.value.build.date, d.value.run.timestamp)).floor(NEW_INDEX_INTERVAL)
@@ -54,7 +52,7 @@ class MultiDayIndex(object):
     def keys(self, prefix=None):
         path = qb.reverse(etl2path(key2etl(prefix)))
 
-        result = MultiDayIndex.es.search({
+        result = self.es.search({
             "fields": ["_id"],
             "query": {
                 "filtered": {
