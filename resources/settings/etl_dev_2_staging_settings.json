@@ -136,13 +136,6 @@
 				"index": "debug",
 				"type": "unittest_etl"
 			}
-//			{
-//				"class": "logging.handlers.RotatingFileHandler",
-//				"filename": "./results/logs/etl.log",
-//				"maxBytes": 10000000,
-//				"backupCount": 100,
-//				"encoding": "utf8"
-//			}
 		]
 	}
 }
