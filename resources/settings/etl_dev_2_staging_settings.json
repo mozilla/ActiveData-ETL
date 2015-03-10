@@ -61,7 +61,6 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
-				"fast_forward": true,
 				"key_format": "a:b"
 			},
 			"destination": {

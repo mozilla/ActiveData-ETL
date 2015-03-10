@@ -146,7 +146,7 @@ class Bucket(object):
             Log.error("Expecting a pure key")
 
         try:
-            metas = list(self.bucket.list(prefix=key))
+            metas = list(self.bucket.list(prefix=key+"."))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
             if self.name == "ekyle-talos" and key.find(".") == -1:
@@ -159,7 +159,8 @@ class Bucket(object):
             too_many = False
             for m in metas:
                 try:
-                    self._verify_key_format(strip_extension(m.key))
+                    simple = strip_extension(m.key)
+                    self._verify_key_format(simple)
                     if favorite:
                         too_many = True
                     favorite = m
