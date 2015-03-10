@@ -171,6 +171,8 @@ class ETL(Thread):
 
                 if isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
+                        if len(k.split(".")) == 3:
+                            Log.error("two dots not supported")
                         self.work_queue.add(Dict(
                             bucket=action.destination.bucket,
                             key=k

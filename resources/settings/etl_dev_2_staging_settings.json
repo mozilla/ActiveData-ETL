@@ -7,7 +7,7 @@
 	"param": {
 		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": true
+		"keep_unknown_on_queue": false
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -50,7 +50,8 @@
 				"public": true
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
-			"type": "join"
+			"type": "join",
+			"transform_type": "bulk"
 		},
 		{
 			"name": "pulse2test_result",

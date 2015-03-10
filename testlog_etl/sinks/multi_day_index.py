@@ -62,7 +62,10 @@ class MultiDayIndex(object):
             }
         })
 
-        return set(result.hits.hits.fields._id)
+        if result.hits.hits:
+            return set(result.hits.hits._id)
+        else:
+            return set()
 
     def extend(self, documents):
         for d in wrap(documents):
