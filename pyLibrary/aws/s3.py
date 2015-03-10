@@ -20,7 +20,7 @@ from boto.s3.connection import Location
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, Null
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
@@ -131,7 +131,10 @@ class Bucket(object):
             self.connection.close()
 
     def get_key(self, key):
-        key = strip_extension(self.get_meta(key).key)
+        meta = self.get_meta(key)
+        if not meta:
+            Log.error("Key {{key}} does not exist", {"key": key})
+        key = strip_extension(meta.key)
         return File(self, key)
 
     def delete_key(self, key):
@@ -146,31 +149,30 @@ class Bucket(object):
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
-            if len(metas) == 0:
-                return None
-            elif len(metas) > 1:
-                if self.name=="ekyle-talos" and key.find(".")==-1:
-                    #VERY SPECIFIC CONDITIONS TO ALLOW DELETE, DELETE ME IN THE FUTURE (Now==March2015)
-                    for m in metas:
-                        self.bucket.delete_key(m.key)
-                    return None
-
-                favorite = None
+            if self.name == "ekyle-talos" and key.find(".") == -1:
+                # VERY SPECIFIC CONDITIONS TO ALLOW DELETE, DELETE ME IN THE FUTURE (Now==March2015)
                 for m in metas:
-                    residule = strings.between(m.key, key, ".json")
-                    if residule == "":
-                        favorite = m
-                    if residule.find(".") >= 0:
-                        Log.error("multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}", {
-                            "bucket": self.name,
-                            "prefix": key,
-                            "list": [k.name for k in metas]
-                        })
-                self._verify_key_format(strip_extension(favorite.key))
-                return favorite
+                    self.bucket.delete_key(m.key)
+                return Null
 
-            self._verify_key_format(strip_extension(metas[0].key))
-            return metas[0]
+            favorite = Null
+            too_many = False
+            for m in metas:
+                try:
+                    self._verify_key_format(strip_extension(m.key))
+                    if favorite:
+                        too_many = True
+                    favorite = m
+                except Exception, _:
+                    pass
+
+            if too_many:
+                Log.error("multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}", {
+                    "bucket": self.name,
+                    "prefix": key,
+                    "list": [k.name for k in metas]
+                })
+            return favorite
         except Exception, e:
             Log.error(READ_ERROR, e)
 
