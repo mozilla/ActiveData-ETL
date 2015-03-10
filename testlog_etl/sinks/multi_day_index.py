@@ -44,7 +44,7 @@ class MultiDayIndex(object):
             es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
             es.add_alias(self.settings.index)
             es.set_refresh_interval(seconds=60 * 60)
-            queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=True)
+            queue = es.threaded_queue(max_size=2000, batch_size=1000, silent=False)
             self.indicies[uid] = queue
 
         return queue
