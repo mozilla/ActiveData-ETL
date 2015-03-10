@@ -131,7 +131,6 @@ class Bucket(object):
             self.connection.close()
 
     def get_key(self, key):
-        self._verify_key_format(key)
         return File(self, key)
 
     def delete_key(self, key):
@@ -139,7 +138,6 @@ class Bucket(object):
         self.bucket.delete_key(key)
 
     def get_meta(self, key):
-        self._verify_key_format(key)
         if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
             Log.error("Expecting a pure key")
 
@@ -167,8 +165,10 @@ class Bucket(object):
                             "prefix": key,
                             "list": [k.name for k in metas]
                         })
+                self._verify_key_format(favorite.key)
                 return favorite
 
+            self._verify_key_format(metas[0].key)
             return metas[0]
         except Exception, e:
             Log.error(READ_ERROR, e)
