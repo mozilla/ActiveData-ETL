@@ -19,16 +19,19 @@
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
+				"bucket": "ekyle-pulse-logger",
+				"key_format":"a:b"
 			},
-			"destination":	{
+			"destination": {
 				"use_daily": false,
-				"host" : "http://172.31.0.146",
-				"port" : 9200,
-				"index" : "pulse",
-				"type" : "pulse_log",
-				"timeout" : 300,
-				"schema" : {"$ref": "//../schema/pulse_logs.json"},
+				"host": "http://172.31.0.146",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../schema/pulse_logs.json"
+				},
 				"debug": false,
 				"limit_replicas": true
 			},
@@ -39,12 +42,14 @@
 			"name": "pulse2talos",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
+				"bucket": "ekyle-pulse-logger",
+				"key_format": "a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-talos",
-				"public": true
+				"public": true,
+				"key_format": "a:b"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
 			"type": "join",
@@ -54,20 +59,23 @@
 			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger"
+				"bucket": "ekyle-pulse-logger",
+				"key_format": "a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
+				"bucket": "ekyle-test-result",
+				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
 			"type": "join"
 		},
 		{
-			"name":"load es",
+			"name": "load es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
+				"bucket": "ekyle-test-result",
+				"key_format": "a:b.c"
 			},
 			"destination": {
 				"use_daily": true,
@@ -87,10 +95,11 @@
 			"transform_type": "bulk"
 		},
 		{
-			"name":"load redshift",
+			"name": "load redshift",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
+				"bucket": "ekyle-test-result",
+				"key_format": "a:b.c"
 			},
 			"destination": {
 				"type": "redshift",
@@ -104,8 +113,8 @@
 				},
 				"timeout": 300,
 				"debug": true,
-				"source":{
-					"$ref":"#...source"
+				"source": {
+					"$ref": "#...source"
 				},
 				"meta": {
 					"bucket": "ekyle-metadata",
@@ -139,7 +148,7 @@
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[Developer Alert][STAGING] Problem in ETL",
-				"$ref":"file://~/private.json#email"
+				"$ref": "file://~/private.json#email"
 
 			}
 		]

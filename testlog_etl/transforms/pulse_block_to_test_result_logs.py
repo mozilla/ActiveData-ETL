@@ -30,8 +30,11 @@ def process_talos(source_key, source, destination, please_stop=None):
     output = []
     stats = Dict()
     next_key[source_key]=0
+    fast_forward = False
 
     for i, line in enumerate(source.read_lines()):
+        if fast_forward:
+            continue
         if please_stop:
             Log.error("Stopping early")
 
@@ -48,6 +51,8 @@ def process_talos(source_key, source, destination, please_stop=None):
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
+            if fast_forward:
+                continue
             try:
                 if url == None:
                     if DEBUG:
@@ -73,6 +78,9 @@ def process_talos(source_key, source, destination, please_stop=None):
 
                     file_num += 1
                     output.append(dest_key)
+
+                    if source.bucket.settings.fast_forward:
+                        fast_forward=True
 
                     if DEBUG_SHOW_LINE:
                         Log.note("ETLed line {{key}}: {{url}}", {

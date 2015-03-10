@@ -114,6 +114,7 @@ class Bucket(object):
         self.settings = settings
         self.connection = None
         self.bucket = None
+        self.key_format = _scrub_key(settings.key_format)
 
         try:
             self.connection = Connection(settings).connection
@@ -130,9 +131,15 @@ class Bucket(object):
             self.connection.close()
 
     def get_key(self, key):
+        self._verify_key_format(key)
         return File(self, key)
 
+    def delete_key(self, key):
+        # self._verify_key_format(key)  DO NOT VERIFY, DELETE BAD KEYS ANYWAY!!
+        self.bucket.delete_key(key)
+
     def get_meta(self, key):
+        self._verify_key_format(key)
         if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
             Log.error("Expecting a pure key")
 
@@ -320,6 +327,10 @@ class Bucket(object):
     def name(self):
         return self.settings.bucket
 
+    def _verify_key_format(self, key):
+        if self.key_format != _scrub_key(key):
+            Log.error("key {{key}} is of the wrong format", {"key":key})
+
 
 class SkeletonBucket(Bucket):
     """
@@ -344,3 +355,17 @@ def _unzip(compressed):
     buff = StringIO.StringIO(compressed)
     archive = zipfile.ZipFile(buff, mode='r')
     return archive.read(archive.namelist()[0])
+
+
+def _scrub_key(key):
+    """
+    RETURN JUST THE :. CHARACTERS
+    """
+    if key == None:
+        return None
+
+    output = []
+    for c in key:
+        if c in [":", "."]:
+            output.append(c)
+    return "".join(output)
