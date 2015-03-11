@@ -12,6 +12,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Lock
+from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 is_done_lock=Lock()
@@ -41,5 +42,16 @@ def process_test_result(source_key, source, destination, please_stop=None):
         })
         record._id = None
     if data:
-        destination.extend(data)
+        try:
+            destination.extend(data)
+        except Exception, e:
+            if "Can not decide on index by build.date" in e:
+                if source.bucket.name == "ekyle-test-result":
+                    # KNOWN CORRUPTION
+                    # TODO: REMOVE LATER (today = Mar2015)
+                    delete_list = source.bucket.keys(prefix=key_prefix(source_key))
+                    for d in delete_list:
+                        source.bucket.delete_key(d)
+            Log.error("Can not add to sink", e)
+
     return set(keys)

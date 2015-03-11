@@ -125,7 +125,7 @@ def transform_buildbot(payload):
     output.build.branch = payload.tree
 
     # JUST IN CASE THERE ARE MORE PROPERTIES
-    output.other = payload
+    output.other = payload = payload.copy()
     payload.blobber_files = None
     payload.builddate = None
     payload.buildername = None

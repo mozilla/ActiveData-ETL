@@ -319,7 +319,7 @@ def etl_one(settings):
     already_in_queue = set()
     for w in settings.workers:
         source = get_container(w.source)
-        source.settings.fast_forward = True
+        # source.settings.fast_forward = True
         if id(source) in already_in_queue:
             continue
         try:

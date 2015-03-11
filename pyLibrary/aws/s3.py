@@ -139,9 +139,10 @@ class Bucket(object):
 
     def delete_key(self, key):
         # self._verify_key_format(key)  DO NOT VERIFY, DELETE BAD KEYS ANYWAY!!
-        self.bucket.delete_key(key)
+        full_key = self.get_meta(key, conforming=False)
+        self.bucket.delete_key(full_key)
 
-    def get_meta(self, key):
+    def get_meta(self, key, conforming=True):
         if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
             Log.error("Expecting a pure key")
 
@@ -161,7 +162,8 @@ class Bucket(object):
             for m in metas:
                 try:
                     simple = strip_extension(m.key)
-                    self._verify_key_format(simple)
+                    if conforming:
+                        self._verify_key_format(simple)
                     if simple == key:
                         perfect = m
                         too_many = False
