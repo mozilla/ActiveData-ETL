@@ -22,6 +22,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.redshift import Json2Redshift
 from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 
+DEBUG_TIMING = True
 
 class CopyToRedshift(object):
 
@@ -98,23 +99,15 @@ class CopyToRedshift(object):
         )
 
 
-done_locker = Lock()
-copy_done = set()
-
 def process_test_result(source_key, source, destination, please_stop=None):
     if isinstance(destination, Json2Redshift) and isinstance(source, s3.File):
-        with done_locker:
-            prefix = key_prefix(source_key)
-            if prefix in copy_done:
-                return set()
-            copy_done.add(prefix)
-
-        destination.db.execute("DELETE FROM {{table}} WHERE _id LIKE {{prefix}} || ':%'", {
-            "table": destination.db.quote_column(destination.settings.table),
-            "prefix": unicode(prefix)
-        })
-        with Timer("COPY to Redshift"):
-            destination.copy(unicode(prefix) + ":", source)
+        with Timer("DELETE from Redshift", debug=DEBUG_TIMING):
+            destination.db.execute("DELETE FROM {{table}} WHERE _id LIKE {{prefix}} || '.%'", {
+                "table": destination.db.quote_column(destination.settings.table),
+                "prefix": unicode(source_key)
+            })
+        with Timer("COPY to Redshift", debug=DEBUG_TIMING):
+            destination.copy(source_key + ".", source)
         return set()
     Log.error("Do not know how to handle")
 

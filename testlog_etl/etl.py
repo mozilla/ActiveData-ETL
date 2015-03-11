@@ -333,42 +333,6 @@ def etl_one(settings):
         except Exception, _:
             pass
 
-
-
-    # if len(settings.args.id.split(".")) == 2:
-    #     worker=[w for w in settings.workers if w.name in ["unittest2es", "unittest2pg"]][0]
-    #
-    #     with Timer("get file from s3"):
-    #         bucket = aws.s3.Bucket(settings=worker.source)
-    #         bites = bucket.read_bytes(settings.args.id)
-    #
-    #         File("results/" + settings.args.id.replace(":", "_") + ".json.gz").write_bytes(bites)
-    #
-    #     queue.add(Dict(
-    #         bucket=worker.source.bucket,
-    #         key=settings.args.id
-    #     ))
-    # elif len(settings.args.id.split(".")) == 1:
-    #     worker = [w for w in settings.workers if w.name in ["pulse2unittest", "pulse2es"]][0]
-    #     if settings.args.id.find(":")>=0:
-    #         queue.add(Dict(
-    #             bucket=worker.source.bucket,
-    #             key=settings.args.id
-    #         ))
-    #     else:
-    #         bucket = aws.s3.Bucket(settings=worker.source)
-    #         keys = list(bucket.keys(prefix=settings.args.id))
-    #         if len(keys) != 1:
-    #             Log.error("id {{id}} can not be found", {"id": settings.args.id})
-    #         else:
-    #             Log.note("id {{id}} found", {"id": keys[0]})
-    #
-    #         queue.add(Dict(
-    #             bucket=worker.source.bucket,
-    #             key=keys[0]
-    #         ))
-    #
-
     stopper = Signal()
     thread = ETL(
         name="ETL Loop Test",
