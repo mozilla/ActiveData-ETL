@@ -19,6 +19,7 @@ from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.timer import Timer
+from testlog_etl import key2etl
 from testlog_etl.sinks.redshift import Json2Redshift
 from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 
@@ -102,9 +103,11 @@ class CopyToRedshift(object):
 def process_test_result(source_key, source, destination, please_stop=None):
     if isinstance(destination, Json2Redshift) and isinstance(source, s3.File):
         with Timer("DELETE from Redshift", debug=DEBUG_TIMING):
-            destination.db.execute("DELETE FROM {{table}} WHERE _id LIKE {{prefix}} || '.%'", {
+            etl = key2etl(source_key)
+            destination.db.execute("DELETE FROM {{table}} WHERE \"etl.source.id\"={{id1}} AND \"etl.source.source.id\"={{id2}}", {
                 "table": destination.db.quote_column(destination.settings.table),
-                "prefix": unicode(source_key)
+                "id1": etl.id,
+                "id2": etl.source.id
             })
         with Timer("COPY to Redshift", debug=DEBUG_TIMING):
             destination.copy(source_key + ".", source)
