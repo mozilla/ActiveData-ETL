@@ -20,7 +20,5 @@
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result"
-	},
-
-
+	}
 }

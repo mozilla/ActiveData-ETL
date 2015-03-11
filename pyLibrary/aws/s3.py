@@ -183,15 +183,20 @@ class Bucket(object):
         except Exception, e:
             Log.error(READ_ERROR, e)
 
-    def keys(self, prefix=None):
-        return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
+    def keys(self, prefix=None, delimiter=None):
+        if delimiter:
+            # WE REALLY DO NOT GET KEYS, BUT RATHER Prefix OBJECTS
+            # AT LEAST THEY ARE UNIQUE
+            return set(k.name.rstrip(delimiter) for k in self.bucket.list(prefix=prefix, delimiter=delimiter))
+        else:
+            return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
 
-    def metas(self, prefix=None, limit=None):
+    def metas(self, prefix=None, limit=None, delimiter=None):
         """
         RETURN THE METADATA DESCRIPTORS FOR EACH KEY
         """
 
-        keys = self.bucket.list(prefix=prefix)
+        keys = self.bucket.list(prefix=prefix, delimiter=delimiter)
         if limit:
             output = []
             for i, k in enumerate(keys):

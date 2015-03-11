@@ -44,17 +44,7 @@ class Redshift(object):
         )
 
     def query(self, sql, param=None):
-        if param:
-            sql = expand_template(sql, self.quote_param(param))
-
-        with Closer(self.connection.cursor()) as curs:
-            curs.execute(sql)
-            output = curs.fetchall()
-        self.connection.commit()
-        return output
-
-
-
+        return self.execute(sql, param)
 
     def execute(
         self,
@@ -65,6 +55,7 @@ class Redshift(object):
         if param:
             command = expand_template(command, self.quote_param(param))
 
+        output = None
         done = False
         while not done:
             try:
@@ -74,6 +65,7 @@ class Redshift(object):
 
                 with Closer(self.connection.cursor()) as curs:
                     curs.execute(command)
+                    output = curs.fetchall()
                 self.connection.commit()
                 done = True
             except Exception, e:
@@ -87,6 +79,7 @@ class Redshift(object):
                 self._connect()
                 if not retry:
                     Log.error("Problem with command:\n{{command|indent}}", {"command": command}, e)
+        return output
 
     def insert(self, table_name, record):
         keys = record.keys()
