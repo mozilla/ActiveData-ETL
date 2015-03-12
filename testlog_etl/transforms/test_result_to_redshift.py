@@ -17,11 +17,9 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries.qb_usingES_util import parse_columns, INDEX_CACHE
 from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
-from pyLibrary.thread.threads import Lock
 from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl
 from testlog_etl.sinks.redshift import Json2Redshift
-from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 
 DEBUG_TIMING = True
 
@@ -78,10 +76,10 @@ class CopyToRedshift(object):
         )
 
     def extend(self, keys):
-        Log.error("Not tested yet")
         keyname = "add_to_redshift_" + Random.hex(20)
-        manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + k} for k in keys]}
-        s3.Bucket(self.settings.meta).write(keyname, convert.value2json(manifest))
+        keys = list(keys)[0:2]
+        manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + unicode(k) + ":"} for k in keys]}
+        s3.Bucket(self.settings.meta).write(keyname, convert.value2json(manifest), disable_zip=True)
 
         self.db.execute("""
             COPY {{table_name}} ({{columns}})
@@ -89,11 +87,12 @@ class CopyToRedshift(object):
             CREDENTIALS {{credentials}}
             JSON {{jsonspath}}
             TRUNCATECOLUMNS
+            MANIFEST
             GZIP
             """, {
-            "s3_source": "s3://" + self.meta.bucket + "/" + keyname+ ".json",
+            "s3_source": "s3://" + self.settings.meta.bucket + "/" + keyname + ".json",
             "table_name": self.db.quote_column(self.settings.redshift.table),
-            "columns": SQL(",".join(self.db.quote_column(self.columns.name))),
+            "columns": SQL(",".join(map(self.db.quote_column, self.columns.name))),
             "credentials": "aws_access_key_id=" + self.settings.meta.aws_access_key_id + ";aws_secret_access_key=" + self.settings.meta.aws_secret_access_key,
             "jsonspath": "s3://" + self.settings.meta.bucket + "/" + self.settings.meta.jsonspath + ".json"
         }

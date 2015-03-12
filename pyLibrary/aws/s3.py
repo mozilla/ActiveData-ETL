@@ -130,6 +130,9 @@ class Bucket(object):
         if self.connection:
             self.connection.close()
 
+    def __getattr__(self, item):
+        return getattr(self.bucket, item)
+
     def get_key(self, key):
         meta = self.get_meta(key)
         if not meta:
@@ -266,15 +269,19 @@ class Bucket(object):
         else:
             return LazyLines(source)
 
-    def write(self, key, value):
+    def write(self, key, value, disable_zip=False):
         if key.endswith(".json") or key.endswith(".zip"):
             Log.error("Expecting a pure key")
 
         try:
             if hasattr(value, "read"):
-                storage = self.bucket.new_key(key + ".json.gz")
-                string_length = len(value)
-                value = convert.bytes2zip(value)
+                if disable_zip:
+                    storage = self.bucket.new_key(key + ".json")
+                    string_length = len(value)
+                else:
+                    storage = self.bucket.new_key(key + ".json.gz")
+                    string_length = len(value)
+                    value = convert.bytes2zip(value)
                 file_length = len(value)
                 Log.note("Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})", {"file_length": file_length, "string_length":string_length})
                 value.seek(0)
@@ -284,7 +291,7 @@ class Bucket(object):
                     storage.set_acl('public-read')
                 return
 
-            if len(value) > 20 * 1000:
+            if len(value) > 20 * 1000 and not disable_zip:
                 self.bucket.delete_key(key + ".json")
                 if isinstance(value, str):
                     value = convert.bytes2zip(value)

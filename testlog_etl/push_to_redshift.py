@@ -7,6 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from __future__ import division
+
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
 
@@ -20,23 +22,20 @@ def diff(settings):
     # EVERYTHING FROM REDSHIFT
     rs = CopyToRedshift(settings)
     in_rs = rs.db.query("""SELECT DISTINCT "etl.source.source.id" FROM test_results""")
-    in_rs = set(key_prefix(r[0]) for r in in_rs)
+    in_rs = set(key_prefix(r[0]) for r in in_rs if r[0] != None)
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
-    prefixes = bucket.keys(prefix="", delimiter=":")
+    prefixes = [p.key for p in bucket.list()]
     in_s3 = set()
-    for p in prefixes:
-        try:
-            in_s3.add(int(p))
-        except Exception, _:
-            bucket.delete_key(strip_extension(p))
+    for i, p in enumerate(prefixes):
+        if i % 1000 == 0:
+            Log.note("Done {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
 
-    # REMOVE OVERLAP
-    diff = in_s3 - in_rs
-    rs.db.execute("""DELETE FROM test_results WHERE "etl.source.source.id" IN {{diff}}""", {
-        "diff": rs.quote_column(diff)
-    })
+        if int(key_prefix(p)) < 10000:
+            Log.note("Odd {{key}}", {"key": p})
+        if int(key_prefix(p)) not in in_rs:
+            in_s3.add(p)
 
     # PUSH DIFFERENCES
     rs.extend(diff)

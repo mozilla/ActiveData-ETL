@@ -134,9 +134,9 @@ class Redshift(object):
         return output
 
     def quote_column(self, name):
-        if isinstance(name, list):
-            return SQL("(" + (", ".join(self.quote_value(v) for v in name)) + ")")
-        return SQL('"' + name.replace('"', '""') + '"')
+        if isinstance(name, basestring):
+            return SQL('"' + name.replace('"', '""') + '"')
+        return SQL("(" + (", ".join(self.quote_value(v) for v in name)) + ")")
 
     def quote_value(self, value):
         if value ==None:
