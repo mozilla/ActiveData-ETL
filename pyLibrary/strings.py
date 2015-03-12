@@ -125,19 +125,22 @@ def round(value, decimal=None, digits=None, places=None):
     :param places: SAME AS digits
     :return:
     """
-
     value = float(value)
+    if value == 0.0:
+        return "0"
+
     digits = nvl(digits, places)
     if digits != None:
-        if value == 0.0:
-            return 0
-        m = pow(10, math.ceil(math.log10(abs(value))))
-        return __builtin__.round(value / m, digits) * m
+        left_of_decimal = int(math.ceil(math.log10(abs(value))))
+        decimal = digits - left_of_decimal
 
-    return __builtin__.round(value, decimal)
+    right_of_decimal = max(decimal, 0)
+    format = "{:." + unicode(right_of_decimal) + "f}"
+    return format.format(__builtin__.round(value, decimal))
 
 
 def percent(value, decimal=None, digits=None, places=None):
+    value = float(value)
     if value == 0.0:
         return "0%"
 
@@ -192,8 +195,6 @@ def strip(value):
             return value[s:i + 1]
 
     return ""
-
-
 
 
 def trim(value):
@@ -264,6 +265,7 @@ def comma(value):
 
 def quote(value):
     from pyLibrary import convert
+
     return convert.string2quote(value)
 
 
@@ -280,6 +282,7 @@ def split(value, sep="\n"):
     yield value[s:]
     value = None
 
+
 def common_prefix(*args):
     prefix = args[0]
     for a in args[1:]:
@@ -288,7 +291,6 @@ def common_prefix(*args):
                 prefix = prefix[:i]
                 break
     return prefix
-
 
 
 def find_first(value, find_arr, start=0):

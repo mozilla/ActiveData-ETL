@@ -444,7 +444,7 @@ def sort(data, fieldnames=None):
                 return DictList([unwrap(d) for d in sorted(data, cmp=comparer)])
             else:
                 # EXPECTING {"field":f, "sort":i} FORMAT
-                fieldnames.sort = sort_direction[fieldnames.sort]
+                fieldnames.sort = sort_direction.get(fieldnames.sort, 0)
                 fieldnames.field = nvl(fieldnames.field, fieldnames.value)
                 if fieldnames.field==None:
                     Log.error("Expecting sort to have 'field' attribute")
