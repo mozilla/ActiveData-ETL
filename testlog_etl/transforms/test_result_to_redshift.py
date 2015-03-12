@@ -76,9 +76,11 @@ class CopyToRedshift(object):
         )
 
     def extend(self, keys):
+        """
+        ONLY FULL keys (INCLUDING EXTENSION) ARE EXPECTED
+        """
         keyname = "add_to_redshift_" + Random.hex(20)
-        keys = list(keys)[0:2]
-        manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + unicode(k) + ":"} for k in keys]}
+        manifest = {"entries": [{"url": "s3://" + self.settings.source.bucket + "/" + k} for k in keys]}
         s3.Bucket(self.settings.meta).write(keyname, convert.value2json(manifest), disable_zip=True)
 
         self.db.execute("""

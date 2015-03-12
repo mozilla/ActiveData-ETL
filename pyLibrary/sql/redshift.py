@@ -65,7 +65,8 @@ class Redshift(object):
 
                 with Closer(self.connection.cursor()) as curs:
                     curs.execute(command)
-                    output = curs.fetchall()
+                    if curs.rowcount >= 0:
+                        output = curs.fetchall()
                 self.connection.commit()
                 done = True
             except Exception, e:

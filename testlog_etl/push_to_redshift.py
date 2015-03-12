@@ -14,6 +14,7 @@ from pyLibrary.aws.s3 import strip_extension
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.queries import qb
 from testlog_etl.sinks.s3_bucket import key_prefix
 from testlog_etl.transforms.test_result_to_redshift import CopyToRedshift
 
@@ -26,19 +27,28 @@ def diff(settings):
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
-    prefixes = [p.key for p in bucket.list()]
-    in_s3 = set()
+    prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+    in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Done {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
+        try:
+            in_s3.append(int(p))
+        except Exception, _:
+            Log.note("delete key {{key}}", {"key":p})
+            bucket.delete_key(strip_extension(p))
+    in_s3 = qb.reverse(qb.sort(in_s3))
 
-        if int(key_prefix(p)) < 10000:
-            Log.note("Odd {{key}}", {"key": p})
-        if int(key_prefix(p)) not in in_rs:
-            in_s3.add(p)
+    for g, block in qb.groupby(in_s3, size=10):
+        keys = []
+        for k in block:
+            keys.extend(k.key for k in bucket.list(prefix=unicode(k) + ":"))
 
-    # PUSH DIFFERENCES
-    rs.extend(diff)
+        Log.note("Add {{num}} keys from {{key}} block", {
+            "num": len(keys),
+            "key": key_prefix(keys[0])
+        })
+        rs.extend(keys)
 
 
 def main():
