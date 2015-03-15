@@ -13,13 +13,18 @@ from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env.files import File
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
 
 
+
 def main():
+    """
+    CLEAR OUT KEYS FROM BUCKET BY RANGE, OR BY FILE
+    """
     try:
         settings = startup.read_settings(defs=[
             {
@@ -44,6 +49,14 @@ def main():
                 "dest": "end",
                 "default": None,
                 "required": False
+            },
+            {
+                "name": ["--file"],
+                "help": "path to file with CR-delimited prefix list",
+                "type": str,
+                "dest": "file",
+                "default": None,
+                "required": False
             }
         ])
         Log.start(settings.debug)
@@ -51,6 +64,20 @@ def main():
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws.Queue(settings.work_queue) as work_queue:
                 source = Connection(settings.aws).get_bucket(settings.args.bucket)
+
+                if settings.args.file:
+                    now = Date.now()
+                    for prefix in File(settings.args.file):
+                        all_keys = source.keys(prefix=prefix)
+                        for k in all_keys:
+                            Log.note("Adding {{key}}", {"key": k})
+                            work_queue.add({
+                                "bucket": settings.args.bucket,
+                                "key": k,
+                                "timestamp": now.unix,
+                                "date/time": now.format()
+                            })
+                    return
 
                 if settings.args.end and settings.args.start:
                     up_to = str(int(settings.args.end) - 1)

@@ -37,7 +37,7 @@ class SynchState(object):
     def startup(self):
         try:
             json = self.synch.read()
-            if json == None:
+            if not json:
                 Log.note("{{synchro_key}} does not exist.  Starting.", {"synchro_key": SYNCHRONIZATION_KEY})
                 return
 

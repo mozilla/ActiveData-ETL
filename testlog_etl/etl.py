@@ -22,11 +22,13 @@ from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.files import File
 from pyLibrary.meta import use_settings
+from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
+from testlog_etl import key2etl
 from testlog_etl.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
@@ -137,6 +139,17 @@ class ETL(Thread):
                     old_keys = action._destination.keys(prefix=source_block.key)
 
                 new_keys = set(action._transformer(source_key, source, action._destination, self.please_stop))
+
+                #VERIFY KEYS
+                if len(new_keys) == 1 and list(new_keys)[0] == source_key:
+                    pass  # ok
+                else:
+                    etls = map(key2etl, new_keys)
+                    etls = qb.sort(etls, "id")
+                    min_id = etls[0].id
+                    for i, e in enumerate(etls):
+                        if i + min_id != e.id:
+                            Log.error("expecting keys to have dense order")
 
                 if action.transform_type == "bulk":
                     continue

@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, verify_blobber_file, next_key
+from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator, verify_blobber_file
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 
 
@@ -29,7 +29,7 @@ def process_talos(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
-    next_key[source_key]=0
+    etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
     for i, line in enumerate(source.read_lines()):
@@ -72,7 +72,7 @@ def process_talos(source_key, source, destination, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    dest_key, dest_etl = make_etl_header(pulse_record, source_key, name)
+                    dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
                     buildbot_summary = transform_buildbot(pulse_record.data)
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=None)
 

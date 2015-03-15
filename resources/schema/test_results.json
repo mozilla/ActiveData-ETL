@@ -6,7 +6,7 @@
 		"index.number_of_shards": 5
 	},
 	"mappings": {
-		"test_results": {
+		"test_result": {
 			"_source": {
 				"compress": true
 			},

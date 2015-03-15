@@ -67,7 +67,7 @@ class Queue(object):
         self.queue.write(m)
 
     def pop(self, wait=Duration.SECOND, till=None):
-        m = self.queue.read(wait_time_seconds=Math.floor(wait.total_seconds))
+        m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
         if not m:
             return None
 

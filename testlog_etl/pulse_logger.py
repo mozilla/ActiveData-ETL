@@ -105,9 +105,9 @@ def main():
                 if settings.param.debug:
                     if settings.source.durable:
                         Log.error("Can not run in debug mode with a durable queue")
-                    synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY))
+                    synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
                 else:
-                    synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY))
+                    synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
                     if settings.source.durable:
                         synch.startup()
 

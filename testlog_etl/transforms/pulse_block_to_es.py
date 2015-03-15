@@ -75,15 +75,15 @@ def scrub_pulse_record(source_key, i, line, stats):
             return None
         elif pulse_record.pulse:
             Log.error("Does this happen?")
-            if DEBUG:
-                Log.note("Line {{index}}: found pulse array", {"index": i})
-            # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-            def read():
-                return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
-
-            temp = Dict(read=read)
-
-            return process_pulse_block(source_key, temp, destination)
+            # if DEBUG:
+            #     Log.note("Line {{index}}: found pulse array", {"index": i})
+            # # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
+            # def read():
+            #     return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
+            #
+            # temp = Dict(read=read)
+            #
+            # return process_pulse_block(source_key, temp, destination)
         else:
             Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
                 "line": line,

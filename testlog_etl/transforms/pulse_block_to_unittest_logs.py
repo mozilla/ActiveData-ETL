@@ -14,6 +14,7 @@ from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
+from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 
 
@@ -31,8 +32,8 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
     """
     output = []
-    stats=Dict()
-    next_key[source_key]=0  #RESET COUNTER
+    stats = Dict()
+    etl_header_gen = EtlHeadGnerator(source_key)
 
     for i, line in enumerate(source.read_lines()):
         if please_stop:
@@ -43,7 +44,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid|quote}}", {"key": source_key, "line":i, "buildid": pulse_record.data.builddate})
+            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid|quote}}", {"key": source_key, "line": i, "buildid": pulse_record.data.builddate})
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
@@ -66,7 +67,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    dest_key, dest_etl = make_etl_header(pulse_record, source_key, name)
+                    dest_key, dest_etl = etl_header_gen.next(talos_record.data.etl, name)
 
                     destination.write_lines(
                         dest_key,
@@ -172,30 +173,30 @@ def verify_blobber_file(line_number, name, url):
     return logs, count
 
 
-def make_etl_header(envelope, source_key, name):
-    num = next_key[source_key]
-    next_key[source_key] = num + 1
-    dest_key = source_key + "." + unicode(num)
+class EtlHeadGenerator(object):
+    """
+    WILL RETURN A UNIQUE ETL STRUCTURE, GIVEN A SOURCE AND A DESTINATION NAME
+    """
 
-    if envelope.data.etl:
+    def __init__(self, source_key):
+        self.source_key = source_key
+        self.next_id = 0
+
+    def next(
+        self,
+        source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
+        name  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
+    ):
+        num = self.next_id
+        self.next_id = num + 1
+        dest_key = self.source_key + "." + unicode(num)
+
         dest_etl = wrap({
             "id": num,
             "name": name,
-            "source": envelope.data.etl,
+            "source": source_etl,
             "type": "join",
             "timestamp": Date.now().unix
         })
-    else:
-        if source_key.endswith(".json"):
-            Log.error("Not expected")
 
-        dest_etl = wrap({
-            "id": num,
-            "name": name,
-            "source": {
-                "id": source_key
-            },
-            "type": "join",
-            "timestamp": Date.now().unix
-        })
-    return dest_key, dest_etl
+        return dest_key, dest_etl

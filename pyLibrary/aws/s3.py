@@ -133,11 +133,12 @@ class Bucket(object):
     def __getattr__(self, item):
         return getattr(self.bucket, item)
 
-    def get_key(self, key):
-        meta = self.get_meta(key)
-        if not meta:
-            Log.error("Key {{key}} does not exist", {"key": key})
-        key = strip_extension(meta.key)
+    def get_key(self, key, must_exist=True):
+        if must_exist:
+            meta = self.get_meta(key)
+            if not meta:
+                Log.error("Key {{key}} does not exist", {"key": key})
+            key = strip_extension(meta.key)
         return File(self, key)
 
     def delete_key(self, key):

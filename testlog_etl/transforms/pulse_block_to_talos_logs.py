@@ -13,9 +13,8 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from testlog_etl.transforms.pulse_block_to_unittest_logs import make_etl_header, next_key
+from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 DEBUG = False
 
@@ -27,7 +26,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
     """
     all_talos = []
     stats = Dict()
-    next_key[source_key]=0
+    etl_head_gen=EtlHeadGenerator(source_key)
 
     for i, line in enumerate(source.read_lines()):
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
@@ -54,7 +53,7 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
                 talos = convert.json2value(convert.utf82unicode(talos_line))
 
                 for t in talos:
-                    _, dest_etl = make_etl_header(pulse_record, source_key, "talos")
+                    _, dest_etl = etl_head_gen.next(pulse_record.data.etl, "talos")
                     t.etl = dest_etl
                 all_talos.extend(talos)
 
