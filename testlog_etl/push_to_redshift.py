@@ -38,7 +38,7 @@ def diff(settings):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
         try:
-            if int(p) in in_rs:
+            if int(p) not in in_rs:
                 in_s3.append(int(p))
         except Exception, _:
             Log.note("delete key {{key}}", {"key": p})

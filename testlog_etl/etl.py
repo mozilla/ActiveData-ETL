@@ -15,26 +15,24 @@ from copy import deepcopy
 import sys
 
 from pyLibrary import aws, dot, strings
+from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
-from pyLibrary.env.files import File
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
-from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl
 from testlog_etl.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
 from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
 from testlog_etl.sinks.split import Split
-from testlog_etl.sinks.threaded import Threaded
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -196,6 +194,11 @@ class ETL(Thread):
             except Exception, e:
                 if "Key {{key}} does not exist" in e:
                     err = Log.warning
+                elif "multiple keys in {{bucket}}" in e:
+                    err = Log.warning
+                    if source_block.bucket=="ekyle-test-result":
+                        for k in action._source.list(prefix=key_prefix(source_key)):
+                            action._source.delete_key(strip_extension(k.key))
                 else:
                     err = Log.error
 

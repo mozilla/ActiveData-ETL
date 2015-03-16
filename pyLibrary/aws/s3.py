@@ -143,8 +143,12 @@ class Bucket(object):
 
     def delete_key(self, key):
         # self._verify_key_format(key)  DO NOT VERIFY, DELETE BAD KEYS ANYWAY!!
-        full_key = self.get_meta(key, conforming=False)
-        self.bucket.delete_key(full_key)
+        try:
+            full_key = self.get_meta(key, conforming=False)
+            self.bucket.delete_key(full_key)
+        except Exception, e:
+            self.get_meta(key, conforming=False)
+            raise e
 
     def get_meta(self, key, conforming=True):
         if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
