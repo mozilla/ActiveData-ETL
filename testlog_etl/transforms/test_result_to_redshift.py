@@ -37,7 +37,7 @@ class CopyToRedshift(object):
         self.pg = Redshift(redshift)
         self.settings = settings
         INDEX_CACHE[redshift.table] = wrap({"name": redshift.table})  # HACK TO GET parse_columns TO WORK
-        columns = parse_columns(redshift.table, redshift.mapping.test_results.properties)
+        columns = parse_columns(redshift.table, redshift.mapping.test_result.properties)
         nested = [c.name for c in columns if c.type == "nested"]
         self.columns = wrap([{"name": "_id", "type": "string"}] + [c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n + ".") for n in nested)])
 

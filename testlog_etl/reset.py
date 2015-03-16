@@ -18,7 +18,7 @@ from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
-
+from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 def main():
@@ -68,7 +68,7 @@ def main():
                 if settings.args.file:
                     now = Date.now()
                     for prefix in File(settings.args.file):
-                        all_keys = source.keys(prefix=prefix)
+                        all_keys = source.keys(prefix=key_prefix(prefix))
                         for k in all_keys:
                             Log.note("Adding {{key}}", {"key": k})
                             work_queue.add({

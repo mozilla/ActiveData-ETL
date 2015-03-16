@@ -38,7 +38,7 @@ class Json2Redshift(object):
         self.settings = settings
         self.db = Redshift(settings)
         INDEX_CACHE[settings.table] = wrap({"name":settings.table})  # HACK TO GET parse_columns TO WORK
-        columns = parse_columns(settings.table, settings.mapping.test_results.properties)
+        columns = parse_columns(settings.table, settings.mapping.test_result.properties)
         nested = [c.name for c in columns if c.type == "nested"]
         self.columns = wrap([c for c in columns if c.type not in ["object"] and not any(c.name.startswith(n+".") for n in nested)])
 

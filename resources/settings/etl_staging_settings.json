@@ -93,46 +93,10 @@
 			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
 			"type": "join",
 			"transform_type": "bulk"
-		},
-//		{
-//			"name": "load redshift",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-test-result",
-//				"key_format": "a:b.c"
-//			},
-//			"destination": {
-//				"type": "redshift",
-//				"host": "ekyle-redshift-test.cishavsxiep4.us-west-2.redshift.amazonaws.com",
-//				"port": 5439,
-//				"database": "unittest",
-//				"table": "test_results",
-//				"$ref": "file://~/private.json#redshift",
-//				"mapping": {
-//					"$ref": "//../schema/redshift.json"
-//				},
-//				"timeout": 300,
-//				"debug": true,
-//				"source": {
-//					"$ref": "#...source"
-//				},
-//				"meta": {
-//					"bucket": "ekyle-metadata",
-//					"jsonspath": "push_to_redshift",
-//					"$ref": "file://~/private.json#aws_credentials"
-//				}
-//			},
-//			"transformer": "testlog_etl.transforms.test_result_to_redshift.process_test_result",
-//			"type": "join",
-//			"transform_type": "bulk"  //AVOID etl DEALING WITH INDIVIDUAL KEYS
-//		}
+		}
 	],
 	"debug": {
 		"trace": true,
-//		"cprofile": {
-//			"enabled": true,
-//			"filename": "./results/profile.tab"
-//		},
 		"log": [
 			{
 				"log_type": "console"
