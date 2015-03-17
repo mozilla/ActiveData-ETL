@@ -26,8 +26,9 @@ class MultiDayIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    def __init__(self, settings):
+    def __init__(self, settings, queue_size=10000):
         self.settings = settings
+        self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         #FORCE AT LEAST ONE INDEX TO EXIST
@@ -44,7 +45,7 @@ class MultiDayIndex(object):
             es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
             es.add_alias(self.settings.index)
             es.set_refresh_interval(seconds=60 * 60)
-            queue = es.threaded_queue(max_size=10000, batch_size=5000, silent=False)
+            queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
             self.indicies[uid] = queue
 
         return queue

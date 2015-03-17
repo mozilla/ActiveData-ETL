@@ -27,7 +27,7 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 
 def diff(settings, please_stop=None):
     # EVERYTHING FROM REDSHIFT
-    es = MultiDayIndex(settings.elasticsearch)
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
 
     result = es.search({
         "aggs": {
