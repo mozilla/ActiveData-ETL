@@ -16,11 +16,9 @@ from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
-from pyLibrary.queries.qb_usingES import FromES
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
-from testlog_etl.transforms.test_result_to_redshift import CopyToRedshift
 
 
 # COPY FROM S3 BUCKET TO REDSHIFT
