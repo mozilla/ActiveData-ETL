@@ -7,6 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from pyLibrary import convert
+from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import nvl, wrap
 from pyLibrary.env import elasticsearch
@@ -28,7 +30,7 @@ class MultiDayIndex(object):
         self.settings = settings
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
-        #ENSURE WE HAVE ONE INDEX
+        #FORCE AT LEAST ONE INDEX TO EXIST
         dummy = wrap({"value": {"build": {"date": Date.now().unix}}})
         self._get_queue(dummy)
 
@@ -47,6 +49,8 @@ class MultiDayIndex(object):
 
         return queue
 
+    def __getattr__(self, item):
+        return getattr(self.es, item)
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
@@ -77,5 +81,19 @@ class MultiDayIndex(object):
 
     def add(self, doc):
         d = wrap(doc)
-        queue = self._get_queue(Date(nvl(d.value.build.date, d.value.run.insertion_time, d.value.run.timestamp)))
+        queue = self._get_queue(doc)
         queue.add(doc)
+
+    def copy(self, keys, source):
+        num_keys = 0
+        for key in keys:
+            records = []
+            for line in source.read_lines(strip_extension(key)):
+                v = convert.json2value(line)
+                row = {"id": v._id, "value": v}
+                v._id = None
+                num_keys+=1
+                records.append(row)
+
+            self.extend(records)
+        return num_keys

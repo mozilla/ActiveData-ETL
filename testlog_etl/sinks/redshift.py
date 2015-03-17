@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 from pyLibrary import convert
 from pyLibrary.aws import s3
+from pyLibrary.aws.s3 import key_prefix
 
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, split_field
@@ -18,7 +19,6 @@ from pyLibrary.sql import SQL
 from pyLibrary.sql.redshift import Redshift
 from pyLibrary.times.timer import Timer
 from testlog_etl.reset import Version
-from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 class Json2Redshift(object):

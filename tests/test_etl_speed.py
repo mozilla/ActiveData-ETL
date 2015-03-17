@@ -17,10 +17,13 @@ from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_unittest_logs import verify_blobber_file
-from testlog_etl.transforms.unittest_logs_to_es import process_unittest, process_unittest_in_s3
+from testlog_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
 
 class TestEtlSpeed(FuzzyTestCase):
+    """
+    TEMPORARY TEST TO IDENTIFYETL SPEED ISSUES
+    """
 
     def test_51586(self):
         debug_settings = {

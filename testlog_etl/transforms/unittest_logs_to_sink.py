@@ -16,7 +16,6 @@ from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
 from testlog_etl.transforms import git_revision
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
@@ -74,23 +73,30 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
     new_keys = []
     new_data = []
-    for i, t in enumerate(summary.tests):
-        etl = buildbot_summary.etl.copy()
-        etl.id = i
 
-        key = source_key + "." + unicode(i)
+    if not summary.tests:
+        key = source_key + ".0"
         new_keys.append(key)
 
         new_data.append({
             "id": key,
-            "value": set_default(
-                {
-                    "result": t,
-                    "etl": etl
-                },
-                buildbot_summary
-            )
+            "value": buildbot_summary
         })
+    else:
+        for i, t in enumerate(summary.tests):
+            key = source_key + "." + unicode(i)
+            new_keys.append(key)
+
+            new_data.append({
+                "id": key,
+                "value": set_default(
+                    {
+                        "result": t,
+                        "etl": {"id":i}
+                    },
+                    buildbot_summary
+                )
+            })
     destination.extend(new_data)
     return new_keys
 

@@ -11,15 +11,10 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
 
 from pyLibrary import aws
-from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-
-from pyLibrary.queries import qb
-from pyLibrary.times.timer import Timer
 
 
 def list_queue(settings, num):

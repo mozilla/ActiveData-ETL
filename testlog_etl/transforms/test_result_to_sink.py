@@ -10,9 +10,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
+from pyLibrary.aws.s3 import key_prefix
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Lock
-from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 is_done_lock=Lock()
