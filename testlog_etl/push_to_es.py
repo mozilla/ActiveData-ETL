@@ -16,6 +16,7 @@ from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
@@ -24,7 +25,7 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 # COPY FROM S3 BUCKET TO REDSHIFT
 
 
-def diff(settings):
+def diff(settings, please_stop=None):
     # EVERYTHING FROM REDSHIFT
     es = MultiDayIndex(settings.elasticsearch)
 
@@ -57,7 +58,17 @@ def diff(settings):
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 
+    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
+    max_s3 = in_s3[0] - 500
+    i = 0
+    while in_s3[i] > max_s3:
+        i += 1
+    in_s3 = in_s3[i::]
+
     for block in in_s3:
+        if please_stop:
+            return
+
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
 
         extend_time = Timer("insert", silent=True)
@@ -95,7 +106,8 @@ def main():
         if settings.args.id:
             Log.error("do not know how to handle")
 
-        diff(settings)
+        thread = Thread.run("pushing to es", diff, settings)
+        Thread.wait_for_shutdown_signal(thread.please_stop, allow_exit=True)
 
     except Exception, e:
         Log.error("Problem with etl", e)

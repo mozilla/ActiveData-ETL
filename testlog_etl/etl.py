@@ -375,22 +375,10 @@ def etl_one(settings):
     )
 
     wait_for_exit(stopper)
-    Thread.wait_for_shutdown_signal(stopper)
+    Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
     thread.stop()
     thread.join()
-
-
-def readloop(please_stop):
-    while not please_stop:
-        command = sys.stdin.readline()
-        if strings.strip(command) == "exit":
-            break
-    please_stop.go()
-
-
-def wait_for_exit(please_stop):
-    Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
 
 if __name__ == "__main__":
     main()

@@ -92,7 +92,7 @@ class MultiDayIndex(object):
                 v = convert.json2value(line)
                 row = {"id": v._id, "value": v}
                 v._id = None
-                num_keys+=1
+                num_keys += 1
                 records.append(row)
 
             self.extend(records)

@@ -1,7 +1,7 @@
 {
 	"elasticsearch": {
 		"use_daily": true,
-		"host": "http://localhost",
+		"host": "http://52.10.189.133",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
@@ -17,7 +17,16 @@
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
 	"debug": {
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
@@ -33,7 +42,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Alert]{Staging]Problem in Push to ES",
+				"subject": "[Alert]{DEV]Problem in Push to ES",
 				"$ref": "file://~/private.json#email"
 
 			}
