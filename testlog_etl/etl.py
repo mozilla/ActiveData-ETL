@@ -15,7 +15,7 @@ from copy import deepcopy
 import sys
 
 from pyLibrary import aws, dot, strings
-from pyLibrary.aws.s3 import strip_extension
+from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
@@ -28,10 +28,10 @@ from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
-from testlog_etl.dummy_sink import DummySink
+from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
-from testlog_etl.sinks.s3_bucket import S3Bucket, key_prefix
+from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
 
 
@@ -144,10 +144,13 @@ class ETL(Thread):
                 else:
                     etls = map(key2etl, new_keys)
                     etls = qb.sort(etls, "id")
-                    min_id = etls[0].id
                     for i, e in enumerate(etls):
-                        if i + min_id != e.id:
+                        if i != e.id:
                             Log.error("expecting keys to have dense order")
+                    #VERIFY KEYS EXIST
+                    if hasattr(action._destination, "get_key"):
+                        for k in new_keys:
+                            action._destination.get_key(k)
 
                 if action.transform_type == "bulk":
                     continue
@@ -372,22 +375,10 @@ def etl_one(settings):
     )
 
     wait_for_exit(stopper)
-    Thread.wait_for_shutdown_signal(stopper)
+    Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
     thread.stop()
     thread.join()
-
-
-def readloop(please_stop):
-    while not please_stop:
-        command = sys.stdin.readline()
-        if strings.strip(command) == "exit":
-            break
-    please_stop.go()
-
-
-def wait_for_exit(please_stop):
-    Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
 
 if __name__ == "__main__":
     main()

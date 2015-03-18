@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import aws, strings
-from pyLibrary.aws.s3 import Connection
+from pyLibrary.aws.s3 import Connection, key_prefix
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
@@ -18,7 +18,6 @@ from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
-from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 def main():
@@ -61,47 +60,46 @@ def main():
         ])
         Log.start(settings.debug)
 
-        with startup.SingleInstance(flavor_id=settings.args.filename):
-            with aws.Queue(settings.work_queue) as work_queue:
-                source = Connection(settings.aws).get_bucket(settings.args.bucket)
+        with aws.Queue(settings.work_queue) as work_queue:
+            source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
-                if settings.args.file:
-                    now = Date.now()
-                    for prefix in File(settings.args.file):
-                        all_keys = source.keys(prefix=key_prefix(prefix))
-                        for k in all_keys:
-                            Log.note("Adding {{key}}", {"key": k})
-                            work_queue.add({
-                                "bucket": settings.args.bucket,
-                                "key": k,
-                                "timestamp": now.unix,
-                                "date/time": now.format()
-                            })
-                    return
+            if settings.args.file:
+                now = Date.now()
+                for prefix in File(settings.args.file):
+                    all_keys = source.keys(prefix=key_prefix(prefix))
+                    for k in all_keys:
+                        Log.note("Adding {{key}}", {"key": k})
+                        work_queue.add({
+                            "bucket": settings.args.bucket,
+                            "key": k,
+                            "timestamp": now.unix,
+                            "date/time": now.format()
+                        })
+                return
 
-                if settings.args.end and settings.args.start:
-                    up_to = str(int(settings.args.end) - 1)
-                    prefix = strings.common_prefix(settings.args.start, up_to)
-                else:
-                    prefix = None
-                start = Version(settings.args.start)
-                end = Version(settings.args.end)
+            if settings.args.end and settings.args.start:
+                up_to = str(int(settings.args.end) - 1)
+                prefix = strings.common_prefix(settings.args.start, up_to)
+            else:
+                prefix = None
+            start = Version(settings.args.start)
+            end = Version(settings.args.end)
 
-                all_keys = source.keys(prefix=prefix)
-                with Timer("filtering {{num}} keys", {"num":len(all_keys)}):
-                    all_keys = [(k, Version(k)) for k in all_keys if k.find("None") == -1]
-                    all_keys = [(k, p) for k, p in all_keys if start <= p < end]
-                with Timer("sorting {{num}} keys", {"num": len(all_keys)}):
-                    all_keys = qb.sort(all_keys, 1)
-                for k, p in all_keys:
-                    Log.note("Adding {{key}}", {"key": k})
-                    now = Date.now()
-                    work_queue.add({
-                        "bucket": settings.args.bucket,
-                        "key": k,
-                        "timestamp": now.unix,
-                        "date/time": now.format()
-                    })
+            all_keys = source.keys(prefix=prefix)
+            with Timer("filtering {{num}} keys", {"num": len(all_keys)}):
+                all_keys = [(k, Version(k)) for k in all_keys if k.find("None") == -1]
+                all_keys = [(k, p) for k, p in all_keys if start <= p < end]
+            with Timer("sorting {{num}} keys", {"num": len(all_keys)}):
+                all_keys = qb.sort(all_keys, 1)
+            for k, p in all_keys:
+                Log.note("Adding {{key}}", {"key": k})
+                now = Date.now()
+                work_queue.add({
+                    "bucket": settings.args.bucket,
+                    "key": k,
+                    "timestamp": now.unix,
+                    "date/time": now.format()
+                })
 
     except Exception, e:
         Log.error("Problem with etl", e)

@@ -8,18 +8,19 @@
 #
 from __future__ import unicode_literals
 from math import log10
+
 from pyLibrary import convert
 from pyLibrary.aws import s3
-
+from pyLibrary.aws.s3 import key_prefix
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, literal_field
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
+from testlog_etl.reset import Version
 
 
 class S3Bucket(object):
@@ -50,7 +51,11 @@ class S3Bucket(object):
         prefix = unicode(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
-        return set(metas.key)
+        min_ = Version(unicode(start))
+        max_ = Version(unicode(start+count))
+        output = [m.key for m in metas if min_ <= Version(m.key) < max_]
+
+        return set(output)
 
     def find_largest_key(self):
         """
@@ -107,6 +112,3 @@ class S3Bucket(object):
     def add(self, dco):
         Log.error("Not supported")
 
-
-def key_prefix(key):
-    return int(key.split(":")[0].split(".")[0])

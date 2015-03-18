@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary import queries
 
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
@@ -15,23 +16,32 @@ from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.timer import Timer
+from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
-from testlog_etl.transforms.test_result_to_redshift import CopyToRedshift
 
 
 # COPY FROM S3 BUCKET TO REDSHIFT
 
 
-def diff(settings):
+def diff(settings, please_stop=None):
     # EVERYTHING FROM REDSHIFT
-    rs = CopyToRedshift(settings)
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
 
-    def count():
-        return rs.db.execute("SELECT COUNT(1) FROM {{table}}", {"table": rs.db.quote_column(settings.redshift.table)})[0][0]
+    result = es.search({
+        "aggs": {
+            "_match": {
+                "terms": {
+                    "field": "etl.source.source.id",
+                    "size": 0
+                }
 
-    in_rs = rs.db.query("""SELECT DISTINCT "etl.source.source.id" FROM test_results""")
-    in_rs = set(key_prefix(r[0]) for r in in_rs if r[0] != None)
+            }
+        }
+    })
+
+    in_rs = set(result.aggregations._match.buckets.key)
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
@@ -48,24 +58,30 @@ def diff(settings):
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 
-    old_count = count()
-    for g, block in qb.groupby(in_s3, size=10):
-        keys = []
-        for k in block:
-            keys.extend(k.key for k in bucket.list(prefix=unicode(k) + ":"))
+    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
+    max_s3 = in_s3[0] - 500
+    i = 0
+    while in_s3[i] > max_s3:
+        i += 1
+    in_s3 = in_s3[i::]
+
+    for block in in_s3:
+        if please_stop:
+            return
+
+        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            rs.extend(keys)
-            new_count = count()
+            num_keys = es.copy(keys, bucket)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-            "num": new_count - old_count,
+            "num": num_keys,
             "key": key_prefix(keys[0]),
             "duration": extend_time.seconds,
-            "rate": (new_count - old_count)/extend_time.seconds
+            "rate": num_keys/extend_time.seconds
         })
-        old_count = new_count
+
 
 
 def main():
@@ -82,15 +98,16 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
+        queries.config.default = {
+            "type": "elasticsearch",
+            "settings": settings.elasticsearch.copy()
+        }
+
         if settings.args.id:
-            if settings.args.id == "all":
-                settings.args.id = ""
+            Log.error("do not know how to handle")
 
-            pusher = CopyToRedshift(settings)
-            pusher.add(settings.args.id)
-            return
-
-        diff(settings)
+        thread = Thread.run("pushing to es", diff, settings)
+        Thread.wait_for_shutdown_signal(thread.please_stop, allow_exit=True)
 
     except Exception, e:
         Log.error("Problem with etl", e)

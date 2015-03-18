@@ -23,6 +23,7 @@ from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
 from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
+# ONLY DEPLOY OFF THE pulse-logger branch
 
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:

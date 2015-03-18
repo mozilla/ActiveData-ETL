@@ -1,0 +1,48 @@
+{
+	"elasticsearch": {
+		"use_daily": true,
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "unittest",
+		"type": "test_result",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../schema/test_results.json"
+		},
+		"debug": false,
+		"limit_replicas": true
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-test-result",
+		"key_format": "a:b.c"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"debug": {
+		"cprofile":{
+            "enabled": false,
+			"filename": "./results/cprofile.tab"
+		},
+		"log": [
+			{
+				"class": "logging.handlers.RotatingFileHandler",
+				"filename": "./results/logs/push_to_es.log",
+				"maxBytes": 1000000,
+				"backupCount": 100,
+				"encoding": "utf8"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[Alert]{Staging]Problem in Push to ES",
+				"$ref": "file://~/private.json#email"
+
+			}
+		]
+	}
+}

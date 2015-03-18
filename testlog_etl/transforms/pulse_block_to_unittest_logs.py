@@ -33,7 +33,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
-    etl_header_gen = EtlHeadGnerator(source_key)
+    etl_header_gen = EtlHeadGenerator(source_key)
 
     for i, line in enumerate(source.read_lines()):
         if please_stop:

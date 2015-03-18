@@ -1,4 +1,3 @@
 MozillaPulse
 boto
 requests
-psycopg2
