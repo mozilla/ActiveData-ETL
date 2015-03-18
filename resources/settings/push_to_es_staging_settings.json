@@ -29,6 +29,9 @@
 		},
 		"log": [
 			{
+				"log_type": "console"
+			},
+			{
 				"class": "logging.handlers.RotatingFileHandler",
 				"filename": "./results/logs/push_to_es.log",
 				"maxBytes": 1000000,
