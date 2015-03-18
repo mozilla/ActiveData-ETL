@@ -324,8 +324,7 @@ def main():
                 please_stop=stopper
             )
 
-        wait_for_exit(stopper)
-        Thread.wait_for_shutdown_signal(stopper)
+        Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
         for thread in threads:
             thread.stop()
@@ -374,7 +373,6 @@ def etl_one(settings):
         please_stop=stopper
     )
 
-    wait_for_exit(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
     thread.stop()
