@@ -43,7 +43,7 @@ def diff(settings, please_stop=None):
         }
     })
 
-    in_rs = set(result.aggregations._match.buckets.key)
+    in_es=set(map(int, result.aggregations._match.buckets.key))
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
@@ -53,8 +53,10 @@ def diff(settings, please_stop=None):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
         try:
-            if int(p) not in in_rs:
+            if int(p) not in in_es:
                 in_s3.append(int(p))
+            else:
+                pass
         except Exception, _:
             Log.note("delete key {{key}}", {"key": p})
             bucket.delete_key(strip_extension(p))
@@ -75,7 +77,7 @@ def diff(settings, please_stop=None):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            if block % 3 == 0:
+            if block % 2 == 0:
                 num_keys = es.copy(keys, bucket)
             else:
                 # LEVERAGE THE ETL LOOP
