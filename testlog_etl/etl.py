@@ -202,6 +202,8 @@ class ETL(Thread):
                     if source_block.bucket=="ekyle-test-result":
                         for k in action._source.list(prefix=key_prefix(source_key)):
                             action._source.delete_key(strip_extension(k.key))
+                elif "Expecting a pure key" in e:
+                    err = Log.warning
                 else:
                     err = Log.error
 
