@@ -10,13 +10,14 @@ from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary import queries
 
-from pyLibrary.aws import s3
+from pyLibrary.aws import s3, Queue
 from pyLibrary.aws.s3 import strip_extension
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
+from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
@@ -28,6 +29,7 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 def diff(settings, please_stop=None):
     # EVERYTHING FROM REDSHIFT
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+    work_queue = Queue(settings.work_queue)
 
     result = es.search({
         "aggs": {
@@ -73,7 +75,19 @@ def diff(settings, please_stop=None):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            num_keys = es.copy(keys, bucket)
+            if block % 5 == 0:
+                num_keys = es.copy(keys, bucket)
+            else:
+                # LEVERAGE THE ETL LOOP
+                now = Date.now()
+                for k in keys:
+                    work_queue.add({
+                        "bucket": settings.source.bucket,
+                        "key": strip_extension(k),
+                        "timestamp": now.unix,
+                        "date/time": now.format()
+                    })
+                num_keys = len(keys)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
             "num": num_keys,

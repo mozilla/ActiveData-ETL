@@ -89,8 +89,8 @@ class MultiDayIndex(object):
 
     def copy(self, keys, source):
         num_keys = 0
-        queue = None  # PUT THE WHOLE BLOCK INTO SAME INDEX
         for key in keys:
+            queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
             for line in source.read_lines(strip_extension(key)):
                 if queue is None:
                     value = convert.json2value(line)

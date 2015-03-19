@@ -17,6 +17,11 @@
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
+	"work_queue":{
+		"name": "ekyle-etl",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
