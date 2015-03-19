@@ -59,9 +59,6 @@ class Queue(object):
 
     def add(self, message):
         message = wrap(message)
-        if message.bucket.startswith("ekyle-test-result") and len(message.key.split(".")) == 3:
-            Log.error("not expected")
-
         m = Message()
         m.set_body(convert.value2json(message))
         self.queue.write(m)

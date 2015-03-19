@@ -19,14 +19,6 @@ is_done_lock=Lock()
 is_done = set()
 
 def process_test_result(source_key, source, destination, please_stop=None):
-    if source.bucket.name == "ekyle-test-result" and len(source_key.split(".")) == 3:
-        source_key = ".".join(source_key.split(".")[:-1])
-        with is_done_lock:
-            if source_key in is_done:
-                return set()
-            is_done.add(source_key)
-            source.key = source_key
-
     lines = source.read_lines()
 
     keys=[]
