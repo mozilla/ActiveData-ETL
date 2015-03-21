@@ -78,7 +78,7 @@ def diff(settings, please_stop=None):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            if block % 4 == 0:
+            if False: #block % 4 == 0:
                 num_keys = es.copy(keys, bucket)
             else:
                 # LEVERAGE THE ETL LOOP
