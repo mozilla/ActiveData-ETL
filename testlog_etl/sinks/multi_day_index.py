@@ -91,8 +91,8 @@ class MultiDayIndex(object):
         num_keys = 0
         for key in keys:
             queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
-            for line in source.read_lines(strip_extension(key)):
-                try:
+            try:
+                for line in source.read_lines(strip_extension(key)):
                     if queue is None:
                         value = convert.json2value(line)
                         queue = self._get_queue(value)
@@ -102,6 +102,6 @@ class MultiDayIndex(object):
                         row = {"id": _id, "json": line}
                     num_keys += 1
                     queue.add(row)
-                except Exception, e:
-                    Log.warning("Could not get queue for {{key}}", {"key": key}, e)
+            except Exception, e:
+                Log.warning("Could not get queue for {{key}}", {"key": key}, e)
         return num_keys

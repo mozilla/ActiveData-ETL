@@ -28,7 +28,7 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 def diff(settings, please_stop=None):
-    # EVERYTHING FROM REDSHIFT
+    # EVERYTHING FROM ELASTICSEARCH
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
     work_queue = Queue(settings.work_queue)
 
@@ -44,7 +44,13 @@ def diff(settings, please_stop=None):
         }
     })
 
-    in_es=set(map(int, result.aggregations._match.buckets.key))
+    good_es = []
+    for k in result.aggregations._match.buckets.key:
+        try:
+            good_es.append(int(k))
+        except Exception, e:
+            pass
+    in_es = set(good_es)
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
@@ -78,7 +84,7 @@ def diff(settings, please_stop=None):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            if False: #block % 4 == 0:
+            if True: #block % 4 == 0:
                 num_keys = es.copy(keys, bucket)
             else:
                 # LEVERAGE THE ETL LOOP
