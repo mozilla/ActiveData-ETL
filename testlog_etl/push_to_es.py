@@ -15,6 +15,7 @@ from pyLibrary.aws.s3 import strip_extension
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
@@ -95,7 +96,7 @@ def diff(settings, please_stop=None):
             "num": num_keys,
             "key": key_prefix(keys[0]),
             "duration": extend_time.seconds,
-            "rate": num_keys/extend_time.seconds
+            "rate": num_keys / Math.max(extend_time.seconds, 1)
         })
 
 
