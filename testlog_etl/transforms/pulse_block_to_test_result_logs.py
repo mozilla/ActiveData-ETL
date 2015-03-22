@@ -32,6 +32,10 @@ def process_talos(source_key, source, destination, please_stop=None):
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
+    existing_keys = destination.keys(prefix=source_key)
+    for e in existing_keys:
+        destination.delete_key(e)
+
     for i, line in enumerate(source.read_lines()):
         if fast_forward:
             continue
