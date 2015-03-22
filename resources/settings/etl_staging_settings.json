@@ -24,7 +24,7 @@
 			},
 			"destination": {
 				"use_daily": false,
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"port": 9200,
 				"index": "pulse",
 				"type": "pulse_log",
@@ -79,7 +79,7 @@
 			},
 			"destination": {
 				"use_daily": true,
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
@@ -103,7 +103,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"index": "debug",
 				"type": "unittest_etl"
 			},
