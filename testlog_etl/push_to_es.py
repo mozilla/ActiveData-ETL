@@ -15,6 +15,7 @@ from pyLibrary.aws.s3 import strip_extension
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
@@ -27,7 +28,7 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 
 
 def diff(settings, please_stop=None):
-    # EVERYTHING FROM REDSHIFT
+    # EVERYTHING FROM ELASTICSEARCH
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
     work_queue = Queue(settings.work_queue)
 
@@ -43,7 +44,13 @@ def diff(settings, please_stop=None):
         }
     })
 
-    in_rs = set(result.aggregations._match.buckets.key)
+    good_es = []
+    for k in result.aggregations._match.buckets.key:
+        try:
+            good_es.append(int(k))
+        except Exception, e:
+            pass
+    in_es = set(good_es)
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
@@ -53,8 +60,10 @@ def diff(settings, please_stop=None):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
         try:
-            if int(p) not in in_rs:
+            if int(p) not in in_es:
                 in_s3.append(int(p))
+            else:
+                pass
         except Exception, _:
             Log.note("delete key {{key}}", {"key": p})
             bucket.delete_key(strip_extension(p))
@@ -75,7 +84,7 @@ def diff(settings, please_stop=None):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            if block % 3 == 0:
+            if True: #block % 4 == 0:
                 num_keys = es.copy(keys, bucket)
             else:
                 # LEVERAGE THE ETL LOOP
@@ -93,7 +102,7 @@ def diff(settings, please_stop=None):
             "num": num_keys,
             "key": key_prefix(keys[0]),
             "duration": extend_time.seconds,
-            "rate": num_keys/extend_time.seconds
+            "rate": num_keys / Math.max(extend_time.seconds, 1)
         })
 
 

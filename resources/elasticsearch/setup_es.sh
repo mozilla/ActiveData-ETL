@@ -67,6 +67,7 @@ sudo bin/plugin -install mobz/elasticsearch-head
 sudo mkfs -t ext4 /dev/xvdb
 sudo mkdir /data
 sudo mkdir /data/logs
+sudo mkdir /data/heapdump
 
 #ADD TO /etc/fstab SO AROUND AFTER REBOOT
 sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/fstab

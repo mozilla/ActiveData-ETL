@@ -20,16 +20,17 @@ DEBUG = False
 
 TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
+
 def process_talos(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """
     all_talos = []
     stats = Dict()
-    etl_head_gen=EtlHeadGenerator(source_key)
+    etl_head_gen = EtlHeadGenerator(source_key)
 
-    for i, line in enumerate(source.read_lines()):
-        pulse_record = scrub_pulse_record(source_key, i, line, stats)
+    for i, pulse_line in enumerate(source.read_lines()):
+        pulse_record = scrub_pulse_record(source_key, i, pulse_line, stats)
         if not pulse_record:
             continue
 
@@ -37,20 +38,20 @@ def process_talos(source_key, source, dest_bucket, please_stop=None):
             continue
 
         try:
-            with Timer("Read {{url}}", {"url":pulse_record.data.logurl}, debug=DEBUG):
+            with Timer("Read {{url}}", {"url": pulse_record.data.logurl}, debug=DEBUG):
                 response = http.get(pulse_record.data.logurl)
                 if response.status_code == 404:
                     Log.alarm("Talos log missing {{url}}", {"url": pulse_record.data.logurl})
                     continue
-                all_lines = response.all_lines
+                all_log_lines = response.all_lines
 
-            for talos_line in all_lines:
-                s = talos_line.find(TALOS_PREFIX)
+            for log_line in all_log_lines:
+                s = log_line.find(TALOS_PREFIX)
                 if s < 0:
                     continue
 
-                talos_line = strings.strip(talos_line[s + len(TALOS_PREFIX):])
-                talos = convert.json2value(convert.utf82unicode(talos_line))
+                log_line = strings.strip(log_line[s + len(TALOS_PREFIX):])
+                talos = convert.json2value(convert.utf82unicode(log_line))
 
                 for t in talos:
                     _, dest_etl = etl_head_gen.next(pulse_record.data.etl, "talos")
