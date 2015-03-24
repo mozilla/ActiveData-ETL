@@ -1,5 +1,6 @@
 cd /home/ubuntu/TestLog-ETL/
 git checkout etl
+git stash clear
 git stash
 git pull origin etl
 git stash apply

@@ -47,7 +47,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Alert]{DEV]Problem in Push to ES",
+				"subject": "[ALERT]{DEV]Problem in Push to ES",
 				"$ref": "file://~/private.json#email"
 
 			}
