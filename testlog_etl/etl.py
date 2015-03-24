@@ -202,6 +202,14 @@ class ETL(Thread):
                     if source_block.bucket=="ekyle-test-result":
                         for k in action._source.list(prefix=key_prefix(source_key)):
                             action._source.delete_key(strip_extension(k.key))
+                elif "expecting keys to have dense order" in e:
+                    err = Log.warning
+                    if source_block.bucket=="ekyle-test-result":
+                        # WE KNOW OF THIS ETL MISTAKE, REPROCESS
+                        self.work_queue.add({
+                            "key": key_prefix(source_key),
+                            "bucket": "ekyle-pulse-logger"
+                        })
                 elif "Expecting a pure key" in e:
                     err = Log.warning
                 else:
