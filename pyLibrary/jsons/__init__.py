@@ -56,10 +56,10 @@ def scrub(value):
     """
     if not Log:
         _late_import()
-    return _scrub(value)
+    return _scrub(value, set())
 
 
-def _scrub(value):
+def _scrub(value, is_done):
     if value == None:
         return None
 
@@ -78,18 +78,25 @@ def _scrub(value):
     elif type is Decimal:
         return float(value)
     elif isinstance(value, dict):
+        _id = id(value)
+        if _id in is_done:
+            Log.error("possible loop in structure detected")
+        is_done.add(_id)
+
         output = {}
         for k, v in value.iteritems():
             if not isinstance(k, basestring):
                 Log.error("keys must be strings")
-            v = _scrub(v)
+            v = _scrub(v, is_done)
             if v != None or isinstance(v, dict):
                 output[k] = v
+
+        is_done.discard(_id)
         return output
     elif type in (list, DictList):
         output = []
         for v in value:
-            v = _scrub(v)
+            v = _scrub(v, is_done)
             output.append(v)
         return output
     elif type.__name__ == "bool_":  # DEAR ME!  Numpy has it's own booleans (value==False could be used, but 0==False in Python.  DOH!)
@@ -106,7 +113,7 @@ def _scrub(value):
     elif hasattr(value, '__iter__'):
         output = []
         for v in value:
-            v = _scrub(v)
+            v = _scrub(v, is_done)
             output.append(v)
         return output
     elif hasattr(value, '__call__'):

@@ -47,8 +47,8 @@ class FuzzyTestCase(unittest.TestCase):
         else:
             assertAlmostEqual(test_value, expected, msg=msg, digits=digits, places=nvl(places, self.default_places), delta=delta)
 
-    def assertEqual(self, first, second, msg=None, digits=None, places=None, delta=None):
-        self.assertAlmostEqual(first, second, msg=msg, digits=digits, places=places, delta=delta)
+    def assertEqual(self, test_value, expected, msg=None, digits=None, places=None, delta=None):
+        self.assertAlmostEqual(test_value, expected, msg=msg, digits=digits, places=places, delta=delta)
 
 
 def zipall(*args):

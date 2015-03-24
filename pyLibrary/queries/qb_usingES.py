@@ -11,17 +11,19 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
-from pyLibrary.env import elasticsearch
+from pyLibrary.env import elasticsearch, http
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import MVEL, qb
+from pyLibrary.queries import es09
 from pyLibrary.queries.container import Container
-from pyLibrary.queries.qb_usingES09_aggop import is_aggop, es_aggop
-from pyLibrary.queries.qb_usingES14_aggs import es_aggsop, is_aggsop
-from pyLibrary.queries.qb_usingES14_setop import is_fieldop, is_setop, is_deep, es_setop, es_deepop, es_fieldop
-from pyLibrary.queries.qb_usingES09_terms import es_terms, is_terms
-from pyLibrary.queries.qb_usingES09_terms_stats import es_terms_stats, is_terms_stats
-from pyLibrary.queries.qb_usingES_util import aggregates, INDEX_CACHE, parse_columns
+from pyLibrary.queries.domains import is_keyword
+from pyLibrary.queries.es09.aggop import is_aggop, es_aggop
+from pyLibrary.queries.es09.util import parse_columns, INDEX_CACHE
+from pyLibrary.queries.es14.aggs import es_aggsop, is_aggsop
+from pyLibrary.queries.es14.setop import is_fieldop, is_setop, is_deep, es_setop, es_deepop, es_fieldop
+from pyLibrary.queries.es09.terms import es_terms, is_terms
+from pyLibrary.queries.es09.terms_stats import es_terms_stats, is_terms_stats
 from pyLibrary.queries.dimensions import Dimension
+from pyLibrary.queries.es14.util import aggregates1_4
 from pyLibrary.queries.query import Query, _normalize_where
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot.dicts import Dict
@@ -36,10 +38,10 @@ class FromES(Container):
     """
 
     @use_settings
-    def __init__(self, host, index, alias=None, name=None, type=None, port=9200, settings=None):
+    def __init__(self, host, index, type, alias=None, name=None,  port=9200, settings=None):
         self.settings = settings
         self.name = nvl(name, alias, index)
-        self._es = elasticsearch.Index(settings=settings)
+        self._es = elasticsearch.Alias(alias=nvl(alias, index), settings=settings)
         self.edges = Dict()
         self.worker = None
         self.ready = False
@@ -79,49 +81,59 @@ class FromES(Container):
         return self._es.url
 
     def query(self, _query):
-        if not self.ready:
-            Log.error("Must use with clause for any instance of FromES")
+        try:
+            if not self.ready:
+                Log.error("Must use with clause for any instance of FromES")
 
-        query = Query(_query, schema=self)
+            query = Query(_query, schema=self)
 
-        # try:
-        #     frum = self.get_columns(query["from"])
-        #     mvel = _MVEL(frum)
-        # except Exception, e:
-        #     mvel = None
-        #     Log.warning("TODO: Fix this", e)
-        #
-        for s in listwrap(query.select):
-            if not aggregates[s.aggregate]:
-                Log.error("ES can not aggregate " + self.select[0].name + " because '" + self.select[0].aggregate + "' is not a recognized aggregate")
+            # try:
+            #     frum = self.get_columns(query["from"])
+            #     mvel = _MVEL(frum)
+            # except Exception, e:
+            #     mvel = None
+            #     Log.warning("TODO: Fix this", e)
+            #
+            for s in listwrap(query.select):
+                if not aggregates1_4[s.aggregate]:
+                    Log.error("ES can not aggregate " + self.select[0].name + " because '" + self.select[0].aggregate + "' is not a recognized aggregate")
 
-        frum = query["from"]
-        if isinstance(frum, Query):
-            result = self.query(frum)
-            q2 = query.copy()
-            q2.frum = result
-            return qb.run(q2)
+            frum = query["from"]
+            if isinstance(frum, Query):
+                result = self.query(frum)
+                q2 = query.copy()
+                q2.frum = result
+                return qb.run(q2)
 
-        if is_aggsop(self._es, query):
-            return es_aggsop(self._es, frum, query)
-        if is_fieldop(query):
-            return es_fieldop(self._es, query)
-        elif is_deep(query):
-            return es_deepop(self._es, mvel, query)
-        elif is_setop(query):
-            return es_setop(self._es, mvel, query)
-        elif is_aggop(query):
-            return es_aggop(self._es, mvel, query)
-        elif is_terms(query):
-            return es_terms(self._es, mvel, query)
-        elif is_terms_stats(query):
-            return es_terms_stats(self, mvel, query)
+            if is_aggsop(self._es, query):
+                return es_aggsop(self._es, frum, query)
+            if is_fieldop(query):
+                return es_fieldop(self._es, query)
+            elif is_deep(query):
+                return es_deepop(self._es, mvel, query)
+            elif is_setop(query):
+                return es_setop(self._es, mvel, query)
+            elif is_aggop(query):
+                return es_aggop(self._es, mvel, query)
+            elif is_terms(query):
+                return es_terms(self._es, mvel, query)
+            elif is_terms_stats(query):
+                return es_terms_stats(self, mvel, query)
 
-        Log.error("Can not handle")
+            Log.error("Can not handle")
+        except Exception, e:
+            e = wrap(e)
+            if "Data too large, data for" in e:
+                http.post(self._es.cluster.path+"/_cache/clear")
+                Log.error("Problem (Tried to clear Elasticsearch cache)", e)
+            raise e
+
+
+
 
     def get_columns(self, _from_name=None):
         """
-        ENSURE COLUMNS FOR GIVEN INDEX/QUERY ARE LOADED, AND MVEL COMPILATION WORKS BETTER
+        ENSURE COLUMNS FOR GIVEN INDEX/QUERY ARE LOADED, MVEL COMPILATION WILL WORK BETTER
 
         _from_name - NOT MEANT FOR EXTERNAL USE
         """
@@ -133,7 +145,7 @@ class FromES(Container):
 
         output = INDEX_CACHE.get(_from_name)
         if output:
-            # VERIFY es IS CONSITENT
+            # VERIFY es IS CONSISTENT
             if self.url != output.url:
                 Log.error("Using {{name}} for two different containers\n\t{{existing}}\n\t{{new}}", {
                     "name": _from_name,
@@ -242,10 +254,10 @@ class FromES(Container):
         # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
         scripts = DictList()
         for k, v in command.set.items():
-            if not MVEL.isKeyword(k):
+            if not is_keyword(k):
                 Log.error("Only support simple paths for now")
 
-            scripts.append("ctx._source." + k + " = " + MVEL.value2MVEL(v) + ";\n")
+            scripts.append("ctx._source." + k + " = " + es09.expressions.value2MVEL(v) + ";\n")
         script = "".join(scripts)
 
         if results.hits.hits:

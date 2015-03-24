@@ -20,6 +20,7 @@ from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
+from pyLibrary.queries import qb
 from pyLibrary.strings import utf82unicode
 from pyLibrary.dot import nvl, Null, Dict
 from pyLibrary.dot.lists import DictList
@@ -43,20 +44,22 @@ class Index(object):
 
     """
     @use_settings
-    def __init__(self, index, type, alias=None, explore_metadata=True, debug=False, settings=None):
-        """
-
-        index - NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
-        type - SCHEMA NAME
-        explore_metadata == True - IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
-        timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
-        """
+    def __init__(
+        self,
+        index,  # NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
+        type,  # SCHEMA NAME
+        alias=None,
+        explore_metadata=True,  # PROBING THE CLUSTER FOR METADATA IS ALLOWED
+        timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
+        debug=False,  # DO NOT SHOW THE DEBUG STATEMENTS
+        settings=None
+    ):
         if index == alias:
             Log.error("must have a unique index name")
 
         self.debug = debug
         if self.debug:
-            Log.alert("elasticsearch debugging on index {{index}} is on", {"index": settings.index})
+            Log.alert("elasticsearch debugging for index {{index}} is on", {"index": settings.index})
 
         self.settings = settings
         self.cluster = Cluster(settings)
@@ -514,7 +517,7 @@ class Cluster(object):
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
-                Log.error("Shard failure")
+                Log.error("Shard failures {{failures|indent}}", {"failures": "---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)})
             return details
         except Exception, e:
             if url[0:4] != "http":
@@ -633,13 +636,15 @@ def _scrub(r):
 
 class Alias(object):
     @use_settings
-    def __init__(self, type, alias, explore_metadata=True, debug=False, settings=None):
-        """
-        alias - NAME OF THE ALIAS
-        type - SCHEMA NAME
-        explore_metadata == True - IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
-        timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
-        """
+    def __init__(
+        self,
+        type,  # SCHEMA NAME
+        alias,  # NAME OF THE ALIAS
+        explore_metadata=True,  # IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
+        debug=False,
+        timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
+        settings=None
+    ):
         self.debug = debug
         if self.debug:
             Log.alert("elasticsearch debugging on index {{index}} is on", {"index": settings.index})
@@ -652,6 +657,39 @@ class Alias(object):
     @property
     def url(self):
         return self.cluster.path + "/" + self.path
+
+    def get_schema(self, retry=True):
+        if self.settings.explore_metadata:
+            indices = self.cluster.get_metadata().indices
+            candidates = [(name, i) for name, i in indices.items() if self.settings.index in i.aliases]
+            index = qb.sort(candidates, 0).last()[1]
+
+            if index == None and retry:
+                #TRY AGAIN, JUST IN CASE
+                self.cluster.cluster_metadata = None
+                return self.get_schema(retry=False)
+
+            properties = index.mappings[self.settings.type]
+
+
+            #TODO: REMOVE THIS BUG CORRECTION
+            if not properties and self.settings.type=="test_result":
+                properties = index.mappings["test_results"]
+            # DONE BUG CORRECTION
+
+
+            if not properties:
+                Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})", {
+                    "index":self.settings.index,
+                    "type":self.settings.type
+                })
+            return properties
+        else:
+            mapping = self.cluster.get(self.path + "/_mapping")
+            if not mapping[self.settings.type]:
+                Log.error("{{index}} does not have type {{type}}", self.settings)
+            return wrap({"mappings": mapping[self.settings.type]})
+
 
     def search(self, query, timeout=None):
         query = wrap(query)
