@@ -116,13 +116,13 @@ class ETL(Thread):
 
         for action in work_actions:
             try:
-                source_key = source_keys[0]
+                source_key = unicode(source_keys[0])
                 if len(source_keys) > 1:
                     multi_source = action._source
                     source = ConcatSources([multi_source.get_key(k) for k in source_keys])
-                    source_key = MIN(source_keys[0])
+                    source_key = MIN(source_key)
                 else:
-                    source = action._source.get_key(source_keys[0])
+                    source = action._source.get_key(source_key)
                     source_key = source.key
 
                 Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
