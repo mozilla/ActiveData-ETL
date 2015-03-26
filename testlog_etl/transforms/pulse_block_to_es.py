@@ -31,7 +31,7 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
     if etl_header.locale:
         # EARLY VERSION ETL DID NOT ADD AN ETL HEADER
         start = 0
-        etl_header = key2etl(source_key)
+        etl_header = key2etl(unicode(source_key))
     else:
         start = 1
 

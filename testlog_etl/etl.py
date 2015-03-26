@@ -207,7 +207,7 @@ class ETL(Thread):
                     if source_block.bucket=="ekyle-test-result":
                         # WE KNOW OF THIS ETL MISTAKE, REPROCESS
                         self.work_queue.add({
-                            "key": key_prefix(source_key),
+                            "key": unicode(key_prefix(source_key)),
                             "bucket": "ekyle-pulse-logger"
                         })
                 elif "Expecting a pure key" in e:
