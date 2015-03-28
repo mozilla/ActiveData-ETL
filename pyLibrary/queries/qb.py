@@ -11,8 +11,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 import __builtin__
-from pyLibrary import dot
 
+from pyLibrary import dot, convert
 from pyLibrary.collections import UNION, MIN
 from pyLibrary.queries import flat_list, query, group_by
 from pyLibrary.queries.container import Container
@@ -29,10 +29,13 @@ from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import listwrap, wrap, unwrap
 
 
+
 # A COLLECTION OF DATABASE OPERATORS (RELATIONAL ALGEBRA OPERATORS)
 # qb QUERY DOCUMENTATION: https://github.com/klahnakoski/qb/tree/master/docs
 # START HERE: https://github.com/klahnakoski/qb/blob/master/docs/Qb_Reference.md
 # TODO: USE http://docs.sqlalchemy.org/en/latest/core/tutorial.html AS DOCUMENTATION FRAMEWORK
+from pyLibrary.times.dates import Date
+
 
 def run(query):
     query = Query(query)
@@ -49,8 +52,8 @@ def run(query):
     else:
         Log.error("Do not know how to handle")
 
-    if query.edges:
-        raise NotImplementedError
+    if is_py_aggs(query):
+        return py_aggs(frum, query)
 
     try:
         if query.filter != None or query.esfilter != None:
@@ -492,11 +495,12 @@ def pairwise(values):
         a = b
 
 
+
 def filter(data, where):
     """
     where  - a function that accepts (record, rownum, rows) and returns boolean
     """
-    if where == TRUE_FILTER:
+    if where == None or where == TRUE_FILTER:
         return data
 
     if isinstance(data, Cube):
@@ -771,10 +775,20 @@ def drill_filter(esfilter, data):
     return FlatList(primary_column[0:max], uniform_output)
 
 
-def compile_function(source):
-    temp = None
-    exec "def temp(row, rownum, rows):\n    return "+source+";"
-    return temp
+def compile_expression(source):
+    # FORCE MODULES TO BE IN NAMESPACE
+    _ = nvl
+    _ = Date
+
+    output = None
+    exec """
+def output(row, rownum, rows):
+    try:
+        return """ + source + """
+    except Exception, e:
+        Log.error("Problem with dynamic function {{func|quote}}", {"func": """ + convert.value2quote(source) + """})
+"""
+    return output
 
 
 def wrap_function(func):
@@ -782,7 +796,7 @@ def wrap_function(func):
     RETURN A THREE-PARAMETER WINDOW FUNCTION TO MATCH
     """
     if isinstance(func, basestring):
-        return compile_function(func)
+        return compile_expression(func)
 
     numarg = func.__code__.co_argcount
     if numarg == 0:
@@ -829,7 +843,7 @@ def window(data, param):
         return
 
     if not aggregate or aggregate == "none":
-        for keys, values in groupby(data, edges.value):
+        for _, values in groupby(data, edges.value):
             if not values:
                 continue     # CAN DO NOTHING WITH THIS ZERO-SAMPLE
 
@@ -907,3 +921,6 @@ def reverse(vals):
         output[l] = v
 
     return wrap(output)
+
+
+from pyLibrary.queries.py.aggs import py_aggs, is_py_aggs

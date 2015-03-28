@@ -25,7 +25,7 @@ class Matrix(object):
     ZERO = None
 
     @use_settings
-    def __init__(self, dims=[], list=None, value=None, settings=None, zeros=False):
+    def __init__(self, dims=[], list=None, value=None, zeros=False, settings=None):
         if list:
             self.num = 1
             self.dims = (len(list), )
@@ -229,6 +229,14 @@ class Matrix(object):
         """
         for c in self._all_combos():
             method(self[c], c, self.cube)
+
+
+    def items(self):
+        """
+        ITERATE THROUGH ALL coord, value PAIRS
+        """
+        for c in self._all_combos():
+            yield c, self[c]
 
 
     def _all_combos(self):

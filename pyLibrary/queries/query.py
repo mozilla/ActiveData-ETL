@@ -13,6 +13,7 @@ from pyLibrary.collections import AND, reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries import wrap_from
+from pyLibrary.queries.container import Container
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain, is_keyword
 from pyLibrary.queries.filters import TRUE_FILTER, simplify_esfilter
@@ -37,6 +38,8 @@ def _late_import():
 
 
 class Query(object):
+    __slots__ = ["frum", "select", "edges", "groupby", "where", "window", "sort", "limit", "format", "isLean"]
+
     def __new__(cls, query, schema=None):
         if isinstance(query, Query):
             return query
@@ -96,8 +99,10 @@ class Query(object):
             if not qb:
                 _late_import()
             columns = qb.get_columns(self.frum)
-        else:
+        elif isinstance(self.frum, Container):
             columns = self.frum.get_columns()
+        else:
+            columns=[]
         vars = get_all_vars(self)
         for c in columns:
             if c.name in vars and c.depth:
@@ -472,6 +477,8 @@ def get_all_vars(query):
         output.extend(edges_get_all_vars(s))
     for s in listwrap(query.groupby):
         output.extend(edges_get_all_vars(s))
+    # for s in listwrap(query.window):
+    #     output.extend(s);
     output.extend(where_get_all_vars(query.where))
     return output
 

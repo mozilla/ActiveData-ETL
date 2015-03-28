@@ -1,0 +1,15 @@
+{
+	"aws":{"$ref":"//~/private.json#aws_credentials"},
+	"debug": {
+		"trace": true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}
