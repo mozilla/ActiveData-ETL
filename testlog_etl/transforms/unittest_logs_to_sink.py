@@ -153,12 +153,12 @@ class LogSummary(Dict):
         )
 
     def test_status(self, log):
-        self.stats.test_status_lines += 1
+        self.stats.action.test_status += 1
         if not log.test:
             Log.error("log has blank 'test' property! Do not know how to handle.")
 
         test = self.tests[literal_field(log.test)]
-        test.stats.test_status_lines += 1
+        test.stats.action.test_status += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
@@ -172,12 +172,12 @@ class LogSummary(Dict):
         pass
 
     def log(self, log):
-        self.stats.log_lines += 1
+        self.stats.action.log += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
-        test.stats.log_lines += 1
+        test.stats.action.log += 1
         if not test:
             self.tests[literal_field(log.test)] = test = wrap({
                 "test": log.test,
@@ -185,15 +185,15 @@ class LogSummary(Dict):
                 "missing_test_start": True,
             })
         test.last_log_time = log.time
-        test.stats.log_lines += 1
+        test.stats.action.log += 1
 
     def crash(self, log):
-        self.stats.crash_lines += 1
+        self.stats.action.crash += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
-        test.stats.crash_lines += 1
+        test.stats.action.crash += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
