@@ -17,11 +17,11 @@ from fabric.operations import run, sudo, put
 
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, dictwrap
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import WEEK, DAY
+from pyLibrary.times.durations import WEEK, DAY, HOUR
 
 
 class SpotManager(object):
@@ -39,20 +39,30 @@ class SpotManager(object):
         :return:
         """
 
-        # how may do we need?
+        # how much utility do we need?
 
-        #how many do we have?
-        requests = self.conn.get_all_spot_instance_requests()
+        # how many do we have?
+        requests = list(map(dictwrap, self.conn.get_all_spot_instance_requests()))
 
         #how many failed?
 
         #how many pending?
+        pending = qb.filter(requests, {"terms": {"status.code": PENDING_STATUS_CODES}})
+        not_available = qb.filter(requests, {"terms": {"status.code": TERMINATED_STATUS_CODES - RETRY_STATUS_CODES}})
+        running = qb.filter(requests, {"terms": {"status.code": RUNNING_STATUS_CODES}})
 
+        total_utility = sum(map(lambda x: utility_lookup[x], pending + running))
+
+        new_utility = num_required - total_utility
+        prices =
         #what new spot requests are required?
-        num_new = 0
-        for i in range(num_new):
-            pass
-            # self.conn.request_spot_instances(...)
+        while new_utility>1:
+
+
+            self.conn.request_spot_instances(
+                price=
+
+            )
 
             # self, price, image_id, count=1, type='one-time',
             # valid_from=None, valid_until=None,
@@ -92,10 +102,16 @@ class SpotManager(object):
                 for p in resultset
             ])
 
-        bid80 = qb.run({
+        hourly_pricing = qb.run({
             "from": {
+                # AWS PRICING ONLY SENDS timestamp OF CHANGES, MATCH WITH NEXT INSTANCE
                 "from": prices,
-                "window": {"name": "expire", "value": "nvl(rows[rownum+1].timestamp, Date.eod())", "edges": ["availability_zone", "instance_type"], "sort": "timestamp"}
+                "window": {
+                    "name": "expire",
+                    "value": "nvl(rows[rownum+1].timestamp, Date.eod())",
+                    "edges": ["availability_zone", "instance_type"],
+                    "sort": "timestamp"
+                }
             },
             "edges": [
                 "availability_zone",
@@ -103,17 +119,42 @@ class SpotManager(object):
                 {
                     "name": "time",
                     "range": {"min": "timestamp", "max": "expire"},
-                    "domain": {"type": "time", "min": Date.today()-WEEK, "max": Date.eod(), "interval": "hour"}
+                    "domain": {"type": "time", "min": (Date.now() - DAY).floor(HOUR), "max": Date.now().floor(HOUR), "interval": "hour"}
                 }
             ],
             "select": [
-                {"value": "price", "aggregate": "percentile", "percentile": 0.80},
+                {"value": "price", "aggregate": "max"},
                 {"aggregate": "count"}
+            ],
+            "window": {
+                "name":"current_price", "value":"rows.last().price", "edges":["availability_zone", "instance_type"], "sort":"time",
+            }
+        })
+
+        bid80 = qb.run({
+            "from": hourly_pricing,
+            "edges": [
+                "availability_zone",
+                {
+                    "name": "type",
+                    "value": "instance_type",
+                    "domain": {"type": "set", "key": "instance_type", "partitions": config}
+                }
+            ],
+            "select": [
+                {"name": "estimated_value", "value": {"div": ["type.utility", "price"]}, "aggregate": "percentile", "percentile": 0.80},
+                {"name": "price", "value": "price", "aggregate": "max"},
+                {"aggregate": "count"},
+                {"value":"current_price", "aggregate":"one"}
             ]
         })
 
-        west = qb.filter(prices, {"prefix": {"availability_zone": "us-west"}})
-        Log.note("prices\n{{prices|indent}}", {"prices": list(prices)})
+        prices = qb.run({
+            "from": bid80.values(),
+            "sort": {"value": "estimated_value", "sort": -1}
+        })
+
+        return prices
 
 
     def setup_etl_node(self):
@@ -174,8 +215,36 @@ config = wrap([
     # {"instance_type": "r3.8xlarge", "cpu": 32}
 ])
 
+utility_lookup = {}
 for c in config:
-    c.utility = max(c.cpu, 8)
+    c.utility = min(c.cpu, 8)
+    utility_lookup[c.instance_type]=c.utility
+
+
+
+TERMINATED_STATUS_CODES = set([
+    "capacity-oversubscribed",
+    "price-too-low",
+    "capacity-not-available"
+    "instance-terminated-by-price",
+    "instance-terminated-capacity-oversubscribed",
+    "bad-parameters",
+    "canceled-before-fulfillment",
+    "instance-terminated-by-user"
+])
+RETRY_STATUS_CODES = set([
+    "bad-parameters",
+    "canceled-before-fulfillment",
+    "instance-terminated-by-user"
+])
+PENDING_STATUS_CODES = set([
+    "pending-evaluation",
+    "pending-fulfillment"
+])
+RUNNING_STATUS_CODES = set([
+    "fulfilled"
+])
+
 
 
 def main():
@@ -186,7 +255,7 @@ def main():
         settings = startup.read_settings()
         Log.start(settings.debug)
         m = SpotManager(settings.aws)
-        m.pricing()
+        # m.pricing()
         m.update_requests(1, config)
     finally:
         Log.stop()

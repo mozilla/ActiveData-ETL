@@ -97,7 +97,7 @@ class _Stats(WindowFunction):
     TRACK STATS, BUT IGNORE OUTLIERS
     """
 
-    def __init__(self, middle=None):
+    def __init__(self, middle=None, *args, **kwargs):
         object.__init__(self)
         self.middle = middle
         self.samples = DictList()
@@ -129,7 +129,7 @@ class _SimpleStats(WindowFunction):
     AGGREGATE Stats OBJECTS, NOT JUST VALUES
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         object.__init__(self)
         self.total = ZeroMoment(0, 0, 0)
 
@@ -151,7 +151,7 @@ class _SimpleStats(WindowFunction):
 
 
 class Min(WindowFunction):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         object.__init__(self)
         self.total = Multiset()
 
@@ -172,7 +172,7 @@ class Min(WindowFunction):
 
 
 class Max(WindowFunction):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         object.__init__(self)
         self.total = Multiset()
 
@@ -212,7 +212,7 @@ class Count(WindowFunction):
 
 
 class Sum(WindowFunction):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         object.__init__(self)
         self.total = 0
 
@@ -261,5 +261,7 @@ class Percentile(WindowFunction):
 name2accumulator = {
     "count": Count,
     "sum": Sum,
-    "percentile": Percentile
+    "percentile": Percentile,
+    "max": Max,
+    "maximum": Max
 }

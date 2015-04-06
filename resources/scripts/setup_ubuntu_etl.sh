@@ -2,7 +2,6 @@
 # 2.7 IS ALREADY DEFAULT
 
 
-
 mkdir  /home/ubuntu/temp
 cd  /home/ubuntu/temp
 wget https://bootstrap.pypa.io/get-pip.py

@@ -70,18 +70,22 @@ class Matrix(object):
             else:
                 return self.cube[index]
 
+        if len(index) == 0:
+            return self.cube
+
         def _getitem(c, i):
-            select = i[0]
             if len(i)==1:
+                select = i[0]
                 if select == None:
                     return (len(c), ), c
                 elif isinstance(select, slice):
                     sub = c[select]
                     dims, cube = zip(*[_getitem(cc, i[1::]) for cc in sub])
-                    return (len(cube),)+dims[0], cube
+                    return (len(cube),) + dims[0], cube
                 else:
                     return (), c[select]
             else:
+                select = i[0]
                 if select == None:
                     dims, cube = zip(*[_getitem(cc, i[1::]) for cc in c])
                     return (len(cube),)+dims[0], cube
@@ -91,6 +95,7 @@ class Matrix(object):
                     return (len(cube),)+dims[0], cube
                 else:
                     return _getitem(c[select], i[1::])
+
 
         dims, cube = _getitem(self.cube, index)
 

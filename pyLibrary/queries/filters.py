@@ -9,10 +9,11 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+import itertools
 
 from pyLibrary.collections import OR
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, set_default
 
 
 TRUE_FILTER = True
@@ -68,8 +69,23 @@ def _normalize(esfilter):
         isDiff = False
 
         if esfilter["and"] != None:
+            terms = esfilter["and"]
+            # MERGE range FILTER WITH SAME FIELD
+            for (i0, t0), (i1, t1) in itertools.product(enumerate(terms), enumerate(terms)):
+                if i0 >= i1:
+                    continue  # SAME, IGNORE
+                try:
+                    f0, tt0 = t0.range.items()[0]
+                    f1, tt1 = t1.range.items()[0]
+                    if f0 == f1:
+                        set_default(terms[i0].range[f1], tt1)
+                        terms[i1] = True
+                except Exception, e:
+                    pass
+
+
             output = []
-            for a in esfilter["and"]:
+            for a in terms:
                 if isinstance(a, (list, set)):
                     from pyLibrary.debugs.logs import Log
                     Log.error("and clause is not allowed a list inside a list")
@@ -185,7 +201,7 @@ def where2esfilter(where):
         return False
 
     k, v = where.items()[0]
-    return convert_to_es_map[k](k, v)
+    return converter_map.get(k, _no_convert)(k, v)
 
 
 def _convert_many(k, v):
@@ -241,6 +257,10 @@ def _convert_inequality(ine, term):
     return {"range": {var: {ine: val}}}
 
 
+def _no_convert(op, term):
+    return {op: term}
+
+
 def _convert_field(k, var):
     if isinstance(var, basestring):
         return {k: {"field": var}}
@@ -249,7 +269,7 @@ def _convert_field(k, var):
     Log.error("do not know how to handle {{value}}", {"value": {k: var}})
 
 
-convert_to_es_map = {
+converter_map = {
     "and": _convert_many,
     "or": _convert_many,
     "not": _convert_not,
@@ -267,77 +287,3 @@ convert_to_es_map = {
 }
 
 
-def where2function(where):
-    """
-    CONVERT esfilter TO FUNCTION THAT WILL PERFORM THE FILTER
-    WILL ADD row, rownum, AND rows AS CONTEXT VARIABLES FOR {"script":} IF NEEDED
-    """
-
-    def output(row, rownum=None, rows=None):
-        return _filter(where, row, rownum, rows)
-
-    return output
-
-
-def _filter(where, row, rownum, rows):
-    where = wrap(where)
-
-    if where[u"and"]:
-        for a in where[u"and"]:
-            if not _filter(a, row, rownum, rows):
-                return False
-        return True
-    elif where[u"or"]:
-        for a in where[u"and"]:
-            if _filter(a, row, rownum, rows):
-                return True
-        return False
-    elif where[u"not"]:
-        return not _filter(where[u"not"], row, rownum, rows)
-    elif where.term:
-        for col, val in where.term.items():
-            if row[col] != val:
-                return False
-        return True
-    elif where.terms:
-        for col, vals in where.terms.items():
-            if not row[col] in vals:
-                return False
-        return True
-    elif where.range:
-        for col, ranges in where.range.items():
-            for sign, val in ranges.items():
-                if sign in ("gt", ">") and row[col] <= val:
-                    return False
-                if sign == "gte" and row[col] < val:
-                    return False
-                if sign == "lte" and row[col] > val:
-                    return False
-                if sign == "lt" and row[col] >= val:
-                    return False
-        return True
-    elif where.missing:
-        if isinstance(where.missing, basestring):
-            field = where.missing
-        else:
-            field = where.missing.field
-
-        if row[field] == None:
-            return True
-        return False
-
-    elif where.exists:
-        if isinstance(where.missing, basestring):
-            field = where.missing
-        else:
-            field = where.missing.field
-
-        if row[field] != None:
-            return True
-        return False
-    else:
-        Log.error(u"Can not convert esfilter to SQL: {{esfilter}}", {u"esfilter": where})
-
-
-from pyLibrary import convert
-convert.esfilter2where = where2function
