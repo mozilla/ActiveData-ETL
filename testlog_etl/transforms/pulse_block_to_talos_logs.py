@@ -21,7 +21,7 @@ DEBUG = False
 TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
 
-def process_talos(source_key, source, dest_bucket, please_stop=None):
+def process(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """

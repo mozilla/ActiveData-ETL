@@ -443,7 +443,9 @@ class Cluster(object):
         if settings.schema_file:
             Log.error('schema_file attribute not supported.  Use {"$ref":<filename>} instead')
 
-        if isinstance(schema, basestring):
+        if schema == None:
+            Log.error("Expecting a schema")
+        elif isinstance(schema, basestring):
             schema = convert.json2value(schema, paths=True)
         else:
             schema = convert.json2value(convert.value2json(schema), paths=True)
@@ -463,7 +465,15 @@ class Cluster(object):
             data=convert.value2json(schema).encode("utf8"),
             headers={"Content-Type": "application/json"}
         )
-        time.sleep(2)
+        while True:
+            time.sleep(1)
+            try:
+                self.head("/" + settings.index)
+                break
+            except Exception, _:
+                Log.note("{{index}} does not exist yet", {"index": settings.index})
+
+
         es = Index(settings)
         return es
 
@@ -507,10 +517,12 @@ class Cluster(object):
                 Log.error("data must be utf8 encoded string")
 
             if self.debug:
-                sample = kwargs["data"][:300]
+                sample = kwargs.get("data", "")[:300]
                 Log.note("{{url}}:\n{{data|indent}}", {"url": url, "data": sample})
 
             response = http.post(url, **kwargs)
+            if response.status_code not in [200, 201]:
+                Log.error(response.reason+": "+response.content)
             if self.debug:
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
             details = convert.json2value(utf82unicode(response.content))
@@ -539,12 +551,32 @@ class Cluster(object):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
             response = http.get(url, **kwargs)
+            if response.status_code not in [200]:
+                Log.error(response.reason+": "+response.content)
             if self.debug:
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
             details = wrap(convert.json2value(utf82unicode(response.content)))
             if details.error:
                 Log.error(details.error)
             return details
+        except Exception, e:
+            Log.error("Problem with call to {{url}}", {"url": url}, e)
+
+    def head(self, path, **kwargs):
+        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        try:
+            response = http.head(url, **kwargs)
+            if response.status_code not in [200]:
+                Log.error(response.reason+": "+response.content)
+            if self.debug:
+                Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
+            if response.content:
+                details = wrap(convert.json2value(utf82unicode(response.content)))
+                if details.error:
+                    Log.error(details.error)
+                return details
+            else:
+                return None  # WE DO NOT EXPECT content WITH HEAD REQUEST
         except Exception, e:
             Log.error("Problem with call to {{url}}", {"url": url}, e)
 
@@ -556,6 +588,8 @@ class Cluster(object):
             Log.note("PUT {{url}}:\n{{data|indent}}", {"url": url, "data": sample})
         try:
             response = http.put(url, **kwargs)
+            if response.status_code not in [200]:
+                Log.error(response.reason+": "+response.content)
             if self.debug:
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[0:300:]})
             return response
@@ -647,7 +681,7 @@ class Alias(object):
     ):
         self.debug = debug
         if self.debug:
-            Log.alert("elasticsearch debugging on index {{index}} is on", {"index": settings.index})
+            Log.alert("Elasticsearch debugging on {{index|quote}} is on", {"index": settings.index})
 
         self.settings = settings
         self.cluster = Cluster(settings)
@@ -677,11 +711,10 @@ class Alias(object):
                 properties = index.mappings["test_results"]
             # DONE BUG CORRECTION
 
-
             if not properties:
                 Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})", {
-                    "index":self.settings.index,
-                    "type":self.settings.type
+                    "index": self.settings.index,
+                    "type": self.settings.type
                 })
             return properties
         else:

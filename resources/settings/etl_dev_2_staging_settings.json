@@ -52,7 +52,7 @@
 				"public": true,
 				"key_format": "a:b"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
+			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -68,7 +68,7 @@
 				"bucket": "ekyle-test-result",
 				"key_format": "a:b.c"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
 		{

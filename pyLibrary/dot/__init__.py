@@ -120,12 +120,13 @@ def _all_default(d, default, seen=None):
     """
     if default is None:
         return
-    for k, default_value in default.items():
+    for k, default_value in dictwrap(default).items():
         # existing_value = d.get(k)
         existing_value = _get_attr(d, [k])
 
         if existing_value == None:
-            _set_attr(d, [k], default_value)
+            if default_value != None:
+                _set_attr(d, [k], default_value)
         elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, dict)) and isinstance(default_value, dict):
             df = seen.get(id(existing_value))
             if df:
@@ -415,6 +416,31 @@ def tuplewrap(value):
     if isinstance(value, (list, set, tuple, GeneratorType)):
         return tuple(tuplewrap(v) if isinstance(v, (list, tuple, GeneratorType)) else v for v in value)
     return unwrap(value),
+
+
+class DictWrap(object):
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __getattr__(self, item):
+        return DictWrap(get_attr(self.obj, item))
+
+    def __setattr__(self, key, value):
+        set_attr(self.obj, key, value)
+
+    def __getitem__(self, item):
+        return DictWrap(get_attr(self.obj, item))
+
+
+def dictwrap(obj):
+    """
+    wrap object as Dict
+    """
+    if isinstance(obj, dict):
+        return obj
+    return DictWrap(obj)
+
+
 
 
 from pyLibrary.dot.nones import Null, NullType

@@ -27,6 +27,9 @@ def _late_import():
     from pyLibrary import convert
     from pyLibrary.debugs.logs import Log
 
+    _ = convert
+    _ = Log
+
 
 def get(url):
     if not Log:
@@ -194,6 +197,7 @@ def get_file(ref, url):
             Log.note("reading file {{path}}", {"path":path})
         content = File(path).read()
     except Exception, e:
+        content = None
         Log.error("Could not read file {{filename}}", {"filename": path}, e)
 
     try:

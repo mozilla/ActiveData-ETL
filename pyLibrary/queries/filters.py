@@ -9,10 +9,11 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+import itertools
 
 from pyLibrary.collections import OR
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, set_default
 
 
 TRUE_FILTER = True
@@ -68,8 +69,23 @@ def _normalize(esfilter):
         isDiff = False
 
         if esfilter["and"] != None:
+            terms = esfilter["and"]
+            # MERGE range FILTER WITH SAME FIELD
+            for (i0, t0), (i1, t1) in itertools.product(enumerate(terms), enumerate(terms)):
+                if i0 >= i1:
+                    continue  # SAME, IGNORE
+                try:
+                    f0, tt0 = t0.range.items()[0]
+                    f1, tt1 = t1.range.items()[0]
+                    if f0 == f1:
+                        set_default(terms[i0].range[f1], tt1)
+                        terms[i1] = True
+                except Exception, e:
+                    pass
+
+
             output = []
-            for a in esfilter["and"]:
+            for a in terms:
                 if isinstance(a, (list, set)):
                     from pyLibrary.debugs.logs import Log
                     Log.error("and clause is not allowed a list inside a list")
@@ -185,7 +201,7 @@ def where2esfilter(where):
         return False
 
     k, v = where.items()[0]
-    return converter_map[k](k, v)
+    return converter_map.get(k, _no_convert)(k, v)
 
 
 def _convert_many(k, v):
@@ -239,6 +255,10 @@ def _convert_in(op, term):
 def _convert_inequality(ine, term):
     var, val = term.items()[0]
     return {"range": {var: {ine: val}}}
+
+
+def _no_convert(op, term):
+    return {op: term}
 
 
 def _convert_field(k, var):

@@ -112,7 +112,7 @@ def accumulate_logs(source_key, file_name, lines):
         try:
             accumulator.stats.lines += 1
             log = convert.json2value(line)
-            log.time = log.time/1000
+            log.time = log.time / 1000
             accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
             accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
 
@@ -123,17 +123,6 @@ def accumulate_logs(source_key, file_name, lines):
             accumulator.__getattribute__(log.action)(log)
         except Exception, e:
             accumulator.stats.bad_lines += 1
-
-            # TODO: TURN BACK ON
-            # if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
-            #     # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
-            #     # StartTime=1409123984798
-            #     # CrashTime=1498346728
-            #     pass
-            # else:
-            #     if len(line) > 1000:
-            #         line = line[:1000] + "..."
-            #     Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
@@ -164,10 +153,12 @@ class LogSummary(Dict):
         )
 
     def test_status(self, log):
+        self.stats.test_status_lines += 1
         if not log.test:
-            Log.error("log has blank 'test' property! Do not know how to hanlde.")
+            Log.error("log has blank 'test' property! Do not know how to handle.")
 
         test = self.tests[literal_field(log.test)]
+        test.stats.test_status_lines += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
@@ -181,24 +172,28 @@ class LogSummary(Dict):
         pass
 
     def log(self, log):
+        self.stats.log_lines += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
+        test.stats.log_lines += 1
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
-                test=log.test,
-                start_time=log.time,
-                missing_test_start=True
-            )
+            self.tests[literal_field(log.test)] = test = wrap({
+                "test": log.test,
+                "start_time": log.time,
+                "missing_test_start": True,
+            })
         test.last_log_time = log.time
         test.stats.log_lines += 1
 
     def crash(self, log):
+        self.stats.crash_lines += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
+        test.stats.crash_lines += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,

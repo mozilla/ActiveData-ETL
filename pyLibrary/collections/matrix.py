@@ -25,7 +25,7 @@ class Matrix(object):
     ZERO = None
 
     @use_settings
-    def __init__(self, dims=[], list=None, value=None, settings=None, zeros=False):
+    def __init__(self, dims=[], list=None, value=None, zeros=False, settings=None):
         if list:
             self.num = 1
             self.dims = (len(list), )
@@ -70,18 +70,22 @@ class Matrix(object):
             else:
                 return self.cube[index]
 
+        if len(index) == 0:
+            return self.cube
+
         def _getitem(c, i):
-            select = i[0]
             if len(i)==1:
+                select = i[0]
                 if select == None:
                     return (len(c), ), c
                 elif isinstance(select, slice):
                     sub = c[select]
                     dims, cube = zip(*[_getitem(cc, i[1::]) for cc in sub])
-                    return (len(cube),)+dims[0], cube
+                    return (len(cube),) + dims[0], cube
                 else:
                     return (), c[select]
             else:
+                select = i[0]
                 if select == None:
                     dims, cube = zip(*[_getitem(cc, i[1::]) for cc in c])
                     return (len(cube),)+dims[0], cube
@@ -91,6 +95,7 @@ class Matrix(object):
                     return (len(cube),)+dims[0], cube
                 else:
                     return _getitem(c[select], i[1::])
+
 
         dims, cube = _getitem(self.cube, index)
 
@@ -229,6 +234,14 @@ class Matrix(object):
         """
         for c in self._all_combos():
             method(self[c], c, self.cube)
+
+
+    def items(self):
+        """
+        ITERATE THROUGH ALL coord, value PAIRS
+        """
+        for c in self._all_combos():
+            yield c, self[c]
 
 
     def _all_combos(self):
