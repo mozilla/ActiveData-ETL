@@ -31,7 +31,7 @@ aggregates1_4 = {
     "one": "count",
     "sum": "sum",
     "add": "sum",
-    "count": "value_count",
+    "count": "count",
     "maximum": "max",
     "minimum": "min",
     "max": "max",
