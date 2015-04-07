@@ -113,7 +113,7 @@ def transform_buildbot(payload):
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
     output.machine.os = payload.os
-    output.machine.platform = payload.platform
+    output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision

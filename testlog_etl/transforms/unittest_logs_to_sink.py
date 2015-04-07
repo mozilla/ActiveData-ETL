@@ -237,7 +237,7 @@ class LogSummary(Dict):
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for r in set(tests.select("result")):
-                self.stats[r.lower()] = len([t for t in tests if t.result == r])
+                self.stats[r.lower()] = sum([1 for t in tests if t.result == r])
         except Exception, e:
             Log.error("problem", e)
 
