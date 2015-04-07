@@ -118,7 +118,13 @@ def transform_buildbot(payload):
     output.build.release = payload.release
     output.build.revision = payload.revision
     output.machine.name = payload.slave
-    output.run.status = payload.status
+
+    # payload.status IS THE BUILDBOT STATUS
+    # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
+    # https://hg.mozilla.org/build/buildbot/file/08b7c51d2962/master/buildbot/status/builder.py#l25
+    output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
+    output.run.buildbot_status = ["success", "warnings", "failure", "skipped", "exception", "retry"][payload.status]
+
     output.run.talos = payload.talos
     output.run.suite = payload.test
     output.run.timestamp = Date(payload.timestamp).unix
