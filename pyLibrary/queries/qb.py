@@ -11,22 +11,24 @@
 from __future__ import unicode_literals
 from __future__ import division
 import __builtin__
-from pyLibrary import dot
+from types import GeneratorType
 
+from pyLibrary import dot, convert
 from pyLibrary.collections import UNION, MIN
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, Null, Dict, split_field, nvl, join_field
+from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import listwrap, wrap, unwrap
+from pyLibrary.maths import Math
 from pyLibrary.queries import flat_list, query, group_by
 from pyLibrary.queries.container import Container
-from pyLibrary.queries.filters import TRUE_FILTER, FALSE_FILTER
+from pyLibrary.queries.cubes.aggs import cube_aggs
+from pyLibrary.queries.expressions import TRUE_FILTER, FALSE_FILTER, compile_expression
 from pyLibrary.queries.flat_list import FlatList
 from pyLibrary.queries.index import Index
 from pyLibrary.queries.query import Query, _normalize_selects, sort_direction, _normalize_select
 from pyLibrary.queries.cube import Cube
-from pyLibrary.maths import Math
-from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.dot import set_default, Null, Dict, split_field, nvl, join_field
-from pyLibrary.dot.lists import DictList
-from pyLibrary.dot import listwrap, wrap, unwrap
 
 
 # A COLLECTION OF DATABASE OPERATORS (RELATIONAL ALGEBRA OPERATORS)
@@ -35,35 +37,34 @@ from pyLibrary.dot import listwrap, wrap, unwrap
 # TODO: USE http://docs.sqlalchemy.org/en/latest/core/tutorial.html AS DOCUMENTATION FRAMEWORK
 
 def run(query):
+    """
+    THIS FUNCTION IS SIMPLY SWITCHING BASED ON THE query["from"] CONTAINER,
+    BUT IT IS ALSO PROCESSING A list CONTAINER; SEPARATE TO A ListContainer
+    """
     query = Query(query)
     frum = query["from"]
     if isinstance(frum, Container):
         with frum:
             return frum.query(query)
-    elif isinstance(frum, list):
+    elif isinstance(frum, (list, GeneratorType)):
         pass
     elif isinstance(frum, Cube):
-        pass
+        if is_aggs(query):
+            return cube_aggs(frum, query)
+
     elif isinstance(frum, Query):
         frum = run(frum)
     else:
         Log.error("Do not know how to handle")
 
-    if query.edges:
-        raise NotImplementedError
+    if is_aggs(query):
+        return list_aggs(frum, query)
 
     try:
         if query.filter != None or query.esfilter != None:
             Log.error("use 'where' clause")
     except AttributeError, e:
         pass
-
-    if query.window:
-        if isinstance(frum, Cube):
-            frum = DictList(list(frum))  # TRY TO CAST TO LIST OF RECORDS
-
-        for param in query.window:
-            window(frum, param)
 
     if query.where is not TRUE_FILTER:
         frum = filter(frum, query.where)
@@ -73,6 +74,23 @@ def run(query):
 
     if query.select:
         frum = select(frum, query.select)
+
+    if query.window:
+        if isinstance(frum, Cube):
+            frum = DictList(list(frum))  # TRY TO CAST TO LIST OF RECORDS
+
+        for param in query.window:
+            window(frum, param)
+
+    # AT THIS POINT frum IS IN LIST FORMAT, NOW PACKAGE RESULT
+    if query.format == "table":
+        frum = convert.list2table(frum)
+        frum.meta.format = "table"
+    else:
+        frum = wrap({
+            "meta": {"format": "list"},
+            "data": frum
+        })
 
     return frum
 
@@ -271,6 +289,9 @@ def select(data, field_name):
 
     if isinstance(field_name, dict):
         field_name = wrap(field_name)
+        if field_name.value in ["*", "."]:
+            return data
+
         if field_name.value:
             # SIMPLIFY {"value":value} AS STRING
             field_name = field_name.value
@@ -460,7 +481,17 @@ def sort(data, fieldnames=None):
             right = nvl(right, Dict())
             for f in formal:
                 try:
-                    result = f["sort"] * cmp(left[f["field"]], right[f["field"]])
+                    l = left[f["field"]]
+                    r = right[f["field"]]
+                    if l == None:
+                        if r == None:
+                            return 0
+                        else:
+                            return - f["sort"]
+                    elif r == None:
+                        return f["sort"]
+
+                    result = f["sort"] * cmp(l, r)
                     if result != 0:
                         return result
                 except Exception, e:
@@ -473,6 +504,7 @@ def sort(data, fieldnames=None):
             output = DictList([unwrap(d) for d in sorted(list(data), cmp=comparer)])
         else:
             Log.error("Do not know how to handle")
+            output = None
 
         return output
     except Exception, e:
@@ -496,7 +528,7 @@ def filter(data, where):
     """
     where  - a function that accepts (record, rownum, rows) and returns boolean
     """
-    if where == TRUE_FILTER:
+    if where == None or where == TRUE_FILTER:
         return data
 
     if isinstance(data, Cube):
@@ -771,18 +803,12 @@ def drill_filter(esfilter, data):
     return FlatList(primary_column[0:max], uniform_output)
 
 
-def compile_function(source):
-    temp = None
-    exec "def temp(row, rownum, rows):\n    return "+source+";"
-    return temp
-
-
 def wrap_function(func):
     """
     RETURN A THREE-PARAMETER WINDOW FUNCTION TO MATCH
     """
     if isinstance(func, basestring):
-        return compile_function(func)
+        return compile_expression(func)
 
     numarg = func.__code__.co_argcount
     if numarg == 0:
@@ -829,7 +855,7 @@ def window(data, param):
         return
 
     if not aggregate or aggregate == "none":
-        for keys, values in groupby(data, edges.value):
+        for _, values in groupby(data, edges.value):
             if not values:
                 continue     # CAN DO NOTHING WITH THIS ZERO-SAMPLE
 
@@ -907,3 +933,4 @@ def reverse(vals):
         output[l] = v
 
     return wrap(output)
+from pyLibrary.queries.list.aggs import is_aggs, list_aggs
