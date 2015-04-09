@@ -124,7 +124,15 @@ def transform_buildbot(payload):
     # https://hg.mozilla.org/build/buildbot/file/08b7c51d2962/master/buildbot/status/builder.py#l25
     output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
     try:
-        output.run.buildbot_status = ["success", "warnings", "failure", "skipped", "exception", "retry"][payload.status]
+        output.run.buildbot_status = {
+            0: "success",
+            1: "warnings",
+            2: "failure",
+            3: "skipped",
+            4: "exception",
+            5: "retry",
+            None: None
+        }[payload.status]
     except Exception, e:
         Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", {"status": payload.status})
 

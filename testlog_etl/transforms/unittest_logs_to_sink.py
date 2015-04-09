@@ -169,6 +169,7 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
     def process_output(self, log):
+        self.stats.action.process_output += 1
         pass
 
     def log(self, log):
