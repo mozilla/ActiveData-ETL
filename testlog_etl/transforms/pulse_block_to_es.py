@@ -121,7 +121,7 @@ def transform_buildbot(payload):
 
     # payload.status IS THE BUILDBOT STATUS
     # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
-    # https://hg.mozilla.org/build/buildbot/file/08b7c51d2962/master/buildbot/status/builder.py#l25
+    # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
     output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
     try:
         output.run.buildbot_status = {
@@ -131,6 +131,7 @@ def transform_buildbot(payload):
             3: "skipped",
             4: "exception",
             5: "retry",
+            6: "cancelled",
             None: None
         }[payload.status]
     except Exception, e:
