@@ -12,4 +12,3 @@ sudo supervisorctl update
 sudo supervisorctl restart all
 sudo supervisorctl
 tail -f etl:00
-

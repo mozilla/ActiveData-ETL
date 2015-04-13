@@ -99,7 +99,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload):
+def transform_buildbot(payload, filename=None):
     output = Dict()
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
@@ -173,6 +173,10 @@ def transform_buildbot(payload):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
 
-    output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
+    output.run.files = [
+        {"name": name, "url": url}
+        for name, url in output.run.files.items()
+        if filename is None or name == filename
+    ]
 
     return output
