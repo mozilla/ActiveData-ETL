@@ -99,7 +99,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload):
+def transform_buildbot(payload, filename=None):
     output = Dict()
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
@@ -113,12 +113,30 @@ def transform_buildbot(payload):
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
     output.machine.os = payload.os
-    output.machine.platform = payload.platform
+    output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
     output.machine.name = payload.slave
-    output.run.status = payload.status
+
+    # payload.status IS THE BUILDBOT STATUS
+    # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
+    # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
+    output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
+    try:
+        output.run.buildbot_status = {
+            0: "success",
+            1: "warnings",
+            2: "failure",
+            3: "skipped",
+            4: "exception",
+            5: "retry",
+            6: "cancelled",
+            None: None
+        }[payload.status]
+    except Exception, e:
+        Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", {"status": payload.status})
+
     output.run.talos = payload.talos
     output.run.suite = payload.test
     output.run.timestamp = Date(payload.timestamp).unix
@@ -155,6 +173,10 @@ def transform_buildbot(payload):
         output.run.chunk = int(path[-1])
         output.run.suite = "-".join(path[:-1])
 
-    output.run.files = [{"name": name, "url":url} for name, url in output.run.files.items()]
+    output.run.files = [
+        {"name": name, "url": url}
+        for name, url in output.run.files.items()
+        if filename is None or name == filename
+    ]
 
     return output

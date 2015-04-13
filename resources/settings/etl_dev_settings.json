@@ -10,7 +10,8 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
-		}
+		},
+		"testlog_etl.transforms.pulse_block_to_test_result_logs.PROCESS_TRY": false
 	},
 	"workers": [
 		{

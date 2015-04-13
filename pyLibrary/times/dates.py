@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 import math
 import re
 from pyLibrary.dot import Null
@@ -47,7 +48,7 @@ class Date(object):
                     self.value = a0
                 elif isinstance(a0, Date):
                     self.value = a0.value
-                elif isinstance(a0, (int, long, float)):
+                elif isinstance(a0, (int, long, float, Decimal)):
                     if a0 == 9999999999000:  # PYPY BUG https://bugs.pypy.org/issue1697
                         self.value = Date.MAX
                     elif a0 > 9999999999:    # WAY TOO BIG IF IT WAS A UNIX TIMESTAMP
@@ -103,9 +104,11 @@ class Date(object):
             else:
                 from pyLibrary.debugs.logs import Log
                 Log.error("Can not convert {{value}} of type {{type}}", {"value": self.value, "type": self.value.__class__})
+                epoch = None
 
             diff = self.value - epoch
-            return diff.total_seconds()
+            output = Decimal(long(diff.total_seconds() * 1000000))
+            return output / 1000000
         except Exception, e:
             from pyLibrary.debugs.logs import Log
             Log.error("Can not convert {{value}}", {"value": self.value}, e)
@@ -296,8 +299,10 @@ def unicode2datetime(value, format=None):
         return Date.now().value
     elif value.lower() == "today":
         return Date.today().value
+    elif value.lower() in ["eod", "tomorrow"]:
+        return Date.eod().value
 
-    if any(value.lower().find(n) >= 0 for n in ["now", "today"] + list(MILLI_VALUES.keys())):
+    if any(value.lower().find(n) >= 0 for n in ["now", "today", "eod", "tomorrow"] + list(MILLI_VALUES.keys())):
         return parse(value).value
 
     if format != None:

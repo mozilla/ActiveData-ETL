@@ -81,7 +81,7 @@ def process(source_key, source, destination, please_stop=None):
                     debug=DEBUG
                 ):
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
-                    buildbot_summary = transform_buildbot(pulse_record.data)
+                    buildbot_summary = transform_buildbot(pulse_record.data, filename=name)
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=None)
 
                     file_num += 1
