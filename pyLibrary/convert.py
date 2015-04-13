@@ -412,7 +412,7 @@ def base642bytearray(value):
 
 
 def bytes2base64(value):
-    return base64.b64encode(value)
+    return base64.b64encode(value).decode("utf8")
 
 def bytes2sha1(value):
     if isinstance(value, unicode):
