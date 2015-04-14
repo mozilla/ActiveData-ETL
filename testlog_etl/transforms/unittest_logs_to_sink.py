@@ -12,7 +12,7 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
-from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
+from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
@@ -215,9 +215,9 @@ class LogSummary(Dict):
 
         test.ok = not log.expected
         test.result = log.status
-        test.expected = nvl(log.expected, log.status)
+        test.expected = coalesce(log.expected, log.status)
         test.end_time = log.time
-        test.duration = nvl(test.end_time - test.start_time, log.extra.runtime)
+        test.duration = coalesce(test.end_time - test.start_time, log.extra.runtime)
         test.extra = test.extra
 
     def suite_end(self, log):

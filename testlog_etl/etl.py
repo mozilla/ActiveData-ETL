@@ -14,12 +14,12 @@ from __future__ import unicode_literals
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot, strings
+from pyLibrary import aws, dot
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, listwrap, Dict, Null
+from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
@@ -99,7 +99,7 @@ class ETL(Thread):
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
         """
-        source_keys = listwrap(nvl(source_block.key, source_block.keys))
+        source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
@@ -219,7 +219,7 @@ class ETL(Thread):
                     "action": action.name,
                     "source": source_block.bucket,
                     "key": source_key,
-                    "destination": nvl(action.destination.name, action.destination.index)
+                    "destination": coalesce(action.destination.name, action.destination.index)
                 }, e)
         return True
 
@@ -273,7 +273,7 @@ def get_container(settings):
         # sink = Threaded(sink)
         sinks.append((settings, sink))
         return sink
-    elif nvl(settings.aws_access_key_id, settings.aws_access_key_id):
+    elif coalesce(settings.aws_access_key_id, settings.aws_access_key_id):
         # ASSUME BUCKET NAME
         with sinks_locker:
             for e in sinks:
@@ -323,7 +323,7 @@ def main():
             return
 
         stopper = Signal()
-        threads = [None] * nvl(settings.param.threads, 1)
+        threads = [None] * coalesce(settings.param.threads, 1)
 
         for i, _ in enumerate(list(threads)):
             threads[i] = ETL(

@@ -18,6 +18,7 @@ from fabric.operations import run, sudo, put
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, dictwrap
+from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
@@ -34,7 +35,7 @@ class SpotManager(object):
             aws_secret_access_key=aws_secret_access_key
         )
 
-    def update_requests(self, num_required, config):
+    def update_requests(self, utility_required, config):
         """
         :return:
         """
@@ -53,33 +54,50 @@ class SpotManager(object):
 
         total_utility = sum(map(lambda x: utility_lookup[x], pending + running))
 
-        new_utility = num_required - total_utility
-        prices =
+        new_utility = utility_required - total_utility
+        prices = self.pricing()
+
+        utility_per_dollar = prices[0].estimated_value * prices[0].price
+
         #what new spot requests are required?
-        while new_utility>1:
+        while new_utility > 1:
 
+            for p in prices:
+                if p.type in not_available.type:
+                    continue
 
-            self.conn.request_spot_instances(
-                price=
+                num = Math.floor(new_utility/p.type.utility)
+                for i in range(num):
+                    self.conn.request_spot_instances(
+                        price=p.type.utility / utility_per_dollar,
+                        image_id='ami-e7527ed7',
+                        count=1,
+                        type='one-time',
+                        valid_from=None,
+                        valid_until=None,
+                        launch_group=None, \
+                        availability_zone_group=None,
+                        key_name=None,
+                        security_groups=None,
+                        user_data=None,
+                        addressing_type=None,
+                        instance_type='m1.small',
+                        placement=None,
+                        kernel_id=None,
+                        ramdisk_id=None,
+                        monitoring_enabled=False,
+                        subnet_id=None,
+                        placement_group=None,
+                        block_device_map=None,
+                        instance_profile_arn=None,
+                        instance_profile_name=None,
+                        security_group_ids=None,
+                        ebs_optimized=False,
+                        network_interfaces=None,
+                        dry_run=True
+                    )
 
-            )
-
-            # self, price, image_id, count=1, type='one-time',
-            # valid_from=None, valid_until=None,
-            # launch_group=None, availability_zone_group=None,
-            # key_name=None, security_groups=None,
-            # user_data=None, addressing_type=None,
-            # instance_type='m1.small', placement=None,
-            # kernel_id=None, ramdisk_id=None,
-            # monitoring_enabled=False, subnet_id=None,
-            # placement_group=None,
-            # block_device_map=None,
-            # instance_profile_arn=None,
-            # instance_profile_name=None,
-            # security_group_ids=None,
-            # ebs_optimized=False,
-            # network_interfaces=None, dry_run=False):
-
+                    new_utility -= p.type.utility
 
     def pricing(self):
         prices = []
@@ -108,7 +126,7 @@ class SpotManager(object):
                 "from": prices,
                 "window": {
                     "name": "expire",
-                    "value": "nvl(rows[rownum+1].timestamp, Date.eod())",
+                    "value": "coalesce(rows[rownum+1].timestamp, Date.eod())",
                     "edges": ["availability_zone", "instance_type"],
                     "sort": "timestamp"
                 }
@@ -127,7 +145,7 @@ class SpotManager(object):
                 {"aggregate": "count"}
             ],
             "window": {
-                "name":"current_price", "value":"rows.last().price", "edges":["availability_zone", "instance_type"], "sort":"time",
+                "name": "current_price", "value": "rows.last().price", "edges": ["availability_zone", "instance_type"], "sort": "time",
             }
         })
 

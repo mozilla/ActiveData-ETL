@@ -16,7 +16,7 @@ from types import GeneratorType
 from pyLibrary import dot, convert
 from pyLibrary.collections import UNION, MIN
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, Dict, split_field, nvl, join_field
+from pyLibrary.dot import set_default, Null, Dict, split_field, coalesce, join_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import listwrap, wrap, unwrap
 from pyLibrary.maths import Math
@@ -30,11 +30,11 @@ from pyLibrary.queries.query import Query, _normalize_selects, sort_direction, _
 from pyLibrary.queries.cube import Cube
 from pyLibrary.queries.unique_index import UniqueIndex
 
-
 # A COLLECTION OF DATABASE OPERATORS (RELATIONAL ALGEBRA OPERATORS)
 # qb QUERY DOCUMENTATION: https://github.com/klahnakoski/qb/tree/master/docs
 # START HERE: https://github.com/klahnakoski/qb/blob/master/docs/Qb_Reference.md
 # TODO: USE http://docs.sqlalchemy.org/en/latest/core/tutorial.html AS DOCUMENTATION FRAMEWORK
+
 
 def run(query):
     """
@@ -53,7 +53,7 @@ def run(query):
             return cube_aggs(frum, query)
 
     elif isinstance(frum, Query):
-        frum = run(frum)
+        frum = run(frum).data
     else:
         Log.error("Do not know how to handle")
 
@@ -460,25 +460,25 @@ def sort(data, fieldnames=None):
             # SPECIAL CASE, ONLY ONE FIELD TO SORT BY
             if isinstance(fieldnames, (basestring, int)):
                 def comparer(left, right):
-                    return cmp(nvl(left)[fieldnames], nvl(right)[fieldnames])
+                    return cmp(coalesce(left)[fieldnames], coalesce(right)[fieldnames])
 
                 return DictList([unwrap(d) for d in sorted(data, cmp=comparer)])
             else:
                 # EXPECTING {"field":f, "sort":i} FORMAT
                 fieldnames.sort = sort_direction.get(fieldnames.sort, 0)
-                fieldnames.field = nvl(fieldnames.field, fieldnames.value)
+                fieldnames.field = coalesce(fieldnames.field, fieldnames.value)
                 if fieldnames.field==None:
                     Log.error("Expecting sort to have 'field' attribute")
                 def comparer(left, right):
-                    return fieldnames["sort"] * cmp(nvl(left, Dict())[fieldnames["field"]], nvl(right, Dict())[fieldnames["field"]])
+                    return fieldnames["sort"] * cmp(coalesce(left, Dict())[fieldnames["field"]], coalesce(right, Dict())[fieldnames["field"]])
 
                 return DictList([unwrap(d) for d in sorted(data, cmp=comparer)])
 
         formal = query._normalize_sort(fieldnames)
 
         def comparer(left, right):
-            left = nvl(left, Dict())
-            right = nvl(right, Dict())
+            left = coalesce(left, Dict())
+            right = coalesce(right, Dict())
             for f in formal:
                 try:
                     l = left[f["field"]]
@@ -522,6 +522,7 @@ def pairwise(values):
     for b in i:
         yield (a, b)
         a = b
+
 
 
 def filter(data, where):
@@ -874,8 +875,8 @@ def window(data, param):
         for rownum, r in enumerate(sequence):
             r["__temp__"] = calc_value(r, rownum, sequence)
 
-        head = nvl(_range.max, _range.stop)
-        tail = nvl(_range.min, _range.start)
+        head = coalesce(_range.max, _range.stop)
+        tail = coalesce(_range.min, _range.start)
 
         # PRELOAD total
         total = aggregate()
@@ -933,4 +934,5 @@ def reverse(vals):
         output[l] = v
 
     return wrap(output)
+
 from pyLibrary.queries.list.aggs import is_aggs, list_aggs

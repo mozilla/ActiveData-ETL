@@ -253,9 +253,6 @@ class Cube(object):
         for c in matrix._all_combos():
             method(matrix[c], [parts[i][cc] for i, cc in enumerate(c)], self)
 
-
-
-
     def _select(self, select):
         selects = listwrap(select)
         is_aggregate = OR(s.aggregate != None and s.aggregate != "none" for s in selects)
@@ -274,7 +271,6 @@ class Cube(object):
         else:
             # FILTER DOES NOT ALTER DIMESIONS, JUST WHETHER THERE ARE VALUES IN THE CELLS
             Log.unexpected("Incomplete")
-
 
     def groupby(self, edges):
         """
