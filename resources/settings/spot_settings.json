@@ -1,18 +1,57 @@
 {
-	"aws":{"$ref":"//~/private.json#aws_credentials"},
+	"aws": {
+		"$ref": "//~/private.json#aws_credentials"
+	},
 	"work_queue": {
 		"name": "ekyle-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
-	"ec2":{
-		"request":{},
-		"instance":{
-			"user":"ubuntu",
-			"key_filename":"~/keys/aws-pulse-logger.pem",
-			"name":"ActiveData ETL spot instance"
+	"ec2": {
+		"request": {
+			//SEE http://boto.readthedocs.org/en/latest/ref/ec2.html#boto.ec2.connection.EC2Connection.request_spot_instances
+			"price": 0.001,
+			"image_id": "ami-5189a661",
+			"count": 1,
+			"type": "one-time",
+			"valid_from": null,
+			"valid_until": null,
+			"launch_group": null,
+			"availability_zone_group": null,
+			"key_name": "aws-pulse-logger",
+			"security_groups": null,
+			"user_data": null,
+			"addressing_type": null,
+			"instance_type": null,
+			"placement": null,
+			"kernel_id": null,
+			"ramdisk_id": null,
+			"monitoring_enabled": false,
+			"subnet_id": null,
+			"placement_group": null,
+			"block_device_map": null,
+			"instance_profile_arn": null,
+			"instance_profile_name": null,
+			"security_group_ids": null,
+			"ebs_optimized": false,
+			"network_interfaces": {
+				"subnet_id": "subnet-b7c137ee",
+				"groups": ["sg-bb542fde"],
+				"associate_public_ip_address": true
+			},
+			"dry_run": false
+		},
+		"instance": {
+			"name": "ActiveData ETL spot instance",
+			"connect":{
+				//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
+				"user": "ubuntu",
+				"key_filename": "~/keys/aws-pulse-logger.pem",
+				"disable_known_hosts": true,
+				"host_string": "",
+				"port":22,
+				"password":""
+			}
 		}
-
-
 	},
 	"debug": {
 		"trace": true,

@@ -23,7 +23,7 @@ from pyLibrary import aws
 
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, dictwrap, coalesce
+from pyLibrary.dot import wrap, dictwrap, coalesce, listwrap, unwrap, set_default
 from pyLibrary.env.files import File
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
@@ -34,7 +34,7 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import WEEK, DAY, HOUR
 
 
-MIN_UTILITY_PER_DOLLAR = 8 * 5  # 8cpu per dollar (on demand price) multiply by expected 5x savings
+MIN_UTILITY_PER_DOLLAR = 8 * 10  # 8cpu per dollar (on demand price) multiply by expected 5x savings
 
 
 class SpotManager(object):
@@ -48,10 +48,6 @@ class SpotManager(object):
         )
 
     def update_spot_requests(self, utility_required, config):
-        """
-
-        """
-
         # how many do we have?
         requests = list(map(dictwrap, self.conn.get_all_spot_instance_requests()))
 
@@ -97,39 +93,20 @@ class SpotManager(object):
                 for i in range(num):
                     bid = min_bid + (i * price_interval)
 
-                    self.conn.request_spot_instances(
+                    self._request_spot_instance(
                         price=bid,
-                        image_id='ami-5189a661',
-                        count=1,
-                        type='one-time',
-                        valid_from=None,
-                        valid_until=None,
-                        launch_group=None,
                         availability_zone_group=p.availability_zone,
-                        key_name='aws-pulse-logger',
-                        security_groups=None,
-                        user_data=None,
-                        addressing_type=None,
                         instance_type=p.type.instance_type,
-                        placement=None,
-                        kernel_id=None,
-                        ramdisk_id=None,
-                        monitoring_enabled=False,
-                        subnet_id=None,
-                        placement_group=None,
-                        block_device_map=None,
-                        instance_profile_arn=None,
-                        instance_profile_name=None,
-                        security_group_ids=None,
-                        ebs_optimized=False,
-                        network_interfaces=NetworkInterfaceCollection(NetworkInterfaceSpecification(
-                            subnet_id='subnet-b7c137ee',
-                            groups=['sg-bb542fde'],
-                            associate_public_ip_address=True
-                        )),
-                        dry_run=False
+                        settings=self.settings.ec2.request
                     )
                     new_utility -= p.type.utility
+
+    @use_settings
+    def _request_spot_instance(self, bid, availability_zone_group, instance_type, settings=None):
+        settings.network_interfaces = NetworkInterfaceCollection(
+            *unwrap(NetworkInterfaceSpecification(**unwrap(s)) for s in listwrap(settings.network_interfaces))
+        )
+        self.conn.request_spot_instances(**unwrap(settings))
 
     def pricing(self):
         prices = []
@@ -221,17 +198,12 @@ class SpotManager(object):
         instance = [i for r in reservations for i in r.instances if i.id==instance_id][0]
         instance.add_tag('Name', self.settings.ec2.instance.name)
 
-
-        # env.use_ssh_config = True
-        env.disable_known_hosts = True
+        for k, v in self.settings.ec2.instance.connect.items():
+            env[k] = v
         env.host_string = instance.ip_address
-        env.port = 22
-        env.user = self.settings.ec2.instance.user
-        env.password = ""
-        env.key_filename = File(self.settings.ec2.instance.key_filename).abspath
 
-        # self.setup_etl_code()
-        # self.add_private_file()
+        self.setup_etl_code()
+        self.add_private_file()
         self.setup_etl_supervisor(cpu_count)
 
     def setup_etl_code(self):
@@ -294,8 +266,6 @@ def find_higher(candidates, reference):
     return output
 
 
-
-
 config = wrap([
     # {"instance_type": "t2.micro", "cpu": 0.1},
     # {"instance_type": "t2.small", "cpu": 0.2},
@@ -306,25 +276,31 @@ config = wrap([
     {"instance_type": "m3.xlarge", "cpu": 4},
     {"instance_type": "m3.2xlarge", "cpu": 8},
 
-    # {"instance_type": "c4.large", "cpu": 2},
-    # {"instance_type": "c4.xlarge", "cpu": 4},
-    # {"instance_type": "c4.2xlarge", "cpu": 8},
-    # {"instance_type": "c4.4xlarge", "cpu": 16},
-    # {"instance_type": "c4.8xlarge", "cpu": 36},
-    #
-    # {"instance_type": "c3.large", "cpu": 2},
-    # {"instance_type": "c3.xlarge", "cpu": 4},
-    # {"instance_type": "c3.2xlarge", "cpu": 8},
-    # {"instance_type": "c3.4xlarge", "cpu": 16},
-    # {"instance_type": "c3.8xlarge", "cpu": 32},
-    #
-    # {"instance_type": "r3.large", "cpu": 2},
-    # {"instance_type": "r3.xlarge", "cpu": 4},
-    # {"instance_type": "r3.2xlarge", "cpu": 8},
-    # {"instance_type": "r3.4xlarge", "cpu": 16},
-    # {"instance_type": "r3.8xlarge", "cpu": 32}
+    {"instance_type": "c4.large", "cpu": 2},
+    {"instance_type": "c4.xlarge", "cpu": 4},
+    {"instance_type": "c4.2xlarge", "cpu": 8},
+    {"instance_type": "c4.4xlarge", "cpu": 16},
+    {"instance_type": "c4.8xlarge", "cpu": 36},
+
+    {"instance_type": "c3.large", "cpu": 2},
+    {"instance_type": "c3.xlarge", "cpu": 4},
+    {"instance_type": "c3.2xlarge", "cpu": 8},
+    {"instance_type": "c3.4xlarge", "cpu": 16},
+    {"instance_type": "c3.8xlarge", "cpu": 32},
+
+    {"instance_type": "r3.large", "cpu": 2},
+    {"instance_type": "r3.xlarge", "cpu": 4},
+    {"instance_type": "r3.2xlarge", "cpu": 8},
+    {"instance_type": "r3.4xlarge", "cpu": 16},
+    {"instance_type": "r3.8xlarge", "cpu": 32},
+
+    {"instance_type": "d2.xlarge", "cpu": 4},
+    {"instance_type": "d2.2xlarge", "cpu": 8},
+    {"instance_type": "d2.4xlarge", "cpu": 16},
+    {"instance_type": "d2.8xlarge", "cpu": 36}
 ])
 
+# THE ETL WORKLOAD IS LIMITED BY CPU
 utility_lookup = {}
 for c in config:
     c.utility = min(c.cpu, 8)
@@ -367,7 +343,7 @@ def main():
         queue = aws.Queue(settings.work_queue)
         pending = len(queue)
         # DUE TO THE LARGE VARIABILITY OF WORK FOR EACH ITEM IN QUEUE, WE USE LOG TO SUPRESS
-        utility_required = min(1, log10(min(pending, 1)) * 10)
+        utility_required = max(1, log10(max(pending, 1)) * 10)
 
         m.update_spot_requests(utility_required, config)
         # m.setup_instance("i-559dc19c", cpu_count=1)
