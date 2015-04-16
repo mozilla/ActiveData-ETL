@@ -13,3 +13,4 @@ log.txt
 /elasticsearch.yml
 /resources/elasticsearch/*.yml
 /tests/results
+/resources/supervisor/etl.conf.alt

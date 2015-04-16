@@ -50,6 +50,8 @@ def qb_expression(expr):
 
 
 def qb_expression_to_function(expr):
+    if expr!=None and not isinstance(expr, (dict, list)) and  hasattr(expr, "__call__"):
+        return expr
     return compile_expression(qb_expression_to_python(expr))
 
 
@@ -69,14 +71,22 @@ def qb_expression_to_esfilter(expr):
 
 
 def qb_expression_to_ruby(expr):
-    if is_keyword(expr):
-        return "doc["+convert.string2quote(expr)+"].value"
-    if Math.is_number(expr):
+
+    if expr == None:
+        return "nil"
+    elif Math.is_number(expr):
         return unicode(expr)
-    if isinstance(expr, Date):
+    elif is_keyword(expr):
+        return "doc[" + convert.string2quote(expr) + "].value"
+    elif isinstance(expr, CODE):
+        return expr.code
+    elif isinstance(expr, Date):
         return unicode(expr.unix)
-    if not expr:
+    elif expr is True:
         return "true"
+    elif expr is False:
+        return "false"
+
     op, term = expr.items()[0]
 
     mop = ruby_multi_operators.get(op)
@@ -127,7 +137,9 @@ def qb_expression_to_ruby(expr):
 
 def qb_expression_to_python(expr):
     if expr == None:
-        return "True"
+        return "None"
+    elif Math.is_number(expr):
+        return unicode(expr)
     elif isinstance(expr, unicode):
         if expr == ".":
             return "row"
@@ -135,12 +147,12 @@ def qb_expression_to_python(expr):
             return "row[" + convert.value2quote(expr) + "]"
         else:
             Log.error("Expecting a json path")
+    elif isinstance(expr, CODE):
+        return expr.code
     elif expr is True:
         return "True"
     elif expr is False:
         return "False"
-    elif Math.is_number(expr):
-        return unicode(expr)
 
     op, term = expr.items()[0]
 
@@ -482,6 +494,8 @@ class RangeOp(object):
         return set([self.field])
 
 
+
+
 complex_operators = {
     "terms": TermsOp,
     "exists": ExistsOp,
@@ -768,3 +782,10 @@ converter_map = {
 }
 
 
+class CODE(object):
+    """
+    WRAP SAFE CODE
+    DO NOT USE ON UNKNOWN SOURCES, OTHERWISE YOU GET REMOTE CODE EXPLOITS
+    """
+    def __init__(self, code):
+        self.code = code

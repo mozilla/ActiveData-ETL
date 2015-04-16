@@ -16,7 +16,10 @@ from pyLibrary.dot import wrap, split_field
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.es09.util import INDEX_CACHE, parse_columns
 from pyLibrary.sql import SQL
-from pyLibrary.sql.redshift import Redshift
+try:
+    from pyLibrary.sql.redshift import Redshift
+except Exception, _:
+    pass
 from pyLibrary.times.timer import Timer
 from testlog_etl.reset import Version
 

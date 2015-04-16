@@ -1,5 +1,19 @@
 {
 	"aws":{"$ref":"//~/private.json#aws_credentials"},
+	"work_queue": {
+		"name": "ekyle-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"ec2":{
+		"request":{},
+		"instance":{
+			"user":"ubuntu",
+			"key_filename":"~/keys/aws-pulse-logger.pem",
+			"name":"ActiveData ETL spot instance"
+		}
+
+
+	},
 	"debug": {
 		"trace": true,
 		"cprofile": {

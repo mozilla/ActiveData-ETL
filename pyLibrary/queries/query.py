@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary import dot
 from pyLibrary.collections import AND, reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot.dicts import Dict
@@ -20,8 +21,7 @@ from pyLibrary.queries import wrap_from, expressions
 from pyLibrary.queries.container import Container
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain, is_keyword
-from pyLibrary.queries.expressions import TRUE_FILTER
-from pyLibrary.queries.filters import simplify_esfilter
+from pyLibrary.queries.expressions import TRUE_FILTER, simplify_esfilter
 
 
 DEFAULT_LIMIT = 10
@@ -116,7 +116,7 @@ class Query(object):
         elif isinstance(self.frum, Container):
             columns = self.frum.get_columns()
         else:
-            columns=[]
+            columns = []
         vars = get_all_vars(self)
         for c in columns:
             if c.name in vars and c.depth:
@@ -141,6 +141,7 @@ class Query(object):
         output = wrap({s: getattr(self, s) for s in Query.__slots__})
         return output
 
+
 canonical_aggregates = {
     "min": "minimum",
     "max": "maximum",
@@ -148,6 +149,7 @@ canonical_aggregates = {
     "avg": "average",
     "mean": "average"
 }
+
 
 def _normalize_selects(selects, schema=None):
     if isinstance(selects, list):
@@ -161,6 +163,7 @@ def _normalize_selects(selects, schema=None):
         return output
     else:
         return _normalize_select(selects, schema=schema)
+
 
 def _normalize_select(select, schema=None):
     if isinstance(select, basestring):
@@ -226,12 +229,13 @@ def _normalize_edge(edge, schema=None):
                 domain=domain
             )
 
+        domain = _normalize_domain(edge.domain, schema=schema)
         return Dict(
             name=coalesce(edge.name, edge.value),
             value=edge.value,
             range=edge.range,
             allowNulls=False if edge.allowNulls is False else True,
-            domain=_normalize_domain(edge.domain, schema=schema)
+            domain=domain
         )
 
 
@@ -561,7 +565,7 @@ def where_get_all_vars(w):
             })
         return list(val.keys())
 
-    if key=="match_all":
+    if key == "match_all":
         return []
 
     Log.error("do not know how to handle where {{where|json}}", {"where", w})

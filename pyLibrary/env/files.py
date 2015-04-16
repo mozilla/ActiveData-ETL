@@ -71,7 +71,16 @@ class File(object):
 
     @property
     def abspath(self):
-        return os.path.abspath(self._filename)
+        if self._filename.startswith("~"):
+            home_path = os.path.expanduser("~")
+            if os.sep == "\\":
+                home_path = home_path.replace(os.sep, "/")
+            if home_path.endswith("/"):
+                home_path = home_path[:-1]
+
+            return home_path + self._filename[1::]
+        else:
+            return os.path.abspath(self._filename)
 
     @staticmethod
     def add_suffix(filename, suffix):

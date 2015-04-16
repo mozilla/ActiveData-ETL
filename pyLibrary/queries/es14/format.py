@@ -181,15 +181,6 @@ def format_list(decoders, aggs, start, query, select):
                 output[s.name] = agg[s.pull]
             yield output
 
-        # EMIT THE MISSING CELLS IN THE CUBE
-        for c, v in is_sent:
-            if not v:
-                output = {d.edge.name: d.get_value(c[i]) for i, d in enumerate(decoders)}
-                for s in select:
-                    if s.aggregate == "count":
-                        output[s.name] = 0
-                yield output
-
     output = Dict(
         meta={"format": "list"},
         data=list(data())
