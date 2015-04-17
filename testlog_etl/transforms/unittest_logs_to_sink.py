@@ -48,10 +48,10 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.name, unittest_log)
+            summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
-        raise e
+        summary = None
 
     buildbot_summary.etl = {
         "id": 0,
@@ -101,9 +101,11 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, file_name, lines):
+def accumulate_logs(source_key, file_name, lines, please_stop):
     accumulator = LogSummary()
     for line in lines:
+        if please_stop:
+            Log.error("Shutdown detected.  Structured log iterator is stopped.")
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
         line = strings.strip(line)
 

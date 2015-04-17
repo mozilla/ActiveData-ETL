@@ -19,11 +19,11 @@ from fabric.context_managers import cd
 from fabric.contrib import files as fabric_files
 from fabric.operations import run, sudo, put
 from fabric.state import env
-from pyLibrary import aws
 
+from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, dictwrap, coalesce, listwrap, unwrap, set_default
+from pyLibrary.dot import wrap, dictwrap, coalesce, listwrap, unwrap
 from pyLibrary.env.files import File
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
@@ -31,7 +31,7 @@ from pyLibrary.queries import qb
 from pyLibrary.queries.expressions import CODE
 from pyLibrary.strings import between
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import WEEK, DAY, HOUR
+from pyLibrary.times.durations import DAY, HOUR
 
 
 MIN_UTILITY_PER_DOLLAR = 8 * 10  # 8cpu per dollar (on demand price) multiply by expected 5x savings
@@ -53,7 +53,7 @@ class SpotManager(object):
 
         prices = self.pricing()
 
-        #how many failed?
+        # how many failed?
 
         #how many pending?
         pending = qb.filter(requests, {"terms": {"status.code": PENDING_STATUS_CODES}})
@@ -109,26 +109,7 @@ class SpotManager(object):
         self.conn.request_spot_instances(**unwrap(settings))
 
     def pricing(self):
-        prices = []
-        for instance_type in config.instance_type:
-            Log.note("get pricing for {{instance_type}}", {"instance_type": instance_type})
-            resultset = self.conn.get_spot_price_history(
-                product_description="Linux/UNIX",
-                instance_type=instance_type,
-                availability_zone = "us-west-2c",
-                start_time=(Date.today() - WEEK).format(ISO8601)
-            )
-            prices.extend([
-                {
-                    "availability_zone": p.availability_zone,
-                    "instance_type": p.instance_type,
-                    "price": p.price,
-                    "product_description": p.product_description,
-                    "region": p.region.name,
-                    "timestamp": Date(p.timestamp)
-                }
-                for p in resultset
-            ])
+        prices = self._get_spot_prices()
 
         hourly_pricing = qb.run({
             "from": {
@@ -193,9 +174,34 @@ class SpotManager(object):
 
         return prices.data
 
+    def _get_spot_prices(self):
+        cache = File(self.settings.price_file).read_json()
+
+        most_recent = Date(Math.max(cache.timestamp))
+
+        prices = set(cache)
+        # for instance_type in config.instance_type:
+        #     Log.note("get pricing for {{instance_type}}", {"instance_type": instance_type})
+        resultset = self.conn.get_spot_price_history(
+            product_description="Linux/UNIX",
+            # instance_type=instance_type,
+            availability_zone="us-west-2c",
+            start_time=(most_recent - HOUR).format(ISO8601)
+        )
+        for p in resultset:
+            prices.add({
+                "availability_zone": p.availability_zone,
+                "instance_type": p.instance_type,
+                "price": p.price,
+                "product_description": p.product_description,
+                "region": p.region.name,
+                "timestamp": Date(p.timestamp)
+            })
+        return prices
+
     def setup_instance(self, instance_id, cpu_count):
         reservations = self.conn.get_all_instances()
-        instance = [i for r in reservations for i in r.instances if i.id==instance_id][0]
+        instance = [i for r in reservations for i in r.instances if i.id == instance_id][0]
         instance.add_tag('Name', self.settings.ec2.instance.name)
 
         for k, v in self.settings.ec2.instance.connect.items():
@@ -240,7 +246,7 @@ class SpotManager(object):
         conf_file = File("./resources/supervisor/etl.conf")
         content = conf_file.read_bytes()
         find = between(content, "numprocs=", "\n")
-        content = content.replace("numprocs=" + find + "\n", "numprocs=" + str(cpu_count*2) + "\n")
+        content = content.replace("numprocs=" + find + "\n", "numprocs=" + str(cpu_count * 2) + "\n")
         File("./resources/supervisor/etl.conf.alt").write_bytes(content)
         sudo("rm -f /etc/supervisor/conf.d/etl.conf")
         put("./resources/supervisor/etl.conf.alt", '/etc/supervisor/conf.d/etl.conf', use_sudo=True)
@@ -254,8 +260,6 @@ class SpotManager(object):
         put('~/private.json', '/home/ubuntu')
         with cd("/home/ubuntu"):
             run("chmod o-r private.json")
-
-
 
 
 def find_higher(candidates, reference):
@@ -304,9 +308,7 @@ config = wrap([
 utility_lookup = {}
 for c in config:
     c.utility = min(c.cpu, 8)
-    utility_lookup[c.instance_type]=c.utility
-
-
+    utility_lookup[c.instance_type] = c.utility
 
 TERMINATED_STATUS_CODES = set([
     "capacity-oversubscribed",
@@ -330,7 +332,6 @@ RUNNING_STATUS_CODES = set([
 ])
 
 
-
 def main():
     """
     CLEAR OUT KEYS FROM BUCKET BY RANGE, OR BY FILE
@@ -345,8 +346,8 @@ def main():
         # DUE TO THE LARGE VARIABILITY OF WORK FOR EACH ITEM IN QUEUE, WE USE LOG TO SUPRESS
         utility_required = max(1, log10(max(pending, 1)) * 10)
 
-        m.update_spot_requests(utility_required, config)
-        # m.setup_instance("i-559dc19c", cpu_count=1)
+        # m.update_spot_requests(utility_required, config)
+        m.setup_instance("i-0fb9e6c6", cpu_count=1)
     finally:
         Log.stop()
 

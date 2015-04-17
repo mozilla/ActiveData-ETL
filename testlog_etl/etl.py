@@ -250,7 +250,7 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     self.work_queue.rollback()
-                    Log.warning("could not processs {{key}}", {"key": todo.key}, e)
+                    Log.warning("could not processs {{key}}.  Returned back to work queue.", {"key": todo.key}, e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
