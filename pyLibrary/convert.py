@@ -172,6 +172,7 @@ def datetime2unix(d):
 def datetime2milli(d):
     return datetime2unix(d) * 1000
 
+
 def timedelta2milli(v):
     return v.total_seconds()
 

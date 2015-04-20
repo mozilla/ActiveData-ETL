@@ -29,6 +29,7 @@ def compile_expression(source):
     # FORCE MODULES TO BE IN NAMESPACE
     _ = coalesce
     _ = Date
+    _ = convert
 
     output = None
     exec """
@@ -36,7 +37,7 @@ def output(row, rownum=None, rows=None):
     try:
         return """ + source + """
     except Exception, e:
-        Log.error("Problem with dynamic function {{func|quote}}", {"func": """ + convert.value2quote(source) + """})
+        Log.error("Problem with dynamic function {{func|quote}}", {"func": """ + convert.value2quote(source) + """}, e)
 """
     return output
 
@@ -140,6 +141,8 @@ def qb_expression_to_python(expr):
         return "None"
     elif Math.is_number(expr):
         return unicode(expr)
+    elif isinstance(expr, Date):
+        return unicode(expr.unix)
     elif isinstance(expr, unicode):
         if expr == ".":
             return "row"
@@ -241,7 +244,7 @@ def get_all_vars(expr):
                 return output
             else:
                 a, b = term.items()[0]
-                return get_all_vars(a) | get_all_vars(b)
+                return get_all_vars(a)
         else:
             Log.error("Expecting binary term")
 

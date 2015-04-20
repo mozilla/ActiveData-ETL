@@ -12,12 +12,14 @@ from __future__ import division
 
 from boto import sqs
 from boto.sqs.message import Message
+import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.durations import Duration
 
 
@@ -96,5 +98,20 @@ class Queue(object):
     def close(self):
         self.commit()
 
+
+def capture_termination_signal(please_stop):
+    """
+    WILL SIGNAL please_stop WHEN THIS AWS INSTANCE IS DUE FOR SHUTDOWN
+    """
+
+    def worker(please_stop):
+        while not please_stop:
+            response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
+            if response.status_code != 400:
+                please_stop.go()
+                return
+            Thread.sleep(seconds=11)
+
+    Thread.run("listen for termination", worker)
 
 from . import s3

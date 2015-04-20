@@ -280,7 +280,7 @@ class Thread(object):
     TIMEOUT = "TIMEOUT"
 
 
-    def __init__(self, name, target, *args, **kwargs):
+    def __init__(self, name, target, parent=None, *args, **kwargs):
         if not Log:
             _late_import()
         self.id = -1
@@ -297,6 +297,11 @@ class Thread(object):
 
         self.stopped = Signal()
         self.cprofiler = None
+        self.children = []
+
+        if parent is None:
+            parent = Thread.current()
+        parent.add_child(self)
 
     def __enter__(self):
         return self
@@ -319,7 +324,12 @@ class Thread(object):
             Log.error("Can not start thread", e)
 
     def stop(self):
+        for c in self.children:
+            c.stop()
         self.please_stop.go()
+
+    def add_child(self, child):
+        self.children.append(child)
 
     def _run(self):
         if Log.cprofiler:
@@ -344,6 +354,14 @@ class Thread(object):
             except Exception, f:
                 sys.stderr.write("ERROR in thread: " + str(self.name) + " " + str(e) + "\n")
         finally:
+            for c in self.children:
+                c.stop()
+            for c in self.children:
+                try:
+                    c.join()
+                except Exception, _:
+                    pass
+
             self.stopped.go()
             del self.target, self.args, self.kwargs
             with ALL_LOCK:
@@ -362,6 +380,9 @@ class Thread(object):
         """
         RETURN THE RESULT {"response":r, "exception":e} OF THE THREAD EXECUTION (INCLUDING EXCEPTION, IF EXISTS)
         """
+        for c in self.children:
+            c.join(timeout=timeout, till=till)
+
         if not till and timeout:
             till = datetime.utcnow() + timedelta(seconds=timeout)
 

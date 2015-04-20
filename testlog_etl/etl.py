@@ -383,7 +383,9 @@ def etl_one(settings):
         please_stop=stopper
     )
 
+    aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+
 
     thread.stop()
     thread.join()

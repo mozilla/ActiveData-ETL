@@ -460,7 +460,7 @@ def dictwrap(obj):
     """
     wrap object as Dict
     """
-    if isinstance(obj, (dict, basestring, int, float, Decimal)):
+    if isinstance(obj, (dict, basestring, int, float, Decimal, NullType)):
         return obj
     return DictWrap(obj)
 

@@ -36,7 +36,7 @@ def list_aggs(frum, query):
         if isinstance(e.domain, DefaultDomain):
             e.domain = SimpleSetDomain(partitions=list(sorted(set(frum.select(e.value)))))
 
-    for s in query.select:
+    for s in listwrap(query.select):
         s["exec"] = qb_expression_to_function(s.value)
 
     result = {
