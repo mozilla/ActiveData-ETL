@@ -21,6 +21,7 @@ from fabric.operations import run, sudo, put
 from fabric.state import env
 
 from pyLibrary import aws, convert
+from pyLibrary.collections import SUM
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, dictwrap, coalesce, listwrap, unwrap, DictList
@@ -30,10 +31,12 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.queries.expressions import CODE
 from pyLibrary.strings import between
+from pyLibrary.thread.threads import Lock, Thread
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY, HOUR, MONTH, WEEK
+from pyLibrary.times.durations import DAY, HOUR, WEEK
 
 
+BUDGET = 1.0  # DOLLARS PER HOUR
 MIN_UTILITY_PER_DOLLAR = 8 * 10  # 8cpu per dollar (on demand price) multiply by expected 5x savings
 
 
@@ -46,8 +49,11 @@ class SpotManager(object):
             aws_access_key_id=settings.aws.aws_access_key_id,
             aws_secret_access_key=settings.aws.aws_secret_access_key
         )
+        self.price_locker = Lock()
+        self.prices = None
+        self._start_lifecycle_watcher()
 
-    def get_managed_instances(self):
+    def _get_managed_instances(self):
         output =[]
         reservations = self.conn.get_all_instances()
         for res in reservations:
@@ -60,7 +66,7 @@ class SpotManager(object):
 
     def remove_extra_instances(self, spot_requests, utility_to_remove, prices):
         # FIND THE BIGGEST, MOST EXPENSIVE REQUESTS
-        instances = self.get_managed_instances()
+        instances = self._get_managed_instances()
 
         for r in instances:
             r.markup = prices.filter(lambda x: x.type.instance_type == r.instance_type)[0]
@@ -97,39 +103,36 @@ class SpotManager(object):
 
         return -remaining_utility  # RETURN POSITIVE NUMBER IF TOOK AWAY TOO MUCH
 
+
     def update_spot_requests(self, utility_required, config):
         # how many do we have?
-        spot_requests = list(map(dictwrap, self.conn.get_all_spot_instance_requests()))
-
         prices = self.pricing()
 
-        estimated_value_lookup = {p.instance_type: p.estimated_value for p in prices}
-        # how many failed?
+        #DO NOT GO OVER BUDGET
+        remaining_budget = BUDGET
 
-        # how many pending?
-        pending = qb.filter(spot_requests, {"terms": {"status.code": PENDING_STATUS_CODES}})
-        not_available = qb.run({
-            "from": spot_requests,
-            "select": ["type", "availability_zone"],
-            "where": {"terms": {"status.code": TERMINATED_STATUS_CODES - RETRY_STATUS_CODES}}
-        }).data
-        running = qb.filter(spot_requests, {"terms": {"status.code": RUNNING_STATUS_CODES}})
+        spot_requests = wrap([dictwrap(r) for r in self.conn.get_all_spot_instance_requests()])
+        # instances = wrap([dictwrap(i) for r in self.conn.get_all_instances() for i in r.instances])
 
-        current_utility = sum(map(lambda x: utility_lookup.get(x.launch_specification.instance_type, 0), pending + running))
+        # ADD UP THE CURRENT REQUESTED INSTANCES
+        active = qb.filter(spot_requests, {"terms": {"status.code": RUNNING_STATUS_CODES | PENDING_STATUS_CODES}})
+        # running = instances.filter(lambda i: i.id in active.instance_id and i._state.name == "running")
+        current_spending = coalesce(SUM(self.price_lookup[r.launch_specification.instance_type].current_price for r in active), 0)
+        remaining_budget -= current_spending
 
+        current_utility = coalesce(SUM(self.price_lookup[r.launch_specification.instance_type].type.utility for r in active), 0)
         net_new_utility = utility_required - current_utility
+
         if net_new_utility < 1:  # ONLY REMOVE UTILITY IF WE NEED NONE
             net_new_utility += self.remove_extra_instances(spot_requests, -net_new_utility, prices)
 
-        #how many are too expensive?
-        usable_prices = filter(lambda p: (p.type, p.availability_zone) not in not_available, prices)
         utility_per_dollar = MIN_UTILITY_PER_DOLLAR
 
         #what new spot requests are required?
         while net_new_utility > 1:
-            for p in usable_prices:
+            for p in prices:
                 max_bid = p.type.utility / utility_per_dollar
-                mid_bid = coalesce(p.higher_price, max_bid)
+                mid_bid = Math.min(p.higher_price, max_bid)
                 min_bid = p.price_80
                 num = Math.floor(net_new_utility / p.type.utility)
                 if num == 1:
@@ -141,6 +144,8 @@ class SpotManager(object):
 
                 for i in range(num):
                     bid = min_bid + (i * price_interval)
+                    if bid < p.current_price:
+                        continue
 
                     self._request_spot_instance(
                         price=bid,
@@ -149,80 +154,111 @@ class SpotManager(object):
                         settings=self.settings.ec2.request
                     )
                     net_new_utility -= p.type.utility
+                    remaining_budget -= p.current_price
+
+
+    def _start_lifecycle_watcher(self):
+        def worker(please_stop):
+            self.pricing()
+
+            while not please_stop:
+                # spot_requests = wrap([dictwrap(r) for r in self.conn.get_all_spot_instance_requests()])
+                # instances = wrap([dictwrap(i) for r in self.conn.get_all_instances() for i in r.instances])
+                #
+                # #INSTANCES THAT REQUIRE SETUP
+                # please_setup = instances.filter(lambda i: i.id in spot_requests.instance_id and not i.tags.get("Name"))
+                # for i in please_setup:
+                #     try:
+                #         p = self.price_lookup[i.instance_type]
+                #         self.setup_instance(i.id, p.type.utility)
+                #         i.add_tag('Name', self.settings.ec2.instance.name + " (running)")
+                #     except Exception, e:
+                #         pass
+
+                Thread.sleep(seconds=5)
+
+        Thread.run("lifecycle watcher", worker)
 
     @use_settings
-    def _request_spot_instance(self, bid, availability_zone_group, instance_type, settings=None):
+    def _request_spot_instance(self, price, availability_zone_group, instance_type, settings=None):
         settings.network_interfaces = NetworkInterfaceCollection(
             *unwrap(NetworkInterfaceSpecification(**unwrap(s)) for s in listwrap(settings.network_interfaces))
         )
-        self.conn.request_spot_instances(**unwrap(settings))
+        settings.settings = None
+        return self.conn.request_spot_instances(**unwrap(settings))
 
     def pricing(self):
-        prices = self._get_spot_prices_from_aws()
+        with self.price_locker:
+            if self.prices:
+                return self.prices
 
-        hourly_pricing = qb.run({
-            "from": {
-                # AWS PRICING ONLY SENDS timestamp OF CHANGES, MATCH WITH NEXT INSTANCE
-                "from": prices,
-                "window": {
-                    "name": "expire",
-                    "value": CODE("coalesce(rows[rownum+1].timestamp, Date.eod())"),
-                    "edges": ["availability_zone", "instance_type"],
-                    "sort": "timestamp"
-                }
-            },
-            "edges": [
-                "availability_zone",
-                "instance_type",
-                {
-                    "name": "time",
-                    "range": {"min": "timestamp", "max": "expire", "mode": "inclusive"},
-                    "domain": {"type": "time", "min": Date.now().floor(HOUR) - DAY, "max": Date.now().floor(HOUR), "interval": "hour"}
-                }
-            ],
-            "select": [
-                {"value": "price", "aggregate": "max"},
-                {"aggregate": "count"}
-            ],
-            "where": {"gt": {"timestamp": Date.now().floor(HOUR) - DAY}},
-            "window": {
-                "name": "current_price", "value": CODE("rows.last().price"), "edges": ["availability_zone", "instance_type"], "sort": "time",
-            }
-        }).data
+            prices = self._get_spot_prices_from_aws()
 
-        bid80 = qb.run({
-            "from": hourly_pricing,
-            "edges": [
-                {
-                    "value": "availability_zone",
-                    "allowNulls": False
+            hourly_pricing = qb.run({
+                "from": {
+                    # AWS PRICING ONLY SENDS timestamp OF CHANGES, MATCH WITH NEXT INSTANCE
+                    "from": prices,
+                    "window": {
+                        "name": "expire",
+                        "value": CODE("coalesce(rows[rownum+1].timestamp, Date.eod())"),
+                        "edges": ["availability_zone", "instance_type"],
+                        "sort": "timestamp"
+                    }
                 },
-                {
-                    "name": "type",
-                    "value": "instance_type",
-                    "allowNulls": False,
-                    "domain": {"type": "set", "key": "instance_type", "partitions": config}
+                "edges": [
+                    "availability_zone",
+                    "instance_type",
+                    {
+                        "name": "time",
+                        "range": {"min": "timestamp", "max": "expire", "mode": "inclusive"},
+                        "domain": {"type": "time", "min": Date.now().floor(HOUR) - DAY, "max": Date.now().floor(HOUR), "interval": "hour"}
+                    }
+                ],
+                "select": [
+                    {"value": "price", "aggregate": "max"},
+                    {"aggregate": "count"}
+                ],
+                "where": {"gt": {"timestamp": Date.now().floor(HOUR) - DAY}},
+                "window": {
+                    "name": "current_price", "value": CODE("rows.last().price"), "edges": ["availability_zone", "instance_type"], "sort": "time",
                 }
-            ],
-            "select": [
-                {"name": "price_80", "value": "price", "aggregate": "percentile", "percentile": 0.80},
-                {"name": "max_price", "value": "price", "aggregate": "max"},
-                {"aggregate": "count"},
-                {"value": "current_price", "aggregate": "one"},
-                {"name": "all_price", "value": "price", "aggregate": "list"}
-            ],
-            "window": [
-                {"name": "estimated_value", "value": {"div": ["type.utility", "price_80"]}},
-                {"name": "higher_price", "value": lambda row: find_higher(row.all_price, row.price_80)}
-            ]
-        })
+            }).data
 
-        output = qb.run({
-            "from": bid80.data,
-            "sort": {"value": "estimated_value", "sort": -1}
-        })
+            bid80 = qb.run({
+                "from": hourly_pricing,
+                "edges": [
+                    {
+                        "value": "availability_zone",
+                        "allowNulls": False
+                    },
+                    {
+                        "name": "type",
+                        "value": "instance_type",
+                        "allowNulls": False,
+                        "domain": {"type": "set", "key": "instance_type", "partitions": config}
+                    }
+                ],
+                "select": [
+                    {"name": "price_80", "value": "price", "aggregate": "percentile", "percentile": 0.80},
+                    {"name": "max_price", "value": "price", "aggregate": "max"},
+                    {"aggregate": "count"},
+                    {"value": "current_price", "aggregate": "one"},
+                    {"name": "all_price", "value": "price", "aggregate": "list"}
+                ],
+                "window": [
+                    {"name": "estimated_value", "value": {"div": ["type.utility", "price_80"]}},
+                    {"name": "higher_price", "value": lambda row: find_higher(row.all_price, row.price_80)}
+                ]
+            })
 
-        return output.data
+            output = qb.run({
+                "from": bid80.data,
+                "sort": {"value": "estimated_value", "sort": -1}
+            })
+
+            self.prices = output.data
+            self.price_lookup = {p.type.instance_type: p for p in self.prices}
+            return self.prices
 
     def _get_spot_prices_from_aws(self):
         try:
@@ -302,10 +338,10 @@ class SpotManager(object):
         sudo("supervisorctl stop all")
 
 
-    def setup_instance(self, instance_id, cpu_count):
+    def setup_instance(self, instance_id, utility):
+        cpu_count=int(round(utility))
         reservations = self.conn.get_all_instances()
         instance = [i for r in reservations for i in r.instances if i.id == instance_id][0]
-        instance.add_tag('Name', self.settings.ec2.instance.name)
 
         for k, v in self.settings.ec2.instance.connect.items():
             env[k] = v
