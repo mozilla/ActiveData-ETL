@@ -1,4 +1,7 @@
 {
+	"budget": 0.50,  //MAXIMUM SPEND PER HOUR FOR ALL INSTANCES
+	"max_utility_price": 0.02,   //MOST THAT WILL BE SPENT ON A SINGLE UTILITY POINT
+	"price_file": "resources/aws/prices.json",
 	"aws": {
 		"$ref": "//~/private.json#aws_credentials"
 	},
@@ -6,6 +9,37 @@
 		"name": "ekyle-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
+	"utility":[
+		{"instance_type": "m3.medium", "utility": 1},
+		{"instance_type": "m3.large", "utility": 2},
+		{"instance_type": "m3.xlarge", "utility": 4},
+		{"instance_type": "m3.2xlarge", "utility": 8},
+
+		{"instance_type": "c4.large", "utility": 2},
+		{"instance_type": "c4.xlarge", "utility": 4},
+		{"instance_type": "c4.2xlarge", "utility": 8},
+		{"instance_type": "c4.4xlarge", "utility": 16},
+		{"instance_type": "c4.8xlarge", "utility": 36},
+
+		{"instance_type": "c3.large", "utility": 2},
+		{"instance_type": "c3.xlarge", "utility": 4},
+		{"instance_type": "c3.2xlarge", "utility": 8},
+		{"instance_type": "c3.4xlarge", "utility": 16},
+		{"instance_type": "c3.8xlarge", "utility": 32},
+
+		{"instance_type": "r3.large", "utility": 2},
+		{"instance_type": "r3.xlarge", "utility": 4},
+		{"instance_type": "r3.2xlarge", "utility": 8},
+		{"instance_type": "r3.4xlarge", "utility": 16},
+		{"instance_type": "r3.8xlarge", "utility": 32},
+
+		{"instance_type": "d2.xlarge", "utility": 4},
+		{"instance_type": "d2.2xlarge", "utility": 8},
+		{"instance_type": "d2.4xlarge", "utility": 16},
+		{"instance_type": "d2.8xlarge", "utility": 36}
+
+
+	],
 	"ec2": {
 		"request": {
 			//SEE http://boto.readthedocs.org/en/latest/ref/ec2.html#boto.ec2.connection.EC2Connection.request_spot_instances
@@ -53,12 +87,11 @@
 			}
 		}
 	},
-	"price_file": "resources/aws/prices.json",
 	"debug": {
 		"trace": true,
 		"cprofile": {
 			"enabled": true,
-			"filename": "./results/profile.tab"
+			"filename": "./results/spot_profile.tab"
 		},
 		"log": [
 			{

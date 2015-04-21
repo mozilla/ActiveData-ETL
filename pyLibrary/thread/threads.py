@@ -273,6 +273,18 @@ class MainThread(object):
     def add_child(self, child):
         self.children.append(child)
 
+    def stop(self):
+        """
+        BLOCKS UNTIL ALL THREADS HAVE STOPPED
+        """
+        children = self.children
+        self.children = []
+        for c in children:
+            c.stop()
+        for c in children:
+            c.join()
+
+
 MAIN_THREAD = MainThread()
 
 ALL_LOCK = Lock("threads ALL_LOCK")

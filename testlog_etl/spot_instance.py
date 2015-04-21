@@ -24,6 +24,7 @@ from pyLibrary import aws, convert
 from pyLibrary.collections import SUM
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.startup import SingleInstance
 from pyLibrary.dot import wrap, dictwrap, coalesce, listwrap, unwrap, DictList
 from pyLibrary.env.files import File
 from pyLibrary.maths import Math
@@ -31,13 +32,12 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.queries.expressions import CODE
 from pyLibrary.strings import between
-from pyLibrary.thread.threads import Lock, Thread
+from pyLibrary.thread.threads import Lock, Thread, MAIN_THREAD, Signal
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, WEEK
 
 
-BUDGET = 1.0  # DOLLARS PER HOUR
-MIN_UTILITY_PER_DOLLAR = 8 * 10  # 8cpu per dollar (on demand price) multiply by expected 5x savings
+MIN_UTILITY_PER_DOLLAR = 8 * 7  # 8cpu per dollar (on demand price) multiply by expected 7x savings
 
 
 class SpotManager(object):
@@ -51,7 +51,8 @@ class SpotManager(object):
         )
         self.price_locker = Lock()
         self.prices = None
-        self._start_lifecycle_watcher()
+        self.done_spot_requests = Signal()
+        self._start_life_cycle_watcher()
 
     def _get_managed_instances(self):
         output =[]
@@ -69,10 +70,10 @@ class SpotManager(object):
         instances = self._get_managed_instances()
 
         for r in instances:
-            r.markup = prices.filter(lambda x: x.type.instance_type == r.instance_type)[0]
+            r.markup = self.price_lookup[r.instance_type]
 
         instances = qb.sort(instances, [
-            {"value": "markup.type.cpu", "sort": -1},
+            {"value": "markup.type.utility", "sort": -1},
             {"value": "markup.estimated_value", "sort": -1}
         ])
 
@@ -90,8 +91,8 @@ class SpotManager(object):
                 break
 
         # SEND SHUTDOWN TO EACH INSTANCE
-        for id in remove_list.id:
-            self.teardown_instance(id)
+        for i in remove_list:
+            self.teardown_instance(i)
 
         remove_requests = remove_list.spot_instance_request_id
 
@@ -104,12 +105,12 @@ class SpotManager(object):
         return -remaining_utility  # RETURN POSITIVE NUMBER IF TOOK AWAY TOO MUCH
 
 
-    def update_spot_requests(self, utility_required, config):
+    def update_spot_requests(self, utility_required):
         # how many do we have?
         prices = self.pricing()
 
         #DO NOT GO OVER BUDGET
-        remaining_budget = BUDGET
+        remaining_budget = self.settings.budget
 
         spot_requests = wrap([dictwrap(r) for r in self.conn.get_all_spot_instance_requests()])
         # instances = wrap([dictwrap(i) for r in self.conn.get_all_instances() for i in r.instances])
@@ -126,25 +127,32 @@ class SpotManager(object):
         if net_new_utility < 1:  # ONLY REMOVE UTILITY IF WE NEED NONE
             net_new_utility += self.remove_extra_instances(spot_requests, -net_new_utility, prices)
 
-        utility_per_dollar = MIN_UTILITY_PER_DOLLAR
-
         #what new spot requests are required?
         while net_new_utility > 1:
             for p in prices:
-                max_bid = p.type.utility / utility_per_dollar
-                mid_bid = Math.min(p.higher_price, max_bid)
+
+                max_bid = Math.min(p.higher_price, p.type.utility * self.settings.max_utility_price)
                 min_bid = p.price_80
+
+                if min_bid > max_bid:
+                    Log.note("{{type}} @ {{price|round(decimal=4)}}/hour is over budget of {{limit}}", {
+                        "type": p.type.instance_type,
+                        "price": min_bid,
+                        "limit": p.type.utility * self.settings.max_utility_price
+                    })
+                    continue
+
                 num = Math.floor(net_new_utility / p.type.utility)
                 if num == 1:
-                    min_bid = mid_bid
+                    min_bid = max_bid
                     price_interval = 0
                 else:
                     #mid_bid = coalesce(mid_bid, max_bid)
-                    price_interval = (mid_bid - min_bid) / (num - 1)
+                    price_interval = (max_bid - min_bid) / (num - 1)
 
                 for i in range(num):
                     bid = min_bid + (i * price_interval)
-                    if bid < p.current_price:
+                    if bid < p.current_price or bid > remaining_budget:
                         continue
 
                     self._request_spot_instance(
@@ -156,28 +164,44 @@ class SpotManager(object):
                     net_new_utility -= p.type.utility
                     remaining_budget -= p.current_price
 
+        if net_new_utility > 0:
+            Log.warning("Can not fund {{num}} more utility (all utility costs more than {{expected}}/hour)", {
+                "num": net_new_utility,
+                "expected": 1 / MIN_UTILITY_PER_DOLLAR
+            })
 
-    def _start_lifecycle_watcher(self):
-        def worker(please_stop):
+        Log.note("All requests for new utility have been made")
+        self.done_spot_requests.go()
+
+    def _start_life_cycle_watcher(self):
+        def life_cycle_watcher(please_stop):
             self.pricing()
 
             while not please_stop:
-                # spot_requests = wrap([dictwrap(r) for r in self.conn.get_all_spot_instance_requests()])
-                # instances = wrap([dictwrap(i) for r in self.conn.get_all_instances() for i in r.instances])
-                #
-                # #INSTANCES THAT REQUIRE SETUP
-                # please_setup = instances.filter(lambda i: i.id in spot_requests.instance_id and not i.tags.get("Name"))
-                # for i in please_setup:
-                #     try:
-                #         p = self.price_lookup[i.instance_type]
-                #         self.setup_instance(i.id, p.type.utility)
-                #         i.add_tag('Name', self.settings.ec2.instance.name + " (running)")
-                #     except Exception, e:
-                #         pass
+                spot_requests = wrap([dictwrap(r) for r in self.conn.get_all_spot_instance_requests()])
+                instances = wrap([dictwrap(i) for r in self.conn.get_all_instances() for i in r.instances])
 
-                Thread.sleep(seconds=5)
+                #INSTANCES THAT REQUIRE SETUP
+                please_setup = instances.filter(lambda i: i.id in spot_requests.instance_id and not i.tags.get("Name") and i._state.name == "running")
+                for i in please_setup:
+                    try:
+                        p = self.price_lookup[i.instance_type]
+                        self.setup_instance(i, p.type.utility)
+                        i.add_tag("Name", self.settings.ec2.instance.name + " (running)")
+                    except Exception, e:
+                        Log.warning("problem with setup of {{instance_id}}", {"instance_id": i.id})
 
-        Thread.run("lifecycle watcher", worker)
+                pending = qb.filter(spot_requests, {"terms": {"status.code": PENDING_STATUS_CODES}})
+                if not pending and self.done_spot_requests:
+                    Log.note("No more pending spot requests")
+                    please_stop.go()
+                    break
+                Thread.sleep(seconds=5, please_stop=please_stop)
+
+            Log.note("life cycle watcher has stopped")
+
+        self.watcher = Thread.run("lifecycle watcher", life_cycle_watcher)
+
 
     @use_settings
     def _request_spot_instance(self, price, availability_zone_group, instance_type, settings=None):
@@ -235,7 +259,7 @@ class SpotManager(object):
                         "name": "type",
                         "value": "instance_type",
                         "allowNulls": False,
-                        "domain": {"type": "set", "key": "instance_type", "partitions": config}
+                        "domain": {"type": "set", "key": "instance_type", "partitions": self.settings.utility}
                     }
                 ],
                 "select": [
@@ -275,7 +299,7 @@ class SpotManager(object):
 
 
         prices = set(cache)
-        for instance_type in config.instance_type:
+        for instance_type in self.settings.utility.instance_type:
             if most_recents:
                 most_recent = most_recents[{"instance_type":instance_type}].timestamp
                 if most_recent == None:
@@ -324,34 +348,27 @@ class SpotManager(object):
         File(self.settings.price_file).write(convert.value2json(prices, pretty=True))
         return prices
 
-
-    def teardown_instance(self, instance_id, ip_address=None):
-        if ip_address is None:
-            reservations = self.conn.get_all_instances()
-            instance = [i for r in reservations for i in r.instances if i.id == instance_id][0]
-            ip_address = instance.ip_address
-
-        for k, v in self.settings.ec2.instance.connect.items():
-            env[k] = v
-        env.host_string = ip_address
-
-        sudo("supervisorctl stop all")
-
-
-    def setup_instance(self, instance_id, utility):
-        cpu_count=int(round(utility))
-        reservations = self.conn.get_all_instances()
-        instance = [i for r in reservations for i in r.instances if i.id == instance_id][0]
-
+    def _config_fabric(self, instance):
         for k, v in self.settings.ec2.instance.connect.items():
             env[k] = v
         env.host_string = instance.ip_address
+        env.abort_exception = Log.error
 
-        self.setup_etl_code()
-        self.add_private_file()
-        self.setup_etl_supervisor(cpu_count)
 
-    def setup_etl_code(self):
+    def teardown_instance(self, instance):
+        self._config_fabric(instance)
+        sudo("supervisorctl stop all")
+
+
+    def setup_instance(self, instance, utility):
+        cpu_count = int(round(utility))
+
+        self._config_fabric(instance)
+        self._setup_etl_code()
+        self._add_private_file()
+        self._setup_etl_supervisor(cpu_count)
+
+    def _setup_etl_code(self):
         sudo("sudo apt-get update")
 
         if not fabric_files.exists("/home/ubuntu/temp"):
@@ -375,7 +392,7 @@ class SpotManager(object):
             sudo("pip install requests")
             sudo("apt-get -y install python-psycopg2")
 
-    def setup_etl_supervisor(self, cpu_count):
+    def _setup_etl_supervisor(self, cpu_count):
         # INSTALL supervsor
         sudo("apt-get install -y supervisor")
         with fabric_settings(warn_only=True):
@@ -395,7 +412,7 @@ class SpotManager(object):
         sudo("supervisorctl reread")
         sudo("supervisorctl update")
 
-    def add_private_file(self):
+    def _add_private_file(self):
         put('~/private.json', '/home/ubuntu')
         with cd("/home/ubuntu"):
             run("chmod o-r private.json")
@@ -409,66 +426,26 @@ def find_higher(candidates, reference):
     return output
 
 
-config = wrap([
-    # {"instance_type": "t2.micro", "cpu": 0.1},
-    # {"instance_type": "t2.small", "cpu": 0.2},
-    # {"instance_type": "t2.medium", "cpu": 0.4},
-
-    {"instance_type": "m3.medium", "cpu": 1},
-    {"instance_type": "m3.large", "cpu": 2},
-    # {"instance_type": "m3.xlarge", "cpu": 4},
-    # {"instance_type": "m3.2xlarge", "cpu": 8},
-    #
-    # {"instance_type": "c4.large", "cpu": 2},
-    # {"instance_type": "c4.xlarge", "cpu": 4},
-    # {"instance_type": "c4.2xlarge", "cpu": 8},
-    # {"instance_type": "c4.4xlarge", "cpu": 16},
-    # {"instance_type": "c4.8xlarge", "cpu": 36},
-    #
-    # {"instance_type": "c3.large", "cpu": 2},
-    # {"instance_type": "c3.xlarge", "cpu": 4},
-    # {"instance_type": "c3.2xlarge", "cpu": 8},
-    # {"instance_type": "c3.4xlarge", "cpu": 16},
-    # {"instance_type": "c3.8xlarge", "cpu": 32},
-    #
-    # {"instance_type": "r3.large", "cpu": 2},
-    # {"instance_type": "r3.xlarge", "cpu": 4},
-    # {"instance_type": "r3.2xlarge", "cpu": 8},
-    # {"instance_type": "r3.4xlarge", "cpu": 16},
-    # {"instance_type": "r3.8xlarge", "cpu": 32},
-    #
-    # {"instance_type": "d2.xlarge", "cpu": 4},
-    # {"instance_type": "d2.2xlarge", "cpu": 8},
-    # {"instance_type": "d2.4xlarge", "cpu": 16},
-    # {"instance_type": "d2.8xlarge", "cpu": 36}
-])
-
-# THE ETL WORKLOAD IS LIMITED BY CPU
-utility_lookup = {}
-for c in config:
-    c.utility = min(c.cpu, 8)
-    utility_lookup[c.instance_type] = c.utility
-
-TERMINATED_STATUS_CODES = set([
+TERMINATED_STATUS_CODES = {
     "capacity-oversubscribed",
     "capacity-not-available",
     "instance-terminated-capacity-oversubscribed",
     "bad-parameters"
-])
-RETRY_STATUS_CODES = set([
+}
+RETRY_STATUS_CODES = {
     "instance-terminated-by-price",
     "price-too-low",
     "bad-parameters",
     "canceled-before-fulfillment",
     "instance-terminated-by-user"
-])
-PENDING_STATUS_CODES = set([
+}
+PENDING_STATUS_CODES = {
     "pending-evaluation",
     "pending-fulfillment"
-])
-RUNNING_STATUS_CODES = set([
-    "fulfilled",
-])
+}
+RUNNING_STATUS_CODES = {
+    "fulfilled"
+}
 
 
 def main():
@@ -478,16 +455,23 @@ def main():
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)
-        m = SpotManager(settings)
+        with SingleInstance():
+            m = SpotManager(settings)
 
-        queue = aws.Queue(settings.work_queue)
-        pending = len(queue)
-        # DUE TO THE LARGE VARIABILITY OF WORK FOR EACH ITEM IN QUEUE, WE USE LOG TO SUPRESS
-        utility_required = max(1, log10(max(pending, 1)) * 10)
+            queue = aws.Queue(settings.work_queue)
+            pending = len(queue)
+            # SINCE EACH ITEM IN QUEUE REPRESENTS SMALL, OR GIGANTIC, AMOUNT
+            # OF TOTAL WORK THE QUEUE SIZE IS TERRIBLE PREDICTOR OF HOW MUCH
+            # UTILITY WE REALLY NEED.  WE USE log10() TO SUPPRESS THE
+            # VARIABILITY, AND HOPE FOR THE BEST
+            utility_required = max(2, log10(max(pending, 1)) * 10)
 
-        m.update_spot_requests(utility_required, config)
+            m.update_spot_requests(utility_required)
+    except Exception, e:
+        Log.warning("Problem with spot manager", e)
     finally:
         Log.stop()
+        MAIN_THREAD.stop()
 
 
 if __name__ == "__main__":
