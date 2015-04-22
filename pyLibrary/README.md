@@ -74,14 +74,12 @@ Module `strings`
 Contains several more string functions.  None of them are intended for direct use in a python program, rather for use in the `expand_template` function.
 
 
-###Function `expand_template()`###
-
-    pyLibrary.strings.expand_template(template, value)
+##Function `expand_template()`###
 
 The creation of this function was motivated by the desire to extend Python's 
-`format()` function with more formatting features and to replace the 
-Perl-inspired line noise (formatting mini language)[https://docs.python.org/2/library/string.html#formatspec] 
+`format()` function with more features and replace the [formatting mini language](https://docs.python.org/2/library/string.html#formatspec), because it appears to be Perl-inspired line noise.
 
+    	pyLibrary.strings.expand_template(template, value)
 
 A simple function that replaces variables in `template` with the properties
 found in `value`. Variables are indicated by the double moustaches;
