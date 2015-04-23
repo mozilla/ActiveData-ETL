@@ -103,8 +103,8 @@ class Bucket(object):
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
-        aws_access_key_id,  # CREDENTIAL
-        aws_secret_access_key,  # CREDENTIAL
+        aws_access_key_id=None,  # CREDENTIAL
+        aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
