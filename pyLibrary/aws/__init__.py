@@ -29,8 +29,8 @@ class Queue(object):
         self,
         name,
         region,
-        aws_access_key_id,
-        aws_secret_access_key,
+        aws_access_key_id=None,
+        aws_secret_access_key=None,
         debug=False,
         settings=None
     ):
