@@ -273,7 +273,7 @@ def get_container(settings):
         # sink = Threaded(sink)
         sinks.append((settings, sink))
         return sink
-    elif coalesce(settings.aws_access_key_id, settings.aws_access_key_id):
+    elif coalesce(settings.aws_access_key_id, settings.aws_access_key_id, settings.region):
         # ASSUME BUCKET NAME
         with sinks_locker:
             for e in sinks:
