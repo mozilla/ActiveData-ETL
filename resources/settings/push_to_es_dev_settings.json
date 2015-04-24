@@ -1,7 +1,7 @@
 {
 	"elasticsearch": {
 		"use_daily": true,
-		"host": "http://52.10.189.133",
+		"host": "http://54.201.143.91",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
@@ -37,17 +37,10 @@
 				"log_type": "console"
 			},
 			{
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/push_to_es.log",
-				"maxBytes": 10000000,
-				"backupCount": 100,
-				"encoding": "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT]{DEV]Problem in Push to ES",
+				"subject": "[ALERT][DEV]Problem in Push to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

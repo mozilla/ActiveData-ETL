@@ -24,7 +24,7 @@ from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
 
 
-# COPY FROM S3 BUCKET TO REDSHIFT
+# COPY FROM S3 BUCKET TO ELASTICSEARCH
 
 
 def diff(settings, please_stop=None):
