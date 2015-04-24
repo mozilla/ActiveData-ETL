@@ -8,17 +8,20 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from multiprocessing import Process
+from multiprocessing.queues import Queue
 from pyLibrary import queries
 
-from pyLibrary.aws import s3, Queue
+from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
+from pyLibrary.thread import multiprocess
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import key_prefix
@@ -30,7 +33,6 @@ from testlog_etl.sinks.s3_bucket import key_prefix
 def diff(settings, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
-    work_queue = Queue(settings.work_queue)
 
     result = es.search({
         "aggs": {
@@ -58,7 +60,7 @@ def diff(settings, please_stop=None):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(decimal=1)}}", {"p": i / len(prefixes)})
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
@@ -69,6 +71,10 @@ def diff(settings, please_stop=None):
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 
+    Log.note("Queueing {{num}} keys for insertion to ES with {{processes}}", {
+        "num": len(in_s3),
+        "processes": settings.processes
+    })
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     max_s3 = in_s3[0] - 500
     i = 0
@@ -76,27 +82,43 @@ def diff(settings, please_stop=None):
         i += 1
     in_s3 = in_s3[i::]
 
+    # DISPATCH TO MULTIPLE THREADS
+    work_queue = Queue()
+    please_stop_queue = Queue()
+
+    processes = []
+    for _ in range(settings.processes):
+        p = Process(target=copy2es, args=(scrub(settings), work_queue, bucket))
+        p.start()
+        processes.append(p)
+
     for block in in_s3:
         if please_stop:
+            for _ in range(settings.processes):
+                please_stop_queue.put("STOP")
+            return
+        work_queue.put(block)
+    for _ in range(settings.processes):
+        please_stop_queue.put("STOP")
+        work_queue.put("STOP")
+
+    for p in processes:
+        p.join()
+
+def copy2es(settings, work_queue, please_stop):
+    # EVERYTHING FROM ELASTICSEARCH
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+    bucket = s3.Bucket(settings.source)
+
+    for block in iter(work_queue.get, "STOP"):
+        if please_stop.get(False):
             return
 
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            if True: #block % 4 == 0:
-                num_keys = es.copy(keys, bucket)
-            else:
-                # LEVERAGE THE ETL LOOP
-                now = Date.now()
-                for k in keys:
-                    work_queue.add({
-                        "bucket": settings.source.bucket,
-                        "key": strip_extension(k),
-                        "timestamp": now.unix,
-                        "date/time": now.format()
-                    })
-                num_keys = len(keys)
+            num_keys = es.copy(keys, bucket)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
             "num": num_keys,
@@ -104,7 +126,6 @@ def diff(settings, please_stop=None):
             "duration": extend_time.seconds,
             "rate": num_keys / Math.max(extend_time.seconds, 1)
         })
-
 
 
 def main():

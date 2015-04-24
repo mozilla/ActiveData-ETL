@@ -1,4 +1,5 @@
 {
+	"processes": 4,
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://localhost",
@@ -17,11 +18,6 @@
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
-	"work_queue":{
-		"name": "ekyle-etl",
-		"debug": true,
-		"$ref": "file://~/private.json#aws_credentials"
-	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
@@ -37,17 +33,10 @@
 				"log_type": "console"
 			},
 			{
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/push_to_es.log",
-				"maxBytes": 1000000,
-				"backupCount": 100,
-				"encoding": "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT]{Staging]Problem in Push to ES",
+				"subject": "[ALERT][Staging]Problem in Push to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

@@ -98,7 +98,7 @@ class MultiDayIndex(object):
                         queue = self._get_queue(value)
                         row = {"id": value._id, "value": value}
                     else:
-                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID
+                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
                     num_keys += 1
                     queue.add(row)
