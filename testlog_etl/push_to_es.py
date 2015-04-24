@@ -13,19 +13,49 @@ from multiprocessing.queues import Queue
 
 from pyLibrary import queries
 from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import strip_extension
+from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import wrap
 from pyLibrary.jsons import scrub
+from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
-from testlog_etl.push_to_es_daemon import copy2es
+from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
-
-
-
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
+
+
+def copy2es(settings, work_queue, please_stop):
+    # EVERYTHING FROM ELASTICSEARCH
+    settings = wrap(settings)
+    constants.set(settings.constants)
+    Log.start(settings.debug)
+
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+    bucket = s3.Bucket(settings.source)
+
+    for block in iter(work_queue.get, "STOP"):
+        try:
+            please_stop.get(False)
+            return
+        except Exception, e:
+            pass
+
+        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
+
+        extend_time = Timer("insert", silent=True)
+        with extend_time:
+            num_keys = es.copy(keys, bucket)
+
+        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
+            "num": num_keys,
+            "key": key_prefix(keys[0]),
+            "duration": extend_time.seconds,
+            "rate": num_keys / Math.max(extend_time.seconds, 1)
+        })
+
 
 def diff(settings, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
@@ -128,8 +158,7 @@ def main():
         if settings.args.id:
             Log.error("do not know how to handle")
 
-        thread = Thread.run("pushing to es", diff, settings)
-        Thread.wait_for_shutdown_signal(thread.please_stop, allow_exit=True)
+        diff(settings)
 
     except Exception, e:
         Log.error("Problem with etl", e)
