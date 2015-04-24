@@ -20,7 +20,6 @@ from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
-PROCESS_TRY = False
 
 
 def process(source_key, source, destination, please_stop=None):
@@ -45,9 +44,6 @@ def process(source_key, source, destination, please_stop=None):
 
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         if not pulse_record:
-            continue
-
-        if not PROCESS_TRY and pulse_record.data.tree == "try":
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
