@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 import math
 import re
 from pyLibrary.dot import Null
@@ -24,6 +25,9 @@ try:
 except Exception, e:
     pass
 from pyLibrary.strings import deformat
+
+
+ISO8601 = "%Y-%m-%d %H:%M:%S"
 
 
 class Date(object):
@@ -44,7 +48,7 @@ class Date(object):
                     self.value = a0
                 elif isinstance(a0, Date):
                     self.value = a0.value
-                elif isinstance(a0, (int, long, float)):
+                elif isinstance(a0, (int, long, float, Decimal)):
                     if a0 == 9999999999000:  # PYPY BUG https://bugs.pypy.org/issue1697
                         self.value = Date.MAX
                     elif a0 > 9999999999:    # WAY TOO BIG IF IT WAS A UNIX TIMESTAMP
@@ -100,9 +104,11 @@ class Date(object):
             else:
                 from pyLibrary.debugs.logs import Log
                 Log.error("Can not convert {{value}} of type {{type}}", {"value": self.value, "type": self.value.__class__})
+                epoch = None
 
             diff = self.value - epoch
-            return diff.total_seconds()
+            output = Decimal(long(diff.total_seconds() * 1000000))
+            return output / 1000000
         except Exception, e:
             from pyLibrary.debugs.logs import Log
             Log.error("Can not convert {{value}}", {"value": self.value}, e)
@@ -234,34 +240,46 @@ def set_day(offset, day):
 
 
 def parse(value):
-    def simple_date(sign, dig, type):
+    def simple_date(sign, dig, type, floor):
         if dig or sign:
             from pyLibrary.debugs.logs import Log
             Log.error("can not accept a multiplier on a datetime")
 
-        try:
-            type, floor = type.split("|")
+        if floor:
             return Date(type).floor(Duration(floor))
-        except ValueError:
+        else:
             return Date(type)
 
-    terms = re.match(r'(\d*[|\w]+)([+-]\d*[|\w]+)*', value).groups()
+    terms = re.match(r'(\d*[|\w]+)\s*([+-]\s*\d*[|\w]+)*', value).groups()
 
-    sign, dig, type = re.match(r'([+-]?)(\d*)([|\w]+)', terms[0]).groups()
+    sign, dig, type = re.match(r'([+-]?)\s*(\d*)([|\w]+)', terms[0]).groups()
+    if "|" in type:
+        type, floor = type.split("|")
+    else:
+        floor = None
+
     if type in MILLI_VALUES.keys():
         value = Duration(dig+type)
     else:
-        value = simple_date(sign, dig, type)
+        value = simple_date(sign, dig, type, floor)
 
     for term in terms[1:]:
         if not term:
             continue
-        sign, dig, type = re.match(r'([+-])(\d*)([|\w]+)', term).groups()
+        sign, dig, type = re.match(r'([+-])\s*(\d*)([|\w]+)', term).groups()
+        if "|" in type:
+            type, floor = type.split("|")
+        else:
+            floor = None
+
         op = {"+": "__add__", "-": "__sub__"}[sign]
         if type in MILLI_VALUES.keys():
+            if floor:
+                from pyLibrary.debugs.logs import Log
+                Log.error("floor (|) of duration not accepted")
             value = value.__getattribute__(op)(Duration(dig+type))
         else:
-            value = value.__getattribute__(op)(simple_date(sign, dig, type))
+            value = value.__getattribute__(op)(simple_date(sign, dig, type, floor))
 
     return value
 
@@ -281,8 +299,10 @@ def unicode2datetime(value, format=None):
         return Date.now().value
     elif value.lower() == "today":
         return Date.today().value
+    elif value.lower() in ["eod", "tomorrow"]:
+        return Date.eod().value
 
-    if any(value.lower().find(n) >= 0 for n in ["now", "today"] + list(MILLI_VALUES.keys())):
+    if any(value.lower().find(n) >= 0 for n in ["now", "today", "eod", "tomorrow"] + list(MILLI_VALUES.keys())):
         return parse(value).value
 
     if format != None:

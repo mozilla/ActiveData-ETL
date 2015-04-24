@@ -14,6 +14,7 @@ import StringIO
 import base64
 import cgi
 import datetime
+from decimal import Decimal
 import gzip
 import hashlib
 from io import BytesIO
@@ -23,7 +24,7 @@ from tempfile import TemporaryFile
 import time
 
 from pyLibrary import strings
-from pyLibrary.dot import wrap, wrap_dot, unwrap
+from pyLibrary.dot import wrap, wrap_dot, unwrap, Dict
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log, Except
@@ -152,12 +153,6 @@ def datetime2str(value, format="%Y-%m-%d %H:%M:%S"):
 
 
 def datetime2unix(d):
-    if d == None:
-        return None
-    return long(time.mktime(d.timetuple()))
-
-
-def datetime2milli(d):
     try:
         if d == None:
             return None
@@ -169,9 +164,13 @@ def datetime2milli(d):
             Log.error("Can not convert {{value}} of type {{type}}", {"value": d, "type": d.__class__})
 
         diff = d - epoch
-        return long(diff.total_seconds()) * 1000L + long(diff.microseconds / 1000)
+        return Decimal(long(diff.total_seconds() * 1000000)) / 1000000
     except Exception, e:
         Log.error("Can not convert {{value}}", {"value": d}, e)
+
+
+def datetime2milli(d):
+    return datetime2unix(d) * 1000
 
 
 def timedelta2milli(v):
@@ -232,17 +231,32 @@ def list2tab(rows):
 
     return "\t".join(keys) + "\n" + "\n".join(output)
 
-# PROPER NULL HANDLING
+
+def list2table(rows):
+    columns = set()
+    for r in rows:
+        columns |= set(r.keys())
+    keys = list(columns)
+
+    output = []
+    for r in rows:
+        output.append([r[k] for k in keys])
+
+    return wrap({
+        "header": keys,
+        "data": output
+    })
+
 
 def value2string(value):
+    # PROPER NULL HANDLING
     if value == None:
         return None
     return unicode(value)
 
 
-# RETURN PRETTY PYTHON CODE FOR THE SAME
-
 def value2quote(value):
+    # RETURN PRETTY PYTHON CODE FOR THE SAME
     if isinstance(value, basestring):
         return string2quote(value)
     else:
@@ -285,33 +299,48 @@ def url_param2value(param):
     """
     CONVERT URL QUERY PARAMETERS INTO DICT
     """
+    if isinstance(param, unicode):
+        param = param.encode("ascii")
 
     def _decode(v):
-        if isinstance(v, basestring):
-            try:
-                return json2value(v)
-            except Exception:
-                pass
-        return v
+        output = []
+        i = 0
+        while i < len(v):
+            c = v[i]
+            if c == "%":
+                d = hex2bytes(v[i + 1:i + 3])
+                output.append(d)
+                i += 3
+            else:
+                output.append(c)
+                i += 1
+
+        output = (b"".join(output)).decode("latin1")
+        try:
+            return json2value(output)
+        except Exception:
+            pass
+        return output
 
 
     query = {}
-    for p in param.split('&'):
+    for p in param.split(b'&'):
         if not p:
             continue
-        if p.find("=") == -1:
+        if p.find(b"=") == -1:
             k = p
             v = True
         else:
-            k, v = p.split("=")
+            k, v = p.split(b"=")
+            v = _decode(v)
 
-        l = query.get(k)
-        if l is None:
+        u = query.get(k)
+        if u is None:
             query[k] = v
-        elif isinstance(l, list):
-            l.append(v)
+        elif isinstance(u, list):
+            u += [v]
         else:
-            query[k] = [l, v]
+            query[k] = [u, v]
 
     return query
 
@@ -372,7 +401,7 @@ def int2hex(value, size):
 
 
 def hex2bytes(value):
-    return bytearray(value.decode("hex"))
+    return value.decode("hex")
 
 
 def bytes2hex(value, separator=" "):
@@ -380,11 +409,11 @@ def bytes2hex(value, separator=" "):
 
 
 def base642bytearray(value):
-    return bytearray(base64.b64decode(value))
+    return base64.b64decode(value)
 
 
 def bytes2base64(value):
-    return base64.b64encode(value)
+    return base64.b64encode(value).decode("utf8")
 
 def bytes2sha1(value):
     if isinstance(value, unicode):
@@ -439,18 +468,6 @@ def latin12unicode(value):
         return unicode(value.decode('iso-8859-1'))
     except Exception, e:
         Log.error("Can not convert {{value|quote}} to unicode", {"value": value})
-
-
-def esfilter2where(esfilter):
-    """
-    CONVERT esfilter TO FUNCTION THAT WILL PERFORM THE FILTER
-    WILL ADD row, rownum, AND rows AS CONTEXT VARIABLES FOR {"script":} IF NEEDED
-    """
-
-    def output(row, rownum=None, rows=None):
-        return _filter(esfilter, row, rownum, rows)
-
-    return output
 
 
 def pipe2value(value):
@@ -561,66 +578,5 @@ def _unPipe(value):
         if s < 0:
             break
     return result + value[e::]
-
-
-def _filter(esfilter, row, rownum, rows):
-    esfilter = wrap(esfilter)
-
-    if esfilter[u"and"]:
-        for a in esfilter[u"and"]:
-            if not _filter(a, row, rownum, rows):
-                return False
-        return True
-    elif esfilter[u"or"]:
-        for a in esfilter[u"and"]:
-            if _filter(a, row, rownum, rows):
-                return True
-        return False
-    elif esfilter[u"not"]:
-        return not _filter(esfilter[u"not"], row, rownum, rows)
-    elif esfilter.term:
-        for col, val in esfilter.term.items():
-            if row[col] != val:
-                return False
-        return True
-    elif esfilter.terms:
-        for col, vals in esfilter.terms.items():
-            if not row[col] in vals:
-                return False
-        return True
-    elif esfilter.range:
-        for col, ranges in esfilter.range.items():
-            for sign, val in ranges.items():
-                if sign in ("gt", ">") and row[col] <= val:
-                    return False
-                if sign == "gte" and row[col] < val:
-                    return False
-                if sign == "lte" and row[col] > val:
-                    return False
-                if sign == "lt" and row[col] >= val:
-                    return False
-        return True
-    elif esfilter.missing:
-        if isinstance(esfilter.missing, basestring):
-            field = esfilter.missing
-        else:
-            field = esfilter.missing.field
-
-        if row[field] == None:
-            return True
-        return False
-
-    elif esfilter.exists:
-        if isinstance(esfilter.missing, basestring):
-            field = esfilter.missing
-        else:
-            field = esfilter.missing.field
-
-        if row[field] != None:
-            return True
-        return False
-    else:
-        Log.error(u"Can not convert esfilter to SQL: {{esfilter}}", {u"esfilter": esfilter})
-
 
 json_decoder = json.JSONDecoder().decode

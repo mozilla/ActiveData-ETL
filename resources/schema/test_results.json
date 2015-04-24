@@ -1,9 +1,7 @@
 {
 	"settings": {
-		"index.store.throttle.type": "merge",
 		"index.number_of_replicas": 1,
-		"index.store.throttle.max_bytes_per_sec": "20mb",
-		"index.number_of_shards": 5
+		"index.number_of_shards": 1
 	},
 	"mappings": {
 		"test_result": {

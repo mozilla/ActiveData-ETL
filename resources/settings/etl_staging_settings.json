@@ -12,7 +12,8 @@
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
+		"testlog_etl.transforms.pulse_block_to_test_result_logs.PROCESS_TRY": false
 	},
 	"workers": [
 		{
@@ -20,11 +21,11 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
-				"key_format":"a:b"
+				"key_format": "a:b"
 			},
 			"destination": {
 				"use_daily": false,
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"port": 9200,
 				"index": "pulse",
 				"type": "pulse_log",
@@ -51,7 +52,7 @@
 				"public": true,
 				"key_format": "a:b"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process_talos",
+			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -67,7 +68,7 @@
 				"bucket": "ekyle-test-result",
 				"key_format": "a:b.c"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process_talos",
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
 		{
@@ -79,7 +80,7 @@
 			},
 			"destination": {
 				"use_daily": true,
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
@@ -103,7 +104,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"index": "debug",
 				"type": "unittest_etl"
 			},
@@ -111,7 +112,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Developer Alert][STAGING] Problem in ETL",
+				"subject": "[ALERT][STAGING] Problem in ETL",
 				"$ref": "file://~/private.json#email"
 
 			}

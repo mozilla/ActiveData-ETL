@@ -2,29 +2,30 @@ from datetime import date, timedelta, datetime
 from decimal import Decimal
 import json
 import re
+from types import NoneType
 
-from pyLibrary.dot import DictList
+from pyLibrary.dot import DictList, NullType
 from pyLibrary.times.dates import Date
 
 from pyLibrary.times.durations import Duration
 
 
 Log = None
-datetime2milli = None
+datetime2unix = None
 utf82unicode = None
 
 
 def _late_import():
     global Log
-    global datetime2milli
+    global datetime2unix
     global utf82unicode
 
     from pyLibrary.debugs.logs import Log
-    from pyLibrary.convert import datetime2milli, utf82unicode
+    from pyLibrary.convert import datetime2unix, utf82unicode
 
     _ = Log
-    __ = datetime2milli
-    ___ = utf82unicode
+    _ = datetime2unix
+    _ = utf82unicode
 
 
 ESCAPE_DCT = {
@@ -56,21 +57,20 @@ def scrub(value):
     """
     if not Log:
         _late_import()
-    return _scrub(value)
+    return _scrub(value, set())
 
 
-def _scrub(value):
-    if value == None:
-        return None
-
+def _scrub(value, is_done):
     type = value.__class__
 
-    if type in (date, datetime):
-        return float(datetime2milli(value)) / float(1000)
+    if type in (NoneType, NullType):
+        return None
+    elif type in (date, datetime):
+        return float(datetime2unix(value))
     elif type is timedelta:
         return value.total_seconds()
     elif type is Date:
-        return value.unix
+        return float(value.unix)
     elif type is Duration:
         return value.seconds
     elif type is str:
@@ -78,18 +78,25 @@ def _scrub(value):
     elif type is Decimal:
         return float(value)
     elif isinstance(value, dict):
+        _id = id(value)
+        if _id in is_done:
+            Log.error("possible loop in structure detected")
+        is_done.add(_id)
+
         output = {}
         for k, v in value.iteritems():
             if not isinstance(k, basestring):
                 Log.error("keys must be strings")
-            v = _scrub(v)
-            if v != None or isinstance(v, dict):
+            v = _scrub(v, is_done)
+            if v != None:
                 output[k] = v
+
+        is_done.discard(_id)
         return output
     elif type in (list, DictList):
         output = []
         for v in value:
-            v = _scrub(v)
+            v = _scrub(v, is_done)
             output.append(v)
         return output
     elif type.__name__ == "bool_":  # DEAR ME!  Numpy has it's own booleans (value==False could be used, but 0==False in Python.  DOH!)
@@ -106,7 +113,7 @@ def _scrub(value):
     elif hasattr(value, '__iter__'):
         output = []
         for v in value:
-            v = _scrub(v)
+            v = _scrub(v, is_done)
             output.append(v)
         return output
     elif hasattr(value, '__call__'):

@@ -12,7 +12,7 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
-from pyLibrary.dot import Dict, wrap, nvl, set_default, literal_field
+from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
@@ -48,10 +48,10 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.name, unittest_log)
+            summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
     except Exception, e:
         Log.error("Problem processing {{key}}", {"key": source_key}, e)
-        raise e
+        summary = None
 
     buildbot_summary.etl = {
         "id": 0,
@@ -101,9 +101,11 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, file_name, lines):
+def accumulate_logs(source_key, file_name, lines, please_stop):
     accumulator = LogSummary()
     for line in lines:
+        if please_stop:
+            Log.error("Shutdown detected.  Structured log iterator is stopped.")
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
         line = strings.strip(line)
 
@@ -112,7 +114,7 @@ def accumulate_logs(source_key, file_name, lines):
         try:
             accumulator.stats.lines += 1
             log = convert.json2value(line)
-            log.time = log.time/1000
+            log.time = log.time / 1000
             accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
             accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
 
@@ -123,17 +125,6 @@ def accumulate_logs(source_key, file_name, lines):
             accumulator.__getattribute__(log.action)(log)
         except Exception, e:
             accumulator.stats.bad_lines += 1
-
-            # TODO: TURN BACK ON
-            # if len(line.split("=")) == 2:  # TODO: REMOVE THIS CHECK
-            #     # SUPRESS THESE WARNINGS FOR NOW, OLD ETL LEAKED NON-JSON DOCUMENTS
-            #     # StartTime=1409123984798
-            #     # CrashTime=1498346728
-            #     pass
-            # else:
-            #     if len(line) > 1000:
-            #         line = line[:1000] + "..."
-            #     Log.warning("Problem with line while processing {{key}}. Ignored.\n{{line|indent}}", {"key": source_key, "line": line}, e)
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
@@ -164,10 +155,12 @@ class LogSummary(Dict):
         )
 
     def test_status(self, log):
+        self.stats.action.test_status += 1
         if not log.test:
-            Log.error("log has blank 'test' property! Do not know how to hanlde.")
+            Log.error("log has blank 'test' property! Do not know how to handle.")
 
         test = self.tests[literal_field(log.test)]
+        test.stats.action.test_status += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
@@ -178,27 +171,32 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
     def process_output(self, log):
+        self.stats.action.process_output += 1
         pass
 
     def log(self, log):
+        self.stats.action.log += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
+        test.stats.action.log += 1
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
-                test=log.test,
-                start_time=log.time,
-                missing_test_start=True
-            )
+            self.tests[literal_field(log.test)] = test = wrap({
+                "test": log.test,
+                "start_time": log.time,
+                "missing_test_start": True,
+            })
         test.last_log_time = log.time
-        test.stats.log_lines += 1
+        test.stats.action.log += 1
 
     def crash(self, log):
+        self.stats.action.crash += 1
         if not log.test:
             return
 
         test = self.tests[literal_field(log.test)]
+        test.stats.action.crash += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
@@ -219,9 +217,9 @@ class LogSummary(Dict):
 
         test.ok = not log.expected
         test.result = log.status
-        test.expected = nvl(log.expected, log.status)
+        test.expected = coalesce(log.expected, log.status)
         test.end_time = log.time
-        test.duration = nvl(test.end_time - test.start_time, log.extra.runtime)
+        test.duration = coalesce(test.end_time - test.start_time, log.extra.runtime)
         test.extra = test.extra
 
     def suite_end(self, log):
@@ -242,7 +240,7 @@ class LogSummary(Dict):
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for r in set(tests.select("result")):
-                self.stats[r.lower()] = len([t for t in tests if t.result == r])
+                self.stats[r.lower()] = sum([1 for t in tests if t.result == r])
         except Exception, e:
             Log.error("problem", e)
 

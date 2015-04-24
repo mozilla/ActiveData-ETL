@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from copy import deepcopy
 from types import NoneType
-from pyLibrary.dot import split_field, _getdefault, hash_value, literal_field, nvl
+from pyLibrary.dot import split_field, _getdefault, hash_value, literal_field, coalesce
 
 _get = object.__getattribute__
 _set = object.__setattr__
@@ -49,18 +49,6 @@ class Dict(dict):
     def __nonzero__(self):
         d = _get(self, "__dict__")
         return True if d else False
-
-    def __str__(self):
-        try:
-            return "Dict("+dict.__str__(_get(self, "__dict__"))+")"
-        except Exception, e:
-            return "{}"
-
-    def __repr__(self):
-        try:
-            return "Dict("+dict.__repr__(_get(self, "__dict__"))+")"
-        except Exception, e:
-            return "Dict{}"
 
     def __contains__(self, item):
         if Dict.__getitem__(self, item):
@@ -178,13 +166,13 @@ class Dict(dict):
 
     def items(self):
         d = _get(self, "__dict__")
-        return [(k, wrap(v)) for k, v in d.items() if v != None]
+        return [(k, wrap(v)) for k, v in d.items() if v != None or isinstance(v, dict)]
 
     def leaves(self, prefix=None):
         """
         LIKE items() BUT RECURSIVE, AND ONLY FOR THE LEAVES (non dict) VALUES
         """
-        prefix = nvl(prefix, "")
+        prefix = coalesce(prefix, "")
         output = []
         for k, v in self.items():
             if isinstance(v, dict):
@@ -260,6 +248,18 @@ class Dict(dict):
         if self[k] == None:
             self[k] = d
         return self
+
+    def __str__(self):
+        try:
+            return "Dict("+dict.__str__(_get(self, "__dict__"))+")"
+        except Exception, e:
+            return "{}"
+
+    def __repr__(self):
+        try:
+            return "Dict("+dict.__repr__(_get(self, "__dict__"))+")"
+        except Exception, e:
+            return "Dict{}"
 
 
 # KEEP TRACK OF WHAT ATTRIBUTES ARE REQUESTED, MAYBE SOME (BUILTIN) ARE STILL USEFUL

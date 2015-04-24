@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from pyLibrary import strings, convert
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import nvl, wrap
+from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
@@ -36,7 +36,7 @@ class MultiDayIndex(object):
         self._get_queue(dummy)
 
     def _get_queue(self, d):
-        date = Date(nvl(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
+        date = Date(coalesce(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
         if not date:
             Log.error("Can not get date from document")
         name = self.settings.index + "_" + date.format("%Y-%m-%d")

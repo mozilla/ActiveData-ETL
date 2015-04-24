@@ -27,6 +27,10 @@ class NullType(object):
     """
 
     def __init__(self, obj=None, key=None):
+        """
+        obj - VALUE BEING DEREFERENCED
+        key - THE dict ITEM REFERENCE (DOT(.) IS NOT ESCAPED)
+        """
         d = _get(self, "__dict__")
         d["_obj"] = obj
         d["__key__"] = key
@@ -103,7 +107,16 @@ class NullType(object):
         return other is not None and not isinstance(other, NullType)
 
     def __getitem__(self, key):
-        return NullType(self, key)
+        if isinstance(key, str):
+            key = key.decode("utf8")
+        elif isinstance(key, int):
+            return NullType(self, key)
+
+        path = split_field(key)
+        output = self
+        for p in path:
+            output = NullType(output, p)
+        return output
 
     def __or__(self, other):
         if other is True:

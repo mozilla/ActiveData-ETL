@@ -64,6 +64,18 @@ class Duration(object):
             from pyLibrary.debugs.logs import Log
             Log.error("Do not know type of object (" + convert.value2json(value) + ")of to make a Duration")
 
+    @staticmethod
+    def range(start, stop, step):
+        if not step:
+            Log.error("Expecting a non-zero duration for interval")
+        output = []
+        c = start
+        while c < stop:
+            output.append(c)
+            c += step
+        return output
+
+
 
     def __add__(self, other):
         output = Duration(0)
@@ -170,6 +182,11 @@ class Duration(object):
             return True
         return self.milli > Duration(other).milli
 
+    def ceiling(self, interval=None):
+        if interval is None:
+            interval = DAY
+        return (self + interval).floor(interval) - interval
+
     def floor(self, interval=None):
         if not isinstance(interval, Duration):
             from pyLibrary.debugs.logs import Log
@@ -268,12 +285,12 @@ class Duration(object):
         return output
 
 
-    def format(self, interval, rounding):
-        return self.round(Duration(interval), rounding) + interval
+    def format(self, interval, decimal):
+        return self.round(Duration(interval), decimal) + interval
 
-    def round(self, interval, rounding=0):
+    def round(self, interval, decimal=0):
         output = self / interval
-        output = Math.round(output, rounding)
+        output = Math.round(output, decimal)
         return output
 
 
@@ -310,7 +327,7 @@ def parse(value):
         mlist = pplist.split("-")
         output = output + _string2Duration(mlist[0])
         for m in mlist[1::]:
-            output = output.subtract(_string2Duration(m))
+            output = output - _string2Duration(m)
     return output
 
 

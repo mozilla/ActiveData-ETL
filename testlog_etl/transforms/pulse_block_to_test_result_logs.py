@@ -20,9 +20,10 @@ from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
+PROCESS_TRY = False
 
 
-def process_talos(source_key, source, destination, please_stop=None):
+def process(source_key, source, destination, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO S3 LOGFILES
     PREPEND WITH ETL HEADER AND PULSE ENVELOPE
@@ -32,6 +33,10 @@ def process_talos(source_key, source, destination, please_stop=None):
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
+    existing_keys = destination.keys(prefix=source_key)
+    for e in existing_keys:
+        destination.delete_key(e)
+
     for i, line in enumerate(source.read_lines()):
         if fast_forward:
             continue
@@ -40,6 +45,9 @@ def process_talos(source_key, source, destination, please_stop=None):
 
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         if not pulse_record:
+            continue
+
+        if not PROCESS_TRY and pulse_record.data.tree == "try":
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
@@ -73,8 +81,8 @@ def process_talos(source_key, source, destination, please_stop=None):
                     debug=DEBUG
                 ):
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
-                    buildbot_summary = transform_buildbot(pulse_record.data)
-                    new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=None)
+                    buildbot_summary = transform_buildbot(pulse_record.data, filename=name)
+                    new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1
                     output.append(dest_key)

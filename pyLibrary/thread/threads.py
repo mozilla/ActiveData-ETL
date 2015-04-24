@@ -22,7 +22,7 @@ import sys
 import gc
 from pyLibrary import strings
 
-from pyLibrary.dot import nvl, Dict
+from pyLibrary.dot import coalesce, Dict, wrap
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration, SECOND
 
@@ -84,7 +84,7 @@ class Queue(object):
         silent - COMPLAIN IF THE READERS ARE TOO SLOW
         """
         self.name = name
-        self.max = nvl(max, 2 ** 10)
+        self.max = coalesce(max, 2 ** 10)
         self.silent = silent
         self.keep_running = True
         self.lock = Lock("lock for queue " + name)
@@ -263,8 +263,31 @@ class AllThread(object):
         self.threads.append(t)
 
 
+class MainThread(object):
+
+    def __init__(self):
+        self.name="Main Thread"
+        self.id = thread.get_ident()
+        self.children= []
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def stop(self):
+        """
+        BLOCKS UNTIL ALL THREADS HAVE STOPPED
+        """
+        children = self.children
+        self.children = []
+        for c in children:
+            c.stop()
+        for c in children:
+            c.join()
+
+
+MAIN_THREAD = MainThread()
+
 ALL_LOCK = Lock("threads ALL_LOCK")
-MAIN_THREAD = Dict(name="Main Thread", id=thread.get_ident())
 ALL = dict()
 ALL[thread.get_ident()] = MAIN_THREAD
 
@@ -297,6 +320,10 @@ class Thread(object):
 
         self.stopped = Signal()
         self.cprofiler = None
+        self.children = []
+
+        self.parent = kwargs.get("parent_thread", Thread.current())
+        self.parent.add_child(self)
 
     def __enter__(self):
         return self
@@ -319,7 +346,12 @@ class Thread(object):
             Log.error("Can not start thread", e)
 
     def stop(self):
+        for c in self.children:
+            c.stop()
         self.please_stop.go()
+
+    def add_child(self, child):
+        self.children.append(child)
 
     def _run(self):
         if Log.cprofiler:
@@ -333,7 +365,9 @@ class Thread(object):
 
         try:
             if self.target is not None:
-                response = self.target(*self.args, **self.kwargs)
+                a, k = self.args, self.kwargs
+                self.args, self.kwargs = None, None
+                response = self.target(*a, **k)
                 with self.synch_lock:
                     self.response = Dict(response=response)
         except Exception, e:
@@ -344,6 +378,14 @@ class Thread(object):
             except Exception, f:
                 sys.stderr.write("ERROR in thread: " + str(self.name) + " " + str(e) + "\n")
         finally:
+            for c in self.children:
+                c.stop()
+            for c in self.children:
+                try:
+                    c.join()
+                except Exception, _:
+                    pass
+
             self.stopped.go()
             del self.target, self.args, self.kwargs
             with ALL_LOCK:
@@ -362,6 +404,9 @@ class Thread(object):
         """
         RETURN THE RESULT {"response":r, "exception":e} OF THE THREAD EXECUTION (INCLUDING EXCEPTION, IF EXISTS)
         """
+        for c in self.children:
+            c.join(timeout=timeout, till=till)
+
         if not till and timeout:
             till = datetime.utcnow() + timedelta(seconds=timeout)
 
@@ -571,9 +616,9 @@ class ThreadedQueue(Queue):
         if not Log:
             _late_import()
 
-        batch_size = nvl(batch_size, int(max_size/2), 900)
-        max_size = nvl(max_size, batch_size * 2)  # REASONABLE DEFAULT
-        period = nvl(period, SECOND)
+        batch_size = coalesce(batch_size, int(coalesce(max_size, 0)/2), 900)
+        max_size = coalesce(max_size, batch_size * 2)  # REASONABLE DEFAULT
+        period = coalesce(period, SECOND)
         bit_more_time = 5 * SECOND
 
         Queue.__init__(self, name=name, max=max_size, silent=silent)

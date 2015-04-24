@@ -13,11 +13,10 @@ from __future__ import division
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import AND
 from pyLibrary.queries import qb
-from pyLibrary.queries import qb_usingES_util
-from pyLibrary.queries.qb_usingES_util import aggregates, buildFromES, compileEdges2Term
-from pyLibrary.queries.filters import simplify_esfilter
+from pyLibrary.queries.es09.util import aggregates, build_es_query, compileEdges2Term
+from pyLibrary.queries import es09
 from pyLibrary.queries.cube import Cube
-from pyLibrary.dot import nvl
+from pyLibrary.dot import coalesce
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, listwrap
 
@@ -42,21 +41,21 @@ def es_terms(es, mvel, query):
         return _es_terms2(es, mvel, query)
 
     select = listwrap(query.select)
-    FromES = buildFromES(query)
+    FromES = build_es_query(query)
     packed_term = compileEdges2Term(mvel, query.edges, wrap([]))
     for s in select:
         FromES.facets[s.name] = {
             "terms": {
                 "field": packed_term.field,
                 "script_field": packed_term.expression,
-                "size": nvl(query.limit, 200000)
+                "size": coalesce(query.limit, 200000)
             },
             "facet_filter": simplify_esfilter(query.where)
         }
 
     term2Parts = packed_term.term2parts
 
-    data = qb_usingES_util.post(es, FromES, query.limit)
+    data = es09.util.post(es, FromES, query.limit)
 
     # GETTING ALL PARTS WILL EXPAND THE EDGES' DOMAINS
     # BUT HOW TO UNPACK IT FROM THE term FASTER IS UNKNOWN
@@ -106,13 +105,13 @@ def _es_terms2(es, mvel, query):
     values1 = es_terms(es, mvel, q1).edges[0].domain.partitions.value
 
     select = listwrap(query.select)
-    FromES = buildFromES(query)
+    FromES = build_es_query(query)
     for s in select:
         for i, v in enumerate(values1):
             FromES.facets[s.name + "," + str(i)] = {
                 "terms": {
                     "field": query.edges[1].value,
-                    "size": nvl(query.limit, 200000)
+                    "size": coalesce(query.limit, 200000)
                 },
                 "facet_filter": simplify_esfilter({"and": [
                     query.where,
@@ -120,7 +119,7 @@ def _es_terms2(es, mvel, query):
                 ]})
             }
 
-    data = qb_usingES_util.post(es, FromES, query.limit)
+    data = es09.util.post(es, FromES, query.limit)
 
     # UNION ALL TERMS FROM SECOND DIMENSION
     values2 = set()

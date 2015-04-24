@@ -10,7 +10,6 @@
 from __future__ import unicode_literals
 from __future__ import division
 from copy import deepcopy
-
 from datetime import datetime
 
 from pyLibrary import convert
@@ -19,12 +18,15 @@ from pyLibrary.collections import COUNT
 from pyLibrary.maths import stats
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
-from pyLibrary.queries import domains, MVEL, filters
+from pyLibrary.queries import domains
 from pyLibrary.dot.dicts import Dict
-from pyLibrary.dot import split_field, join_field, nvl, set_default
+from pyLibrary.dot import split_field, join_field, coalesce
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap
 from pyLibrary.queries import qb
+from pyLibrary.queries.es09 import expressions
+from pyLibrary.queries.es09.expressions import value2MVEL, isKeyword
+from pyLibrary.queries.expressions import simplify_esfilter
 from pyLibrary.times import durations
 
 
@@ -32,8 +34,6 @@ TrueFilter = {"match_all": {}}
 DEBUG = False
 
 INDEX_CACHE = {}  # MATCH NAMES TO ES URL AND COLUMNS eg {name:{"url":url, "columns":columns"}}
-
-
 
 
 def post(es, FromES, limit):
@@ -61,7 +61,7 @@ def post(es, FromES, limit):
     return postResult
 
 
-def buildFromES(query):
+def build_es_query(query):
     output = wrap({
         "query": {"match_all": {}},
         "from": 0,
@@ -78,7 +78,7 @@ def buildFromES(query):
                 "query": {
                     "match_all": {}
                 },
-                "filter": filters.simplify_esfilter(query.where)
+                "filter": simplify_esfilter(query.where)
             }
         }
 
@@ -107,7 +107,7 @@ def parse_columns(parent_path, esProperties):
             columns.append({
                 "name": join_field(split_field(path)[1::]),
                 "type": "nested",
-                "useSource": True
+                "useSource": False
             })
 
             if path not in INDEX_CACHE:
@@ -130,7 +130,7 @@ def parse_columns(parent_path, esProperties):
             columns.append({
                 "name": join_field(split_field(path)[1::]),
                 "type": "object",
-                "useSource": True
+                "useSource": False
             })
 
         if property.dynamic:
@@ -159,11 +159,11 @@ def parse_columns(parent_path, esProperties):
                     "type": property.type,
                     "useSource": property.index == "no"
                 })
-        elif not property.enabled:
+        elif property.enabled == None or property.enabled == False:
             columns.append({
                 "name": join_field(split_field(path)[1::]),
-                "type": property.type,
-                "useSource": "yes"
+                "type": "object",
+                "useSource": True
             })
         else:
             Log.warning("unknown type {{type}} for property {{path}}", {"type": property.type, "path": path})
@@ -182,17 +182,17 @@ def compileTime2Term(edge):
     # IS THERE A LIMIT ON THE DOMAIN?
     numPartitions = len(edge.domain.partitions)
     value = edge.value
-    if MVEL.isKeyword(value):
+    if isKeyword(value):
         value = "doc[\"" + value + "\"].value"
 
     nullTest = compileNullTest(edge)
-    ref = nvl(edge.domain.min, edge.domain.max, datetime(2000, 1, 1))
+    ref = coalesce(edge.domain.min, edge.domain.max, datetime(2000, 1, 1))
 
     if edge.domain.interval.month > 0:
         offset = ref.subtract(ref.floorMonth(), durations.DAY).milli
         if offset > durations.DAY.milli * 28:
             offset = ref.subtract(ref.ceilingMonth(), durations.DAY).milli
-        partition2int = "milli2Month(" + value + ", " + MVEL.value2MVEL(offset) + ")"
+        partition2int = "milli2Month(" + value + ", " + value2MVEL(offset) + ")"
         partition2int = "((" + nullTest + ") ? 0 : " + partition2int + ")"
 
         def int2Partition(value):
@@ -203,7 +203,7 @@ def compileTime2Term(edge):
             d = d.addMilli(offset)
             return edge.domain.getPartByKey(d)
     else:
-        partition2int = "Math.floor((" + value + "-" + MVEL.value2MVEL(ref) + ")/" + edge.domain.interval.milli + ")"
+        partition2int = "Math.floor((" + value + "-" + value2MVEL(ref) + ")/" + edge.domain.interval.milli + ")"
         partition2int = "((" + nullTest + ") ? " + numPartitions + " : " + partition2int + ")"
 
         def int2Partition(value):
@@ -223,17 +223,17 @@ def compileDuration2Term(edge):
     # IS THERE A LIMIT ON THE DOMAIN?
     numPartitions = len(edge.domain.partitions)
     value = edge.value
-    if MVEL.isKeyword(value):
+    if isKeyword(value):
         value = "doc[\"" + value + "\"].value"
 
-    ref = nvl(edge.domain.min, edge.domain.max, durations.ZERO)
+    ref = coalesce(edge.domain.min, edge.domain.max, durations.ZERO)
     nullTest = compileNullTest(edge)
 
     ms = edge.domain.interval.milli
     if edge.domain.interval.month > 0:
         ms = durations.YEAR.milli / 12 * edge.domain.interval.month
 
-    partition2int = "Math.floor((" + value + "-" + MVEL.value2MVEL(ref) + ")/" + ms + ")"
+    partition2int = "Math.floor((" + value + "-" + value2MVEL(ref) + ")/" + ms + ")"
     partition2int = "((" + nullTest + ") ? " + numPartitions + " : " + partition2int + ")"
 
     def int2Partition(value):
@@ -255,26 +255,26 @@ def compileNumeric2Term(edge):
 
     numPartitions = len(edge.domain.partitions)
     value = edge.value
-    if MVEL.isKeyword(value):
+    if isKeyword(value):
         value = "doc[\"" + value + "\"].value"
 
     if not edge.domain.max:
         if not edge.domain.min:
             ref = 0
-            partition2int = "Math.floor(" + value + ")/" + MVEL.value2MVEL(edge.domain.interval) + ")"
+            partition2int = "Math.floor(" + value + ")/" + value2MVEL(edge.domain.interval) + ")"
             nullTest = "false"
         else:
-            ref = MVEL.value2MVEL(edge.domain.min)
-            partition2int = "Math.floor((" + value + "-" + ref + ")/" + MVEL.value2MVEL(edge.domain.interval) + ")"
+            ref = value2MVEL(edge.domain.min)
+            partition2int = "Math.floor((" + value + "-" + ref + ")/" + value2MVEL(edge.domain.interval) + ")"
             nullTest = "" + value + "<" + ref
     elif not edge.domain.min:
-        ref = MVEL.value2MVEL(edge.domain.max)
-        partition2int = "Math.floor((" + value + "-" + ref + ")/" + MVEL.value2MVEL(edge.domain.interval) + ")"
+        ref = value2MVEL(edge.domain.max)
+        partition2int = "Math.floor((" + value + "-" + ref + ")/" + value2MVEL(edge.domain.interval) + ")"
         nullTest = "" + value + ">=" + ref
     else:
-        top = MVEL.value2MVEL(edge.domain.max)
-        ref = MVEL.value2MVEL(edge.domain.min)
-        partition2int = "Math.floor((" + value + "-" + ref + ")/" + MVEL.value2MVEL(edge.domain.interval) + ")"
+        top = value2MVEL(edge.domain.max)
+        ref = value2MVEL(edge.domain.min)
+        partition2int = "Math.floor((" + value + "-" + ref + ")/" + value2MVEL(edge.domain.interval) + ")"
         nullTest = "(" + value + "<" + ref + ") or (" + value + ">=" + top + ")"
 
     partition2int = "((" + nullTest + ") ? " + numPartitions + " : " + partition2int + ")"
@@ -293,7 +293,7 @@ def compileString2Term(edge):
         Log.error("edge script not supported yet")
 
     value = edge.value
-    if MVEL.isKeyword(value):
+    if isKeyword(value):
         value = strings.expand_template("getDocValue({{path}})", {"path": convert.string2quote(value)})
     else:
         Log.error("not handled")
@@ -316,20 +316,20 @@ def compileNullTest(edge):
 
     # IS THERE A LIMIT ON THE DOMAIN?
     value = edge.value
-    if MVEL.isKeyword(value):
+    if isKeyword(value):
         value = "doc[\"" + value + "\"].value"
 
     if not edge.domain.max:
         if not edge.domain.min:
             return False
-        bot = MVEL.value2MVEL(edge.domain.min)
+        bot = value2MVEL(edge.domain.min)
         nullTest = "" + value + "<" + bot
     elif not edge.domain.min:
-        top = MVEL.value2MVEL(edge.domain.max)
+        top = value2MVEL(edge.domain.max)
         nullTest = "" + value + ">=" + top
     else:
-        top = MVEL.value2MVEL(edge.domain.max)
-        bot = MVEL.value2MVEL(edge.domain.min)
+        top = value2MVEL(edge.domain.max)
+        bot = value2MVEL(edge.domain.min)
         nullTest = "(" + value + "<" + bot + ") or (" + value + ">=" + top + ")"
 
     return nullTest
@@ -354,7 +354,7 @@ def compileEdges2Term(mvel_compiler, edges, constants):
         def temp(term):
             return DictList([edge0.domain.getPartByKey(term)])
 
-        if edge0.value and MVEL.isKeyword(edge0.value):
+        if edge0.value and isKeyword(edge0.value):
             return Dict(
                 field=edge0.value,
                 term2parts=temp
@@ -462,27 +462,4 @@ aggregates = {
     "variance": "variance"
 }
 
-# FOR ELASTICSEARCH aggs
-aggregates1_4 = {
-    "none": "none",
-    "one": "count",
-    "sum": "sum",
-    "add": "sum",
-    "count": "count",
-    "maximum": "max",
-    "minimum": "min",
-    "max": "max",
-    "min": "min",
-    "mean": "avg",
-    "average": "avg",
-    "avg": "avg",
-    "N": "count",
-    "X0": "count",
-    "X1": "sum",
-    "X2": "sum_of_squares",
-    "std": "std_deviation",
-    "stddev": "std_deviation",
-    "var": "variance",
-    "variance": "variance"
-}
 

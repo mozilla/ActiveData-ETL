@@ -2,8 +2,8 @@
 
 ES_CLASSPATH=$ES_CLASSPATH:$ES_HOME/lib/elasticsearch-1.4.2.jar:$ES_HOME/lib/*:$ES_HOME/lib/sigar/*
 
-ES_MIN_MEM=12g
-ES_MAX_MEM=12g
+ES_MIN_MEM=30g
+ES_MAX_MEM=30g
 
 # min and max heap sizes should be set to the same value to avoid
 # stop-the-world GC pauses during resize, and so that we can lock the

@@ -14,7 +14,7 @@
 # }
 
 # ENSURE THE FOLLOWING FILES HAVE BEEN UPLOADED FIRST
-# /home/ec2-user/elasticsearch.yml
+# /home/ec2-user/elasticsearch_primary.yml
 # /home/ec2-user/elasticsearch.in.sh
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
@@ -65,31 +65,45 @@ sudo bin/plugin -install mobz/elasticsearch-head
 #/dev/xvdb: data
 
 sudo mkfs -t ext4 /dev/xvdb
-sudo mkdir /data
-sudo mkdir /data/logs
-sudo mkdir /data/heapdump
+sudo mkfs -t ext4 /dev/xvdc
+sudo mkfs -t ext4 /dev/xvdd
+sudo mkfs -t ext4 /dev/xvde
+sudo mkfs -t ext4 /dev/xvdf
+sudo mkfs -t ext4 /dev/xvdg
+
+sudo mkdir /data1
+sudo mkdir /data2
+sudo mkdir /data3
+sudo mkdir /data4
+sudo mkdir /data5
+sudo mkdir /data6
+sudo mkdir /data1/logs
+sudo mkdir /data1/heapdump
 
 #ADD TO /etc/fstab SO AROUND AFTER REBOOT
-sudo sed -i '$ a\/dev/xvdb   /data        ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdd   /data3       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvde   /data4       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdf   /data5       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdg   /data6       ext4    defaults,nofail  0   2' /etc/fstab
 
 #TEST IT IS WORKING
 sudo mount -a
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp /home/ec2-user/elasticsearch.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 # RUN IN BACKGROUND
-export ES_MIN_MEM=12g
-export ES_MAX_MEM=12g
+export ES_MIN_MEM=30g
+export ES_MAX_MEM=30g
 cd /usr/local/elasticsearch
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
-cd /usr/local/elasticsearch
 
 
-cd /usr/local/elasticsearch
-tail -f logs/ekyle-aws-1.log
+tail -f /data/logs/ekyle-aws-1.log

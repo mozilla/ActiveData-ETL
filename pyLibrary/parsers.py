@@ -1,5 +1,5 @@
 from urlparse import urlparse, parse_qs
-from pyLibrary.dot import Null, nvl, wrap
+from pyLibrary.dot import Null, coalesce, wrap
 from pyLibrary.dot.dicts import Dict
 
 
@@ -32,6 +32,11 @@ def parse(output, suffix, curr, next):
 
 
 class URL(object):
+    """
+    JUST LIKE urllib.parse() [1], BUT CAN HANDLE JSON query PARAMETERS
+
+    [1] https://docs.python.org/3/library/urllib.parse.html
+    """
 
     def __init__(self, value):
         self.scheme = None

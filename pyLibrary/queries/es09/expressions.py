@@ -16,9 +16,9 @@ from pyLibrary import convert
 from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
-from pyLibrary.queries.filters import TRUE_FILTER
-from pyLibrary.dot import split_field, Dict, Null, join_field, nvl
+from pyLibrary.dot import split_field, Dict, Null, join_field, coalesce
 from pyLibrary.dot import listwrap
+from pyLibrary.queries.expressions import TRUE_FILTER
 from pyLibrary.times.durations import Duration
 
 
@@ -80,7 +80,7 @@ class _MVEL(object):
         path = split_field(fromPath)
 
         # ADD LOCAL VARIABLES
-        from pyLibrary.queries.qb_usingES_util import INDEX_CACHE
+        from pyLibrary.queries.es09.util import INDEX_CACHE
 
         columns = INDEX_CACHE[path[0]].columns
         for i, c in enumerate(columns):
@@ -439,8 +439,8 @@ def _where(esFilter, _translate):
         return "(" + _translate(variableName) + "!=null)"
     elif op == "missing":
         fieldName = _translate(esFilter[op].field)
-        testExistence = nvl(esFilter[op].existence, True)
-        testNull = nvl(esFilter[op].null_value, True)
+        testExistence = coalesce(esFilter[op].existence, True)
+        testNull = coalesce(esFilter[op].null_value, True)
 
         output = []
         if testExistence and not testNull:

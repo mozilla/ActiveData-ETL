@@ -19,7 +19,7 @@ from boto.s3.connection import Location
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Null, nvl
+from pyLibrary.dot import wrap, Null, coalesce, unwrap
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
@@ -52,8 +52,8 @@ class Connection(object):
     @use_settings
     def __init__(
         self,
-        aws_access_key_id,  # CREDENTIAL
-        aws_secret_access_key,  # CREDENTIAL
+        aws_access_key_id=None,  # CREDENTIAL
+        aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         settings=None
     ):
@@ -62,14 +62,14 @@ class Connection(object):
         try:
             if not settings.region:
                 self.connection = boto.connect_s3(
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=unwrap(self.settings.aws_access_key_id),
+                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
                 )
             else:
                 self.connection = boto.s3.connect_to_region(
                     self.settings.region,
-                    aws_access_key_id=self.settings.aws_access_key_id,
-                    aws_secret_access_key=self.settings.aws_secret_access_key
+                    aws_access_key_id=unwrap(self.settings.aws_access_key_id),
+                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
                 )
         except Exception, e:
             Log.error("Problem connecting to S3", e)
@@ -103,8 +103,8 @@ class Bucket(object):
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
-        aws_access_key_id,  # CREDENTIAL
-        aws_secret_access_key,  # CREDENTIAL
+        aws_access_key_id=None,  # CREDENTIAL
+        aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
@@ -150,8 +150,11 @@ class Bucket(object):
             raise e
 
     def get_meta(self, key, conforming=True):
-        if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
-            Log.error("Expecting a pure key")
+        try:
+            if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
+                Log.error("Expecting a pure key")
+        except Exception, e:
+            Log.error("bad key format {{key}}", {"key":key}, e)
 
         try:
             # key_prefix("2")
@@ -190,7 +193,7 @@ class Bucket(object):
                 })
             if not perfect and error:
                 Log.error("Problem with key request", error)
-            return nvl(perfect, favorite)
+            return coalesce(perfect, favorite)
         except Exception, e:
             Log.error(READ_ERROR, e)
 

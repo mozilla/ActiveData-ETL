@@ -29,8 +29,8 @@ class S3Bucket(object):
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
-        aws_access_key_id,  # CREDENTIAL
-        aws_secret_access_key,  # CREDENTIAL
+        aws_access_key_id=None,  # CREDENTIAL
+        aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
@@ -86,6 +86,12 @@ class S3Bucket(object):
 
 
     def _extend(self, key, documents):
+        #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
+        if self.bucket.name == "ekyle-test-result":
+             #TODO: PUT THIS LOGIC ELSEWHERE (LIKE settings) WE DO NOT CARE WHAT'S IN THE BUCKET, OVERWRITE ALL
+            self.bucket.write_lines(key, map(convert.value2json, documents))
+            return
+
         meta = self.bucket.get_meta(key)
         if meta is not None:
             documents = UniqueIndex(keys="etl.id", data=documents)
@@ -97,15 +103,12 @@ class S3Bucket(object):
                 old_docs = UniqueIndex(keys="etl.id")
 
             residual = old_docs - documents
+            overlap = old_docs & documents
             # IS IT CHEAPER TO SEE IF THERE IS A DIFF, RATHER THAN WRITE NEW DATA TO S3?
+            fuzzytestcase.assertAlmostEqual(documents._data, overlap._data)
+
             if residual:
                 documents = documents | residual
-            else:
-                try:
-                    fuzzytestcase.assertAlmostEqual(old_docs._data, documents._data)
-                    return
-                except Exception, _:
-                    pass
 
         self.bucket.write_lines(key, map(convert.value2json, documents))
 

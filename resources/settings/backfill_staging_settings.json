@@ -19,7 +19,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://172.31.0.146",
+				"host": "http://172.31.0.145",
 				"index": "debug",
 				"type": "unittest_etl"
 			},
@@ -27,7 +27,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Alert][STAGING] Problem in Backfill",
+				"subject": "[ALERT][STAGING] Problem in Backfill",
 				"$ref": "file://~/private.json#email"
 
 			}

@@ -14,15 +14,15 @@ from pyLibrary import convert
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.meta import use_settings
 from pyLibrary.sql import SQL
-from pyLibrary.sql.mysql import int_list_packer, MySQL
+from pyLibrary.sql.mysql import int_list_packer
 from pyLibrary.debugs.logs import Log
 from pyLibrary.strings import indent, expand_template
-from pyLibrary.dot import nvl
+from pyLibrary.dot import coalesce
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, listwrap, unwrap
 
 
-class FromMySQL(object):
+class MySQL(object):
     """
     qb to MySQL DATABASE QUERIES
     """
@@ -395,8 +395,8 @@ def _esfilter2sqlwhere(db, esfilter):
         }
 
         def single(col, r):
-            min = nvl(r["gte"], r[">="])
-            max = nvl(r["lte"], r["<="])
+            min = coalesce(r["gte"], r[">="])
+            max = coalesce(r["lte"], r["<="])
             if min and max:
                 # SPECIAL CASE (BETWEEN)
                 return db.quote_column(col) + " BETWEEN " + db.quote_value(min) + " AND " + db.quote_value(max)

@@ -11,7 +11,19 @@ from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary import dot
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import unwrap, set_default, wrap
+from pyLibrary.dot import unwrap, set_default, wrap, _get_attr
+
+
+def get_class(path):
+    try:
+        #ASSUME DIRECT FROM MODULE
+        output = __import__(".".join(path[0:-1]), globals(), locals(), [path[-1]], 0)
+        return _get_attr(output, path[-1:])
+        # return output
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
+
+        Log.error("Could not find module {{module|quote}}", {"module": ".".join(path)})
 
 
 def new_instance(settings):
@@ -72,9 +84,9 @@ def use_settings(func):
     THE BENEFIT OF HAVING ALL PARAMETERS IN ONE PLACE (settings) AND ALL
     PARAMETERS ARE EXPLICIT FOR CLARITY.
 
-    PARAMETER ASSIGNMENT MAY NOT BE UNIQUE, VALUES CAN COME FROM EXPLICIT
-    CALL PARAMETERS, OR FROM THE settings PARAMETER.  IN THESE CASES,
-    PARAMETER VALUES ARE CHOSEN IN THE FOLLOWING ORDER:
+    OF COURSE, THIS MEANS PARAMETER ASSIGNMENT MAY NOT BE UNIQUE: VALUES CAN
+    COME FROM EXPLICIT CALL PARAMETERS, OR FROM THE settings PARAMETER.  IN
+    THESE CASES, PARAMETER VALUES ARE CHOSEN IN THE FOLLOWING ORDER:
     1) EXPLICT CALL PARAMETERS
     2) PARAMETERS FOUND IN settings
     3) DEFAULT VALUES ASSIGNED IN FUNCTION DEFINITION

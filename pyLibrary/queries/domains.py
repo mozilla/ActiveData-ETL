@@ -13,7 +13,7 @@ import re
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.dot import nvl, Dict, set_default, Null
+from pyLibrary.dot import coalesce, Dict, set_default, Null
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap
 from pyLibrary.times.dates import Date
@@ -27,7 +27,7 @@ PARTITION = {"uid", "set", "boolean"}  # DIMENSIONS WITH CLEAR PARTS
 
 
 class Domain(object):
-    __slots__ = ["name", "type", "value", "key", "label", "end", "isFacet", "where", "dimension"]
+    __slots__ = ["name", "type", "value", "key", "label", "end", "isFacet", "where", "dimension", "primitive"]
 
     def __new__(cls, **desc):
         if cls == Domain:
@@ -42,12 +42,12 @@ class Domain(object):
         desc = wrap(desc)
         self._set_slots_to_none(self.__class__)
         set_default(self, desc)
-        self.name = nvl(desc.name, desc.type)
-        self.isFacet = nvl(desc.isFacet, False)
+        self.name = coalesce(desc.name, desc.type)
+        self.isFacet = coalesce(desc.isFacet, False)
 
     def _set_slots_to_none(self, cls):
         """
-        WHY ARE SLOTS NOT ACCESIBLE UNTILO WE ASSIGN TO THEM?
+        WHY ARE SLOTS NOT ACCESIBLE UNTIL WE ASSIGN TO THEM?
         """
         if hasattr(cls, "__slots__"):
             for s in cls.__slots__:
@@ -63,15 +63,15 @@ class Domain(object):
         return self.__class__(**self.as_dict())
 
     def as_dict(self):
-        return Dict(
-            name=self.name,
-            type=self.type,
-            value=self.value,
-            key=self.key,
-            isFacet=self.isFacet,
-            where=self.where,
-            dimension=self.dimension
-        )
+        return wrap({
+            "name": self.name,
+            "type": self.type,
+            "value": self.value,
+            "key": self.key,
+            "isFacet": self.isFacet,
+            "where": self.where,
+            "dimension": self.dimension
+        })
 
     def __json__(self):
         return convert.value2json(self.as_dict())
@@ -86,6 +86,8 @@ class Domain(object):
             output |= self._all_slots(b)
         return output
 
+    def getDomain(self):
+        Log.error("Not implemented")
 
 
 class ValueDomain(Domain):
@@ -116,7 +118,7 @@ class DefaultDomain(Domain):
     DOMAIN IS A LIST OF OBJECTS, EACH WITH A value PROPERTY
     """
 
-    __slots__ = ["NULL", "partitions", "map"]
+    __slots__ = ["NULL", "partitions", "map", "limit"]
 
     def __init__(self, **desc):
         Domain.__init__(self, **desc)
@@ -173,6 +175,7 @@ class SimpleSetDomain(Domain):
         self.order = {}
         self.NULL = Null
         self.partitions = DictList()
+        self.primitive = True  # True IF DOMAIN IS A PRIMITIVE VALUE SET
 
         if isinstance(self.key, set):
             Log.error("problem")
@@ -187,7 +190,8 @@ class SimpleSetDomain(Domain):
                 self.partitions.append(part)
                 self.map[p] = part
                 self.order[p] = i
-            self.label = nvl(self.label, "name")
+            self.label = coalesce(self.label, "name")
+            self.primitive = True
             return
 
         if desc.partitions and desc.dimension.fields and len(desc.dimension.fields) > 1:
@@ -207,10 +211,21 @@ class SimpleSetDomain(Domain):
             self.key = "value"
             self.map = {}
             self.order[None] = 0
-            self.label = nvl(self.label, "name")
+            self.label = coalesce(self.label, "name")
             return
         elif desc.key == None:
-            Log.error("Domains must have keys")
+            if desc.partitions and len(set(desc.partitions.value)) == len(desc.partitions):
+                # TRY A COMMON KEY CALLED "value".  IT APPEARS UNIQUE
+                self.key = "value"
+                self.map = dict()
+                self.map[None] = self.NULL
+                self.order[None] = len(desc.partitions)
+                for i, p in enumerate(desc.partitions):
+                    self.map[p[self.key]] = p
+                    self.order[p[self.key]] = i
+                self.primitive = False
+            else:
+                Log.error("Domains must have keys")
         elif self.key:
             self.key = desc.key
             self.map = dict()
@@ -219,6 +234,7 @@ class SimpleSetDomain(Domain):
             for i, p in enumerate(desc.partitions):
                 self.map[p[self.key]] = p
                 self.order[p[self.key]] = i
+            self.primitive = False
         elif all(p.esfilter for p in self.partitions):
             # EVERY PART HAS AN esfilter DEFINED, SO USE THEM
             for i, p in enumerate(self.partitions):
@@ -227,7 +243,7 @@ class SimpleSetDomain(Domain):
         else:
             Log.error("Can not hanldle")
 
-        self.label = nvl(self.label, "name")
+        self.label = coalesce(self.label, "name")
 
         if isinstance(desc.partitions, list):
             self.partitions = desc.partitions.copy()
@@ -281,8 +297,6 @@ class SimpleSetDomain(Domain):
         output = Domain.as_dict(self)
         output.partitions = self.partitions
         return output
-
-
 
 
 class SetDomain(Domain):
@@ -339,7 +353,7 @@ class SetDomain(Domain):
         else:
             Log.error("Can not hanldle")
 
-        self.label = nvl(self.label, "name")
+        self.label = coalesce(self.label, "name")
 
         if isinstance(desc.partitions, list):
             self.partitions = desc.partitions.copy()
@@ -454,6 +468,126 @@ class TimeDomain(Domain):
         return output
 
 
+class DurationDomain(Domain):
+    __slots__ = ["max", "min", "interval", "partitions", "NULL"]
+
+    def __init__(self, **desc):
+        Domain.__init__(self, **desc)
+        self.type = "duration"
+        self.NULL = Null
+        self.min = Duration(self.min)
+        self.max = Duration(self.max)
+        self.interval = Duration(self.interval)
+
+        if self.partitions:
+            # IGNORE THE min, max, interval
+            if not self.key:
+                Log.error("Must have a key value")
+
+            Log.error("not implemented yet")
+
+            # VERIFY PARTITIONS DO NOT OVERLAP
+            return
+        elif not all([self.min, self.max, self.interval]):
+            Log.error("Can not handle missing parameter")
+
+        self.key = "min"
+        self.partitions = wrap([{"min": v, "max": v + self.interval, "dataIndex":i} for i, v in enumerate(Duration.range(self.min, self.max, self.interval))])
+
+    def compare(self, a, b):
+        return value_compare(a, b)
+
+    def getCanonicalPart(self, part):
+        return self.getPartByKey(part[self.key])
+
+    def getIndexByKey(self, key):
+        for p in self.partitions:
+            if p.min <= key < p.max:
+                return p.dataIndex
+        return len(self.partitions)
+
+    def getPartByKey(self, key):
+        for p in self.partitions:
+            if p.min <= key < p.max:
+                return p
+        return self.NULL
+
+    def getKey(self, part):
+        return part[self.key]
+
+    def getKeyByIndex(self, index):
+        return self.partitions[index][self.key]
+
+    def as_dict(self):
+        output = Domain.as_dict(self)
+
+        output.partitions = self.partitions
+        output.min = self.min
+        output.max = self.max
+        output.interval = self.interval
+        return output
+
+
+class RangeDomain(Domain):
+    __slots__ = ["max", "min", "interval", "partitions", "NULL"]
+
+    def __init__(self, **desc):
+        Domain.__init__(self, **desc)
+        self.type = "range"
+        self.NULL = Null
+        self.min = self.min
+        self.max = self.max
+        self.interval = self.interval
+
+        if self.partitions:
+            # IGNORE THE min, max, interval
+            if not self.key:
+                Log.error("Must have a key value")
+
+            Log.error("not implemented yet")
+
+            # VERIFY PARTITIONS DO NOT OVERLAP
+            return
+        elif any([self.min == None, self.max == None, self.interval == None]):
+            Log.error("Can not handle missing parameter")
+
+        self.key = "min"
+        self.partitions = wrap([{"min": v, "max": v + self.interval, "dataIndex": i} for i, v in enumerate(range(self.min, self.max, self.interval))])
+
+    def compare(self, a, b):
+        return value_compare(a, b)
+
+    def getCanonicalPart(self, part):
+        return self.getPartByKey(part[self.key])
+
+    def getIndexByKey(self, key):
+        for p in self.partitions:
+            if p.min <= key < p.max:
+                return p.dataIndex
+        return len(self.partitions)
+
+    def getPartByKey(self, key):
+        for p in self.partitions:
+            if p.min <= key < p.max:
+                return p
+        return self.NULL
+
+    def getKey(self, part):
+        return part[self.key]
+
+    def getKeyByIndex(self, index):
+        return self.partitions[index][self.key]
+
+    def as_dict(self):
+        output = Domain.as_dict(self)
+
+        output.partitions = self.partitions
+        output.min = self.min
+        output.max = self.max
+        output.interval = self.interval
+        return output
+
+
 
 def value_compare(a, b):
     if a == None:
@@ -475,9 +609,9 @@ keyword_pattern = re.compile(r"\w+(?:\.\w+)*")
 
 
 def is_keyword(value):
-    if value == None:
-        return False
-    return True if keyword_pattern.match(value) else False
+    if not value or not isinstance(value, basestring):
+        return False  # _a._b
+    return keyword_pattern.match(value).group(0) == value
 
 
 name2type = {
@@ -485,6 +619,8 @@ name2type = {
     "default": DefaultDomain,
     "set": SimpleSetDomain,
     "uid": DefaultDomain,
-    "time": TimeDomain
+    "time": TimeDomain,
+    "duration": DurationDomain,
+    "range": RangeDomain
 }
 

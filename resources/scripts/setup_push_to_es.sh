@@ -1,5 +1,6 @@
 # USE THIS TO INSTALL INTO STANDARD EC2 INSTANCE
 sudo yum -y install python27
+rm -fr /home/ec2-user/temp
 mkdir  /home/ec2-user/temp
 cd  /home/ec2-user/temp
 wget https://bootstrap.pypa.io/get-pip.py
