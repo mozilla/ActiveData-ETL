@@ -10,25 +10,22 @@ from __future__ import unicode_literals
 from __future__ import division
 from multiprocessing import Process
 from multiprocessing.queues import Queue
-from pyLibrary import queries
 
+from pyLibrary import queries
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
-
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.jsons import scrub
-from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.thread import multiprocess
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.timer import Timer
+from testlog_etl.push_to_es_daemon import copy2es
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
-from testlog_etl.sinks.s3_bucket import key_prefix
+
+
 
 
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
-
 
 def diff(settings, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
@@ -88,44 +85,25 @@ def diff(settings, please_stop=None):
 
     processes = []
     for _ in range(settings.processes):
-        p = Process(target=copy2es, args=(scrub(settings), work_queue, bucket))
+        p = Process(target=copy2es, args=(scrub(settings), work_queue, please_stop_queue))
         p.start()
         processes.append(p)
 
     for block in in_s3:
-        if please_stop:
-            for _ in range(settings.processes):
-                please_stop_queue.put("STOP")
-            return
         work_queue.put(block)
     for _ in range(settings.processes):
-        please_stop_queue.put("STOP")
         work_queue.put("STOP")
 
+    size = work_queue.qsize()
+    while not please_stop and size:
+        Log.note("Remaining: {{num}}", {"num": size})
+        Thread.sleep(seconds=5)
+        size = work_queue.qsize()
+
+    for _ in range(settings.processes):
+        please_stop_queue.put("STOP")
     for p in processes:
         p.join()
-
-def copy2es(settings, work_queue, please_stop):
-    # EVERYTHING FROM ELASTICSEARCH
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
-    bucket = s3.Bucket(settings.source)
-
-    for block in iter(work_queue.get, "STOP"):
-        if please_stop.get(False):
-            return
-
-        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
-
-        extend_time = Timer("insert", silent=True)
-        with extend_time:
-            num_keys = es.copy(keys, bucket)
-
-        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-            "num": num_keys,
-            "key": key_prefix(keys[0]),
-            "duration": extend_time.seconds,
-            "rate": num_keys / Math.max(extend_time.seconds, 1)
-        })
 
 
 def main():
