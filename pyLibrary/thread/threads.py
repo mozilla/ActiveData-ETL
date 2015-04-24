@@ -489,6 +489,9 @@ class Thread(object):
         """
         SLEEP UNTIL keyboard interrupt
         """
+        if not isinstance(please_stop, Signal):
+            please_stop = Signal()
+
         if allow_exit:
             Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
 
@@ -496,9 +499,6 @@ class Thread(object):
             if not Log:
                 _late_import()
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
-
-        if not isinstance(please_stop, Signal):
-            please_stop = Signal()
 
         # DEOS NOT SEEM TO WOKR
         # def stopper():
