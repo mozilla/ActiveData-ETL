@@ -105,7 +105,9 @@ class S3Bucket(object):
             residual = old_docs - documents
             overlap = old_docs & documents
             # IS IT CHEAPER TO SEE IF THERE IS A DIFF, RATHER THAN WRITE NEW DATA TO S3?
-            fuzzytestcase.assertAlmostEqual(documents._data, overlap._data)
+
+            # CAN NOT PERFORM FUZZY MATCH, THE etl PROPERTY WILL HAVE CHANGED
+            # fuzzytestcase.assertAlmostEqual(documents._data, overlap._data)
 
             if residual:
                 documents = documents | residual

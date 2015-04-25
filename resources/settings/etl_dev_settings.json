@@ -71,7 +71,7 @@
 			"name": "load es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
+				"bucket": "ekyle-test-result-dev"
 			},
 			"destination": {
 				"use_daily": true,
