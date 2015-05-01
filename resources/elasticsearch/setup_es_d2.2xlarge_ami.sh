@@ -92,7 +92,7 @@ sudo sed -i '$ a\/dev/xvdg   /data6       ext4    defaults,nofail  0   2' /etc/f
 sudo mount -a
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp /home/ec2-user/elasticsearch_spot.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
