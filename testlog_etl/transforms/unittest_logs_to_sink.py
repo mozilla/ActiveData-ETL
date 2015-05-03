@@ -216,8 +216,8 @@ class LogSummary(Dict):
         test.missing_test_end = True
 
         #RECORD THE CRASH RESULTS
-        test.crash_result = log.copy()
-        test.crash_result.action = None
+        # test.crash_result = log.copy()
+        # test.crash_result.action = None
     def test_end(self, log):
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]

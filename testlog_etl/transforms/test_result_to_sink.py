@@ -30,7 +30,7 @@ def process_test_result(source_key, source, destination, please_stop=None):
 
     lines = source.read_lines()
 
-    keys=[]
+    keys = []
     data = []
     for l in lines:
         record = convert.json2value(l)
