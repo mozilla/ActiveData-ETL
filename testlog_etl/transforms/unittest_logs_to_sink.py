@@ -128,7 +128,7 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
-        "key":source_key,
+        "key": source_key,
         "num_bytes": output.stats.bytes,
         "num_lines": output.stats.lines,
         "num_tests": output.stats.total,
@@ -142,6 +142,7 @@ class LogSummary(Dict):
     def __init__(self):
         Dict.__init__(self)
         self.tests = Dict()
+        self.logs = Dict()
 
     def suite_start(self, log):
         pass
@@ -159,6 +160,7 @@ class LogSummary(Dict):
         if not log.test:
             Log.error("log has blank 'test' property! Do not know how to handle.")
 
+        self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         test.stats.action.test_status += 1
         if not test:
@@ -171,6 +173,7 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
     def process_output(self, log):
+        self.logs[literal_field(log.test)] += [log]
         self.stats.action.process_output += 1
         pass
 
@@ -179,6 +182,7 @@ class LogSummary(Dict):
         if not log.test:
             return
 
+        self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         test.stats.action.log += 1
         if not test:
@@ -195,8 +199,8 @@ class LogSummary(Dict):
         if not log.test:
             return
 
+        self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
-        test.stats.action.crash += 1
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
                 test=log.test,
@@ -204,9 +208,18 @@ class LogSummary(Dict):
                 crash=True,
                 missing_test_start=True
             )
-        test.last_log_time = log.time
 
+        test.ok = False
+        test.result = log.status   #TODO: REMOVE ME AFTER November 2015
+        test.status = log.status
+        test.last_log_time = log.time
+        test.missing_test_end = True
+
+        #RECORD THE CRASH RESULTS
+        test.crash_result = log.copy()
+        test.crash_result.action = None
     def test_end(self, log):
+        self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         if not test:
             self.tests[literal_field(log.test)] = test = Dict(
@@ -215,8 +228,9 @@ class LogSummary(Dict):
                 missing_test_start=True
             )
 
-        test.ok = not log.expected
-        test.result = log.status
+        test.ok = True if log.expected == None or log.expected == log.status else False
+        test.result = log.status   #TODO: REMOVE ME AFTER November 2015
+        test.status = log.status
         test.expected = coalesce(log.expected, log.status)
         test.end_time = log.time
         test.duration = coalesce(test.end_time - test.start_time, log.extra.runtime)
@@ -229,20 +243,22 @@ class LogSummary(Dict):
         self.tests = tests = wrap(list(self.tests.values()))
 
         for t in tests:
-            if not t.result:
-                t.result = "NONE"
-                t.end_time = t.last_log_time
-                t.duration = t.end_time - t.start_time
-                t.missing_test_end = True
+            if t.status:
+                continue
+
+            t.result = "NONE"  #TODO Remove November 2015
+            t.status = "NONE"  #TODO Remove November 2015
+            t.end_time = t.last_log_time
+            t.duration = t.end_time - t.start_time
+            t.missing_test_end = True
 
         self.stats.total = len(tests)
         self.stats.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
         try:
-            for r in set(tests.select("result")):
-                self.stats[r.lower()] = sum([1 for t in tests if t.result == r])
+            for t in tests:
+                self.stats[t.status.lower()] += 1
         except Exception, e:
             Log.error("problem", e)
 
         return self
-

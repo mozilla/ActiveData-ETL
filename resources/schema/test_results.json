@@ -41,6 +41,16 @@
 						"match_mapping_type": "string",
 						"match": "*"
 					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "analyzed",
+							"type": "string"
+						},
+						"match_mapping_type": "string",
+						"match": "result.crash_result.*"
+					}
 				}
 			],
 			"properties": {

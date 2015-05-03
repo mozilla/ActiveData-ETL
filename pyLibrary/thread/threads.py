@@ -374,7 +374,7 @@ class Thread(object):
             with self.synch_lock:
                 self.response = Dict(exception=e)
             try:
-                Log.fatal("Problem in thread {{name}}", {"name": self.name}, e)
+                Log.fatal("Problem in thread {{name|quote}}", {"name": self.name}, e)
             except Exception, f:
                 sys.stderr.write("ERROR in thread: " + str(self.name) + " " + str(e) + "\n")
         finally:
