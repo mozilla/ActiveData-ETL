@@ -87,6 +87,9 @@ class MultiDayIndex(object):
         queue = self._get_queue(doc.value)
         queue.add(doc)
 
+    def delete(self, filter):
+        self.es.delete(filter)
+
     def copy(self, keys, source):
         num_keys = 0
         for key in keys:
