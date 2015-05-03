@@ -13,7 +13,9 @@
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-		"testlog_etl.transforms.test_result_to_sink.PROCESS_TRY": false
+		"testlog_etl.transforms.test_result_to_sink.INDEX_TRY": false,
+		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": false
+
 	},
 	"workers": [
 		{

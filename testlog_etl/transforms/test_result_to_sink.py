@@ -14,7 +14,7 @@ from pyLibrary.aws.s3 import key_prefix
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Lock
 
-PROCESS_TRY = False
+INDEX_TRY = False
 
 is_done_lock = Lock()
 is_done = set()
@@ -28,8 +28,8 @@ def process_test_result(source_key, source, destination, please_stop=None):
         record = convert.json2value(l)
         if record._id==None:
             continue
-        if not PROCESS_TRY:
-            if record.build.branch=="try":
+        if not INDEX_TRY:
+            if record.build.branch == "try":
                 return {}
         keys.append(record._id)
         data.append({

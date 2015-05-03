@@ -253,7 +253,6 @@ class LogSummary(Dict):
             t.missing_test_end = True
 
         self.stats.total = len(tests)
-        self.stats.ok = len([t for t in tests if t.ok])
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for t in tests:
@@ -261,4 +260,5 @@ class LogSummary(Dict):
         except Exception, e:
             Log.error("problem", e)
 
+        self.stats.ok = sum(1 for t in tests if t.ok)
         return self
