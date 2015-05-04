@@ -788,9 +788,10 @@ class Alias(object):
             if not keep_trying:
                 for name, status in result._indices.items():
                     if status._shards.failed > 0:
-                        Log.error("ES shard(s) report Failure to delete from {{index}}.  Query was {{query}}", {
+                        Log.error("ES shard(s) report Failure to delete from {{index}}: {{message}}.  Query was {{query}}", {
                             "index": name,
-                            "query": query
+                            "query": query,
+                            "message": status._shards.failures[0].reason
                         })
 
 
