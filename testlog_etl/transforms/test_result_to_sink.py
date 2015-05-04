@@ -39,6 +39,7 @@ def process_test_result(source_key, source, destination, please_stop=None):
         if not INDEX_TRY:
             if record.build.branch == "try":
                 return {}
+        record.result.crash_result = None  #TODO: Remove me after May 2015
         keys.append(record._id)
         data.append({
             "id": record._id,
