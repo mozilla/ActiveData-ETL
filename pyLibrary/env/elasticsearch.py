@@ -778,10 +778,10 @@ class Alias(object):
 
         for name, status in result._indices.items():
             if status._shards.failed > 0:
-                Log.error("Failure to delete from {{index}}", {"index": name})
-
-
-
+                Log.error("ES shard(s) report Failure to delete from {{index}}.  Query was {{query}}", {
+                    "index": name,
+                    "query": query
+                })
 
     def search(self, query, timeout=None):
         query = wrap(query)
