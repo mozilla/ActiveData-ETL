@@ -5,6 +5,7 @@ mkdir  /home/ec2-user/temp
 cd  /home/ec2-user/temp
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python27 get-pip.py
+sudo ln -s /usr/local/bin/pip /usr/bin/pip
 
 cd  /home/ec2-user
 sudo yum -y install git
