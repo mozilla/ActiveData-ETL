@@ -11,7 +11,8 @@
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
-		"testlog_etl.transforms.pulse_block_to_test_result_logs.PROCESS_TRY": false
+		"testlog_etl.transforms.test_result_to_sink.INDEX_TRY": false,
+		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": false
 	},
 	"workers": [
 		{
@@ -71,7 +72,7 @@
 			"name": "load es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result"
+				"bucket": "ekyle-test-result-dev"
 			},
 			"destination": {
 				"use_daily": true,

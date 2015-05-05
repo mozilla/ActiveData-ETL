@@ -21,12 +21,10 @@ from io import BytesIO
 import json
 import re
 from tempfile import TemporaryFile
-import time
 
 from pyLibrary import strings
-from pyLibrary.dot import wrap, wrap_dot, unwrap, Dict
+from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env.big_data import FileString, safe_size
 from pyLibrary.jsons import quote
@@ -409,11 +407,16 @@ def bytes2hex(value, separator=" "):
 
 
 def base642bytearray(value):
+    return bytearray(base64.b64decode(value))
+
+
+def base642bytes(value):
     return base64.b64decode(value)
 
 
 def bytes2base64(value):
     return base64.b64encode(value).decode("utf8")
+
 
 def bytes2sha1(value):
     if isinstance(value, unicode):

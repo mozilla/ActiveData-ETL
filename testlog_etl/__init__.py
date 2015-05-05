@@ -101,4 +101,7 @@ def etl2path(etl):
     except Exception, e:
         Log.error("Can not get path {{etl}}", {"etl": etl}, e)
 
+def key2path(key):
+    return etl2path(key2etl(key))
+
 from . import transforms

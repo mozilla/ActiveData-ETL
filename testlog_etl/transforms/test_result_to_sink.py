@@ -14,19 +14,32 @@ from pyLibrary.aws.s3 import key_prefix
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Lock
 
+from testlog_etl import key2path
 
-is_done_lock=Lock()
+INDEX_TRY = False
+
+is_done_lock = Lock()
 is_done = set()
 
 def process_test_result(source_key, source, destination, please_stop=None):
+    path = key2path(source_key)
+    destination.delete({"and": [
+        {"term": {"etl.source.id": path[1]}},
+        {"term": {"etl.source.source.id": path[0]}}
+    ]})
+
     lines = source.read_lines()
 
-    keys=[]
+    keys = []
     data = []
     for l in lines:
         record = convert.json2value(l)
         if record._id==None:
             continue
+        if not INDEX_TRY:
+            if record.build.branch == "try":
+                return {}
+        record.result.crash_result = None  #TODO: Remove me after May 2015
         keys.append(record._id)
         data.append({
             "id": record._id,

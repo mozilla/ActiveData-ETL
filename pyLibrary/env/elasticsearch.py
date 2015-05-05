@@ -25,7 +25,7 @@ from pyLibrary.strings import utf82unicode
 from pyLibrary.dot import coalesce, Null, Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap
-from pyLibrary.thread.threads import ThreadedQueue
+from pyLibrary.thread.threads import ThreadedQueue, Thread
 
 
 class Index(object):
@@ -750,6 +750,49 @@ class Alias(object):
             if not mapping[self.settings.type]:
                 Log.error("{{index}} does not have type {{type}}", self.settings)
             return wrap({"mappings": mapping[self.settings.type]})
+
+    def delete(self, filter):
+        self.cluster.get_metadata()
+
+        if self.cluster.node_metadata.version.number.startswith("0.90"):
+            query = {"filtered": {
+                "query": {"match_all": {}},
+                "filter": filter
+            }}
+        elif self.cluster.node_metadata.version.number.startswith("1."):
+            query = {"query": {"filtered": {
+                "query": {"match_all": {}},
+                "filter": filter
+            }}}
+        else:
+            raise NotImplementedError
+
+        if self.debug:
+            Log.note("Delete bugs:\n{{query}}", {"query": query})
+
+        keep_trying = True
+        while keep_trying:
+            result = self.cluster.delete(
+                self.path + "/_query",
+                data=convert.value2json(query),
+                timeout=60
+            )
+            keep_trying = False
+            for name, status in result._indices.items():
+                if status._shards.failed > 0:
+                    if status._shards.failures[0].reason.find("rejected execution (queue capacity ") >= 0:
+                        keep_trying = True
+                        Thread.sleep(seconds=5)
+                        break
+
+            if not keep_trying:
+                for name, status in result._indices.items():
+                    if status._shards.failed > 0:
+                        Log.error("ES shard(s) report Failure to delete from {{index}}: {{message}}.  Query was {{query}}", {
+                            "index": name,
+                            "query": query,
+                            "message": status._shards.failures[0].reason
+                        })
 
 
     def search(self, query, timeout=None):

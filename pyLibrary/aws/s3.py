@@ -361,6 +361,9 @@ class Bucket(object):
         return self.settings.bucket
 
     def _verify_key_format(self, key):
+        if self.key_format == None:
+            return
+
         if self.key_format != _scrub_key(key):
             Log.error("key {{key}} in bucket {{bucket}} is of the wrong format", {
                 "key": key,

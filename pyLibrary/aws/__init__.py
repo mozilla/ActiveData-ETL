@@ -106,10 +106,14 @@ def capture_termination_signal(please_stop):
 
     def worker(please_stop):
         while not please_stop:
-            response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
-            if response.status_code != 400:
-                please_stop.go()
-                return
+            try:
+                response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
+                if response.status_code != 400:
+                    please_stop.go()
+                    return
+            except Exception, e:
+                pass  # BE QUIET
+                Thread.sleep(seconds=61)
             Thread.sleep(seconds=11)
 
     Thread.run("listen for termination", worker)
