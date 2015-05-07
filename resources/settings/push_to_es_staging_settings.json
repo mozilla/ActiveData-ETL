@@ -1,5 +1,5 @@
 {
-	"processes": 4,
+	"processes": 2,
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://localhost",
