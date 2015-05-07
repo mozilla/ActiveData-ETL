@@ -73,6 +73,8 @@ class Index(object):
             # EXPLORING (get_metadata()) IS NOT ALLOWED ON THE PUBLIC CLUSTER
             pass
 
+        if index==None or type==None:
+            Log.error("expecting index and type")
         self.path = "/" + index + "/" + type
 
     @property
@@ -754,12 +756,12 @@ class Alias(object):
     def delete(self, filter):
         self.cluster.get_metadata()
 
-        if self.cluster.node_metadata.version.number.startswith("0.90"):
+        if self.cluster.cluster_metadata.version.number.startswith("0.90"):
             query = {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.node_metadata.version.number.startswith("1."):
+        elif self.cluster.cluster_metadata.version.number.startswith("1."):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
