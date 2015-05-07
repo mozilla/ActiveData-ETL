@@ -69,8 +69,6 @@ sudo mkfs -t ext4 /dev/xvdc
 
 sudo mkdir /data1
 sudo mkdir /data2
-sudo mkdir /data1/logs
-sudo mkdir /data1/heapdump
 
 #ADD TO /etc/fstab SO AROUND AFTER REBOOT
 sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
@@ -78,6 +76,8 @@ sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/f
 
 #TEST IT IS WORKING
 sudo mount -a
+sudo mkdir /data1/logs
+sudo mkdir /data1/heapdump
 
 # COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
