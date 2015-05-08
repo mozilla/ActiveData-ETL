@@ -26,7 +26,7 @@
 			},
 			"destination": {
 				"use_daily": false,
-				"host": "http://52.10.189.133",
+				"host": "http://54.149.35.214",
 				"port": 9200,
 				"index": "pulse",
 				"type": "pulse_log",
@@ -81,7 +81,7 @@
 			},
 			"destination": {
 				"use_daily": true,
-				"host": "http://52.10.189.133",
+				"host": "http://54.149.35.214",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
@@ -109,10 +109,18 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://52.10.189.133",
+				"host": "http://54.149.35.214",
 				"index": "debug",
 				"type": "unittest_etl"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV] Problem in ETL",
+				"$ref": "file://~/private.json#email"
 			}
+
 		]
 	}
 }

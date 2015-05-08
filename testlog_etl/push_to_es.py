@@ -17,6 +17,7 @@ from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
+from pyLibrary.env import elasticsearch
 from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -25,8 +26,6 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
-
-
 def copy2es(settings, work_queue, please_stop):
     # EVERYTHING FROM ELASTICSEARCH
     settings = wrap(settings)
@@ -61,25 +60,7 @@ def diff(settings, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
 
-    result = es.search({
-        "aggs": {
-            "_match": {
-                "terms": {
-                    "field": "etl.source.source.id",
-                    "size": 0
-                }
-
-            }
-        }
-    })
-
-    good_es = []
-    for k in result.aggregations._match.buckets.key:
-        try:
-            good_es.append(int(k))
-        except Exception, e:
-            pass
-    in_es = set(good_es)
+    in_es = get_all_in_es(es)
 
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
@@ -134,6 +115,40 @@ def diff(settings, please_stop=None):
         please_stop_queue.put("STOP")
     for p in processes:
         p.join()
+
+
+def get_all_in_es(es):
+    in_es = set()
+
+    all_indexes = es.es.cluster.get_metadata().indices
+    for name, index in all_indexes.items():
+        if "unittest" not in index.aliases:
+            continue
+
+        result = elasticsearch.Index(index=name, alias="unittest", settings=es.es.settings).search({
+            "aggs": {
+                "_match": {
+                    "terms": {
+                        "field": "etl.source.source.id",
+                        "size": 200
+                    }
+
+                }
+            }
+        })
+
+        good_es = []
+        for k in result.aggregations._match.buckets.key:
+            try:
+                good_es.append(int(k))
+            except Exception, e:
+                pass
+        Log("got {{num}} from {{index}}", {
+            "num": len(good_es),
+            "index": name
+        })
+        in_es |= set(good_es)
+    return in_es
 
 
 def main():
