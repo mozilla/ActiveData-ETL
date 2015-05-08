@@ -143,7 +143,8 @@ def get_all_in_es(es):
                 good_es.append(int(k))
             except Exception, e:
                 pass
-        Log("got {{num}} from {{index}}", {
+
+        Log.note("got {{num}} from {{index}}", {
             "num": len(good_es),
             "index": name
         })
