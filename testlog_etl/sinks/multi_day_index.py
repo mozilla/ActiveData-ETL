@@ -12,6 +12,7 @@ from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import WEEK
@@ -90,7 +91,7 @@ class MultiDayIndex(object):
     def delete(self, filter):
         self.es.delete(filter)
 
-    def copy(self, keys, source):
+    def copy(self, keys, source, sample_only_filter=None):
         num_keys = 0
         for key in keys:
             queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
@@ -98,6 +99,8 @@ class MultiDayIndex(object):
                 for line in source.read_lines(strip_extension(key)):
                     if queue is None:
                         value = convert.json2value(line)
+                        if sample_only_filter and Random.int(100) != 0 and qb.filter([value], sample_only_filter):
+                            break
                         queue = self._get_queue(value)
                         row = {"id": value._id, "value": value}
                     else:

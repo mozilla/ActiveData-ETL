@@ -46,7 +46,7 @@ def copy2es(settings, work_queue, please_stop):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            num_keys = es.copy(keys, bucket)
+            num_keys = es.copy(keys, bucket, {"terms":{"build.branch":settings.sample_only}} if settings.sample_only != None else None)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
             "num": num_keys,
@@ -130,7 +130,7 @@ def get_all_in_es(es):
                 "_match": {
                     "terms": {
                         "field": "etl.source.source.id",
-                        "size": 200
+                        "size": 200000
                     }
 
                 }
@@ -143,7 +143,8 @@ def get_all_in_es(es):
                 good_es.append(int(k))
             except Exception, e:
                 pass
-        Log("got {{num}} from {{index}}", {
+
+        Log.note("got {{num}} from {{index}}", {
             "num": len(good_es),
             "index": name
         })

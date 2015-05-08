@@ -1,5 +1,6 @@
 {
-	"processes": 2,
+	"processes": 4,
+	"sample_only": ["b2g-inbound", "fx-team", "mozilla-aurora", "mozilla-central", "try"],
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://localhost",
