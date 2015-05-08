@@ -2,7 +2,7 @@
 	"processes": 4,
 	"elasticsearch": {
 		"use_daily": true,
-		"host": "http://localhost",
+		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
