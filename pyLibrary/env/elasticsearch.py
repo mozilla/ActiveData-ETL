@@ -54,9 +54,13 @@ class Index(object):
         debug=False,  # DO NOT SHOW THE DEBUG STATEMENTS
         settings=None
     ):
+        if index==None or type==None:
+            Log.error("not allowed")
         if index == alias:
             Log.error("must have a unique index name")
 
+        self.cluster_state = None
+        self.cluster_metadata = None
         self.debug = debug
         if self.debug:
             Log.alert("elasticsearch debugging for index {{index}} is on", {"index": settings.index})
@@ -69,12 +73,12 @@ class Index(object):
             if index and alias==None:
                 settings.alias = settings.index
                 settings.index = index
+            if index==None:
+                Log.error("not allowed")
         except Exception, e:
             # EXPLORING (get_metadata()) IS NOT ALLOWED ON THE PUBLIC CLUSTER
             pass
 
-        if index==None or type==None:
-            Log.error("expecting index and type")
         self.path = "/" + index + "/" + type
 
     @property
@@ -88,7 +92,7 @@ class Index(object):
 
             if index == None and retry:
                 #TRY AGAIN, JUST IN CASE
-                self.cluster.cluster_metadata = None
+                self.cluster.cluster_state = None
                 return self.get_schema(retry=False)
 
             if not index.mappings[self.settings.type]:
@@ -116,7 +120,7 @@ class Index(object):
 
     def add_alias(self, alias=None):
         if alias:
-            self.cluster_metadata = None
+            self.cluster_state = None
             self.cluster._post(
                 "/_aliases",
                 data=convert.unicode2utf8(convert.value2json({
@@ -128,7 +132,7 @@ class Index(object):
             )
         else:
             # SET ALIAS ACCORDING TO LIFECYCLE RULES
-            self.cluster_metadata = None
+            self.cluster_state = None
             self.cluster._post(
                 "/_aliases",
                 data=convert.unicode2utf8(convert.value2json({
@@ -186,12 +190,12 @@ class Index(object):
     def delete_record(self, filter):
         self.cluster.get_metadata()
 
-        if self.cluster.cluster_metadata.version.number.startswith("0.90"):
+        if self.cluster.cluster_state.version.number.startswith("0.90"):
             query = {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.cluster_metadata.version.number.startswith("1.0"):
+        elif self.cluster.cluster_state.version.number.startswith("1.0"):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
@@ -358,7 +362,9 @@ class Cluster(object):
 
         settings.setdefault("explore_metadata", True)
 
+        self.cluster_state = None
         self.cluster_metadata = None
+
         self.debug = settings.debug
         self.settings = settings
         self.version = None
@@ -502,8 +508,8 @@ class Cluster(object):
             if not self.cluster_metadata:
                 response = self.get("/_cluster/state")
                 self.cluster_metadata = response.metadata
-                self.cluster_metadata = self.get("/")
-                self.version = self.cluster_metadata.version.number
+                self.cluster_state = self.get("/")
+                self.version = self.cluster_state.version.number
         else:
             Log.error("Metadata exploration has been disabled")
         return self.cluster_metadata
@@ -730,7 +736,7 @@ class Alias(object):
 
             if index == None and retry:
                 #TRY AGAIN, JUST IN CASE
-                self.cluster.cluster_metadata = None
+                self.cluster.cluster_state = None
                 return self.get_schema(retry=False)
 
             properties = index.mappings[self.settings.type]
@@ -756,12 +762,12 @@ class Alias(object):
     def delete(self, filter):
         self.cluster.get_metadata()
 
-        if self.cluster.cluster_metadata.version.number.startswith("0.90"):
+        if self.cluster.cluster_state.version.number.startswith("0.90"):
             query = {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.cluster_metadata.version.number.startswith("1."):
+        elif self.cluster.cluster_state.version.number.startswith("1."):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter

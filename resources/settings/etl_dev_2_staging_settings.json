@@ -112,7 +112,15 @@
 				"host": "http://52.10.189.133",
 				"index": "debug",
 				"type": "unittest_etl"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV] Problem in ETL",
+				"$ref": "file://~/private.json#email"
 			}
+
 		]
 	}
 }

@@ -25,8 +25,6 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
-
-
 def copy2es(settings, work_queue, please_stop):
     # EVERYTHING FROM ELASTICSEARCH
     settings = wrap(settings)
