@@ -130,7 +130,7 @@ def get_all_in_es(es):
                 "_match": {
                     "terms": {
                         "field": "etl.source.source.id",
-                        "size": 200
+                        "size": 200000
                     }
 
                 }
