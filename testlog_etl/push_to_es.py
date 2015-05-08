@@ -46,7 +46,7 @@ def copy2es(settings, work_queue, please_stop):
 
         extend_time = Timer("insert", silent=True)
         with extend_time:
-            num_keys = es.copy(keys, bucket)
+            num_keys = es.copy(keys, bucket, {"terms":{"build.branch":settings.sample_only}} if settings.sample_only != None else None)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
             "num": num_keys,
