@@ -19,7 +19,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://172.31.0.145",
+				"host": "http://172.31.0.233",
 				"index": "debug",
 				"type": "unittest_etl"
 			},
