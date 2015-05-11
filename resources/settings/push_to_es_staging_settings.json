@@ -1,6 +1,11 @@
 {
 	"processes": 4,
-	"sample_only": ["b2g-inbound", "fx-team", "mozilla-aurora", "mozilla-central", "try"],
+	"sample_only": [
+		"b2g-inbound",
+		"fx-team",
+		"mozilla-aurora",
+		"try"
+	],
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://localhost",

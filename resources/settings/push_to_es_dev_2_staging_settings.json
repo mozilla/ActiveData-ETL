@@ -3,7 +3,9 @@
 	"sample_only": [
 		"b2g-inbound",
 		"fx-team",
-		"mozilla-aurora", "mozilla-central", "try"],
+		"mozilla-aurora",
+		"try"
+	],
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://54.149.35.214",
