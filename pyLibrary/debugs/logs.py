@@ -98,9 +98,6 @@ class Log(object):
         for log in listwrap(settings.log):
             Log.add_log(Log.new_instance(log))
 
-
-
-
     @classmethod
     def stop(cls):
         from pyLibrary.debugs import profiles

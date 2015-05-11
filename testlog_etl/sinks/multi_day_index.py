@@ -99,10 +99,15 @@ class MultiDayIndex(object):
                 for line in source.read_lines(strip_extension(key)):
                     if queue is None:
                         value = convert.json2value(line)
-                        if sample_only_filter and Random.int(100) != 0 and qb.filter([value], sample_only_filter):
-                            break
                         queue = self._get_queue(value)
                         row = {"id": value._id, "value": value}
+                        if sample_only_filter and Random.int(100) != 0 and qb.filter([value], sample_only_filter):
+                            # INDEX THIS, BUT NO MORE
+                            if value.etl.id != 0:
+                                Log.error("Expecting etl.id==0")
+                            num_keys += 1
+                            queue.add(row)
+                            break
                     else:
                         _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}

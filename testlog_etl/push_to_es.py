@@ -26,7 +26,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
-def copy2es(settings, work_queue, please_stop):
+def copy2es(settings, work_queue, please_stop_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     settings = wrap(settings)
     constants.set(settings.constants)
@@ -35,9 +35,12 @@ def copy2es(settings, work_queue, please_stop):
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
     bucket = s3.Bucket(settings.source)
 
+    Log.note("Starting copy to ES")
     for block in iter(work_queue.get, "STOP"):
+        if please_stop:
+            return
         try:
-            please_stop.get(False)
+            please_stop_queue.get(False)
             return
         except Exception, e:
             pass
@@ -45,8 +48,9 @@ def copy2es(settings, work_queue, please_stop):
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
 
         extend_time = Timer("insert", silent=True)
+        Log.note("Got {{num}} keys in block {{block}}", {"num": len(keys), "block": block})
         with extend_time:
-            num_keys = es.copy(keys, bucket, {"terms":{"build.branch":settings.sample_only}} if settings.sample_only != None else None)
+            num_keys = es.copy(keys, bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
 
         Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
             "num": num_keys,
@@ -79,7 +83,7 @@ def diff(settings, please_stop=None):
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 
-    Log.note("Queueing {{num}} keys for insertion to ES with {{processes}}", {
+    Log.note("Queueing {{num}} keys for insertion to ES with {{processes}} process", {
         "num": len(in_s3),
         "processes": settings.processes
     })
@@ -94,11 +98,14 @@ def diff(settings, please_stop=None):
     work_queue = Queue()
     please_stop_queue = Queue()
 
-    processes = []
-    for _ in range(settings.processes):
-        p = Process(target=copy2es, args=(scrub(settings), work_queue, please_stop_queue))
-        p.start()
-        processes.append(p)
+    if not settings.processes or settings.processes==1:
+        processes = [Thread.run("index records", copy2es, scrub(settings), work_queue, please_stop_queue)]
+    else:
+        processes = []
+        for _ in range(settings.processes):
+            p = Process(target=copy2es, args=(scrub(settings), work_queue, please_stop_queue))
+            p.start()
+            processes.append(p)
 
     for block in in_s3:
         work_queue.put(block)
@@ -149,6 +156,7 @@ def get_all_in_es(es):
             "index": name
         })
         in_es |= set(good_es)
+
     return in_es
 
 

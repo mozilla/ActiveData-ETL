@@ -1,5 +1,6 @@
 cd /home/ec2-user/TestLog-ETL/
 
+
 git pull origin push-to-es
 export PYTHONPATH=.
 
