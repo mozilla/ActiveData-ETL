@@ -1,5 +1,5 @@
 {
-	"processes": 1,
+	"processes": 4,
 	"sample_only": [
 		"b2g-inbound",
 		"fx-team",
