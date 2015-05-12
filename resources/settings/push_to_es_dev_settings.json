@@ -21,12 +21,13 @@
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-test-result",
+		"bucket": "ekyle-test-result-dev",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
 		"name": "active-data-index-dev",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
