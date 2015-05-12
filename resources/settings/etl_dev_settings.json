@@ -1,6 +1,6 @@
 {
 	"work_queue": {
-		"name": "ekyle-etl-dev",
+		"name": "active-data-etl-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
@@ -64,6 +64,10 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-test-result-dev",
 				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-dev",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"

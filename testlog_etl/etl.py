@@ -85,11 +85,16 @@ class ETL(Thread):
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
 
+            w._notify = []
+            for notify in listwrap(w.notify):
+                w._notify.append(aws.Queue(notify))
+
         self.settings = settings
         if isinstance(work_queue, dict):
             self.work_queue = aws.Queue(work_queue)
         else:
             self.work_queue = work_queue
+
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
 
@@ -151,6 +156,10 @@ class ETL(Thread):
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
                             action._destination.get_key(k)
+
+                for n in action._notify:
+                    for k in new_keys:
+                        n.add(k)
 
                 if action.transform_type == "bulk":
                     continue

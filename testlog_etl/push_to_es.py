@@ -8,44 +8,28 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from multiprocessing import Process
-from multiprocessing.queues import Queue
-import sys
 
-from pyLibrary import queries
+from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 # COPY FROM S3 BUCKET TO ELASTICSEARCH
-def copy2es(settings, work_queue, please_stop_queue, please_stop=None):
+def copy2es(settings, work_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
-    sys.stdout.write("Starting copy to ES")
-    settings = wrap(settings)
-    constants.set(settings.constants)
-    Log.start(settings.debug)
-
-    sys.stdout.write("Connect to ES")
     es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
     bucket = s3.Bucket(settings.source)
 
-    for block in iter(work_queue.get, "STOP"):
+    for block in iter(work_queue.pop, "STOP"):
         if please_stop:
             return
-        try:
-            please_stop_queue.get(False)
-            return
-        except Exception, e:
-            pass
 
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
 
@@ -62,12 +46,7 @@ def copy2es(settings, work_queue, please_stop_queue, please_stop=None):
         })
 
 
-def diff(settings, please_stop=None):
-    # EVERYTHING FROM ELASTICSEARCH
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
-
-    in_es = get_all_in_es(es)
-
+def get_all_s3(in_es, settings):
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
     prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
@@ -84,10 +63,20 @@ def diff(settings, please_stop=None):
             Log.note("delete key {{key}}", {"key": p})
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
+    return in_s3
 
-    Log.note("Queueing {{num}} keys for insertion to ES with {{processes}} process", {
+
+def diff(settings, please_stop=None):
+    # EVERYTHING FROM ELASTICSEARCH
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+
+    in_es = get_all_in_es(es)
+
+    in_s3 = get_all_s3(in_es, settings)
+
+    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads", {
         "num": len(in_s3),
-        "processes": settings.processes
+        "threads": settings.threads
     })
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     max_s3 = in_s3[0] - 500
@@ -97,33 +86,35 @@ def diff(settings, please_stop=None):
     in_s3 = in_s3[i::]
 
     # DISPATCH TO MULTIPLE THREADS
-    work_queue = Queue()
-    please_stop_queue = Queue()
+    work_queue = aws.Queue(settings=settings.work_queue)
 
-    if not settings.processes or settings.processes==1:
-        processes = [Thread.run("index records", copy2es, scrub(settings), work_queue, please_stop_queue)]
-    else:
-        processes = []
-        for _ in range(settings.processes):
-            p = Process(target=copy2es, args=(scrub(settings), work_queue, please_stop_queue))
-            p.start()
-            processes.append(p)
+    threads = []
+    please_stop = Signal()
+    for _ in range(settings.threads):
+        p = Thread.run("copy to es", copy2es, settings, work_queue, please_stop=please_stop)
+        p.start()
+        threads.append(p)
 
     for block in in_s3:
-        work_queue.put(block)
-    for _ in range(settings.processes):
-        work_queue.put("STOP")
+        work_queue.add(block)
+    for _ in range(settings.threads):
+        work_queue.add("STOP")
 
-    size = work_queue.qsize()
-    while not please_stop and size:
-        Log.note("Remaining: {{num}}", {"num": size})
-        Thread.sleep(seconds=5)
-        size = work_queue.qsize()
+    def monitor_progress(please_stop):
+        size = len(work_queue)
+        while not please_stop and size:
+            Log.note("Remaining: {{num}}", {"num": size})
+            Thread.sleep(seconds=5)
+            size = len(work_queue)
 
-    for _ in range(settings.processes):
-        please_stop_queue.put("STOP")
-    for p in processes:
-        p.join()
+        Log.note("Shutdown started")
+        for p in threads:
+            p.join()
+
+    Thread.run(name="monitor progress", target=monitor_progress)
+
+    Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
+    please_stop.go()
 
 
 def get_all_in_es(es):
