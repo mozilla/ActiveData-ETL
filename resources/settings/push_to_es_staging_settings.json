@@ -1,5 +1,5 @@
 {
-	"processes": 4,
+	"threads": 4,
 	"sample_only": [
 		"b2g-inbound",
 		"fx-team",
@@ -23,6 +23,11 @@
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
+	},
+	"work_queue":{
+		"name": "active-data-index",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {

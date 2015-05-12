@@ -8,60 +8,48 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from multiprocessing import Process
-from multiprocessing.queues import Queue
 
-from pyLibrary import queries
+from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import strip_extension, key_prefix
+from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
-# COPY FROM S3 BUCKET TO ELASTICSEARCH
-def copy2es(settings, work_queue, please_stop):
-    # EVERYTHING FROM ELASTICSEARCH
-    settings = wrap(settings)
-    constants.set(settings.constants)
-    Log.start(settings.debug)
 
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+# COPY FROM S3 BUCKET TO ELASTICSEARCH
+def copy2es(es, settings, work_queue, please_stop=None):
+    # EVERYTHING FROM ELASTICSEARCH
     bucket = s3.Bucket(settings.source)
 
-    for block in iter(work_queue.get, "STOP"):
-        try:
-            please_stop.get(False)
+    for key in iter(work_queue.pop, ""):
+        if please_stop:
             return
-        except Exception, e:
-            pass
-
-        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
+        if key == None:
+            continue
 
         extend_time = Timer("insert", silent=True)
+        Log.note("Indexing {{key}}", {"key": key})
         with extend_time:
-            num_keys = es.copy(keys, bucket, {"terms":{"build.branch":settings.sample_only}} if settings.sample_only != None else None)
+            num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
 
-        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-            "num": num_keys,
-            "key": key_prefix(keys[0]),
-            "duration": extend_time.seconds,
-            "rate": num_keys / Math.max(extend_time.seconds, 1)
-        })
+        if num_keys > 1:
+            Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
+                "num": num_keys,
+                "key": key,
+                "duration": extend_time.seconds,
+                "rate": num_keys / Math.max(extend_time.seconds, 0.01)
+            })
+
+        work_queue.commit()
 
 
-def diff(settings, please_stop=None):
-    # EVERYTHING FROM ELASTICSEARCH
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
-
-    in_es = get_all_in_es(es)
-
+def get_all_s3(in_es, settings):
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
     prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
@@ -78,10 +66,19 @@ def diff(settings, please_stop=None):
             Log.note("delete key {{key}}", {"key": p})
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
+    return in_s3
 
-    Log.note("Queueing {{num}} keys for insertion to ES with {{processes}}", {
+
+def diff(settings, please_stop=None):
+    # EVERYTHING FROM ELASTICSEARCH
+    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+
+    in_es = get_all_in_es(es)
+    in_s3 = get_all_s3(in_es, settings)
+
+    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads", {
         "num": len(in_s3),
-        "processes": settings.processes
+        "threads": settings.threads
     })
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     max_s3 = in_s3[0] - 500
@@ -90,31 +87,12 @@ def diff(settings, please_stop=None):
         i += 1
     in_s3 = in_s3[i::]
 
-    # DISPATCH TO MULTIPLE THREADS
-    work_queue = Queue()
-    please_stop_queue = Queue()
-
-    processes = []
-    for _ in range(settings.processes):
-        p = Process(target=copy2es, args=(scrub(settings), work_queue, please_stop_queue))
-        p.start()
-        processes.append(p)
+    bucket = s3.Bucket(settings.source)
+    work_queue = aws.Queue(settings=settings.work_queue)
 
     for block in in_s3:
-        work_queue.put(block)
-    for _ in range(settings.processes):
-        work_queue.put("STOP")
-
-    size = work_queue.qsize()
-    while not please_stop and size:
-        Log.note("Remaining: {{num}}", {"num": size})
-        Thread.sleep(seconds=5)
-        size = work_queue.qsize()
-
-    for _ in range(settings.processes):
-        please_stop_queue.put("STOP")
-    for p in processes:
-        p.join()
+        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
+        work_queue.extend(keys)
 
 
 def get_all_in_es(es):
@@ -149,6 +127,7 @@ def get_all_in_es(es):
             "index": name
         })
         in_es |= set(good_es)
+
     return in_es
 
 
@@ -174,8 +153,26 @@ def main():
         if settings.args.id:
             Log.error("do not know how to handle")
 
-        diff(settings)
+        # diff(settings)
+        work_queue = aws.Queue(settings=settings.work_queue)
+        es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
 
+        threads = []
+        please_stop = Signal()
+        for _ in range(settings.threads):
+            p = Thread.run("copy to es", copy2es, es, settings, work_queue, please_stop=please_stop)
+            threads.append(p)
+
+        def monitor_progress(please_stop):
+            while not please_stop:
+                Log.note("Remaining: {{num}}", {"num": len(work_queue)})
+                Thread.sleep(seconds=10)
+
+        Thread.run(name="monitor progress", target=monitor_progress)
+
+        Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
+        please_stop.go()
+        Log.note("Shutdown started")
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
