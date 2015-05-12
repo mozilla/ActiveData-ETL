@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from pyLibrary import queries, aws
+from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
@@ -17,8 +17,6 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Thread, Signal
-from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 
@@ -29,23 +27,21 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es)
     in_s3 = get_all_s3(in_es, settings)
 
-    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads", {
-        "num": len(in_s3),
-        "threads": settings.threads
-    })
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
-    max_s3 = in_s3[0] - 500
-    i = 0
-    while in_s3[i] > max_s3:
-        i += 1
-    in_s3 = in_s3[i::]
+    in_s3 = in_s3[500:500 + settings.limit:]
 
+    Log.note("Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES", {
+        "num": len(in_s3),
+        "min": Math.MIN(in_s3),
+        "max": Math.MAX(in_s3)
+    })
     bucket = s3.Bucket(settings.source)
     work_queue = aws.Queue(settings=settings.work_queue)
 
     for block in in_s3:
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
         work_queue.extend(keys)
+        Log.note("Done {{block}} ({{num}} keys)", {"block": block, "num": len(keys)})
 
 
 def get_all_in_es(es):

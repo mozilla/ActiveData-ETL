@@ -67,6 +67,10 @@ class Queue(object):
         m.set_body(convert.value2json(message))
         self.queue.write(m)
 
+    def extend(self, messages):
+        for m in messages:
+            self.add(m)
+
     def pop(self, wait=None, till=None):
         wait = coalesce(wait, self.default_timeout)
         m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))

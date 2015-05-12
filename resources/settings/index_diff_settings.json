@@ -1,11 +1,10 @@
 {
-	"threads": 1,
-	"sample_only": [
-		"b2g-inbound",
-		"fx-team",
-		"mozilla-aurora",
-		"try"
-	],
+	"limit": 1000,
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-test-result",
+		"key_format": "a:b.c"
+	},
 	"elasticsearch": {
 		"use_daily": true,
 		"host": "http://54.149.35.214",
@@ -18,11 +17,6 @@
 		},
 		"debug": false,
 		"limit_replicas": false
-	},
-	"source": {
-		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-test-result",
-		"key_format": "a:b.c"
 	},
 	"work_queue":{
 		"name": "active-data-index",
