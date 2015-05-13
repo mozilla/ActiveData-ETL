@@ -195,9 +195,9 @@ class ETL(Thread):
                     else:
                         Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
                         # for k in delete_me:
-                        #     dest_bucket.delete_key(k)
-
-                if isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
+                # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
+                # AND NOT GOING TO AN S3 BUCKET
+                if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
                         self.work_queue.add(Dict(
                             bucket=action.destination.bucket,

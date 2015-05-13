@@ -35,7 +35,9 @@ There is no need to create logger objects.  The `Log` module will keep track of 
     Log.note("Hello, {{name}}!", {"name": "World!"})
 ```
 
-All logs are structured logs; the parameters will be included, unchanged, in the log structure.  This library also expects all parameter values to be JSON-serializable they can be stored/processed by downstream JSON tools.
+All logs are **structured logs**; the parameters will be included, unchanged, in 
+the log structure.  This library also expects all parameter values to be 
+JSON-serializable they can be stored/processed by downstream JSON tools.
   
 ```javascript
 	{//EXAMPLE STRUCTURED LOG

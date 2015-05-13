@@ -93,5 +93,7 @@ cd /usr/local/elasticsearch
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
 
-
 tail -f /data/logs/ekyle-aws-1.log
+
+
+
