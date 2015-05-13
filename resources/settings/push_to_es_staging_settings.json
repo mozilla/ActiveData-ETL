@@ -1,5 +1,5 @@
 {
-	"threads": 4,
+	"threads": 2,
 	"sample_only": [
 		"b2g-inbound",
 		"fx-team",
@@ -35,10 +35,6 @@
 		}
 	},
 	"debug": {
-		"cprofile":{
-            "enabled": false,
-			"filename": "./results/cprofile.tab"
-		},
 		"log": [
 			{
 				"log_type": "console"
