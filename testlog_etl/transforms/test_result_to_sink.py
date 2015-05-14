@@ -16,8 +16,6 @@ from pyLibrary.thread.threads import Lock
 
 from testlog_etl import key2path
 
-INDEX_TRY = False
-
 is_done_lock = Lock()
 is_done = set()
 
@@ -36,9 +34,6 @@ def process_test_result(source_key, source, destination, please_stop=None):
         record = convert.json2value(l)
         if record._id==None:
             continue
-        if not INDEX_TRY:
-            if record.build.branch == "try":
-                return {}
         record.result.crash_result = None  #TODO: Remove me after May 2015
         keys.append(record._id)
         data.append({
