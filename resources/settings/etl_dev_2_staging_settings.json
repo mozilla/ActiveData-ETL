@@ -13,8 +13,7 @@
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-		"testlog_etl.transforms.pulse_block_to_test_result_logs.INDEX_TRY": false
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"workers": [
 		{

@@ -20,7 +20,7 @@ from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
-PARSE_TRY = False
+PARSE_TRY = True
 
 def process(source_key, source, destination, please_stop=None):
     """
