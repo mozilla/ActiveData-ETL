@@ -60,7 +60,7 @@ def process(source_key, source, destination, please_stop=None):
             try:
                 if url == None:
                     if DEBUG:
-                        Log.note("Line {{line}}: found structured log with NULL url", {"line": i})
+                        Log.note("Line {{line}}: found structured log with NULL url",  line= i)
                     continue
 
                 log_content, num_lines = verify_blobber_file(i, name, url)
@@ -96,9 +96,9 @@ def process(source_key, source, destination, please_stop=None):
                 Log.error("Problem processing {{name}} = {{url}}",  name= name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
-            Log.note("No structured log {{json}}", {"json": pulse_record.data})
+            Log.note("No structured log {{json}}",  json= pulse_record.data)
 
     if stats.num_missing_envelope:
-        Log.alarm("{{num}} lines have pulse message stripped of envelope", {"num": stats.num_missing_envelope})
+        Log.alarm("{{num}} lines have pulse message stripped of envelope",  num= stats.num_missing_envelope)
 
     return output

@@ -84,14 +84,14 @@ def get_all_s3(in_es, settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
             else:
                 pass
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3

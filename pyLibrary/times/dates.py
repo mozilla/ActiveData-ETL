@@ -117,7 +117,7 @@ class Date(object):
                 return Date(self.milli + other.milli)
         else:
             from pyLibrary.debugs.logs import Log
-            Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
+            Log.error("can not subtract {{type}} from Date",  type=other.__class__.__name__)
 
     @staticmethod
     def now():
@@ -401,5 +401,5 @@ def unicode2datetime(value, format=None):
             pass
     else:
         from pyLibrary.debugs.logs import Log
-        Log.error("Can not interpret {{value}} as a datetime", {"value": value})
+        Log.error("Can not interpret {{value}} as a datetime",  value= value)
 

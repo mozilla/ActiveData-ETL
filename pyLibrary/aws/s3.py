@@ -136,7 +136,7 @@ class Bucket(object):
         if must_exist:
             meta = self.get_meta(key)
             if not meta:
-                Log.error("Key {{key}} does not exist", {"key": key})
+                Log.error("Key {{key}} does not exist",  key= key)
             key = strip_extension(meta.key)
         return File(self, key)
 
@@ -260,7 +260,7 @@ class Bucket(object):
     def read_lines(self, key):
         source = self.get_meta(key)
         if source is None:
-            Log.error("{{key}} does not exist", {"key": key})
+            Log.error("{{key}} does not exist",  key= key)
         if source.size < MAX_STRING_SIZE:
             if source.key.endswith(".gz"):
                 return GzipLines(source.read())

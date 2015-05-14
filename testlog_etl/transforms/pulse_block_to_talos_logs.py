@@ -41,7 +41,7 @@ def process(source_key, source, dest_bucket, please_stop=None):
             with Timer("Read {{url}}", {"url": pulse_record.data.logurl}, debug=DEBUG):
                 response = http.get(pulse_record.data.logurl)
                 if response.status_code == 404:
-                    Log.alarm("Talos log missing {{url}}", {"url": pulse_record.data.logurl})
+                    Log.alarm("Talos log missing {{url}}",  url= pulse_record.data.logurl)
                     continue
                 all_log_lines = response.all_lines
 
@@ -65,6 +65,6 @@ def process(source_key, source, dest_bucket, please_stop=None):
 
     output = set()
     if all_talos:
-        Log.note("found {{num}} talos records", {"num": len(all_talos)})
+        Log.note("found {{num}} talos records",  num= len(all_talos))
         output = dest_bucket.extend([{"id": source_key + "." + unicode(t.etl.id), "value": t} for t in all_talos])
     return output

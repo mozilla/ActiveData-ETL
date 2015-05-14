@@ -158,7 +158,7 @@ def _normalize_selects(selects, schema=None):
         exists = set()
         for s in output:
             if s.name in exists:
-                Log.error("{{name}} has already been defined", {"name": s.name})
+                Log.error("{{name}} has already been defined",  name= s.name)
             exists.add(s.name)
         return output
     else:
@@ -185,7 +185,7 @@ def _normalize_select(select, schema=None):
             Log.error("Must give name to each column in select clause")
 
         if not output.name:
-            Log.error("expecting select to have a name: {{select}}", {"select": select})
+            Log.error("expecting select to have a name: {{select}}",  select= select)
 
         output.aggregate = coalesce(canonical_aggregates.get(select.aggregate), select.aggregate, "none")
         return output
@@ -219,7 +219,7 @@ def _normalize_edge(edge, schema=None):
     else:
         edge = wrap(edge)
         if not edge.name and not isinstance(edge.value, basestring):
-            Log.error("You must name compound edges: {{edge}}", {"edge": edge})
+            Log.error("You must name compound edges: {{edge}}",  edge= edge)
 
         if isinstance(edge.value, (dict, list)) and not edge.domain:
             # COMPLEX EDGE IS SHORT HAND
@@ -261,7 +261,7 @@ def _normalize_group(edge, schema=None):
             Log.error("groupby does not accept complicated domains")
 
         if not edge.name and not isinstance(edge.value, basestring):
-            Log.error("You must name compound edges: {{edge}}", {"edge": edge})
+            Log.error("You must name compound edges: {{edge}}",  edge= edge)
 
         return wrap({
             "name": coalesce(edge.name, edge.value),

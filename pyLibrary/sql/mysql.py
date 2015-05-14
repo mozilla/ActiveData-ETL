@@ -125,7 +125,7 @@ class MySQL(object):
                 self.cursor = None
                 self.rollback()
             except Exception, e:
-                Log.warning(u"can not rollback()", [value, e])
+                Log.warning(u"can not rollback()", cause=[value, e])
             finally:
                 self.close()
             return
@@ -247,7 +247,7 @@ class MySQL(object):
                 sql = expand_template(sql, self.quote_param(param))
             sql = self.preamble + outdent(sql)
             if self.debug:
-                Log.note("Execute SQL:\n{{sql}}", {"sql": indent(sql)})
+                Log.note("Execute SQL:\n{{sql}}",  sql= indent(sql))
 
             self.cursor.execute(sql)
             columns = [utf8_to_unicode(d[0]) for d in coalesce(self.cursor.description, [])]
@@ -281,7 +281,7 @@ class MySQL(object):
                 sql = expand_template(sql, self.quote_param(param))
             sql = self.preamble + outdent(sql)
             if self.debug:
-                Log.note("Execute SQL:\n{{sql}}", {"sql": indent(sql)})
+                Log.note("Execute SQL:\n{{sql}}",  sql= indent(sql))
 
             self.cursor.execute(sql)
             grid = [[utf8_to_unicode(c) for c in row] for row in self.cursor]
@@ -316,7 +316,7 @@ class MySQL(object):
                 sql = expand_template(sql, self.quote_param(param))
             sql = self.preamble + outdent(sql)
             if self.debug:
-                Log.note("Execute SQL:\n{{sql}}", {"sql": indent(sql)})
+                Log.note("Execute SQL:\n{{sql}}",  sql= indent(sql))
             self.cursor.execute(sql)
 
             columns = tuple([utf8_to_unicode(d[0]) for d in self.cursor.description])
@@ -435,7 +435,7 @@ class MySQL(object):
                 sql = self.preamble + b
                 try:
                     if self.debug:
-                        Log.note("Execute SQL:\n{{sql|indent}}", {"sql": sql})
+                        Log.note("Execute SQL:\n{{sql|indent}}",  sql= sql)
                     self.cursor.execute(b)
                 except Exception, e:
                     Log.error("Can not execute sql:\n{{sql}}",  sql= sql, cause=e)
@@ -447,7 +447,7 @@ class MySQL(object):
                 sql = self.preamble + ";\n".join(g)
                 try:
                     if self.debug:
-                        Log.note("Execute block of SQL:\n{{sql|indent}}", {"sql": sql})
+                        Log.note("Execute block of SQL:\n{{sql|indent}}",  sql= sql)
                     self.cursor.execute(sql)
                     self.cursor.close()
                     self.cursor = self.db.cursor()

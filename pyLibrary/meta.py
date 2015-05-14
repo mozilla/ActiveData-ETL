@@ -23,7 +23,7 @@ def get_class(path):
     except Exception, e:
         from pyLibrary.debugs.logs import Log
 
-        Log.error("Could not find module {{module|quote}}", {"module": ".".join(path)})
+        Log.error("Could not find module {{module|quote}}",  module= ".".join(path))
 
 
 def new_instance(settings):

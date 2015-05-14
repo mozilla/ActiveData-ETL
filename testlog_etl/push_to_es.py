@@ -34,7 +34,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
             continue
 
         extend_time = Timer("insert", silent=True)
-        Log.note("Indexing {{key}}", {"key": key})
+        Log.note("Indexing {{key}}",  key= key)
         with extend_time:
             num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
 
@@ -56,14 +56,14 @@ def get_all_s3(in_es, settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
             else:
                 pass
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3
@@ -163,7 +163,7 @@ def main():
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}", {"num": len(work_queue)})
+                Log.note("Remaining: {{num}}",  num= len(work_queue))
                 Thread.sleep(seconds=10)
 
         Thread.run(name="monitor progress", target=monitor_progress)

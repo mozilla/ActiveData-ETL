@@ -63,7 +63,7 @@ class Index(object):
         self.cluster_metadata = None
         self.debug = debug
         if self.debug:
-            Log.alert("elasticsearch debugging for index {{index}} is on", {"index": settings.index})
+            Log.alert("elasticsearch debugging for index {{index}} is on",  index= settings.index)
 
         self.settings = settings
         self.cluster = Cluster(settings)
@@ -112,7 +112,7 @@ class Index(object):
         name = self.settings.index
 
         if prefix == name:
-            Log.note("{{index_name}} will not be deleted", {"index_name": prefix})
+            Log.note("{{index_name}} will not be deleted",  index_name= prefix)
         for a in self.cluster.get_aliases():
             # MATCH <prefix>YYMMDD_HHMMSS FORMAT
             if re.match(re.escape(prefix) + "\\d{8}_\\d{6}", a.index) and a.index != name:
@@ -168,7 +168,7 @@ class Index(object):
         ])
 
         if len(output) > 1:
-            Log.error("only one index with given alias==\"{{alias}}\" expected", {"alias": alias})
+            Log.error("only one index with given alias==\"{{alias}}\" expected",  alias= alias)
 
         if not output:
             return Null
@@ -204,7 +204,7 @@ class Index(object):
             raise NotImplementedError
 
         if self.debug:
-            Log.note("Delete bugs:\n{{query}}", {"query": query})
+            Log.note("Delete bugs:\n{{query}}",  query= query)
 
         result = self.cluster.delete(
             self.path + "/_query",
@@ -214,7 +214,7 @@ class Index(object):
 
         for name, status in result._indices.items():
             if status._shards.failed > 0:
-                Log.error("Failure to delete from {{index}}", {"index": name})
+                Log.error("Failure to delete from {{index}}",  index= name)
 
 
     def extend(self, records):
@@ -273,10 +273,10 @@ class Index(object):
                             error= item.index.error,
                             line= lines[i * 2 + 1])
                 else:
-                    Log.error("version not supported {{version}}", {"version":self.cluster.version})
+                    Log.error("version not supported {{version}}",  version=self.cluster.version)
 
             if self.debug:
-                Log.note("{{num}} documents added", {"num": len(items)})
+                Log.note("{{num}} documents added",  num= len(items))
         except Exception, e:
             if e.message.startswith("sequence item "):
                 Log.error("problem with {{data}}",  data= repr(lines[int(e.message[14:16].strip())]), cause=e)
@@ -320,7 +320,7 @@ class Index(object):
                     "error": utf82unicode(response.content)
                 })
         else:
-            Log.error("Do not know how to handle ES version {{version}}", {"version":self.cluster.version})
+            Log.error("Do not know how to handle ES version {{version}}",  version=self.cluster.version)
 
     def search(self, query, timeout=None):
         query = wrap(query)
@@ -331,7 +331,7 @@ class Index(object):
                     show_query.facets = {k: "..." for k in query.facets.keys()}
                 else:
                     show_query = query
-                Log.note("Query:\n{{query|indent}}", {"query": show_query})
+                Log.note("Query:\n{{query|indent}}",  query= show_query)
             return self.cluster._post(
                 self.path + "/_search",
                 data=convert.value2json(query).encode("utf8"),
@@ -414,7 +414,7 @@ class Cluster(object):
             settings.alias = match.alias
             settings.index = match.index
             return Index(settings)
-        Log.error("Can not find index {{index_name}}", {"index_name": settings.index})
+        Log.error("Can not find index {{index_name}}",  index_name= settings.index)
 
     def get_alias(self, alias):
         """
@@ -427,7 +427,7 @@ class Cluster(object):
             settings.alias = alias
             settings.index = alias
             return Index(settings)
-        Log.error("Can not find any index with alias {{alias_name}}", {"alias_name": alias})
+        Log.error("Can not find any index with alias {{alias_name}}",  alias_name= alias)
 
 
 
@@ -478,7 +478,7 @@ class Cluster(object):
                 self.head("/" + settings.index)
                 break
             except Exception, _:
-                Log.note("{{index}} does not exist yet", {"index": settings.index})
+                Log.note("{{index}} does not exist yet",  index= settings.index)
 
 
         es = Index(settings)
@@ -531,7 +531,7 @@ class Cluster(object):
             if response.status_code not in [200, 201]:
                 Log.error(response.reason+": "+response.content)
             if self.debug:
-                Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
+                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
             details = convert.json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
@@ -562,7 +562,7 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.content)
             if self.debug:
-                Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
+                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
             details = wrap(convert.json2value(utf82unicode(response.content)))
             if details.error:
                 Log.error(details.error)
@@ -577,7 +577,7 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.content)
             if self.debug:
-                Log.note("response: {{response}}", {"response": utf82unicode(response.content)[:130]})
+                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
             if response.content:
                 details = wrap(convert.json2value(utf82unicode(response.content)))
                 if details.error:
@@ -599,7 +599,7 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.content)
             if self.debug:
-                Log.note("response: {{response}}", {"response": utf82unicode(response.content)[0:300:]})
+                Log.note("response: {{response}}",  response= utf82unicode(response.content)[0:300:])
             return response
         except Exception, e:
             Log.error("Problem with call to {{url}}",  url= url, cause=e)
@@ -609,7 +609,7 @@ class Cluster(object):
         try:
             response = convert.json2value(utf82unicode(http.delete(url, **kwargs).content))
             if self.debug:
-                Log.note("delete response {{response}}", {"response": response})
+                Log.note("delete response {{response}}",  response= response)
             return response
         except Exception, e:
             Log.error("Problem with call to {{url}}",  url= url, cause=e)
@@ -672,7 +672,7 @@ def _scrub(r):
         else:
             return r
     except Exception, e:
-        Log.warning("Can not scrub: {{json}}", {"json": r})
+        Log.warning("Can not scrub: {{json}}",  json= r)
 
 
 
@@ -689,7 +689,7 @@ class Alias(object):
     ):
         self.debug = debug
         if self.debug:
-            Log.alert("Elasticsearch debugging on {{index|quote}} is on", {"index": settings.index})
+            Log.alert("Elasticsearch debugging on {{index|quote}} is on",  index= settings.index)
 
         self.settings = settings
         self.cluster = Cluster(settings)
@@ -775,7 +775,7 @@ class Alias(object):
             raise NotImplementedError
 
         if self.debug:
-            Log.note("Delete bugs:\n{{query}}", {"query": query})
+            Log.note("Delete bugs:\n{{query}}",  query= query)
 
         keep_trying = True
         while keep_trying:
@@ -810,7 +810,7 @@ class Alias(object):
                     show_query.facets = {k: "..." for k in query.facets.keys()}
                 else:
                     show_query = query
-                Log.note("Query:\n{{query|indent}}", {"query": show_query})
+                Log.note("Query:\n{{query|indent}}",  query= show_query)
             return self.cluster._post(
                 self.path + "/_search",
                 data=convert.value2json(query).encode("utf8"),

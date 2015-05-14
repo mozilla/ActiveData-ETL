@@ -62,7 +62,7 @@ def backfill(source, destination, work_queue, settings):
             new_keys = source.find_keys(done_max, BLOCK_SIZE)
             if not new_keys:
                 break
-            Log.note("Add {{num}} new keys", {"num": len(new_keys)})
+            Log.note("Add {{num}} new keys",  num= len(new_keys))
             add_to_queue(work_queue, new_keys, source.settings.bucket)
             done_max += BLOCK_SIZE
             wait_for_queue(work_queue)
@@ -74,11 +74,11 @@ def backfill(source, destination, work_queue, settings):
             existing = source.find_keys(done_min - BLOCK_SIZE, BLOCK_SIZE)
             existing = set(map(key_prefix, existing))
 
-            Log.note("verified {{block}} block", {"block": done_min})
+            Log.note("verified {{block}} block",  block= done_min)
             redo = existing - done
             done_min -= BLOCK_SIZE
             if redo:
-                Log.note("Refreshing {{num}} keys", {"num": len(redo)})
+                Log.note("Refreshing {{num}} keys",  num= len(redo))
                 add_to_queue(work_queue, map(unicode, redo), source.settings.bucket)
                 wait_for_queue(work_queue)
 
@@ -101,7 +101,7 @@ def add_to_queue(work_queue, redo, bucket_name):
         k = literal_field(r)
         counter[k] += 1
         if counter[k] > 3:
-            Log.error("Problem backfilling {{key}}: Tried >=3 times, giving up", {"key": r})
+            Log.error("Problem backfilling {{key}}: Tried >=3 times, giving up",  key= r)
             continue
 
         work_queue.add({

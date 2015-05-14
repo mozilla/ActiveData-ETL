@@ -286,7 +286,7 @@ class MainThread(object):
         children = copy(self.children)
         for c in children:
             if c.name:
-                Log.note("Stopping thread {{name|quote}}", {"name": c.name})
+                Log.note("Stopping thread {{name|quote}}",  name= c.name)
             c.stop()
         for c in children:
             c.join()
@@ -438,7 +438,7 @@ class Thread(object):
                         self.synch_lock.wait(0.5)
 
                 if DEBUG:
-                    Log.note("Waiting on thread {{thread|json}}", {"thread": self.name})
+                    Log.note("Waiting on thread {{thread|json}}",  thread= self.name)
         else:
             self.stopped.wait_for_go(till=till)
             if self.stopped:
@@ -694,8 +694,8 @@ class ThreadedQueue(Queue):
 
                 except Exception, e:
                     Log.warning("Problem with {{name}} pushing {{num}} items to data sink",
-                        name= name,
-                        num= len(_buffer),
+                        name=name,
+                        num=len(_buffer),
                         cause=e
                     )
 

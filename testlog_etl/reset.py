@@ -68,7 +68,7 @@ def main():
                 for prefix in File(settings.args.file):
                     all_keys = source.keys(prefix=key_prefix(prefix))
                     for k in all_keys:
-                        Log.note("Adding {{key}}", {"key": k})
+                        Log.note("Adding {{key}}",  key= k)
                         work_queue.add({
                             "bucket": settings.args.bucket,
                             "key": k,
@@ -92,7 +92,7 @@ def main():
             with Timer("sorting {{num}} keys", {"num": len(all_keys)}):
                 all_keys = qb.sort(all_keys, 1)
             for k, p in all_keys:
-                Log.note("Adding {{key}}", {"key": k})
+                Log.note("Adding {{key}}",  key= k)
                 now = Date.now()
                 work_queue.add({
                     "bucket": settings.args.bucket,

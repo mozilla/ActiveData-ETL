@@ -253,7 +253,7 @@ def pretty_json(value):
                 from pyLibrary.debugs.logs import Log
 
                 try:
-                    Log.note("try explicit convert of string with length {{length}}", {"length": len(value)})
+                    Log.note("try explicit convert of string with length {{length}}",  length= len(value))
                     acc = [u"\""]
                     for c in value:
                         try:
@@ -268,7 +268,7 @@ def pretty_json(value):
                             # Log.warning("odd character {{ord}} found in string.  Ignored.",  ord= ord(c)}, cause=g)
                     acc.append(u"\"")
                     output = u"".join(acc)
-                    Log.note("return value of length {{length}}", {"length": len(output)})
+                    Log.note("return value of length {{length}}",  length= len(output))
                     return output
                 except BaseException, f:
                     Log.warning("can not even explicit convert", f)
@@ -338,8 +338,9 @@ def pretty_json(value):
                     from pyLibrary.debugs.logs import Log
 
                     Log.warning("problem concatenating string of length {{len1}} and {{len2}}",
-                        len1= len("".join(output)),
-                        len2= len(p))
+                        len1=len("".join(output)),
+                        len2=len(p)
+                    )
             output.append("\n]")
             return "".join(output)
         elif hasattr(value, '__json__'):

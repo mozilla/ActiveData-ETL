@@ -80,7 +80,7 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", {"path": t_name})
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)",  path= t_name)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -189,7 +189,7 @@ class ETL(Thread):
                         for k in delete_me:
                             action._destination.delete_key(k)
                     else:
-                        Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
+                        Log.note("delete keys?\n{{list}}",  list= sorted(delete_me))
                         # for k in delete_me:
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -255,7 +255,7 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     self.work_queue.rollback()
-                    Log.warning("could not processs {{key}}.  Returned back to work queue.",  key= todo.key, cause=e)
+                    Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

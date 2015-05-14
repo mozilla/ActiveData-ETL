@@ -40,7 +40,7 @@ def value2json(obj, pretty=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
-            Log.note(str(type(obj)) + " is not valid{{type}}JSON", {"type": " (pretty) " if pretty else " "})
+            Log.note(str(type(obj)) + " is not valid{{type}}JSON",  type= " (pretty) " if pretty else " ")
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:
@@ -470,7 +470,7 @@ def latin12unicode(value):
     try:
         return unicode(value.decode('iso-8859-1'))
     except Exception, e:
-        Log.error("Can not convert {{value|quote}} to unicode", {"value": value})
+        Log.error("Can not convert {{value|quote}} to unicode",  value= value)
 
 
 def pipe2value(value):

@@ -39,12 +39,12 @@ def diff(settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(digits=2)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_rs:
                 in_s3.append(int(p))
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 

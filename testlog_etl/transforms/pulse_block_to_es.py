@@ -76,7 +76,7 @@ def scrub_pulse_record(source_key, i, line, stats):
         elif pulse_record.pulse:
             Log.error("Does this happen?")
             # if DEBUG:
-            #     Log.note("Line {{index}}: found pulse array", {"index": i})
+            #     Log.note("Line {{index}}: found pulse array",  index= i)
             # # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
             # def read():
             #     return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
@@ -135,7 +135,7 @@ def transform_buildbot(payload, filename=None):
             None: None
         }[payload.status]
     except Exception, e:
-        Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", {"status": payload.status})
+        Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", status=payload.status)
 
     output.run.talos = payload.talos
     output.run.suite = payload.test

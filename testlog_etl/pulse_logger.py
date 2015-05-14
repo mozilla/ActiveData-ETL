@@ -85,7 +85,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             except Exception, e:
                 queue.rollback()
                 if not queue.closed:
-                    Log.warning("Problem writing {{key}} to S3",  key= full_key, cause=e)
+                    Log.warning("Problem writing {{key}} to S3", key=full_key, cause=e)
 
             if please_stop:
                 break

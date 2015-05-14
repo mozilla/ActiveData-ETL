@@ -55,7 +55,7 @@ def run(query):
     elif isinstance(frum, Query):
         frum = run(frum).data
     else:
-        Log.error("Do not know how to handle {{type}}", {"type":frum.__class__.__name__})
+        Log.error("Do not know how to handle {{type}}",  type=frum.__class__.__name__)
 
     if is_aggs(query):
         frum = list_aggs(frum, query)
@@ -775,7 +775,7 @@ def drill_filter(esfilter, data):
         if isinstance(d, dict):
             main([], esfilter, wrap(d), 0)
         else:
-            Log.error("filter is expecting a structure, not {{type}}", {"type": d.__class__})
+            Log.error("filter is expecting a structure, not {{type}}",  type= d.__class__)
 
     # AT THIS POINT THE primary_column[] IS DETERMINED
     # USE IT TO EXPAND output TO ALL NESTED OBJECTS

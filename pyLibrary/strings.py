@@ -385,9 +385,10 @@ def _simple_expand(template, seq):
                 if not Log:
                     _late_import()
 
-                Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}", {
-                    "template": template
-                }, e)
+                Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}",
+                    template=template,
+                    cause=e
+                )
             return "[template expansion error: (" + str(e.message) + ")]"
 
     return pattern.sub(replacer, template)
@@ -493,7 +494,7 @@ def apply_diff(text, diff, reverse=False):
         if not Log:
             _late_import()
 
-        Log.error("Can not handle {{diff}}\n", {"diff": diff[0]})
+        Log.error("Can not handle {{diff}}\n",  diff= diff[0])
 
     remove = [int(i.strip()) for i in matches.group(1).split(",")]
     if len(remove) == 1:
@@ -535,7 +536,7 @@ def utf82unicode(value):
             _late_import()
 
         if not isinstance(value, basestring):
-            Log.error("Can not convert {{type}} to unicode because it's not a string", {"type": type(value).__name__})
+            Log.error("Can not convert {{type}} to unicode because it's not a string",  type= type(value).__name__)
 
         e = Except.wrap(e)
         for i, c in enumerate(value):

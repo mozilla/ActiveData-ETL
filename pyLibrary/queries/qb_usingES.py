@@ -174,7 +174,7 @@ class FromES(Container):
 
     def addDimension(self, dim):
         if isinstance(dim, list):
-            Log.error("Expecting dimension to be a object, not a list:\n{{dim}}", {"dim": dim})
+            Log.error("Expecting dimension to be a object, not a list:\n{{dim}}",  dim= dim)
         self._addDimension(dim, [])
 
     def _addDimension(self, dim, path):
@@ -349,7 +349,7 @@ class FromESMetadata(Container):
                 }
             ])
         else:
-            Log.error("Unknonw metadata: {{name}}", {"name": self.settings.name})
+            Log.error("Unknonw metadata: {{name}}",  name= self.settings.name)
 
 
 def _parse_properties(index, properties):
