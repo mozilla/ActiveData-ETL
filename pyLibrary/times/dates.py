@@ -26,11 +26,9 @@ except Exception, e:
 from pyLibrary.dot import Null
 from pyLibrary.times.durations import Duration, MILLI_VALUES
 from pyLibrary.vendor.dateutil.parser import parse as parse_date
-
 from pyLibrary.strings import deformat
 
-
-ISO8601 = "%Y-%m-%d %H:%M:%S"
+ISO8601 = '%Y-%m-%dT%H:%M:%SZ'
 
 
 class Date(object):

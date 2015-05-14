@@ -16,7 +16,7 @@ import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, unwrap, coalesce
+from pyLibrary.dot import wrap, unwrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
@@ -29,7 +29,6 @@ class Queue(object):
         self,
         name,
         region,
-        timeout=None,
         aws_access_key_id=None,
         aws_secret_access_key=None,
         debug=False,
@@ -37,7 +36,6 @@ class Queue(object):
     ):
         self.settings = settings
         self.pending = []
-        self.default_timeout = Duration(timeout)
 
         if settings.region not in [r.name for r in sqs.regions()]:
             Log.error("Can not find region {{region}} in {{regions}}", {"region": settings.region, "regions": [r.name for r in sqs.regions()]})
@@ -67,12 +65,7 @@ class Queue(object):
         m.set_body(convert.value2json(message))
         self.queue.write(m)
 
-    def extend(self, messages):
-        for m in messages:
-            self.add(m)
-
-    def pop(self, wait=None, till=None):
-        wait = coalesce(wait, self.default_timeout)
+    def pop(self, wait=Duration.SECOND, till=None):
         m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
         if not m:
             return None
