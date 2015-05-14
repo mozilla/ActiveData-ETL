@@ -48,11 +48,10 @@ def process(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid}}", {
-                "key": source_key,
-                "line": i,
-                "buildid": pulse_record.data.builddate
-            })
+            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid}}",
+                key= source_key,
+                line= i,
+                buildid= pulse_record.data.builddate)
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
@@ -90,12 +89,11 @@ def process(source_key, source, destination, please_stop=None):
                         fast_forward=True
 
                     if DEBUG_SHOW_LINE:
-                        Log.note("ETLed line {{key}}: {{url}}", {
-                            "key": dest_key,
-                            "url": url
-                        })
+                        Log.note("ETLed line {{key}}: {{url}}",
+                            key= dest_key,
+                            url= url)
             except Exception, e:
-                Log.error("Problem processing {{name}} = {{url}}", {"name": name, "url": url}, e)
+                Log.error("Problem processing {{name}} = {{url}}",  name= name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", {"json": pulse_record.data})

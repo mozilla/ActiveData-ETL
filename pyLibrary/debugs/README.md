@@ -76,7 +76,7 @@ All logs are structured logs; the parameters will be included, unchanged, in the
             Log.note("Start working with {{key1}}", {"key1": value1})
             # Do something that might raise exception
         except Exception, e:
-            Log.error("Failure to work with {{key2}}", {"key2":value2}, e)
+            Log.error("Failure to work with {{key2}}",  key2=value2, cause=e)
 ```
 
 
@@ -98,7 +98,7 @@ All logs are structured logs; the parameters will be included, unchanged, in the
             Log.note("Start working with {{key4}}", {"key4": value4})
             # Do something that might raise exception
         except Exception, e:
-            Log.warning("Failure to work with {{key4}}", {"key4":value4}, e)
+            Log.warning("Failure to work with {{key4}}",  key4=value4, cause=e)
 ```
 
 Configuration

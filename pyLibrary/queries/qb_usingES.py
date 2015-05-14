@@ -145,11 +145,10 @@ class FromES(Container):
         if output:
             # VERIFY es IS CONSISTENT
             if self.url != output.url:
-                Log.error("Using {{name}} for two different containers\n\t{{existing}}\n\t{{new}}", {
-                    "name": _from_name,
-                    "existing": output.url,
-                    "new": self._es.url
-                })
+                Log.error("Using {{name}} for two different containers\n\t{{existing}}\n\t{{new}}",
+                    name= _from_name,
+                    existing= output.url,
+                    new= self._es.url)
             return output.columns
 
         path = split_field(_from_name)

@@ -59,12 +59,11 @@ def diff(settings):
             rs.extend(keys)
             new_count = count()
 
-        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-            "num": new_count - old_count,
-            "key": key_prefix(keys[0]),
-            "duration": extend_time.seconds,
-            "rate": (new_count - old_count)/extend_time.seconds
-        })
+        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+            num= new_count - old_count,
+            key= key_prefix(keys[0]),
+            duration= extend_time.seconds,
+            rate= (new_count - old_count)/extend_time.seconds)
         old_count = new_count
 
 

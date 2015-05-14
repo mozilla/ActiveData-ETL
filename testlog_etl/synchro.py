@@ -45,10 +45,9 @@ class SynchState(object):
             self.next_key = last_run.next_key
             self.source_key = last_run.source_key
             if last_run.action == "shutdown":
-                Log.note("{{synchro_key}} shutdown detected.  Starting at {{num}}", {
-                    "synchro_key": SYNCHRONIZATION_KEY,
-                    "num": self.next_key
-                })
+                Log.note("{{synchro_key}} shutdown detected.  Starting at {{num}}",
+                    synchro_key= SYNCHRONIZATION_KEY,
+                    num= self.next_key)
             else:
                 resume_time = Date(last_run.timestamp) + WAIT_FOR_ACTIVITY
                 Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...", {"time": resume_time})

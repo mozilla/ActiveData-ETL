@@ -250,7 +250,7 @@ class Index(object):
                 data_bytes = "\n".join(lines) + "\n"
                 data_bytes = data_bytes.encode("utf8")
             except Exception, e:
-                Log.error("can not make request body from\n{{lines|indent}}", {"lines": lines}, e)
+                Log.error("can not make request body from\n{{lines|indent}}",  lines= lines, cause=e)
 
 
             response = self.cluster._post(
@@ -264,16 +264,14 @@ class Index(object):
             for i, item in enumerate(items):
                 if self.cluster.version.startswith("0.90."):
                     if not item.index.ok:
-                        Log.error("{{error}} while loading line:\n{{line}}", {
-                            "error": item.index.error,
-                            "line": lines[i * 2 + 1]
-                        })
+                        Log.error("{{error}} while loading line:\n{{line}}",
+                            error= item.index.error,
+                            line= lines[i * 2 + 1])
                 elif self.cluster.version.startswith("1.4."):
                     if item.index.status not in [200, 201]:
-                        Log.error("{{error}} while loading line:\n{{line}}", {
-                            "error": item.index.error,
-                            "line": lines[i * 2 + 1]
-                        })
+                        Log.error("{{error}} while loading line:\n{{line}}",
+                            error= item.index.error,
+                            line= lines[i * 2 + 1])
                 else:
                     Log.error("version not supported {{version}}", {"version":self.cluster.version})
 
@@ -281,7 +279,7 @@ class Index(object):
                 Log.note("{{num}} documents added", {"num": len(items)})
         except Exception, e:
             if e.message.startswith("sequence item "):
-                Log.error("problem with {{data}}", {"data": repr(lines[int(e.message[14:16].strip())])}, e)
+                Log.error("problem with {{data}}",  data= repr(lines[int(e.message[14:16].strip())]), cause=e)
             Log.error("problem sending to ES", e)
 
 
@@ -340,10 +338,11 @@ class Index(object):
                 timeout=coalesce(timeout, self.settings.timeout)
             )
         except Exception, e:
-            Log.error("Problem with search (path={{path}}):\n{{query|indent}}", {
-                "path": self.path + "/_search",
-                "query": query
-            }, e)
+            Log.error("Problem with search (path={{path}}):\n{{query|indent}}",
+                path=self.path + "/_search",
+                query=query,
+                cause=e
+            )
 
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
         return ThreadedQueue("elasticsearch: " + self.settings.index, self, batch_size=batch_size, max_size=max_size, period=period, silent=silent)
@@ -462,10 +461,10 @@ class Cluster(object):
             # DO NOT ASK FOR TOO MANY REPLICAS
             health = self.get("/_cluster/health")
             if schema.settings.index.number_of_replicas >= health.number_of_nodes:
-                Log.warning("Reduced number of replicas: {{from}} requested, {{to}} realized", {
-                    "from": schema.settings.index.number_of_replicas,
-                    "to": health.number_of_nodes - 1
-                })
+                Log.warning("Reduced number of replicas: {{from}} requested, {{to}} realized",
+                    {"from": schema.settings.index.number_of_replicas},
+                    to= health.number_of_nodes - 1
+                )
                 schema.settings.index.number_of_replicas = health.number_of_nodes - 1
 
         self._post(
@@ -526,7 +525,7 @@ class Cluster(object):
 
             if self.debug:
                 sample = kwargs.get("data", "")[:300]
-                Log.note("{{url}}:\n{{data|indent}}", {"url": url, "data": sample})
+                Log.note("{{url}}:\n{{data|indent}}",  url= url,  data= sample)
 
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
@@ -537,7 +536,9 @@ class Cluster(object):
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
-                Log.error("Shard failures {{failures|indent}}", {"failures": "---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)})
+                Log.error("Shard failures {{failures|indent}}",
+                    failures= "---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)
+                )
             return details
         except Exception, e:
             if url[0:4] != "http":
@@ -546,10 +547,9 @@ class Cluster(object):
                 suggestion = ""
 
             if kwargs.get("data"):
-                Log.error("Problem with call to {{url}}" + suggestion + "\n{{body|left(10000)}}", {
-                    "url": url,
-                    "body": kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100]
-                }, e)
+                Log.error("Problem with call to {{url}}" + suggestion + "\n{{body|left(10000)}}",
+                    url= url,
+                    body= kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100], cause=e)
             else:
                 Log.error("Problem with call to {{url}}" + suggestion, {"url": url}, e)
 
@@ -568,7 +568,7 @@ class Cluster(object):
                 Log.error(details.error)
             return details
         except Exception, e:
-            Log.error("Problem with call to {{url}}", {"url": url}, e)
+            Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
     def head(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -586,14 +586,14 @@ class Cluster(object):
             else:
                 return None  # WE DO NOT EXPECT content WITH HEAD REQUEST
         except Exception, e:
-            Log.error("Problem with call to {{url}}", {"url": url}, e)
+            Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
     def put(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
 
         if self.debug:
             sample = kwargs["data"][:300]
-            Log.note("PUT {{url}}:\n{{data|indent}}", {"url": url, "data": sample})
+            Log.note("PUT {{url}}:\n{{data|indent}}",  url= url,  data= sample)
         try:
             response = http.put(url, **kwargs)
             if response.status_code not in [200]:
@@ -602,7 +602,7 @@ class Cluster(object):
                 Log.note("response: {{response}}", {"response": utf82unicode(response.content)[0:300:]})
             return response
         except Exception, e:
-            Log.error("Problem with call to {{url}}", {"url": url}, e)
+            Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
     def delete(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -612,7 +612,7 @@ class Cluster(object):
                 Log.note("delete response {{response}}", {"response": response})
             return response
         except Exception, e:
-            Log.error("Problem with call to {{url}}", {"url": url}, e)
+            Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
 
 def proto_name(prefix, timestamp=None):
@@ -715,7 +715,7 @@ class Alias(object):
                     type = _type
 
             if type == None:
-                Log.error("Can not find schema type for index {{index}}", {"index": coalesce(self.settings.alias, self.settings.index)})
+                Log.error("Can not find schema type for index {{index}}",  index= coalesce(self.settings.alias, self.settings.index))
 
         self.path = "/" + alias + "/" + type
 
@@ -748,10 +748,9 @@ class Alias(object):
             # DONE BUG CORRECTION
 
             if not properties:
-                Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})", {
-                    "index": self.settings.index,
-                    "type": self.settings.type
-                })
+                Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})",
+                    index= self.settings.index,
+                    type= self.settings.type)
             return properties
         else:
             mapping = self.cluster.get(self.path + "/_mapping")
@@ -796,11 +795,10 @@ class Alias(object):
             if not keep_trying:
                 for name, status in result._indices.items():
                     if status._shards.failed > 0:
-                        Log.error("ES shard(s) report Failure to delete from {{index}}: {{message}}.  Query was {{query}}", {
-                            "index": name,
-                            "query": query,
-                            "message": status._shards.failures[0].reason
-                        })
+                        Log.error("ES shard(s) report Failure to delete from {{index}}: {{message}}.  Query was {{query}}",
+                            index= name,
+                            query= query,
+                            message= status._shards.failures[0].reason)
 
 
     def search(self, query, timeout=None):
@@ -819,8 +817,9 @@ class Alias(object):
                 timeout=coalesce(timeout, self.settings.timeout)
             )
         except Exception, e:
-            Log.error("Problem with search (path={{path}}):\n{{query|indent}}", {
-                "path": self.path + "/_search",
-                "query": query
-            }, e)
+            Log.error("Problem with search (path={{path}}):\n{{query|indent}}",
+                path= self.path + "/_search",
+                query= query,
+                cause=e
+            )
 

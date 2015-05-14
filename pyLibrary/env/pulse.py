@@ -75,7 +75,7 @@ class Pulse(Thread):
                 self.pulse_target(data)
                 message.ack()
             except Exception, e:
-                Log.error("Problem processing Pulse payload\n{{data|indent}}", {"data": data}, e)
+                Log.error("Problem processing Pulse payload\n{{data|indent}}",  data= data, cause=e)
 
     def _worker(self, please_stop):
         while not please_stop:

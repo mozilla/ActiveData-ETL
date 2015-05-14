@@ -26,16 +26,14 @@ def make_test_instance(name, settings):
 
 def open_test_instance(name, settings):
     if settings.filename:
-        Log.note("Using {{filename}} as {{type}}", {
-            "filename": settings.filename,
-            "type": name
-        })
+        Log.note("Using {{filename}} as {{type}}",
+            filename= settings.filename,
+            type= name)
         return Fake_ES(settings)
     else:
-        Log.note("Using ES cluster at {{host}} as {{type}}", {
-            "host": settings.host,
-            "type": name
-        })
+        Log.note("Using ES cluster at {{host}} as {{type}}",
+            host= settings.host,
+            type= name)
 
         Index(settings).delete()
 

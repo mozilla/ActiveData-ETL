@@ -542,7 +542,7 @@ def utf82unicode(value):
             try:
                 c.decode("utf8")
             except Exception, f:
-                Log.error("Can not convert charcode {{c}} in string  index {{i}}", {"i": i, "c": ord(c)}, [e, Except.wrap(f)])
+                Log.error("Can not convert charcode {{c}} in string  index {{i}}", i=i, c=ord(c), cause=[e, Except.wrap(f)])
 
         try:
             latin1 = unicode(value.decode("latin1"))

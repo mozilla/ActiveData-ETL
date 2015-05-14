@@ -331,10 +331,9 @@ def _isolate(separator, list):
         else:
             return list[0]
     except Exception, e:
-        Log.error("Programming problem: separator={{separator}}, list={{list}", {
-            "list": list,
-            "separator": separator
-        }, e)
+        Log.error("Programming problem: separator={{separator}}, list={{list}",
+            list= list,
+            separator= separator, e)
 
 
 def esfilter2sqlwhere(db, esfilter):

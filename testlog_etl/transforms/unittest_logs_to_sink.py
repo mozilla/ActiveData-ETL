@@ -50,7 +50,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
     except Exception, e:
-        Log.error("Problem processing {{key}}", {"key": source_key}, e)
+        Log.error("Problem processing {{key}}",  key= source_key, cause=e)
         summary = None
 
     buildbot_summary.etl = {
@@ -68,8 +68,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time * 1000)
         if age > Duration.DAY:
-            Log.alert("Test is {{days|round(decimal=1)}} days old", {"days": age / Duration.DAY})
-        Log.note("Done\n{{data|indent}}", {"data": buildbot_summary.run.stats})
+            Log.alert("Test is {{days|round(decimal=1)}} days old",  days= age / Duration.DAY)
+        Log.note("Done\n{{data|indent}}",  data= buildbot_summary.run.stats)
 
     new_keys = []
     new_data = []
@@ -127,14 +127,14 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}", {
-        "key": source_key,
-        "num_bytes": output.stats.bytes,
-        "num_lines": output.stats.lines,
-        "num_tests": output.stats.total,
-        "bad_lines": output.stats.bad_lines,
-        "name": file_name
-    })
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}",
+        key= source_key,
+        num_bytes= output.stats.bytes,
+        num_lines= output.stats.lines,
+        num_tests= output.stats.total,
+        bad_lines= output.stats.bad_lines,
+        name= file_name
+    )
     return output
 
 

@@ -116,7 +116,7 @@ def safe_size(source):
 
                 return data
             except Exception, e:
-                Log.error("Could not write file > {{num}} bytes", {"num": total_bytes}, e)
+                Log.error("Could not write file > {{num}} bytes",  num= total_bytes, cause=e)
         b = source.read(MIN_READ_SIZE)
 
     data = b"".join(bytes)

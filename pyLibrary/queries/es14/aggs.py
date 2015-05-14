@@ -101,7 +101,7 @@ def es_aggsop(es, frum, query):
         return output
     except Exception, e:
         if query.format not in format_dispatch:
-            Log.error("Format {{format|quote}} not supported yet", {"format": query.format}, e)
+            Log.error("Format {{format|quote}} not supported yet",  format= query.format, cause=e)
         Log.error("Some problem", e)
 
 

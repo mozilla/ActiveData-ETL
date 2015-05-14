@@ -198,7 +198,7 @@ def get_file(ref, url):
         content = File(path).read()
     except Exception, e:
         content = None
-        Log.error("Could not read file {{filename}}", {"filename": path}, e)
+        Log.error("Could not read file {{filename}}",  filename= path, cause=e)
 
     try:
         new_value = convert.json2value(content, params=ref.query, flexible=True, paths=True)
@@ -206,7 +206,7 @@ def get_file(ref, url):
         try:
             new_value = convert.ini2value(content)
         except Exception, f:
-            raise Log.error("Can not read {{file}}", {"file": path}, e)
+            raise Log.error("Can not read {{file}}",  file= path, cause=e)
     new_value = _replace_ref(new_value, ref)
     return new_value
 

@@ -37,7 +37,7 @@ def output(row, rownum=None, rows=None):
     try:
         return """ + source + """
     except Exception, e:
-        Log.error("Problem with dynamic function {{func|quote}}", {"func": """ + convert.value2quote(source) + """}, e)
+        Log.error("Problem with dynamic function {{func|quote}}",  func= """ + convert.value2quote(source) + """, cause=e)
 """
     return output
 

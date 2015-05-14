@@ -99,7 +99,7 @@ def etl2path(etl):
             etl = etl.source
         return qb.reverse(path)
     except Exception, e:
-        Log.error("Can not get path {{etl}}", {"etl": etl}, e)
+        Log.error("Can not get path {{etl}}",  etl= etl, cause=e)
 
 def key2path(key):
     return etl2path(key2etl(key))

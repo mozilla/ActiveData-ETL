@@ -112,11 +112,10 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}", {
-                "bucket": source_block.bucket,
-                "message": source_block,
-                "action": "skipping" if self.settings.keep_unknown_on_queue else "deleting"
-            })
+            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
+                bucket= source_block.bucket,
+                message= source_block,
+                action= "skipping" if self.settings.keep_unknown_on_queue else "deleting")
             return not self.settings.keep_unknown_on_queue
 
         for action in work_actions:
@@ -130,11 +129,10 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
-                Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
-                    "action": action.name,
-                    "source": source_block.bucket,
-                    "key": source_key
-                })
+                Log.note("Execute {{action}} on bucket={{source}} key={{key}}",
+                    action= action.name,
+                    source= source_block.bucket,
+                    key= source_key)
 
                 if action.transform_type == "bulk":
                     old_keys = set()
@@ -168,19 +166,17 @@ class ETL(Thread):
                 # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
                 # for n in new_keys:
                 #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", {"new_key": n, "source_key": source_key})
+                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}", {
-                        "old_keys": old_keys,
-                        "source_key": source_key
-                    })
+                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys= old_keys,
+                        source_key= source_key)
                     continue
                 elif not new_keys:
-                    Log.alert("Expecting some new keys after processing {{source_key}}", {
-                        "old_keys": old_keys,
-                        "source_key": source_key
-                    })
+                    Log.alert("Expecting some new keys after processing {{source_key}}",
+                        old_keys= old_keys,
+                        source_key= source_key)
                     continue
 
                 for k in new_keys:
@@ -259,7 +255,7 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     self.work_queue.rollback()
-                    Log.warning("could not processs {{key}}.  Returned back to work queue.", {"key": todo.key}, e)
+                    Log.warning("could not processs {{key}}.  Returned back to work queue.",  key= todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

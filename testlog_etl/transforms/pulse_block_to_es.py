@@ -85,17 +85,17 @@ def scrub_pulse_record(source_key, i, line, stats):
             #
             # return process_pulse_block(source_key, temp, destination)
         else:
-            Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}", {
-                "line": line,
-                "index": i,
-                "key": source_key
-            })
+            Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
+                line= line,
+                index= i,
+                key= source_key)
     except Exception, e:
-        Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}", {
-            "line": line,
-            "index": i,
-            "key": source_key
-        }, e)
+        Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}",
+            line=line,
+            index=i,
+            key=source_key,
+            cause=e
+        )
 
 
 

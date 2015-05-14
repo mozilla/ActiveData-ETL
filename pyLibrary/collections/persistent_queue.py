@@ -66,7 +66,7 @@ class PersistentQueue(object):
                 Log.warning("queue file had {{num}} items lost", {"num": lost})
 
             if DEBUG:
-                Log.note("Persistent queue {{name}} found with {{num}} items", {"name": self.file.abspath, "num": len(self)})
+                Log.note("Persistent queue {{name}} found with {{num}} items",  name= self.file.abspath,  num= len(self))
         else:
             self.db.status = Dict(
                 start=0,

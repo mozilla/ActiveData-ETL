@@ -348,7 +348,7 @@ def _map_term_using_schema(master, path, term, schema_edges):
                 if AND(is_keyword(f) for f in dimension.fields):
                     # EXPECTING A TUPLE
                     if not isinstance(v, tuple):
-                        Log.error("expecing {{name}}={{value}} to be a tuple", {"name": k, "value": v})
+                        Log.error("expecing {{name}}={{value}} to be a tuple",  name= k,  value= v)
                     for i, f in enumerate(dimension.fields):
                         vv = v[i]
                         if vv == None:
@@ -562,10 +562,9 @@ def where_get_all_vars(w):
 
     if key in ["gte", "gt", "eq", "ne", "term", "terms", "lt", "lte", "range", "prefix"]:
         if not isinstance(val, dict):
-            Log.error("Expecting `{{key}}` to have a dict value, not a {{type}}", {
-                "key": key,
-                "type": val.__class__.__name__
-            })
+            Log.error("Expecting `{{key}}` to have a dict value, not a {{type}}",
+                key= key,
+                type= val.__class__.__name__)
         return list(val.keys())
 
     if key == "match_all":

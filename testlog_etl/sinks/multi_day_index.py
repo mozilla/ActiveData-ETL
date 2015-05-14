@@ -114,5 +114,5 @@ class MultiDayIndex(object):
                     num_keys += 1
                     queue.add(row)
             except Exception, e:
-                Log.warning("Could not get queue for {{key}}", {"key": key}, e)
+                Log.warning("Could not get queue for {{key}}",  key= key, cause=e)
         return num_keys

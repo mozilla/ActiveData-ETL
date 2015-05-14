@@ -189,10 +189,9 @@ class Cube(object):
             for name, v in item.items():
                 ei, parts = wrap([(i, e.domain.partitions) for i, e in enumerate(self.edges) if e.name == name])[0]
                 if not parts:
-                    Log.error("Can not find {{name}}=={{value|quote}} in list of edges, maybe this feature is not implemented yet", {
-                        "name": name,
-                        "value": v
-                    })
+                    Log.error("Can not find {{name}}=={{value|quote}} in list of edges, maybe this feature is not implemented yet",
+                        name= name,
+                        value= v)
                 part = wrap([p for p in parts if p.value == v])[0]
                 if not part:
                     return Null

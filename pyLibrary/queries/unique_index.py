@@ -67,11 +67,10 @@ class UniqueIndex(object):
             if self.fail_on_dup:
                 Log.error("key {{key|json}} already filled", {"key":key})
             else:
-                Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}", {
-                    "key": key,
-                    "existing": d,
-                    "value": val
-                })
+                Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}",
+                    key= key,
+                    existing= d,
+                    value= val)
 
     def remove(self, val):
         key = value2key(self._keys, val)
