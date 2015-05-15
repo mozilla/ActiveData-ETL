@@ -84,7 +84,6 @@ class S3Bucket(object):
 
         return parts.keys()
 
-
     def _extend(self, key, documents):
         #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
         if self.bucket.name == "ekyle-test-result":

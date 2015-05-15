@@ -161,12 +161,6 @@ class Bucket(object):
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
-            if self.name == "ekyle-talos" and key.find(".") == -1:
-                # VERY SPECIFIC CONDITIONS TO ALLOW DELETE, REMOVE THIS CODE IN THE FUTURE (Now==March2015)
-                for m in metas:
-                    self.bucket.delete_key(m.key)
-                return Null
-
             perfect = Null
             favorite = Null
             too_many = False
@@ -331,6 +325,7 @@ class Bucket(object):
             )
 
     def write_lines(self, key, *lines):
+        self._verify_key_format(key)
         storage = self.bucket.new_key(key + ".json.gz")
 
         buff = BytesIO()
@@ -366,8 +361,9 @@ class Bucket(object):
 
         if self.key_format != _scrub_key(key):
             Log.error("key {{key}} in bucket {{bucket}} is of the wrong format",
-                key= key,
-                bucket= self.bucket.name)
+                key=key,
+                bucket=self.bucket.name
+            )
 
 
 class SkeletonBucket(Bucket):
