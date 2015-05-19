@@ -7,6 +7,8 @@ node.data: true
 cluster.routing.allocation.awareness.force.zone.values: primary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
+cluster.routing.allocation.balance.shard: 0.70
+cluster.routing.allocation.balance.primary: 0.05
 
 bootstrap.mlockall: true
 path.data: /data1, /data2

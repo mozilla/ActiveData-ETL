@@ -92,7 +92,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
                 "value": set_default(
                     {
                         "result": t,
-                        "etl": {"id":i}
+                        "etl": {"id": i}
                     },
                     buildbot_summary
                 )
@@ -128,12 +128,12 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
 
     output = accumulator.summary()
     Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}",
-        key= source_key,
-        num_bytes= output.stats.bytes,
-        num_lines= output.stats.lines,
-        num_tests= output.stats.total,
-        bad_lines= output.stats.bad_lines,
-        name= file_name
+        key=source_key,
+        num_bytes=output.stats.bytes,
+        num_lines=output.stats.lines,
+        num_tests=output.stats.total,
+        bad_lines=output.stats.bad_lines,
+        name=file_name
     )
     return output
 
@@ -218,6 +218,7 @@ class LogSummary(Dict):
         #RECORD THE CRASH RESULTS
         # test.crash_result = log.copy()
         # test.crash_result.action = None
+
     def test_end(self, log):
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]

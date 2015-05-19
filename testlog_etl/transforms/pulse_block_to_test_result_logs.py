@@ -25,8 +25,8 @@ PARSE_TRY = True
 
 def process(source_key, source, destination, please_stop=None):
     """
-    SIMPLE CONVERT pulse_block INTO S3 LOGFILES
-    PREPEND WITH ETL HEADER AND PULSE ENVELOPE
+    READ pulse_block AND THE REFERENCED STRUCTURED LOG FILES
+    TRANSFORM STRUCTURED LOG TO INDIVIDUAL TESTS
     """
     output = []
     stats = Dict()
