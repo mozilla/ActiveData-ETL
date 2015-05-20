@@ -8,9 +8,10 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from boto.utils import get_instance_metadata
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
+from pyLibrary.dot import Dict, wrap
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator, verify_blobber_file
@@ -30,6 +31,7 @@ def process(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
+    meta = wrap(get_instance_metadata())
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
@@ -80,6 +82,7 @@ def process(source_key, source, destination, please_stop=None):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
+                    dest_etl.instance_type = meta.instance_type
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1
