@@ -10,7 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from boto import sqs
+from boto import sqs, boto
 from boto.sqs.message import Message
 import requests
 
@@ -117,5 +117,9 @@ def capture_termination_signal(please_stop):
             Thread.sleep(seconds=11)
 
     Thread.run("listen for termination", worker)
+
+
+def get_instance_metadata():
+    return wrap(dict(boto.utils.get_instance_metadata()))
 
 from . import s3

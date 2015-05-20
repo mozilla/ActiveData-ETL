@@ -52,53 +52,30 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-test-result-dev",
-//				"key_format": "a:b.c"
-//			},
-//			"notify":{
-//				"name": "active-data-index-dev",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-//			"type": "join"
-//		},
-//		{
-//			"name": "load es",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-test-result-dev"
-//			},
-//			"destination": {
-//				"use_daily": true,
-//				"host": "http://localhost",
-//				"port": 9200,
-//				"index": "unittest",
-//				"type": "test_result",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../schema/test_results.json"
-//				},
-//				"debug": false,
-//				"limit_replicas": true
-//			},
-//			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
-//			"type": "join"
-//
-//		}
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result-dev",
+				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
+		}
 	],
 	"debug": {
 		"trace": true,
 		"cprofile": {
-			"enabled": true,
+			"enabled": false,
 			"filename": "./results/profile.tab"
 		},
 		"log": [

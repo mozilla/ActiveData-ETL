@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from boto.utils import get_instance_metadata
+from pyLibrary import aws
 
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap
@@ -31,7 +31,7 @@ def process(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
-    meta = wrap(get_instance_metadata())
+    meta = aws.get_instance_metadata()
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
