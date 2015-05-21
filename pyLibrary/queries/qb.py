@@ -10,7 +10,9 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 import __builtin__
+from collections import Mapping
 from types import GeneratorType
 
 from pyLibrary import dot, convert
@@ -19,6 +21,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, Null, Dict, split_field, coalesce, join_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import listwrap, wrap, unwrap
+from pyLibrary.dot.objects import DictClass, DictObject
 from pyLibrary.maths import Math
 from pyLibrary.queries import flat_list, query, group_by
 from pyLibrary.queries.container import Container
@@ -141,7 +144,7 @@ def unique_index(data, keys=None, fail_on_dup=True):
 
 def map2set(data, relation):
     """
-    EXPECTING A isinstance(relation, dict) THAT MAPS VALUES TO lists
+    EXPECTING A isinstance(relation, Mapping) THAT MAPS VALUES TO lists
     THE LISTS ARE EXPECTED TO POINT TO MEMBERS OF A SET
     A set() IS RETURNED
     """
@@ -150,7 +153,7 @@ def map2set(data, relation):
     if isinstance(relation, Dict):
         Log.error("Does not accept a Dict")
 
-    if isinstance(relation, dict):
+    if isinstance(relation, Mapping):
         try:
             # relation[d] is expected to be a list
             # return set(cod for d in data for cod in relation[d])
@@ -187,7 +190,7 @@ def tuple(data, field_name):
     if isinstance(data, FlatList):
         Log.error("not supported yet")
 
-    if isinstance(field_name, dict) and "value" in field_name:
+    if isinstance(field_name, Mapping) and "value" in field_name:
         # SIMPLIFY {"value":value} AS STRING
         field_name = field_name["value"]
 
@@ -256,7 +259,7 @@ def select_one(record, selection):
     record = wrap(record)
     selection = wrap(selection)
 
-    if isinstance(selection, dict):
+    if isinstance(selection, Mapping):
         selection = wrap(selection)
         return record[selection.value]
     elif isinstance(selection, basestring):
@@ -285,10 +288,10 @@ def select(data, field_name):
     if isinstance(data, UniqueIndex):
         data = data._data.values()  # THE SELECT ROUTINE REQUIRES dicts, NOT Dict WHILE ITERATING
 
-    if isinstance(data, dict):
+    if isinstance(data, Mapping):
         return select_one(data, field_name)
 
-    if isinstance(field_name, dict):
+    if isinstance(field_name, Mapping):
         field_name = wrap(field_name)
         if field_name.value in ["*", "."]:
             return data
@@ -485,7 +488,7 @@ def sort(data, fieldnames=None):
             right = coalesce(right)
             for f in formal:
                 try:
-                    result = value_compare(left[f.field], right[f.fields], f.sort)
+                    result = value_compare(left[f.field], right[f.field], f.sort)
                     if result != 0:
                         return result
                 except Exception, e:
@@ -538,18 +541,24 @@ def filter(data, where):
     """
     where  - a function that accepts (record, rownum, rows) and returns boolean
     """
-    if len(data)==0 or where == None or where == TRUE_FILTER:
+    if len(data) == 0 or where == None or where == TRUE_FILTER:
         return data
 
     if isinstance(data, Cube):
         data.filter(where)
 
-    return drill_filter(where, data)
+    try:
+        return drill_filter(where, data)
+    except Exception, e:
+        # WOW!  THIS IS INEFFICIENT!
+        return wrap([unwrap(d) for d in drill_filter(where, [DictObject(d) for d in data])])
 
 
 def drill_filter(esfilter, data):
     """
     PARTIAL EVALUATE THE FILTER BASED ON DATA GIVEN
+
+    TODO:  FIX THIS MONUMENALLY BAD IDEA
     """
     esfilter = unwrap(esfilter)
     primary_nested = []  # track if nested, changes if not
@@ -772,10 +781,10 @@ def drill_filter(esfilter, data):
 
     # OUTPUT
     for i, d in enumerate(data):
-        if isinstance(d, dict):
+        if isinstance(d, Mapping):
             main([], esfilter, wrap(d), 0)
         else:
-            Log.error("filter is expecting a structure, not {{type}}",  type= d.__class__)
+            Log.error("filter is expecting a dict, not {{type}}", type=d.__class__)
 
     # AT THIS POINT THE primary_column[] IS DETERMINED
     # USE IT TO EXPAND output TO ALL NESTED OBJECTS

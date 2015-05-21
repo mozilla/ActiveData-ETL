@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 import StringIO
 import gzip
 from io import BytesIO
@@ -151,15 +152,15 @@ class Bucket(object):
 
     def get_meta(self, key, conforming=True):
         try:
-            if key.endswith(".json") or key.endswith(".zip") or key.endswith(".gz"):
-                Log.error("Expecting a pure key")
-        except Exception, e:
-            Log.error("bad key format {{key}}",  key=key, cause=e)
-
-        try:
             # key_prefix("2")
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
+
+            if self.name == "ekyle-talos" and key.find(".") == -1:
+                # VERY SPECIFIC CONDITIONS TO ALLOW DELETE, REMOVE THIS CODE IN THE FUTURE (Now==March2015)
+                for m in metas:
+                    self.bucket.delete_key(m.key)
+                return Null
 
             perfect = Null
             favorite = Null
@@ -360,7 +361,8 @@ class Bucket(object):
             return
 
         if self.key_format != _scrub_key(key):
-            Log.error("key {{key}} in bucket {{bucket}} is of the wrong format",
+            Log.error(
+                "key {{key}} in bucket {{bucket}} is of the wrong format",
                 key=key,
                 bucket=self.bucket.name
             )

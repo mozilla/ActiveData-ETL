@@ -9,13 +9,11 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from decimal import Decimal
-import os
+from __future__ import absolute_import
+from collections import Mapping
 from types import GeneratorType, NoneType, ModuleType
-import sys
 
 _get = object.__getattribute__
-_set = object.__setattr__
 
 
 def inverse(d):
@@ -83,7 +81,7 @@ def join_field(field):
 def hash_value(v):
     if isinstance(v, (set, tuple, list)):
         return hash(tuple(hash_value(vv) for vv in v))
-    elif not isinstance(v, dict):
+    elif not isinstance(v, Mapping):
         return hash(v)
     else:
         return hash(tuple(sorted(hash_value(vv) for vv in v.values())))
@@ -108,7 +106,7 @@ def set_default(*params):
     FOR EACH LEAF, RETURN THE HIGHEST PRIORITY LEAF VALUE
     """
     p0 = params[0]
-    agg = p0 if p0 or isinstance(p0, dict) else {}
+    agg = p0 if p0 or isinstance(p0, Mapping) else {}
     for p in params[1:]:
         p = unwrap(p)
         if p is None:
@@ -124,14 +122,14 @@ def _all_default(d, default, seen=None):
     """
     if default is None:
         return
-    for k, default_value in dictwrap(default).items():
+    for k, default_value in wrap(default).items():
         # existing_value = d.get(k)
         existing_value = _get_attr(d, [k])
 
         if existing_value == None:
             if default_value != None:
                 _set_attr(d, [k], default_value)
-        elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, dict)) and isinstance(default_value, dict):
+        elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, Mapping)) and isinstance(default_value, Mapping):
             df = seen.get(id(existing_value))
             if df:
                 _set_attr(d, [k], df)
@@ -241,7 +239,7 @@ def _get_attr(obj, path):
         else:
             return _get_attr(obj[attr_name[0]], path[1:])
     try:
-        obj = _get(obj, attr_name)
+        obj = getattr(obj, attr_name)
         return _get_attr(obj, path[1:])
     except Exception, e:
         try:
@@ -272,7 +270,7 @@ def _set_attr(obj, path, value):
         new_value = value
 
     try:
-        _set(obj, attr_name, new_value)
+        _get(obj, "__setattr__")(attr_name, new_value)
         return old_value
     except Exception, e:
         try:
@@ -291,8 +289,7 @@ def wrap(v):
     type_ = _get(v, "__class__")
 
     if type_ is dict:
-        m = Dict()
-        _set(m, "__dict__", v)  # INJECT m.__dict__=v SO THERE IS NO COPY
+        m = Dict(v)
         return m
     elif type_ is NoneType:
         return Null
@@ -316,7 +313,7 @@ def _wrap_dot(value):
         return None
     if isinstance(value, (basestring, int, float)):
         return value
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         if isinstance(value, Dict):
             value = unwrap(value)
 
@@ -362,7 +359,7 @@ def _wrap_dot(value):
 def unwrap(v):
     _type = _get(v, "__class__")
     if _type is Dict:
-        d = _get(v, "__dict__")
+        d = _get(v, "_dict")
         return d
     elif _type is DictList:
         return v.list
@@ -431,56 +428,6 @@ def tuplewrap(value):
     if isinstance(value, (list, set, tuple, GeneratorType)):
         return tuple(tuplewrap(v) if isinstance(v, (list, tuple, GeneratorType)) else v for v in value)
     return unwrap(value),
-
-
-class DictWrap(dict):
-
-    def __init__(self, obj):
-        dict.__init__(self)
-        _set(self, "_obj", obj)
-        try:
-            _set(self, "_dict", wrap(_get(obj, "__dict__")))
-        except Exception, _:
-            pass
-
-    def __getattr__(self, item):
-        try:
-            output = _get(_get(self, "_obj"), item)
-            return dictwrap(output)
-        except Exception, _:
-            return dictwrap(_get(self, "_dict")[item])
-
-    def __setattr__(self, key, value):
-        _get(self, "_dict")[key] = value
-
-    def __getitem__(self, item):
-        return dictwrap(_get(self, "_dict")[item])
-
-    def keys(self):
-        return _get(self, "_dict").keys()
-
-    def items(self):
-        return _get(self, "_dict").items()
-
-    def __iter__(self):
-        return _get(self, "_dict").__iter__()
-
-    def __str__(self):
-        return _get(self, "_dict").__str__()
-
-    def __len__(self):
-        return _get(self, "_dict").__len__()
-
-    def __call__(self, *args, **kwargs):
-        return _get(self, "_obj")(*args, **kwargs)
-
-def dictwrap(obj):
-    """
-    wrap object as Dict
-    """
-    if isinstance(obj, (dict, basestring, int, float, list, set, Decimal, NoneType, NullType)):
-        return wrap(obj)
-    return DictWrap(obj)
 
 
 from pyLibrary.dot.nones import Null, NullType

@@ -9,6 +9,8 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+from collections import Mapping
 from pyLibrary import dot
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap, set_default, wrap, _get_attr
@@ -54,7 +56,7 @@ def new_instance(settings):
         pass
 
     try:
-        return constructor(**unwrap(settings))
+        return constructor(**settings)
     except Exception, e:
         Log.error("Can not create instance of {{name}}",  name= ".".join(path), cause=e)
 
@@ -97,16 +99,29 @@ def use_settings(func):
         defaults={}
     else:
         defaults = {k: v for k, v in zip(reversed(params), reversed(func.func_defaults))}
+
     if "settings" not in params:
-        Log.error("Must have an optional 'settings' parameter, which will be "
-                  "filled with dict of all parameter {name:value} pairs")
+        # WE ASSUME WE ARE ONLY ADDING A settings PARAMETER TO SOME REGULAR METHOD
+        def w_settings(*args, **kwargs):
+            settings = wrap(kwargs).settings
+
+            params = func.func_code.co_varnames[:func.func_code.co_argcount]
+            if not func.func_defaults:
+                defaults = {}
+            else:
+                defaults = {k: v for k, v in zip(reversed(params), reversed(func.func_defaults))}
+
+            ordered_params = dict(zip(params, args))
+
+            return func(**params_pack(params, ordered_params, kwargs, settings, defaults))
+        return w_settings
 
     def wrapper(*args, **kwargs):
         try:
             if func.func_name == "__init__" and "settings" in kwargs:
                 packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), kwargs["settings"], defaults)
                 return func(args[0], **packed)
-            elif func.func_name == "__init__" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], dict):
+            elif func.func_name == "__init__" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], Mapping):
                 # ASSUME SECOND UNNAMED PARAM IS settings
                 packed = params_pack(params, args[1], defaults)
                 return func(args[0], **packed)
@@ -117,18 +132,18 @@ def use_settings(func):
             elif params[0] == "self" and "settings" in kwargs:
                 packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), kwargs["settings"], defaults)
                 return func(args[0], **packed)
-            elif params[0] == "self" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], dict):
+            elif params[0] == "self" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], Mapping):
                 # ASSUME SECOND UNNAMED PARAM IS settings
                 packed = params_pack(params, args[1], defaults)
                 return func(args[0], **packed)
             elif params[0] == "self":
                 packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), defaults)
                 return func(args[0], **packed)
-            elif len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], dict):
+            elif len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], Mapping):
                 # ASSUME SINGLE PARAMETER IS A SETTING
                 packed = params_pack(params, args[0], defaults)
                 return func(**packed)
-            elif "settings" in kwargs and isinstance(kwargs["settings"], dict):
+            elif "settings" in kwargs and isinstance(kwargs["settings"], Mapping):
                 # PUT args INTO SETTINGS
                 packed = params_pack(params, kwargs, dot.zip(params, args), kwargs["settings"], defaults)
                 return func(**packed)
@@ -162,5 +177,3 @@ def params_pack(params, *args):
 
     output = {str(k): settings[k] for k in params if k in settings}
     return output
-
-
