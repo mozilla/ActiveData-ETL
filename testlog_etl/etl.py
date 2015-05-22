@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
+from collections import Mapping
 from copy import deepcopy
 import sys
 
@@ -90,7 +91,7 @@ class ETL(Thread):
                 w._notify.append(aws.Queue(notify))
 
         self.settings = settings
-        if isinstance(work_queue, dict):
+        if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue)
         else:
             self.work_queue = work_queue

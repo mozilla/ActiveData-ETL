@@ -66,10 +66,10 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     buildbot_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
 
     if DEBUG:
-        age = Date.now() - Date(buildbot_summary.run.stats.start_time * 1000)
+        age = Date.now() - Date(buildbot_summary.run.stats.start_time)
         if age > Duration.DAY:
-            Log.alert("Test is {{days|round(decimal=1)}} days old",  days= age / Duration.DAY)
-        Log.note("Done\n{{data|indent}}",  data= buildbot_summary.run.stats)
+            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / Duration.DAY)
+        Log.note("Done\n{{data|indent}}", data=buildbot_summary.run.stats)
 
     new_keys = []
     new_data = []
