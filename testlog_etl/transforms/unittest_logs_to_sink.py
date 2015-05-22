@@ -249,6 +249,7 @@ class LogSummary(Dict):
 
             t.result = "NONE"  #TODO Remove November 2015
             t.status = "NONE"  #TODO Remove November 2015
+            t.ok = False
             t.end_time = t.last_log_time
             t.duration = t.end_time - t.start_time
             t.missing_test_end = True
