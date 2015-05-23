@@ -57,6 +57,9 @@ def process(source_key, source, destination, please_stop=None):
 
         file_num = 0
         for name, url in pulse_record.data.blobber_files.items():
+            # USE THIS TO JUMP TO SPECIFIC FILE
+            # if url != "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/0e0b1ad188f165b1cdc28d9dbf527b96def62c736da393d86ff94a1f65366ba8cf306d3827a059100d0e6d13486b719dc2fd7c6c2dd40ab261b860b2beb37aa5":
+            #     continue
             if fast_forward:
                 continue
             try:

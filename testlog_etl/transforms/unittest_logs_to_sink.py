@@ -50,7 +50,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
     except Exception, e:
-        Log.error("Problem processing {{key}}",  key= source_key, cause=e)
+        Log.error("Problem processing {{key}}", key=source_key, cause=e)
         summary = None
 
     buildbot_summary.etl = {
@@ -123,6 +123,8 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
                 log.test = " ".join(log.test)
 
             accumulator.__getattribute__(log.action)(log)
+            if log.subtest:
+                accumulator.last_subtest=log.time
         except Exception, e:
             accumulator.stats.bad_lines += 1
 
@@ -143,6 +145,7 @@ class LogSummary(Dict):
         Dict.__init__(self)
         self.tests = Dict()
         self.logs = Dict()
+        self.last_subtest = None
 
     def suite_start(self, log):
         pass
@@ -154,6 +157,7 @@ class LogSummary(Dict):
             test=log.test,
             start_time=log.time
         )
+        self.last_subtest=log.time
 
     def test_status(self, log):
         self.stats.action.test_status += 1
@@ -171,6 +175,17 @@ class LogSummary(Dict):
             )
         test.last_log_time = log.time
         test.stats[log.status.lower()] += 1
+
+        if log.subtest:
+            test.subtests += [{
+                "subtest": log.subtest,
+                "ok": True if log.expected == None or log.expected == log.status else False,
+                "status": log.status.lower(),
+                "expected": log.expected.lower(),
+                "timestamp": log.time,
+                "message": log.message,
+                "ordering": len(test.subtests)
+            }]
 
     def process_output(self, log):
         self.logs[literal_field(log.test)] += [log]
@@ -230,6 +245,8 @@ class LogSummary(Dict):
             )
 
         test.ok = True if log.expected == None or log.expected == log.status else False
+        if not all(test.subtests.ok):
+            test.ok = False
         test.result = log.status   #TODO: REMOVE ME AFTER November 2015
         test.status = log.status
         test.expected = coalesce(log.expected, log.status)
@@ -258,7 +275,7 @@ class LogSummary(Dict):
         # COUNT THE NUMBER OF EACH RESULT
         try:
             for t in tests:
-                self.stats[t.status.lower()] += 1
+                self.stats.status[t.status.lower()] += 1
         except Exception, e:
             Log.error("problem", e)
 

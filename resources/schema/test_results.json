@@ -54,7 +54,22 @@
 				}
 			],
 			"properties": {
-
+				"result": {
+					"type": "object",
+					"properties": {
+						"subtests": {
+							"type": "nested"
+						}
+					}
+				},
+				"run": {
+					"type": "object",
+					"properties": {
+						"files": {
+							"type": "nested"
+						}
+					}
+				},
 				"etl":{
 					"type":"object",
 					"properties":{

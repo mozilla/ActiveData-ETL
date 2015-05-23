@@ -54,6 +54,9 @@ class DictObject(Mapping):
         except Exception, e:
             raise e
 
+    def __iter__(self):
+        return (k for k in self.keys())
+
     def __str__(self):
         obj = _get(self, "_obj")
         return str(obj)

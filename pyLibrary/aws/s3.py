@@ -145,6 +145,8 @@ class Bucket(object):
         # self._verify_key_format(key)  DO NOT VERIFY, DELETE BAD KEYS ANYWAY!!
         try:
             full_key = self.get_meta(key, conforming=False)
+            if full_key == None:
+                return
             self.bucket.delete_key(full_key)
         except Exception, e:
             self.get_meta(key, conforming=False)
