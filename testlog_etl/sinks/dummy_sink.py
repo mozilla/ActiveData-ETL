@@ -18,7 +18,7 @@ class DummySink(object):
 
     def add(self, value):
         json = convert.value2json(value)
-        # Log.note("{{json}}", {"json": json})
+        # Log.note("{{json}}",  json= json)
 
     def extend(self, values):
         pass

@@ -56,7 +56,7 @@ class Json2Redshift(object):
             }, retry=False)
         except Exception, e:
             if "already exists" in e:
-                Log.alert("Table {{table}} exists in Redshift", {"table": settings.table})
+                Log.alert("Table {{table}} exists in Redshift",  table= settings.table)
             else:
                 Log.error("Could not make table", e)
 

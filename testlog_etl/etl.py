@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
+from collections import Mapping
 from copy import deepcopy
 import sys
 
@@ -80,7 +81,7 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", {"path": t_name})
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)",  path= t_name)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -90,7 +91,7 @@ class ETL(Thread):
                 w._notify.append(aws.Queue(notify))
 
         self.settings = settings
-        if isinstance(work_queue, dict):
+        if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue)
         else:
             self.work_queue = work_queue
@@ -112,11 +113,10 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}", {
-                "bucket": source_block.bucket,
-                "message": source_block,
-                "action": "skipping" if self.settings.keep_unknown_on_queue else "deleting"
-            })
+            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
+                bucket= source_block.bucket,
+                message= source_block,
+                action= "skipping" if self.settings.keep_unknown_on_queue else "deleting")
             return not self.settings.keep_unknown_on_queue
 
         for action in work_actions:
@@ -130,11 +130,10 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
-                Log.note("Execute {{action}} on bucket={{source}} key={{key}}", {
-                    "action": action.name,
-                    "source": source_block.bucket,
-                    "key": source_key
-                })
+                Log.note("Execute {{action}} on bucket={{source}} key={{key}}",
+                    action= action.name,
+                    source= source_block.bucket,
+                    key= source_key)
 
                 if action.transform_type == "bulk":
                     old_keys = set()
@@ -168,19 +167,17 @@ class ETL(Thread):
                 # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
                 # for n in new_keys:
                 #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", {"new_key": n, "source_key": source_key})
+                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}", {
-                        "old_keys": old_keys,
-                        "source_key": source_key
-                    })
+                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys= old_keys,
+                        source_key= source_key)
                     continue
                 elif not new_keys:
-                    Log.alert("Expecting some new keys after processing {{source_key}}", {
-                        "old_keys": old_keys,
-                        "source_key": source_key
-                    })
+                    Log.alert("Expecting some new keys after processing {{source_key}}",
+                        old_keys= old_keys,
+                        source_key= source_key)
                     continue
 
                 for k in new_keys:
@@ -193,7 +190,7 @@ class ETL(Thread):
                         for k in delete_me:
                             action._destination.delete_key(k)
                     else:
-                        Log.note("delete keys?\n{{list}}", {"list": sorted(delete_me)})
+                        Log.note("delete keys?\n{{list}}",  list= sorted(delete_me))
                         # for k in delete_me:
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -259,7 +256,7 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     self.work_queue.rollback()
-                    Log.warning("could not processs {{key}}.  Returned back to work queue.", {"key": todo.key}, e)
+                    Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

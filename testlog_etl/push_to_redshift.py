@@ -39,12 +39,12 @@ def diff(settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(digits=2)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(digits=2)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_rs:
                 in_s3.append(int(p))
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
 
@@ -59,12 +59,11 @@ def diff(settings):
             rs.extend(keys)
             new_count = count()
 
-        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-            "num": new_count - old_count,
-            "key": key_prefix(keys[0]),
-            "duration": extend_time.seconds,
-            "rate": (new_count - old_count)/extend_time.seconds
-        })
+        Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+            num= new_count - old_count,
+            key= key_prefix(keys[0]),
+            duration= extend_time.seconds,
+            rate= (new_count - old_count)/extend_time.seconds)
         old_count = new_count
 
 

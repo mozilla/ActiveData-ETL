@@ -50,7 +50,7 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-talos",
 				"public": true,
-				"key_format": "a:b"
+				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
 			"type": "join",

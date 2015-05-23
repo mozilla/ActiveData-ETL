@@ -9,18 +9,19 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
-from boto import sqs
+from boto import sqs, boto
 from boto.sqs.message import Message
 import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, unwrap, coalesce
+from pyLibrary.dot import wrap, unwrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import Duration, SECOND
 
 
 class Queue(object):
@@ -29,7 +30,6 @@ class Queue(object):
         self,
         name,
         region,
-        timeout=None,
         aws_access_key_id=None,
         aws_secret_access_key=None,
         debug=False,
@@ -37,10 +37,9 @@ class Queue(object):
     ):
         self.settings = settings
         self.pending = []
-        self.default_timeout = Duration(timeout)
 
         if settings.region not in [r.name for r in sqs.regions()]:
-            Log.error("Can not find region {{region}} in {{regions}}", {"region": settings.region, "regions": [r.name for r in sqs.regions()]})
+            Log.error("Can not find region {{region}} in {{regions}}",  region= settings.region,  regions= [r.name for r in sqs.regions()])
 
         conn = sqs.connect_to_region(
             region_name=unwrap(settings.region),
@@ -49,7 +48,7 @@ class Queue(object):
         )
         self.queue = conn.get_queue(settings.name)
         if self.queue == None:
-            Log.error("Can not find queue with name {{queue}} in region {{region}}", {"queue": settings.name, "region": settings.region})
+            Log.error("Can not find queue with name {{queue}} in region {{region}}",  queue= settings.name,  region= settings.region)
 
     def __enter__(self):
         return self
@@ -71,8 +70,7 @@ class Queue(object):
         for m in messages:
             self.add(m)
 
-    def pop(self, wait=None, till=None):
-        wait = coalesce(wait, self.default_timeout)
+    def pop(self, wait=SECOND, till=None):
         m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
         if not m:
             return None
@@ -100,7 +98,7 @@ class Queue(object):
                 self.queue.delete_message(p)
 
             if self.settings.debug:
-                Log.alert("{{num}} messages returned to queue", {"num": len(pending)})
+                Log.alert("{{num}} messages returned to queue",  num= len(pending))
 
     def close(self):
         self.commit()
@@ -124,5 +122,10 @@ def capture_termination_signal(please_stop):
             Thread.sleep(seconds=11)
 
     Thread.run("listen for termination", worker)
+
+
+def get_instance_metadata():
+    return wrap(dict(boto.utils.get_instance_metadata()))
+
 
 from . import s3

@@ -47,7 +47,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-talos-dev",
-				"key_format": "a:b"
+				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
 			"type": "join"
@@ -70,29 +70,6 @@
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
-		},
-		{
-			"name": "load es",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result-dev"
-			},
-			"destination": {
-				"use_daily": true,
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "unittest",
-				"type": "test_result",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../schema/test_results.json"
-				},
-				"debug": false,
-				"limit_replicas": true
-			},
-			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
-			"type": "join"
-
 		}
 	],
 	"debug": {

@@ -30,18 +30,17 @@ def diff(settings, please_stop=None):
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     in_s3 = in_s3[500:500 + settings.limit:]
 
-    Log.note("Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES", {
-        "num": len(in_s3),
-        "min": Math.MIN(in_s3),
-        "max": Math.MAX(in_s3)
-    })
+    Log.note("Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES",
+        num= len(in_s3),
+        min= Math.MIN(in_s3),
+        max= Math.MAX(in_s3))
     bucket = s3.Bucket(settings.source)
     work_queue = aws.Queue(settings=settings.work_queue)
 
     for block in in_s3:
         keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
         work_queue.extend(keys)
-        Log.note("Done {{block}} ({{num}} keys)", {"block": block, "num": len(keys)})
+        Log.note("Done {{block}} ({{num}} keys)",  block= block,  num= len(keys))
 
 
 def get_all_in_es(es):
@@ -71,10 +70,9 @@ def get_all_in_es(es):
             except Exception, e:
                 pass
 
-        Log.note("got {{num}} from {{index}}", {
-            "num": len(good_es),
-            "index": name
-        })
+        Log.note("got {{num}} from {{index}}",
+            num= len(good_es),
+            index= name)
         in_es |= set(good_es)
 
     return in_es
@@ -86,14 +84,14 @@ def get_all_s3(in_es, settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
             else:
                 pass
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3

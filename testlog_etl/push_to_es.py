@@ -34,17 +34,17 @@ def copy2es(es, settings, work_queue, please_stop=None):
             continue
 
         extend_time = Timer("insert", silent=True)
-        Log.note("Indexing {{key}}", {"key": key})
+        Log.note("Indexing {{key}}",  key= key)
         with extend_time:
             num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
 
         if num_keys > 1:
-            Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)", {
-                "num": num_keys,
-                "key": key,
-                "duration": extend_time.seconds,
-                "rate": num_keys / Math.max(extend_time.seconds, 0.01)
-            })
+            Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+                num= num_keys,
+                key= key,
+                duration= extend_time.seconds,
+                rate= num_keys / Math.max(extend_time.seconds, 0.01)
+            )
 
         work_queue.commit()
 
@@ -56,14 +56,14 @@ def get_all_s3(in_es, settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}", {"p": i / len(prefixes)})
+            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
             else:
                 pass
         except Exception, _:
-            Log.note("delete key {{key}}", {"key": p})
+            Log.note("delete key {{key}}",  key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3
@@ -76,10 +76,9 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es)
     in_s3 = get_all_s3(in_es, settings)
 
-    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads", {
-        "num": len(in_s3),
-        "threads": settings.threads
-    })
+    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads",
+        num= len(in_s3),
+        threads= settings.threads)
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     max_s3 = in_s3[0] - 500
     i = 0
@@ -122,10 +121,9 @@ def get_all_in_es(es):
             except Exception, e:
                 pass
 
-        Log.note("got {{num}} from {{index}}", {
-            "num": len(good_es),
-            "index": name
-        })
+        Log.note("got {{num}} from {{index}}",
+            num= len(good_es),
+            index= name)
         in_es |= set(good_es)
 
     return in_es
@@ -165,7 +163,7 @@ def main():
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}", {"num": len(work_queue)})
+                Log.note("Remaining: {{num}}",  num= len(work_queue))
                 Thread.sleep(seconds=10)
 
         Thread.run(name="monitor progress", target=monitor_progress)

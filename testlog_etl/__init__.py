@@ -7,6 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from collections import Mapping
 from pyLibrary import strings
 from pyLibrary.dot import wrap
 from pyLibrary.parsers import Log
@@ -52,7 +53,7 @@ def _parse_key(elements):
         if isinstance(elements[0], basestring):
             return {"id": int(elements[0])}
         return elements[0]
-    if isinstance(elements, dict):
+    if isinstance(elements, Mapping):
         return elements
 
     for i in reversed(range(1, len(elements), 2)):
@@ -99,7 +100,7 @@ def etl2path(etl):
             etl = etl.source
         return qb.reverse(path)
     except Exception, e:
-        Log.error("Can not get path {{etl}}", {"etl": etl}, e)
+        Log.error("Can not get path {{etl}}",  etl= etl, cause=e)
 
 def key2path(key):
     return etl2path(key2etl(key))

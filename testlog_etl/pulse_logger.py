@@ -28,10 +28,9 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:
         for i, g in qb.groupby(queue, size=settings.param.size):
-            Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}", {
-                "num": len(g),
-                "bucket": bucket.name
-            })
+            Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}",
+                num= len(g),
+                bucket= bucket.name)
 
             etl_header = wrap({
                 "name": "Pulse block",
@@ -79,15 +78,14 @@ def log_loop(settings, synch, queue, bucket, please_stop):
 
                 synch.ping()
                 queue.commit()
-                Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ", {
-                    "num": len(g),
-                    "bucket": bucket.name,
-                    "key": full_key
-                })
+                Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ",
+                    num= len(g),
+                    bucket= bucket.name,
+                    key= full_key)
             except Exception, e:
                 queue.rollback()
                 if not queue.closed:
-                    Log.warning("Problem writing {{key}} to S3", {"key": full_key}, e)
+                    Log.warning("Problem writing {{key}} to S3", key=full_key, cause=e)
 
             if please_stop:
                 break

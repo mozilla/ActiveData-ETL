@@ -38,25 +38,24 @@ class SynchState(object):
         try:
             json = self.synch.read()
             if not json:
-                Log.note("{{synchro_key}} does not exist.  Starting.", {"synchro_key": SYNCHRONIZATION_KEY})
+                Log.note("{{synchro_key}} does not exist.  Starting.",  synchro_key= SYNCHRONIZATION_KEY)
                 return
 
             last_run = convert.json2value(json)
             self.next_key = last_run.next_key
             self.source_key = last_run.source_key
             if last_run.action == "shutdown":
-                Log.note("{{synchro_key}} shutdown detected.  Starting at {{num}}", {
-                    "synchro_key": SYNCHRONIZATION_KEY,
-                    "num": self.next_key
-                })
+                Log.note("{{synchro_key}} shutdown detected.  Starting at {{num}}",
+                    synchro_key= SYNCHRONIZATION_KEY,
+                    num= self.next_key)
             else:
                 resume_time = Date(last_run.timestamp) + WAIT_FOR_ACTIVITY
-                Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...", {"time": resume_time})
+                Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...",  time= resume_time)
                 while resume_time > Date.now():
                     Thread.sleep(seconds=10)
                     json = self.synch.read()
                     if json == None:
-                        Log.note("{{synchro_key}} disappeared!  Starting over.", {"synchro_key": SYNCHRONIZATION_KEY})
+                        Log.note("{{synchro_key}} disappeared!  Starting over.",  synchro_key= SYNCHRONIZATION_KEY)
                         self._start()
                         self.pinger_thread = Thread.run("synch pinger", self._pinger)
                         return

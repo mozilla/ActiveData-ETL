@@ -36,14 +36,14 @@ def list_s3(settings, filter):
         "sort": "last_modified"
     })
     for meta in filtered:
-        Log.note("Read {{key}} {{timestamp}}", {"key": meta.key, "timestamp": meta.last_modified})
+        Log.note("Read {{key}} {{timestamp}}",  key= meta.key,  timestamp= meta.last_modified)
 
 
 def list_queue(settings, num=10):
     queue = aws.Queue(settings)
     for i in range(num):
         content = queue.pop()
-        Log.note("{{content}}", {"content":content})
+        Log.note("{{content}}",  content=content)
     queue.rollback()
 
 

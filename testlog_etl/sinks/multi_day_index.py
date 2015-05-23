@@ -81,7 +81,7 @@ class MultiDayIndex(object):
                 queue = self._get_queue(d.value)
                 queue.add(d)
             except Exception, e:
-                Log.error("Can not decide on index by build.date: {{doc|json}}", {"doc": d.value})
+                Log.error("Can not decide on index by build.date: {{doc|json}}",  doc= d.value)
 
     def add(self, doc):
         d = wrap(doc)
@@ -114,5 +114,5 @@ class MultiDayIndex(object):
                     num_keys += 1
                     queue.add(row)
             except Exception, e:
-                Log.warning("Could not get queue for {{key}}", {"key": key}, e)
+                Log.warning("Could not get queue for {{key}}", key=key, cause=e)
         return num_keys
