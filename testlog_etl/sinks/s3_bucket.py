@@ -92,7 +92,7 @@ class S3Bucket(object):
             return
 
         meta = self.bucket.get_meta(key)
-        if meta is not None:
+        if meta != None:
             documents = UniqueIndex(keys="etl.id", data=documents)
             try:
                 content = self.bucket.read_lines(key)

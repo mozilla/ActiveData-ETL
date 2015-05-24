@@ -53,6 +53,22 @@ def process(source_key, source, dest_bucket, please_stop=None):
                 response = http.get(pulse_record.data.logurl)
                 if response.status_code == 404:
                     Log.alarm("Talos log missing {{url}}", url=pulse_record.data.logurl)
+                    k = source_key + "." + unicode(counter)
+                    try:
+                        # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
+                        dest_bucket.get_key(k)
+                        output |= {k}  # FOR DENSITY CALCULATIONS
+                    except Exception, _:
+                        _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                        dest_etl.error = "Talos log missing"
+                        output |= dest_bucket.extend([{
+                            "id": etl2key(dest_etl),
+                            "value": {
+                                "etl": dest_etl,
+                                "pulse": pulse_record.data
+                            }
+                        }])
+
                     continue
                 all_log_lines = response.all_lines
 
