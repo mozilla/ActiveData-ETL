@@ -32,6 +32,44 @@
 				}
 			],
 			"properties": {
+				"run": {
+					"type": "object",
+					"properties": {
+						"files": {
+							"type": "nested"
+						}
+					}
+				},
+				"etl":{
+					"type":"object",
+					"properties":{
+						"id":{
+							"type":"integer"
+						},
+						"source":{
+							"type":"object",
+							"properties":{
+								"id":{
+									"type":"integer"
+								},
+								"source":{
+									"type":"object",
+									"properties":{
+										"id":{
+											"type":"integer"
+										}
+									}
+								}
+
+							}
+						}
+
+					}
+
+				}
+
+
+
 			},
 			"_all": {
 				"enabled": false

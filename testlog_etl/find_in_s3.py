@@ -23,7 +23,7 @@ def main():
     settings = startup.read_settings(defs=[
         {
             "name": ["--bucket"],
-            "help": "bucket to reprocess",
+            "help": "bucket to scan",
             "type": str,
             "dest": "bucket",
             "required": True
