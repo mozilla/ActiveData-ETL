@@ -83,12 +83,6 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "elasticsearch",
-				"host": "http://172.31.0.233",
-				"index": "debug",
-				"type": "unittest_etl"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
