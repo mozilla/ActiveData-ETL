@@ -378,7 +378,7 @@ class SkeletonBucket(Bucket):
         object.__init__(self)
         self.connection = None
         self.bucket = None
-
+        self.key_format = None
 
 
 def strip_extension(key):
