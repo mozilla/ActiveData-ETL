@@ -16,7 +16,7 @@ import shutil
 
 from pyLibrary.strings import utf82unicode
 from pyLibrary.maths import crypto
-from pyLibrary.dot import nvl, set_default, split_field, join_field
+from pyLibrary.dot import coalesce, set_default, split_field, join_field
 from pyLibrary.dot import listwrap, wrap
 from pyLibrary import convert
 
@@ -37,11 +37,15 @@ class File(object):
         elif isinstance(filename, basestring):
             self.key = None
             self._filename = "/".join(filename.split(os.sep))  # USE UNIX STANDARD
-            self.buffering = buffering
         else:
             self.key = convert.base642bytearray(filename.key)
             self._filename = "/".join(filename.path.split(os.sep))  # USE UNIX STANDARD
-            self.buffering = buffering
+
+        while self._filename.find(".../") >= 0:
+            # LET ... REFER TO GRANDPARENT, .... REFER TO GREAT-GRAND-PARENT, etc...
+            self._filename = self._filename.replace(".../", "../../")
+        self.buffering = buffering
+
 
         if suffix:
             self._filename = File.add_suffix(self._filename, suffix)
@@ -67,7 +71,16 @@ class File(object):
 
     @property
     def abspath(self):
-        return os.path.abspath(self._filename)
+        if self._filename.startswith("~"):
+            home_path = os.path.expanduser("~")
+            if os.sep == "\\":
+                home_path = home_path.replace(os.sep, "/")
+            if home_path.endswith("/"):
+                home_path = home_path[:-1]
+
+            return home_path + self._filename[1::]
+        else:
+            return os.path.abspath(self._filename)
 
     @staticmethod
     def add_suffix(filename, suffix):
@@ -127,7 +140,7 @@ class File(object):
         """
         RETURN A FILENAME THAT CAN SERVE AS A BACKUP FOR THIS FILE
         """
-        suffix = convert.datetime2string(nvl(timestamp, datetime.now()), "%Y%m%d_%H%M%S")
+        suffix = convert.datetime2string(coalesce(timestamp, datetime.now()), "%Y%m%d_%H%M%S")
         return File.add_suffix(self._filename, suffix)
 
     def read(self, encoding="utf8"):
@@ -139,67 +152,33 @@ class File(object):
                 return content
 
     def read_json(self, encoding="utf8"):
+        from pyLibrary.jsons import ref
+
         content = self.read(encoding=encoding)
         value = convert.json2value(content, flexible=True, paths=True)
-        return wrap(self._replace_ref(value, [value]))
-
-    def _replace_ref(self, node, path):
-        if isinstance(node, dict):
-            ref = node["$ref"]
-            node["$ref"] = None
-            if not ref:
-                return_value = node
-                candidate = {}
-                for k, v in node.items():
-                    new_v = self._replace_ref(v, [v] + path)
-                    candidate[k] = new_v
-                    if new_v is not v:
-                        return_value = candidate
-                return return_value
-
-            if ref.startswith("http://"):
-                import requests
-
-                return set_default({}, node, convert.json2value(requests.get(ref), flexible=True, paths=True))
-            elif ref.startswith("file://"):
-                ref = ref[7::]
-                if ref.startswith("/"):
-                    return set_default({}, node, File(ref).read_json(ref))
-                else:
-                    return set_default({}, node, File.new_instance(self.parent, ref).read_json())
-            else:
-                # REFER TO SELF
-                if ref[0] == ".":
-                    # RELATIVE
-                    for i, p in enumerate(ref):
-                        if p != ".":
-                            ref_node = path[i][ref[i::]]
-                            return set_default({}, node, ref_node)
-                    return set_default({}, node, path[len(ref) - 1])
-                else:
-                    # ABSOLUTE
-                    return set_default({}, node, path[-1][ref])
-        elif isinstance(node, list):
-            candidate = [self._replace_ref(n, [n] + path) for n in node]
-            if all(p[0] is p[1] for p in zip(candidate, node)):
-                return node
-            return candidate
-
-        return node
+        abspath = self.abspath
+        if os.sep == "\\":
+            abspath = "/" + abspath.replace(os.sep, "/")
+        return ref.expand(value, "file://" + abspath)
 
     def is_directory(self):
         return os.path.isdir(self._filename)
 
-    def read_ascii(self):
-        if not self.parent.exists:
-            self.parent.create()
-        with open(self._filename, "r") as f:
-            return f.read()
+    def read_bytes(self):
+        try:
+            if not self.parent.exists:
+                self.parent.create()
+            with open(self._filename, "rb") as f:
+                return f.read()
+        except Exception, e:
+            from pyLibrary.debugs.logs import Log
 
-    def write_ascii(self, content):
+            Log.error("roblem reading file {{filename}}", self.abspath)
+
+    def write_bytes(self, content):
         if not self.parent.exists:
             self.parent.create()
-        with open(self._filename, "w") as f:
+        with open(self._filename, "wb") as f:
             f.write(content)
 
     def write(self, data):
@@ -211,7 +190,14 @@ class File(object):
 
                 Log.error("list of data and keys are not supported, encrypt before sending to file")
 
-            for d in listwrap(data):
+            if isinstance(data, list):
+                pass
+            elif isinstance(data, basestring):
+                data=[data]
+            elif hasattr(data, "__iter__"):
+                pass
+
+            for d in data:
                 if not isinstance(d, unicode):
                     from pyLibrary.debugs.logs import Log
 
@@ -227,13 +213,18 @@ class File(object):
         # http://effbot.org/zone/wide-finder.htm
         def output():
             try:
-                with io.open(self._filename, "rb") as f:
+                path = self._filename
+                if path.startswith("~"):
+                    home_path = os.path.expanduser("~")
+                    path = home_path + path[1::]
+
+                with io.open(path, "rb") as f:
                     for line in f:
                         yield utf82unicode(line)
             except Exception, e:
                 from pyLibrary.debugs.logs import Log
 
-                Log.error("Can not read line from {{filename}}", {"filename": self._filename}, e)
+                Log.error("Can not read line from {{filename}}",  filename= self._filename, cause=e)
 
         return output()
 
@@ -295,7 +286,7 @@ class File(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log
 
-            Log.error("Could not make directory {{dir_name}}", {"dir_name": self._filename}, e)
+            Log.error("Could not make directory {{dir_name}}",  dir_name= self._filename, cause=e)
 
     @property
     def children(self):

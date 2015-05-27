@@ -10,9 +10,13 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
+from __future__ import absolute_import
+
+from collections import Mapping
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, unwrap, tuplewrap
+from pyLibrary.dot import unwrap, tuplewrap, wrap
+from pyLibrary.dot.objects import dictwrap
+
 
 class UniqueIndex(object):
     """
@@ -21,50 +25,71 @@ class UniqueIndex(object):
     STILL MAINTAINING list-LIKE FEATURES
     """
 
-    def __init__(self, keys, fail_on_dup=True):
+    def __init__(self, keys, data=None, fail_on_dup=True):
         self._data = {}
         self._keys = tuplewrap(keys)
         self.count = 0
         self.fail_on_dup = fail_on_dup
+        if data:
+            for d in data:
+                self.add(d)
 
     def __getitem__(self, key):
         try:
             key = value2key(self._keys, key)
-            d = self._data.get(key, None)
+            d = self._data.get(key)
             return wrap(d)
         except Exception, e:
             Log.error("something went wrong", e)
 
     def __setitem__(self, key, value):
-        try:
-            key = value2key(self._keys, key)
-            d = self._data.get(key, None)
-            if d != None:
-                Log.error("key already filled")
+        Log.error("Use add() to ad to an index")
+        # try:
+        #     key = value2key(self._keys, key)
+        #     d = self._data.get(key)
+        #     if d != None:
+        #         Log.error("key already filled")
+        #     self._data[key] = unwrap(value)
+        #     self.count += 1
+        #
+        # except Exception, e:
+        #     Log.error("something went wrong", e)
 
-            self._data[key] = unwrap(value)
-            self.count += 1
-
-        except Exception, e:
-            Log.error("something went wrong", e)
-
+    def keys(self):
+        return self._data.keys()
 
     def add(self, val):
+        val = dictwrap(val)
         key = value2key(self._keys, val)
-        d = self._data.get(key, None)
+        if key == None:
+            Log.error("Expecting key to not be None")
+
+        d = self._data.get(key)
         if d is None:
             self._data[key] = unwrap(val)
             self.count += 1
         elif d is not val:
             if self.fail_on_dup:
-                Log.error("key {{key|json}} already filled", {"key":key})
+                Log.error("key {{key|json}} already filled",  key=key)
             else:
-                Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}", {
-                    "key": key,
-                    "existing": d,
-                    "value": val
-                })
+                Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}",
+                    key=key,
+                    existing=d,
+                    value=val
+                )
 
+    def remove(self, val):
+        key = value2key(self._keys, dictwrap(val))
+        if key == None:
+            Log.error("Expecting key to not be None")
+
+        d = self._data.get(key)
+        if d is None:
+            # ALREADY GONE
+            return
+        else:
+            del self._data[key]
+            self.count -= 1
 
     def __contains__(self, key):
         return self[key] != None
@@ -82,13 +107,19 @@ class UniqueIndex(object):
     def __and__(self, other):
         output = UniqueIndex(self._keys)
         for v in self:
-            if v in other: output.add(v)
+            if v in other:
+                output.add(v)
         return output
 
     def __or__(self, other):
         output = UniqueIndex(self._keys)
-        for v in self: output.add(v)
-        for v in other: output.add(v)
+        for v in self:
+            output.add(v)
+        for v in other:
+            try:
+                output.add(v)
+            except Exception, e:
+                pass
         return output
 
     def __len__(self):
@@ -105,16 +136,16 @@ class UniqueIndex(object):
 
 def value2key(keys, val):
     if len(keys)==1:
-        if isinstance(val, dict):
+        if isinstance(val, Mapping):
             return val[keys[0]]
         elif isinstance(val, (list, tuple)):
             return val[0]
         else:
             return val
     else:
-        if isinstance(val, dict):
-            return wrap({k: val[k] for k in keys})
+        if isinstance(val, Mapping):
+            return dictwrap({k: val[k] for k in keys})
         elif isinstance(val, (list, tuple)):
-            return wrap(dict(zip(keys, val)))
+            return dictwrap(dict(zip(keys, val)))
         else:
             Log.error("do not know what to do here")

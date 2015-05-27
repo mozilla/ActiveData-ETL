@@ -11,12 +11,13 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from datetime import timedelta
 import logging
 import sys
 
-from .log_usingStream import Log_usingStream, time_delta_pusher
+from .log_usingThreadedStream import Log_usingThreadedStream, time_delta_pusher
 from .logs import BaseLog, DEBUG_LOGGING, Log
 from pyLibrary.dot import unwrap
 from pyLibrary.thread import threads
@@ -31,7 +32,7 @@ class Log_usingLogger(BaseLog):
         self.logger.addHandler(make_log_from_settings(settings))
 
         # TURNS OUT LOGGERS ARE REALLY SLOW TOO
-        self.queue = threads.Queue(max=10000, silent=True)
+        self.queue = threads.Queue("log to classic logger", max=10000, silent=True)
         self.thread = Thread("log to logger", time_delta_pusher, appender=self.logger.info, queue=self.queue, interval=timedelta(seconds=0.3))
         self.thread.start()
 
@@ -70,9 +71,9 @@ def make_log_from_settings(settings):
     except Exception, e:
         if settings.stream and not constructor:
             # PROVIDE A DEFAULT STREAM HANLDER
-            constructor = Log_usingStream
+            constructor = Log_usingThreadedStream
         else:
-            Log.error("Can not find class {{class}}", {"class": path}, e)
+            Log.error("Can not find class {{class}}",  {"class": path}, cause=e)
 
     # IF WE NEED A FILE, MAKE SURE DIRECTORY EXISTS
     if settings.filename:

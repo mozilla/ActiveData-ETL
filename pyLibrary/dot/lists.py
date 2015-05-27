@@ -9,14 +9,23 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 from copy import deepcopy
+
 from pyLibrary.dot.nones import Null
 from pyLibrary.dot import wrap, unwrap
 
 
 _get = object.__getattribute__
 _set = object.__setattr__
+dictwrap = None
 
+
+def _late_import():
+    global dictwrap
+    from pyLibrary.dot.objects import dictwrap
+
+    _ = dictwrap
 
 class DictList(list):
     """
@@ -70,7 +79,16 @@ class DictList(list):
         return DictList.select(self, key)
 
     def select(self, key):
-        return DictList(vals=[unwrap(wrap(v)[key]) for v in _get(self, "list")])
+        """
+        simple `select`
+        """
+        if not dictwrap:
+            _late_import()
+
+        return DictList(vals=[unwrap(dictwrap(v)[key]) for v in _get(self, "list")])
+
+    def filter(self, _filter):
+        return DictList(vals=[unwrap(u) for u in (wrap(v) for v in _get(self, "list")) if _filter(u)])
 
     def __iter__(self):
         return (wrap(v) for v in _get(self, "list"))
@@ -91,7 +109,7 @@ class DictList(list):
     def __getslice__(self, i, j):
         from pyLibrary.debugs.logs import Log
 
-        Log.error("slicing is broken in Python 2.7: a[i:j] == a[i+len(a), j] sometimes.  Use [start:stop:step] (see https://github.com/klahnakoski/pyLibrary/blob/master/pyLibrary/structs/README.md#slicing-is-broken-in-python-27)")
+        Log.error("slicing is broken in Python 2.7: a[i:j] == a[i+len(a), j] sometimes.  Use [start:stop:step] (see https://github.com/klahnakoski/pyLibrary/blob/master/pyLibrary/dot/README.md#slicing-is-broken-in-python-27)")
 
     def copy(self):
         return DictList(list(_get(self, "list")))
@@ -129,6 +147,13 @@ class DictList(list):
         output = list(other)
         output.extend(_get(self, "list"))
         return DictList(vals=output)
+
+    def __iadd__(self, other):
+        if isinstance(other, list):
+            self.extend(other)
+        else:
+            self.append(other)
+        return self
 
     def right(self, num=None):
         """
@@ -191,4 +216,3 @@ class DictList(list):
 
 
 DictList.EMPTY = Null
-

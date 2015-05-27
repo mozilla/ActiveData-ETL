@@ -9,15 +9,22 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-
-from datetime import timedelta, datetime
+from __future__ import absolute_import
+import datetime
 
 from pyLibrary import regex
-from pyLibrary.times.dates import Date
 from pyLibrary.vendor.dateutil.relativedelta import relativedelta
 from pyLibrary.collections import MIN
 from pyLibrary.maths import Math
 from pyLibrary.dot import wrap
+
+
+Date = None
+Log = None
+def _delayed_import():
+    global Date
+    from pyLibrary.times.dates import Date
+    _ = Date(None)
 
 
 class Duration(object):
@@ -36,13 +43,13 @@ class Duration(object):
         output = object.__new__(cls)
         if value == None:
             if kwargs:
-                output.milli = timedelta(**kwargs).total_seconds() * 1000
+                output.milli = datetime.timedelta(**kwargs).total_seconds() * 1000
                 output.month = 0
                 return output
             else:
                 return None
         if Math.is_number(value):
-            output.milli = value
+            output.milli = value*1000
             output.month = 0
             return output
         elif isinstance(value, basestring):
@@ -58,6 +65,18 @@ class Duration(object):
             from pyLibrary.debugs.logs import Log
             Log.error("Do not know type of object (" + convert.value2json(value) + ")of to make a Duration")
 
+    @staticmethod
+    def range(start, stop, step):
+        if not step:
+            Log.error("Expecting a non-zero duration for interval")
+        output = []
+        c = start
+        while c < stop:
+            output.append(c)
+            c += step
+        return output
+
+
 
     def __add__(self, other):
         output = Duration(0)
@@ -66,6 +85,9 @@ class Duration(object):
         return output
 
     def __radd__(self, other):
+        if not Date:
+            _delayed_import()
+
         if isinstance(other, datetime.datetime):
             return Date(other).add(self)
         elif isinstance(other, Date):
@@ -92,7 +114,7 @@ class Duration(object):
         return output
 
     def __div__(self, amount):
-        if isinstance(amount, Duration) and not amount.month:
+        if isinstance(amount, Duration) and amount.month:
             m = self.month
             r = self.milli
 
@@ -141,9 +163,30 @@ class Duration(object):
         else:
             return time - relativedelta(months=self.month, seconds=self.milli/1000)
 
-    @property
-    def total_seconds(self):
-        return self.milli / 1000
+    def __lt__(self, other):
+        if other == None:
+            return False
+        return self.milli < Duration(other).milli
+
+    def __le__(self, other):
+        if other == None:
+            return False
+        return self.milli <= Duration(other).milli
+
+    def __ge__(self, other):
+        if other == None:
+            return True
+        return self.milli >= Duration(other).milli
+
+    def __gt__(self, other):
+        if other == None:
+            return True
+        return self.milli > Duration(other).milli
+
+    def ceiling(self, interval=None):
+        if interval is None:
+            interval = DAY
+        return (self + interval).floor(interval) - interval
 
     def floor(self, interval=None):
         if not isinstance(interval, Duration):
@@ -166,7 +209,10 @@ class Duration(object):
 
     @property
     def seconds(self):
-        return self.milli/1000
+        return self.milli / 1000
+
+    def total_seconds(self):
+        return self.milli / 1000
 
     def __str__(self):
         if not self.milli:
@@ -240,12 +286,12 @@ class Duration(object):
         return output
 
 
-    def format(self, interval, rounding):
-        return self.round(Duration(interval), rounding) + interval
+    def format(self, interval, decimal):
+        return self.round(Duration(interval), decimal) + interval
 
-    def round(self, interval, rounding=0):
+    def round(self, interval, decimal=0):
         output = self / interval
-        output = Math.round(output, rounding)
+        output = Math.round(output, decimal)
         return output
 
 
@@ -282,7 +328,7 @@ def parse(value):
         mlist = pplist.split("-")
         output = output + _string2Duration(mlist[0])
         for m in mlist[1::]:
-            output = output.subtract(_string2Duration(m))
+            output = output - _string2Duration(m)
     return output
 
 

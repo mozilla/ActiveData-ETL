@@ -9,11 +9,14 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+from collections import Mapping
 from pyLibrary import dot
+from pyLibrary import convert
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.collections import MAX, OR
 from pyLibrary.queries.query import _normalize_edge
-from pyLibrary.dot import Null
+from pyLibrary.dot import Null, Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, wrap_dot, listwrap
 from pyLibrary.debugs.logs import Log
@@ -33,10 +36,15 @@ class Cube(object):
 
         self.is_value = False if isinstance(select, list) else True
         self.select = select
+        self.meta = Dict(format="cube")       # PUT EXTRA MARKUP HERE
+        self.is_none = False
+
+        if not all(data.values()):
+            is_none = True
 
         # ENSURE frum IS PROPER FORM
         if isinstance(select, list):
-            if OR(not isinstance(v, Matrix) for v in data.values()):
+            if edges and OR(not isinstance(v, Matrix) for v in data.values()):
                 Log.error("Expecting data to be a dict with Matrix values")
 
         if not edges:
@@ -46,11 +54,11 @@ class Cube(object):
 
                 data = {select.name: Matrix.ZERO}
                 self.edges = DictList.EMPTY
-            elif isinstance(data, dict):
+            elif isinstance(data, Mapping):
                 # EXPECTING NO MORE THAN ONE rownum EDGE IN THE DATA
                 length = MAX([len(v) for v in data.values()])
                 if length >= 1:
-                    self.edges = wrap([{"name": "rownum", "domain": {"type": "index"}}])
+                    self.edges = wrap([{"name": "rownum", "domain": {"type": "rownum"}}])
                 else:
                     self.edges = DictList.EMPTY
             elif isinstance(data, list):
@@ -58,7 +66,7 @@ class Cube(object):
                     Log.error("not expecting a list of records")
 
                 data = {select.name: Matrix.wrap(data)}
-                self.edges = wrap([{"name": "rownum", "domain": {"type": "index"}}])
+                self.edges = wrap([{"name": "rownum", "domain": {"type": "rownum", "min": 0, "max": len(data), "interval": 1}}])
             elif isinstance(data, Matrix):
                 if isinstance(select, list):
                     Log.error("not expecting a list of records")
@@ -71,7 +79,7 @@ class Cube(object):
                 data = {select.name: Matrix(value=data)}
                 self.edges = DictList.EMPTY
         else:
-            self.edges = edges
+            self.edges = wrap(edges)
 
         self.data = data
 
@@ -99,8 +107,24 @@ class Cube(object):
 
         Log.error("This is a multicube")
 
+    def values(self):
+        """
+        TRY NOT TO USE THIS, IT IS SLOW
+        """
+        matrix = self.data.values()[0]  # CANONICAL REPRESENTATIVE
+        e_names = self.edges.name
+        s_names = self.select.name
+        parts = [e.domain.partitions.value if e.domain.primitive else e.domain.partitions for e in self.edges]
+        for c in matrix._all_combos():
+            output = {n: parts[i][c[i]] for i, n in enumerate(e_names)}
+            for s in s_names:
+                output[s] = self.data[s][c]
+            yield wrap(output)
+
     @property
     def value(self):
+        if self.is_none:
+            return Null
         if self.edges:
             Log.error("can not get value of with dimension")
         if isinstance(self.select, list):
@@ -160,14 +184,16 @@ class Cube(object):
         # EDGE REMOVES THAT EDGE FROM THIS RESULT, OR ADDS THE PART
         # AS A select {"name":edge.name, "value":edge.domain.partitions[coord]}
         # PROBABLY NOT, THE value IS IDENTICAL OVER THE REMAINING
-        if isinstance(item, dict):
+        if isinstance(item, Mapping):
             coordinates = [None] * len(self.edges)
 
             # MAP DICT TO NUMERIC INDICES
             for name, v in item.items():
                 ei, parts = wrap([(i, e.domain.partitions) for i, e in enumerate(self.edges) if e.name == name])[0]
                 if not parts:
-                    Log.error("Can not find {{name}} in list of edges, maybe this feature is not implemented yet", {"name": name})
+                    Log.error("Can not find {{name}}=={{value|quote}} in list of edges, maybe this feature is not implemented yet",
+                        name= name,
+                        value= v)
                 part = wrap([p for p in parts if p.value == v])[0]
                 if not part:
                     return Null
@@ -175,25 +201,25 @@ class Cube(object):
                     coordinates[ei] = part.dataIndex
 
             edges = [e for e, v in zip(self.edges, coordinates) if v is None]
-            if not edges and self.is_value:
+            if not edges:
                 # ZERO DIMENSIONAL VALUE
-                return self.data.values()[0].__getitem__(coordinates)
+                return wrap({k: v.__getitem__(coordinates) for k, v in self.data.items()})
             else:
                 output = Cube(
                     select=self.select,
-                    edges=[e for e, v in zip(self.edges, coordinates) if v is None],
-                    data={k: c.__getitem__(coordinates) for k, c in self.data.items()}
+                    edges=wrap([e for e, v in zip(self.edges, coordinates) if v is None]),
+                    data={k: Matrix(values=c.__getitem__(coordinates)) for k, c in self.data.items()}
                 )
                 return output
         elif isinstance(item, basestring):
             # RETURN A VALUE CUBE
             if self.is_value:
                 if item != self.select.name:
-                    Log.error("{{name}} not found in cube", {"name": item})
+                    Log.error("{{name}} not found in cube",  name= item)
                 return self
 
             if item not in self.select.name:
-                Log.error("{{name}} not found in cube", {"name": item})
+                Log.error("{{name}} not found in cube",  name= item)
 
             output = Cube(
                 select=[s for s in self.select if s.name == item][0],
@@ -216,6 +242,7 @@ class Cube(object):
         THE parts GIVE NO INDICATION OF NEXT ITEM OR PREVIOUS ITEM LIKE rownum
         DOES.  MAYBE ALGEBRAIC EDGES SHOULD BE LOOPED DIFFERENTLY?  ON THE
         OTHER HAND, MAYBE WINDOW FUNCTIONS ARE RESPONSIBLE FOR THIS COMPLICATION
+        MAR 2015: THE ISSUE IS parts, IT SHOULD BE coord INSTEAD
 
         IT IS EXPECTED THE method ACCEPTS (value, coord, cube), WHERE
         value - VALUE FOUND AT ELEMENT
@@ -230,9 +257,6 @@ class Cube(object):
         for c in matrix._all_combos():
             method(matrix[c], [parts[i][cc] for i, cc in enumerate(c)], self)
 
-
-
-
     def _select(self, select):
         selects = listwrap(select)
         is_aggregate = OR(s.aggregate != None and s.aggregate != "none" for s in selects)
@@ -246,11 +270,63 @@ class Cube(object):
     def filter(self, where):
         if len(self.edges)==1 and self.edges[0].domain.type=="index":
             # USE THE STANDARD LIST FILTER
-            from pyLibrary.queries import Q
-            return Q.filter(where, self.data.values()[0].cube)
+            from pyLibrary.queries import qb
+            return qb.filter(where, self.data.values()[0].cube)
         else:
             # FILTER DOES NOT ALTER DIMESIONS, JUST WHETHER THERE ARE VALUES IN THE CELLS
             Log.unexpected("Incomplete")
+
+    def _groupby(self, edges):
+        """
+        RETURNS LIST OF (coord, values) TUPLES, WHERE
+            coord IS THE INDEX INTO self CUBE (-1 INDEX FOR COORDINATES NOT GROUPED BY)
+            values ALL VALUES THAT BELONG TO THE SLICE
+
+        """
+        edges = DictList([_normalize_edge(e) for e in edges])
+
+        stacked = [e for e in self.edges if e.name in edges.name]
+        remainder = [e for e in self.edges if e.name not in edges.name]
+        selector = [1 if e.name in edges.name else 0 for e in self.edges]
+
+        if len(stacked) + len(remainder) != len(self.edges):
+            Log.error("can not find some edges to group by")
+        # CACHE SOME RESULTS
+        keys = edges.name
+        getKey = [e.domain.getKey for e in self.edges]
+        lookup = [[getKey[i](p) for p in e.domain.partitions+([None] if e.allowNulls else [])] for i, e in enumerate(self.edges)]
+
+        if isinstance(self.select, list):
+            selects = listwrap(self.select)
+            index, v = zip(*self.data[selects[0].name].groupby(selector))
+
+            coord = wrap([coord2term(c) for c in index])
+
+            values = [v]
+            for s in selects[1::]:
+                i, v = zip(*self.data[s.name].group_by(selector))
+                values.append(v)
+
+            output = zip(coord, [Cube(self.select, remainder, {s.name: v[i] for i, s in enumerate(selects)}) for v in zip(*values)])
+        elif not remainder:
+            # v IS A VALUE, NO NEED TO WRAP IT IN A Cube
+            output = (
+                (
+                    coord2term(coord),
+                    v
+                )
+                for coord, v in self.data[self.select.name].groupby(selector)
+            )
+        else:
+            output = (
+                (
+                    coord2term(coord),
+                    Cube(self.select, remainder, v)
+                )
+                for coord, v in self.data[self.select.name].groupby(selector)
+            )
+
+        return output
 
 
     def groupby(self, edges):
@@ -329,3 +405,13 @@ class Cube(object):
         else:
             return float(self.data)
 
+    def as_dict(self):
+        return Dict(
+            select=self.select,
+            edges=self.edges,
+            data={k: v.cube for k, v in self.data.items()},
+            meta=self.meta
+        )
+
+    def __json__(self):
+        return convert.value2json(self.as_dict())

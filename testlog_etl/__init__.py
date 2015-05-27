@@ -7,7 +7,11 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary.dot import Dict
+from collections import Mapping
+from pyLibrary import strings
+from pyLibrary.dot import wrap
+from pyLibrary.parsers import Log
+from pyLibrary.queries import qb
 
 
 def key2etl(key):
@@ -17,40 +21,48 @@ def key2etl(key):
     S3 NAMING CONVENTION: a.b.c WHERE EACH IS A STEP IN THE ETL PROCESS
     HOW TO DEAL WITH a->b AS AGGREGATION?  (b:a).c?   b->c is agg: c:(a.b)
     NUMBER OF COMBINATIONS IS 2^n, SO PARENTHESIS MUST BE USED
+
+    SPECIAL CASE b:a.c.d WAS MEANT TO BE (b:a).c.d, BUT THERE WAS A BUG
+
     """
     if key.endswith(".json"):
         key = key[:-5]
 
-    i = key.find(':')
-    if i == -1:
-        i = key.find('.')
-    if i == -1:
-        i = key.find('(')
-    if i == -1:
-        if key == 'None':
-            return Dict(id=-1)
-        return Dict(id=int(key))
+    tokens = []
+    s = 0
+    i = strings.find(key, [":", "."])
+    while i < len(key):
+        tokens.append(key[s:i])
+        tokens.append(key[i])
+        s = i + 1
+        i = strings.find(key, [":", "."], s)
+    tokens.append(key[s:i])
+    return wrap(_parse_key(tokens))
 
-    if key[i] == '(':
-        e = key.rfind(')')
-        subkey = key2etl(key[i + 1:e])
 
-        i = key.find(':', start=e)
-        if i == -1:
-            i = key.find('.', start=e)
-    else:
-        subkey = Dict(id=int(key[:i]))
+def _parse_key(elements):
+    """
+    EXPECTING ALTERNATING LIST OF operands AND operators
+    """
+    if isinstance(elements, basestring):
+        try:
+            return {"id": int(elements)}
+        except Exception, e:
+            Log.error("problem", e)
+    if isinstance(elements, list) and len(elements) == 1:
+        if isinstance(elements[0], basestring):
+            return {"id": int(elements[0])}
+        return elements[0]
+    if isinstance(elements, Mapping):
+        return elements
 
-    if key[i] == ':':
-        childkey = key2etl(key[i + 1:])
-        subkey.source = childkey
-        subkey.type = "aggregation"
-        return subkey
-    else:
-        childkey = key2etl(key[i + 1:])
-        childkey.source = subkey
-        childkey.type = "join"
-        return childkey
+    for i in reversed(range(1, len(elements), 2)):
+        if elements[i] == ":":
+            return _parse_key(elements[:i - 1:] + [{"id": int(elements[i - 1]), "source": _parse_key(elements[i + 1]), "type": "aggregation"}] + elements[i + 2::])
+    for i in range(1, len(elements), 2):
+        if elements[i] == ".":
+            return _parse_key(elements[:i - 1:] + [{"id": int(elements[i + 1]), "source": _parse_key(elements[i - 1]), "type": "join"}] + elements[i + 2::])
+    Log.error("Do not know how to parse")
 
 
 def etl2key(etl):
@@ -63,7 +75,7 @@ def etl2key(etl):
                     return unicode(etl.id) + ":" + etl2key(etl.source)
             else:
                 if etl.type == "join":
-                    return "(" + etl2key(etl.source) + ")." + unicode(etl.id)
+                    return etl2key(etl.source) + "." + unicode(etl.id)
                 else:
                     return unicode(etl.id) + ":(" + etl2key(etl.source) + ")"
         else:
@@ -79,10 +91,18 @@ def etl2path(etl):
     """
     CONVERT ETL TO A KEY PREFIX PATH
     """
-    path = []
-    while etl:
-        path.insert(0, etl.id)
-        while etl.type and etl.type != "join":
+    try:
+        path = []
+        while etl:
+            path.append(etl.id)
+            while etl.type and etl.type != "join":
+                etl = etl.source
             etl = etl.source
-        etl = etl.source
-    return path
+        return qb.reverse(path)
+    except Exception, e:
+        Log.error("Can not get path {{etl}}",  etl= etl, cause=e)
+
+def key2path(key):
+    return etl2path(key2etl(key))
+
+from . import transforms

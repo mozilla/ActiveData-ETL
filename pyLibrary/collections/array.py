@@ -7,12 +7,18 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
+
+# REPLACE NUMPY ARRAY FUNCTIONS
+# THIS CODE IS FASTER THAN NUMPY WHEN USING PYPY *AND* THE ARRAYS ARE SMALL
+
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from pyLibrary.collections import PRODUCT
 from pyLibrary.debugs.logs import Log
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
+
 
 
 def zeros(dim):
@@ -161,7 +167,7 @@ class _array:
         if item in IGNORE:
             pass
         else:
-            Log.error("operation {{op}} not found", {"op": item})
+            Log.error("operation {{op}} not found", op=item)
 
     def __iter__(self):
         return self._value.__iter__()

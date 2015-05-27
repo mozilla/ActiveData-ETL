@@ -1,0 +1,36 @@
+{
+	"work_queue": {
+		"name": "ekyle-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-pulse-logger"
+	},
+	"destination": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-test-result"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "elasticsearch",
+				"host": "http://172.31.0.233",
+				"index": "debug",
+				"type": "unittest_etl"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][STAGING] Problem in Backfill",
+				"$ref": "file://~/private.json#email"
+
+			}
+		]
+	}
+}

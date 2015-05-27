@@ -10,11 +10,13 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+from collections import Mapping
 
 import functools
 from pyLibrary.collections import MIN
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import split_field, nvl, Dict
+from pyLibrary.dot import split_field, coalesce, Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap
 
@@ -52,7 +54,7 @@ class FlatList(list):
             yield r
 
     def select(self, fields):
-        if isinstance(fields, dict):
+        if isinstance(fields, Mapping):
             fields=fields.value
 
         if isinstance(fields, basestring):
@@ -64,7 +66,7 @@ class FlatList(list):
                     return [d[0][fields] for d in self.data]
             else:
                 keys = split_field(fields)
-                depth = nvl(MIN([i for i, (k, p) in enumerate(zip(keys, self.path)) if k != p]), len(self.path))  # LENGTH OF COMMON PREFIX
+                depth = coalesce(MIN([i for i, (k, p) in enumerate(zip(keys, self.path)) if k != p]), len(self.path))  # LENGTH OF COMMON PREFIX
                 short_key = keys[depth:]
 
                 output = DictList()
@@ -93,7 +95,7 @@ class FlatList(list):
             # meta = []
             # for f in fields:
             #     keys = split_field(f.value)
-            #     depth = nvl(MIN([i for i, (k, p) in enumerate(zip(keys, self.path)) if k != p]), len(self.path))  # LENGTH OF COMMON PREFIX
+            #     depth = coalesce(MIN([i for i, (k, p) in enumerate(zip(keys, self.path)) if k != p]), len(self.path))  # LENGTH OF COMMON PREFIX
             #     short_key = join_field(keys[depth:])
             #
             #     meta.append((f.name, depth, short_key))

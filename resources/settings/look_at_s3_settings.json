@@ -1,0 +1,14 @@
+{
+	"source": {
+		"bucket": "ekyle-pulse-logger",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

@@ -8,69 +8,90 @@
 #
 from __future__ import unicode_literals
 
-import requests
-
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
-from testlog_etl.transforms.pulse_block_to_unittest_logs import etl_key
+from pyLibrary.dot import Dict, wrap
+from pyLibrary.env import http
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
+from testlog_etl import etl2key
+from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
-TALOS_PREFIX = "     INFO -  INFO : TALOSDATA: "
+DEBUG = False
+
+TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
 
-def process_talos(source_key, source, dest_bucket):
+def process(source_key, source, dest_bucket, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """
-    output = []
-    all_talos = []
-    min_dest_key = None
-    min_dest_etl = None
+    etl_head_gen = EtlHeadGenerator(source_key)
+    stats = Dict()
+    counter = 0
 
-    for i, line in enumerate(source.read().split("\n")):
-        envelope = convert.json2value(line)
-        if envelope._meta:
-            pass
-        elif envelope.locale:
-            envelope = Dict(data=envelope)
-        elif envelope.source:
+    output = set()
+    for i, pulse_line in enumerate(source.read_lines()):
+        pulse_record = scrub_pulse_record(source_key, i, pulse_line, stats)
+        if not pulse_record:
             continue
-        elif envelope.pulse:
-            # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-            def read():
-                return convert.unicode2utf8("\n".join(convert.value2json(p) for p in envelope.pulse))
 
-            temp = Dict(read=read)
-            return process_talos(source_key, temp, dest_bucket)
-        else:
-            Log.error("Line {{index}}: Do not know how to handle line\n{{line}}", {"line": line, "index": i})
+        if not pulse_record.data.talos:
+            continue
 
-        if envelope.data.talos:
+        all_talos = []
+        etl_file = wrap({
+            "id": counter,
+            "file": pulse_record.data.logurl,
+            "timestamp": Date.now().unix,
+            "source": pulse_record.data.etl,
+            "type": "join"
+        })
+        with Timer("Read {{url}}", {"url": pulse_record.data.logurl}, debug=DEBUG) as timer:
             try:
-                log_content = requests.get(envelope.data.logurl)
-                for line in log_content.content.split("\n"):
-                    s = line.find(TALOS_PREFIX)
-                    if s >= 0:
-                        line = line[s + len(TALOS_PREFIX):].strip()
-                        talos = convert.json2value(convert.utf82unicode(line))
-                        dest_key, dest_etl = etl_key(envelope, source_key, "talos")
-                        if min_dest_key is None:
-                            min_dest_key = dest_key
-                            min_dest_etl = dest_etl
+                response = http.get(pulse_record.data.logurl)
+                if response.status_code == 404:
+                    Log.alarm("Talos log missing {{url}}", url=pulse_record.data.logurl)
+                    continue
+                all_log_lines = response.all_lines
 
-                        talos.etl = dest_etl
-                        all_talos.extend(talos)
+                for log_line in all_log_lines:
+                    s = log_line.find(TALOS_PREFIX)
+                    if s < 0:
+                        continue
 
+                    log_line = strings.strip(log_line[s + len(TALOS_PREFIX):])
+                    talos = convert.json2value(convert.utf82unicode(log_line))
+
+                    for t in talos:
+                        _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                        t.etl = dest_etl
+                        t.pulse = pulse_record.data
+                    all_talos.extend(talos)
             except Exception, e:
-                Log.error("Problem processing {{url}}", {"url": envelope.data.logurl}, e)
+                Log.error("Problem processing {{url}}", {
+                    "url": pulse_record.data.logurl
+                }, e)
+            finally:
+                counter += 1
+                etl_head_gen.next_id = 0
 
-    if all_talos:
-        Log.note("found {{num}} talos records", {"num": len(all_talos)})
-        dest_bucket.write(
-            min_dest_key,
-            convert.unicode2utf8(convert.value2json(min_dest_etl)) + b"\n" +
-            convert.unicode2utf8("\n".join(convert.value2json(t) for t in all_talos))
-        )
-        output.append(source_key)
+        etl_file.duration = timer.seconds
+
+        if all_talos:
+            Log.note("Found {{num}} talos records", num=len(all_talos))
+            output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_talos])
+        else:
+            Log.note("No talos records found in {{url}}", url=pulse_record.data.logurl)
+            _, dest_etl = etl_head_gen.next(etl_file, "talos")
+
+            output |= dest_bucket.extend([{
+                "id": etl2key(dest_etl),
+                "value": {
+                    "etl": dest_etl,
+                    "pulse": pulse_record.data
+                }
+            }])
 
     return output

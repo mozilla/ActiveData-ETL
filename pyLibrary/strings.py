@@ -10,19 +10,21 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+
+from collections import Mapping
 from datetime import timedelta, date
 from datetime import datetime as builtin_datetime
 import re
 import math
 import __builtin__
-import string
-from pyLibrary.dot import nvl
 
-from pyLibrary.dot import wrap
+from pyLibrary.dot import coalesce, wrap, Dict
 
 
 def datetime(value):
-    from pyLibrary import convert
+    if not convert:
+        _late_import()
 
     if isinstance(value, (date, builtin_datetime)):
         pass
@@ -35,7 +37,8 @@ def datetime(value):
 
 
 def unix(value):
-    from pyLibrary import convert
+    if not convert:
+        _late_import()
 
     if isinstance(value, (date, builtin_datetime)):
         pass
@@ -51,7 +54,8 @@ def url(value):
     """
     CONVERT FROM dict OR string TO URL PARAMETERS
     """
-    from pyLibrary import convert
+    if not convert:
+        _late_import()
 
     return convert.value2url(value)
 
@@ -60,7 +64,8 @@ def html(value):
     """
     CONVERT FROM unicode TO HTML OF THE SAME
     """
-    from pyLibrary import convert
+    if not convert:
+        _late_import()
 
     return convert.unicode2HTML(value)
 
@@ -85,9 +90,10 @@ def replace(value, find, replace):
 
 
 def json(value):
-    from pyLibrary import convert
+    if not convert:
+        _late_import()
 
-    return convert.value2json(value)
+    return convert.value2json(value, pretty=True)
 
 
 def indent(value, prefix=u"\t", indent=None):
@@ -114,36 +120,116 @@ def outdent(value):
                 num = min(num, len(l) - len(l.lstrip()))
         return u"\n".join([l[num:] for l in lines])
     except Exception, e:
-        from pyLibrary.debugs.logs import Log
+        if not Log:
+            _late_import()
 
         Log.error("can not outdent value", e)
 
 
-def round(value, decimal=None, digits=None):
+def round(value, decimal=None, digits=None, places=None):
+    """
+    :param value:  THE VALUE TO ROUND
+    :param decimal: NUMBER OF DECIMAL PLACES TO ROUND (NEGATIVE IS LEFT-OF-DECIMAL)
+    :param digits: ROUND TO SIGNIFICANT NUMBER OF digits
+    :param places: SAME AS digits
+    :return:
+    """
     value = float(value)
+    if value == 0.0:
+        return "0"
+
+    digits = coalesce(digits, places)
     if digits != None:
-        m = pow(10, math.ceil(math.log10(abs(value))))
-        return __builtin__.round(value / m, digits) * m
+        left_of_decimal = int(math.ceil(math.log10(abs(value))))
+        decimal = digits - left_of_decimal
 
-    return __builtin__.round(value, decimal)
-
-
-def percent(value, decimal=None, digits=None):
-    per = round(value * 100, decimal, digits)
-    return str(per) + "%"
+    right_of_decimal = max(decimal, 0)
+    format = "{:." + unicode(right_of_decimal) + "f}"
+    return format.format(__builtin__.round(value, decimal))
 
 
-def between(value, prefix, suffix):
+def percent(value, decimal=None, digits=None, places=None):
+    value = float(value)
+    if value == 0.0:
+        return "0%"
+
+    digits = coalesce(digits, places)
+    if digits != None:
+        left_of_decimal = int(math.ceil(math.log10(abs(value)))) + 2
+        decimal = digits - left_of_decimal
+
+    right_of_decimal = max(decimal, 0)
+    format = "{:." + unicode(right_of_decimal) + "%}"
+    return format.format(__builtin__.round(value, decimal + 2))
+
+
+def find(value, find, start=0):
+    """
+    MUCH MORE USEFUL VERSION OF string.find()
+    """
+    l = len(value)
+    if isinstance(find, list):
+        m = l
+        for f in find:
+            i = value.find(f, start)
+            if i == -1:
+                continue
+            m = min(m, i)
+        return m
+    else:
+        i = value.find(find, start)
+        if i == -1:
+            return l
+        return i
+
+
+def strip(value):
+    """
+    REMOVE WHITESPACE (INCLUDING CONTROL CHARACTERS)
+    """
+    if not value or (ord(value[0]) > 32 and ord(value[-1]) > 32):
+        return value
+
+    s = 0
+    e = len(value)
+    while s < e:
+        if ord(value[s]) > 32:
+            break
+        s += 1
+    else:
+        return ""
+
+    for i in reversed(range(s, e)):
+        if ord(value[i]) > 32:
+            return value[s:i + 1]
+
+    return ""
+
+
+def trim(value):
+    return strip(value)
+
+
+def between(value, prefix, suffix, start=0):
     value = toString(value)
-    s = value.find(prefix)
-    if s == -1: return None
+    if prefix == None:
+        e = value.find(suffix, start)
+        if e == -1:
+            return None
+        else:
+            return value[:e]
+
+    s = value.find(prefix, start)
+    if s == -1:
+        return None
     s += len(prefix)
 
     e = value.find(suffix, s)
     if e == -1:
         return None
 
-    s = value.rfind(prefix, 0, e) + len(prefix)  # WE KNOW THIS EXISTS, BUT THERE MAY BE A RIGHT-MORE ONE
+    s = value.rfind(prefix, start, e) + len(prefix)  # WE KNOW THIS EXISTS, BUT THERE MAY BE A RIGHT-MORE ONE
+
     return value[s:e]
 
 
@@ -169,6 +255,52 @@ def left(value, len):
     if len <= 0:
         return u""
     return value[0:len]
+
+
+def comma(value):
+    """
+    FORMAT WITH THOUSANDS COMMA (,) SEPARATOR
+    """
+    try:
+        if float(value) == __builtin__.round(float(value), 0):
+            output = "{:,}".format(int(value))
+        else:
+            output = "{:,}".format(float(value))
+    except Exception:
+        output = unicode(value)
+
+    return output
+
+
+def quote(value):
+    if not convert:
+        _late_import()
+
+    return convert.string2quote(value)
+
+
+def split(value, sep="\n"):
+    # GENERATOR VERSION OF split()
+    # SOMETHING TERRIBLE HAPPENS, SOMETIMES, IN PYPY
+    s = 0
+    len_sep = len(sep)
+    n = value.find(sep, s)
+    while n > -1:
+        yield value[s:n]
+        s = n + len_sep
+        n = value.find(sep, s)
+    yield value[s:]
+    value = None
+
+
+def common_prefix(*args):
+    prefix = args[0]
+    for a in args[1:]:
+        for i in range(min(len(prefix), len(a))):
+            if a[i] != prefix[i]:
+                prefix = prefix[:i]
+                break
+    return prefix
 
 
 def find_first(value, find_arr, start=0):
@@ -202,7 +334,7 @@ def _expand(template, seq):
     """
     if isinstance(template, basestring):
         return _simple_expand(template, seq)
-    elif isinstance(template, dict):
+    elif isinstance(template, Mapping):
         template = wrap(template)
         assert template["from"], "Expecting template to have 'from' attribute"
         assert template.template, "Expecting template to have 'template' attribute"
@@ -212,11 +344,12 @@ def _expand(template, seq):
         for d in data:
             s = seq + (d,)
             output.append(_expand(template.template, s))
-        return nvl(template.separator, "").join(output)
+        return coalesce(template.separator, "").join(output)
     elif isinstance(template, list):
         return "".join(_expand(t, seq) for t in template)
     else:
-        from pyLibrary.debugs.logs import Log
+        if not Log:
+            _late_import()
 
         Log.error("can not handle")
 
@@ -234,7 +367,9 @@ def _simple_expand(template, seq):
         var = path.lstrip(".")
         depth = min(len(seq), max(1, len(path) - len(var)))
         try:
-            val = seq[-depth][var]
+            val = seq[-depth]
+            if var:
+                val = val[var]
             for filter in ops[1:]:
                 parts = filter.split('(')
                 if len(parts) > 1:
@@ -250,11 +385,13 @@ def _simple_expand(template, seq):
                     val = toString(val)
                     return val
             except Exception, f:
-                from pyLibrary.debugs.logs import Log
+                if not Log:
+                    _late_import()
 
-                Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}", {
-                    "template": template
-                }, e)
+                Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}",
+                    template=template,
+                    cause=e
+                )
             return "[template expansion error: (" + str(e.message) + ")]"
 
     return pattern.sub(replacer, template)
@@ -282,8 +419,8 @@ def deformat(value):
 def toString(val):
     if val == None:
         return ""
-    elif isinstance(val, (dict, list, set)):
-        from pyLibrary.jsons import json_encoder
+    elif isinstance(val, (Mapping, list, set)):
+        from pyLibrary.jsons.encoder import json_encoder
 
         return json_encoder(val, pretty=True)
     elif hasattr(val, "__json__"):
@@ -295,7 +432,8 @@ def toString(val):
     try:
         return unicode(val)
     except Exception, e:
-        from pyLibrary.debugs.logs import Log
+        if not Log:
+            _late_import()
 
         Log.error(str(type(val)) + " type can not be converted to unicode", e)
 
@@ -356,9 +494,10 @@ def apply_diff(text, diff, reverse=False):
 
     matches = DIFF_PREFIX.match(diff[0].strip())
     if not matches:
-        from pyLibrary.debugs.logs import Log
+        if not Log:
+            _late_import()
 
-        Log.error("Can not handle {{diff}}\n", {"diff": diff[0]})
+        Log.error("Can not handle {{diff}}\n",  diff= diff[0])
 
     remove = [int(i.strip()) for i in matches.group(1).split(",")]
     if len(remove) == 1:
@@ -396,17 +535,18 @@ def utf82unicode(value):
     try:
         return value.decode("utf8")
     except Exception, e:
-        from pyLibrary.debugs.logs import Log, Except
+        if not Log:
+            _late_import()
 
         if not isinstance(value, basestring):
-            Log.error("Can not convert {{type}} to unicode because it's not a string", {"type": type(value).__name__})
+            Log.error("Can not convert {{type}} to unicode because it's not a string",  type= type(value).__name__)
 
         e = Except.wrap(e)
         for i, c in enumerate(value):
             try:
                 c.decode("utf8")
             except Exception, f:
-                Log.error("Can not convert charcode {{c}} in string  index {{i}}", {"i": i, "c": ord(c)}, [e, Except.wrap(f)])
+                Log.error("Can not convert charcode {{c}} in string  index {{i}}", i=i, c=ord(c), cause=[e, Except.wrap(f)])
 
         try:
             latin1 = unicode(value.decode("latin1"))
@@ -421,3 +561,22 @@ def utf82unicode(value):
             pass
 
         Log.error("Can not explain conversion failure of " + type(value).__name__ + "!", e)
+
+
+convert = None
+Log = None
+Except = None
+
+
+def _late_import():
+    global convert
+    global Log
+    global Except
+
+    from pyLibrary import convert
+    from pyLibrary.debugs.logs import Log, Except
+
+    _ = convert
+    _ = Log
+    _ = Except
+

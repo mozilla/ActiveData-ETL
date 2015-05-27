@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from datetime import datetime
 from time import clock
@@ -22,12 +23,14 @@ profiles = {}
 
 class Profiler(object):
     """
-
+    VERY SIMPLE PROFILER FOR USE IN with STATEMENTS
+    PRIMARILY TO BE USED IN PyPy, WHERE cProfile IMPACTS
+    OPTIMIZED RUN TIME TOO MUCH
     """
 
     def __new__(cls, *args):
         if ON:
-            output = profiles.get(args[0], None)
+            output = profiles.get(args[0])
             if output:
                 return output
         output = object.__new__(cls, *args)

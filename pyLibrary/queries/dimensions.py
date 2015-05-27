@@ -9,9 +9,13 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+from collections import Mapping
+from pyLibrary import dot
 from pyLibrary.collections import SUM
+from pyLibrary.queries.container import Container
 from pyLibrary.queries.domains import Domain, ALGEBRAIC, KNOWN
-from pyLibrary.dot import Null, nvl, join_field, split_field, Dict
+from pyLibrary.dot import Null, coalesce, join_field, split_field, Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.times.timer import Timer
 from pyLibrary.debugs.logs import Log
@@ -21,43 +25,34 @@ from pyLibrary.dot import wrap, listwrap
 DEFAULT_QUERY_LIMIT = 20
 
 
-class Dimension(object):
+class Dimension(Container):
 
     def __init__(self, dim, parent, qb):
         self.name = dim.name
         self.parent = parent
         self.full_name = join_field(split_field(self.parent.full_name)+[self.name])
-        self.min = dim.min
-        self.max = dim.max
-        self.interval = dim.interval
-        self.value = dim.value
-        self.label = dim.label
-        self.end = dim.end
+        dot.set_default(self, dim)
         self.esfilter = dim.esfilter
-        self.weight = dim.weight
-        self.style = dim.style
-        self.isFacet = dim.isFacet
-
-        self.type = nvl(dim.type, "set")
-        self.limit = nvl(dim.limit, DEFAULT_QUERY_LIMIT)
-        self.index = nvl(dim.index, nvl(parent, Null).index, qb.es.settings.name)
+        self.type = coalesce(dim.type, "set")
+        self.limit = coalesce(dim.limit, DEFAULT_QUERY_LIMIT)
+        self.index = coalesce(dim.index, coalesce(parent, Null).index, qb.es.settings.name)
 
         if not self.index:
             Log.error("Expecting an index name")
 
         # ALLOW ACCESS TO SUB-PART BY NAME (IF ONLY THERE IS NO NAME COLLISION)
-        self.edges = {}
+        self.edges = Dict()
         for e in listwrap(dim.edges):
             new_e = Dimension(e, self, qb)
             self.edges[new_e.full_name] = new_e
 
-        self.partitions = wrap(nvl(dim.partitions, []))
+        self.partitions = wrap(coalesce(dim.partitions, []))
         parse_partition(self)
 
-        fields = nvl(dim.field, dim.fields)
+        fields = coalesce(dim.field, dim.fields)
         if not fields:
             return  # NO FIELDS TO SEARCH
-        elif isinstance(fields, dict):
+        elif isinstance(fields, Mapping):
             self.fields = wrap(fields)
             edges = wrap([{"name": k, "value": v, "allowNulls": False} for k, v in self.fields.items()])
         else:
@@ -77,6 +72,7 @@ class Dimension(object):
                 "esfilter": self.esfilter,
                 "limit": self.limit
             })
+            Log.note("{{name}} has {{num}} parts",  name= self.name,  num= len(parts))
 
         d = parts.edges[0].domain
 
@@ -95,9 +91,9 @@ class Dimension(object):
                     count,
                     0
                 )
-            self.value = nvl(dim.value, "name")
+            self.value = coalesce(dim.value, "name")
             self.partitions = temp.partitions
-        elif isinstance(fields, dict):
+        elif isinstance(fields, Mapping):
             self.value = "name"  # USE THE "name" ATTRIBUTE OF PARTS
 
             partitions = DictList()
@@ -125,6 +121,7 @@ class Dimension(object):
                 }
                 for i, count in enumerate(parts)
             ])
+            self.order = {p.value: i for i, p in enumerate(self.partitions)}
         elif len(edges) == 2:
             self.value = "name"  # USE THE "name" ATTRIBUTE OF PARTS
             d2 = parts.edges[1].domain
@@ -133,7 +130,7 @@ class Dimension(object):
             array = parts.data.values()[0].cube  # DIG DEEP INTO RESULT (ASSUME SINGLE VALUE CUBE, WITH NULL AT END)
 
             def edges2value(*values):
-                if isinstance(fields, dict):
+                if isinstance(fields, Mapping):
                     output = Dict()
                     for e, v in zip(edges, values):
                         output[e.name] = v
@@ -172,6 +169,7 @@ class Dimension(object):
         """
         RETURN CHILD EDGE OR PARTITION BY NAME
         """
+        #TODO: IGNORE THE STANDARD DIMENSION PROPERTIES TO AVOID ACCIDENTAL SELECTION OF EDGE OR PART
         e = self.edges[key]
         if e:
             return e
@@ -183,7 +181,7 @@ class Dimension(object):
     def getDomain(self, **kwargs):
         # kwargs.depth IS MEANT TO REACH INTO SUB-PARTITIONS
         kwargs = wrap(kwargs)
-        kwargs.depth = nvl(kwargs.depth, len(self.fields)-1 if isinstance(self.fields, list) else None)
+        kwargs.depth = coalesce(kwargs.depth, len(self.fields)-1 if isinstance(self.fields, list) else None)
 
         if not self.partitions and self.edges:
             # USE EACH EDGE AS A PARTITION, BUT isFacet==True SO IT ALLOWS THE OVERLAP
@@ -193,22 +191,22 @@ class Dimension(object):
                     "value":v.name,
                     "esfilter":v.esfilter,
                     "style":v.style,
-                    "weight":v.weight # YO! WHAT DO WE *NOT* COPY?
+                    "weight":v.weight  # YO! WHAT DO WE *NOT* COPY?
                 }
                 for i, v in enumerate(self.edges)
-                if i < nvl(self.limit, DEFAULT_QUERY_LIMIT) and v.esfilter
+                if i < coalesce(self.limit, DEFAULT_QUERY_LIMIT) and v.esfilter
             ]
             self.isFacet = True
         elif kwargs.depth == None:  # ASSUME self.fields IS A dict
             partitions = DictList()
             for i, part in enumerate(self.partitions):
-                if i >= nvl(self.limit, DEFAULT_QUERY_LIMIT):
+                if i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT):
                     break
                 partitions.append({
                     "name":part.name,
                     "value":part.value,
                     "esfilter":part.esfilter,
-                    "style":nvl(part.style, part.parent.style),
+                    "style":coalesce(part.style, part.parent.style),
                     "weight":part.weight   # YO!  WHAT DO WE *NOT* COPY?
                 })
         elif kwargs.depth == 0:
@@ -221,12 +219,12 @@ class Dimension(object):
                     "weight":v.weight   # YO!  WHAT DO WE *NOT* COPY?
                 }
                 for i, v in enumerate(self.partitions)
-                if i < nvl(self.limit, DEFAULT_QUERY_LIMIT)]
+                if i < coalesce(self.limit, DEFAULT_QUERY_LIMIT)]
         elif kwargs.depth == 1:
             partitions = DictList()
             rownum = 0
             for i, part in enumerate(self.partitions):
-                if i >= nvl(self.limit, DEFAULT_QUERY_LIMIT):
+                if i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT):
                     continue
                 rownum += 1
                 try:
@@ -235,7 +233,7 @@ class Dimension(object):
                             "name":join_field(split_field(subpart.parent.name) + [subpart.name]),
                             "value":subpart.value,
                             "esfilter":subpart.esfilter,
-                            "style":nvl(subpart.style, subpart.parent.style),
+                            "style":coalesce(subpart.style, subpart.parent.style),
                             "weight":subpart.weight   # YO!  WHAT DO WE *NOT* COPY?
                         })
                 except Exception, e:
@@ -262,8 +260,8 @@ class Dimension(object):
             # label() (for presentation)
             value="name" if not self.value and self.partitions else self.value,
             key="value",
-            label=nvl(self.label, (self.type == "set" and self.name)),
-            end=nvl(self.end, (self.type == "set" and self.name)),
+            label=coalesce(self.label, (self.type == "set" and self.name)),
+            end=coalesce(self.end, (self.type == "set" and self.name)),
             isFacet=self.isFacet,
             dimension=self
         )
@@ -305,7 +303,7 @@ def addParts(parentPart, childPath, count, index):
     if index == len(childPath):
         return
     c = childPath[index]
-    parentPart.count = nvl(parentPart.count, 0) + count
+    parentPart.count = coalesce(parentPart.count, 0) + count
 
     if parentPart.partitions == None:
         parentPart.partitions = DictList()
@@ -323,15 +321,15 @@ def parse_partition(part):
         if part.index:
             p.index = part.index   # COPY INDEX DOWN
         parse_partition(p)
-        p.value = nvl(p.value, p.name)
+        p.value = coalesce(p.value, p.name)
         p.parent = part
 
     if not part.esfilter:
         if len(part.partitions) > 100:
-            Log.error("Must define an esfilter on {{name}} there are too many partitions ({{num_parts}})", {
-                "name": part.name,
-                "num_parts": len(part.partitions)
-            })
+            Log.error("Must define an esfilter on {{name}} there are too many partitions ({{num_parts}})",
+                name= part.name,
+                num_parts= len(part.partitions))
 
         # DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS
-        part.esfilter = {"or": part.partitions.esfilter}
+        if part.partitions:
+            part.esfilter = {"or": part.partitions.esfilter}

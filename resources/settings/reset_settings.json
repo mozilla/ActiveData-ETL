@@ -1,0 +1,9 @@
+{
+	"aws":{
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"work_queue":{
+		"name": "ekyle-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	}
+}

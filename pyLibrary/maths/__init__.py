@@ -9,12 +9,13 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 import math
 import __builtin__
 
 
 from pyLibrary.strings import find_first
-from pyLibrary.dot import Null, nvl
+from pyLibrary.dot import Null, coalesce
 
 
 class Math(object):
@@ -105,6 +106,9 @@ class Math(object):
 
     @staticmethod
     def is_number(s):
+        if s is True or s is False:
+            return False
+
         try:
             float(s)
             return True
@@ -128,6 +132,9 @@ class Math(object):
 
     @staticmethod
     def is_integer(s):
+        if s is True or s is False:
+            return False
+
         try:
             if float(s) == round(float(s), 0):
                 return True
@@ -161,13 +168,12 @@ class Math(object):
 
 
     @staticmethod
-    def floor(value, mod=None):
+    def floor(value, mod=1):
         """
         x == floor(x, a) + mod(x, a)  FOR ALL a
         """
         if value == None:
             return None
-        mod = nvl(mod, 1)
         v = int(math.floor(value))
         return v - (v % mod)
 
@@ -191,7 +197,13 @@ class Math(object):
 
     @staticmethod
     def ceiling(value, mod=1):
-        return int(math.ceil(value/mod))*mod
+        """
+        RETURN SMALLEST INTEGER GREATER THAN value
+        """
+        if value == None:
+            return None
+        v = int(math.floor(value+mod))
+        return v - (v % mod)
 
     @staticmethod
     def count(values):
@@ -218,6 +230,10 @@ class Math(object):
 
     @staticmethod
     def max(*values):
+        return Math.MAX(values)
+
+    @staticmethod
+    def MAX(values):
         output = None
         for v in values:
             if v == None:
@@ -230,6 +246,10 @@ class Math(object):
 
     @staticmethod
     def min(*values):
+        return Math.MIN(values)
+
+    @staticmethod
+    def MIN(values):
         output = None
         for v in values:
             if v == None:
@@ -249,7 +269,7 @@ def almost_equal(first, second, digits=None, places=None, delta=None):
         if abs(first - second) <= delta:
             return True
     else:
-        places = nvl(places, digits, 18)
+        places = coalesce(places, digits, 18)
         diff = math.log10(abs(first-second))
         if diff < Math.ceiling(math.log10(first))-places:
             return True

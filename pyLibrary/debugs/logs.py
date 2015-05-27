@@ -11,18 +11,18 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
+from collections import Mapping
 
 from datetime import datetime
 import os
 import sys
-from types import ModuleType
 
-from pyLibrary.jsons import json_encoder
-from pyLibrary.thread import threads
-from pyLibrary.dot import nvl, Dict, split_field, join_field, set_default
-from pyLibrary.dot import listwrap, wrap, wrap_dot
+from pyLibrary.debugs import constants
+from pyLibrary.dot import coalesce, Dict, listwrap, wrap, unwrap, unwraplist
+from pyLibrary.jsons.encoder import json_encoder
+from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.strings import indent, expand_template
-from pyLibrary.thread.threads import Thread
 
 
 DEBUG_LOGGING = False
@@ -41,8 +41,8 @@ class Log(object):
     logging_multi = None
     profiler = None   # simple pypy-friendly profiler
     cprofiler = None  # screws up with pypy, but better than nothing
+    cprofiler_stats = Queue("cprofiler stats")  # ACCUMULATION OF STATS FROM ALL THREADS
     error_mode = False  # prevent error loops
-    please_setup_constants = False  # we intend to manipulate module-level constants for debugging
 
     @classmethod
     def start(cls, settings=None):
@@ -60,22 +60,14 @@ class Log(object):
         """
         if not settings:
             return
+        settings = wrap(settings)
 
         cls.settings = settings
-        cls.trace = cls.trace | nvl(settings.trace, False)
+        cls.trace = cls.trace | coalesce(settings.trace, False)
         if cls.trace:
             from pyLibrary.thread.threads import Thread
 
-        if not settings.log:
-            return
-
-        cls.logging_multi = Log_usingMulti()
-        cls.main_log = Log_usingThread(cls.logging_multi)
-
-        for log in listwrap(settings.log):
-            Log.add_log(Log.new_instance(log))
-
-        if settings.cprofile:
+        if settings.cprofile is True or (isinstance(settings.cprofile, Mapping) and settings.cprofile.enabled):
             if isinstance(settings.cprofile, bool):
                 settings.cprofile = {"enabled": True, "filename": "cprofile.tab"}
 
@@ -84,70 +76,43 @@ class Log(object):
             cls.cprofiler = cProfile.Profile()
             cls.cprofiler.enable()
 
-        if settings.profile:
+        if settings.profile is True or (isinstance(settings.profile, Mapping) and settings.profile.enabled):
             from pyLibrary.debugs import profiles
 
             if isinstance(settings.profile, bool):
+                profiles.ON = True
                 settings.profile = {"enabled": True, "filename": "profile.tab"}
 
             if settings.profile.enabled:
                 profiles.ON = True
 
         if settings.constants:
-            cls.please_setup_constants = True
+            constants.set(settings.constants)
 
-        if cls.please_setup_constants:
-            sys_modules = sys.modules
-            # ONE MODULE IS MISSING, THE CALLING MODULE
-            caller_globals = sys._getframe(1).f_globals
-            caller_file = caller_globals["__file__"]
-            if not caller_file.endswith(".py"):
-                raise Exception("do not know how to handle non-python caller")
-            caller_module = caller_file[:-3].replace("/", ".")
+        if not settings.log:
+            return
 
-            for k, v in wrap_dot(settings.constants).leaves():
-                module_name = join_field(split_field(k)[:-1])
-                attribute_name = split_field(k)[-1].lower()
-                if module_name in sys_modules and isinstance(sys_modules[module_name], ModuleType):
-                    mod = sys_modules[module_name]
-                    all_names = dir(mod)
-                    for name in all_names:
-                        if attribute_name == name.lower():
-                            setattr(mod, name, v)
-                    continue
-                elif caller_module.endswith(module_name):
-                    for name in caller_globals.keys():
-                        if attribute_name == name.lower():
-                            old_value = caller_globals[name]
-                            try:
-                                new_value = old_value.__class__(v)  # TRY TO MAKE INSTANCE OF SAME CLASS
-                            except Exception, e:
-                                new_value = v
-                            caller_globals[name] = new_value
-                            Log.note("Changed {{module}}[{{attribute}}] from {{old_value}} to {{new_value}}", {
-                                "module": module_name,
-                                "attribute": name,
-                                "old_value": old_value,
-                                "new_value": new_value
-                            })
-                            break
-                else:
-                    Log.note("Can not change {{module}}[{{attribute}}] to {{new_value}}", {
-                        "module": module_name,
-                        "attribute": k,
-                        "new_value": v
-                    })
+        cls.logging_multi = Log_usingMulti()
+        if cls.main_log:
+            cls.main_log.stop()
+        cls.main_log = Log_usingThread(cls.logging_multi)
+
+        for log in listwrap(settings.log):
+            Log.add_log(Log.new_instance(log))
 
     @classmethod
     def stop(cls):
         from pyLibrary.debugs import profiles
 
         if cls.cprofiler and hasattr(cls, "settings"):
-            write_profile(cls.settings.cprofile, cls.cprofiler)
+            import pstats
+            cls.cprofiler_stats.add(pstats.Stats(cls.cprofiler))
+            write_profile(cls.settings.cprofile, cls.cprofiler_stats.pop_all())
 
         if profiles.ON and hasattr(cls, "settings"):
             profiles.write(cls.settings.profile)
         cls.main_log.stop()
+        cls.main_log = Log_usingStream(sys.stdout)
 
     @classmethod
     def new_instance(cls, settings):
@@ -171,11 +136,11 @@ class Log(object):
         if settings.log_type == "file" or settings.filename:
             return Log_usingFile(settings.filename)
         if settings.log_type == "console":
-            from .log_usingStream import Log_usingStream
-            return Log_usingStream(sys.stdout)
+            from .log_usingThreadedStream import Log_usingThreadedStream
+            return Log_usingThreadedStream(sys.stdout)
         if settings.log_type == "stream" or settings.stream:
-            from .log_usingStream import Log_usingStream
-            return Log_usingStream(settings.stream)
+            from .log_usingThreadedStream import Log_usingThreadedStream
+            return Log_usingThreadedStream(settings.stream)
         if settings.log_type == "elasticsearch" or settings.stream:
             from .log_usingElasticSearch import Log_usingElasticSearch
             return Log_usingElasticSearch(settings)
@@ -183,37 +148,32 @@ class Log(object):
             from .log_usingEmail import Log_usingEmail
             return Log_usingEmail(settings)
 
-
     @classmethod
     def add_log(cls, log):
         cls.logging_multi.add_log(log)
 
     @classmethod
-    def debug(cls, template=None, params=None):
-        """
-        USE THIS FOR DEBUGGING (AND EVENTUAL REMOVAL)
-        """
-        Log.note(nvl(template, ""), params, stack_depth=1)
+    def note(cls, template, default_params={}, stack_depth=0, **more_params):
+        if len(template) > 10000:
+            template = template[:10000]
 
-    @classmethod
-    def println(cls, template, params=None):
-        Log.note(template, params, stack_depth=1)
-
-    @classmethod
-    def note(cls, template, params=None, stack_depth=0):
-        # USE replace() AS POOR MAN'S CHILD TEMPLATE
+        params = dict(unwrap(default_params), **more_params)
 
         log_params = Dict(
             template=template,
-            params=set_default({}, params),
+            params=params,
             timestamp=datetime.utcnow(),
         )
+
+        if not template.startswith("\n") and template.find("\n") > -1:
+            template = "\n" + template
+
         if cls.trace:
             log_template = "{{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
             f = sys._getframe(stack_depth + 1)
             log_params.location = {
                 "line": f.f_lineno,
-                "file": f.f_code.co_filename,
+                "file": f.f_code.co_filename.split(os.sep)[-1],
                 "method": f.f_code.co_name
             }
             thread = Thread.current()
@@ -224,10 +184,12 @@ class Log(object):
         cls.main_log.write(log_template, log_params)
 
     @classmethod
-    def unexpected(cls, template, params=None, cause=None):
-        if isinstance(params, BaseException):
-            cause = params
-            params = None
+    def unexpected(cls, template, default_params={}, cause=None, **more_params):
+        if isinstance(default_params, BaseException):
+            cause = default_params
+            default_params = {}
+
+        params = dict(unwrap(default_params), **more_params)
 
         if cause and not isinstance(cause, Except):
             cause = Except(UNEXPECTED, unicode(cause), trace=extract_tb(0))
@@ -246,23 +208,34 @@ class Log(object):
             }
         )
 
+    @classmethod
+    def alarm(cls, template, params={}, stack_depth=0, **more_params):
+        # USE replace() AS POOR MAN'S CHILD TEMPLATE
+
+        template = ("*" * 80) + "\n" + indent(template, prefix="** ").strip() + "\n" + ("*" * 80)
+        Log.note(template, params=params, stack_depth=stack_depth + 1, **more_params)
+
+    @classmethod
+    def alert(cls, template, params={}, stack_depth=0, **more_params):
+        return Log.alarm(template, params, stack_depth+1, **more_params)
 
     @classmethod
     def warning(
         cls,
         template,
-        params=None,
+        default_params={},
         cause=None,
-        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
+        stack_depth=0,       # stack trace offset (==1 if you do not want to report self)
+        **more_params
     ):
-        if isinstance(params, BaseException):
-            cause = params
-            params = None
+        if isinstance(default_params, BaseException):
+            cause = default_params
+            default_params = {}
 
-        if cause and not isinstance(cause, Except):
-            cause = Except(ERROR, unicode(cause), trace=extract_tb(0))
-
+        params = dict(unwrap(default_params), **more_params)
+        cause = unwraplist([Except.wrap(c) for c in listwrap(cause)])
         trace = extract_stack(stack_depth + 1)
+
         e = Except(WARNING, template, params, cause, trace)
         Log.note(
             unicode(e),
@@ -282,16 +255,19 @@ class Log(object):
     def error(
         cls,
         template, # human readable template
-        params=None, # parameters for template
+        default_params={}, # parameters for template
         cause=None, # pausible cause
-        stack_depth=0        # stack trace offset (==1 if you do not want to report self)
+        stack_depth=0,        # stack trace offset (==1 if you do not want to report self)
+        **more_params
     ):
         """
         raise an exception with a trace for the cause too
         """
-        if params and isinstance(listwrap(params)[0], BaseException):
-            cause = params
-            params = None
+        if default_params and isinstance(listwrap(default_params)[0], BaseException):
+            cause = default_params
+            default_params = {}
+
+        params = dict(unwrap(default_params), **more_params)
 
         add_to_trace = False
         if cause == None:
@@ -302,7 +278,7 @@ class Log(object):
             cause = [cause]
         else:
             add_to_trace = True
-            if hasattr(cause, "message"):
+            if hasattr(cause, "message") and cause.message:
                 cause = [Except(ERROR, unicode(cause.message), trace=extract_tb(stack_depth))]
             else:
                 cause = [Except(ERROR, unicode(cause), trace=extract_tb(stack_depth))]
@@ -317,17 +293,20 @@ class Log(object):
     @classmethod
     def fatal(
         cls,
-        template, # human readable template
-        params=None, # parameters for template
-        cause=None, # pausible cause
-        stack_depth=0    # stack trace offset (==1 if you do not want to report self)
+        template,  # human readable template
+        default_params={},  # parameters for template
+        cause=None,  # pausible cause
+        stack_depth=0,  # stack trace offset (==1 if you do not want to report self)
+        **more_params
     ):
         """
         SEND TO STDERR
         """
-        if params and isinstance(listwrap(params)[0], BaseException):
-            cause = params
-            params = None
+        if default_params and isinstance(listwrap(default_params)[0], BaseException):
+            cause = default_params
+            default_params = {}
+
+        params = dict(unwrap(default_params), **more_params)
 
         if cause == None:
             cause = []
@@ -363,6 +342,9 @@ class Log(object):
 
     def write(self):
         raise NotImplementedError
+
+
+
 
 
 def extract_stack(start=0):
@@ -432,13 +414,24 @@ def extract_tb(start):
 def format_trace(tbs, start=0):
     trace = []
     for d in tbs[start::]:
-        d["file"] = d["file"].replace("/", "\\")
         item = expand_template('File "{{file}}", line {{line}}, in {{method}}\n', d)
         trace.append(item)
     return "".join(trace)
 
 
 class Except(Exception):
+
+    @staticmethod
+    def new_instance(desc):
+        return Except(
+            desc.type,
+            desc.template,
+            desc.params,
+            [Except.new_instance(c) for c in listwrap(desc.cause)],
+            desc.trace
+        )
+
+
     def __init__(self, type=ERROR, template=None, params=None, cause=None, trace=None):
         Exception.__init__(self)
         self.type = type
@@ -467,7 +460,7 @@ class Except(Exception):
     def message(self):
         return expand_template(self.template, self.params)
 
-    def contains(self, value):
+    def __contains__(self, value):
         if isinstance(value, basestring):
             if self.message.find(value) >= 0 or self.template.find(value) >= 0:
                 return True
@@ -476,7 +469,7 @@ class Except(Exception):
             return True
         if self.cause:
             for c in self.cause:
-                if c.contains(value):
+                if value in c:
                     return True
         return False
 
@@ -503,14 +496,17 @@ class Except(Exception):
     def __unicode__(self):
         return unicode(str(self))
 
-    def __json__(self):
-        return json_encoder(Dict(
+    def as_dict(self):
+        return Dict(
             type=self.type,
             template=self.template,
             params=self.params,
             cause=self.cause,
             trace=self.trace
-        ))
+        )
+
+    def __json__(self):
+        return json_encoder(self.as_dict())
 
 
 class BaseLog(object):
@@ -532,7 +528,7 @@ class Log_usingFile(BaseLog):
             self.file.backup()
             self.file.delete()
 
-        self.file_lock = threads.Lock("file lock for logging")
+        self.file_lock = Lock("file lock for logging")
 
     def write(self, template, params):
         with self.file_lock:
@@ -545,7 +541,7 @@ class Log_usingThread(BaseLog):
         # DELAYED LOAD FOR THREADS MODULE
         from pyLibrary.thread.threads import Queue
 
-        self.queue = Queue(max=10000, silent=True)
+        self.queue = Queue("logs", max=10000, silent=True)
         self.logger = logger
 
         def worker(please_stop):
@@ -622,12 +618,29 @@ class Log_usingMulti(BaseLog):
                 pass
 
 
-def write_profile(profile_settings, cprofiler):
+class Log_usingStream(BaseLog):
+    def __init__(self, stream):
+        assert stream
+        self.stream = stream
+
+    def write(self, template, params):
+        value = expand_template(template, params)
+        if isinstance(value, unicode):
+            value = value.encode('utf8')
+        self.stream.write(value)
+
+    def stop(self):
+        pass
+
+
+def write_profile(profile_settings, stats):
     from pyLibrary import convert
     from pyLibrary.env.files import File
-    import pstats
 
-    p = pstats.Stats(cprofiler)
+    acc = stats[0]
+    for s in stats[1:]:
+        acc.add(s)
+
     stats = [{
         "num_calls": d[1],
         "self_time": d[2],
@@ -638,17 +651,13 @@ def write_profile(profile_settings, cprofiler):
         "line": f[1],
         "method": f[2].lstrip("<").rstrip(">")
     }
-        for f, d, in p.stats.iteritems()
+        for f, d, in acc.stats.iteritems()
     ]
     stats_file = File(profile_settings.filename, suffix=convert.datetime2string(datetime.now(), "_%Y%m%d_%H%M%S"))
     stats_file.write(convert.list2tab(stats))
 
 
 if not Log.main_log:
-    from log_usingStream import Log_usingStream
-
-    Log.main_log = Log_usingStream("sys.stdout")
-
-
+    Log.main_log = Log_usingStream(sys.stdout)
 
 

@@ -1,0 +1,57 @@
+# encoding: utf-8
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+from __future__ import unicode_literals
+from __future__ import division
+
+from pyLibrary import convert
+from pyLibrary.aws.s3 import key_prefix
+from pyLibrary.debugs.logs import Log
+from pyLibrary.thread.threads import Lock
+
+from testlog_etl import key2path
+
+is_done_lock = Lock()
+is_done = set()
+
+def process_test_result(source_key, source, destination, please_stop=None):
+    path = key2path(source_key)
+    destination.delete({"and": [
+        {"term": {"etl.source.id": path[1]}},
+        {"term": {"etl.source.source.id": path[0]}}
+    ]})
+
+    lines = source.read_lines()
+
+    keys = []
+    data = []
+    for l in lines:
+        record = convert.json2value(l)
+        if record._id==None:
+            continue
+        record.result.crash_result = None  #TODO: Remove me after May 2015
+        keys.append(record._id)
+        data.append({
+            "id": record._id,
+            "value": record
+        })
+        record._id = None
+    if data:
+        try:
+            destination.extend(data)
+        except Exception, e:
+            if "Can not decide on index by build.date" in e:
+                if source.bucket.name == "ekyle-test-result":
+                    # KNOWN CORRUPTION
+                    # TODO: REMOVE LATER (today = Mar2015)
+                    delete_list = source.bucket.keys(prefix=key_prefix(source_key))
+                    for d in delete_list:
+                        source.bucket.delete_key(d)
+            Log.error("Can not add to sink", e)
+
+    return set(keys)

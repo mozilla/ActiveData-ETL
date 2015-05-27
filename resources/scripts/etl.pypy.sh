@@ -1,6 +1,11 @@
-cd /home/ubuntu/temp/TestLog-ETL/
-export PYTHONPATH=.
+cd /home/ubuntu/TestLog-ETL/
+git checkout etl
+git pull origin etl
+
 
 # DO NOT HANG ONTO PROCESS (nohup)
-pypy testlog_etl/etl.py --settings=etl_settings.json &
-
+export PYTHONPATH=.
+export PYPY_GC_MAX=2GB
+pypy testlog_etl/etl.py --settings=resources/settings/etl_staging_settings.json &
+disown -h
+tail -f results/logs/etl.log

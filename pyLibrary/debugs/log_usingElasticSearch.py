@@ -9,40 +9,38 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-
-from datetime import timedelta, datetime
+from __future__ import absolute_import
 
 from pyLibrary import convert
 from pyLibrary.env.elasticsearch import Cluster
-from pyLibrary.dot import set_default
-from pyLibrary.thread.threads import Thread, Queue
-from .logs import BaseLog, Log
+from pyLibrary.meta import use_settings
+from pyLibrary.thread.threads import Thread
+from .logs import BaseLog
 
 
 class Log_usingElasticSearch(BaseLog):
 
-
-
-    def __init__(self, settings):
+    @use_settings
+    def __init__(self, host, index, type="log", max_size=1000, batch_size=100, settings=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
-        settings = set_default({}, settings, {"type": "log"})
-
-        self.es = Cluster(settings).get_or_create_index(settings, schema=convert.json2value(convert.value2json(SCHEMA), paths=True), limit_replicas=True)
-        self.queue = Queue()
-        self.thread = Thread("log to " + settings.index, time_delta_pusher, es_sink=self.es, queue=self.queue, interval=timedelta(seconds=1))
-        self.thread.start()
+        self.es = Cluster(settings).get_or_create_index(
+            schema=convert.json2value(convert.value2json(SCHEMA), paths=True),
+            limit_replicas=True,
+            settings=settings
+        )
+        self.queue = self.es.threaded_queue(max_size=max_size, batch_size=batch_size)
 
     def write(self, template, params):
         try:
-            if params.get("template", None):
+            if params.get("template"):
                 # DETECTED INNER TEMPLATE, ASSUME TRACE IS ON, SO DO NOT NEED THE OUTER TEMPLATE
-                self.queue.add(params)
+                self.queue.add({"value": params})
             else:
                 if len(template) > 2000:
                     template = template[:1997] + "..."
-                self.queue.add({"template": template, "params": params})
+                self.queue.add({"value": {"template": template, "params": params}})
             return self
         except Exception, e:
             raise e  # OH NO!
@@ -50,7 +48,6 @@ class Log_usingElasticSearch(BaseLog):
     def stop(self):
         try:
             self.queue.add(Thread.STOP)  # BE PATIENT, LET REST OF MESSAGE BE SENT
-            self.thread.join()
         except Exception, e:
             pass
 
@@ -58,37 +55,6 @@ class Log_usingElasticSearch(BaseLog):
             self.queue.close()
         except Exception, f:
             pass
-
-
-def time_delta_pusher(please_stop, es_sink, queue, interval):
-    """
-    sink - ES DESTINATION
-    queue - FILLED WITH LOG ENTRIES {"template":template, "params":params} TO WRITE
-    interval - ONLY RUN ONCE EVERY timedelta
-    USE IN A THREAD TO BATCH LOGS BY TIME INTERVAL
-    """
-    if not isinstance(interval, timedelta):
-        Log.error("Expecting interval to be a timedelta")
-
-    next_run = datetime.utcnow() + interval
-
-    while not please_stop:
-        Thread.sleep(till=next_run)
-        next_run += interval
-        logs = queue.pop_all()
-        if logs:
-            try:
-                last = len(logs)
-                for i, log in enumerate(logs):
-                    if log is Thread.STOP:
-                        please_stop.go()
-                        last = i
-                        next_run = datetime.utcnow()
-                if last > 0:
-                    es_sink.extend([{"value": v} for v in logs[0:last]])
-            except Exception, e:
-                # DO NOT KILL THREAD, WE MUST CONTINUE TO CONSUME MESSAGES
-                Log.warning("problem logging to es", e)
 
 
 
@@ -124,7 +90,7 @@ SCHEMA = {
             },
             "properties": {
                 "timestamp": {
-                    "type": "long",
+                    "type": "double",
                     "index": "not_analyzed",
                     "store": "yes"
                 },

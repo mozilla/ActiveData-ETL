@@ -5,25 +5,31 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-#
-# MONKEY-PATCH datetime FOR MORE AWESOME FUN
-#
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 import math
-
-from pyLibrary.vendor.dateutil.parser import parse as parse_date
+import platform
+import re
 
 try:
     import pytz
-except Exception, e:
+except Exception, _:
     pass
+
+
+from pyLibrary.dot import Null
+from pyLibrary.times.durations import Duration, MILLI_VALUES
+from pyLibrary.vendor.dateutil.parser import parse as parse_date
 from pyLibrary.strings import deformat
+
+ISO8601 = '%Y-%m-%dT%H:%M:%SZ'
 
 
 class Date(object):
@@ -33,43 +39,22 @@ class Date(object):
 
     def __new__(cls, *args, **kwargs):
         if len(args) == 1 and args[0] == None:
-            return None
+            return Null
         return object.__new__(cls, *args)
 
     def __init__(self, *args):
-        try:
-            if len(args) == 1:
-                a0 = args[0]
-                if isinstance(a0, (datetime, date)):
-                    self.value = a0
-                elif isinstance(a0, Date):
-                    self.value = a0.value
-                elif isinstance(a0, (int, long, float)):
-                    if a0 == 9999999999000:  # PYPY BUG https://bugs.pypy.org/issue1697
-                        self.value = Date.MAX
-                    else:
-                        self.value = datetime.utcfromtimestamp(a0/1000)
-                elif isinstance(a0, basestring):
-                    self.value = unicode2datetime(a0)
-                else:
-                    self.value = datetime(*args)
-            else:
-                if isinstance(args[0], basestring):
-                    self.value = unicode2datetime(*args)
-                else:
-                    self.value = datetime(*args)
-
-        except Exception, e:
-            from pyLibrary.debugs.logs import Log
-            Log.error("Can not convert {{args}} to Date", {"args": args}, e)
+        self.value = value2datetime(*args)
 
     def floor(self, duration=None):
         if duration is None:  # ASSUME DAY
             return Date(math.floor(self.milli / 86400000) * 86400000)
+        elif duration.milli % (7*86400000) ==0:
+            offset = 4*86400000
+            return Date(math.floor((self.milli+offset) / duration.milli) * duration.milli - offset)
         elif not duration.month:
             return Date(math.floor(self.milli / duration.milli) * duration.milli)
         else:
-            month = math.floor(self.value.month / duration.month) * duration.month
+            month = int(math.floor(self.value.month / duration.month) * duration.month)
             return Date(datetime(self.value.year, month, 1))
 
     def format(self, format="%Y-%m-%d %H:%M:%S"):
@@ -77,10 +62,14 @@ class Date(object):
             return self.value.strftime(format)
         except Exception, e:
             from pyLibrary.debugs.logs import Log
-            Log.error("Can not format {{value}} with {{format}}", {"value": self.value, "format": format}, e)
+            Log.error("Can not format {{value}} with {{format}}",  value= self.value, format=format, cause=e)
 
     @property
     def milli(self):
+        return self.unix*1000
+
+    @property
+    def unix(self):
         try:
             if self.value == None:
                 return None
@@ -90,17 +79,15 @@ class Date(object):
                 epoch = date(1970, 1, 1)
             else:
                 from pyLibrary.debugs.logs import Log
-                Log.error("Can not convert {{value}} of type {{type}}", {"value": self.value, "type": self.value.__class__})
+                Log.error("Can not convert {{value}} of type {{type}}",  value= self.value,  type= self.value.__class__)
+                epoch = None
 
             diff = self.value - epoch
-            return long(diff.total_seconds()) * 1000L + long(diff.microseconds / 1000)
+            output = Decimal(long(diff.total_seconds() * 1000000))
+            return output / 1000000
         except Exception, e:
             from pyLibrary.debugs.logs import Log
-            Log.error("Can not convert {{value}}", {"value": self.value}, e)
-
-    @property
-    def unix(self):
-        return self.milli/1000
+            Log.error("Can not convert {{value}}",  value= self.value, cause=e)
 
     def addDay(self):
         return Date(self.value + timedelta(days=1))
@@ -112,6 +99,8 @@ class Date(object):
             return Date(self.value - other)
         elif isinstance(other, Date):
             return Date(self.value - other.value)
+        elif isinstance(other, timedelta):
+            return Date(self.value + other)
         elif isinstance(other, Duration):
             if other.month:
                 if (self.value+timedelta(days=1)).month != self.value.month:
@@ -129,7 +118,7 @@ class Date(object):
                 return Date(self.milli + other.milli)
         else:
             from pyLibrary.debugs.logs import Log
-            Log.error("can not subtract {{type}} from Date", {"type":other.__class__.__name__})
+            Log.error("can not subtract {{type}} from Date",  type=other.__class__.__name__)
 
     @staticmethod
     def now():
@@ -146,14 +135,23 @@ class Date(object):
     def today():
         return Date(datetime.utcnow()).floor()
 
+    @staticmethod
+    def range(min, max, interval):
+        v = min
+        while v < max:
+            yield v
+            v = v + interval
+
     def __str__(self):
         return str(self.value)
 
     def __sub__(self, other):
+        if other == None:
+            return None
         if isinstance(other, datetime):
-            return Duration(self.milli-Date(other).milli)
+            return Duration(self.unix - Date(other).unix)
         if isinstance(other, Date):
-            return Duration(self.milli-other.milli)
+            return Duration(self.unix - other.unix)
 
         return self.add(-other)
 
@@ -175,6 +173,77 @@ class Date(object):
 
     def __add__(self, other):
         return self.add(other)
+
+
+def _cpython_value2date(*args):
+    try:
+        if len(args) == 1:
+            a0 = args[0]
+            if isinstance(a0, (datetime, date)):
+                output = a0
+            elif isinstance(a0, Date):
+                output = a0.value
+            elif isinstance(a0, (int, long, float, Decimal)):
+                if a0 == 9999999999000:  # PYPY BUG https://bugs.pypy.org/issue1697
+                    output = Date.MAX
+                elif a0 > 9999999999:    # WAY TOO BIG IF IT WAS A UNIX TIMESTAMP
+                    output = datetime.utcfromtimestamp(a0 / 1000)
+                else:
+                    output = datetime.utcfromtimestamp(a0)
+            elif isinstance(a0, basestring):
+                output = unicode2datetime(a0)
+            else:
+                output = datetime(*args)
+        else:
+            if isinstance(args[0], basestring):
+                output = unicode2datetime(*args)
+            else:
+                output = datetime(*args)
+
+        return output
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
+        Log.error("Can not convert {{args}} to Date",  args= args, cause=e)
+
+
+def _pypy_value2date(*args):
+    try:
+        if len(args) == 1:
+            a0 = args[0]
+            if isinstance(a0, (datetime, date)):
+                output = a0
+            elif isinstance(a0, Date):
+                output = a0.value
+            elif isinstance(a0, (int, long, float, Decimal)):
+                if a0 == 9999999999000:  # PYPY BUG https://bugs.pypy.org/issue1697
+                    output = Date.MAX
+                elif a0 > 9999999999:    # WAY TOO BIG IF IT WAS A UNIX TIMESTAMP
+                    output = datetime.utcfromtimestamp(float(a0 / 1000))
+                else:
+                    output = datetime.utcfromtimestamp(float(a0))
+            elif isinstance(a0, basestring):
+                output = unicode2datetime(a0)
+            else:
+                output = datetime(*args)
+        else:
+            if isinstance(args[0], basestring):
+                output = unicode2datetime(*args)
+            else:
+                output = datetime(*args)
+
+        return output
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
+        Log.error("Can not convert {{args}} to Date",  args= args, cause=e)
+
+
+if platform.python_implementation() == "PyPy":
+    value2datetime = _pypy_value2date
+else:
+    value2datetime = _cpython_value2date
+
+
+
 
 
 Date.MIN = Date(datetime(1, 1, 1))
@@ -217,6 +286,53 @@ def set_day(offset, day):
     return output
 
 
+def parse(value):
+    def simple_date(sign, dig, type, floor):
+        if dig or sign:
+            from pyLibrary.debugs.logs import Log
+            Log.error("can not accept a multiplier on a datetime")
+
+        if floor:
+            return Date(type).floor(Duration(floor))
+        else:
+            return Date(type)
+
+    terms = re.match(r'(\d*[|\w]+)\s*([+-]\s*\d*[|\w]+)*', value).groups()
+
+    sign, dig, type = re.match(r'([+-]?)\s*(\d*)([|\w]+)', terms[0]).groups()
+    if "|" in type:
+        type, floor = type.split("|")
+    else:
+        floor = None
+
+    if type in MILLI_VALUES.keys():
+        value = Duration(dig+type)
+    else:
+        value = simple_date(sign, dig, type, floor)
+
+    for term in terms[1:]:
+        if not term:
+            continue
+        sign, dig, type = re.match(r'([+-])\s*(\d*)([|\w]+)', term).groups()
+        if "|" in type:
+            type, floor = type.split("|")
+        else:
+            floor = None
+
+        op = {"+": "__add__", "-": "__sub__"}[sign]
+        if type in MILLI_VALUES.keys():
+            if floor:
+                from pyLibrary.debugs.logs import Log
+                Log.error("floor (|) of duration not accepted")
+            value = value.__getattribute__(op)(Duration(dig+type))
+        else:
+            value = value.__getattribute__(op)(simple_date(sign, dig, type, floor))
+
+    return value
+
+
+
+
 def unicode2datetime(value, format=None):
     """
     CONVERT UNICODE STRING TO datetime VALUE
@@ -225,12 +341,24 @@ def unicode2datetime(value, format=None):
     if value == None:
         return None
 
+    value = value.strip()
+    if value.lower() == "now":
+        return Date.now().value
+    elif value.lower() == "today":
+        return Date.today().value
+    elif value.lower() in ["eod", "tomorrow"]:
+        return Date.eod().value
+
+    if any(value.lower().find(n) >= 0 for n in ["now", "today", "eod", "tomorrow"] + list(MILLI_VALUES.keys())):
+        return parse(value).value
+
     if format != None:
         try:
             return datetime.strptime(value, format)
         except Exception, e:
             from pyLibrary.debugs.logs import Log
-            Log.error("Can not format {{value}} with {{format}}", {"value": value, "format": format}, e)
+
+            Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
 
     try:
         local_value = parse_date(value)  #eg 2014-07-16 10:57 +0200
@@ -274,7 +402,5 @@ def unicode2datetime(value, format=None):
             pass
     else:
         from pyLibrary.debugs.logs import Log
-        Log.error("Can not interpret {{value}} as a datetime", {"value": value})
+        Log.error("Can not interpret {{value}} as a datetime",  value= value)
 
-
-from pyLibrary.times.durations import Duration
