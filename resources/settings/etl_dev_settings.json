@@ -34,7 +34,7 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
 		{

@@ -1,0 +1,28 @@
+{
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-pulse-logger",
+		"key_format":"a:b"
+	},
+	"destination": {
+		"use_daily": false,
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "pulse",
+		"type": "pulse_log",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../schema/pulse_logs.json"
+		},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}
