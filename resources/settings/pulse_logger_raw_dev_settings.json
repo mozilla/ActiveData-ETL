@@ -1,23 +1,23 @@
 {
 	"source": {
 		"exchange": "exchange/build",
-		"topic": "#",
+		"topic": ["#.finished", "#.log_uploaded"],
 		"durable": true,
-		"queue": "pulse_logger_dev",
+		"queue": "pulse_logger_raw_dev",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
 	},
 	"destination": {
-		"bucket": "ekyle-pulse-logger-dev",
+		"bucket": "active-data-pulse-log-raw-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"work_queue": {
-		"name": "active-data-etl-dev",
+		"name": "active-data-pulse-log-raw-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"queue_file": "results/pulse-logger-queue.json",
+		"queue_file": "results/pulse-logger-raw-queue.json",
 		"debug": false,     // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
 		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
 	},
@@ -28,13 +28,6 @@
         },
 		"log":[
 			{"log_type":"console"},
-			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/pulse_logger_dev.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 100,
-				"encoding" : "utf8"
-			},
 			{
 				"log_type":"email",
 				"from_address": "klahnakoski@mozilla.com",

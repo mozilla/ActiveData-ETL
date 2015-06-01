@@ -6,5 +6,9 @@ cd /usr/local/elasticsearch
 # RUN IN BACKGROUND
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
-cd /data/logs
-tail -f ekyle-aws-1.log
+cd /data1/logs
+tail -f active-data.log
+
+
+
+

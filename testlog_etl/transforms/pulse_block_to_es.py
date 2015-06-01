@@ -107,9 +107,12 @@ def transform_buildbot(payload, filename=None):
     output.build.id = payload.buildid
     output.build.type = payload.buildtype
     output.build.url = payload.buildurl
-    output.run.insertion_time = payload.insertion_time
     output.run.job_number = payload.job_number
+
+    # TODO: THESE SHOULD BE ETL PROPERTIES
+    output.run.insertion_time = payload.insertion_time
     output.run.key = payload.key
+
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
     output.machine.os = payload.os

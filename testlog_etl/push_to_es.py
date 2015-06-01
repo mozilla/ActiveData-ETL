@@ -17,7 +17,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Thread, Signal
+from pyLibrary.thread.threads import Thread, Signal, MAIN_THREAD
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
@@ -39,59 +39,15 @@ def copy2es(es, settings, work_queue, please_stop=None):
             num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
 
         if num_keys > 1:
-            Log.note("Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
-                num= num_keys,
-                key= key,
-                duration= extend_time.seconds,
-                rate= num_keys / Math.max(extend_time.seconds, 0.01)
+            Log.note(
+                "Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+                num=num_keys,
+                key=key,
+                duration=extend_time.seconds,
+                rate=num_keys / Math.max(extend_time.seconds, 0.01)
             )
 
         work_queue.commit()
-
-
-def get_all_s3(in_es, settings):
-    # EVERYTHING FROM S3
-    bucket = s3.Bucket(settings.source)
-    prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
-    in_s3 = []
-    for i, p in enumerate(prefixes):
-        if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
-        try:
-            if int(p) not in in_es:
-                in_s3.append(int(p))
-            else:
-                pass
-        except Exception, _:
-            Log.note("delete key {{key}}",  key= p)
-            bucket.delete_key(strip_extension(p))
-    in_s3 = qb.reverse(qb.sort(in_s3))
-    return in_s3
-
-
-def diff(settings, please_stop=None):
-    # EVERYTHING FROM ELASTICSEARCH
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
-
-    in_es = get_all_in_es(es)
-    in_s3 = get_all_s3(in_es, settings)
-
-    Log.note("Queueing {{num}} keys for insertion to ES with {{threads}} threads",
-        num= len(in_s3),
-        threads= settings.threads)
-    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
-    max_s3 = in_s3[0] - 500
-    i = 0
-    while in_s3[i] > max_s3:
-        i += 1
-    in_s3 = in_s3[i::]
-
-    bucket = s3.Bucket(settings.source)
-    work_queue = aws.Queue(settings=settings.work_queue)
-
-    for block in in_s3:
-        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
-        work_queue.extend(keys)
 
 
 def get_all_in_es(es):
@@ -163,11 +119,12 @@ def main():
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}",  num= len(work_queue))
+                Log.note("Remaining: {{num}}", num=len(work_queue))
                 Thread.sleep(seconds=10)
 
-        Thread.run(name="monitor progress", target=monitor_progress)
+        Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
+        aws.capture_termination_signal(please_stop)
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
         Log.note("Shutdown started")

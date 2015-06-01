@@ -23,10 +23,10 @@ class Pulse(Thread):
     @use_settings
     def __init__(
         self,
-        target,  # WILL BE CALLED WITH PULSE PAYLOADS AND ack() IF COMPLETE$ED WITHOUT EXCEPTION
-        target_queue,  # (aka self.queue) WILL BE FILLED WITH PULSE PAYLOADS
         exchange,  # name of the Pulse exchange
         topic,  # message name pattern to subscribe to  ('#' is wildcard)
+        target=None,  # WILL BE CALLED WITH PULSE PAYLOADS AND ack() IF COMPLETE$ED WITHOUT EXCEPTION
+        target_queue=None,  # (aka self.queue) WILL BE FILLED WITH PULSE PAYLOADS
         host='pulse.mozilla.org',  # url to connect,
         port=5671,  # tcp port
         user=None,
@@ -51,6 +51,7 @@ class Pulse(Thread):
         settings.callback = self._got_result
         settings.user = coalesce(settings.user, settings.username)
         settings.applabel = coalesce(settings.applable, settings.queue, settings.queue_name)
+        settings.topic = topic
 
         self.pulse = GenericConsumer(settings, connect=True, **settings)
         self.count = coalesce(start, 0)
@@ -76,7 +77,7 @@ class Pulse(Thread):
                 self.pulse_target(data)
                 message.ack()
             except Exception, e:
-                Log.error("Problem processing Pulse payload\n{{data|indent}}",  data= data, cause=e)
+                Log.error("Problem processing Pulse payload\n{{data|indent}}", data=data, cause=e)
 
     def _worker(self, please_stop):
         while not please_stop:

@@ -191,7 +191,7 @@ class Bucket(object):
                 Log.error("Problem with key request", error)
             return coalesce(perfect, favorite)
         except Exception, e:
-            Log.error(READ_ERROR, e)
+            Log.error(READ_ERROR+" can not read {{key}} from {{bucket}}", key=key, bucket=self.bucket.name, cause=e)
 
     def keys(self, prefix=None, delimiter=None):
         if delimiter:
