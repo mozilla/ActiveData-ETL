@@ -7,8 +7,6 @@ cd /usr/local/elasticsearch
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
 cd /data1/logs
+
 tail -f active-data.log
-
-
-
 

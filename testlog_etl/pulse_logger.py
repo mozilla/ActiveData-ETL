@@ -109,7 +109,7 @@ def main():
                     thread = Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal()
 
-                Log.note("starting shutdown")
+                Log.warning("starting shutdown")
                 thread.stop()
                 thread.join()
                 queue.close()

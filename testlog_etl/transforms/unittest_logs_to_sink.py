@@ -178,6 +178,7 @@ class LogSummary(Dict):
 
         if log.subtest:
             test.subtests += [{
+                "name": log.subtest,
                 "subtest": log.subtest,
                 "ok": True if log.expected == None or log.expected == log.status else False,
                 "status": log.status.lower(),

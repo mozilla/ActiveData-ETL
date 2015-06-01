@@ -24,7 +24,7 @@ DEBUG = True
 git_revision = get_git_revision()
 
 
-def process_pulse_block_to_es(source_key, source, destination, please_stop=None):
+def process(source_key, source, destination, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
