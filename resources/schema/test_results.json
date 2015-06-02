@@ -16,6 +16,9 @@
 			"_all": {
 				"enabled": false
 			},
+			"_routing": {
+				"required": true
+			},
 			"dynamic_templates": [
 				{
 					"xperf": {
