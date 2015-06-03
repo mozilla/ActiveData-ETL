@@ -34,7 +34,8 @@
 					"default_ids": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match": "id"
 					}
@@ -43,20 +44,11 @@
 					"default_strings": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match_mapping_type": "string",
 						"match": "*"
-					}
-				},
-				{
-					"default_strings": {
-						"mapping": {
-							"index": "analyzed",
-							"type": "string"
-						},
-						"match_mapping_type": "string",
-						"match": "result.crash_result.*"
 					}
 				}
 			],
@@ -81,25 +73,29 @@
 					"type":"object",
 					"properties":{
 						"id":{
-							"type":"integer"
+							"type":"integer",
+							"doc_values": true
 						},
 						"source":{
 							"type":"object",
 							"properties":{
 								"id":{
-									"type":"integer"
+									"type":"integer",
+									"doc_values": true
 								},
 								"source":{
 									"type":"object",
 									"properties":{
 										"id":{
-											"type":"integer"
+											"type":"integer",
+											"doc_values": true
 										},
 										"source":{
 											"type":"object",
 											"properties":{
 												"id":{
-													"type":"integer"
+													"type":"integer",
+													"doc_values": true
 												}
 											}
 										}

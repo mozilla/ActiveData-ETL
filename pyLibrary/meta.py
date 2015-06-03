@@ -196,21 +196,21 @@ class cache(object):
             attr_name = "_cache_for_" + func.__name__
             if func.func_code.co_argcount == 0:
                 # NO self PARAM
-                def output(*args, **kwargs):
+                def output():
                     if hasattr(cls, attr_name):
                         return getattr(cls, attr_name)
 
-                    value = func(*args, **kwargs)
+                    value = func()
                     setattr(cls, attr_name, value)
                     return value
 
                 return output
             else:
-                def output(self, *args, **kwargs):
+                def output(self):
                     if hasattr(self, attr_name):
                         return getattr(self, attr_name)
 
-                    value = func(self, *args, **kwargs)
+                    value = func(self)
                     setattr(self, attr_name, value)
                     return value
 
