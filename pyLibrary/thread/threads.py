@@ -570,6 +570,8 @@ class Signal(object):
         self._go = False
         self.job_queue = []
 
+    def __str__(self):
+        return str(self._go)
 
     def __bool__(self):
         with self.lock:

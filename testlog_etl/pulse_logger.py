@@ -110,7 +110,7 @@ def main():
 
                 with Pulse(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
                     thread = Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
-                    Thread.wait_for_shutdown_signal()
+                    Thread.wait_for_shutdown_signal(allow_exit=True)
 
                 Log.warning("starting shutdown")
                 thread.stop()

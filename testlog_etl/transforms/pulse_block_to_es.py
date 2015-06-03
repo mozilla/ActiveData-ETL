@@ -69,6 +69,7 @@ def scrub_pulse_record(source_key, i, line, stats):
             return None
         pulse_record = convert.json2value(line)
         if pulse_record._meta:
+            pulse_record.etl.source.id = pulse_record.etl.source.count
             return pulse_record
         elif pulse_record.locale:
             stats.num_missing_envelope += 1
