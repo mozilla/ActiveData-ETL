@@ -127,7 +127,6 @@ def capture_termination_signal(please_stop):
 @cache
 def get_instance_metadata():
     output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata().items()})
-    Log.alert("Boto metadata:\n{{metadata}}", metadata=output)
     return output
 
 from . import s3

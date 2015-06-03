@@ -8,10 +8,12 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+import platform
 from pyLibrary import aws
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import Dict, wrap, set_default
+from pyLibrary.meta import cache
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator, verify_blobber_file
@@ -31,7 +33,7 @@ def process(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
-    aws_metadata = aws.get_instance_metadata()
+    etl_machine_metadata = get_machine_metadata()
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
@@ -87,8 +89,7 @@ def process(source_key, source, destination, please_stop=None):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
-                    dest_etl.instance_type = aws_metadata.instance_type
-                    dest_etl.instance_id = aws_metadata.instance_id
+                    set_default(dest_etl, etl_machine_metadata)
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1
@@ -102,12 +103,22 @@ def process(source_key, source, destination, please_stop=None):
                             key= dest_key,
                             url= url)
             except Exception, e:
-                Log.error("Problem processing {{name}} = {{url}}",  name= name, url=url, cause=e)
+                Log.error("Problem processing {{name}} = {{url}}", name=name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
             Log.note("No structured log {{json}}", json=pulse_record.payload)
 
     if stats.num_missing_envelope:
-        Log.alarm("{{num}} lines have pulse message stripped of envelope",  num= stats.num_missing_envelope)
+        Log.alarm("{{num}} lines have pulse message stripped of envelope", num=stats.num_missing_envelope)
 
     return output
+
+@cache
+def get_machine_metadata():
+    ec2 = aws.get_instance_metadata()
+    return wrap({
+        "python": platform.python_implementation(),
+        "os": (platform.system() + platform.release()).strip(),
+        "instance_type": ec2.instance_type,
+        "instance_id": ec2.instance_id
+    })
