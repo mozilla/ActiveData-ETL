@@ -30,10 +30,8 @@ def process(source_key, source, destination, please_stop=None):
     etl_header = convert.json2value(lines[0])
     if etl_header.etl:
         start = 0
-        etl_header = etl_header.etl
     elif etl_header.locale or etl_header._meta:
         start = 0
-        etl_header = key2etl(unicode(source_key))
     else:
         start = 1
 
@@ -80,6 +78,10 @@ def scrub_pulse_record(source_key, i, line, stats):
             })
             return pulse_record
         else:
+            if i == 0 and pulse_record.source:
+                #OLD-STYLE ETL HAD A HEADER RECORD
+                return None
+
             Log.warning(
                 "Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
                 line=line,
