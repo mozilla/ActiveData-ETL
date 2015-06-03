@@ -20,7 +20,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, unwrap
 from pyLibrary.maths import Math
-from pyLibrary.meta import use_settings
+from pyLibrary.meta import use_settings, cache
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.durations import SECOND
 
@@ -124,9 +124,9 @@ def capture_termination_signal(please_stop):
 
     Thread.run("listen for termination", worker)
 
-
+@cache
 def get_instance_metadata():
-    output = wrap(boto_utils.get_instance_metadata())
+    output = wrap({k: v for k, v in boto_utils.get_instance_metadata().items()})
     Log.alert("Boto metadata:\n{{metadata}}", metadata=output)
     return output
 

@@ -88,6 +88,7 @@ def process(source_key, source, destination, please_stop=None):
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
                     dest_etl.instance_type = aws_metadata.instance_type
+                    dest_etl.instance_id = aws_metadata.instance_id
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1
