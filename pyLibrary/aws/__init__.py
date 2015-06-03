@@ -126,7 +126,7 @@ def capture_termination_signal(please_stop):
 
 
 def get_instance_metadata():
-    output = wrap(dict(boto_utils.get_instance_metadata()))
+    output = wrap(boto_utils.get_instance_metadata())
     Log.alert("Boto metadata:\n{{metadata}}", metadata=output)
     return output
 
