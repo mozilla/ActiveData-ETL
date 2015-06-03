@@ -89,7 +89,7 @@ class MultiDayIndex(object):
     def delete(self, filter):
         self.es.delete(filter)
 
-    def copy(self, keys, source, sample_only_filter=None):
+    def copy(self, keys, source, sample_only_filter=None, sample_size=None):
         num_keys = 0
         for key in keys:
             queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
@@ -98,7 +98,7 @@ class MultiDayIndex(object):
                     if rownum == 0:
                         value = convert.json2value(line)
                         row = {"id": value._id, "value": value}
-                        if sample_only_filter and Random.int(100) != 0 and qb.filter([value], sample_only_filter):
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
                                 Log.error("Expecting etl.id==0")

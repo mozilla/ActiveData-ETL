@@ -1,0 +1,47 @@
+{
+	"threads": 2,
+	"sample_size": 0.05,
+	"elasticsearch": {
+		"use_daily": true,
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "unittest",
+		"type": "test_result",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../schema/test_results.json"
+		},
+		"debug": false,
+		"limit_replicas": false
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-test-result-beta",
+		"key_format": "a:b.c"
+	},
+	"work_queue":{
+		"name": "active-data-index-beta",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"debug": {
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Staging]Problem in Push to ES",
+				"$ref": "file://~/private.json#email"
+
+			}
+		]
+	}
+}

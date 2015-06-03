@@ -3,17 +3,17 @@
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
-		"queue": "test_pulse_logger",
+		"queue": "active_data_pulse_logger_beta",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
 	},
 	"destination": {
-		"bucket": "ekyle-pulse-logger",
+		"bucket": "active-data-pulse-beta",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"work_queue": {
-		"name": "ekyle-etl",
+		"name": "active-data-etl-beta",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
@@ -32,14 +32,14 @@
 				"class" : "logging.handlers.RotatingFileHandler",
 				"filename" : "./results/logs/pulse_logger.log",
 				"maxBytes" : 10000000,
-				"backupCount" : 100,
+				"backupCount" : 10,
 				"encoding" : "utf8"
 			},
 			{
 				"log_type":"email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT]Problem in Pulse Logger",
+				"subject": "[ALERT][Beta]Problem in Pulse Logger",
 				"$ref":"file://~/private.json#email"
 
 			}

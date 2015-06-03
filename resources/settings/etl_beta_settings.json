@@ -1,0 +1,95 @@
+{
+	"work_queue": {
+		"name": "active-data-etl-beta",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"param": {
+		"threads": 4,
+		"wait_forever": true,
+		"keep_unknown_on_queue": false
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		},
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
+		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
+	},
+	"workers": [
+		{
+			"name": "pulse2es",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"use_daily": false,
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../schema/pulse_logs.json"
+				},
+				"debug": false,
+				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
+			"type": "join"
+		},
+		{
+			"name": "pulse2talos",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-talos-beta",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result-beta",
+				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-beta",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
+		}
+	],
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][STAGING] Problem in ETL",
+				"$ref": "file://~/private.json#email"
+
+			}
+		]
+	}
+}

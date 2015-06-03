@@ -34,7 +34,14 @@ def copy2es(es, settings, work_queue, please_stop=None):
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
-            num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
+            if settings.sample_only:
+                sample_filter = {"terms": {"build.branch": settings.sample_only}}
+            elif settings.sample_size:
+                sample_filter = lambda x: True
+            else:
+                sample_filter = None
+
+            num_keys = es.copy([key], bucket, sample_filter, settings.sample_size)
 
         if num_keys > 1:
             Log.note(
