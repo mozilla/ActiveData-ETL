@@ -271,7 +271,7 @@ class Index(object):
                             error=item.index.error,
                             line=lines[i * 2 + 1]
                         )
-                elif self.cluster.version.startswith("1.4."):
+                elif any(map(self.cluster.version.startswith, ["1.4.", "1.5."])):
                     if item.index.status not in [200, 201]:
                         Log.error(
                             "{{num}} {{error}} while loading line into {{index}}:\n{{line}}",
