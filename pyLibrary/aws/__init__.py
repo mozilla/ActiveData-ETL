@@ -125,7 +125,8 @@ def capture_termination_signal(please_stop):
 
 
 def get_instance_metadata():
-    return wrap(dict(boto.utils.get_instance_metadata()))
-
+    output = wrap(dict(boto.utils.get_instance_metadata()))
+    Log.alert("Boto metadata:\n{{metadata}}", metadata=output)
+    return output
 
 from . import s3

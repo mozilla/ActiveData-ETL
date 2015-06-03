@@ -31,7 +31,7 @@ def process(source_key, source, destination, please_stop=None):
     """
     output = []
     stats = Dict()
-    meta = aws.get_instance_metadata()
+    aws_metadata = aws.get_instance_metadata()
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
@@ -87,7 +87,7 @@ def process(source_key, source, destination, please_stop=None):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
-                    dest_etl.instance_type = meta.instance_type
+                    dest_etl.instance_type = aws_metadata.instance_type
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1

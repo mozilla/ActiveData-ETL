@@ -53,7 +53,7 @@ def process(source_key, source, destination, please_stop=None):
                 "type": "join",
                 "revision": git_revision
             }
-        key = etl2key(pulse_record.etl)
+        key = etl2key(record.etl)
         keys.append(key)
         records.append({"id": key, "value": record})
     destination.extend(records)
