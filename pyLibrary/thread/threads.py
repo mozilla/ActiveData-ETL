@@ -711,9 +711,8 @@ class ThreadedQueue(Queue):
                     )
 
             if _buffer:
-                Log.warning("Shutdown of ThreadedQueue {{name|quote}} with {{num}} messages in buffer", name=self.name, num=len(_buffer))
-            elif DEBUG:
-                Log.note("ThreadedQueue {{name|quote}} finished and empty, good job!", name=self.name)
+                # ONE LAST PUSH, DO NOT HAVE TIME TO DEAL WITH ERRORS
+                queue.extend(_buffer)
         self.thread = Thread.run("threaded queue for " + name, worker_bee)
 
     def add(self, value):

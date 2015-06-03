@@ -38,7 +38,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
 
         if num_keys > 1:
             Log.note(
-                "Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+                "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
                 duration=extend_time.duration,

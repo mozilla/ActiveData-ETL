@@ -84,7 +84,7 @@
 			},
 			{
 				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/etl.log",
+				"filename": "./results/logs/etl_dev.log",
 				"maxBytes": 10000000,
 				"backupCount": 100,
 				"encoding": "utf8"
@@ -93,7 +93,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Developer Alert][DEV] Problem in ETL",
+				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/private.json#email"
 			}
 		]
