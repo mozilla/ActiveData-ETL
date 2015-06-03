@@ -11,7 +11,8 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from boto import sqs, boto
+from boto import sqs
+from boto import utils as boto_utils
 from boto.sqs.message import Message
 import requests
 
@@ -21,7 +22,7 @@ from pyLibrary.dot import wrap, unwrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.durations import Duration, SECOND
+from pyLibrary.times.durations import SECOND
 
 
 class Queue(object):
@@ -125,7 +126,7 @@ def capture_termination_signal(please_stop):
 
 
 def get_instance_metadata():
-    output = wrap(dict(boto.utils.get_instance_metadata()))
+    output = wrap(dict(boto_utils.get_instance_metadata()))
     Log.alert("Boto metadata:\n{{metadata}}", metadata=output)
     return output
 
