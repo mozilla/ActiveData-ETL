@@ -80,12 +80,20 @@ class Pulse(Thread):
                 Log.error("Problem processing Pulse payload\n{{data|indent}}", data=data, cause=e)
 
     def _worker(self, please_stop):
+        def disconnect():
+            self.pulse.disconnect()
+            Log.note("pulse listener was given a disconnect()")
+
+        please_stop.on_go(disconnect)
+
         while not please_stop:
             try:
                 self.pulse.listen()
             except Exception, e:
                 if not please_stop:
                     Log.warning("pulse had problem", e)
+        Log.note("pulse listener is done")
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         Log.note("clean pulse exit")
