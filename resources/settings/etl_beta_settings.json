@@ -86,7 +86,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][STAGING] Problem in ETL",
+				"subject": "[ALERT][Beta] Problem in ETL",
 				"$ref": "file://~/private.json#email"
 
 			}
