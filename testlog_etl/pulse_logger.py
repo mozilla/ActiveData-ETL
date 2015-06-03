@@ -46,6 +46,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "id": synch.next_key,
                             "source": {
                                 "name": "pulse.mozilla.org",
+                                "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,
                                 "sent": Date(d._meta.sent),
