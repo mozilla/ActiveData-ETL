@@ -150,7 +150,7 @@ class ETL(Thread):
                     etls = qb.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
-                            Log.error("expecting keys to have dense order")
+                            Log.error("expecting keys to have dense order: {{ids}}", ids=etls)
                     #VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:

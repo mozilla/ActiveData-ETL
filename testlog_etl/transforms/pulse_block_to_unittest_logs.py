@@ -44,10 +44,10 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid|quote}}", key=source_key, line=i, buildid=pulse_record.data.builddate)
+            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid|quote}}", key=source_key, line=i, buildid=pulse_record.payload.builddate)
 
         file_num = 0
-        for name, url in pulse_record.data.blobber_files.items():
+        for name, url in pulse_record.payload.blobber_files.items():
             try:
                 if url == None:
                     if DEBUG:
@@ -67,7 +67,7 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
+                    dest_key, dest_etl = etl_header_gen.next(pulse_record.payload.etl, name)
 
                     destination.write_lines(
                         dest_key,
@@ -83,13 +83,13 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
                             key= dest_key,
                             url= url)
             except Exception, e:
-                Log.error("Problem processing {{name}} = {{url}}",  name= name, url=url, cause=e)
+                Log.error("Problem processing {{name}} = {{url}}", name=name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
-            Log.note("No structured log {{json}}",  json= pulse_record.data)
+            Log.note("No structured log {{json}}", json=pulse_record.payload)
 
     if stats.num_missing_envelope:
-        Log.alarm("{{num}} lines have pulse message stripped of envelope",  num= stats.num_missing_envelope)
+        Log.alarm("{{num}} lines have pulse message stripped of envelope", num=stats.num_missing_envelope)
 
     return output
 
@@ -110,18 +110,20 @@ def verify_blobber_file(line_number, name, url):
             logs = response.all_lines
         except Exception, e:
             if name.endswith("_raw.log"):
-                Log.error("Line {{line}}: {{name}} = {{url}} is NOT structured log",
-                    line= line_number,
-                    name= name,
-                    url= url,
+                Log.error(
+                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
+                    line=line_number,
+                    name=name,
+                    url=url,
                     cause=e
                 )
-
             if DEBUG:
-                Log.note("Line {{line}}: {{name}} = {{url}} is NOT structured log",
-                    line= line_number,
-                    name= name,
-                    url= url)
+                Log.note(
+                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
+                    line=line_number,
+                    name=name,
+                    url=url
+                )
             return None, 0
 
     if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):

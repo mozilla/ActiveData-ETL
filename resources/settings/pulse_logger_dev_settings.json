@@ -1,6 +1,6 @@
 {
 	"source": {
-		"exchange": "exchange/build",
+		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
 		"queue": "pulse_logger_dev",

@@ -28,14 +28,17 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:
         for i, g in qb.groupby(queue, size=settings.param.size):
-            Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}",
-                num= len(g),
-                bucket= bucket.name)
+            Log.note(
+                "Preparing {{num}} pulse messages to bucket={{bucket}}",
+                num=len(g),
+                bucket=bucket.name
+            )
 
-            full_key = unicode(synch.next_key)+":"+unicode(MIN(g.select("_meta.count")))
+            full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
                 output = [
                     set_default(
+                        d,
                         {"etl": {
                             "name": "Pulse block",
                             "bucket": settings.destination.bucket,
@@ -43,13 +46,12 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "id": synch.next_key,
                             "source": {
                                 "name": "pulse.mozilla.org",
-                                "id": d._meta.count,
+                                "count": d._meta.count,
                                 "message_id": d._meta.message_id,
-                                "sent": d._meta.message_id,
+                                "sent": Date(d._meta.sent),
                             },
                             "type": "aggregation"
-                        }},
-                        d.payload
+                        }}
                     )
                     for i, d in enumerate(g)
                     if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start

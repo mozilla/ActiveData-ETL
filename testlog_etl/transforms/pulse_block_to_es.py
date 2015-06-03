@@ -13,7 +13,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import Dict, wrap, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key, key2etl
@@ -28,8 +28,10 @@ def process(source_key, source, destination, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
-    if etl_header.locale:
-        # EARLY VERSION ETL DID NOT ADD AN ETL HEADER
+    if etl_header.etl:
+        start = 0
+        etl_header = etl_header.etl
+    elif etl_header.locale or etl_header._meta:
         start = 0
         etl_header = key2etl(unicode(source_key))
     else:
@@ -44,15 +46,14 @@ def process(source_key, source, destination, please_stop=None):
             continue
 
         with Profiler("transform_buildbot"):
-            record = transform_buildbot(pulse_record.data)
+            record = transform_buildbot(pulse_record.payload)
             record.etl = {
                 "id": i,
-                "source": etl_header,
+                "source": pulse_record.etl,
                 "type": "join",
-                "revision": git_revision,
-                "_meta": pulse_record._meta,
+                "revision": git_revision
             }
-        key = etl2key(record.etl)
+        key = etl2key(pulse_record.etl)
         keys.append(key)
         records.append({"id": key, "value": record})
     destination.extend(records)
@@ -60,6 +61,10 @@ def process(source_key, source, destination, please_stop=None):
 
 
 def scrub_pulse_record(source_key, i, line, stats):
+    """
+    DUE TO MANY ETL FORMATS, THIS IS REQUIRED TO
+    TURN RAW LINE INTO A STANDARD PULSE RECORD
+    """
     try:
         line = strings.strip(line)
         if not line:
@@ -69,28 +74,22 @@ def scrub_pulse_record(source_key, i, line, stats):
             return pulse_record
         elif pulse_record.locale:
             stats.num_missing_envelope += 1
-            pulse_record = wrap({"data": pulse_record})
+            pulse_record = wrap({
+                "payload": pulse_record,
+                "etl": pulse_record.etl
+            })
             return pulse_record
-        elif pulse_record.source:
-            return None
-        elif pulse_record.pulse:
-            Log.error("Does this happen?")
-            # if DEBUG:
-            #     Log.note("Line {{index}}: found pulse array",  index= i)
-            # # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-            # def read():
-            #     return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
-            #
-            # temp = Dict(read=read)
-            #
-            # return process_pulse_block(source_key, temp, destination)
         else:
-            Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
-                line= line,
-                index= i,
-                key= source_key)
+            Log.warning(
+                "Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
+                line=line,
+                index=i,
+                key=source_key
+            )
+            return None
     except Exception, e:
-        Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}",
+        Log.warning(
+            "Line {{index}}: Problem with line for key {{key}}\n{{line}}",
             line=line,
             index=i,
             key=source_key,
@@ -115,12 +114,12 @@ def transform_buildbot(payload, filename=None):
 
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
-    output.machine.os = payload.os
+    output.run.machine.os = payload.os
     output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
-    output.machine.name = payload.slave
+    output.run.machine.name = payload.slave
 
     # payload.status IS THE BUILDBOT STATUS
     # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295

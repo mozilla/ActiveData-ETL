@@ -50,13 +50,15 @@ def process(source_key, source, destination, please_stop=None):
             continue
 
         if DEBUG or DEBUG_SHOW_LINE:
-            Log.note("Source {{key}}, line {{line}}, buildid = {{buildid}}",
-                key= source_key,
-                line= i,
-                buildid= pulse_record.data.builddate)
+            Log.note(
+                "Source {{key}}, line {{line}}, buildid = {{buildid}}",
+                key=source_key,
+                line=i,
+                buildid=pulse_record.payload.builddate
+            )
 
         file_num = 0
-        for name, url in pulse_record.data.blobber_files.items():
+        for name, url in pulse_record.payload.blobber_files.items():
             # USE THIS TO JUMP TO SPECIFIC FILE
             # if url != "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/0e0b1ad188f165b1cdc28d9dbf527b96def62c736da393d86ff94a1f65366ba8cf306d3827a059100d0e6d13486b719dc2fd7c6c2dd40ab261b860b2beb37aa5":
             #     continue
@@ -81,10 +83,10 @@ def process(source_key, source, destination, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    buildbot_summary = transform_buildbot(pulse_record.data, filename=name)
+                    buildbot_summary = transform_buildbot(pulse_record.payload, filename=name)
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
-                    dest_key, dest_etl = etl_header_gen.next(pulse_record.data.etl, name)
+                    dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
                     dest_etl.instance_type = meta.instance_type
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
@@ -102,7 +104,7 @@ def process(source_key, source, destination, please_stop=None):
                 Log.error("Problem processing {{name}} = {{url}}",  name= name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
-            Log.note("No structured log {{json}}",  json= pulse_record.data)
+            Log.note("No structured log {{json}}", json=pulse_record.payload)
 
     if stats.num_missing_envelope:
         Log.alarm("{{num}} lines have pulse message stripped of envelope",  num= stats.num_missing_envelope)

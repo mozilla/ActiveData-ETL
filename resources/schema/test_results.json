@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 1
+		"index.number_of_shards": 24
 	},
 	"mappings": {
 		"test_result": {
@@ -17,7 +17,8 @@
 				"enabled": false
 			},
 			"_routing": {
-				"required": true
+				"required": true,
+				"path":"etl.source.source.id"
 			},
 			"dynamic_templates": [
 				{
@@ -93,6 +94,14 @@
 									"properties":{
 										"id":{
 											"type":"integer"
+										},
+										"source":{
+											"type":"object",
+											"properties":{
+												"id":{
+													"type":"integer"
+												}
+											}
 										}
 									}
 								}

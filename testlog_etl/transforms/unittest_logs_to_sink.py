@@ -60,7 +60,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         "source": etl_header,
         "type": "join",
         "revision": git_revision,
-        "duration": timer.duration.seconds
+        "duration": timer.duration
     }
     buildbot_summary.run.stats = summary.stats
     buildbot_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time

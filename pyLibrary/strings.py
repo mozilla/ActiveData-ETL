@@ -19,7 +19,7 @@ import re
 import math
 import __builtin__
 
-from pyLibrary.dot import coalesce, wrap, Dict
+from pyLibrary.dot import coalesce, wrap
 
 
 def datetime(value):
@@ -388,7 +388,8 @@ def _simple_expand(template, seq):
                 if not Log:
                     _late_import()
 
-                Log.warning("Can not expand " + "|".join(ops) + " in template: {{template|json}}",
+                Log.warning(
+                    "Can not expand " + "|".join(ops) + " in template: {{template|json}}",
                     template=template,
                     cause=e
                 )
@@ -432,6 +433,7 @@ def toString(val):
     try:
         return unicode(val)
     except Exception, e:
+        return unicode(val)
         if not Log:
             _late_import()
 
