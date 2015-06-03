@@ -46,7 +46,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos-dev",
+				"bucket": "active-data-talos-dev",
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
@@ -61,7 +61,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result-dev",
+				"bucket": "active-data-test-result-dev",
 				"key_format": "a:b.c"
 			},
 			"notify":{

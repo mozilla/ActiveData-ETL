@@ -14,7 +14,6 @@ from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 
 

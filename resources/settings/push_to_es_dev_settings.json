@@ -21,7 +21,7 @@
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-test-result-dev",
+		"bucket": "active-data-test-result-dev",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
