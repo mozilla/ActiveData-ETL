@@ -1,4 +1,8 @@
 
+cd ~/TestLog-ETL/
+git checkout beta
+sudo pip install -r requirements.txt
+
 export PYTHONPATH=.
 
 python testlog_etl/pulse_logger.py --settings=resources/settings/pulse_logger_beta_settings.json &
