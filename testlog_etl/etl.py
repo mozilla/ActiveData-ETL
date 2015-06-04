@@ -329,10 +329,8 @@ def main():
             return
 
         stopper = Signal()
-        threads = [None] * coalesce(settings.param.threads, 1)
-
-        for i, _ in enumerate(list(threads)):
-            threads[i] = ETL(
+        for i in range(coalesce(settings.param.threads, 1)):
+            ETL(
                 name="ETL Loop " + unicode(i),
                 work_queue=settings.work_queue,
                 workers=settings.workers,
@@ -341,10 +339,6 @@ def main():
             )
 
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-
-        for thread in threads:
-            thread.stop()
-            thread.join()
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

@@ -530,6 +530,7 @@ class Thread(object):
                 while not please_stop:
                     line = sys.stdin.readline()
                     if strings.strip(line) == "exit":
+                        Log.alert("'exit' Detected!  Stopping...")
                         break
             else:
                 while not please_stop:
@@ -541,6 +542,7 @@ class Thread(object):
             please_stop.go()
             Log.alert("SIGINT Detected!  Stopping...")
 
+        MAIN_THREAD.stop()
 
     @staticmethod
     def current():
