@@ -15,13 +15,17 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from collections import deque
+
 from copy import copy
 from datetime import datetime, timedelta
+import platform
+from select import select
 import thread
 import threading
 import time
 import sys
 import gc
+import msvcrt
 
 from pyLibrary import strings
 from pyLibrary.dot import coalesce, Dict
@@ -51,7 +55,7 @@ class Lock(object):
         self.monitor = threading.Condition()
         # if not name:
         # if "extract_stack" not in globals():
-        #         from pyLibrary.debugs.logs import extract_stack
+        # from pyLibrary.debugs.logs import extract_stack
         #
         #     self.name = extract_stack(1)[0].method
 
@@ -143,9 +147,9 @@ class Queue(object):
                     if self.next_warning < now:
                         self.next_warning = now + timedelta(seconds=wait_time)
                         Log.alert("Queue {{name}} is full ({{num}} items), thread(s) have been waiting {{wait_time}} sec",
-                            name= self.name,
-                            num= len(self.queue),
-                            wait_time= wait_time
+                            name=self.name,
+                            num=len(self.queue),
+                            wait_time=wait_time
                         )
 
     def __len__(self):
@@ -268,11 +272,10 @@ class AllThread(object):
 
 
 class MainThread(object):
-
     def __init__(self):
-        self.name="Main Thread"
+        self.name = "Main Thread"
         self.id = thread.get_ident()
-        self.children= []
+        self.children = []
 
     def add_child(self, child):
         self.children.append(child)
@@ -329,6 +332,7 @@ class Thread(object):
         self.kwargs["please_stop"] = self.kwargs.get("please_stop", Signal())
         self.please_stop = self.kwargs["please_stop"]
 
+        self.thread = None
         self.stopped = Signal()
         self.cprofiler = None
         self.children = []
@@ -348,13 +352,12 @@ class Thread(object):
         self.args = None
         self.kwargs = None
 
-
     def start(self):
         if not Log:
             _late_import()
 
         try:
-            thread.start_new_thread(Thread._run, (self, ))
+            self.thread = thread.start_new_thread(Thread._run, (self, ))
             return self
         except Exception, e:
             Log.error("Can not start thread", e)
@@ -373,6 +376,7 @@ class Thread(object):
     def _run(self):
         if Log.cprofiler:
             import cProfile
+
             self.cprofiler = cProfile.Profile()
             self.cprofiler.enable()
 
@@ -391,11 +395,11 @@ class Thread(object):
             with self.synch_lock:
                 self.response = Dict(exception=e)
             try:
-                Log.fatal("Problem in thread {{name|quote}}",  name= self.name, cause=e)
+                Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
             except Exception, f:
                 sys.stderr.write("ERROR in thread: " + str(self.name) + " " + str(e) + "\n")
         finally:
-            children=copy(self.children)
+            children = copy(self.children)
             for c in children:
                 c.stop()
             for c in children:
@@ -411,12 +415,14 @@ class Thread(object):
 
         if self.cprofiler:
             import pstats
+
             self.cprofiler.disable()
             Log.cprofiler_stats.add(pstats.Stats(self.cprofiler))
             del self.cprofiler
 
     def is_alive(self):
         return not self.stopped
+
 
     def join(self, timeout=None, till=None):
         """
@@ -442,7 +448,7 @@ class Thread(object):
                         self.synch_lock.wait(0.5)
 
                 if DEBUG:
-                    Log.note("Waiting on thread {{thread|json}}",  thread= self.name)
+                    Log.note("Waiting on thread {{thread|json}}", thread=self.name)
         else:
             self.stopped.wait_for_go(till=till)
             if self.stopped:
@@ -508,7 +514,7 @@ class Thread(object):
     @staticmethod
     def wait_for_shutdown_signal(
         please_stop=False,  # ASSIGN SIGNAL TO STOP EARLY
-        allow_exit=False    # ALLOW "exit" COMMAND ON CONSOLE TO ALSO STOP THE APP
+        allow_exit=False  # ALLOW "exit" COMMAND ON CONSOLE TO ALSO STOP THE APP
     ):
         """
         SLEEP UNTIL keyboard interrupt
@@ -518,28 +524,23 @@ class Thread(object):
 
         please_stop.on_go(lambda: MAIN_THREAD.stop())
 
-        if allow_exit:
-            Thread('waiting for "exit"', readloop, please_stop=please_stop).start()
-
         if Thread.current() != MAIN_THREAD:
             if not Log:
                 _late_import()
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
-        # DOES NOT SEEM TO WORK
-        # def stopper():
-        # Log.note("caught breaker")
-        #     please_stop.go()
-        #
-        #
-        # signal.signal(signal.SIGINT, stopper)
-
         try:
-            while not please_stop:
-                try:
-                    Thread.sleep(please_stop=please_stop)
-                except Exception, e:
-                    pass
+            if allow_exit:
+                while not please_stop:
+                    line = sys.stdin.readline()
+                    if strings.strip(line) == "exit":
+                        break
+            else:
+                while not please_stop:
+                    try:
+                        Thread.sleep(please_stop=please_stop)
+                    except Exception, e:
+                        pass
         except (KeyboardInterrupt, SystemExit), _:
             please_stop.go()
             Log.alert("SIGINT Detected!  Stopping...")
@@ -644,7 +645,7 @@ class ThreadedQueue(Queue):
         if not Log:
             _late_import()
 
-        batch_size = coalesce(batch_size, int(coalesce(max_size, 0)/2), 900)
+        batch_size = coalesce(batch_size, int(coalesce(max_size, 0) / 2), 900)
         max_size = coalesce(max_size, batch_size * 2)  # REASONABLE DEFAULT
         period = coalesce(period, SECOND)
         bit_more_time = 5 * SECOND
@@ -658,7 +659,7 @@ class ThreadedQueue(Queue):
             please_stop.on_go(stopper)
 
             _buffer = []
-            next_time = Date.now() + period   # THE TIME WE SHOULD DO A PUSH
+            next_time = Date.now() + period  # THE TIME WE SHOULD DO A PUSH
 
             while not please_stop:
                 try:
@@ -715,6 +716,7 @@ class ThreadedQueue(Queue):
             if _buffer:
                 # ONE LAST PUSH, DO NOT HAVE TIME TO DEAL WITH ERRORS
                 queue.extend(_buffer)
+
         self.thread = Thread.run("threaded queue for " + name, worker_bee)
 
     def add(self, value):
@@ -742,11 +744,4 @@ class ThreadedQueue(Queue):
             self.thread.please_stop.go()
         self.thread.join()
 
-
-def readloop(please_stop):
-    while not please_stop:
-        command = sys.stdin.readline()
-        if strings.strip(command) == "exit":
-            break
-    please_stop.go()
 
