@@ -110,8 +110,8 @@ def main():
                 with Pulse(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
                     Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal(allow_exit=True)
+                    Log.warning("starting shutdown")
 
-                Log.alert("starting shutdown")
                 queue.close()
                 Log.note("write shutdown state to S3")
                 synch.shutdown()
