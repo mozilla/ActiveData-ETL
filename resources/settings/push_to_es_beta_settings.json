@@ -35,6 +35,13 @@
 				"log_type": "console"
 			},
 			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/push_to_es.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 10,
+				"encoding" : "utf8"
+			},
+			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
