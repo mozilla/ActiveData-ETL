@@ -18,7 +18,7 @@ java -version
 cd /home/klahnakoski/
 wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.5.2.tar.gz
 tar zxfv elasticsearch-1.5.2.tar.gz
-sudo mkdir /usr/local/elasticsearch
+sudo mkdir -p /usr/local/elasticsearch
 sudo cp -R elasticsearch-1.5.2/* /usr/local/elasticsearch/
 cd /usr/local/elasticsearch/
 
@@ -40,8 +40,5 @@ export ES_MAX_MEM=5g
 cd /usr/local/elasticsearch
 sudo bin/elasticsearch -p current_pid.txt &
 disown -h
-
-tail -f /data/logs/ekyle-aws-1.log
-
 
 
