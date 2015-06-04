@@ -15,17 +15,13 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from collections import deque
-
 from copy import copy
 from datetime import datetime, timedelta
-import platform
-from select import select
 import thread
 import threading
 import time
 import sys
 import gc
-import msvcrt
 
 from pyLibrary import strings
 from pyLibrary.dot import coalesce, Dict
