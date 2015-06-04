@@ -23,7 +23,7 @@
 	},
 	"debug":{
         "cprofile":{
-	        "enabled": false,
+	        "enabled": true,
 	        "filename": "./results/cprofile.tab"
         },
 		"log":[
