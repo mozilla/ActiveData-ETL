@@ -37,7 +37,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
             if settings.sample_only:
                 sample_filter = {"terms": {"build.branch": settings.sample_only}}
             elif settings.sample_size:
-                sample_filter = lambda x: True
+                sample_filter = True
             else:
                 sample_filter = None
 

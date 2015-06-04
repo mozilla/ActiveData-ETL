@@ -316,7 +316,7 @@ class Index(object):
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.content)
                 })
-        elif self.cluster.version.startswith("1.4."):
+        elif any(map(self.cluster.version.startswith, ["1.4.", "1.5."])):
             response = self.cluster.put(
                 "/" + self.settings.index + "/_settings",
                 data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}')
