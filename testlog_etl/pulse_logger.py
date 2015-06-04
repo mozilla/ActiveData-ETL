@@ -17,10 +17,9 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import qb
-from pyLibrary.dot import set_default, wrap
+from pyLibrary.dot import set_default
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
 from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 # ONLY DEPLOY OFF THE pulse-logger branch
@@ -109,12 +108,10 @@ def main():
                     synch.source_key = last_item._meta.count + 1
 
                 with Pulse(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
-                    thread = Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
+                    Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal(allow_exit=True)
 
-                Log.warning("starting shutdown")
-                thread.stop()
-                thread.join()
+                Log.alert("starting shutdown")
                 queue.close()
                 Log.note("write shutdown state to S3")
                 synch.shutdown()

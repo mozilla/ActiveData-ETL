@@ -81,6 +81,12 @@ class Pulse(Thread):
 
     def _worker(self, please_stop):
         def disconnect():
+            try:
+                self.target_queue.close()
+                Log.note("stop put into queue")
+            except:
+                pass
+
             self.pulse.disconnect()
             Log.note("pulse listener was given a disconnect()")
 
@@ -99,7 +105,7 @@ class Pulse(Thread):
         Log.note("clean pulse exit")
         self.please_stop.go()
         try:
-            self.target_queue.add(Thread.STOP)
+            self.target_queue.close()
             Log.note("stop put into queue")
         except:
             pass

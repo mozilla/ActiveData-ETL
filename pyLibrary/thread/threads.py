@@ -602,7 +602,10 @@ class Signal(object):
             self.lock.notify_all()
 
         for j in jobs:
-            j()
+            try:
+                j()
+            except Exception, e:
+                Log.warning("Trigger on Signal.go() failed!", e)
 
     def is_go(self):
         """
