@@ -528,15 +528,18 @@ class Thread(object):
         try:
             if allow_exit:
                 while not please_stop:
+                    Log.note("inside wait-for-shutdown loop")
                     line = sys.stdin.readline()
+                    Log.note("read line {{line}}", line=line)
                     if strings.strip(line) == "exit":
                         Log.alert("'exit' Detected!  Stopping...")
                         break
             else:
                 while not please_stop:
+                    Log.note("inside wait-for-shutdown loop")
                     try:
                         Thread.sleep(please_stop=please_stop)
-                    except Exception, e:
+                    except Exception, _:
                         pass
         except (KeyboardInterrupt, SystemExit), _:
             please_stop.go()
