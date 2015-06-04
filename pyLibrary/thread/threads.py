@@ -527,13 +527,7 @@ class Thread(object):
 
         try:
             if allow_exit:
-                while not please_stop:
-                    Log.note("inside wait-for-shutdown loop")
-                    line = sys.stdin.readline()
-                    Log.note("read line {{line|quote}}", line=line)
-                    if strings.strip(line) == "exit":
-                        Log.alert("'exit' Detected!  Stopping...")
-                        break
+                _wait_for_exit(please_stop)
             else:
                 while not please_stop:
                     Log.note("inside wait-for-shutdown loop")
@@ -746,3 +740,23 @@ class ThreadedQueue(Queue):
         self.thread.join()
 
 
+def _wait_for_exit(please_stop):
+    """
+    /dev/null SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
+    """
+    cr_count = 0  # COUNT NUMBER OF BLANK LINES
+
+    while not please_stop:
+        Log.note("inside wait-for-shutdown loop")
+        if cr_count > 30 == "slow":
+            Thread.sleep(seconds=3, please_stop=please_stop)
+        line = sys.stdin.readline()
+        Log.note("read line {{line|quote}}", line=line)
+        if line == "":
+            cr_count += 1
+        else:
+            cr_count = -1000000  # NOT /dev/null
+
+        if strings.strip(line) == "exit":
+            Log.alert("'exit' Detected!  Stopping...")
+            return
