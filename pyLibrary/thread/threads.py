@@ -748,7 +748,7 @@ def _wait_for_exit(please_stop):
 
     while not please_stop:
         Log.note("inside wait-for-shutdown loop")
-        if cr_count > 30 == "slow":
+        if cr_count > 30:
             Thread.sleep(seconds=3, please_stop=please_stop)
         line = sys.stdin.readline()
         Log.note("read line {{line|quote}}, count={{count}}", line=line, count=cr_count)
