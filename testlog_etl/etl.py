@@ -14,9 +14,8 @@ from __future__ import unicode_literals
 from collections import Mapping
 from copy import deepcopy
 import sys
-from werkzeug import http
 
-from pyLibrary import aws, dot, convert
+from pyLibrary import aws, dot
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
@@ -32,7 +31,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
-from testlog_etl.imports.treeherder import TreeHerder
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
@@ -86,7 +84,6 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    from testlog_etl.transforms.pulse_block_to_test_result_logs import process
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
