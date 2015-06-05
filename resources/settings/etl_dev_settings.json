@@ -13,7 +13,21 @@
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"treeherder":{"$ref":"//./treeherder.json"},
+	"hg":{
+		"cache":{
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "hg.mozilla.org",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/pulse_logs.json"
+			},
+			"debug": true,
+			"limit_replicas": true
+		},
+		"treeherder":{"$ref":"//./treeherder.json"}
+	},
 	"workers": [
 		{
 			"name": "pulse2es",

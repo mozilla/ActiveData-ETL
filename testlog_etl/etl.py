@@ -31,6 +31,7 @@ from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
+from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
 from testlog_etl.imports.mozilla_hg_graph import MozillaHgGraph
 from testlog_etl.imports.treeherder import TreeHerder
 from testlog_etl.sinks.dummy_sink import DummySink
@@ -334,7 +335,7 @@ def main():
             etl_one(settings)
             return
 
-        hg = MozillaHgGraph(branches=TreeHerder(settings=settings.treeherder).get_branches())
+        hg = HgMozillaOrg(settings=settings.hg)
         resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):

@@ -16,6 +16,7 @@ from pyLibrary import dot
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import unwrap, set_default, wrap, _get_attr, Null, Dict
 from pyLibrary.maths.randoms import Random
+from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, DAY
 
@@ -187,7 +188,8 @@ class cache(object):
 
     """
     :param func: ASSUME FIRST PARAMETER IS self
-    :param seconds: USE CACHE IF LAST CALL WAS LESS THAN seconds AGO
+    :param duration: USE CACHE IF LAST CALL WAS LESS THAN duration AGO
+    :param lock: True if you want multithreaded monitor (default False)
     :return:
     """
 
@@ -198,8 +200,12 @@ class cache(object):
         else:
             return object.__new__(cls)
 
-    def __init__(self, duration=DAY):
+    def __init__(self, duration=DAY, lock=False):
         self.timeout = duration
+        if lock:
+            self.locker = Lock()
+        else:
+            self.locker = FakeLock()
 
     def __call__(self, func):
         return wrap_function(self, func)
@@ -222,43 +228,54 @@ def wrap_function(cache_store, func_):
         func = lambda self, *args: func_(*args)
 
     def output(*args):
-        if using_self:
-            self = args[0]
-            args = args[1:]
-        else:
-            self = cache_store
-
-        now = Date.now()
-        try:
-            _cache = getattr(self, attr_name)
-        except Exception, _:
-            _cache = {}
-            setattr(self, attr_name, _cache)
-
-        if Random.int(100) == 0:
-            # REMOVE OLD CACHE
-            _cache = {k: v for k, v in _cache.items() if v[0] < now}
-            setattr(self, attr_name, _cache)
-
-        timeout, key, value, exception = _cache.get(args, (Null, Null, Null, Null))
-
-        if now > timeout:
-            value = func(self, *args)
-            _cache[args] = (now + cache_store.timeout, args, value, None)
-            return value
-
-        if value == None:
-            if exception == None:
-                try:
-                    value = func(self, *args)
-                    _cache[args] = (now + cache_store.timeout, args, value, None)
-                    return value
-                except Exception, e:
-                    e = Except.wrap(e)
-                    _cache[args] = (now + cache_store.timeout, args, None, e)
-                    raise e
+        with cache_store.locker:
+            if using_self:
+                self = args[0]
+                args = args[1:]
             else:
-                raise exception
-        else:
-            return value
-    return output
+                self = cache_store
+
+            now = Date.now()
+            try:
+                _cache = getattr(self, attr_name)
+            except Exception, _:
+                _cache = {}
+                setattr(self, attr_name, _cache)
+
+            if Random.int(100) == 0:
+                # REMOVE OLD CACHE
+                _cache = {k: v for k, v in _cache.items() if v[0] < now}
+                setattr(self, attr_name, _cache)
+
+            timeout, key, value, exception = _cache.get(args, (Null, Null, Null, Null))
+
+            if now > timeout:
+                value = func(self, *args)
+                _cache[args] = (now + cache_store.timeout, args, value, None)
+                return value
+
+            if value == None:
+                if exception == None:
+                    try:
+                        value = func(self, *args)
+                        _cache[args] = (now + cache_store.timeout, args, value, None)
+                        return value
+                    except Exception, e:
+                        e = Except.wrap(e)
+                        _cache[args] = (now + cache_store.timeout, args, None, e)
+                        raise e
+                else:
+                    raise exception
+            else:
+                return value
+        return output
+
+
+class FakeLock():
+
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass

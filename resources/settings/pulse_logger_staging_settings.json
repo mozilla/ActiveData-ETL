@@ -3,6 +3,7 @@
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
+		"timeout":600,
 		"queue": "test_pulse_logger",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false

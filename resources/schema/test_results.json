@@ -25,7 +25,8 @@
 					"xperf": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match": "results_xperf.*"
 					}
