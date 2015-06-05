@@ -3,6 +3,7 @@
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
+		"timeout": 600,
 		"queue": "active-data-pulse-beta",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
