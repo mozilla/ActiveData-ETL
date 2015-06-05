@@ -10,19 +10,19 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.meta import use_settings, cache
+from pyLibrary.testing import elasticsearch
 
 from testlog_etl.imports.repos.changesets import Changeset
 from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import coalesce
-from pyLibrary.dot import unwrap, wrap
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default
 from pyLibrary.env import http
 from pyLibrary.maths import Math
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration, DAY, MINUTE, SECOND
+from pyLibrary.times.durations import DAY, SECOND
 
 
 class MozillaHgGraph(object):
@@ -34,12 +34,13 @@ class MozillaHgGraph(object):
     def __init__(
         self,
         branches,
-        cache_duration=DAY,
+        cache,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.current_push = None
+        self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
 
 
     @cache(duration=DAY)
@@ -53,6 +54,32 @@ class MozillaHgGraph(object):
             # THE cache IS FILLED, CALL ONE LAST TIME...
             return self.get_revision(revision)
 
+        doc = self._get_from_elasticsearch(revision)
+        if doc:
+            return doc
+
+        output = self._get_from_hg(revision)
+        self.es.add({"value": output})
+        return output
+
+    def _get_from_elasticsearch(self, revision):
+        query = {
+            "query": {"filtered": {
+                "query": {"match_all": {}},
+                "filter": {"and": [
+                    {"prefix": {"changeset.id", revision.changeset.id[0:12]}},
+                    {"term":{"branch": revision.branch}}
+                ]}
+            }},
+            "size": 2000,
+        }
+        docs = self.es.search(query).hits.hits
+        if len(docs)>1:
+            Log.error("expecting no more than one document")
+
+        return docs[0]
+
+    def _get_from_hg(self, revision):
         if len(revision.changeset.id) < 12 and Math.is_integer(revision.changeset.id):
             revision.changeset.id = ("0" * (12 - len(revision.changeset.id))) + revision.changeset.id
 
@@ -121,50 +148,16 @@ class MozillaHgGraph(object):
         finally:
             self.current_push = None
 
-    def get_edges(self, revision):
-        output = []
-        for c in self.get_children(revision):
-            output.append((revision, c))
-        for p in self.get_parents(revision):
-            output.append((p, revision))
-        return output
-
-    def get_family(self, revision):
-        return set(self.get_children(revision) + self.get_parents(revision))
-
-    def get_children(self, revision):
-        return self._get_adjacent(revision, "children")
-
-    def get_parents(self, revision):
-        return self._get_adjacent(revision, "parents")
-
-    def _get_adjacent(self, revision, subset):
-        revision = self.get_revision(revision)
-        if not revision[subset]:
-            return []
-        elif len(revision[subset]) == 1:
-            return [self.get_revision(Revision(branch=revision.branch, changeset=c)) for c in revision[subset]]
-        else:
-            # MULTIPLE BRANCHES ARE A HINT OF A MERGE BETWEEN BRANCHES
-            output = []
-            for branch in self.settings.branches.values():
-                for c in revision[subset]:
-                    node = self.get_revision(Revision(branch=branch, changeset=c))
-                    if node:
-                        output.append(node)
-            return output
-
     def _get_and_retry(self, url, **kwargs):
         """
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
-        kwargs = wrap(kwargs)
-        kwargs.setdefault("timeout", self.settings.timeout.seconds)
+        kwargs = set_default(kwargs, {"timeout", self.settings.timeout.seconds})
         try:
-            return http.get(url, **unwrap(kwargs))
+            return http.get(url, **kwargs)
         except Exception, e:
             try:
                 Thread.sleep(seconds=5)
-                return http.get(url.replace("https://", "http://"), **unwrap(kwargs))
+                return http.get(url.replace("https://", "http://"), **kwargs)
             except Exception, f:
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, [e, f])
