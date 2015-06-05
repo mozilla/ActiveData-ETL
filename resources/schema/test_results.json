@@ -18,14 +18,15 @@
 			},
 			"_routing": {
 				"required": true,
-				"path":"etl.source.source.id"
+				"path":"build.revision12"
 			},
 			"dynamic_templates": [
 				{
 					"xperf": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match": "results_xperf.*"
 					}

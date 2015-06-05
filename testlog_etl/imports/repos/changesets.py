@@ -10,23 +10,16 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from pyLibrary.dot import coalesce, wrap
+from pyLibrary.dot import coalesce, wrap, Dict
 
 
-class Changeset(object):
-    def __init__(self, id, **kwargs):
-        self.id = id
-        kwargs = wrap(kwargs)
-        self.files = kwargs.files
-        self.tags = kwargs.tags
-        self.author = kwargs.author
-        self.desciption = coalesce(kwargs.description, kwargs.desc)
-        self.files = kwargs.files
-        self.date=kwargs.date
+class Changeset(Dict):
 
     def __hash__(self):
         return hash(self.id)
 
     def __eq__(self, other):
+        if other==None:
+            return False
         return self.id == other.id
 

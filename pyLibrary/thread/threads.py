@@ -382,8 +382,7 @@ class Thread(object):
 
         try:
             if self.target is not None:
-                a, k = self.args, self.kwargs
-                self.args, self.kwargs = None, None
+                a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
                 response = self.target(*a, **k)
                 with self.synch_lock:
                     self.response = Dict(response=response)
