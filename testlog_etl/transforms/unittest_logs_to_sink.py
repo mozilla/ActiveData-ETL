@@ -11,19 +11,19 @@ from __future__ import division
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
-from testlog_etl.transforms import git_revision
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
 
 DEBUG = True
 
 
-def process_unittest_in_s3(source_key, source, destination, please_stop=None):
+def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
@@ -35,7 +35,7 @@ def process_unittest_in_s3(source_key, source, destination, please_stop=None):
             e.id = int(e.id.split(":")[0])
         e = e.source
 
-    bb_summary = transform_buildbot(convert.json2value(lines[1]))
+    bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources)
     unittest_log = lines[2:]
     return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
 
@@ -59,7 +59,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         "timestamp": Date.now().unix,
         "source": etl_header,
         "type": "join",
-        "revision": git_revision,
+        "revision": get_git_revision(),
         "duration": timer.duration
     }
     buildbot_summary.run.stats = summary.stats

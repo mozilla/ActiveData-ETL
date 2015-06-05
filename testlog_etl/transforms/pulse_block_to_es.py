@@ -13,18 +13,17 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, coalesce
+from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key, key2etl
+from testlog_etl import etl2key
+from testlog_etl.imports.repos.changesets import Changeset
+from testlog_etl.imports.repos.revisions import Revision
 
 DEBUG = True
 
-# GET THE GIT REVISION NUMBER
-git_revision = get_git_revision()
 
-
-def process(source_key, source, destination, please_stop=None):
+def process(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
@@ -44,12 +43,12 @@ def process(source_key, source, destination, please_stop=None):
             continue
 
         with Profiler("transform_buildbot"):
-            record = transform_buildbot(pulse_record.payload)
+            record = transform_buildbot(pulse_record.payload, resources=resources)
             record.etl = {
                 "id": i,
                 "source": pulse_record.etl,
                 "type": "join",
-                "revision": git_revision
+                "revision": get_git_revision()
             }
         key = etl2key(record.etl)
         keys.append(key)
@@ -101,7 +100,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload, filename=None):
+def transform_buildbot(payload, resources, filename=None):
     output = Dict()
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
@@ -118,11 +117,14 @@ def transform_buildbot(payload, filename=None):
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
     output.run.machine.os = payload.os
+    output.machine.os = payload.os
     output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
+    output.build.revision12 = payload.revision[0:12]
     output.run.machine.name = payload.slave
+    output.machine.name = payload.slave
 
     # payload.status IS THE BUILDBOT STATUS
     # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
@@ -183,5 +185,7 @@ def transform_buildbot(payload, filename=None):
         for name, url in output.run.files.items()
         if filename is None or name == filename
     ]
+
+    output.repo = resources.hg.get_revision(Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision)))
 
     return output

@@ -9,8 +9,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 import platform
-from pyLibrary import aws
 
+from pyLibrary import aws
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, set_default
 from pyLibrary.meta import cache
@@ -26,7 +26,7 @@ DEBUG_SHOW_NO_LOG = False
 PARSE_TRY = True
 
 
-def process(source_key, source, destination, please_stop=None):
+def process(source_key, source, destination, resources, please_stop=None):
     """
     READ pulse_block AND THE REFERENCED STRUCTURED LOG FILES
     TRANSFORM STRUCTURED LOG TO INDIVIDUAL TESTS
@@ -85,7 +85,7 @@ def process(source_key, source, destination, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    buildbot_summary = transform_buildbot(pulse_record.payload, filename=name)
+                    buildbot_summary = transform_buildbot(pulse_record.payload, resources, filename=name)
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
@@ -112,6 +112,7 @@ def process(source_key, source, destination, please_stop=None):
         Log.alarm("{{num}} lines have pulse message stripped of envelope", num=stats.num_missing_envelope)
 
     return output
+
 
 @cache
 def get_machine_metadata():

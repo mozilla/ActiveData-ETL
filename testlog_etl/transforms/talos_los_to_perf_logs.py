@@ -101,7 +101,7 @@ class Talos2ES():
                 with Profiler("get from pushlog"):
                     revision = Revision(**{"branch": {"name":branch}, "changeset": {"id": r.build.revision}})
                     with self.locker:
-                        revision = self.repo.get_node(revision)
+                        revision = self.repo.get_revision(revision)
 
                     with self.locker:
                         push = self.repo.get_push(revision)

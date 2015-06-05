@@ -3,6 +3,7 @@
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
+		"heartbeat": true,
 		"queue": "active-data-pulse-beta",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false

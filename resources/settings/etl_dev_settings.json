@@ -13,6 +13,7 @@
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
+	"treeherder":{"$ref":"//./treeherder.json"},
 	"workers": [
 		{
 			"name": "pulse2es",

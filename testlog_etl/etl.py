@@ -14,13 +14,15 @@ from __future__ import unicode_literals
 from collections import Mapping
 from copy import deepcopy
 import sys
+from werkzeug import http
 
-from pyLibrary import aws, dot
+from pyLibrary import aws, dot, convert
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
+from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
@@ -29,6 +31,8 @@ from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
+from testlog_etl.imports.mozilla_hg_graph import MozillaHgGraph
+from testlog_etl.imports.treeherder import TreeHerder
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
@@ -58,6 +62,7 @@ class ETL(Thread):
         name,
         work_queue,
         workers,
+        resources,
         please_stop,
         wait_forever=False,
         settings=None
@@ -81,7 +86,8 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)",  path= t_name)
+                    from testlog_etl.transforms.pulse_block_to_test_result_logs import process
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -90,6 +96,7 @@ class ETL(Thread):
             for notify in listwrap(w.notify):
                 w._notify.append(aws.Queue(notify))
 
+        self.resources = resources
         self.settings = settings
         if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue)
@@ -140,7 +147,7 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = set(action._transformer(source_key, source, action._destination, self.please_stop))
+                new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
                 #VERIFY KEYS
                 if len(new_keys) == 1 and list(new_keys)[0] == source_key:
@@ -310,7 +317,6 @@ def get_container(settings):
             return output
 
 
-
 def main():
 
     try:
@@ -328,11 +334,14 @@ def main():
             etl_one(settings)
             return
 
+        hg = MozillaHgGraph(branches=TreeHerder(settings=settings.treeherder).get_branches())
+        resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
             ETL(
                 name="ETL Loop " + unicode(i),
                 work_queue=settings.work_queue,
+                resources=resources,
                 workers=settings.workers,
                 settings=settings.param,
                 please_stop=stopper
@@ -374,21 +383,21 @@ def etl_one(settings):
                 ))
             pass
 
+    resources = Dict(hg=MozillaHgGraph(TreeHerder(settings.treeerder).get_branches()))
+
     stopper = Signal()
-    thread = ETL(
+    ETL(
         name="ETL Loop Test",
         work_queue=queue,
         workers=settings.workers,
         settings=settings.param,
+        resources=resources,
         please_stop=stopper
     )
 
     aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
-
-    thread.stop()
-    thread.join()
 
 if __name__ == "__main__":
     main()
