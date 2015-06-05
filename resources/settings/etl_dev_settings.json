@@ -38,7 +38,7 @@
 			},
 			"destination": {
 				"use_daily": false,
-				"host": "http://localhost",
+				"host": "http://192.168.2.98",
 				"port": 9200,
 				"index": "pulse",
 				"type": "pulse_log",

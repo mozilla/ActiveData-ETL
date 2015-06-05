@@ -167,10 +167,14 @@ class HgMozillaOrg(object):
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
                 self.current_push = push
+                revs = []
                 for c in _push.changesets:
                     changeset = Changeset(id=c.node, **c)
                     rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset))
                     rev.push = push
+                    revs.append({"value": rev})
+                self.es.extend(revs)
+
         except Exception, e:
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
         finally:
