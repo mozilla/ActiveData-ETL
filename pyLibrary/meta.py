@@ -215,6 +215,7 @@ class _SimpleCache(object):
 
     def __init__(self):
         self.timeout = Null
+        self.locker = FakeLock()
 
 
 def wrap_function(cache_store, func_):
@@ -268,7 +269,8 @@ def wrap_function(cache_store, func_):
                     raise exception
             else:
                 return value
-        return output
+
+    return output
 
 
 class FakeLock():

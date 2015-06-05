@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.meta import use_settings, cache
+from pyLibrary.testing import elasticsearch
 
 from testlog_etl.imports.repos.changesets import Changeset
 from testlog_etl.imports.repos.pushs import Push
@@ -19,9 +20,9 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default
 from pyLibrary.env import http
 from pyLibrary.maths import Math
-from pyLibrary.thread.threads import Thread, Lock
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY, SECOND
+from pyLibrary.times.durations import DAY, SECOND, Duration
 from testlog_etl.imports.treeherder import TreeHerder
 
 
@@ -37,10 +38,34 @@ class HgMozillaOrg(object):
         settings=None
     ):
         self.settings = settings
+        self.timeout = Duration(timeout)
         self.branches = TreeHerder(settings=treeherder).get_branches()
+        self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
+
+        # TO ESTABLISH DATA
+        self.es.add({"value":{
+            "index": 247152,
+            "branch": {
+                "name": "mozilla-inbound"
+            },
+            "changeset": {
+                "id": "b3649fd5cd7a76506d2cf04f45e39cbc972fb553",
+                "id12": "b3649fd5cd7a",
+                "author": "Ryan VanderMeulen <ryanvm@gmail.com>",
+                "description": "Backed out changeset 7d0d8d304cd8 (bug 1171357) for bustage.",
+                "date": 1433429100,
+                "files": ["gfx/thebes/gfxTextRun.cpp"]
+            },
+            "push": {
+                "id": 60618,
+                "user": "ryanvm@gmail.com",
+                "date": 1433429138
+            },
+            "parents": ["7d0d8d304cd871f657effcc2d21d4eae5155fd1b"],
+            "children": ["411a9af141781c3c8fa883287966a4af348dbca8"]
+        }})
+        self.es.flush()
         self.current_push = None
-        self.cache = cache
-        self.locker = Lock()
 
     @cache(duration=DAY, lock=True)
     def get_revision(self, revision):
@@ -48,55 +73,84 @@ class HgMozillaOrg(object):
         EXPECTING INCOMPLETE revision
         RETURNS revision
         """
-        with self.locker:
-            if not self.current_push:
-                self._load_all_in_push(revision)
-                # THE cache IS FILLED, CALL ONE LAST TIME...
-                return self.get_revision(revision)
+        if not self.current_push:
+            doc = self._get_from_elasticsearch(revision)
+            if doc:
+                return doc
 
-            if len(revision.changeset.id) < 12 and Math.is_integer(revision.changeset.id):
-                revision.changeset.id = ("0" * (12 - len(revision.changeset.id))) + revision.changeset.id
+            self._load_all_in_push(revision)
+            # THE cache IS FILLED, CALL ONE LAST TIME...
+            return self.get_revision(revision)
 
-            revision.branch = self.settings.branches[revision.branch.name.lower()]
+        output = self._get_from_hg(revision)
+        output.changeset.id12 = output.changeset.id[0:12]
+        #CLEAR THESE BRANCH FIELDS
+        for k in ['dvcs_type', 'active_status', 'codebase', 'repository_group', 'description']:
+            output.branch[k] = None
+        self.es.add({"value": output})
+        return output
 
-            url = revision.branch.url + "/json-info?node=" + revision.changeset.id
-            try:
-                Log.note("Reading details for from {{url}}", {"url": url})
+    def _get_from_elasticsearch(self, revision):
+        query = {
+            "query": {"filtered": {
+                "query": {"match_all": {}},
+                "filter": {"and": [
+                    {"prefix": {"changeset.id": revision.changeset.id[0:12]}},
+                    {"term": {"branch": revision.branch.name}}
+                ]}
+            }},
+            "size": 2000,
+        }
+        docs = self.es.search(query).hits.hits
+        if len(docs)>1:
+            Log.error("expecting no more than one document")
 
-                response = self._get_and_retry(url)
-                revs = convert.json2value(response.all_content.decode("utf8"))
+        return docs[0]
 
-                if revs.startswith("unknown revision "):
-                    Log.error(revs)
+    def _get_from_hg(self, revision):
+        if len(revision.changeset.id) < 12 and Math.is_integer(revision.changeset.id):
+            revision.changeset.id = ("0" * (12 - len(revision.changeset.id))) + revision.changeset.id
 
-                if len(revs.keys()) != 1:
-                    Log.error("Do not know how to handle")
+        revision.branch = self.branches[revision.branch.name.lower()]
 
-                r = list(revs.values())[0]
-                output = Revision(
-                    branch=revision.branch.name,
-                    index=r.rev,
-                    changeset=Changeset(
-                        id=r.node,
-                        author=r.user,
-                        description=r.description,
-                        date=Date(r.date),
-                        files=r.files
-                    ),
-                    parents=r.parents,
-                    children=r.children,
-                )
-                return output
-            except Exception, e:
-                Log.error("Can not get revision info from {{url}}", {"url": url}, e)
+        url = revision.branch.url + "/json-info?node=" + revision.changeset.id
+        try:
+            Log.note("Reading details for from {{url}}", {"url": url})
+
+            response = self._get_and_retry(url)
+            revs = convert.json2value(response.all_content.decode("utf8"))
+
+            if revs.startswith("unknown revision "):
+                Log.error(revs)
+
+            if len(revs.keys()) != 1:
+                Log.error("Do not know how to handle")
+
+            r = list(revs.values())[0]
+            output = Revision(
+                branch=revision.branch,
+                index=r.rev,
+                changeset=Changeset(
+                    id=r.node,
+                    author=r.user,
+                    description=r.description,
+                    date=Date(r.date),
+                    files=r.files
+                ),
+                parents=r.parents,
+                children=r.children,
+            )
+            return output
+        except Exception, e:
+            Log.error("Can not get revision info from {{url}}", {"url": url}, e)
 
     def _load_all_in_push(self, revision):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
 
         if isinstance(revision.branch, basestring):
-            revision.branch = self.settings.branches[revision.branch]
+            revision.branch = self.branches[revision.branch]
         else:
-            revision.branch = self.settings.branches[revision.branch.name.lower()]
+            revision.branch = self.branches[revision.branch.name.lower()]
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{changeset}})",
@@ -111,7 +165,7 @@ class HgMozillaOrg(object):
             if isinstance(data, basestring) and data.startswith("unknown revision"):
                 Log.error("Unknown revision {{revision}}", revision=strings.between(data, "'", "'"))
             for index, _push in data.items():
-                push = Push(id=index, date=_push.date, user=_push.user)
+                push = Push(id=int(index), date=_push.date, user=_push.user)
                 self.current_push = push
                 for c in _push.changesets:
                     changeset = Changeset(id=c.node, **c)
@@ -126,7 +180,7 @@ class HgMozillaOrg(object):
         """
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
-        kwargs = set_default(kwargs, {"timeout", self.settings.timeout.seconds})
+        kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
         try:
             return http.get(url, **kwargs)
         except Exception, e:

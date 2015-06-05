@@ -18,7 +18,7 @@
 			},
 			"_routing": {
 				"required": true,
-				"path":"_id"
+				"path":"changeset.id12"
 			},
 			"dynamic_templates": [
 				{
@@ -29,6 +29,28 @@
 							"doc_values": true
 						},
 						"match_mapping_type": "string",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long",
+						"match": "*"
+					}
+				},
+				{
+					"default_integers": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "integer",
 						"match": "*"
 					}
 				}

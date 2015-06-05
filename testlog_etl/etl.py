@@ -32,7 +32,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
-from testlog_etl.imports.mozilla_hg_graph import MozillaHgGraph
 from testlog_etl.imports.treeherder import TreeHerder
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
@@ -384,7 +383,7 @@ def etl_one(settings):
                 ))
             pass
 
-    resources = Dict(hg=MozillaHgGraph(TreeHerder(settings.treeerder).get_branches()))
+    resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
 
     stopper = Signal()
     ETL(

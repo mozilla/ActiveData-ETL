@@ -17,13 +17,13 @@
 		"cache":{
 			"host": "http://localhost",
 			"port": 9200,
-			"index": "hg.mozilla.org",
+			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/pulse_logs.json"
+				"$ref": "//../schema/revision.json"
 			},
-			"debug": true,
+			"debug": false,
 			"limit_replicas": true
 		},
 		"treeherder":{"$ref":"//./treeherder.json"}
