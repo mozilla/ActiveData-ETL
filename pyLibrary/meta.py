@@ -13,10 +13,12 @@ from __future__ import absolute_import
 from collections import Mapping
 from types import FunctionType
 from pyLibrary import dot
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, set_default, wrap, _get_attr, Null
+from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.dot import unwrap, set_default, wrap, _get_attr, Null, Dict
+from pyLibrary.maths.randoms import Random
+from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND
+from pyLibrary.times.durations import SECOND, DAY
 
 
 def get_class(path):
@@ -39,7 +41,7 @@ def new_instance(settings):
     """
     settings = set_default({}, settings)
     if not settings["class"]:
-        Log.error("Expectiong 'class' attribute with fully qualified class name")
+        Log.error("Expecting 'class' attribute with fully qualified class name")
 
     # IMPORT MODULE FOR HANDLER
     path = settings["class"].split(".")
@@ -55,13 +57,13 @@ def new_instance(settings):
     settings['class'] = None
     try:
         return constructor(settings=settings)  # MAYBE IT TAKES A SETTINGS OBJECT
-    except Exception:
+    except Exception, _:
         pass
 
     try:
         return constructor(**settings)
     except Exception, e:
-        Log.error("Can not create instance of {{name}}",  name= ".".join(path), cause=e)
+        Log.error("Can not create instance of {{name}}", name=".".join(path), cause=e)
 
 
 def get_function_by_name(full_name):
@@ -99,7 +101,7 @@ def use_settings(func):
 
     params = func.func_code.co_varnames[:func.func_code.co_argcount]
     if not func.func_defaults:
-        defaults={}
+        defaults = {}
     else:
         defaults = {k: v for k, v in zip(reversed(params), reversed(func.func_defaults))}
 
@@ -158,10 +160,10 @@ def use_settings(func):
             if e.message.find("takes at least") >= 0:
                 missing = [p for p in params if str(p) not in packed]
 
-                Log.error("Problem calling {{func_name}}:  Expecting parameter {{missing}}",
-                    func_name= func.func_name,
-                    missing= missing,
-                    cause=e,
+                Log.error(
+                    "Problem calling {{func_name}}:  Expecting parameter {{missing}}",
+                    func_name=func.func_name,
+                    missing=missing,
                     stack_depth=1
                 )
             Log.error("Unexpected", e)
@@ -186,58 +188,96 @@ class cache(object):
 
     """
     :param func: ASSUME FIRST PARAMETER IS self
-    :param seconds: USE CACHE IF LAST CALL WAS LESS THAN seconds AGO
+    :param duration: USE CACHE IF LAST CALL WAS LESS THAN duration AGO
+    :param lock: True if you want multithreaded monitor (default False)
     :return:
     """
 
     def __new__(cls, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], FunctionType):
             func = args[0]
-            attr_name = "_cache_for_" + func.__name__
-            if func.func_code.co_argcount == 0:
-                # NO self PARAM
-                def output():
-                    if hasattr(cls, attr_name):
-                        return getattr(cls, attr_name)
-
-                    value = func()
-                    setattr(cls, attr_name, value)
-                    return value
-
-                return output
-            else:
-                def output(self):
-                    if hasattr(self, attr_name):
-                        return getattr(self, attr_name)
-
-                    value = func(self)
-                    setattr(self, attr_name, value)
-                    return value
-
-                return output
+            return wrap_function(_SimpleCache(), func)
         else:
             return object.__new__(cls)
 
-    def __init__(self, seconds=None):
-        self.seconds = seconds
+    def __init__(self, duration=DAY, lock=False):
+        self.timeout = duration
+        if lock:
+            self.locker = Lock()
+        else:
+            self.locker = FakeLock()
 
     def __call__(self, func):
-        attr_name = "_cache_for_" + func.__name__
-        this = self
+        return wrap_function(self, func)
 
-        def output(self, *args, **kwargs):
-            now = Date.now()
-            if hasattr(self, attr_name):
-                last_got, value = getattr(self, attr_name)
-                if last_got.add(this.seconds * SECOND) > now:
-                    value = func(self, *args, **kwargs)
-                    setattr(self, attr_name, (now, value))
+
+class _SimpleCache(object):
+
+    def __init__(self):
+        self.timeout = Null
+        self.locker = FakeLock()
+
+
+def wrap_function(cache_store, func_):
+    attr_name = "_cache_for_" + func_.__name__
+
+    if func_.func_code.co_argcount > 0 and func_.func_code.co_varnames[0] == "self":
+        using_self = True
+        func = lambda self, *args: func_(self, *args)
+    else:
+        using_self = False
+        func = lambda self, *args: func_(*args)
+
+    def output(*args):
+        with cache_store.locker:
+            if using_self:
+                self = args[0]
+                args = args[1:]
             else:
-                value = func(self, *args, **kwargs)
-                setattr(self, attr_name, (now, value))
+                self = cache_store
 
-            return value
+            now = Date.now()
+            try:
+                _cache = getattr(self, attr_name)
+            except Exception, _:
+                _cache = {}
+                setattr(self, attr_name, _cache)
 
-        return output
+            if Random.int(100) == 0:
+                # REMOVE OLD CACHE
+                _cache = {k: v for k, v in _cache.items() if v[0] < now}
+                setattr(self, attr_name, _cache)
+
+            timeout, key, value, exception = _cache.get(args, (Null, Null, Null, Null))
+
+            if now > timeout:
+                value = func(self, *args)
+                _cache[args] = (now + cache_store.timeout, args, value, None)
+                return value
+
+            if value == None:
+                if exception == None:
+                    try:
+                        value = func(self, *args)
+                        _cache[args] = (now + cache_store.timeout, args, value, None)
+                        return value
+                    except Exception, e:
+                        e = Except.wrap(e)
+                        _cache[args] = (now + cache_store.timeout, args, None, e)
+                        raise e
+                else:
+                    raise exception
+            else:
+                return value
+
+    return output
 
 
+class FakeLock():
+
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass

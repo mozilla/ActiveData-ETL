@@ -3,6 +3,7 @@
 		"exchange": "exchange/build",
 		"topic": ["#.finished", "#.log_uploaded"],
 		"durable": true,
+		"timeout":600,
 		"queue": "pulse_logger_raw_dev",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
