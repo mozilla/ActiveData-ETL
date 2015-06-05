@@ -4,13 +4,16 @@
 
 import uuid
 
+from socket import timeout as socket_timeout
 from amqp import ChannelError
 from kombu import Connection, Exchange, Queue
 
 from config import PulseConfiguration
-from utils import *
 
 # Exceptions we can raise
+from mozillapulse.publishers import InvalidExchange
+
+
 class InvalidTopic(Exception):
     pass
 
@@ -31,14 +34,15 @@ class GenericConsumer(object):
     somewhere, e.g. the constructor.
     """
 
-    def __init__(self, config, exchange=None, connect=True, heartbeat=False,
+    def __init__(self, config, exchange=None, connect=True, heartbeat=False, timeout=None,
                  **kwargs):
         self.config = config
         self.exchange = exchange
         self.connection = None
         self.durable = False
         self.applabel = ''
-        self.heartbeat = heartbeat
+        self.heartbeat = heartbeat,
+        self.timeout = timeout
         for x in ['applabel', 'topic', 'callback', 'durable']:
             if x in kwargs:
                 setattr(self, x, kwargs[x])
@@ -172,7 +176,10 @@ class GenericConsumer(object):
 
         with consumer:
             while True:
-                self.connection.drain_events()
+                try:
+                    self.connection.drain_events(timeout=self.timeout)
+                except socket_timeout, _:
+                    pass
 
         # Likely never get here but can't hurt.
         self.disconnect()
