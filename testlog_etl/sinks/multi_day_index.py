@@ -97,6 +97,7 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:
                         value = convert.json2value(line)
+                        value = _fix(value)
                         row = {"id": value._id, "value": value}
                         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
@@ -106,10 +107,22 @@ class MultiDayIndex(object):
                             self.queue.add(row)
                             break
                     else:
-                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
-                        row = {"id": _id, "json": line}
+                        #FAST
+                        #strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
+                        # row = {"id": _id, "json": line}
+
+                        #SLOW
+                        value = convert.json2value(line)
+                        value = _fix(value)
+                        _id = value._id
+                        row = {"id": _id, "value": value}
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:
                 Log.warning("Could not get queue for {{key}}", key=key, cause=e)
         return num_keys
+
+def _fix(value):
+    if not value.build.revision12:
+        value.build.revision12 = value.build.revision[0:12]
+    return value

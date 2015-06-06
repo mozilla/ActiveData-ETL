@@ -114,8 +114,6 @@ def main():
 
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-
-        # diff(settings)
         work_queue = aws.Queue(settings=settings.work_queue)
         es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
 
