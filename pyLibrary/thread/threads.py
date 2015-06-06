@@ -30,7 +30,7 @@ from pyLibrary.times.durations import SECOND
 
 
 Log = None
-DEBUG = True
+DEBUG = False
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 
 
