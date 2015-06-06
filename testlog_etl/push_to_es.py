@@ -11,13 +11,11 @@ from __future__ import division
 
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Thread, Signal, MAIN_THREAD
+from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.timer import Timer
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
@@ -34,17 +32,24 @@ def copy2es(es, settings, work_queue, please_stop=None):
             continue
 
         extend_time = Timer("insert", silent=True)
-        Log.note("Indexing {{key}}",  key= key)
+        Log.note("Indexing {{key}}", key=key)
         with extend_time:
-            num_keys = es.copy([key], bucket, {"terms": {"build.branch": settings.sample_only}} if settings.sample_only != None else None)
+            if settings.sample_only:
+                sample_filter = {"terms": {"build.branch": settings.sample_only}}
+            elif settings.sample_size:
+                sample_filter = True
+            else:
+                sample_filter = None
+
+            num_keys = es.copy([key], bucket, sample_filter, settings.sample_size)
 
         if num_keys > 1:
             Log.note(
-                "Added {{num}} keys from {{key}} block in {{duration|round(places=2)}} seconds ({{rate|round(places=3)}} keys/second)",
+                "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
-                duration=extend_time.seconds,
-                rate=num_keys / Math.max(extend_time.seconds, 0.01)
+                duration=extend_time.duration,
+                rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
             )
 
         work_queue.commit()
@@ -106,6 +111,9 @@ def main():
 
         if settings.args.id:
             Log.error("do not know how to handle")
+
+        Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
+
 
         # diff(settings)
         work_queue = aws.Queue(settings=settings.work_queue)

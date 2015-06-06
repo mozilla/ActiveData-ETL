@@ -9,35 +9,16 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary.dot import wrap
+from pyLibrary.dot import Dict
 
 
-class Revision(object):
-    def __init__(self, branch, changeset, index=None, push=None, parents=None, children=None, files=None, graph=None):
-        self.branch = wrap(branch)
-        self.changeset = wrap(changeset)
-        self.index = index
-        self.push = push
-        self._parents = parents if parents and len(parents) == 1 else None
-        self._children = children if children and len(children) == 1 else None
-        self.files = files
-        self.graph = graph
+class Revision(Dict):
 
     def __hash__(self):
         return hash((self.branch.name.lower(), self.changeset.id[:12]))
 
     def __eq__(self, other):
+        if other==None:
+            return False
         return (self.branch.name.lower(), self.changeset.id[:12]) == (other.branch.name.lower(), other.changeset.id[:12])
-
-    @property
-    def parents(self):
-        if not self._parents:
-            self._parents = self.graph.get_parents(self)
-        return self._parents
-
-    @property
-    def children(self):
-        if not self._children:
-            self._children = self.graph.get_children(self)
-        return self._children
 

@@ -13,6 +13,21 @@
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
+	"hg":{
+		"cache":{
+			"host": "http://192.168.2.98",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		},
+		"treeherder":{"$ref":"//./treeherder.json"}
+	},
 	"workers": [
 		{
 			"name": "pulse2es",
@@ -34,7 +49,7 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_es.process_pulse_block_to_es",
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
 		{
@@ -46,7 +61,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos-dev",
+				"bucket": "active-data-talos-dev",
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
@@ -61,7 +76,7 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result-dev",
+				"bucket": "active-data-test-result-dev",
 				"key_format": "a:b.c"
 			},
 			"notify":{
@@ -75,7 +90,7 @@
 	"debug": {
 		"trace": true,
 		"cprofile": {
-			"enabled": true,
+			"enabled": false,
 			"filename": "./results/profile.tab"
 		},
 		"log": [
@@ -84,7 +99,7 @@
 			},
 			{
 				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/etl.log",
+				"filename": "./results/logs/etl_dev.log",
 				"maxBytes": 10000000,
 				"backupCount": 100,
 				"encoding": "utf8"
@@ -93,7 +108,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Developer Alert][DEV] Problem in ETL",
+				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/private.json#email"
 			}
 		]

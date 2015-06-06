@@ -1,0 +1,13 @@
+{
+	"url": "https://treeherder.mozilla.org",
+	"branches": {
+		"url": "https://treeherder.mozilla.org/api/repository/"
+	},
+	"blob_url": "https://treeherder.mozilla.org/api/project/{{branch}}/performance_artifact/?id__gte={{min}}&id__lte={{max}}&count={{count}}",
+	"max_id_url": "https://treeherder.mozilla.org/api/project/{{branch}}/",
+	"signature_url": "https://treeherder.mozilla.org/api/project/{{branch}}/performance-data/0/get_signature_properties/?signatures={{signature}}",
+	"threads": 5,
+	"step": 100,
+	"max_tries": 100,
+	"timeout": 600
+}

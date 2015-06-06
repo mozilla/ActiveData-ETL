@@ -109,7 +109,10 @@ class SynchState(object):
                 break
             if Date.now() < self.ping_time + PING_PERIOD:
                 continue
-            self.ping()
+            try:
+                self.ping()
+            except Exception, e:
+                Log.warning("synchro.py could not ping", e)
         Log.note("pinger stopped")
 
     def shutdown(self):

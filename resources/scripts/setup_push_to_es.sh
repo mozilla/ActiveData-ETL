@@ -13,3 +13,8 @@ git clone https://github.com/klahnakoski/TestLog-ETL.git
 cd /home/ec2-user/TestLog-ETL/
 git checkout push-to-es
 sudo pip install -r requirements.txt
+
+export PYTHONPATH=.
+nohup python27 testlog_etl/push_to_es.py --settings=resources/settings/push_to_es_staging_settings.json >& /dev/null < /dev/null &
+
+

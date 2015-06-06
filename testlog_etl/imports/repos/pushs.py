@@ -9,12 +9,8 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from pyLibrary.dot import Dict
 
 
-class Push(object):
-    def __init__(self, id, branch, date, pusher):
-        self.id = id
-        self.branch = branch
-        self.date = date
-        self.pusher = pusher
-        self.changesets = []
+class Push(Dict):
+    pass

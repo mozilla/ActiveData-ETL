@@ -13,25 +13,24 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import Dict, wrap, Null, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key, key2etl
+from testlog_etl import etl2key
+from testlog_etl.imports.repos.changesets import Changeset
+from testlog_etl.imports.repos.revisions import Revision
 
 DEBUG = True
 
-# GET THE GIT REVISION NUMBER
-git_revision = get_git_revision()
 
-
-def process_pulse_block_to_es(source_key, source, destination, please_stop=None):
+def process(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
 
     etl_header = convert.json2value(lines[0])
-    if etl_header.locale:
-        # EARLY VERSION ETL DID NOT ADD AN ETL HEADER
+    if etl_header.etl:
         start = 0
-        etl_header = key2etl(unicode(source_key))
+    elif etl_header.locale or etl_header._meta:
+        start = 0
     else:
         start = 1
 
@@ -39,58 +38,64 @@ def process_pulse_block_to_es(source_key, source, destination, please_stop=None)
     records = []
     stats = Dict()
     for i, line in enumerate(lines[start:]):
-        pulse_record = scrub_pulse_record(source_key, i, line, stats)
-        if not pulse_record:
-            continue
+        pulse_record = Null
+        try:
+            pulse_record = scrub_pulse_record(source_key, i, line, stats)
+            if not pulse_record:
+                continue
 
-        with Profiler("transform_buildbot"):
-            record = transform_buildbot(pulse_record.data)
-            record.etl = {
-                "id": i,
-                "source": etl_header,
-                "type": "join",
-                "revision": git_revision,
-                "_meta": pulse_record._meta,
-            }
-        key = etl2key(record.etl)
-        keys.append(key)
-        records.append({"id": key, "value": record})
+            with Profiler("transform_buildbot"):
+                record = transform_buildbot(pulse_record.payload, resources=resources)
+                record.etl = {
+                    "id": i,
+                    "source": pulse_record.etl,
+                    "type": "join",
+                    "revision": get_git_revision()
+                }
+            key = etl2key(record.etl)
+            keys.append(key)
+            records.append({"id": key, "value": record})
+        except Exception, e:
+            Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
     destination.extend(records)
     return keys
 
 
 def scrub_pulse_record(source_key, i, line, stats):
+    """
+    DUE TO MANY ETL FORMATS, THIS IS REQUIRED TO
+    TURN RAW LINE INTO A STANDARD PULSE RECORD
+    """
     try:
         line = strings.strip(line)
         if not line:
             return None
         pulse_record = convert.json2value(line)
         if pulse_record._meta:
+            pulse_record.etl.source.id = pulse_record.etl.source.count  # REMOVE AFTER JULY 1 2015, JUST A FEW RECORDS HAVE THIS PROBLEM
             return pulse_record
         elif pulse_record.locale:
             stats.num_missing_envelope += 1
-            pulse_record = wrap({"data": pulse_record})
+            pulse_record = wrap({
+                "payload": pulse_record,
+                "etl": pulse_record.etl
+            })
             return pulse_record
-        elif pulse_record.source:
-            return None
-        elif pulse_record.pulse:
-            Log.error("Does this happen?")
-            # if DEBUG:
-            #     Log.note("Line {{index}}: found pulse array",  index= i)
-            # # FEED THE ARRAY AS A SEQUENCE OF LINES FOR THIS METHOD TO CONTINUE PROCESSING
-            # def read():
-            #     return convert.unicode2utf8("\n".join(convert.value2json(p) for p in pulse_record.pulse))
-            #
-            # temp = Dict(read=read)
-            #
-            # return process_pulse_block(source_key, temp, destination)
         else:
-            Log.error("Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
-                line= line,
-                index= i,
-                key= source_key)
+            if i == 0 and pulse_record.source:
+                #OLD-STYLE ETL HAD A HEADER RECORD
+                return None
+
+            Log.warning(
+                "Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
+                line=line,
+                index=i,
+                key=source_key
+            )
+            return None
     except Exception, e:
-        Log.warning("Line {{index}}: Problem with line for key {{key}}\n{{line}}",
+        Log.warning(
+            "Line {{index}}: Problem with line for key {{key}}\n{{line}}",
             line=line,
             index=i,
             key=source_key,
@@ -99,7 +104,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload, filename=None):
+def transform_buildbot(payload, resources, filename=None):
     output = Dict()
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
@@ -115,11 +120,14 @@ def transform_buildbot(payload, filename=None):
 
     output.build.locale = payload.locale
     output.run.logurl = payload.logurl
+    output.run.machine.os = payload.os
     output.machine.os = payload.os
     output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
+    output.build.revision12 = payload.revision[0:12]
+    output.run.machine.name = payload.slave
     output.machine.name = payload.slave
 
     # payload.status IS THE BUILDBOT STATUS
@@ -181,5 +189,10 @@ def transform_buildbot(payload, filename=None):
         for name, url in output.run.files.items()
         if filename is None or name == filename
     ]
+
+    try:
+        output.repo = resources.hg.get_revision(Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision)))
+    except Exception, e:
+        Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
 
     return output
