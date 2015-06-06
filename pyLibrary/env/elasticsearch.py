@@ -230,12 +230,20 @@ class Index(object):
         try:
             for r in records:
                 id = r.get("id")
+
+                if id[12]=="-":
+                    Log.note("")
+
                 if id == None:
                     id = Random.hex(40)
 
                 if "json" in r:
+                    if id != coalesce(wrap(convert.json2value(r["json"])).value._id, id):
+                        Log.error("expecting _id to match")
                     json = r["json"]
                 elif "value" in r:
+                    if id != coalesce(wrap(r).value._id, id):
+                        Log.error("expecting _id to match")
                     json = convert.value2json(r["value"])
                 else:
                     json = None
@@ -438,8 +446,6 @@ class Cluster(object):
             return Index(settings)
         Log.error("Can not find any index with alias {{alias_name}}",  alias_name= alias)
 
-
-
     @use_settings
     def create_index(
         self,
@@ -538,7 +544,7 @@ class Cluster(object):
 
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
-                Log.error(response.reason+": "+response.all_content)
+                Log.error(response.reason + ": " + response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=utf82unicode(response.all_content)[:130])
             details = convert.json2value(utf82unicode(response.all_content))
