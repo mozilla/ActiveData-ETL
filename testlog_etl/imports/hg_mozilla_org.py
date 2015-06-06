@@ -76,6 +76,7 @@ class HgMozillaOrg(object):
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision)
             if doc:
+                Log.note("Got hg {{revision}} from ES", revision=doc.changeset.id)
                 return doc
 
             self._load_all_in_push(revision)
@@ -163,7 +164,7 @@ class HgMozillaOrg(object):
             response = self._get_and_retry(url)
             data = convert.json2value(response.all_content.decode("utf8"))
             if isinstance(data, basestring) and data.startswith("unknown revision"):
-                Log.error("Unknown revision {{revision}}", revision=strings.between(data, "'", "'"))
+                Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
                 self.current_push = push
