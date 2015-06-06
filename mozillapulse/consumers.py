@@ -12,6 +12,7 @@ from config import PulseConfiguration
 
 # Exceptions we can raise
 from mozillapulse.publishers import InvalidExchange
+from pyLibrary.parsers import Log
 
 
 class InvalidTopic(Exception):
@@ -179,6 +180,7 @@ class GenericConsumer(object):
                 try:
                     self.connection.drain_events(timeout=self.timeout)
                 except socket_timeout, _:
+                    Log.warning("timeout")
                     pass
 
         # Likely never get here but can't hurt.
