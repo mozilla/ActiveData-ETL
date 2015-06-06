@@ -110,7 +110,7 @@ class HgMozillaOrg(object):
         if len(docs) > 1:
             Log.error("expecting no more than one document")
 
-        return docs[0]
+        return docs[0]._source
 
     def _get_from_hg(self, revision):
         if len(revision.changeset.id) < 12 and Math.is_integer(revision.changeset.id):

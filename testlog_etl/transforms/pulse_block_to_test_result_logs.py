@@ -99,9 +99,11 @@ def process(source_key, source, destination, resources, please_stop=None):
                         fast_forward=True
 
                     if DEBUG_SHOW_LINE:
-                        Log.note("ETLed line {{key}}: {{url}}",
-                            key= dest_key,
-                            url= url)
+                        Log.note(
+                            "ETLed line {{key}}: {{url}}",
+                            key=dest_key,
+                            url=url
+                        )
             except Exception, e:
                 Log.error("Problem processing {{name}} = {{url}}", name=name, url=url, cause=e)
 
