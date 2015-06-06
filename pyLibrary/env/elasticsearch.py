@@ -311,10 +311,10 @@ class Index(object):
                 data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
             )
 
-            result = convert.json2value(utf82unicode(response.content))
+            result = convert.json2value(utf82unicode(response.all_content))
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
-                    "error": utf82unicode(response.content)
+                    "error": utf82unicode(response.all_content)
                 })
         elif any(map(self.cluster.version.startswith, ["1.4.", "1.5."])):
             response = self.cluster.put(
@@ -322,10 +322,10 @@ class Index(object):
                 data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}')
             )
 
-            result = convert.json2value(utf82unicode(response.content))
+            result = convert.json2value(utf82unicode(response.all_content))
             if not result.acknowledged:
                 Log.error("Can not set refresh interval ({{error}})", {
-                    "error": utf82unicode(response.content)
+                    "error": utf82unicode(response.all_content)
                 })
         else:
             Log.error("Do not know how to handle ES version {{version}}",  version=self.cluster.version)
@@ -538,10 +538,10 @@ class Cluster(object):
 
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
-                Log.error(response.reason+": "+response.content)
+                Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
-            details = convert.json2value(utf82unicode(response.content))
+                Log.note("response: {{response}}", response=utf82unicode(response.all_content)[:130])
+            details = convert.json2value(utf82unicode(response.all_content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
@@ -569,10 +569,10 @@ class Cluster(object):
         try:
             response = http.get(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason+": "+response.content)
+                Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
-            details = wrap(convert.json2value(utf82unicode(response.content)))
+                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[:130])
+            details = wrap(convert.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -584,11 +584,11 @@ class Cluster(object):
         try:
             response = http.head(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason+": "+response.content)
+                Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.content)[:130])
-            if response.content:
-                details = wrap(convert.json2value(utf82unicode(response.content)))
+                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[:130])
+            if response.all_content:
+                details = wrap(convert.json2value(utf82unicode(response.all_content)))
                 if details.error:
                     Log.error(details.error)
                 return details
@@ -606,9 +606,9 @@ class Cluster(object):
         try:
             response = http.put(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason+": "+response.content)
+                Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.content)[0:300:])
+                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[0:300:])
             return response
         except Exception, e:
             Log.error("Problem with call to {{url}}",  url= url, cause=e)

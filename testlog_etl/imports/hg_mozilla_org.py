@@ -17,7 +17,7 @@ from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default
+from pyLibrary.dot import set_default, Null
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread
@@ -41,9 +41,11 @@ class HgMozillaOrg(object):
         self.timeout = Duration(timeout)
         self.branches = TreeHerder(settings=treeherder).get_branches()
         self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
+        self.es.add_alias()
+        self.es.set_refresh_interval(seconds=1)
 
         # TO ESTABLISH DATA
-        self.es.add({"value":{
+        self.es.add({"id":"b3649fd5cd7a-mozilla-inbound", "value":{
             "index": 247152,
             "branch": {
                 "name": "mozilla-inbound"
@@ -73,6 +75,9 @@ class HgMozillaOrg(object):
         EXPECTING INCOMPLETE revision
         RETURNS revision
         """
+        if not revision.changeset.id:
+            return Null
+
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision)
             if doc:
@@ -88,7 +93,6 @@ class HgMozillaOrg(object):
         #CLEAR THESE BRANCH FIELDS
         for k in ['dvcs_type', 'active_status', 'codebase', 'repository_group', 'description']:
             output.branch[k] = None
-        self.es.add({"value": output})
         return output
 
     def _get_from_elasticsearch(self, revision):
@@ -97,7 +101,7 @@ class HgMozillaOrg(object):
                 "query": {"match_all": {}},
                 "filter": {"and": [
                     {"prefix": {"changeset.id": revision.changeset.id[0:12]}},
-                    {"term": {"branch": revision.branch.name}}
+                    {"term": {"branch.name": revision.branch.name}}
                 ]}
             }},
             "size": 2000,
@@ -173,9 +177,8 @@ class HgMozillaOrg(object):
                     changeset = Changeset(id=c.node, **c)
                     rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset))
                     rev.push = push
-                    revs.append({"value": rev})
+                    revs.append({"id": rev.changeset.id12 + "-" + rev.branch.name, "value": rev})
                 self.es.extend(revs)
-
         except Exception, e:
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
         finally:
@@ -193,4 +196,4 @@ class HgMozillaOrg(object):
                 Thread.sleep(seconds=5)
                 return http.get(url.replace("https://", "http://"), **kwargs)
             except Exception, f:
-                Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, [e, f])
+                Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])

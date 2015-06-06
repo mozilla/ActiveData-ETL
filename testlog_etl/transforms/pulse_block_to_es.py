@@ -13,7 +13,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null
+from pyLibrary.dot import Dict, wrap, Null, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
@@ -38,21 +38,25 @@ def process(source_key, source, destination, resources, please_stop=None):
     records = []
     stats = Dict()
     for i, line in enumerate(lines[start:]):
-        pulse_record = scrub_pulse_record(source_key, i, line, stats)
-        if not pulse_record:
-            continue
+        pulse_record = Null
+        try:
+            pulse_record = scrub_pulse_record(source_key, i, line, stats)
+            if not pulse_record:
+                continue
 
-        with Profiler("transform_buildbot"):
-            record = transform_buildbot(pulse_record.payload, resources=resources)
-            record.etl = {
-                "id": i,
-                "source": pulse_record.etl,
-                "type": "join",
-                "revision": get_git_revision()
-            }
-        key = etl2key(record.etl)
-        keys.append(key)
-        records.append({"id": key, "value": record})
+            with Profiler("transform_buildbot"):
+                record = transform_buildbot(pulse_record.payload, resources=resources)
+                record.etl = {
+                    "id": i,
+                    "source": pulse_record.etl,
+                    "type": "join",
+                    "revision": get_git_revision()
+                }
+            key = etl2key(record.etl)
+            keys.append(key)
+            records.append({"id": key, "value": record})
+        except Exception, e:
+            Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
     destination.extend(records)
     return keys
 

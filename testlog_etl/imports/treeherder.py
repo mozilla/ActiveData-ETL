@@ -12,5 +12,5 @@ class TreeHerder(object):
     @cache
     def get_branches(self):
         response = http.get(self.settings.branches.url, timeout=coalesce(self.settings.timeout, 30))
-        branches = convert.json2value(convert.utf82unicode(response.content))
+        branches = convert.json2value(convert.utf82unicode(response.all_content))
         return wrap({branch.name: unwrap(branch) for branch in branches})

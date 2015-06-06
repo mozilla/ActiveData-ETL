@@ -390,8 +390,8 @@ def _simple_expand(template, seq):
                     _late_import()
 
                 Log.warning(
-                    "Can not expand " + "|".join(ops) + " in template: {{template|json}}",
-                    template=template,
+                    "Can not expand " + "|".join(ops) + " in template: {{template_|json}}",
+                    template_=template,
                     cause=e
                 )
             return "[template expansion error: (" + str(e.message) + ")]"
