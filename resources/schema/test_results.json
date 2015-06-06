@@ -70,6 +70,24 @@
 						}
 					}
 				},
+				"repo":{
+					"type":"object",
+					"properties":{
+						"changeset":{
+							"type":"object",
+							"properties":{
+								"description": {
+						            "index": "analyzed",
+						            "type": "string"
+						        }
+							}
+						}
+					}
+				},
+
+
+
+
 				"etl":{
 					"type":"object",
 					"properties":{

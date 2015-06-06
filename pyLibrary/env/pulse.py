@@ -13,7 +13,7 @@ from __future__ import absolute_import
 
 from mozillapulse.consumers import GenericConsumer
 
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import unwrap, wrap, coalesce
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
@@ -57,7 +57,6 @@ class Pulse(Thread):
         self.count = coalesce(start, 0)
         self.start()
 
-
     def _got_result(self, data, message):
         data = wrap(data)
         data._meta.count = self.count
@@ -70,6 +69,7 @@ class Pulse(Thread):
                 self.target_queue.add(data)
                 message.ack()
             except Exception, e:
+                e = Except.wrap(e)
                 if not self.target_queue.closed:  # EXPECTED TO HAPPEN, THIS THREAD MAY HAVE BEEN AWAY FOR A WHILE
                     raise e
         else:

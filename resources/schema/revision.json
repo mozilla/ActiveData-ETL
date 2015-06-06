@@ -56,6 +56,15 @@
 				}
 			],
 			"properties": {
+				"changeset":{
+					"type":"object",
+					"properties":{
+						"description": {
+				            "index": "analyzed",
+				            "type": "string"
+				        }
+					}
+				}
 			}
 		}
 	}
