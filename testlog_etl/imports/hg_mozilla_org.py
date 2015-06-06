@@ -17,7 +17,7 @@ from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null
+from pyLibrary.dot import set_default, Null, coalesce
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread
@@ -107,7 +107,7 @@ class HgMozillaOrg(object):
             "size": 2000,
         }
         docs = self.es.search(query).hits.hits
-        if len(docs)>1:
+        if len(docs) > 1:
             Log.error("expecting no more than one document")
 
         return docs[0]
@@ -177,7 +177,8 @@ class HgMozillaOrg(object):
                     changeset = Changeset(id=c.node, **c)
                     rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset))
                     rev.push = push
-                    revs.append({"id": rev.changeset.id12 + "-" + rev.branch.name, "value": rev})
+                    _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name
+                    revs.append({"id": _id, "value": rev})
                 self.es.extend(revs)
         except Exception, e:
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
