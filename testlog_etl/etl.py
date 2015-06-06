@@ -21,6 +21,7 @@ from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
+from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
@@ -29,6 +30,7 @@ from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 from testlog_etl import key2etl
+from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.redshift import Json2Redshift
@@ -58,6 +60,7 @@ class ETL(Thread):
         name,
         work_queue,
         workers,
+        resources,
         please_stop,
         wait_forever=False,
         settings=None
@@ -81,7 +84,7 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)",  path= t_name)
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -90,6 +93,7 @@ class ETL(Thread):
             for notify in listwrap(w.notify):
                 w._notify.append(aws.Queue(notify))
 
+        self.resources = resources
         self.settings = settings
         if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue)
@@ -140,7 +144,7 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = set(action._transformer(source_key, source, action._destination, self.please_stop))
+                new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
                 #VERIFY KEYS
                 if len(new_keys) == 1 and list(new_keys)[0] == source_key:
@@ -150,7 +154,7 @@ class ETL(Thread):
                     etls = qb.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
-                            Log.error("expecting keys to have dense order")
+                            Log.error("expecting keys to have dense order: {{ids}}", ids=etls.id)
                     #VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
@@ -310,7 +314,6 @@ def get_container(settings):
             return output
 
 
-
 def main():
 
     try:
@@ -328,23 +331,20 @@ def main():
             etl_one(settings)
             return
 
+        hg = HgMozillaOrg(settings=settings.hg)
+        resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
-        threads = [None] * coalesce(settings.param.threads, 1)
-
-        for i, _ in enumerate(list(threads)):
-            threads[i] = ETL(
+        for i in range(coalesce(settings.param.threads, 1)):
+            ETL(
                 name="ETL Loop " + unicode(i),
                 work_queue=settings.work_queue,
+                resources=resources,
                 workers=settings.workers,
                 settings=settings.param,
                 please_stop=stopper
             )
 
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-
-        for thread in threads:
-            thread.stop()
-            thread.join()
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
@@ -380,21 +380,21 @@ def etl_one(settings):
                 ))
             pass
 
+    resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
+
     stopper = Signal()
-    thread = ETL(
+    ETL(
         name="ETL Loop Test",
         work_queue=queue,
         workers=settings.workers,
         settings=settings.param,
+        resources=resources,
         please_stop=stopper
     )
 
     aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
-
-    thread.stop()
-    thread.join()
 
 if __name__ == "__main__":
     main()

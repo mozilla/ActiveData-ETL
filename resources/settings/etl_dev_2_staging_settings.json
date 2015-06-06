@@ -15,6 +15,21 @@
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
+	"hg":{
+		"cache": {
+			"host": "http://54.149.35.214",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"treeherder":{"$ref":"//./treeherder.json"}
+	},
 	"workers": [
 		{
 			"name": "pulse2es",

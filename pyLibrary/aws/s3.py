@@ -137,7 +137,7 @@ class Bucket(object):
         if must_exist:
             meta = self.get_meta(key)
             if not meta:
-                Log.error("Key {{key}} does not exist",  key= key)
+                Log.error("Key {{key}} does not exist", key=key)
             key = strip_extension(meta.key)
         return File(self, key)
 
@@ -191,7 +191,7 @@ class Bucket(object):
                 Log.error("Problem with key request", error)
             return coalesce(perfect, favorite)
         except Exception, e:
-            Log.error(READ_ERROR, e)
+            Log.error(READ_ERROR+" can not read {{key}} from {{bucket}}", key=key, bucket=self.bucket.name, cause=e)
 
     def keys(self, prefix=None, delimiter=None):
         if delimiter:

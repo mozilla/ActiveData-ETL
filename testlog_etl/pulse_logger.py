@@ -17,10 +17,9 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.pulse import Pulse
 from pyLibrary.queries import qb
-from pyLibrary.dot import set_default, wrap
+from pyLibrary.dot import set_default
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
 from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 # ONLY DEPLOY OFF THE pulse-logger branch
@@ -28,26 +27,17 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 def log_loop(settings, synch, queue, bucket, please_stop):
     with aws.Queue(settings.work_queue) as work_queue:
         for i, g in qb.groupby(queue, size=settings.param.size):
-            Log.note("Preparing {{num}} pulse messages to bucket={{bucket}}",
-                num= len(g),
-                bucket= bucket.name)
+            Log.note(
+                "Preparing {{num}} pulse messages to bucket={{bucket}}",
+                num=len(g),
+                bucket=bucket.name
+            )
 
-            etl_header = wrap({
-                "name": "Pulse block",
-                "bucket": settings.destination.bucket,
-                "timestamp": Date.now().unix,
-                "id": synch.next_key,
-                "source": {
-                    "id": unicode(MIN(g.select("_meta.count"))),
-                    "name": "pulse.mozilla.org"
-                },
-                "type": "aggregation"
-            })
-            full_key = etl2key(etl_header)
+            full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
-                output = [etl_header]
-                output.extend(
+                output = [
                     set_default(
+                        d,
                         {"etl": {
                             "name": "Pulse block",
                             "bucket": settings.destination.bucket,
@@ -55,15 +45,17 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "id": synch.next_key,
                             "source": {
                                 "name": "pulse.mozilla.org",
-                                "timestamp": Date(d._meta.sent).unix,
-                                "id": d._meta.count
-                            }
-                        }},
-                        d.payload
+                                "id": d._meta.count,
+                                "count": d._meta.count,
+                                "message_id": d._meta.message_id,
+                                "sent": Date(d._meta.sent),
+                            },
+                            "type": "aggregation"
+                        }}
                     )
                     for i, d in enumerate(g)
                     if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start
-                )
+                ]
                 bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
                 synch.advance()
                 synch.source_key = MAX(g.select("_meta.count")) + 1
@@ -116,12 +108,10 @@ def main():
                     synch.source_key = last_item._meta.count + 1
 
                 with Pulse(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
-                    thread = Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
-                    Thread.wait_for_shutdown_signal()
+                    Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
+                    Thread.wait_for_shutdown_signal(allow_exit=True)
+                    Log.warning("starting shutdown")
 
-                Log.warning("starting shutdown")
-                thread.stop()
-                thread.join()
                 queue.close()
                 Log.note("write shutdown state to S3")
                 synch.shutdown()

@@ -3,6 +3,7 @@
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
+		"timeout":600,
 		"queue": "test_pulse_logger",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
@@ -39,7 +40,7 @@
 				"log_type":"email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[Alert]Problem in Pulse Logger",
+				"subject": "[ALERT]Problem in Pulse Logger",
 				"$ref":"file://~/private.json#email"
 
 			}

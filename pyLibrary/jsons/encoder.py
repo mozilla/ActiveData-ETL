@@ -131,7 +131,8 @@ class cPythonJSONEncoder(object):
             return unicode(self.encoder.encode(scrubbed))
         except Exception, e:
             from pyLibrary.debugs.logs import Log
-            Log.warning("problem serializing {{type}}",  type= repr(value), cause=e)
+
+            Log.warning("problem serializing {{type}}", type=repr(value), cause=e)
             raise e
 
 

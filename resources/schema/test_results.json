@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 1
+		"index.number_of_shards": 24
 	},
 	"mappings": {
 		"test_result": {
@@ -16,12 +16,17 @@
 			"_all": {
 				"enabled": false
 			},
+			"_routing": {
+				"required": true,
+				"path":"build.revision12"
+			},
 			"dynamic_templates": [
 				{
 					"xperf": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match": "results_xperf.*"
 					}
@@ -30,7 +35,8 @@
 					"default_ids": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match": "id"
 					}
@@ -39,20 +45,11 @@
 					"default_strings": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match_mapping_type": "string",
 						"match": "*"
-					}
-				},
-				{
-					"default_strings": {
-						"mapping": {
-							"index": "analyzed",
-							"type": "string"
-						},
-						"match_mapping_type": "string",
-						"match": "result.crash_result.*"
 					}
 				}
 			],
@@ -73,23 +70,53 @@
 						}
 					}
 				},
+				"repo":{
+					"type":"object",
+					"properties":{
+						"changeset":{
+							"type":"object",
+							"properties":{
+								"description": {
+						            "index": "analyzed",
+						            "type": "string"
+						        }
+							}
+						}
+					}
+				},
+
+
+
+
 				"etl":{
 					"type":"object",
 					"properties":{
 						"id":{
-							"type":"integer"
+							"type":"integer",
+							"doc_values": true
 						},
 						"source":{
 							"type":"object",
 							"properties":{
 								"id":{
-									"type":"integer"
+									"type":"integer",
+									"doc_values": true
 								},
 								"source":{
 									"type":"object",
 									"properties":{
 										"id":{
-											"type":"integer"
+											"type":"integer",
+											"doc_values": true
+										},
+										"source":{
+											"type":"object",
+											"properties":{
+												"id":{
+													"type":"integer",
+													"doc_values": true
+												}
+											}
 										}
 									}
 								}
