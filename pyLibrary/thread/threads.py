@@ -528,13 +528,7 @@ class Thread(object):
             if allow_exit:
                 _wait_for_exit(please_stop)
             else:
-                while not please_stop:
-                    if DEBUG:
-                        Log.note("inside wait-for-shutdown loop")
-                    try:
-                        Thread.sleep(please_stop=please_stop)
-                    except Exception, _:
-                        pass
+                _wait_for_interrupt(please_stop)
         except (KeyboardInterrupt, SystemExit), _:
             please_stop.go()
             Log.alert("SIGINT Detected!  Stopping...")
@@ -754,7 +748,13 @@ def _wait_for_exit(please_stop):
         #     Log.note("inside wait-for-shutdown loop")
         if cr_count > 30:
             Thread.sleep(seconds=3, please_stop=please_stop)
-        line = sys.stdin.readline()
+        try:
+            line = sys.stdin.readline()
+        except Exception, e:
+            if "Bad file descriptor" in e:
+                _wait_for_interrupt(please_stop)
+                break
+
         # if DEBUG:
         #     Log.note("read line {{line|quote}}, count={{count}}", line=line, count=cr_count)
         if line == "":
@@ -765,3 +765,13 @@ def _wait_for_exit(please_stop):
         if strings.strip(line) == "exit":
             Log.alert("'exit' Detected!  Stopping...")
             return
+
+
+def _wait_for_interrupt(please_stop):
+    while not please_stop:
+        if DEBUG:
+            Log.note("inside wait-for-shutdown loop")
+        try:
+            Thread.sleep(please_stop=please_stop)
+        except Exception, _:
+            pass
