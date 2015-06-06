@@ -19,7 +19,7 @@ from pyLibrary.times.durations import WEEK
 from testlog_etl import key2etl, etl2path
 
 
-NEW_INDEX_INTERVAL = WEEK
+# NEW_INDEX_INTERVAL = WEEK
 
 
 class MultiDayIndex(object):
@@ -31,27 +31,31 @@ class MultiDayIndex(object):
         self.settings = settings
         self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
+
+        es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
+        es.add_alias(self.settings.index)
+        es.set_refresh_interval(seconds=60 * 60)
+        self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         #FORCE AT LEAST ONE INDEX TO EXIST
         dummy = wrap({"build": {"date": Date.now().unix}})
-        self._get_queue(dummy)
 
-    def _get_queue(self, d):
-        date = Date(coalesce(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
-        if not date:
-            Log.error("Can not get date from document")
-        name = self.settings.index + "_" + date.format("%Y-%m-%d")
-        uid = date.unix
-
-        queue = self.indicies.get(uid)
-        if queue==None:
-            es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
-            es.add_alias(self.settings.index)
-            es.set_refresh_interval(seconds=60 * 60)
-            queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
-            self.indicies[uid] = queue
-
-        return queue
+    # def _get_queue(self, d):
+    #     date = Date(coalesce(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
+    #     if not date:
+    #         Log.error("Can not get date from document")
+    #     name = self.settings.index + "_" + date.format("%Y-%m-%d")
+    #     uid = date.unix
+    #
+    #     queue = self.indicies.get(uid)
+    #     if queue==None:
+    #         es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
+    #         es.add_alias(self.settings.index)
+    #         es.set_refresh_interval(seconds=60 * 60)
+    #         queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+    #         self.indicies[uid] = queue
+    #
+    #     return queue
 
     def __getattr__(self, item):
         return getattr(self.es, item)
@@ -77,42 +81,35 @@ class MultiDayIndex(object):
 
     def extend(self, documents):
         for d in wrap(documents):
-            try:
-                queue = self._get_queue(d.value)
-                queue.add(d)
-            except Exception, e:
-                Log.error("Can not decide on index by build.date: {{doc|json}}",  doc= d.value)
+            self.queue.add(d)
 
     def add(self, doc):
-        d = wrap(doc)
-        queue = self._get_queue(doc.value)
-        queue.add(doc)
+        self.queue.add(doc)
 
     def delete(self, filter):
         self.es.delete(filter)
 
-    def copy(self, keys, source, sample_only_filter=None):
+    def copy(self, keys, source, sample_only_filter=None, sample_size=None):
         num_keys = 0
         for key in keys:
             queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
             try:
-                for line in source.read_lines(strip_extension(key)):
-                    if queue is None:
+                for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    if rownum == 0:
                         value = convert.json2value(line)
-                        queue = self._get_queue(value)
                         row = {"id": value._id, "value": value}
-                        if sample_only_filter and Random.int(100) != 0 and qb.filter([value], sample_only_filter):
-                            # INDEX THIS, BUT NO MORE
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
+                            # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
                                 Log.error("Expecting etl.id==0")
                             num_keys += 1
-                            queue.add(row)
+                            self.queue.add(row)
                             break
                     else:
                         _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
                     num_keys += 1
-                    queue.add(row)
+                    self.queue.add(row)
             except Exception, e:
                 Log.warning("Could not get queue for {{key}}", key=key, cause=e)
         return num_keys

@@ -23,7 +23,7 @@ DEBUG = False
 TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
 
 
-def process(source_key, source, dest_bucket, please_stop=None):
+def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
     """
@@ -37,22 +37,38 @@ def process(source_key, source, dest_bucket, please_stop=None):
         if not pulse_record:
             continue
 
-        if not pulse_record.data.talos:
+        if not pulse_record.payload.talos:
             continue
 
         all_talos = []
         etl_file = wrap({
             "id": counter,
-            "file": pulse_record.data.logurl,
+            "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
-            "source": pulse_record.data.etl,
+            "source": pulse_record.etl,
             "type": "join"
         })
-        with Timer("Read {{url}}", {"url": pulse_record.data.logurl}, debug=DEBUG) as timer:
+        with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, debug=DEBUG) as timer:
             try:
-                response = http.get(pulse_record.data.logurl)
+                response = http.get(pulse_record.payload.logurl)
                 if response.status_code == 404:
-                    Log.alarm("Talos log missing {{url}}", url=pulse_record.data.logurl)
+                    Log.alarm("Talos log missing {{url}}", url=pulse_record.payload.logurl)
+                    k = source_key + "." + unicode(counter)
+                    try:
+                        # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
+                        dest_bucket.get_key(k)
+                        output |= {k}  # FOR DENSITY CALCULATIONS
+                    except Exception, _:
+                        _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                        dest_etl.error = "Talos log missing"
+                        output |= dest_bucket.extend([{
+                            "id": etl2key(dest_etl),
+                            "value": {
+                                "etl": dest_etl,
+                                "pulse": pulse_record.payload
+                            }
+                        }])
+
                     continue
                 all_log_lines = response.all_lines
 
@@ -67,30 +83,30 @@ def process(source_key, source, dest_bucket, please_stop=None):
                     for t in talos:
                         _, dest_etl = etl_head_gen.next(etl_file, "talos")
                         t.etl = dest_etl
-                        t.pulse = pulse_record.data
+                        t.pulse = pulse_record.payload
                     all_talos.extend(talos)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {
-                    "url": pulse_record.data.logurl
+                    "url": pulse_record.payload.logurl
                 }, e)
             finally:
                 counter += 1
                 etl_head_gen.next_id = 0
 
-        etl_file.duration = timer.seconds
+        etl_file.duration = timer.duration
 
         if all_talos:
             Log.note("Found {{num}} talos records", num=len(all_talos))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_talos])
         else:
-            Log.note("No talos records found in {{url}}", url=pulse_record.data.logurl)
+            Log.note("No talos records found in {{url}}", url=pulse_record.payload.logurl)
             _, dest_etl = etl_head_gen.next(etl_file, "talos")
 
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {
                     "etl": dest_etl,
-                    "pulse": pulse_record.data
+                    "pulse": pulse_record.payload
                 }
             }])
 

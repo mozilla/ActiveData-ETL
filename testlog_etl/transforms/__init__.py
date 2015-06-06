@@ -9,6 +9,11 @@
 from __future__ import unicode_literals
 
 # GET THE GIT REVISION NUMBER
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.debugs.logs import Log
 
-git_revision = get_git_revision()
+
+
+class Transformer(object):
+
+    def transform(self, *args, **kwargs):
+        Log.error("Not implemented")

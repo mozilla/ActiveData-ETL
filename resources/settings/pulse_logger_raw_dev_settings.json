@@ -3,17 +3,18 @@
 		"exchange": "exchange/build",
 		"topic": ["#.finished", "#.log_uploaded"],
 		"durable": true,
+		"timeout":600,
 		"queue": "pulse_logger_raw_dev",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
 	},
 	"destination": {
-		"bucket": "active-data-pulse-log-raw-dev",
+		"bucket": "active-data-pulse-raw-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"work_queue": {
-		"name": "active-data-pulse-log-raw-dev",
+		"name": "active-data-pulse-raw-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
