@@ -12,7 +12,7 @@ from config import PulseConfiguration
 
 # Exceptions we can raise
 from mozillapulse.publishers import InvalidExchange
-from pyLibrary.parsers import Log
+from pyLibrary.debugs.logs import Log
 
 
 class InvalidTopic(Exception):
@@ -138,7 +138,13 @@ class GenericConsumer(object):
         For info on one script listening to multiple channels, see
         http://ask.github.com/carrot/changelog.html#id1.
         """
+        while True:
+            consumer = self._build_consumer(callback=callback, on_connect_callback=on_connect_callback)
+            with consumer:
+                self._drain_events_loop()
 
+
+    def _build_consumer(self, callback=None, on_connect_callback=None):
         # One can optionally provide a callback to listen (if it wasn't already)
         if callback:
             self.callback = callback
@@ -175,16 +181,19 @@ class GenericConsumer(object):
             hb_exchange = Exchange('exchange/pulse/test', type='topic')
             consumer.queues[0].bind_to(hb_exchange, 'heartbeat')
 
-        with consumer:
-            while True:
-                try:
-                    self.connection.drain_events(timeout=self.timeout)
-                except socket_timeout, _:
-                    Log.warning("timeout")
-                    pass
+        return consumer
 
-        # Likely never get here but can't hurt.
-        self.disconnect()
+    def _drain_events_loop(self):
+        while True:
+            try:
+                self.connection.drain_events(timeout=self.timeout)
+            except socket_timeout, _:
+                Log.warning("timeout, full restart required")
+                try:
+                    self.disconnect()
+                except Exception, e:
+                    Log.warning("Problem with disconnect()", e)
+                break
 
     def _check_params(self):
         if not self.exchange:
