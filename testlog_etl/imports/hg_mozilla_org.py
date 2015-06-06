@@ -120,7 +120,7 @@ class HgMozillaOrg(object):
 
         url = revision.branch.url + "/json-info?node=" + revision.changeset.id
         try:
-            Log.note("Reading details for from {{url}}", {"url": url})
+            Log.note("Reading details from {{url}}", {"url": url})
 
             response = self._get_and_retry(url)
             revs = convert.json2value(response.all_content.decode("utf8"))
