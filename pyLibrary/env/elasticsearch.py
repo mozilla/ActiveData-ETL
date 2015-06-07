@@ -231,19 +231,16 @@ class Index(object):
             for r in records:
                 id = r.get("id")
 
-                if id[12]=="-":
-                    Log.note("")
-
                 if id == None:
                     id = Random.hex(40)
 
                 if "json" in r:
-                    if id != coalesce(wrap(convert.json2value(r["json"])).value._id, id):
-                        Log.error("expecting _id to match")
+                    # if id != coalesce(wrap(convert.json2value(r["json"])).value._id, id):
+                    #     Log.error("expecting _id to match")
                     json = r["json"]
                 elif "value" in r:
-                    if id != coalesce(wrap(r).value._id, id):
-                        Log.error("expecting _id to match")
+                    # if id != coalesce(wrap(r).value._id, id):
+                    #     Log.error("expecting _id to match")
                     json = convert.value2json(r["value"])
                 else:
                     json = None
