@@ -221,6 +221,9 @@ class Queue(object):
         with self.lock:
             self.keep_running = False
 
+    def commit(self):
+        pass
+
     def __enter__(self):
         return self
 

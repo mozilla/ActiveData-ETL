@@ -1,0 +1,15 @@
+{
+	"name":"ActiveData ES Spot Instance",
+	"aws":{"$ref":"//~/private.json#aws_credentials"},
+	"fabric": {
+		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
+		"user": "ec2-user",
+		"key_filename": "~/keys/aws-pulse-logger.pem",
+		"disable_known_hosts": true,
+		"host_string": "",
+		"port": 22,
+		"password": ""
+	}
+
+
+}

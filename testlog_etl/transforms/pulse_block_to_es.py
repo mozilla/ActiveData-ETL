@@ -193,6 +193,10 @@ def transform_buildbot(payload, resources, filename=None):
     try:
         output.repo = resources.hg.get_revision(Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision)))
     except Exception, e:
-        Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
+        if "Unknown push" in e:
+            cause = e.cause.cause
+            Log.note(e.template, param=e.param)
+        else:
+            Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
 
     return output
