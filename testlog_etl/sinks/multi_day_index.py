@@ -34,7 +34,7 @@ class MultiDayIndex(object):
         es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         es.add_alias(self.settings.index)
         es.set_refresh_interval(seconds=60 * 60)
-        self.queue = es  # es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         #FORCE AT LEAST ONE INDEX TO EXIST
         dummy = wrap({"build": {"date": Date.now().unix}})
