@@ -34,7 +34,7 @@ class MultiDayIndex(object):
         es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         es.add_alias(self.settings.index)
         es.set_refresh_interval(seconds=60 * 60)
-        self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        self.queue = es  # es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
         #FORCE AT LEAST ONE INDEX TO EXIST
         dummy = wrap({"build": {"date": Date.now().unix}})
@@ -96,8 +96,8 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:
                         value = convert.json2value(line)
-                        value = _fix(value)
-                        row = {"id": value._id, "value": value}
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
                         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
@@ -112,8 +112,7 @@ class MultiDayIndex(object):
 
                         #SLOW
                         value = convert.json2value(line)
-                        value = _fix(value)
-                        _id = value._id
+                        _id, value = _fix(value)
                         row = {"id": _id, "value": value}
                     num_keys += 1
                     self.queue.add(row)
@@ -125,7 +124,10 @@ class MultiDayIndex(object):
 def _fix(value):
     if value.repo._source:
         value.repo = value.repo._source
-        value.repo._source = "."  # TO MARK THAT THERE IS A PROBLEM
     if not value.build.revision12:
         value.build.revision12 = value.build.revision[0:12]
-    return value
+
+    _id = value._id
+    value._id = None
+
+    return _id, value
