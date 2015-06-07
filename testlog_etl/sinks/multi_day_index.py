@@ -123,6 +123,9 @@ class MultiDayIndex(object):
         return num_keys
 
 def _fix(value):
+    if value.repo._source:
+        value.repo = value.repo._source
+        value.repo._source = "."  # TO MARK THAT THERE IS A PROBLEM
     if not value.build.revision12:
         value.build.revision12 = value.build.revision[0:12]
     return value
