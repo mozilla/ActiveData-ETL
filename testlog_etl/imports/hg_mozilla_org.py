@@ -75,7 +75,10 @@ class HgMozillaOrg(object):
         EXPECTING INCOMPLETE revision
         RETURNS revision
         """
-        if not revision.changeset.id:
+        rev = revision.changeset.id
+        if not rev:
+            return Null
+        elif rev == "None":
             return Null
 
         if not self.current_push:
@@ -90,17 +93,19 @@ class HgMozillaOrg(object):
 
         output = self._get_from_hg(revision)
         output.changeset.id12 = output.changeset.id[0:12]
-        #CLEAR THESE BRANCH FIELDS
-        for k in ['dvcs_type', 'active_status', 'codebase', 'repository_group', 'description']:
-            output.branch[k] = None
+        output.branch = {
+            "name": output.branch.name,
+            "url": output.branch.url
+        }
         return output
 
     def _get_from_elasticsearch(self, revision):
+        rev = revision.changeset.id
         query = {
             "query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": {"and": [
-                    {"prefix": {"changeset.id": revision.changeset.id[0:12]}},
+                    {"prefix": {"changeset.id": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}}
                 ]}
             }},
@@ -113,12 +118,13 @@ class HgMozillaOrg(object):
         return docs[0]._source
 
     def _get_from_hg(self, revision):
-        if len(revision.changeset.id) < 12 and Math.is_integer(revision.changeset.id):
-            revision.changeset.id = ("0" * (12 - len(revision.changeset.id))) + revision.changeset.id
+        rev = revision.changeset.id
+        if len(rev) < 12 and Math.is_integer(rev):
+            rev = ("0" * (12 - len(rev))) + rev
 
         revision.branch = self.branches[revision.branch.name.lower()]
 
-        url = revision.branch.url + "/json-info?node=" + revision.changeset.id
+        url = revision.branch.url + "/json-info?node=" + rev
         try:
             Log.note("Reading details from {{url}}", {"url": url})
 
