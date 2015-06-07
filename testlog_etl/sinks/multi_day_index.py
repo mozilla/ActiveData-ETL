@@ -7,7 +7,7 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary import strings, convert
+from pyLibrary import convert
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
@@ -15,7 +15,6 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import WEEK
 from testlog_etl import key2etl, etl2path
 
 
@@ -97,7 +96,8 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:
                         value = convert.json2value(line)
-                        row = {"id": value._id, "value": value}
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
                         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
@@ -106,10 +106,28 @@ class MultiDayIndex(object):
                             self.queue.add(row)
                             break
                     else:
-                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
-                        row = {"id": _id, "json": line}
+                        #FAST
+                        #strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
+                        # row = {"id": _id, "json": line}
+
+                        #SLOW
+                        value = convert.json2value(line)
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:
                 Log.warning("Could not get queue for {{key}}", key=key, cause=e)
         return num_keys
+
+
+def _fix(value):
+    if value.repo._source:
+        value.repo = value.repo._source
+    if not value.build.revision12:
+        value.build.revision12 = value.build.revision[0:12]
+
+    _id = value._id
+    value._id = None
+
+    return _id, value
