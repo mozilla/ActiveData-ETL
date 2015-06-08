@@ -75,7 +75,7 @@ class MultiDayIndex(object):
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if len(line) > 1000000:
-                        Log.warning("Line for key {{key}} is too long ({{length|comma}})", key=key, length=len(line))
+                        Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}})", key=key, length=len(line), num=rownum)
                         continue
 
                     if rownum == 0:
