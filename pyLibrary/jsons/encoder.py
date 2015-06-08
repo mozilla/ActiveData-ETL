@@ -130,8 +130,8 @@ class cPythonJSONEncoder(object):
             scrubbed = scrub(value)
             return unicode(self.encoder.encode(scrubbed))
         except Exception, e:
-            from pyLibrary.debugs.logs import Log
-
+            from pyLibrary.debugs.logs import Log, Except
+            e = Except.wrap(e)
             Log.warning("problem serializing {{type}}", type=repr(value), cause=e)
             raise e
 
@@ -387,7 +387,7 @@ def problem_serializing(value, e=None):
 
     try:
         rep = repr(value)
-    except Exception:
+    except Exception, _:
         rep = None
 
     if rep == None:
@@ -396,8 +396,8 @@ def problem_serializing(value, e=None):
         }, e)
     else:
         Log.error("Problem turning value ({{value}}) of type {{type}} to json",
-            value= rep,
-            type= typename,
+            value=rep,
+            type=typename,
             cause=e
         )
 

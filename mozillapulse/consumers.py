@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+from sys import stdout
 
 import uuid
 
@@ -12,7 +13,13 @@ from config import PulseConfiguration
 
 # Exceptions we can raise
 from mozillapulse.publishers import InvalidExchange
-from pyLibrary.debugs.logs import Log
+try:
+    from pyLibrary.debugs.logs import Log2
+except Exception, _:
+    class Log(object):
+        @staticmethod
+        def warning(message, *args, **kwargs):
+            stdout.write(message + "\n")
 
 
 class InvalidTopic(Exception):
