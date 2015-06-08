@@ -62,10 +62,6 @@ def _refresh_indexer():
                 run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
 
             with shell_env(PYTHONPATH="."):
-                # RUN 4x FASTER!!!
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
                 _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
 
 
