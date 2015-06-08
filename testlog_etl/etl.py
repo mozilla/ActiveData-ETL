@@ -364,25 +364,13 @@ def etl_one(settings):
         if id(source) in already_in_queue:
             continue
         try:
-            if settings.args.id.find("..") >= 0:
-                #range of ids
-                min_, max_ = map(int, map(strings.trim, settings.args.id.split("..")))
-                for i in range(min_, max_ + 1):
-                    data = source.get_key(i)
-                    if data != None:
-                        already_in_queue.add(id(source))
-                        queue.add(Dict(
-                            bucket=w.source.bucket,
-                            key=i
-                        ))
-            else:
-                #SINGLE KEY
-                data = source.get_key(settings.args.id)
+            for i in parse_id_argument(settings.args.id):
+                data = source.get_key(i)
                 if data != None:
                     already_in_queue.add(id(source))
                     queue.add(Dict(
                         bucket=w.source.bucket,
-                        key=settings.args.id
+                        key=i
                     ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
@@ -413,3 +401,10 @@ if __name__ == "__main__":
     main()
 
 
+def parse_id_argument(id):
+    if id.find("..") >= 0:
+        #range of ids
+        min_, max_ = map(int, map(strings.trim, id.split("..")))
+        return map(unicode, range(min_, max_ + 1))
+    else:
+        return [id]
