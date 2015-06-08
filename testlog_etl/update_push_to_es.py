@@ -12,7 +12,7 @@ from __future__ import division
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, shell_env
-from fabric.operations import run, put
+from fabric.operations import run, put, sudo
 from fabric.state import env
 
 from pyLibrary.debugs import startup, constants
@@ -21,6 +21,7 @@ from pyLibrary.dot import unwrap, wrap
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env.files import File
 from pyLibrary.queries.unique_index import UniqueIndex
+from pyLibrary.thread.threads import Thread
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -50,8 +51,23 @@ def _config_fabric(connect, instance):
     env.host_string = instance.ip_address
     env.abort_exception = Log.error
 
+def _start_es():
+    File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
+    with cd("/home/ec2-user/"):
+        put("./results/temp/start_es.sh", "start_es.sh")
+        run("chmod u+x start_es.sh")
+
+    with cd("/usr/local/elasticsearch/"):
+        sudo("/home/ec2-user/start_es.sh")
+
+
 
 def _refresh_indexer():
+
+    result = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
+    if not result:
+        _start_es()
+
     with cd("/home/ec2-user/TestLog-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
@@ -60,7 +76,10 @@ def _refresh_indexer():
             # KILL EXISTING "python27" PROCESS
             with fabric_settings(warn_only=True):
                 run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
+            Thread.sleep(seconds=5)
 
+        result = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
+        if not result:
             with shell_env(PYTHONPATH="."):
                 _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
 

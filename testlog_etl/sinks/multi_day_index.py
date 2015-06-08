@@ -7,14 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
-from pyLibrary.times.dates import Date
 from testlog_etl import key2etl, etl2path
 
 
@@ -36,25 +35,6 @@ class MultiDayIndex(object):
         es.set_refresh_interval(seconds=60 * 60)
         self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
-        #FORCE AT LEAST ONE INDEX TO EXIST
-        dummy = wrap({"build": {"date": Date.now().unix}})
-
-    # def _get_queue(self, d):
-    #     date = Date(coalesce(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
-    #     if not date:
-    #         Log.error("Can not get date from document")
-    #     name = self.settings.index + "_" + date.format("%Y-%m-%d")
-    #     uid = date.unix
-    #
-    #     queue = self.indicies.get(uid)
-    #     if queue==None:
-    #         es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
-    #         es.add_alias(self.settings.index)
-    #         es.set_refresh_interval(seconds=60 * 60)
-    #         queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
-    #         self.indicies[uid] = queue
-    #
-    #     return queue
 
     def __getattr__(self, item):
         return getattr(self.es, item)
@@ -94,6 +74,10 @@ class MultiDayIndex(object):
             queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    if len(line) > 1000000:
+                        Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}})", key=key, length=len(line), num=rownum)
+                        continue
+
                     if rownum == 0:
                         value = convert.json2value(line)
                         _id, value = _fix(value)
@@ -107,13 +91,13 @@ class MultiDayIndex(object):
                             break
                     else:
                         #FAST
-                        #strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
-                        # row = {"id": _id, "json": line}
+                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
+                        row = {"id": _id, "json": line}
 
                         #SLOW
-                        value = convert.json2value(line)
-                        _id, value = _fix(value)
-                        row = {"id": _id, "value": value}
+                        # value = convert.json2value(line)
+                        # _id, value = _fix(value)
+                        # row = {"id": _id, "value": value}
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:

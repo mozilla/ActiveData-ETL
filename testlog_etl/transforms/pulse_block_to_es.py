@@ -13,7 +13,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, coalesce
+from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
@@ -194,8 +194,8 @@ def transform_buildbot(payload, resources, filename=None):
         output.repo = resources.hg.get_revision(Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision)))
     except Exception, e:
         if "Unknown push" in e:
-            cause = e.cause.cause
-            Log.note(e.template, param=e.param)
+            cause = listwrap(e.cause)[0]
+            Log.note(cause.template, default_params=cause.params)
         else:
             Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
 

@@ -81,6 +81,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-test-result",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify":{

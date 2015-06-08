@@ -62,6 +62,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-talos-dev",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
@@ -77,6 +78,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result-dev",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify":{
