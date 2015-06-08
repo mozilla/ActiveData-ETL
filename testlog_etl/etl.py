@@ -15,7 +15,7 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot
+from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
@@ -319,7 +319,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[{
             "name": ["--id"],
-            "help": "id to process",
+            "help": "id(s) to process.  Use \"..\" for a range.",
             "type": str,
             "dest": "id",
             "required": False
@@ -364,13 +364,26 @@ def etl_one(settings):
         if id(source) in already_in_queue:
             continue
         try:
-            data = source.get_key(settings.args.id)
-            if data != None:
-                already_in_queue.add(id(source))
-                queue.add(Dict(
-                    bucket=w.source.bucket,
-                    key=settings.args.id
-                ))
+            if settings.args.id.find("..") >= 0:
+                #range of ids
+                min_, max_ = map(int, map(strings.trim, settings.args.id.split("..")))
+                for i in range(min_, max_ + 1):
+                    data = source.get_key(i)
+                    if data != None:
+                        already_in_queue.add(id(source))
+                        queue.add(Dict(
+                            bucket=w.source.bucket,
+                            key=i
+                        ))
+            else:
+                #SINGLE KEY
+                data = source.get_key(settings.args.id)
+                if data != None:
+                    already_in_queue.add(id(source))
+                    queue.add(Dict(
+                        bucket=w.source.bucket,
+                        key=settings.args.id
+                    ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
                 already_in_queue.add(id(source))

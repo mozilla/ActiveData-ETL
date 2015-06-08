@@ -81,6 +81,8 @@ class HgMozillaOrg(object):
             return Null
         elif rev == "None":
             return Null
+        elif revision.branch.name==None:
+            return Null
 
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision)
@@ -93,7 +95,8 @@ class HgMozillaOrg(object):
             except Exception, e:
                 if revision.branch.name not in self.hg_problems:
                     self.hg_problems[revision.branch.name] = e
-                    Log.warning("Can not get push from hg", e)
+                    Log.warning("Can not get push ({{branch}}, {{revision}}) from hg", branch=revision.branch.name, revision=revision.changeset.id, cause=e)
+                return None
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
             return self.get_revision(revision)
