@@ -257,7 +257,7 @@ class Index(object):
                 data_bytes = "\n".join(lines) + "\n"
                 data_bytes = data_bytes.encode("utf8")
             except Exception, e:
-                Log.error("can not make request body from\n{{lines|indent}}",  lines= lines, cause=e)
+                Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
 
 
             response = self.cluster._post(
