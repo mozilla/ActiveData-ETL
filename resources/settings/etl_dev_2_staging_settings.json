@@ -59,6 +59,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
+				"public": true,
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -81,6 +82,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-test-result",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify":{
