@@ -43,7 +43,6 @@ class HgMozillaOrg(object):
         self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
-        self.hg_problems = Dict()
 
         # TO ESTABLISH DATA
         self.es.add({"id":"b3649fd5cd7a-mozilla-inbound", "value":{
@@ -81,6 +80,8 @@ class HgMozillaOrg(object):
             return Null
         elif rev == "None":
             return Null
+        elif revision.branch.name==None:
+            return Null
 
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision)
@@ -91,9 +92,7 @@ class HgMozillaOrg(object):
             try:
                 self._load_all_in_push(revision)
             except Exception, e:
-                if revision.branch.name not in self.hg_problems:
-                    self.hg_problems[revision.branch.name] = e
-                    Log.warning("Can not get push from hg", e)
+                return None
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
             return self.get_revision(revision)
@@ -101,10 +100,6 @@ class HgMozillaOrg(object):
         try:
             output = self._get_from_hg(revision)
         except Exception, e:
-            if revision.branch.name not in self.hg_problems:
-                self.hg_problems[revision.branch.name] = e
-                Log.warning("Can not get revision from hg", e)
-
             return None
 
         output.changeset.id12 = output.changeset.id[0:12]

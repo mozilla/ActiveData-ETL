@@ -17,6 +17,7 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
+from testlog_etl.etl import parse_id_argument
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 
@@ -41,7 +42,8 @@ def copy2es(es, settings, work_queue, please_stop=None):
             else:
                 sample_filter = None
 
-            num_keys = es.copy([key], bucket, sample_filter, settings.sample_size)
+            more_keys = bucket.keys(prefix=key + ":")
+            num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
         if num_keys > 1:
             Log.note(
@@ -111,7 +113,7 @@ def main():
 
         if settings.args.id:
             work_queue = Queue("local work queue")
-            work_queue.add(settings.args.id)
+            work_queue.extend(parse_id_argument(settings.args.id))
         else:
             work_queue = aws.Queue(settings=settings.work_queue)
 
