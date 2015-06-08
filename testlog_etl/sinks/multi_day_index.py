@@ -87,7 +87,7 @@ class MultiDayIndex(object):
                             break
                     else:
                         #FAST
-                        strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
+                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
 
                         #SLOW
