@@ -195,7 +195,7 @@ def transform_buildbot(payload, resources, filename=None):
     except Exception, e:
         if "Unknown push" in e:
             cause = listwrap(e.cause)[0]
-            Log.note(cause.template, default_params=cause.params)
+            Log.note(cause.template, **cause.params)
         else:
             Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
 
