@@ -186,7 +186,7 @@ class HgMozillaOrg(object):
             changeset=revision.changeset.id
         )
 
-        url = revision.branch.url + "/json-pushes?full=1&changeset=" + revision.changeset.id
+        url = revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + revision.changeset.id
         try:
             response = self._get_and_retry(url)
             data = convert.json2value(response.all_content.decode("utf8"))
