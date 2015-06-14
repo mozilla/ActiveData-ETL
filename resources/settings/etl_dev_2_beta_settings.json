@@ -16,8 +16,21 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"hg":{
-		"cache": {
+		"url":"https://hg.mozilla.org",
+		"branches": {
 			"host": "http://192.168.2.98",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"repo": {
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
@@ -27,8 +40,7 @@
 			},
 			"debug": false,
 			"limit_replicas": false
-		},
-		"treeherder":{"$ref":"//./treeherder.json"}
+		}
 	},
 	"workers": [
 		{
@@ -81,6 +93,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result-beta",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify":{

@@ -51,44 +51,14 @@ def _config_fabric(connect, instance):
     env.host_string = instance.ip_address
     env.abort_exception = Log.error
 
-def _start_es():
-    File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
-    with cd("/home/ec2-user/"):
-        put("./results/temp/start_es.sh", "start_es.sh")
-        run("chmod u+x start_es.sh")
 
-    with cd("/usr/local/elasticsearch/"):
-        sudo("/home/ec2-user/start_es.sh")
-
-
-
-def _refresh_indexer():
-
-    result = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
-    if not result:
-        _start_es()
-
-    with cd("/home/ec2-user/TestLog-ETL/"):
-        result = run("git pull origin push-to-es")
+def _refresh_etl():
+    with cd("~/TestLog-ETL/"):
+        result = run("git pull origin etl")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
-            # KILL EXISTING "python27" PROCESS
-            with fabric_settings(warn_only=True):
-                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-            Thread.sleep(seconds=5)
-
-        result = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-        if not result:
-            with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
-
-
-def _run_remote(command, name):
-    File("./results/temp/" + name + ".sh").write("nohup " + command + " >& /dev/null < /dev/null &\nsleep 20")
-    put("./results/temp/" + name + ".sh", "" + name + ".sh")
-    run("chmod u+x " + name + ".sh")
-    run("./" + name + ".sh")
+            sudo("supervisorctl restart all")
 
 
 def main():
@@ -109,7 +79,7 @@ def main():
         for i in instances:
             Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
             _config_fabric(settings.fabric, i)
-            _refresh_indexer()
+            _refresh_etl()
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

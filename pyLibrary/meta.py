@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from collections import Mapping
+from repr import Repr
 from types import FunctionType
 from pyLibrary import dot
 from pyLibrary.debugs.logs import Log, Except
@@ -205,7 +206,7 @@ class cache(object):
         if lock:
             self.locker = Lock()
         else:
-            self.locker = FakeLock()
+            self.locker = _FakeLock()
 
     def __call__(self, func):
         return wrap_function(self, func)
@@ -215,7 +216,7 @@ class _SimpleCache(object):
 
     def __init__(self):
         self.timeout = Null
-        self.locker = FakeLock()
+        self.locker = _FakeLock()
 
 
 def wrap_function(cache_store, func_):
@@ -245,7 +246,7 @@ def wrap_function(cache_store, func_):
 
             if Random.int(100) == 0:
                 # REMOVE OLD CACHE
-                _cache = {k: v for k, v in _cache.items() if v[0] < now}
+                _cache = {k: v for k, v in _cache.items() if v[0]==None or v[0] < now}
                 setattr(self, attr_name, _cache)
 
             timeout, key, value, exception = _cache.get(args, (Null, Null, Null, Null))
@@ -273,7 +274,18 @@ def wrap_function(cache_store, func_):
     return output
 
 
-class FakeLock():
+_repr = Repr()
+_repr.maxlevel = 2
+
+
+def repr(obj):
+    """
+    JUST LIKE __builtin__.repr(), BUT WITH SOME REASONABLE LIMITS
+    """
+    return _repr.repr(obj)
+
+
+class _FakeLock():
 
 
     def __enter__(self):

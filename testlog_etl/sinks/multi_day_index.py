@@ -7,14 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
-from pyLibrary.times.dates import Date
 from testlog_etl import key2etl, etl2path
 
 
@@ -36,25 +35,6 @@ class MultiDayIndex(object):
         es.set_refresh_interval(seconds=60 * 60)
         self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
         self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
-        #FORCE AT LEAST ONE INDEX TO EXIST
-        dummy = wrap({"build": {"date": Date.now().unix}})
-
-    # def _get_queue(self, d):
-    #     date = Date(coalesce(d.build.date, d.run.timestamp)).floor(NEW_INDEX_INTERVAL)
-    #     if not date:
-    #         Log.error("Can not get date from document")
-    #     name = self.settings.index + "_" + date.format("%Y-%m-%d")
-    #     uid = date.unix
-    #
-    #     queue = self.indicies.get(uid)
-    #     if queue==None:
-    #         es = elasticsearch.Cluster(self.settings).get_or_create_index(index=name, settings=self.settings)
-    #         es.add_alias(self.settings.index)
-    #         es.set_refresh_interval(seconds=60 * 60)
-    #         queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
-    #         self.indicies[uid] = queue
-    #
-    #     return queue
 
     def __getattr__(self, item):
         return getattr(self.es, item)
@@ -96,6 +76,11 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:
                         value = convert.json2value(line)
+                        if len(line) > 1000000:
+                            # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests)", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
+                            value.result.subtests = None
+                            value.result.missing_subtests = True
+
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
                         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
@@ -105,15 +90,17 @@ class MultiDayIndex(object):
                             num_keys += 1
                             self.queue.add(row)
                             break
-                    else:
-                        #FAST
-                        #strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
-                        # row = {"id": _id, "json": line}
-
-                        #SLOW
+                    elif len(line) > 1000000:
                         value = convert.json2value(line)
+                        # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests).", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
+                        value.result.subtests = None
+                        value.result.missing_subtests = True
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
+                    else:
+                        #FAST
+                        _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
+                        row = {"id": _id, "json": line}
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:

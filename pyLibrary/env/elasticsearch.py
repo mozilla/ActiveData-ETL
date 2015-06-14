@@ -257,7 +257,7 @@ class Index(object):
                 data_bytes = "\n".join(lines) + "\n"
                 data_bytes = data_bytes.encode("utf8")
             except Exception, e:
-                Log.error("can not make request body from\n{{lines|indent}}",  lines= lines, cause=e)
+                Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
 
 
             response = self.cluster._post(
@@ -289,10 +289,8 @@ class Index(object):
                     Log.error("version not supported {{version}}",  version=self.cluster.version)
 
             if self.debug:
-                Log.note("{{num}} documents added",  num= len(items))
+                Log.note("{{num}} documents added", num=len(items))
         except Exception, e:
-            if e.message.startswith("sequence item "):
-                Log.error("problem with {{data}}",  data= repr(lines[int(e.message[14:16].strip())]), cause=e)
             Log.error("problem sending to ES", e)
 
 
@@ -359,7 +357,14 @@ class Index(object):
             )
 
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
-        return ThreadedQueue("push to elasticsearch: " + self.settings.index, self, batch_size=batch_size, max_size=max_size, period=period, silent=silent)
+        return ThreadedQueue(
+            "push to elasticsearch: " + self.settings.index,
+            self,
+            batch_size=batch_size,
+            max_size=max_size,
+            period=period,
+            silent=silent
+        )
 
     def delete(self):
         self.cluster.delete_index(index=self.settings.index)

@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import elasticsearch
 
 from testlog_etl.imports.repos.changesets import Changeset
@@ -23,7 +24,6 @@ from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, SECOND, Duration
-from testlog_etl.imports.treeherder import TreeHerder
 
 
 class HgMozillaOrg(object):
@@ -32,20 +32,20 @@ class HgMozillaOrg(object):
     @use_settings
     def __init__(
         self,
-        treeherder,
-        cache,
+        branches,
+        repo,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
-        self.branches = TreeHerder(settings=treeherder).get_branches()
-        self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
+        self.branches = self.get_branches()
+        self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
 
         # TO ESTABLISH DATA
-        self.es.add({"id":"b3649fd5cd7a-mozilla-inbound", "value":{
+        self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {
             "index": 247152,
             "branch": {
                 "name": "mozilla-inbound"
@@ -80,18 +80,29 @@ class HgMozillaOrg(object):
             return Null
         elif rev == "None":
             return Null
+        elif revision.branch.name == None:
+            return Null
 
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision)
             if doc:
-                Log.note("Got hg {{revision}} from ES", revision=doc.changeset.id)
+                Log.note("Got hg ({{branch}}, {{revision}}) from ES", branch=doc.branch.name, revision=doc.changeset.id)
                 return doc
 
-            self._load_all_in_push(revision)
+            try:
+                self._load_all_in_push(revision)
+            except Exception, e:
+                Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
+                return None
+
             # THE cache IS FILLED, CALL ONE LAST TIME...
             return self.get_revision(revision)
 
-        output = self._get_from_hg(revision)
+        try:
+            output = self._get_from_hg(revision)
+        except Exception, e:
+            return None
+
         output.changeset.id12 = output.changeset.id[0:12]
         output.branch = {
             "name": output.branch.name,
@@ -158,10 +169,15 @@ class HgMozillaOrg(object):
     def _load_all_in_push(self, revision):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
 
+
         if isinstance(revision.branch, basestring):
-            revision.branch = self.branches[revision.branch]
+            lower_name = revision.branch.lower()
         else:
-            revision.branch = self.branches[revision.branch.name.lower()]
+            lower_name = revision.branch.name.lower()
+
+        revision.branch = self.branches[lower_name]
+        if not revision.branch:
+            Log.error("can not find branch {{name|quote}}", name=lower_name)
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{changeset}})",
@@ -204,3 +220,18 @@ class HgMozillaOrg(object):
                 return http.get(url.replace("https://", "http://"), **kwargs)
             except Exception, f:
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+
+    def get_branches(self):
+        es = elasticsearch.Index(settings=self.settings.branches)
+        query = {
+            "query": {"match_all": {}},
+            "size": 2000
+        }
+
+        docs = es.search(query).hits.hits._source
+        for d in docs:
+            d.name=d.name.lower()
+        try:
+            return UniqueIndex(["name"], data=docs)
+        except Exception, e:
+            Log.error("Bad branch in ES index", cause=e)

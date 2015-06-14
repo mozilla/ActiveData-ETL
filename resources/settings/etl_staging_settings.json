@@ -16,7 +16,20 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
-		"cache": {
+		"url":"https://hg.mozilla.org",
+		"branches": {
+			"host": "http://172.31.0.233",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"repo": {
 			"host": "http://172.31.0.233",
 			"port": 9200,
 			"index": "repo",
@@ -27,8 +40,7 @@
 			},
 			"debug": false,
 			"limit_replicas": false
-		},
-		"treeherder":{"$ref":"//./treeherder.json"}
+		}
 	},
 	"workers": [
 		{
@@ -59,6 +71,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
+				"public": true,
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -81,6 +94,7 @@
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-test-result",
+				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify":{
