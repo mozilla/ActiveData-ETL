@@ -42,7 +42,7 @@
 					"store": true
 				},
 				"description": {
-					"index": "true",
+					"index": "analyzed",
 					"type": "string",
 					"store": true
 				}
