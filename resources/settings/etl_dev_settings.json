@@ -14,20 +14,18 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
-		"url":"https://hg.mozilla.org",
 		"cache":{
 			"host": "http://192.168.2.98",
 			"port": 9200,
-			"index": "repo",
-			"type": "revision",
+			"index": "branches",
+			"type": "branch",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/revision.json"
+				"$ref": "//../schema/branch.json"
 			},
 			"debug": false,
 			"limit_replicas": true
-		},
-		"treeherder":{"$ref":"//./treeherder.json"}
+		}
 	},
 	"workers": [
 		{

@@ -19,16 +19,15 @@
 		"cache": {
 			"host": "http://172.31.0.233",
 			"port": 9200,
-			"index": "repo",
-			"type": "revision",
+			"index": "branches",
+			"type": "branch",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/revision.json"
+				"$ref": "//../schema/branch.json"
 			},
 			"debug": false,
 			"limit_replicas": false
-		},
-		"treeherder":{"$ref":"//./treeherder.json"}
+		}
 	},
 	"workers": [
 		{
@@ -59,6 +58,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
+				"public": true,
 				"key_format": "a:b"
 			},
 			"destination": {

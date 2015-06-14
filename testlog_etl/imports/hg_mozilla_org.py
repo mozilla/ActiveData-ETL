@@ -221,5 +221,5 @@ class HgMozillaOrg(object):
             "size": 2000
         }
 
-        docs = es.search(query).hits.hits
+        docs = es.search(query).hits.hits._source
         return UniqueIndex(["name"], data=docs)
