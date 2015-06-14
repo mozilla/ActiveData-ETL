@@ -101,6 +101,7 @@ class HgMozillaOrg(object):
         try:
             output = self._get_from_hg(revision)
         except Exception, e:
+            Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
             return None
 
         output.changeset.id12 = output.changeset.id[0:12]

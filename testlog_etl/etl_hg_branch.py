@@ -12,15 +12,11 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from BeautifulSoup import BeautifulSoup
-from pyLibrary import strings
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, Dict
-from pyLibrary.dot.objects import dictwrap
+from pyLibrary.dot import Dict
 from pyLibrary.env import elasticsearch, http
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 

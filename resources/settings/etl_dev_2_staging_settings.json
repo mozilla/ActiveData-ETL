@@ -16,7 +16,6 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"hg":{
-		"url":"https://hg.mozilla.org",
 		"branches": {
 			"host": "http://54.149.35.214",
 			"port": 9200,
