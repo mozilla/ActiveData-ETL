@@ -16,7 +16,19 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
-		"cache": {
+		"branches": {
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"repo": {
 			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
@@ -27,8 +39,7 @@
 			},
 			"debug": false,
 			"limit_replicas": false
-		},
-		"treeherder":{"$ref":"//./treeherder.json"}
+		}
 	},
 	"workers": [
 		{

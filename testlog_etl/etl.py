@@ -265,7 +265,7 @@ class ETL(Thread):
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
-
+''
 def get_container(settings):
     if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
         return settings

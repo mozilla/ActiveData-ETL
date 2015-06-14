@@ -32,14 +32,15 @@ class HgMozillaOrg(object):
     @use_settings
     def __init__(
         self,
-        cache,
+        branches,
+        repo,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
         self.branches = self.get_branches()
-        self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
+        self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
 
@@ -91,6 +92,7 @@ class HgMozillaOrg(object):
             try:
                 self._load_all_in_push(revision)
             except Exception, e:
+                Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
                 return None
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
@@ -99,6 +101,7 @@ class HgMozillaOrg(object):
         try:
             output = self._get_from_hg(revision)
         except Exception, e:
+            Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
             return None
 
         output.changeset.id12 = output.changeset.id[0:12]
@@ -167,10 +170,15 @@ class HgMozillaOrg(object):
     def _load_all_in_push(self, revision):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
 
+
         if isinstance(revision.branch, basestring):
-            revision.branch = self.branches[revision.branch]
+            lower_name = revision.branch.lower()
         else:
-            revision.branch = self.branches[revision.branch.name.lower()]
+            lower_name = revision.branch.name.lower()
+
+        revision.branch = self.branches[lower_name]
+        if not revision.branch:
+            Log.error("can not find branch {{name|quote}}", name=lower_name)
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{changeset}})",
@@ -215,11 +223,16 @@ class HgMozillaOrg(object):
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
     def get_branches(self):
-        es = elasticsearch.Index(settings=self.settings.cache)
+        es = elasticsearch.Index(settings=self.settings.branches)
         query = {
             "query": {"match_all": {}},
             "size": 2000
         }
 
         docs = es.search(query).hits.hits._source
-        return UniqueIndex(["name"], data=docs)
+        for d in docs:
+            d.name=d.name.lower()
+        try:
+            return UniqueIndex(["name"], data=docs)
+        except Exception, e:
+            Log.error("Bad branch in ES index", cause=e)
