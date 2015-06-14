@@ -191,7 +191,8 @@ def transform_buildbot(payload, resources, filename=None):
     ]
 
     try:
-        output.repo = resources.hg.get_revision(Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision)))
+        rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
+        output.repo = resources.hg.get_revision(rev)
     except Exception, e:
         if "Unknown push" in e:
             cause = listwrap(e.cause)[0]

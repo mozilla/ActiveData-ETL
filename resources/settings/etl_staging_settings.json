@@ -16,7 +16,8 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
-		"cache": {
+		"url":"https://hg.mozilla.org",
+		"branches": {
 			"host": "http://172.31.0.233",
 			"port": 9200,
 			"index": "branches",
@@ -24,6 +25,18 @@
 			"timeout": 300,
 			"schema": {
 				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"repo": {
+			"host": "http://172.31.0.233",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
 			},
 			"debug": false,
 			"limit_replicas": false

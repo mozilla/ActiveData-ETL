@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from BeautifulSoup import BeautifulSoup
+from pyLibrary import strings
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
@@ -35,11 +36,9 @@ def get_branches(settings):
     all_repos = doc("table")[1]
     branches = []
     for i, r in enumerate(all_repos("tr")):
-        if i == 0:
-            continue  # IGNORE HEADER
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = get_branch(settings, name, dir)
+        b = get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
     return branches
 
@@ -91,7 +90,7 @@ def main():
 
         branches = get_branches(settings.hg)
 
-        es = elasticsearch.Cluster(settings=settings.hg.cache).get_or_create_index(settings=settings.hg.cache)
+        es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
         es.extend({"id": b.name, "value": b} for b in branches)
         Log.alert("DONE!")
