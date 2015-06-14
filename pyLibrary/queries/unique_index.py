@@ -70,7 +70,7 @@ class UniqueIndex(object):
             self.count += 1
         elif d is not val:
             if self.fail_on_dup:
-                Log.error("key {{key|json}} already filled",  key=key)
+                Log.error("key {{key|json}} already filled", key=key)
             else:
                 Log.warning("key {{key|json}} already filled\nExisting\n{{existing|json|indent}}\nValue\n{{value|json|indent}}",
                     key=key,

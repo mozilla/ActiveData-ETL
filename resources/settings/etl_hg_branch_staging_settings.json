@@ -1,0 +1,37 @@
+{
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"hg":{
+		"url":"https://hg.mozilla.org",
+		"cache":{
+			"host": "http://http://172.31.0.233",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		}
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Staging] Problem reading branches from hg.mozilla.org",
+				"$ref": "file://~/private.json#email"
+			}
+		]
+	}
+}

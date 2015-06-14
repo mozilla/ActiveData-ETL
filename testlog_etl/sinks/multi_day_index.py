@@ -77,7 +77,7 @@ class MultiDayIndex(object):
                     if rownum == 0:
                         value = convert.json2value(line)
                         if len(line) > 1000000:
-                            Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests)", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
+                            # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests)", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
                             value.result.subtests = None
                             value.result.missing_subtests = True
 
@@ -92,7 +92,7 @@ class MultiDayIndex(object):
                             break
                     elif len(line) > 1000000:
                         value = convert.json2value(line)
-                        Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests).", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
+                        # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests).", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
                         value.result.subtests = None
                         value.result.missing_subtests = True
                         _id, value = _fix(value)

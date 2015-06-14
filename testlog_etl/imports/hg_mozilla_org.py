@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import elasticsearch
 
 from testlog_etl.imports.repos.changesets import Changeset
@@ -17,13 +18,12 @@ from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, Dict
+from pyLibrary.dot import set_default, Null, coalesce
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, SECOND, Duration
-from testlog_etl.imports.treeherder import TreeHerder
 
 
 class HgMozillaOrg(object):
@@ -32,20 +32,19 @@ class HgMozillaOrg(object):
     @use_settings
     def __init__(
         self,
-        treeherder,
         cache,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
-        self.branches = TreeHerder(settings=treeherder).get_branches()
+        self.branches = self.get_branches()
         self.es = elasticsearch.Cluster(settings=cache).get_or_create_index(settings=cache)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
 
         # TO ESTABLISH DATA
-        self.es.add({"id":"b3649fd5cd7a-mozilla-inbound", "value":{
+        self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {
             "index": 247152,
             "branch": {
                 "name": "mozilla-inbound"
@@ -80,7 +79,7 @@ class HgMozillaOrg(object):
             return Null
         elif rev == "None":
             return Null
-        elif revision.branch.name==None:
+        elif revision.branch.name == None:
             return Null
 
         if not self.current_push:
@@ -214,3 +213,13 @@ class HgMozillaOrg(object):
                 return http.get(url.replace("https://", "http://"), **kwargs)
             except Exception, f:
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+
+    def get_branches(self):
+        es = elasticsearch.Index(settings=self.settings.cache)
+        query = {
+            "query": {"match_all": {}},
+            "size": 2000
+        }
+
+        docs = es.search(query).hits.hits._source
+        return UniqueIndex(["name"], data=docs)

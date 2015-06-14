@@ -11,10 +11,10 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from collections import Mapping
-
 import json
 from json import encoder as json_encoder_module
 from math import floor
+from repr import Repr
 import time
 import sys
 from datetime import datetime, date, timedelta
@@ -40,6 +40,7 @@ json_decoder = json.JSONDecoder().decode
 
 
 use_pypy = False
+
 try:
     # UnicodeBuilder IS ABOUT 2x FASTER THAN list()
     from __pypy__.builders import UnicodeBuilder
@@ -132,7 +133,7 @@ class cPythonJSONEncoder(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log, Except
             e = Except.wrap(e)
-            Log.warning("problem serializing {{type}}", type=repr(value), cause=e)
+            Log.warning("problem serializing {{type}}", type=_repr(value), cause=e)
             raise e
 
 
@@ -193,11 +194,11 @@ def _value2json(value, _buffer):
         else:
             from pyLibrary.debugs.logs import Log
 
-            Log.error(repr(value) + " is not JSON serializable")
+            Log.error(_repr(value) + " is not JSON serializable")
     except Exception, e:
         from pyLibrary.debugs.logs import Log
 
-        Log.error(repr(value) + " is not JSON serializable", e)
+        Log.error(_repr(value) + " is not JSON serializable", e)
 
 
 def _list2json(value, _buffer):
@@ -386,7 +387,7 @@ def problem_serializing(value, e=None):
         typename = "<error getting name>"
 
     try:
-        rep = repr(value)
+        rep = _repr(value)
     except Exception, _:
         rep = None
 
@@ -438,6 +439,14 @@ def datetime2milli(d, type):
         return long(diff.total_seconds()) * 1000L + long(diff.microseconds / 1000)
     except Exception, e:
         problem_serializing(d, e)
+
+
+_repr_ = Repr()
+_repr_.maxlevel = 2
+
+def _repr(obj):
+    return _repr_.repr(obj)
+
 
 
 
