@@ -37,11 +37,13 @@ def diff(settings, please_stop=None):
     bucket = s3.Bucket(settings.source)
     work_queue = aws.Queue(settings=settings.work_queue)
 
-    for block in in_s3:
-        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
-        work_queue.extend(keys)
-        Log.note("Done {{block}} ({{num}} keys)",  block= block,  num= len(keys))
+    work_queue.extend(map(unicode, in_s3))
 
+    # EXPLICIT KEYS
+    # for block in in_s3:
+    #     keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
+    #     work_queue.extend(keys)
+    #     Log.note("Done {{block}} ({{num}} keys)", block=block, num=len(keys))
 
 def get_all_in_es(es):
     in_es = set()

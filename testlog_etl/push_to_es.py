@@ -32,6 +32,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
         if key == None:
             continue
 
+        key = unicode(key)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:

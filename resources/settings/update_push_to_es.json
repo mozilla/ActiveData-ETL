@@ -9,7 +9,8 @@
 		"host_string": "",
 		"port": 22,
 		"password": "",
-		"keepalive": 1
+		"keepalive": 1,
+		"banner_timeout": 30
 	}
 
 
