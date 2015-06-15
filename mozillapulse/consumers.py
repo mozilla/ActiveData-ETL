@@ -1,25 +1,16 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-from sys import stdout
 
+import logging
 import uuid
-
 from socket import timeout as socket_timeout
+
 from amqp import ChannelError
 from kombu import Connection, Exchange, Queue
 
-from config import PulseConfiguration
-
-# Exceptions we can raise
+from mozillapulse.config import PulseConfiguration
 from mozillapulse.publishers import InvalidExchange
-try:
-    from pyLibrary.debugs.logs import Log2
-except Exception, _:
-    class Log(object):
-        @staticmethod
-        def warning(message, *args, **kwargs):
-            stdout.write(message + "\n")
 
 
 class InvalidTopic(Exception):
@@ -194,12 +185,12 @@ class GenericConsumer(object):
         while True:
             try:
                 self.connection.drain_events(timeout=self.timeout)
-            except socket_timeout, _:
-                Log.warning("timeout, full restart required")
+            except socket_timeout:
+                logging.warning("timeout, full restart required")
                 try:
                     self.disconnect()
                 except Exception, e:
-                    Log.warning("Problem with disconnect()", e)
+                    logging.warning("Problem with disconnect()", e)
                 break
 
     def _check_params(self):

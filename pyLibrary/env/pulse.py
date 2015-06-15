@@ -11,12 +11,14 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from mozillapulse.consumers import GenericConsumer
-
+from pyLibrary.debugs import constants
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import unwrap, wrap, coalesce
+from pyLibrary.dot import wrap, coalesce
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
+
+from mozillapulse.consumers import GenericConsumer
+constants.set({"mozillapulse": {"consumers": {"logging": Log}}})
 
 
 class Pulse(Thread):

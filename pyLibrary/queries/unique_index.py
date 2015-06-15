@@ -78,6 +78,10 @@ class UniqueIndex(object):
                     value=val
                 )
 
+    def extend(self, values):
+        for v in values:
+            self.add(v)
+
     def remove(self, val):
         key = value2key(self._keys, dictwrap(val))
         if key == None:

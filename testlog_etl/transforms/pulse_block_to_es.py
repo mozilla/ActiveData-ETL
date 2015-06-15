@@ -17,6 +17,7 @@ from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
+from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 from testlog_etl.imports.repos.changesets import Changeset
 from testlog_etl.imports.repos.revisions import Revision
 
@@ -192,12 +193,8 @@ def transform_buildbot(payload, resources, filename=None):
 
     try:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
-        output.repo = resources.hg.get_revision(rev)
+        output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
     except Exception, e:
-        if "Unknown push" in e:
-            cause = listwrap(e.cause)[0]
-            Log.note(cause.template, **cause.params)
-        else:
-            Log.warning("Can not get revision ({{branch}}, {{revision}})", revision=output.build.revision, branch=output.build.branch, cause=e)
+        Log.warning("Can not get revision for\n{{details|json|indent}}", details=output, cause=e)
 
     return output

@@ -10,18 +10,15 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from boto import ec2 as boto_ec2
-from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, shell_env
-from fabric.operations import run, put, sudo
+from fabric.context_managers import cd
+from fabric.operations import run, sudo
 from fabric.state import env
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap, wrap
 from pyLibrary.dot.objects import dictwrap
-from pyLibrary.env.files import File
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -57,8 +54,8 @@ def _refresh_etl():
         result = run("git pull origin etl")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
-        else:
-            sudo("supervisorctl restart all")
+            return
+        sudo("supervisorctl restart all")
 
 
 def main():
@@ -79,7 +76,11 @@ def main():
         for i in instances:
             Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
             _config_fabric(settings.fabric, i)
-            _refresh_etl()
+            try:
+                _refresh_etl()  # TODO: UPON FAILURE, TERMINATE INSTANCE AND SPOT REQUEST
+            except Exception, e:
+                ec2_conn.terminate_instances([i.id])
+                Log.warning("Problem resetting {{instance}}, terminated", instance=i.id, cause=e)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

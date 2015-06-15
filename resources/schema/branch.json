@@ -8,9 +8,6 @@
 			"_source": {
 				"compress": false
 			},
-			"_id": {
-				"path": "name"
-	        },
 			"_all": {
 				"enabled": false
 			},
