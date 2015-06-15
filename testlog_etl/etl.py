@@ -379,7 +379,7 @@ def etl_one(settings):
                     bucket=w.source.bucket,
                     key=settings.args.id
                 ))
-            pass
+            Log.warning("Problem", cause=e)
 
     resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
 
@@ -397,10 +397,6 @@ def etl_one(settings):
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def parse_id_argument(id):
     if id.find("..") >= 0:
         #range of ids
@@ -408,3 +404,9 @@ def parse_id_argument(id):
         return map(unicode, range(min_, max_ + 1))
     else:
         return [id]
+
+
+if __name__ == "__main__":
+    main()
+
+

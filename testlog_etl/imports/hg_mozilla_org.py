@@ -89,21 +89,12 @@ class HgMozillaOrg(object):
                 Log.note("Got hg ({{branch}}, {{revision}}) from ES", branch=doc.branch.name, revision=doc.changeset.id)
                 return doc
 
-            try:
-                self._load_all_in_push(revision)
-            except Exception, e:
-                Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
-                return None
+            self._load_all_in_push(revision)
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
             return self.get_revision(revision)
 
-        try:
-            output = self._get_from_hg(revision)
-        except Exception, e:
-            Log.warning("Can not load from hg:\n{{rev|json|indent}}", rev=revision, cause=e)
-            return None
-
+        output = self._get_from_hg(revision)
         output.changeset.id12 = output.changeset.id[0:12]
         output.branch = {
             "name": output.branch.name,
@@ -233,6 +224,6 @@ class HgMozillaOrg(object):
         for d in docs:
             d.name=d.name.lower()
         try:
-            return UniqueIndex(["name"], data=docs)
+            return UniqueIndex(["name"], data=docs, fail_on_dup=False)
         except Exception, e:
             Log.error("Bad branch in ES index", cause=e)

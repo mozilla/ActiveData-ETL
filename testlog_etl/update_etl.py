@@ -52,9 +52,9 @@ def _config_fabric(connect, instance):
 def _refresh_etl():
     with cd("~/TestLog-ETL/"):
         result = run("git pull origin etl")
-        # if result.find("Already up-to-date.") != -1:
-        #     Log.note("No change required")
-        #     return
+        if result.find("Already up-to-date.") != -1:
+            Log.note("No change required")
+            return
         sudo("supervisorctl restart all")
 
 
@@ -76,7 +76,11 @@ def main():
         for i in instances:
             Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
             _config_fabric(settings.fabric, i)
-            _refresh_etl()
+            try:
+                _refresh_etl()  # TODO: UPON FAILURE, TERMINATE INSTANCE AND SPOT REQUEST
+            except Exception, e:
+                ec2_conn.terminate_instances([i.id])
+                Log.warning("Problem resetting {{instance}}, terminated", instance=i.id, cause=e)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
