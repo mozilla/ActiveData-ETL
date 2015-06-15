@@ -30,17 +30,14 @@ def diff(settings, please_stop=None):
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     in_s3 = in_s3[500:500 + settings.limit:]
 
-    Log.note("Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES",
-        num= len(in_s3),
-        min= Math.MIN(in_s3),
-        max= Math.MAX(in_s3))
-    bucket = s3.Bucket(settings.source)
+    Log.note(
+        "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES",
+        num=len(in_s3),
+        min=Math.MIN(in_s3),
+        max=Math.MAX(in_s3)
+    )
     work_queue = aws.Queue(settings=settings.work_queue)
-
-    for block in in_s3:
-        keys = [k.key for k in bucket.list(prefix=unicode(block) + ":")]
-        work_queue.extend(keys)
-        Log.note("Done {{block}} ({{num}} keys)",  block= block,  num= len(keys))
+    work_queue.extend(in_s3)
 
 
 def get_all_in_es(es):

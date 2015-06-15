@@ -71,7 +71,6 @@ class MultiDayIndex(object):
     def copy(self, keys, source, sample_only_filter=None, sample_size=None):
         num_keys = 0
         for key in keys:
-            queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:

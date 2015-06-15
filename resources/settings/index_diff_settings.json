@@ -1,5 +1,5 @@
 {
-	"limit": 1000,
+	"limit": 10000,
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
