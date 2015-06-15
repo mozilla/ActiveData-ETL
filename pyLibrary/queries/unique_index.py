@@ -36,9 +36,17 @@ class UniqueIndex(object):
 
     def __getitem__(self, key):
         try:
-            key = value2key(self._keys, key)
-            d = self._data.get(key)
-            return wrap(d)
+            _key = value2key(self._keys, key)
+            if len(key)==len(self._keys):
+                d = self._data.get(_key)
+                return wrap(d)
+            else:
+                output = wrap([
+                    d
+                    for d in self._data.values()
+                    if all(d[k] == v for k, v in _key.items())
+                ])
+                return output
         except Exception, e:
             Log.error("something went wrong", e)
 

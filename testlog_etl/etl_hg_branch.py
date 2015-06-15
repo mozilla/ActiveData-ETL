@@ -40,7 +40,10 @@ def get_branches(settings):
         branches.extend(b)
 
     branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
-
+    for b in list(branches["mozilla-aurora", ]):
+        if b.locale == "en-US":
+            continue
+        branches.add(set_default({"name": "comm-aurora"}, b))
     return branches
 
 def get_branch(settings, description, dir):
