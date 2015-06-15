@@ -31,18 +31,18 @@ def get_branches(settings):
     doc = BeautifulSoup(response.all_content)
 
     all_repos = doc("table")[1]
-    branches = UniqueIndex(["name"], fail_on_dup=False)
+    branches = UniqueIndex(["name", "locale"], fail_on_dup=False)
     for i, r in enumerate(all_repos("tr")):
         dir, name = [v.text.strip() for v in r("td")]
 
         b = get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
 
-    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta"]))
+    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", "default"]))
 
     return branches
 
-def get_branch(settings, name, dir):
+def get_branch(settings, description, dir):
     if dir == "users":
         return []
     response = http.get(settings.url + "/" + dir)
@@ -63,17 +63,47 @@ def get_branch(settings, name, dir):
             path = columns[0].a.get('href')
             if path == "/":
                 continue
+
+            name, desc, last_used = [c.text for c in columns][0:3]
             detail = Dict(
-                name=columns[0].text.lower(),
-                parent_name=name,
+                name=name.lower(),
+                locale="default",
+                parent_name=description,
                 url=settings.url + path,
-                description=columns[1].text,
-                last_used=Date(columns[2].text)
+                description=desc,
+                last_used=Date(last_used)
             )
             if detail.description == "unknown":
                 detail.description = None
 
-            Log.note("Branch\n{{branch|json|indent}}", branch=detail)
+            # SOME BRANCHES HAVE NAME COLLISIONS, IGNORE LEAST POPULAR
+            if path in [
+                "/projects/dxr/",           # moved to webtools
+                "/build/compare-locales/",  # ?build team likes to clone?
+                "/build/puppet/",           # ?build team likes to clone?
+                "/SeaMonkey/puppet/"        # looses the popularity contest
+            ]:
+                continue
+
+            # MARKUP BRANCH IF LOCALE SPECIFIC
+            if path.startswith("/l10n-central"):
+                _path = path.strip("/").split("/")
+                detail.name = _path[-2].lower() + "-" + _path[-1].lower()
+            elif path.startswith("/releases/l10n/"):
+                _path = path.strip("/").split("/")
+                detail.locale = _path[-1].lower()
+                detail.name = _path[-2].lower()
+            elif path.startswith("/releases/gaia-l10n/"):
+                _path = path.strip("/").split("/")
+                detail.locale = _path[-1].lower()
+                detail.name = "gaia-" + _path[-2][1::]
+            elif path.startswith("/weave-l10n"):
+                _path = path.strip("/").split("/")
+                detail.locale = _path[-1].lower()
+                detail.name = "weave"
+
+
+            Log.note("Branch {{name}} {{locale}}", name=detail.name, locale=detail.locale)
             output.append(detail)
         except Exception, _:
             pass
@@ -92,7 +122,7 @@ def main():
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
-        es.extend({"id": b.name, "value": b} for b in branches)
+        es.extend({"id": b.name+" "+b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:
         Log.error("Problem with etl", e)
