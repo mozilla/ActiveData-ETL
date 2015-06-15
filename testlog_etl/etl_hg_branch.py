@@ -20,6 +20,7 @@ from pyLibrary.env import elasticsearch, http
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
+from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -38,7 +39,7 @@ def get_branches(settings):
         b = get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
 
-    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", "default"]))
+    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
 
     return branches
 
@@ -67,7 +68,7 @@ def get_branch(settings, description, dir):
             name, desc, last_used = [c.text for c in columns][0:3]
             detail = Dict(
                 name=name.lower(),
-                locale="default",
+                locale=DEFAULT_LOCALE,
                 parent_name=description,
                 url=settings.url + path,
                 description=desc,
@@ -78,10 +79,15 @@ def get_branch(settings, description, dir):
 
             # SOME BRANCHES HAVE NAME COLLISIONS, IGNORE LEAST POPULAR
             if path in [
-                "/projects/dxr/",           # moved to webtools
-                "/build/compare-locales/",  # ?build team likes to clone?
-                "/build/puppet/",           # ?build team likes to clone?
-                "/SeaMonkey/puppet/"        # looses the popularity contest
+                "/projects/dxr/",                   # moved to webtools
+                "/build/compare-locales/",          # ?build team likes to clone?
+                "/build/puppet/",                   # ?build team likes to clone?
+                "/SeaMonkey/puppet/",               # looses the popularity contest
+                "/releases/gaia-l10n/v1_2/en-US/",  # use default branch
+                "/releases/gaia-l10n/v1_3/en-US/",  # use default branch
+                "/releases/gaia-l10n/v1_4/en-US/",  # use default branch
+                "/releases/gaia-l10n/v2_0/en-US/",  # use default branch
+                "/releases/gaia-l10n/v2_1/en-US/"   # use default branch
             ]:
                 continue
 
@@ -91,15 +97,15 @@ def get_branch(settings, description, dir):
                 detail.name = _path[-2].lower() + "-" + _path[-1].lower()
             elif path.startswith("/releases/l10n/"):
                 _path = path.strip("/").split("/")
-                detail.locale = _path[-1].lower()
+                detail.locale = _path[-1]
                 detail.name = _path[-2].lower()
             elif path.startswith("/releases/gaia-l10n/"):
                 _path = path.strip("/").split("/")
-                detail.locale = _path[-1].lower()
+                detail.locale = _path[-1]
                 detail.name = "gaia-" + _path[-2][1::]
             elif path.startswith("/weave-l10n"):
                 _path = path.strip("/").split("/")
-                detail.locale = _path[-1].lower()
+                detail.locale = _path[-1]
                 detail.name = "weave"
 
 
