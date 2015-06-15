@@ -14,7 +14,7 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
-		"cache":{
+		"branches":{
 			"host": "http://192.168.2.98",
 			"port": 9200,
 			"index": "branches",
@@ -22,6 +22,18 @@
 			"timeout": 300,
 			"schema": {
 				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		},
+		"repo":{
+			"host": "http://192.168.2.98",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
 			},
 			"debug": false,
 			"limit_replicas": true

@@ -15,11 +15,9 @@ from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, Dict
-from pyLibrary.dot.objects import dictwrap
+from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 
@@ -33,14 +31,15 @@ def get_branches(settings):
     doc = BeautifulSoup(response.all_content)
 
     all_repos = doc("table")[1]
-    branches = []
+    branches = UniqueIndex(["name"], fail_on_dup=False)
     for i, r in enumerate(all_repos("tr")):
-        if i == 0:
-            continue  # IGNORE HEADER
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = get_branch(settings, name, dir)
+        b = get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
+
+    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta"]))
+
     return branches
 
 def get_branch(settings, name, dir):
@@ -65,7 +64,7 @@ def get_branch(settings, name, dir):
             if path == "/":
                 continue
             detail = Dict(
-                name=columns[0].text,
+                name=columns[0].text.lower(),
                 parent_name=name,
                 url=settings.url + path,
                 description=columns[1].text,
@@ -91,7 +90,7 @@ def main():
 
         branches = get_branches(settings.hg)
 
-        es = elasticsearch.Cluster(settings=settings.hg.cache).get_or_create_index(settings=settings.hg.cache)
+        es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
         es.extend({"id": b.name, "value": b} for b in branches)
         Log.alert("DONE!")

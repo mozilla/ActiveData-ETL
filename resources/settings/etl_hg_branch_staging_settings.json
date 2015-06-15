@@ -6,7 +6,7 @@
 	},
 	"hg":{
 		"url":"https://hg.mozilla.org",
-		"cache":{
+		"branches":{
 			"host": "http://http://172.31.0.233",
 			"port": 9200,
 			"index": "branches",
@@ -14,6 +14,18 @@
 			"timeout": 300,
 			"schema": {
 				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		},
+		"repo":{
+			"host": "http://http://172.31.0.233",
+			"port": 9200,
+			"index": "repo",
+			"type": "revisions",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
 			},
 			"debug": false,
 			"limit_replicas": true

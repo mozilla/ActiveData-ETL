@@ -8,7 +8,8 @@
 		"disable_known_hosts": true,
 		"host_string": "",
 		"port": 22,
-		"password": ""
+		"password": "",
+		"banner_timeout": 30
 	}
 
 
