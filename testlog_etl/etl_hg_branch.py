@@ -39,12 +39,16 @@ def get_branches(settings):
         b = get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
 
-    branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
+    # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
+    for b in list(branches["mozilla-beta", ]):
+        branches.add(set_default({"name": "release-mozilla-beta"}, b))
+
     for b in list(branches["mozilla-aurora", ]):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
     return branches
+
 
 def get_branch(settings, description, dir):
     if dir == "users":

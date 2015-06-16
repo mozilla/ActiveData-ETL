@@ -229,8 +229,25 @@ class HgMozillaOrg(object):
 
         docs = es.search(query).hits.hits._source
         for d in docs:
-            d.name=d.name.lower()
+            d.name = d.name.lower()
         try:
             return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
         except Exception, e:
             Log.error("Bad branch in ES index", cause=e)
+
+    def find_changeset(self, revision):
+        def _find(b, please_stop):
+            try:
+                url = b.url + "rev/" + revision
+                response = http.get(url)
+                if response.status_code == 200:
+                    Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
+            except Exception, e:
+                pass
+
+        threads = []
+        for b in self.branches:
+            threads.append(Thread.run("find changeset", _find, b))
+        for t in threads:
+            t.join()
+        pass
