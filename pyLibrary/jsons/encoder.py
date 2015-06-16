@@ -396,7 +396,8 @@ def problem_serializing(value, e=None):
             "type": typename
         }, e)
     else:
-        Log.error("Problem turning value ({{value}}) of type {{type}} to json",
+        Log.error(
+            "Problem turning value ({{value}}) of type {{type}} to json",
             value=rep,
             type=typename,
             cause=e

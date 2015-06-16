@@ -12,13 +12,14 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from collections import Mapping
+from collections import Mapping, Iterable
+from sets import BaseSet
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap, tuplewrap, wrap
 from pyLibrary.dot.objects import dictwrap
 
 
-class UniqueIndex(object):
+class UniqueIndex(BaseSet, Mapping):
     """
     DEFINE A SET OF ATTRIBUTES THAT UNIQUELY IDENTIFIES EACH OBJECT IN A list.
     THIS ALLOWS set-LIKE COMPARISIONS (UNION, INTERSECTION, DIFFERENCE, ETC) WHILE
@@ -133,6 +134,12 @@ class UniqueIndex(object):
             except Exception, e:
                 pass
         return output
+
+    def __xor__(self, other):
+        if not isinstance(other, Iterable):
+            Log.error("Expecting other to be iterable")
+        other = UniqueIndex(keys=self._keys, data=other, fail_on_dup=False)
+        return (self-other) | (other-self)
 
     def __len__(self):
         if self.count == 0:
