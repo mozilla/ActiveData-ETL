@@ -16,10 +16,11 @@ from collections import Mapping
 
 from datetime import datetime
 import os
+import platform
 import sys
 
 from pyLibrary.debugs import constants
-from pyLibrary.dot import coalesce, Dict, listwrap, wrap, unwrap, unwraplist
+from pyLibrary.dot import coalesce, Dict, listwrap, wrap, unwrap, unwraplist, Null
 from pyLibrary.jsons.encoder import json_encoder
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.strings import indent, expand_template
@@ -163,13 +164,14 @@ class Log(object):
             template=template,
             params=params,
             timestamp=datetime.utcnow(),
+            machine=machine_metadata.name
         )
 
         if not template.startswith("\n") and template.find("\n") > -1:
             template = "\n" + template
 
         if cls.trace:
-            log_template = "{{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
+            log_template = "{{machine}} - {{timestamp|datetime}} - {{thread.name}} - {{location.file}}:{{location.line}} ({{location.method}}) - " + template.replace("{{", "{{params.")
             f = sys._getframe(stack_depth + 1)
             log_params.location = {
                 "line": f.f_lineno,
@@ -179,7 +181,7 @@ class Log(object):
             thread = Thread.current()
             log_params.thread = {"name": thread.name, "id": thread.id}
         else:
-            log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
+            log_template = "{{machine}} - {{timestamp|datetime}} - " + template.replace("{{", "{{params.")
 
         cls.main_log.write(log_template, log_params)
 
@@ -656,6 +658,23 @@ def write_profile(profile_settings, stats):
     ]
     stats_file = File(profile_settings.filename, suffix=convert.datetime2string(datetime.now(), "_%Y%m%d_%H%M%S"))
     stats_file.write(convert.list2tab(stats))
+
+
+# GET THE MACHINE METADATA
+ec2 = Null
+try:
+    from pyLibrary import aws
+
+    ec2 = aws.get_instance_metadata()
+except Exception:
+    pass
+
+machine_metadata = wrap({
+    "python": platform.python_implementation(),
+    "os": (platform.system() + platform.release()).strip(),
+    "instance_type": ec2.instance_type,
+    "name": coalesce(ec2.instance_id, platform.node())
+})
 
 
 if not Log.main_log:
