@@ -1,0 +1,34 @@
+{
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		},
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 100000000
+	},
+	"debug": {
+		"trace": true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"class": "logging.handlers.RotatingFileHandler",
+				"filename": "./results/logs/th_dev.log",
+				"maxBytes": 10000000,
+				"backupCount": 100,
+				"encoding": "utf8"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Dev] Problem pulling data from TH",
+				"$ref": "file://~/private.json#email"
+			}
+		]
+	}
+}

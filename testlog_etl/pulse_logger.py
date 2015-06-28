@@ -15,7 +15,7 @@ from pyLibrary.collections.persistent_queue import PersistentQueue
 from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env.pulse import Pulse
+from pyLibrary.env import pulse
 from pyLibrary.queries import qb
 from pyLibrary.dot import set_default
 from pyLibrary.thread.threads import Thread
@@ -107,7 +107,7 @@ def main():
                     last_item = queue[len(queue) - 1]
                     synch.source_key = last_item._meta.count + 1
 
-                with Pulse(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
+                with pulse.Consumer(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
                     Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal(allow_exit=True)
                     Log.warning("starting shutdown")

@@ -35,14 +35,17 @@ class HgMozillaOrg(object):
     @use_settings
     def __init__(
         self,
-        branches,
-        repo,
+        repo=None,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
         self.branches = self.get_branches()
+
+        if repo == None:
+            return
+
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
@@ -221,10 +224,16 @@ class HgMozillaOrg(object):
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
     def get_branches(self):
+        if not self.settings.repo:
+            from testlog_etl import etl_hg_branch
+
+            return etl_hg_branch.get_branches(settings={"url": "https://hg.mozilla.org"})
+
+        #TRY ES
         es = elasticsearch.Index(settings=self.settings.branches)
         query = {
             "query": {"match_all": {}},
-            "size": 2000
+            "size": 20000
         }
 
         docs = es.search(query).hits.hits._source
@@ -234,6 +243,7 @@ class HgMozillaOrg(object):
             return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
         except Exception, e:
             Log.error("Bad branch in ES index", cause=e)
+
 
     def find_changeset(self, revision):
         def _find(b, please_stop):

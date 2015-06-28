@@ -58,7 +58,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
                         dest_bucket.get_key(k)
                         output |= {k}  # FOR DENSITY CALCULATIONS
-                    except Exception, _:
+                    except Exception:
                         _, dest_etl = etl_head_gen.next(etl_file, "talos")
                         dest_etl.error = "Talos log missing"
                         output |= dest_bucket.extend([{
