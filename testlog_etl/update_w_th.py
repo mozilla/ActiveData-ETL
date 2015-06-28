@@ -35,7 +35,8 @@ def main():
             ],
             "where": {"and": [
                 {"eq": {"result.ok": False}},
-                {"gt": {"run.timestamp": Date.today() - WEEK}}
+                {"gt": {"run.timestamp": Date.today() - WEEK}},
+                {"missing": "treeherder.job.note"}
             ]},
             "format": "list",
             "limit": 10
@@ -44,9 +45,9 @@ def main():
 
         th = TreeHerder(settings={})
 
-        th.get_job_classification("mozilla-inbound", "7380457b8ba0")
-        # for f in some_failures.data:
-        #     th.get_job_classification(f.branch, f.revision)
+        # th.get_job_classification("mozilla-inbound", "7380457b8ba0")
+        for f in some_failures.data:
+            th.get_job_classification(f.branch, f.revision)
 
     except Exception, e:
         Log.error("Problem with etl", e)

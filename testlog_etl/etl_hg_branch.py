@@ -17,6 +17,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
+from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
@@ -25,7 +26,7 @@ from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 
 EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
-
+@use_settings
 def get_branches(settings):
     # GET MAIN PAGE
     response = http.get(settings.url)
@@ -42,6 +43,9 @@ def get_branches(settings):
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
     for b in list(branches["mozilla-beta", ]):
         branches.add(set_default({"name": "release-mozilla-beta"}, b))
+
+    for b in list(branches["mozilla-release", ]):
+        branches.add(set_default({"name": "release-mozilla-release"}, b))
 
     for b in list(branches["mozilla-aurora", ]):
         if b.locale == "en-US":
@@ -115,7 +119,6 @@ def get_branch(settings, description, dir):
                 detail.locale = _path[-1]
                 detail.name = "weave"
 
-
             Log.note("Branch {{name}} {{locale}}", name=detail.name, locale=detail.locale)
             output.append(detail)
         except Exception, _:
@@ -135,7 +138,7 @@ def main():
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
-        es.extend({"id": b.name+" "+b.locale, "value": b} for b in branches)
+        es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:
         Log.error("Problem with etl", e)

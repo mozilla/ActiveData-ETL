@@ -37,7 +37,7 @@ class Log(object):
     """
     FOR STRUCTURED LOGGING AND EXCEPTION CHAINING
     """
-    trace = False
+    trace = False  # SHOW MACHINE AND LINE NUMBER
     main_log = None
     logging_multi = None
     profiler = None   # simple pypy-friendly profiler
@@ -181,7 +181,7 @@ class Log(object):
             thread = Thread.current()
             log_params.thread = {"name": thread.name, "id": thread.id}
         else:
-            log_template = "{{machine}} - {{timestamp|datetime}} - " + template.replace("{{", "{{params.")
+            log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
 
         cls.main_log.write(log_template, log_params)
 
