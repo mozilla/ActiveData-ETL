@@ -291,6 +291,8 @@ class Index(object):
             if self.debug:
                 Log.note("{{num}} documents added", num=len(items))
         except Exception, e:
+            if e.message.startswith("sequence item "):
+                Log.error("problem with {{data}}", data=repr(lines[int(e.message[14:16].strip())]), cause=e)
             Log.error("problem sending to ES", e)
 
 
