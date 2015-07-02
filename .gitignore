@@ -16,3 +16,5 @@ log.txt
 /resources/supervisor/etl.conf.alt
 /resources/aws/prices.json
 /mozillapulse/.svn
+/resources/settings/raptor_settings.json
+/testlog_etl/raptor.py

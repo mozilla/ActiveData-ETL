@@ -10,21 +10,24 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from collections import Mapping
+
 import json
+import time
+import sys
+
+from datetime import datetime, date, timedelta
+from decimal import Decimal
+from collections import Mapping
 from json import encoder as json_encoder_module
 from math import floor
 from repr import Repr
-import time
-import sys
-from datetime import datetime, date, timedelta
-from decimal import Decimal
 
-from pyLibrary.strings import utf82unicode
-from pyLibrary.dot import Dict, DictList
+from pyLibrary.dot import Dict, DictList, NullType
 from pyLibrary.jsons import quote, ESCAPE_DCT, scrub
+from pyLibrary.strings import utf82unicode
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
+
 
 json_decoder = json.JSONDecoder().decode
 
@@ -65,7 +68,7 @@ except Exception, e:
 append = UnicodeBuilder.append
 
 
-def _encode(value, pretty=False):
+def pypy_json_encode(value, pretty=False):
     """
     pypy DOES NOT OPTIMIZE GENERATOR CODE WELL
     """
@@ -139,7 +142,7 @@ class cPythonJSONEncoder(object):
 
 def _value2json(value, _buffer):
     try:
-        if value == None:
+        if value is None:
             append(_buffer, u"null")
             return
         elif value is True:
@@ -186,6 +189,8 @@ def _value2json(value, _buffer):
             append(_buffer, unicode(value.total_seconds()))
         elif type is Duration:
             append(_buffer, unicode(value.seconds))
+        elif type is NullType:
+            append(_buffer, u"null")
         elif hasattr(value, '__json__'):
             j = value.__json__()
             append(_buffer, j)
@@ -369,7 +374,7 @@ def pretty_json(value):
             except Exception, e:
                 pass
 
-            return _encode(value)
+            return pypy_json_encode(value)
 
     except Exception, e:
         problem_serializing(value, e)
@@ -396,7 +401,8 @@ def problem_serializing(value, e=None):
             "type": typename
         }, e)
     else:
-        Log.error("Problem turning value ({{value}}) of type {{type}} to json",
+        Log.error(
+            "Problem turning value ({{value}}) of type {{type}} to json",
             value=rep,
             type=typename,
             cause=e
@@ -455,6 +461,6 @@ def _repr(obj):
 # http://liangnuren.wordpress.com/2012/08/13/python-json-performance/
 # http://morepypy.blogspot.ca/2011/10/speeding-up-json-encoding-in-pypy.html
 if use_pypy:
-    json_encoder = _encode
+    json_encoder = pypy_json_encode
 else:
     json_encoder = cPythonJSONEncoder().encode

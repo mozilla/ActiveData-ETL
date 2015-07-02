@@ -51,6 +51,29 @@
 						"match_mapping_type": "string",
 						"match": "*"
 					}
+				},
+				{
+					"default_doubles": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "double",
+							"doc_values": true
+						},
+						"match_mapping_type": "double",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long|integer",
+						"match_pattern": "regex",
+						"path_match": ".*"
+					}
 				}
 			],
 			"properties": {

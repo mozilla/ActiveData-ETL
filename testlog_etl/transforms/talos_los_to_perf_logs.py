@@ -99,7 +99,7 @@ class Talos2ES():
             #ADD PUSH LOG INFO
             try:
                 with Profiler("get from pushlog"):
-                    revision = Revision(**{"branch": {"name":branch}, "changeset": {"id": r.build.revision}})
+                    revision = Revision(**{"branch": {"name": branch}, "changeset": {"id": r.build.revision}})
                     with self.locker:
                         revision = self.repo.get_revision(revision)
 

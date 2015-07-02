@@ -12,11 +12,13 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
+from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
+from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 from testlog_etl.imports.repos.changesets import Changeset
 from testlog_etl.imports.repos.revisions import Revision
 
@@ -118,7 +120,7 @@ def transform_buildbot(payload, resources, filename=None):
     output.run.insertion_time = payload.insertion_time
     output.run.key = payload.key
 
-    output.build.locale = payload.locale
+    output.build.locale = fix_locale(payload.locale)
     output.run.logurl = payload.logurl
     output.run.machine.os = payload.os
     output.machine.os = payload.os
@@ -192,8 +194,17 @@ def transform_buildbot(payload, resources, filename=None):
 
     try:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
-        output.repo = resources.hg.get_revision(rev)
+        output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
     except Exception, e:
         Log.warning("Can not get revision for\n{{details|json|indent}}", details=output, cause=e)
+        # resources.hg.find_changeset(output.build.revision)
 
     return output
+
+
+
+def fix_locale(locale):
+    # compensate for bug https://bugzilla.mozilla.org/show_bug.cgi?id=1174979
+    if locale.find("\"") == -1:
+        return locale
+    return strings.between(locale, "\"", "\"")

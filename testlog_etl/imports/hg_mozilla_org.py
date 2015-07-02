@@ -26,20 +26,26 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, SECOND, Duration
 
 
+DEFAULT_LOCALE = "en-US"
+
+
 class HgMozillaOrg(object):
     ""
 
     @use_settings
     def __init__(
         self,
-        branches,
-        repo,
+        repo=None,
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
         self.branches = self.get_branches()
+
+        if repo == None:
+            return
+
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
@@ -50,6 +56,7 @@ class HgMozillaOrg(object):
             "branch": {
                 "name": "mozilla-inbound"
             },
+            "locale": DEFAULT_LOCALE,
             "changeset": {
                 "id": "b3649fd5cd7a76506d2cf04f45e39cbc972fb553",
                 "id12": "b3649fd5cd7a",
@@ -70,7 +77,7 @@ class HgMozillaOrg(object):
         self.current_push = None
 
     @cache(duration=DAY, lock=True)
-    def get_revision(self, revision):
+    def get_revision(self, revision, locale=None):
         """
         EXPECTING INCOMPLETE revision
         RETURNS revision
@@ -84,32 +91,34 @@ class HgMozillaOrg(object):
             return Null
 
         if not self.current_push:
-            doc = self._get_from_elasticsearch(revision)
+            doc = self._get_from_elasticsearch(revision, locale=locale)
             if doc:
-                Log.note("Got hg ({{branch}}, {{revision}}) from ES", branch=doc.branch.name, revision=doc.changeset.id)
+                Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=doc.branch.name, locale=locale, revision=doc.changeset.id)
                 return doc
 
-            self._load_all_in_push(revision)
+            self._load_all_in_push(revision, locale=locale)
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
-            return self.get_revision(revision)
+            return self.get_revision(revision, locale)
 
-        output = self._get_from_hg(revision)
+        output = self._get_from_hg(revision, locale=locale)
         output.changeset.id12 = output.changeset.id[0:12]
         output.branch = {
             "name": output.branch.name,
-            "url": output.branch.url
+            "url": output.branch.url,
+            "locale": output.branch.locale
         }
         return output
 
-    def _get_from_elasticsearch(self, revision):
+    def _get_from_elasticsearch(self, revision, locale=None):
         rev = revision.changeset.id
         query = {
             "query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": {"and": [
                     {"prefix": {"changeset.id": rev[0:12]}},
-                    {"term": {"branch.name": revision.branch.name}}
+                    {"term": {"branch.name": revision.branch.name}},
+                    {"term": {"branch.locale": coalesce(locale, DEFAULT_LOCALE)}}
                 ]}
             }},
             "size": 2000,
@@ -120,14 +129,14 @@ class HgMozillaOrg(object):
 
         return docs[0]._source
 
-    def _get_from_hg(self, revision):
+    def _get_from_hg(self, revision, locale=None):
         rev = revision.changeset.id
         if len(rev) < 12 and Math.is_integer(rev):
             rev = ("0" * (12 - len(rev))) + rev
 
-        revision.branch = self.branches[revision.branch.name.lower()]
+        revision.branch = self.branches[revision.branch.name.lower(), coalesce(locale, DEFAULT_LOCALE)]
 
-        url = revision.branch.url + "/json-info?node=" + rev
+        url = revision.branch.url.rstrip("/") + "/json-info?node=" + rev
         try:
             Log.note("Reading details from {{url}}", {"url": url})
 
@@ -158,7 +167,7 @@ class HgMozillaOrg(object):
         except Exception, e:
             Log.error("Can not get revision info from {{url}}", {"url": url}, e)
 
-    def _load_all_in_push(self, revision):
+    def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
 
 
@@ -167,13 +176,14 @@ class HgMozillaOrg(object):
         else:
             lower_name = revision.branch.name.lower()
 
-        revision.branch = self.branches[lower_name]
+        revision.branch = self.branches[lower_name, locale]
         if not revision.branch:
-            Log.error("can not find branch {{name|quote}}", name=lower_name)
+            Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
         Log.note(
-            "Reading pushlog for revision ({{branch}}, {{changeset}})",
+            "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}})",
             branch=revision.branch.name,
+            locale=locale,
             changeset=revision.changeset.id
         )
 
@@ -189,7 +199,7 @@ class HgMozillaOrg(object):
                 revs = []
                 for c in _push.changesets:
                     changeset = Changeset(id=c.node, **c)
-                    rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset))
+                    rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset), locale)
                     rev.push = push
                     _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name
                     revs.append({"id": _id, "value": rev})
@@ -214,16 +224,40 @@ class HgMozillaOrg(object):
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
     def get_branches(self):
+        if not self.settings.repo:
+            from testlog_etl import etl_hg_branch
+
+            return etl_hg_branch.get_branches(settings={"url": "https://hg.mozilla.org"})
+
+        #TRY ES
         es = elasticsearch.Index(settings=self.settings.branches)
         query = {
             "query": {"match_all": {}},
-            "size": 2000
+            "size": 20000
         }
 
         docs = es.search(query).hits.hits._source
         for d in docs:
-            d.name=d.name.lower()
+            d.name = d.name.lower()
         try:
-            return UniqueIndex(["name"], data=docs, fail_on_dup=False)
+            return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
         except Exception, e:
             Log.error("Bad branch in ES index", cause=e)
+
+
+    def find_changeset(self, revision):
+        def _find(b, please_stop):
+            try:
+                url = b.url + "rev/" + revision
+                response = http.get(url)
+                if response.status_code == 200:
+                    Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
+            except Exception, e:
+                pass
+
+        threads = []
+        for b in self.branches:
+            threads.append(Thread.run("find changeset", _find, b))
+        for t in threads:
+            t.join()
+        pass
