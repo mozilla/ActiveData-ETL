@@ -542,19 +542,19 @@ class Cluster(object):
 
             if self.debug:
                 sample = kwargs.get("data", "")[:300]
-                Log.note("{{url}}:\n{{data|indent}}",  url= url,  data= sample)
+                Log.note("{{url}}:\n{{data|indent}}", url=url, data=sample)
 
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
-                Log.error(response.reason + ": " + response.all_content)
+                Log.error(response.reason + ": " + response.content)
             if self.debug:
-                Log.note("response: {{response}}", response=utf82unicode(response.all_content)[:130])
-            details = convert.json2value(utf82unicode(response.all_content))
+                Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
+            details = convert.json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error("Shard failures {{failures|indent}}",
-                    failures= "---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)
+                    failures="---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)
                 )
             return details
         except Exception, e:
