@@ -72,15 +72,29 @@ sudo mkdir /data1
 sudo mkdir /data2
 sudo mkdir /data3
 
-#ADD TO /etc/fstab SO AROUND AFTER REBOOT
+# ADD TO /etc/fstab SO AROUND AFTER REBOOT
 sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
 sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/fstab
 sudo sed -i '$ a\/dev/xvdd   /data3       ext4    defaults,nofail  0   2' /etc/fstab
 
-#TEST IT IS WORKING
+# TEST IT IS WORKING
 sudo mount -a
 sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
+
+# INCREASE THE FILE HANDLE LIMITS
+sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
+sudo sysctl -p
+
+# INCREASE FILE HANDLE PERMISSIONS
+sudo sed -i '$ a\ec2-user soft nofile 50000' /etc/security/limits.conf
+sudo sed -i '$ a\ec2-user hard nofile 100000' /etc/security/limits.conf
+
+# EFFECTIVE LOGIN TO LOAD CHANGES TO FILE HANDLES
+sudo -i -u ec2-user
+
+# SHOW RESULTS
+# prlimit
 
 # COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
@@ -88,6 +102,13 @@ sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+
+
+
+
+
+
+
 
 # RUN IN BACKGROUND
 export ES_MIN_MEM=15g
