@@ -48,7 +48,6 @@
 				"key_format": "a:b"
 			},
 			"destination": {
-				"use_daily": false,
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "pulse",

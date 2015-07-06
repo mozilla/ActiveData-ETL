@@ -25,6 +25,7 @@ from io import BytesIO
 import json
 import re
 from tempfile import TemporaryFile
+from jinja2 import meta
 
 from pyLibrary import strings
 from pyLibrary.dot import wrap, wrap_dot, unwrap
@@ -48,7 +49,7 @@ def value2json(obj, pretty=False):
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:
-        Log.error("Can not encode into JSON: {{value}}",  value= meta.repr(obj), cause=e)
+        Log.error("Can not encode into JSON: {{value}}", value=meta.repr(obj), cause=e)
 
 
 def remove_line_comment(line):

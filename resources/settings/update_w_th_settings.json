@@ -1,0 +1,73 @@
+{
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		},
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 100000000
+	},
+	"elasticsearch": {
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "unittest",
+		"type": "test_result",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../schema/test_results.json"
+		},
+		"debug": true,
+		"limit_replicas": false
+	},
+	"hg": {
+		"url":"https://hg.mozilla.org",
+		"repo": {
+			"host": "http://54.149.35.214",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/revision.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+		"branches": {
+			"host": "http://54.149.35.214",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		}
+	},
+	"debug": {
+		"trace": true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"class": "logging.handlers.RotatingFileHandler",
+				"filename": "./results/logs/th_dev.log",
+				"maxBytes": 10000000,
+				"backupCount": 100,
+				"encoding": "utf8"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Dev] Problem pulling data from TH",
+				"$ref": "file://~/private.json#email"
+			}
+		]
+	}
+}
