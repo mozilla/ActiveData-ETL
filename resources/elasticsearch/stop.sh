@@ -5,3 +5,6 @@ curl -XPOST http://localhost:9200/_cluster/nodes/_local/_shutdown
 
 
 curl -XPOST http://localhost:9200/_shutdown
+
+
+tail -f /data1/logs/active-data.log

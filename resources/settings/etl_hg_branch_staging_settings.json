@@ -7,7 +7,7 @@
 	"hg":{
 		"url":"https://hg.mozilla.org",
 		"branches":{
-			"host": "http://http://172.31.0.233",
+			"host": "http://172.31.0.233",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -19,7 +19,7 @@
 			"limit_replicas": true
 		},
 		"repo":{
-			"host": "http://http://172.31.0.233",
+			"host": "http://172.31.0.233",
 			"port": 9200,
 			"index": "repo",
 			"type": "revisions",

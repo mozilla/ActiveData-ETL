@@ -7,7 +7,6 @@
 		"try"
 	],
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://localhost",
 		"port": 9200,
 		"index": "unittest",

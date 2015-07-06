@@ -50,7 +50,6 @@
 				"key_format": "a:b"
 			},
 			"destination": {
-				"use_daily": false,
 				"host": "http://172.31.0.233",
 				"port": 9200,
 				"index": "pulse",
