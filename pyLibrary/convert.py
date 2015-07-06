@@ -25,9 +25,8 @@ from io import BytesIO
 import json
 import re
 from tempfile import TemporaryFile
-from jinja2 import meta
 
-from pyLibrary import strings
+from pyLibrary import strings, meta
 from pyLibrary.dot import wrap, wrap_dot, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.logs import Log, Except
