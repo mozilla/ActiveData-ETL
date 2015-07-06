@@ -418,7 +418,7 @@ class TermsOp(object):
         return {"terms": {self.var: self.vals}}
 
     def vars(self):
-        return set([self.var])
+        return {self.var}
 
 
 class ExistsOp(object):

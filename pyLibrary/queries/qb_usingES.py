@@ -55,6 +55,7 @@ class FromES(Container):
         self.edges = Dict()
         self.worker = None
         self.ready = False
+        self._columns = None
 
     @staticmethod
     def wrap(es):
@@ -129,6 +130,15 @@ class FromES(Container):
                 http.post(self._es.cluster.path+"/_cache/clear")
                 Log.error("Problem (Tried to clear Elasticsearch cache)", e)
             Log.error("problem", e)
+
+
+
+    def get_relative_columns(self):
+        if self._columns:
+            return self._columns
+
+        abs_columns=self._get_columns(self.settings.alias, self.path)
+
 
 
 
