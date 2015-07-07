@@ -45,13 +45,16 @@ class FromES(Container):
             return Container.__new__(cls)
 
     @use_settings
-    def __init__(self, host, index, type=None, alias=None, name=None, port=9200, settings=None):
+    def __init__(self, host, index, type=None, alias=None, name=None, port=9200, read_only=True, settings=None):
         if not config.default:
             config.default.settings = settings
         self.settings = settings
         self.name = coalesce(name, alias, index)
-        self._es = elasticsearch.Alias(alias=coalesce(alias, index), settings=settings)
-        self.settings.type = self._es.settings.type  # Alias() WILL ASSIGN A TYPE IF IT WAS MISSING
+        if read_only:
+            self._es = elasticsearch.Alias(alias=coalesce(alias, index), settings=settings)
+        else:
+            self._es = elasticsearch.Cluster(settings=settings).get_index(read_only=read_only, settings=settings)
+        self.settings.type = self._es.settings.type
         self.edges = Dict()
         self.worker = None
         self.ready = False
@@ -98,13 +101,6 @@ class FromES(Container):
 
             query = Query(_query, schema=self)
 
-            # try:
-            #     frum = self.get_columns(query["from"])
-            #     mvel = _MVEL(frum)
-            # except Exception, e:
-            #     mvel = None
-            #     Log.warning("TODO: Fix this", e)
-            #
             for s in listwrap(query.select):
                 if not aggregates1_4[s.aggregate]:
                     Log.error("ES can not aggregate " + self.select[0].name + " because '" + self.select[0].aggregate + "' is not a recognized aggregate")
@@ -263,20 +259,30 @@ class FromES(Container):
             "size": 200000
         })
 
-        # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
         scripts = DictList()
         for k, v in command.set.items():
             if not is_keyword(k):
                 Log.error("Only support simple paths for now")
 
-            scripts.append("ctx._source." + k + " = " + expressions.qb_expression_to_ruby(v) + ";\n")
-        script = "".join(scripts)
+            if "doc" in v.keys():
+                # scripts.append({
+                #     "script": "ctx._source[" + convert.string2quote(k) + "] = param_",
+                #     "params": {"param_": v["doc"]}
+                # })
+                #SIMPLE DOC ASSIGNMENT
+                scripts.append({"doc": {k: v["doc"]}})
+            else:
+                # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
+                scripts.append({
+                    "script": "ctx._source[" + convert.string2quote(k) + "] = " + expressions.qb_expression_to_ruby(v) + ";\n"
+                })
 
         if results.hits.hits:
             updates = []
             for h in results.hits.hits:
-                updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
-                updates.append({"script": script})
+                for s in scripts:
+                    updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
+                    updates.append(s)
             content = ("\n".join(convert.value2json(c) for c in updates) + "\n").encode('utf-8')
             response = self._es.cluster._post(
                 self._es.path + "/_bulk",

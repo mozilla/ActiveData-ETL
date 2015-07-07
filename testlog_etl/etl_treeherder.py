@@ -12,6 +12,8 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.queries.qb_usingES import FromES
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import DAY
 from testlog_etl.imports.treeherder import TreeHerder
 
 
@@ -22,19 +24,17 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        th = TreeHerder(settings=settings.hg)
+        th = TreeHerder(settings=settings.hg, use_cache=True)
 
-        with FromES(settings=settings.elasticsearch) as es:
+        with FromES(read_only=False, settings=settings.elasticsearch) as es:
             some_failures = es.query({
                 "from": "unittest",
                 "where": {"and": [
                     {"eq": {"result.ok": False}},
-                    # {"gt": {"run.timestamp": Date.today() - WEEK}},
-                    {"missing": "treeherder.job.note"}
-                    # {"eq": {
-                    #     "build.branch": "mozilla-inbound",
-                    #     "build.revision12": "7380457b8ba0"
-                    # }}
+                    {"or": [
+                        {"missing": "treeherder.etl.timestamp"},
+                        {"lt": {"treeherder.etl.timestamp": Date.today() - DAY}}
+                    ]}
                 ]},
                 "format": "list",
                 "limit": 100
@@ -42,16 +42,18 @@ def main():
 
 
             # th.get_markup("mozilla-inbound", "7380457b8ba0")
+            updates = 0
             for f in some_failures.data:
                 mark = elasticsearch.scrub(th.get_markup(f))
 
                 if mark:
-                    es.update({
-                        "set": {"treeherder": {"doc": mark}},
-                        "where": {"eq": {"_id": f._id}}
-                    })
-
-
+                    if f.treeherder != mark:
+                        updates += 1
+                        es.update({
+                            "set": {"treeherder": {"doc": mark}},
+                            "where": {"eq": {"_id": f._id}}
+                        })
+            Log.note("{{num}} updates sent to ES", num=updates)
 
     except Exception, e:
         Log.error("Problem with etl", e)
