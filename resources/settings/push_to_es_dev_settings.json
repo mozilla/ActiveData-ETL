@@ -1,13 +1,10 @@
 {
 	"threads": 1,
 	"sample_only": [
-		"b2g-inbound",
-		"fx-team",
 		"mozilla-aurora",
 		"try"
 	],
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://localhost",
 		"port": 9200,
 		"index": "unittest",

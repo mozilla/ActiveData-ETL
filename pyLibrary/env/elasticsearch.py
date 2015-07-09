@@ -24,7 +24,7 @@ from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.strings import utf82unicode
-from pyLibrary.dot import coalesce, Null, Dict
+from pyLibrary.dot import coalesce, Null, Dict, set_default
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue, Thread
@@ -49,14 +49,16 @@ class Index(object):
     def __init__(
         self,
         index,  # NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
-        type,  # SCHEMA NAME
+        type=None,  # SCHEMA NAME, (DEFAULT TO TYPE IN INDEX, IF ONLY ONE)
         alias=None,
         explore_metadata=True,  # PROBING THE CLUSTER FOR METADATA IS ALLOWED
+        read_only=True,
         timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
         debug=False,  # DO NOT SHOW THE DEBUG STATEMENTS
         settings=None
     ):
-        if index==None or type==None:
+
+        if index==None:
             Log.error("not allowed")
         if index == alias:
             Log.error("must have a unique index name")
@@ -65,7 +67,7 @@ class Index(object):
         self.cluster_metadata = None
         self.debug = debug
         if self.debug:
-            Log.alert("elasticsearch debugging for index {{index}} is on",  index= settings.index)
+            Log.alert("elasticsearch debugging for index {{index}} is on", index=settings.index)
 
         self.settings = settings
         self.cluster = Cluster(settings)
@@ -75,8 +77,17 @@ class Index(object):
             if index and alias==None:
                 settings.alias = settings.index
                 settings.index = index
-            if index==None:
+            if index == None:
                 Log.error("not allowed")
+            if type == None:
+                # NO type PROVIDED, MAYBE THERE IS A SUITABLE DEFAULT?
+                indices = self.cluster.get_metadata().indices
+                index_ = indices[self.settings.index]
+
+                candidate_types = list(index_.mappings.keys())
+                if len(candidate_types) != 1:
+                    Log.error("Expecting `type` parameter")
+                self.settings.type = type = candidate_types[0]
         except Exception, e:
             # EXPLORING (get_metadata()) IS NOT ALLOWED ON THE PUBLIC CLUSTER
             pass
@@ -145,18 +156,6 @@ class Index(object):
                 timeout=coalesce(self.settings.timeout, 30)
             )
 
-    def get_proto(self, alias):
-        """
-        RETURN ALL INDEXES THAT ARE INTENDED TO BE GIVEN alias, BUT HAVE NO
-        ALIAS YET BECAUSE INCOMPLETE
-        """
-        output = sort([
-            a.index
-            for a in self.cluster.get_aliases()
-            if re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and not a.alias
-        ])
-        return output
-
     def get_index(self, alias):
         """
         RETURN THE INDEX USED BY THIS alias
@@ -166,7 +165,7 @@ class Index(object):
             for a in self.cluster.get_aliases()
             if a.alias == alias or
                 a.index == alias or
-               (re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and a.index != alias)
+                (re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and a.index != alias)
         ])
 
         if len(output) > 1:
@@ -190,6 +189,8 @@ class Index(object):
         self.cluster._post("/" + self.settings.index + "/_refresh")
 
     def delete_record(self, filter):
+        if self.settings.read_only:
+            Log.error("Index opened in read only mode, no changes allowed")
         self.cluster.get_metadata()
 
         if self.cluster.cluster_state.version.number.startswith("0.90"):
@@ -216,7 +217,7 @@ class Index(object):
 
         for name, status in result._indices.items():
             if status._shards.failed > 0:
-                Log.error("Failure to delete from {{index}}",  index= name)
+                Log.error("Failure to delete from {{index}}", index=name)
 
 
     def extend(self, records):
@@ -226,6 +227,8 @@ class Index(object):
             [{"json":json}, ... {"json":json}]
             OPTIONAL "id" PROPERTY IS ALSO ACCEPTED
         """
+        if self.settings.read_only:
+            Log.error("Index opened in read only mode, no changes allowed")
         lines = []
         try:
             for r in records:
@@ -295,10 +298,11 @@ class Index(object):
                 Log.error("problem with {{data}}", data=repr(lines[int(e.message[14:16].strip())]), cause=e)
             Log.error("problem sending to ES", e)
 
-
     # RECORDS MUST HAVE id AND json AS A STRING OR
     # HAVE id AND value AS AN OBJECT
     def add(self, record):
+        if self.settings.read_only:
+            Log.error("Index opened in read only mode, no changes allowed")
         if isinstance(record, list):
             Log.error("add() has changed to only accept one record, no lists")
         self.extend([record])
@@ -397,45 +401,62 @@ class Cluster(object):
         alias=None,
         schema=None,
         limit_replicas=None,
+        read_only=False,
         settings=None
     ):
+        best = self._get_best(settings)
+        if not best:
+            output = self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
+            return output
+        elif best.alias != None:
+            settings.alias = best.alias
+            settings.index = best.index
+        elif settings.alias == None:
+            settings.alias = settings.index
+            settings.index = best.index
+        return Index(settings)
+
+    def _get_best(self, settings):
         from pyLibrary.queries import qb
-
-        settings = deepcopy(settings)
         aliases = self.get_aliases()
-
         indexes = qb.sort([
             a
             for a in aliases
             if (a.alias == settings.index and settings.alias == None) or
-               (re.match(re.escape(settings.index) + "\\d{8}_\\d{6}", a.index) and settings.alias == None) or
+               (re.match(re.escape(settings.index) + r'\d{8}_\d{6}', a.index) and settings.alias == None) or
             (a.index == settings.index and (a.alias == None or a.alias == settings.alias ))
         ], "index")
-        if not indexes:
-            output = self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
-            return output
-        elif indexes.last().alias != None:
-            settings.alias = indexes.last().alias
-            settings.index = indexes.last().index
-        elif settings.alias == None:
-            settings.alias = settings.index
-            settings.index = indexes.last().index
-        return Index(settings)
+        return indexes.last()
 
-
-    def get_index(self, index, alias=None, settings=None):
+    @use_settings
+    def get_index(self, index, type=None, alias=None, read_only=True, settings=None):
         """
         TESTS THAT THE INDEX EXISTS BEFORE RETURNING A HANDLE
         """
-        aliases = self.get_aliases()
-        if settings.index in aliases.index:
+        if read_only:
+            # GET EXACT MATCH, OR ALIAS
+            aliases = self.get_aliases()
+            if index in aliases.index:
+                return Index(settings)
+            if index in aliases.alias:
+                match = [a for a in aliases if a.alias == index][0]
+                settings.alias = match.alias
+                settings.index = match.index
+                return Index(settings)
+            Log.error("Can not find index {{index_name}}", index_name=settings.index)
+        else:
+            # GET BEST MATCH, INCLUDING PROTOTYPE
+            best = self._get_best(settings)
+            if not best:
+                Log.error("Can not find index {{index_name}}", index_name=settings.index)
+
+            if best.alias != None:
+                settings.alias = best.alias
+                settings.index = best.index
+            elif settings.alias == None:
+                settings.alias = settings.index
+                settings.index = best.index
             return Index(settings)
-        if settings.index in aliases.alias:
-            match = [a for a in aliases if a.alias == settings.index][0]
-            settings.alias = match.alias
-            settings.index = match.index
-            return Index(settings)
-        Log.error("Can not find index {{index_name}}",  index_name= settings.index)
 
     def get_alias(self, alias):
         """
@@ -447,8 +468,20 @@ class Cluster(object):
             settings = self.settings.copy()
             settings.alias = alias
             settings.index = alias
-            return Index(settings)
+            return Index(read_only=True, settings=settings)
         Log.error("Can not find any index with alias {{alias_name}}",  alias_name= alias)
+
+    def get_prototype(self, alias):
+        """
+        RETURN ALL INDEXES THAT ARE INTENDED TO BE GIVEN alias, BUT HAVE NO
+        ALIAS YET BECAUSE INCOMPLETE
+        """
+        output = sort([
+            a.index
+            for a in self.get_aliases()
+            if re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and not a.alias
+        ])
+        return output
 
     @use_settings
     def create_index(
@@ -457,6 +490,7 @@ class Cluster(object):
         alias=None,
         schema=None,
         limit_replicas=None,
+        read_only=False,
         settings=None
     ):
         if not settings.alias:
@@ -496,11 +530,10 @@ class Cluster(object):
             try:
                 self.head("/" + settings.index)
                 break
-            except Exception, _:
-                Log.note("{{index}} does not exist yet",  index= settings.index)
+            except Exception:
+                Log.note("{{index}} does not exist yet", index=settings.index)
 
-
-        es = Index(settings)
+        es = Index(settings=settings)
         return es
 
     def delete_index(self, index=None):
@@ -581,13 +614,13 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[:130])
+                Log.note("response: {{response}}", response=utf82unicode(response.all_content)[:130])
             details = wrap(convert.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
         except Exception, e:
-            Log.error("Problem with call to {{url}}",  url= url, cause=e)
+            Log.error("Problem with call to {{url}}", url=url, cause=e)
 
     def head(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -684,8 +717,10 @@ def _scrub(r):
                     output.append(v)
             if not output:
                 return None
+            if len(output) == 1:
+                return output[0]
             try:
-                return sort(output)
+                return sort(output) # SUCCESS ONLY ON STRINGS, OR NUMBERS
             except Exception:
                 return output
         else:
@@ -749,10 +784,13 @@ class Alias(object):
                 #PARTIALLY DEFINED settings
                 candidates = [(name, i) for name, i in indices.items() if self.settings.index in i.aliases]
                 # TODO: MERGE THE mappings OF ALL candidates, DO NOT JUST PICK THE LAST ONE
+
                 index = "dummy value"
-                schema = wrap({"properties": {}})
+                schema = wrap({"_routing": {}, "properties": {}})
                 for _, ind in qb.sort(candidates, {"value": 0, "sort": -1}):
-                    schema.properties = _merge_mapping(schema.properties, ind.mappings[self.settings.type].properties)
+                    mapping = ind.mappings[self.settings.type]
+                    set_default(schema._routing, mapping._routing)
+                    schema.properties = _merge_mapping(schema.properties, mapping.properties)
             else:
                 #FULLY DEFINED settings
                 index = indices[self.settings.index]

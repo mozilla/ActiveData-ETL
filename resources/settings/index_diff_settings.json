@@ -6,7 +6,6 @@
 		"key_format": "a:b.c"
 	},
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",

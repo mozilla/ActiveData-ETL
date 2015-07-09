@@ -10,14 +10,11 @@ from __future__ import unicode_literals
 from pyLibrary import convert, strings
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
+from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
 from testlog_etl import key2etl, etl2path
-
-
-# NEW_INDEX_INTERVAL = WEEK
 
 
 class MultiDayIndex(object):
@@ -30,11 +27,10 @@ class MultiDayIndex(object):
         self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
 
-        es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
-        es.add_alias(self.settings.index)
-        es.set_refresh_interval(seconds=60 * 60)
-        self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
-        self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+        self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
+        self.es.set_refresh_interval(seconds=60 * 60)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
         return getattr(self.es, item)
@@ -59,8 +55,7 @@ class MultiDayIndex(object):
             return set()
 
     def extend(self, documents):
-        for d in wrap(documents):
-            self.queue.add(d)
+        self.queue.extend(documents)
 
     def add(self, doc):
         self.queue.add(doc)

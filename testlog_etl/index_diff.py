@@ -48,7 +48,7 @@ def get_all_in_es(es):
         if "unittest" not in index.aliases:
             continue
 
-        result = elasticsearch.Index(index=name, alias="unittest", settings=es.es.settings).search({
+        result = elasticsearch.Index(index=name, alias="unittest", read_only=True, settings=es.es.settings).search({
             "aggs": {
                 "_match": {
                     "terms": {

@@ -26,7 +26,7 @@ from pyLibrary.queries.es14.util import aggregates1_4
 from pyLibrary.queries.query import Query, _normalize_where
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot.dicts import Dict
-from pyLibrary.dot import coalesce, split_field, set_default
+from pyLibrary.dot import coalesce, split_field, set_default, literal_field, unwraplist
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, listwrap
 
@@ -45,13 +45,16 @@ class FromES(Container):
             return Container.__new__(cls)
 
     @use_settings
-    def __init__(self, host, index, type=None, alias=None, name=None,  port=9200, settings=None):
+    def __init__(self, host, index, type=None, alias=None, name=None, port=9200, read_only=True, settings=None):
         if not config.default:
             config.default.settings = settings
         self.settings = settings
         self.name = coalesce(name, alias, index)
-        self._es = elasticsearch.Alias(alias=coalesce(alias, index), settings=settings)
-        self.settings.type = self._es.settings.type  # Alias() WILL ASSIGN A TYPE IF IT WAS MISSING
+        if read_only:
+            self._es = elasticsearch.Alias(alias=coalesce(alias, index), settings=settings)
+        else:
+            self._es = elasticsearch.Cluster(settings=settings).get_index(read_only=read_only, settings=settings)
+        self.settings.type = self._es.settings.type
         self.edges = Dict()
         self.worker = None
         self.ready = False
@@ -60,7 +63,7 @@ class FromES(Container):
     @staticmethod
     def wrap(es):
         output = FromES(es.settings)
-        output._es=es
+        output._es = es
         return output
 
     def as_dict(self):
@@ -98,13 +101,6 @@ class FromES(Container):
 
             query = Query(_query, schema=self)
 
-            # try:
-            #     frum = self.get_columns(query["from"])
-            #     mvel = _MVEL(frum)
-            # except Exception, e:
-            #     mvel = None
-            #     Log.warning("TODO: Fix this", e)
-            #
             for s in listwrap(query.select):
                 if not aggregates1_4[s.aggregate]:
                     Log.error("ES can not aggregate " + self.select[0].name + " because '" + self.select[0].aggregate + "' is not a recognized aggregate")
@@ -251,10 +247,11 @@ class FromES(Container):
         THE where CLAUSE IS AN ES FILTER
         """
         command = wrap(command)
+        schema = self._es.get_schema()
 
         # GET IDS OF DOCUMENTS
         results = self._es.search({
-            "fields": [],
+            "fields": listwrap(schema._routing.path),
             "query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": _normalize_where(command.where, self)
@@ -262,26 +259,38 @@ class FromES(Container):
             "size": 200000
         })
 
-        # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
         scripts = DictList()
         for k, v in command.set.items():
             if not is_keyword(k):
                 Log.error("Only support simple paths for now")
 
-            scripts.append("ctx._source." + k + " = " + expressions.qb_expression_to_ruby(v) + ";\n")
-        script = "".join(scripts)
+            if "doc" in v.keys():
+                # scripts.append({
+                #     "script": "ctx._source[" + convert.string2quote(k) + "] = param_",
+                #     "params": {"param_": v["doc"]}
+                # })
+                #SIMPLE DOC ASSIGNMENT
+                scripts.append({"doc": {k: v["doc"]}})
+            else:
+                # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
+                scripts.append({
+                    "script": "ctx._source[" + convert.string2quote(k) + "] = " + expressions.qb_expression_to_ruby(v) + ";\n"
+                })
 
         if results.hits.hits:
-            command = []
-            for id in results.hits.hits._id:
-                command.append({"update": {"_id": id}})
-                command.append({"script": script})
-            content = ("\n".join(convert.value2json(c) for c in command) + "\n").encode('utf-8')
-            self._es.cluster._post(
+            updates = []
+            for h in results.hits.hits:
+                for s in scripts:
+                    updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
+                    updates.append(s)
+            content = ("\n".join(convert.value2json(c) for c in updates) + "\n").encode('utf-8')
+            response = self._es.cluster._post(
                 self._es.path + "/_bulk",
                 data=content,
                 headers={"Content-Type": "application/json"}
             )
+            if response.errors:
+                Log.error("could not update: {{error}}", error=[e.error for i in response["items"] for e in i.values() if e.status not in (200, 201)])
 
 class FromESMetadata(Container):
     """

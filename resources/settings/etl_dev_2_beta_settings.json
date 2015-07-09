@@ -51,7 +51,6 @@
 				"key_format": "a:b"
 			},
 			"destination": {
-				"use_daily": false,
 				"host": "http://192.168.2.98",
 				"port": 9200,
 				"index": "pulse",
