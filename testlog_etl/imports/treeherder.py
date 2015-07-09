@@ -97,6 +97,7 @@ class TreeHerder(object):
             # ATTACH STAR INFO
             stars = http.get_json(expand_template(JOB_BUG_MAP, {"branch": failure.build.branch, "job_id": job_result.id}))
             for s in stars:
+                # LOOKUP BUG DETAILS
                 detail.stars += [{
                     "bug_id": s.bug_id,
                     "who": s.who,

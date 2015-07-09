@@ -1,8 +1,6 @@
 {
 	"threads": 1,
 	"sample_only": [
-		"b2g-inbound",
-		"fx-team",
 		"mozilla-aurora",
 		"try"
 	],
