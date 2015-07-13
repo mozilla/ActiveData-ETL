@@ -10,10 +10,8 @@ from __future__ import unicode_literals
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env import http
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY, WEEK
+from pyLibrary.env import elasticsearch
+from pyLibrary.queries.qb_usingES import FromES
 from testlog_etl.imports.treeherder import TreeHerder
 
 
@@ -24,30 +22,36 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        some_failures = http.post_json("http://activedata.allizom.org/query", data={
-            "from": "unittest",
-            "select": [
-                {"name": "branch", "value": "build.branch"},
-                {"name": "revision", "value": "build.revision12"},
-                {"name": "suite", "value": "run.suite"},
-                {"name": "chunk", "value": "run.chunk"},
-                {"name": "test", "value": "result.test"}
-            ],
-            "where": {"and": [
-                {"eq": {"result.ok": False}},
-                {"gt": {"run.timestamp": Date.today() - WEEK}},
-                {"missing": "treeherder.job.note"}
-            ]},
-            "format": "list",
-            "limit": 10
-        })
+        th = TreeHerder(settings=settings.hg)
+
+        with FromES(settings=settings.elasticsearch) as es:
+            some_failures = es.query({
+                "from": "unittest",
+                "where": {"and": [
+                    {"eq": {"result.ok": False}},
+                    # {"gt": {"run.timestamp": Date.today() - WEEK}},
+                    {"missing": "treeherder.job.note"}
+                    # {"eq": {
+                    #     "build.branch": "mozilla-inbound",
+                    #     "build.revision12": "7380457b8ba0"
+                    # }}
+                ]},
+                "format": "list",
+                "limit": 100
+            })
 
 
-        th = TreeHerder(settings={})
+            # th.get_markup("mozilla-inbound", "7380457b8ba0")
+            for f in some_failures.data:
+                mark = elasticsearch.scrub(th.get_markup(f))
 
-        # th.get_job_classification("mozilla-inbound", "7380457b8ba0")
-        for f in some_failures.data:
-            th.get_job_classification(f.branch, f.revision)
+                if mark:
+                    es.update({
+                        "set": {"treeherder": {"doc": mark}},
+                        "where": {"eq": {"_id": f._id}}
+                    })
+
+
 
     except Exception, e:
         Log.error("Problem with etl", e)

@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import re
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import elasticsearch
@@ -30,25 +31,34 @@ DEFAULT_LOCALE = "en-US"
 
 
 class HgMozillaOrg(object):
-    ""
+    """
+    USE hg.mozilla.org FOR REPO INFORMATION
+    USE ES AS A FASTER CACHE FOR THE SAME
+    """
 
     @use_settings
     def __init__(
         self,
-        repo=None,
+        repo=None,      # CONNECTION INFO FOR ES CACHE
+        branches=None,  # CONNECTION INFO FOR ES CACHE
+        use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
         timeout=30 * SECOND,
         settings=None
     ):
         self.settings = settings
         self.timeout = Duration(timeout)
-        self.branches = self.get_branches()
+        self.current_push = None
 
-        if repo == None:
+        if branches == None:
+            self.branches = self.get_branches()
+            self.es = None
             return
 
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
+
+        self.branches = self.get_branches(use_cache=use_cache)
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {
@@ -74,10 +84,9 @@ class HgMozillaOrg(object):
             "children": ["411a9af141781c3c8fa883287966a4af348dbca8"]
         }})
         self.es.flush()
-        self.current_push = None
 
     @cache(duration=DAY, lock=True)
-    def get_revision(self, revision, locale=None):
+    def get_revision(self, revision, locale=DEFAULT_LOCALE):
         """
         EXPECTING INCOMPLETE revision
         RETURNS revision
@@ -176,7 +185,7 @@ class HgMozillaOrg(object):
         else:
             lower_name = revision.branch.name.lower()
 
-        revision.branch = self.branches[lower_name, locale]
+        revision.branch = self.branches[(lower_name, locale)]
         if not revision.branch:
             Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
@@ -223,14 +232,14 @@ class HgMozillaOrg(object):
             except Exception, f:
                 Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
-    def get_branches(self):
-        if not self.settings.repo:
+    def get_branches(self, use_cache=True):
+        if not self.settings.branches or not use_cache:
             from testlog_etl import etl_hg_branch
 
             return etl_hg_branch.get_branches(settings={"url": "https://hg.mozilla.org"})
 
         #TRY ES
-        es = elasticsearch.Index(settings=self.settings.branches)
+        es = elasticsearch.Cluster(settings=self.settings.branches).get_index(settings=self.settings.branches)
         query = {
             "query": {"match_all": {}},
             "size": 20000
@@ -261,3 +270,12 @@ class HgMozillaOrg(object):
         for t in threads:
             t.join()
         pass
+
+    def _extract_bug_id(self, description):
+        """
+        LOOK INTO description to FIND bug_id
+        """
+        match = re.match(r'[Bb](ug)?\s*([0-9]{5,7})\s+', description)
+        if match:
+            return int(match.group(2))
+        return None

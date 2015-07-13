@@ -301,14 +301,12 @@ def get_container(settings):
                 try:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception, _:
+                except Exception:
                     pass
-            output = elasticsearch.Cluster(settings).get_or_create_index(settings)
-            if settings.use_daily is not False:
-                output = MultiDayIndex(settings)
-            else:
-                output = output.threaded_queue(max_size=2000, batch_size=1000)
-                setattr(output, "keys", lambda prefix: set())
+
+            es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
+            output = es.threaded_queue(max_size=2000, batch_size=1000)
+            setattr(output, "keys", lambda prefix: set())
 
             sinks.append((settings, output))
             return output
@@ -317,13 +315,15 @@ def get_container(settings):
 def main():
 
     try:
-        settings = startup.read_settings(defs=[{
-            "name": ["--id"],
-            "help": "id(s) to process.  Use \"..\" for a range.",
-            "type": str,
-            "dest": "id",
-            "required": False
-        }])
+        settings = startup.read_settings(defs=[
+            {
+                "name": ["--id"],
+                "help": "id(s) to process.  Use \"..\" for a range.",
+                "type": str,
+                "dest": "id",
+                "required": False
+            }
+        ])
         constants.set(settings.constants)
         Log.start(settings.debug)
 
@@ -331,7 +331,7 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(settings=settings.hg)
+        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
