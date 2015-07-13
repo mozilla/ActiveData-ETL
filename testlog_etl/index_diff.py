@@ -95,6 +95,10 @@ def get_all_s3(in_es, settings):
 
 
 def main():
+    """
+    RE INDEX DATA FROM S3
+    IF THE ETL IS GOOD, AND YOU JUST NEED TO FILL ES, USE THIS
+    """
     try:
         settings = startup.read_settings(defs=[
             {

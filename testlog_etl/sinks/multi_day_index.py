@@ -70,9 +70,8 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if rownum == 0:
                         value = convert.json2value(line)
-                        if len(line) > 1000000:
-                            # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests)", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
-                            value.result.subtests = None
+                        if len(line) > 100000:
+                            value.result.subtests = [s for s in value.result.subtests if s.ok is False]
                             value.result.missing_subtests = True
 
                         _id, value = _fix(value)
@@ -84,10 +83,9 @@ class MultiDayIndex(object):
                             num_keys += 1
                             self.queue.add(row)
                             break
-                    elif len(line) > 1000000:
+                    elif len(line) > 100000:
                         value = convert.json2value(line)
-                        # Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}} bytes, {{num_tests}} subtests).", key=key, length=len(line), num=rownum, num_tests=len(value.result.subtests))
-                        value.result.subtests = None
+                        value.result.subtests = [s for s in value.result.subtests if s.ok is False]
                         value.result.missing_subtests = True
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}

@@ -26,7 +26,7 @@ from pyLibrary.times.timer import Timer
 
 def is_aggsop(es, query):
     es.cluster.get_metadata()
-    if (es.cluster.version.startswith("1.4.") or es.cluster.version.startswith("1.5.")) and (query.edges or query.groupby or any(a != None and a != "none" for a in listwrap(query.select).aggregate)):
+    if (any(map(es.cluster.version.startswith, ["1.4.", "1.5.", "1.6."]))) and (query.edges or query.groupby or any(a != None and a != "none" for a in listwrap(query.select).aggregate)):
         return True
     return False
 
@@ -430,7 +430,10 @@ class DimFieldDictDecoder(DefaultDecoder):
         self.start = start
         for i, (k, v) in enumerate(self.fields):
             es_query = wrap({"aggs": {
-                "_match": set_default({"terms": {"field": v}}, es_query),
+                "_match": set_default({"terms": {
+                    "field": v,
+                    "size": self.edge.domain.limit
+                }}, es_query),
                 "_missing": set_default({"missing": {"field": v}}, es_query),
             }})
 
