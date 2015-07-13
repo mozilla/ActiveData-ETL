@@ -6,7 +6,7 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 100000000
 	},
 	"elasticsearch": {
-		"host": "http://localhost",
+		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
@@ -65,7 +65,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Dev] Problem pulling data from TH",
+				"subject": "[ALERT][Dev] Problem with Treeherder ETL",
 				"$ref": "file://~/private.json#email"
 			}
 		]

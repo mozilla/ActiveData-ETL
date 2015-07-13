@@ -4,6 +4,7 @@ from pyLibrary.dot import coalesce, wrap, unwrap, Dict
 from pyLibrary.env import http
 from pyLibrary.meta import cache, use_settings
 from pyLibrary.strings import expand_template, Log
+from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&full=true&revision__in={{revision}}"
@@ -62,10 +63,10 @@ class TreeHerder(object):
 
             detail = wrap({
                 "job_id": job_result.id,
-                #TODO: GET THE JOB RUN TIMESTAMP FOR MATCH WITH ACTIVEDATA
                 "result_set_id": job_result.result_set.id,
                 "failure_classification": self.failure_classification[job_result.failure_classification_id],
-                "result": job_result.result
+                "result": job_result.result,
+                "etl": {"timestamp": Date.now()}
             })
 
             # ATTACH NOTES (RESOLVED BY BUG...)
@@ -96,6 +97,7 @@ class TreeHerder(object):
             # ATTACH STAR INFO
             stars = http.get_json(expand_template(JOB_BUG_MAP, {"branch": failure.build.branch, "job_id": job_result.id}))
             for s in stars:
+                # LOOKUP BUG DETAILS
                 detail.stars += [{
                     "bug_id": s.bug_id,
                     "who": s.who,

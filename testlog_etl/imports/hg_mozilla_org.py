@@ -150,7 +150,7 @@ class HgMozillaOrg(object):
             Log.note("Reading details from {{url}}", {"url": url})
 
             response = self._get_and_retry(url)
-            revs = convert.json2value(response.all_content.decode("utf8"))
+            revs = convert.json2value(response.content.decode("utf8"))
 
             if revs.startswith("unknown revision "):
                 Log.error(revs)
@@ -199,7 +199,7 @@ class HgMozillaOrg(object):
         url = revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + revision.changeset.id
         try:
             response = self._get_and_retry(url)
-            data = convert.json2value(response.all_content.decode("utf8"))
+            data = convert.json2value(response.content.decode("utf8"))
             if isinstance(data, basestring) and data.startswith("unknown revision"):
                 Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
             for index, _push in data.items():

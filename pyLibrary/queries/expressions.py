@@ -394,12 +394,16 @@ class MultiOp(object):
 class RegExpOp(object):
     def __init__(self, op, term):
         self.var, self.pattern = term.items()[0]
+
     def to_ruby(self):
         Log.error("do not know how to hanlde")
+
     def to_python(self):
         return "re.match("+convert.string2quote(self.pattern)+", "+qb_expression_to_python(self.var)+")"
+
     def to_esfilter(self):
         return {"regexp": {self.var: self.pattern}}
+
     def vars(self):
         return {self.var}
 
@@ -520,7 +524,7 @@ class DocOp(object):
         self.json = convert.value2json(term)
 
     def to_ruby(self):
-        def _convert(v):
+        def _convert(v, depth):
             if v is None:
                 return "nil"
             if v is True:
@@ -532,11 +536,19 @@ class DocOp(object):
             if isinstance(v, (int, long, float)):
                 return unicode(v)
             if isinstance(v, dict):
-                return "{" + ", ".join(convert.string2quote(k) + "=>" + _convert(vv) for k, vv in v.items()) + "}"
+                var_name = "output" + unicode(depth)
+                return \
+                    "lambda {\n" + var_name + "={};\n" + \
+                    "".join(
+                        "" + var_name + "[" + convert.string2quote(k) + "]=" + _convert(vv, depth + 1) + ";\n" for k, vv in v.items()
+                    ) + \
+                    " return " + var_name + ";\n}.call\n"
             if isinstance(v, list):
-                return "[" + ", ".join(_convert(vv) for vv in v) + "]"
+                return "[" + ", ".join(_convert(vv, depth+1) for vv in v) + "]"
 
-        return _convert(convert.json_decoder(self.json))
+# { output={}; output["failure_classification"]="intermittent"; yield output; }
+
+        return _convert(convert.json_decoder(self.json), 0)
 
     def to_python(self):
         return self.json
