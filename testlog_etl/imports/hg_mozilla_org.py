@@ -187,7 +187,7 @@ class HgMozillaOrg(object):
 
         revision.branch = self.branches[(lower_name, locale)]
         if not revision.branch:
-            Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
+            Log.error("can not find branch ({{branch}}, {{locale}})\n{{revision|indent}}", name=lower_name, locale=locale, revision=revision)
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}})",
