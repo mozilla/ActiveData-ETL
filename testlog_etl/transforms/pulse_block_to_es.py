@@ -73,9 +73,7 @@ def scrub_pulse_record(source_key, i, line, stats):
         if not line:
             return None
         pulse_record = convert.json2value(line)
-        if pulse_record.payload.what == "This is a heartbeat":
-            return None
-        elif pulse_record._meta:
+        if pulse_record._meta:
             pulse_record.etl.source.id = pulse_record.etl.source.count  # REMOVE AFTER JULY 1 2015, JUST A FEW RECORDS HAVE THIS PROBLEM
             return pulse_record
         elif pulse_record.locale:
@@ -110,6 +108,10 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 def transform_buildbot(payload, resources, filename=None):
     output = Dict()
+
+    if payload.what == "This is a heartbeat":
+        return output
+
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
     output.build.name = payload.buildername
