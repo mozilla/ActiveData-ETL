@@ -196,7 +196,7 @@ def transform_buildbot(payload, resources, filename=None):
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
         output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
     except Exception, e:
-        Log.warning("Can not get revision for\n{{details|json|indent}}", details=output, cause=e)
+        Log.warning("Can not get revision for branch {{branch}}\n{{details|json|indent}}", branch=output.build.branch, details=output, cause=e)
         # resources.hg.find_changeset(output.build.revision)
 
     return output

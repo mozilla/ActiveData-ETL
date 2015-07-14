@@ -22,7 +22,7 @@ from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 def diff(settings, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
-    es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+    es = elasticsearch.Cluster(settings=settings.elasticsearch).get_index(settings=settings.elasticsearch)
 
     in_es = get_all_in_es(es)
     in_s3 = get_all_s3(in_es, settings)
@@ -43,34 +43,31 @@ def diff(settings, please_stop=None):
 def get_all_in_es(es):
     in_es = set()
 
-    all_indexes = es.es.cluster.get_metadata().indices
-    for name, index in all_indexes.items():
-        if "unittest" not in index.aliases:
-            continue
-
-        result = elasticsearch.Index(index=name, alias="unittest", read_only=True, settings=es.es.settings).search({
-            "aggs": {
-                "_match": {
-                    "terms": {
-                        "field": "etl.source.source.id",
-                        "size": 200000
-                    }
-
+    result = es.search({
+        "aggs": {
+            "_match": {
+                "terms": {
+                    "field": "etl.source.source.id",
+                    "size": 200000
                 }
+
             }
-        })
+        }
+    })
 
-        good_es = []
-        for k in result.aggregations._match.buckets.key:
-            try:
-                good_es.append(int(k))
-            except Exception, e:
-                pass
+    good_es = []
+    for k in result.aggregations._match.buckets.key:
+        try:
+            good_es.append(int(k))
+        except Exception, e:
+            pass
 
-        Log.note("got {{num}} from {{index}}",
-            num= len(good_es),
-            index= name)
-        in_es |= set(good_es)
+    Log.note(
+        "got {{num}} from {{index}}",
+        num=len(good_es),
+        index=es.settings.index
+    )
+    in_es |= set(good_es)
 
     return in_es
 
@@ -81,7 +78,7 @@ def get_all_s3(in_es, settings):
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}",  p= i / len(prefixes))
+            Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
         try:
             if int(p) not in in_es:
                 in_s3.append(int(p))
