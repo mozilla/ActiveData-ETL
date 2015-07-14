@@ -74,7 +74,7 @@ def backfill(source, destination, work_queue, settings):
             existing = source.find_keys(done_min - BLOCK_SIZE, BLOCK_SIZE)
             existing = set(map(key_prefix, existing))
 
-            Log.note("verified {{block}} block",  block= done_min)
+            Log.note("verified {{block}} block", block=done_min)
             redo = existing - done
             done_min -= BLOCK_SIZE
             if redo:
@@ -113,6 +113,11 @@ def add_to_queue(work_queue, redo, bucket_name):
 
 
 def main():
+    """
+    REPROCESS ETL BY ADDING THE PULSE LOGGER ID INTO THE WORK QUEUE;
+    THE WORKERS WILL READ THESE IDS, LOAD FROM S3, AND OVERWRITE THE
+    OLD ETL ARTIFACTS
+    """
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)

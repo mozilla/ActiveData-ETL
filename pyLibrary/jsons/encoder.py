@@ -279,8 +279,8 @@ def pretty_json(value):
                     output = u"".join(acc)
                     Log.note("return value of length {{length}}",  length= len(output))
                     return output
-                except BaseException, f:
-                    Log.warning("can not even explicit convert", f)
+                except Exception, f:
+                    Log.warning("can not even explicit convert {{type}}", type=f.__class__.__name__, cause=f)
                     return "null"
         elif isinstance(value, Mapping):
             try:
