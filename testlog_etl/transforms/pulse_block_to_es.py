@@ -196,6 +196,8 @@ def transform_buildbot(payload, resources, filename=None):
         if output.build.branch:
             rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
             output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
+        elif output.other.what == "This is a heartbeat":
+            pass
         else:
             Log.warning("No branch!\n{{output|indent}}", output=output)
     except Exception, e:
