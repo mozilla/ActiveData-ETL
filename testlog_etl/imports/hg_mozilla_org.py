@@ -178,8 +178,6 @@ class HgMozillaOrg(object):
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
-
-
         if isinstance(revision.branch, basestring):
             lower_name = revision.branch.lower()
         else:
@@ -187,7 +185,7 @@ class HgMozillaOrg(object):
 
         revision.branch = self.branches[(lower_name, locale)]
         if not revision.branch:
-            Log.error("can not find branch ({{branch}}, {{locale}})\n{{revision|indent}}", name=lower_name, locale=locale, revision=revision)
+            Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}})",
