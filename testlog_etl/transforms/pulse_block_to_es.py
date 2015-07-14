@@ -73,7 +73,9 @@ def scrub_pulse_record(source_key, i, line, stats):
         if not line:
             return None
         pulse_record = convert.json2value(line)
-        if pulse_record._meta:
+        if pulse_record.payload.what == "This is a heartbeat":
+            return None
+        elif pulse_record._meta:
             pulse_record.etl.source.id = pulse_record.etl.source.count  # REMOVE AFTER JULY 1 2015, JUST A FEW RECORDS HAVE THIS PROBLEM
             return pulse_record
         elif pulse_record.locale:
@@ -196,8 +198,6 @@ def transform_buildbot(payload, resources, filename=None):
         if output.build.branch:
             rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
             output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
-        elif output.other.what == "This is a heartbeat":
-            pass
         else:
             Log.warning("No branch!\n{{output|indent}}", output=output)
     except Exception, e:
