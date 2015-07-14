@@ -51,6 +51,7 @@ def get_branches(settings):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
+
     return branches
 
 
@@ -105,7 +106,8 @@ def get_branch(settings, description, dir):
             # MARKUP BRANCH IF LOCALE SPECIFIC
             if path.startswith("/l10n-central"):
                 _path = path.strip("/").split("/")
-                detail.name = _path[-2].lower() + "-" + _path[-1].lower()
+                detail.locale = _path[-1]
+                detail.name = "mozilla-central"
             elif path.startswith("/releases/l10n/"):
                 _path = path.strip("/").split("/")
                 detail.locale = _path[-1]

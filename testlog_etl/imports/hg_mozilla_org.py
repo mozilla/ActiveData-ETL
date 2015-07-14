@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from copy import copy
 import re
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries.unique_index import UniqueIndex
@@ -178,6 +179,7 @@ class HgMozillaOrg(object):
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
+        revision = copy(revision)
         if isinstance(revision.branch, basestring):
             lower_name = revision.branch.lower()
         else:
