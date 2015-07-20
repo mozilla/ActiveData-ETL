@@ -13,6 +13,7 @@ sudo pip install supervisor
 
 cd ~
 mkdir -p ~/TestLog-ETL/results/logs
+sudo cp ~/TestLog-ETL/resources/supervisor/beta/supervisord.conf /etc
 sudo cp ~/TestLog-ETL/resources/supervisor/beta/monitor_es.conf /etc/supervisor/conf.d/
 sudo cp ~/TestLog-ETL/resources/supervisor/beta/es.conf /etc/supervisor/conf.d/
 sudo cp ~/TestLog-ETL/resources/supervisor/beta/etl.conf /etc/supervisor/conf.d/
@@ -23,3 +24,6 @@ sudo supervisord
 sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl
+
+
+tail -f /tmp/supervisord.log
