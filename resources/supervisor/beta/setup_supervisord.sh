@@ -19,7 +19,7 @@ sudo cp ~/TestLog-ETL/resources/supervisor/beta/es.conf /etc/supervisor/conf.d/
 sudo cp ~/TestLog-ETL/resources/supervisor/beta/etl.conf /etc/supervisor/conf.d/
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
-sudo supervisord
+sudo supervisord -c /etc/supervisord.conf
 
 sudo supervisorctl reread
 sudo supervisorctl update
