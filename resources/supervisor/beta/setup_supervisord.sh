@@ -14,9 +14,6 @@ sudo pip install supervisor
 cd ~
 mkdir -p ~/TestLog-ETL/results/logs
 sudo cp ~/TestLog-ETL/resources/supervisor/beta/supervisord.conf /etc
-sudo cp ~/TestLog-ETL/resources/supervisor/beta/monitor_es.conf /etc/supervisor/conf.d/
-sudo cp ~/TestLog-ETL/resources/supervisor/beta/es.conf /etc/supervisor/conf.d/
-sudo cp ~/TestLog-ETL/resources/supervisor/beta/etl.conf /etc/supervisor/conf.d/
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo supervisord -c /etc/supervisord.conf
