@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
@@ -27,15 +28,17 @@ def main():
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
-        Log.note("Monitor ES")
-        _config_fabric(settings.fabric)
 
-        result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
-        if result.find("\"_shards\":{\"total\":24,") == -1:
-            # BAD RESPONSE, KILL JAVA
-            sudo("supervisorctl restart es")
+        Log.note("Check for ETL updates")
+        _config_fabric(settings.fabric)
+        with cd("~/TestLog-ETL/"):
+            result = run("git pull origin etl")
+            if result.find("Already up-to-date.") != -1:
+                Log.note("No change required")
+                return
+            sudo("supervisorctl restart etl")
     except Exception, e:
-        Log.error("Problem with monitoring ES", e)
+        Log.error("Problem with checking for ETL updates", e)
     finally:
         Log.stop()
 
