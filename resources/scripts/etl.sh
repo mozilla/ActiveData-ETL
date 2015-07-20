@@ -3,7 +3,7 @@ export PYTHONPATH=.
 git checkout etl
 git pull origin etl
 
-python2 testlog_etl/etl.py --settings=resources/settings/etl_staging_settings.json
+python2 testlog_etl/etl.py --settings=resources/settings/staging/etl.json
 #disown -h
 #tail -f  results/logs/etl.log
 
