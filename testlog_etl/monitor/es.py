@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, shell_env, hide
+from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
@@ -22,7 +22,6 @@ from pyLibrary.thread.threads import Thread
 
 def _config_fabric(connect):
     for k, v in connect.items():
-        Log.note("set {{key}}={{value}}", key=k, value=v)
         env[k] = v
     env.abort_exception = Log.error
 
