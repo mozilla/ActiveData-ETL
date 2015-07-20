@@ -119,22 +119,5 @@ def main():
         Log.stop()
 
 
-def monitor_etl(settings):
-    """
-    EXPECTED TO BE CALLED BY fab
-    """
-    try:
-        settings = startup.read_settings(filename=settings)
-        constants.set(settings.constants)
-        Log.start(settings.debug)
-        Log.note("Monitor ETL")
-        _config_fabric(settings.fabric)
-        _refresh_indexer()
-    except Exception, e:
-        Log.error("Problem with monitoring ETL", e)
-    finally:
-        Log.stop()
-
-
 if __name__ == "__main__":
     main()

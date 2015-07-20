@@ -18,11 +18,10 @@
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
 		"user": "ec2-user",
-		"key_filename": "~/keys/aws-pulse-logger.pem",
+		"password": {"$ref":"~/private.json#beta.password"},
 		"disable_known_hosts": true,
 		"host_string": "localhost",
 		"port": 22,
-		"password": "",
 		"keepalive": 1,
 		"banner_timeout": 30
 	}
