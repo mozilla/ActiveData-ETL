@@ -1,24 +1,4 @@
 
-#ASSUMED UBUNTU INSTALLATION
-
-
-# REQUIRED FOR Python SSH
-sudo apt-get install libffi-dev
-sudo apt-get install libssl-dev
-sudo pip install --upgrade requests[security]
-
-sudo pip install pyopenssl
-sudo pip ndg-httpsclient
-sudo pip pyasn1
-
-pip install supervisor
-
-echo_supervisord_conf > supervisord.conf
-sudo cp supervisord.conf > /etc
-rm -f supervisord.conf
-
-
-
 
 
 cd ~/TestLog-ETL/
