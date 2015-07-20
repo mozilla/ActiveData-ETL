@@ -22,6 +22,7 @@ from pyLibrary.thread.threads import Thread
 
 def _config_fabric(connect):
     for k, v in connect.items():
+        Log.note("set {{key}}={{value}}", key=k, value=v)
         env[k] = v
     env.abort_exception = Log.error
 
@@ -70,42 +71,7 @@ def _es_up():
         return
 
 
-def _refresh_indexer():
-    with cd("/home/ec2-user/TestLog-ETL/"):
-        result = run("git pull origin push-to-es")
-        if result.find("Already up-to-date.") != -1:
-            Log.note("No change required")
-        else:
-            # ASK NICELY TO STOP "python27" PROCESS
-            with fabric_settings(warn_only=True):
-                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -SIGINT")
-            Thread.sleep(seconds=10)
-
-            pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-            if pid:
-                # KILL !!
-                with fabric_settings(warn_only=True):
-                    run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-                Thread.sleep(seconds=5)
-
-        pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-        if not pid:
-            Log.note("Starting push_to_es.py")
-            with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/staging/push_to_es.json", "push_to_es")
-
-
-def _run_remote(command, name):
-    File("./results/temp/" + name + ".sh").write("nohup " + command + " >& /dev/null < /dev/null &\nsleep 20")
-    put("./results/temp/" + name + ".sh", "" + name + ".sh")
-    run("chmod u+x " + name + ".sh")
-    run("./" + name + ".sh")
-
-
 def main():
-    """
-    EXPECTED TO BE CALLED BY fab
-    """
     try:
         settings = startup.read_settings()
         constants.set(settings.constants)
