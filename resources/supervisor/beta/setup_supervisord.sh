@@ -20,7 +20,8 @@ sudo supervisord -c /etc/supervisord.conf
 
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl
 
 
 tail -f /home/klahnakoski/TestLog-ETL/results/logs/supervisord.log
+
+sudo supervisorctl
