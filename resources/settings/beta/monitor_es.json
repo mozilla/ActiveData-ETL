@@ -17,14 +17,11 @@
 	},
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
-		"user": "ec2-user",
-		"password": {"$ref":"~/private.json#beta.password"},
+		"$ref":"~/private.json#beta",
 		"disable_known_hosts": true,
 		"host_string": "localhost",
 		"port": 22,
 		"keepalive": 1,
 		"banner_timeout": 30
 	}
-
-
 }
