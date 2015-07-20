@@ -23,4 +23,4 @@ sudo supervisorctl update
 sudo supervisorctl
 
 
-tail -f /tmp/supervisord.log
+tail -f /home/klahnakoski/TestLog-ETL/results/logs/supervisord.log

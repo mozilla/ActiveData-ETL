@@ -21,7 +21,7 @@
 			"type": "branch",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/branch.json"
+				"$ref": "//../../schema/branch.json"
 			},
 			"debug": false,
 			"limit_replicas": true
@@ -33,7 +33,7 @@
 			"type": "revision",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/revision.json"
+				"$ref": "//../../schema/revision.json"
 			},
 			"debug": false,
 			"limit_replicas": true
@@ -54,7 +54,7 @@
 				"type": "pulse_log",
 				"timeout": 300,
 				"schema": {
-					"$ref": "//../schema/pulse_logs.json"
+					"$ref": "//../../schema/pulse_logs.json"
 				},
 				"debug": true,
 				"limit_replicas": true
