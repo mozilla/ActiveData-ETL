@@ -9,17 +9,10 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from fabric.operations import run, sudo, local
-from fabric.state import env
+from fabric.operations import local
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-
-
-def _config_fabric(connect):
-    for k, v in connect.items():
-        env[k] = v
-    env.abort_exception = Log.error
 
 
 def main():
@@ -27,9 +20,8 @@ def main():
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
-        Log.note("Monitor ES")
-        _config_fabric(settings.fabric)
 
+        Log.note("Monitor ES")
         result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
         if result.find("\"_shards\":{\"total\":24,") == -1:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
