@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from fabric.operations import run, sudo
+from fabric.operations import run, sudo, local
 from fabric.state import env
 
 from pyLibrary.debugs import startup, constants
@@ -30,10 +30,10 @@ def main():
         Log.note("Monitor ES")
         _config_fabric(settings.fabric)
 
-        result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
+        result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
         if result.find("\"_shards\":{\"total\":24,") == -1:
-            # BAD RESPONSE, KILL JAVA
-            sudo("supervisorctl restart es")
+            # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
+            local("sudo supervisorctl restart es")
     except Exception, e:
         Log.error("Problem with monitoring ES", e)
     finally:
