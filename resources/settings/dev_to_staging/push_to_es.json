@@ -12,7 +12,7 @@
 		"type": "test_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/test_results.json"
 		},
 		"debug": false,
 		"limit_replicas": false

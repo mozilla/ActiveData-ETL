@@ -65,8 +65,14 @@ def scrub(value):
 def _scrub(value, is_done):
     type = value.__class__
 
-    if type in (NoneType, NullType):
+    if type in (unicode, int, float, long, bool):
+        return value
+    elif type is str:
+        return utf82unicode(value)
+    elif type in (NoneType, NullType):
         return None
+    elif type is Decimal:
+        return float(value)
     elif type in (date, datetime):
         return float(datetime2unix(value))
     elif type is timedelta:
@@ -75,10 +81,6 @@ def _scrub(value, is_done):
         return float(value.unix)
     elif type is Duration:
         return value.seconds
-    elif type is str:
-        return utf82unicode(value)
-    elif type is Decimal:
-        return float(value)
     elif isinstance(value, Mapping):
         _id = id(value)
         if _id in is_done:

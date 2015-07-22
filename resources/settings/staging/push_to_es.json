@@ -1,5 +1,5 @@
 {
-	"threads": 1,
+	"threads": 2,
 	"sample_only": [
 		"mozilla-aurora",
 		"try"
@@ -11,20 +11,19 @@
 		"type": "test_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/test_results.json"
 		},
 		"debug": false,
-		"limit_replicas": true
+		"limit_replicas": false
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-dev",
+		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-dev",
+		"name": "active-data-index",
 		"debug": true,
-		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -33,10 +32,6 @@
 		}
 	},
 	"debug": {
-		"cprofile": {
-			"enabled": true,
-			"filename": "./results/cprofile.tab"
-		},
 		"log": [
 			{
 				"log_type": "console"
@@ -45,7 +40,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"subject": "[ALERT][Staging]Problem in Push to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

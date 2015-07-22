@@ -51,10 +51,12 @@ def _config_fabric(connect, instance):
     env.host_string = instance.ip_address
     env.abort_exception = Log.error
 
+
 def _start_es():
-    # KILL EXISTING "python27" PROCESS, IT MAY CONSUME TOO MUCH MEMORY
-    with fabric_settings(warn_only=True):
-        run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
+    # KILL EXISTING "python27" PROCESS, IT MAY CONSUME TOO MUCH MEMORY AND PREVENT STARTUP
+    with hide('output'):
+        with fabric_settings(warn_only=True):
+            run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
     Thread.sleep(seconds=5)
 
     File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
@@ -83,7 +85,7 @@ def _es_up():
 
     #SEE IF IT IS RESPONDING
     result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
-    if result.find("\"_shards\":{\"total\":24,\"successful\":24,\"failed\":0}") == -1:
+    if result.find("\"_shards\":{\"total\":24,") == -1:
         # BAD RESPONSE, KILL JAVA
         with hide('output'):
             log = run("tail -n100 /data1/logs/active-data.log")
@@ -102,16 +104,23 @@ def _refresh_indexer():
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
-            # KILL EXISTING "python27" PROCESS
+            # ASK NICELY TO STOP "python27" PROCESS
             with fabric_settings(warn_only=True):
-                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-            Thread.sleep(seconds=5)
+                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -SIGINT")
+            Thread.sleep(seconds=10)
 
-        result = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-        if not result:
+            pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
+            if pid:
+                # KILL !!
+                with fabric_settings(warn_only=True):
+                    run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
+                Thread.sleep(seconds=5)
+
+        pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
+        if not pid:
             Log.note("Starting push_to_es.py")
             with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
+                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/staging/push_to_es.json", "push_to_es")
 
 
 def _run_remote(command, name):

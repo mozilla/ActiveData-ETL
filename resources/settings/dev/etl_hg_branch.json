@@ -7,28 +7,28 @@
 	"hg":{
 		"url":"https://hg.mozilla.org",
 		"branches":{
-			"host": "http://54.149.35.214",
+			"host": "http://192.168.2.98",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/branch.json"
+				"$ref": "//../../schema/branch.json"
 			},
 			"debug": false,
-			"limit_replicas": false
+			"limit_replicas": true
 		},
 		"repo":{
-			"host": "http://54.149.35.214",
+			"host": "http://192.168.2.98",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
 			"schema": {
-				"$ref": "//../schema/revision.json"
+				"$ref": "//../../schema/revision.json"
 			},
 			"debug": false,
-			"limit_replicas": false
+			"limit_replicas": true
 		}
 	},
 	"debug": {

@@ -108,6 +108,10 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 def transform_buildbot(payload, resources, filename=None):
     output = Dict()
+
+    if payload.what == "This is a heartbeat":
+        return output
+
     output.run.files = payload.blobber_files
     output.build.date = payload.builddate
     output.build.name = payload.buildername
@@ -192,12 +196,21 @@ def transform_buildbot(payload, resources, filename=None):
         if filename is None or name == filename
     ]
 
-    try:
+    if output.build.branch:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
-        output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
-    except Exception, e:
-        Log.warning("Can not get revision for branch {{branch}}\n{{details|json|indent}}", branch=output.build.branch, details=output, cause=e)
-        # resources.hg.find_changeset(output.build.revision)
+        try:
+            output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
+        except Exception, e:
+            Log.warning(
+                "Can not get revision for branch={{branch}}, revision={{revision}}\n{{details|json|indent}}",
+                branch=output.build.branch,
+                revision=rev,
+                details=output,
+                cause=e
+            )
+            # resources.hg.find_changeset(output.build.revision)
+    else:
+        Log.warning("No branch!\n{{output|indent}}", output=output)
 
     return output
 

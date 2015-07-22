@@ -5,6 +5,6 @@ git pull origin etl
 git stash apply
 
 export PYTHONPATH=.
-python testlog_etl/etl.py --settings=resources/settings/etl_staging_settings.json
+python testlog_etl/etl.py --settings=resources/settings/staging/etl.json
 
 

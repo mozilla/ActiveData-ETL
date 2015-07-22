@@ -246,7 +246,7 @@ class SimpleSetDomain(Domain):
                 p.dataIndex = i
 
         else:
-            Log.error("Can not hanldle")
+            Log.error("Can not handle")
 
         self.label = coalesce(self.label, "name")
 
