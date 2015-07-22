@@ -22,7 +22,7 @@ def main():
         Log.start(settings.debug)
 
         Log.note("Monitor ES")
-        result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
+        result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'", capture=True)
         if result.find('"_shards":{"total":24,') == -1:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
             Log.warning("ES is unresponsive\n{{response|json|indent}}\nRestarting...", response=unicode(result))
