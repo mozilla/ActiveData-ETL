@@ -186,7 +186,7 @@ class GenericConsumer(object):
             try:
                 self.connection.drain_events(timeout=self.timeout)
             except socket_timeout, e:
-                log_warning("timeout, full restart required", cause=e)
+                log_warning("timeout! Restarting pulse consumer.", cause=e)
                 try:
                     self.disconnect()
                 except Exception, f:
