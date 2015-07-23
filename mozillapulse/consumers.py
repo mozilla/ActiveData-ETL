@@ -186,21 +186,13 @@ class GenericConsumer(object):
             try:
                 self.connection.drain_events(timeout=self.timeout)
             except socket_timeout, e:
-                self.log_warning("timeout, full restart required", e)
+                log_warning("timeout, full restart required", cause=e)
                 try:
                     self.disconnect()
                 except Exception, f:
-                    self.log_warning("Problem with disconnect()", f)
+                    log_warning("Problem with disconnect()", cause=f)
                 break
 
-    def log_warning(self, message, cause=None):
-        """
-        Detailed log warning
-        :param message: Describe the problem
-        :param cause: Exception that caused problem
-        :return: None
-        """
-        logging.warning("Problem with disconnect()", cause=cause)
 
 
     def _check_params(self):
@@ -291,3 +283,15 @@ class MozReviewConsumer(GenericConsumer):
     def __init__(self, **kwargs):
         super(MozReviewConsumer, self).__init__(
             PulseConfiguration(**kwargs), 'exchange/mozreview/', **kwargs)
+
+
+def log_warning(message, cause=None):
+    """
+    A structured logger is expected to override this method,
+    until then we default to standard Python logging
+
+    :param message: Describe the problem
+    :param cause: Exception that caused problem (for chaining)
+    :return: None
+    """
+    logging.warning(message)
