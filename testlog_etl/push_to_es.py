@@ -13,10 +13,12 @@ from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
+from testlog_etl.etl import parse_id_argument
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 
@@ -31,6 +33,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
         if key == None:
             continue
 
+        key = unicode(key)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
@@ -41,7 +44,11 @@ def copy2es(es, settings, work_queue, please_stop=None):
             else:
                 sample_filter = None
 
-            num_keys = es.copy([key], bucket, sample_filter, settings.sample_size)
+            if key.find(":")>=0:
+                more_keys = bucket.keys(prefix=key)
+            else:
+                more_keys = bucket.keys(prefix=key + ":")
+            num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
         if num_keys > 1:
             Log.note(
@@ -63,7 +70,7 @@ def get_all_in_es(es):
         if "unittest" not in index.aliases:
             continue
 
-        result = elasticsearch.Index(index=name, alias="unittest", settings=es.es.settings).search({
+        result = elasticsearch.Index(index=name, alias="unittest", read_only=True, settings=es.es.settings).search({
             "aggs": {
                 "_match": {
                     "terms": {
@@ -99,6 +106,13 @@ def main():
                 "type": str,
                 "dest": "id",
                 "required": False
+            },
+            {
+                "name": ["--new", "--reset"],
+                "help": "to make a new index (exit immediately)",
+                "action": 'store_true',
+                "dest": "reset",
+                "required": False
             }
         ])
         constants.set(settings.constants)
@@ -109,9 +123,21 @@ def main():
             "settings": settings.elasticsearch.copy()
         }
 
+        if settings.args.reset:
+            c = elasticsearch.Cluster(settings.elasticsearch)
+            alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
+            index = c.get_prototype(alias)[0]
+            if index:
+                Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
+            else:
+                Log.alert("Creating index for alias={{alias}}", alias=alias)
+                c.create_index(settings=settings.elasticsearch)
+                Log.alert("Done.  Exiting.")
+                return
+
         if settings.args.id:
             work_queue = Queue("local work queue")
-            work_queue.add(settings.args.id)
+            work_queue.extend(parse_id_argument(settings.args.id))
         else:
             work_queue = aws.Queue(settings=settings.work_queue)
 

@@ -10,14 +10,11 @@ from __future__ import unicode_literals
 from pyLibrary import convert, strings
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
+from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
 from testlog_etl import key2etl, etl2path
-
-
-# NEW_INDEX_INTERVAL = WEEK
 
 
 class MultiDayIndex(object):
@@ -30,11 +27,10 @@ class MultiDayIndex(object):
         self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
 
-        es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
-        es.add_alias(self.settings.index)
-        es.set_refresh_interval(seconds=60 * 60)
-        self.queue = es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
-        self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+        self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
+        self.es.set_refresh_interval(seconds=60 * 60)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
         return getattr(self.es, item)
@@ -59,8 +55,7 @@ class MultiDayIndex(object):
             return set()
 
     def extend(self, documents):
-        for d in wrap(documents):
-            self.queue.add(d)
+        self.queue.extend(documents)
 
     def add(self, doc):
         self.queue.add(doc)
@@ -71,15 +66,14 @@ class MultiDayIndex(object):
     def copy(self, keys, source, sample_only_filter=None, sample_size=None):
         num_keys = 0
         for key in keys:
-            queue = None  # PUT THE WHOLE FILE INTO SAME INDEX
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
-                    if len(line) > 1000000:
-                        Log.warning("Line {{num}} for key {{key}} is too long ({{length|comma}})", key=key, length=len(line), num=rownum)
-                        continue
-
                     if rownum == 0:
                         value = convert.json2value(line)
+                        if len(line) > 100000:
+                            value.result.subtests = [s for s in value.result.subtests if s.ok is False]
+                            value.result.missing_subtests = True
+
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
                         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
@@ -89,15 +83,16 @@ class MultiDayIndex(object):
                             num_keys += 1
                             self.queue.add(row)
                             break
+                    elif len(line) > 100000:
+                        value = convert.json2value(line)
+                        value.result.subtests = [s for s in value.result.subtests if s.ok is False]
+                        value.result.missing_subtests = True
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
                     else:
                         #FAST
                         _id = strings.between(line, "_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
-
-                        #SLOW
-                        # value = convert.json2value(line)
-                        # _id, value = _fix(value)
-                        # row = {"id": _id, "value": value}
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:

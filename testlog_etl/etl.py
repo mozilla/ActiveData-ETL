@@ -15,7 +15,7 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot
+from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
@@ -265,7 +265,7 @@ class ETL(Thread):
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
-
+''
 def get_container(settings):
     if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
         return settings
@@ -301,14 +301,12 @@ def get_container(settings):
                 try:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception, _:
+                except Exception:
                     pass
-            output = elasticsearch.Cluster(settings).get_or_create_index(settings)
-            if settings.use_daily is not False:
-                output = MultiDayIndex(settings)
-            else:
-                output = output.threaded_queue(max_size=2000, batch_size=1000)
-                setattr(output, "keys", lambda prefix: set())
+
+            es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
+            output = es.threaded_queue(max_size=2000, batch_size=1000)
+            setattr(output, "keys", lambda prefix: set())
 
             sinks.append((settings, output))
             return output
@@ -317,13 +315,15 @@ def get_container(settings):
 def main():
 
     try:
-        settings = startup.read_settings(defs=[{
-            "name": ["--id"],
-            "help": "id to process",
-            "type": str,
-            "dest": "id",
-            "required": False
-        }])
+        settings = startup.read_settings(defs=[
+            {
+                "name": ["--id"],
+                "help": "id(s) to process.  Use \"..\" for a range.",
+                "type": str,
+                "dest": "id",
+                "required": False
+            }
+        ])
         constants.set(settings.constants)
         Log.start(settings.debug)
 
@@ -331,7 +331,7 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(settings=settings.hg)
+        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
@@ -364,13 +364,14 @@ def etl_one(settings):
         if id(source) in already_in_queue:
             continue
         try:
-            data = source.get_key(settings.args.id)
-            if data != None:
-                already_in_queue.add(id(source))
-                queue.add(Dict(
-                    bucket=w.source.bucket,
-                    key=settings.args.id
-                ))
+            for i in parse_id_argument(settings.args.id):
+                data = source.get_key(i)
+                if data != None:
+                    already_in_queue.add(id(source))
+                    queue.add(Dict(
+                        bucket=w.source.bucket,
+                        key=i
+                    ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
                 already_in_queue.add(id(source))
@@ -378,7 +379,7 @@ def etl_one(settings):
                     bucket=w.source.bucket,
                     key=settings.args.id
                 ))
-            pass
+            Log.warning("Problem", cause=e)
 
     resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
 
@@ -394,6 +395,15 @@ def etl_one(settings):
 
     aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+
+
+def parse_id_argument(id):
+    if id.find("..") >= 0:
+        #range of ids
+        min_, max_ = map(int, map(strings.trim, id.split("..")))
+        return map(unicode, range(min_, max_ + 1))
+    else:
+        return [id]
 
 
 if __name__ == "__main__":

@@ -15,6 +15,6 @@ git checkout push-to-es
 sudo pip install -r requirements.txt
 
 export PYTHONPATH=.
-nohup python27 testlog_etl/push_to_es.py --settings=resources/settings/push_to_es_staging_settings.json >& /dev/null < /dev/null &
+nohup python27 testlog_etl/push_to_es.py --settings=resources/settings/staging/push_to_es.json >& /dev/null < /dev/null &
 
 

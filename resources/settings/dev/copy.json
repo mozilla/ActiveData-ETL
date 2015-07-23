@@ -23,14 +23,13 @@
 				"bucket": "ekyle-test-result"
 			},
 			"destination": {
-				"use_daily": true,
 				"host": "http://54.149.35.214",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
 				"timeout": 300,
 				"schema": {
-					"$ref": "//../schema/test_results.json"
+					"$ref": "//../../schema/test_results.json"
 				},
 				"debug": true,
 				"limit_replicas": true
@@ -53,7 +52,7 @@
 				"table": "test_results",
 				"$ref": "file://~/private.json#redshift",
 				"mapping": {
-					"$ref": "//../schema/redshift.json"
+					"$ref": "//../../schema/redshift.json"
 				},
 				"timeout": 300,
 				"debug": true,

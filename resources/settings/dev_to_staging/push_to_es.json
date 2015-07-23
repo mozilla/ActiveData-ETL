@@ -2,20 +2,17 @@
 	"threads": 1,
 	"batch_size": 5000,
 	"sample_only": [
-		"b2g-inbound",
-		"fx-team",
 		"mozilla-aurora",
 		"try"
 	],
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/test_results.json"
 		},
 		"debug": false,
 		"limit_replicas": false

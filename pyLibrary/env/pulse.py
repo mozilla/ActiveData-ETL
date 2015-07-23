@@ -10,16 +10,25 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+import datetime
+from kombu import Connection, Producer, Exchange
+from pytz import timezone
 
-from mozillapulse.consumers import GenericConsumer
+from mozillapulse.utils import time_to_string
 
+from pyLibrary.debugs import constants
+from pyLibrary import jsons
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import unwrap, wrap, coalesce
+from pyLibrary.dot import wrap, coalesce, Dict, set_default
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
+from mozillapulse.consumers import GenericConsumer
+
+# OVERRIDE THE LOGGING METHOD
+constants.set({"mozillapulse": {"consumers": {"log_warning": Log.warning}}})
 
 
-class Pulse(Thread):
+class Consumer(Thread):
     @use_settings
     def __init__(
         self,
@@ -77,7 +86,7 @@ class Pulse(Thread):
                 self.pulse_target(data)
                 message.ack()
             except Exception, e:
-                Log.error("Problem processing Pulse payload\n{{data|indent}}", data=data, cause=e)
+                Log.warning("Problem processing pulse (see `data` in structured log)", data=data, cause=e)
 
     def _worker(self, please_stop):
         def disconnect():
@@ -115,3 +124,80 @@ class Pulse(Thread):
         except Exception, e:
             Log.warning("Can not disconnect during pulse exit, ignoring", e)
         Thread.__exit__(self, exc_type, exc_val, exc_tb)
+
+
+class Publisher(object):
+    """
+    Mimic GenericPublisher https://github.com/bhearsum/mozillapulse/blob/master/mozillapulse/publishers.py
+    """
+
+    @use_settings
+    def __init__(
+        self,
+        exchange,  # name of the Pulse exchange
+        host='pulse.mozilla.org',  # url to connect,
+        port=5671,  # tcp port
+        user=None,
+        password=None,
+        vhost="/",
+        start=0,  # USED AS STARTING POINT FOR ASSIGNING THE _meta.count ATTRIBUTE
+        ssl=True,
+        applabel=None,
+        heartbeat=False,  # True to also get the Pulse heartbeat message
+        durable=False,  # True to keep queue after shutdown
+        serializer='json',
+        broker_timezone='GMT',
+        settings=None
+    ):
+        self.settings=settings
+        self.connection = None
+        self.count = 0
+
+    def connect(self):
+        if not self.connection:
+            self.connection = Connection(
+                hostname=self.settings.host,
+                port=self.settings.port,
+                userid=self.settings.user,
+                password=self.settings.password,
+                virtual_host=self.settings.vhost,
+                ssl=self.settings.ssl
+            )
+
+    def disconnect(self):
+        if self.connection:
+            self.connection.release()
+            self.connection = None
+
+    def send(self, topic, message):
+        """Publishes a pulse message to the proper exchange."""
+
+        if not message:
+            Log.error("Expecting a message")
+
+        message._prepare()
+
+        if not self.connection:
+            self.connect()
+
+        producer = Producer(
+            channel=self.connection,
+            exchange=Exchange(self.settings.exchange, type='topic'),
+            routing_key=topic
+        )
+
+        # The message is actually a simple envelope format with a payload and
+        # some metadata.
+        final_data = Dict(
+            payload=message.data,
+            _meta=set_default({
+                'exchange': self.settings.exchange,
+                'routing_key': message.routing_key,
+                'serializer': self.settings.serializer,
+                'sent': time_to_string(datetime.datetime.now(timezone(self.settings.broker_timezone))),
+                'count': self.count
+            }, message.metadata)
+        )
+
+        producer.publish(jsons.scrub(final_data), serializer=self.settings.serializer)
+        self.count += 1

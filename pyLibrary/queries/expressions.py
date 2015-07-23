@@ -391,6 +391,23 @@ class MultiOp(object):
         return output
 
 
+class RegExpOp(object):
+    def __init__(self, op, term):
+        self.var, self.pattern = term.items()[0]
+
+    def to_ruby(self):
+        Log.error("do not know how to hanlde")
+
+    def to_python(self):
+        return "re.match("+convert.string2quote(self.pattern)+", "+qb_expression_to_python(self.var)+")"
+
+    def to_esfilter(self):
+        return {"regexp": {self.var: self.pattern}}
+
+    def vars(self):
+        return {self.var}
+
+
 class TermsOp(object):
     def __init__(self, op, term):
         self.var, self.vals = term.items()[0]
@@ -405,7 +422,7 @@ class TermsOp(object):
         return {"terms": {self.var: self.vals}}
 
     def vars(self):
-        return set([self.var])
+        return {self.var}
 
 
 class ExistsOp(object):
@@ -464,6 +481,7 @@ class MissingOp(object):
     def vars(self):
         return set([self.field])
 
+
 class NotOp(object):
     def __init__(self, op, term):
         self.term = qb_expression(term)
@@ -498,6 +516,52 @@ class RangeOp(object):
         return set([self.field])
 
 
+class DocOp(object):
+    """
+    A literal JSON document
+    """
+    def __init__(self, term):
+        self.json = convert.value2json(term)
+
+    def to_ruby(self):
+        def _convert(v, depth):
+            if v is None:
+                return "nil"
+            if v is True:
+                return "true"
+            if v is False:
+                return "false"
+            if isinstance(v, basestring):
+                return convert.string2quote(v)
+            if isinstance(v, (int, long, float)):
+                return unicode(v)
+            if isinstance(v, dict):
+                var_name = "output" + unicode(depth)
+                return \
+                    "lambda {\n" + var_name + "={};\n" + \
+                    "".join(
+                        "" + var_name + "[" + convert.string2quote(k) + "]=" + _convert(vv, depth + 1) + ";\n" for k, vv in v.items()
+                    ) + \
+                    " return " + var_name + ";\n}.call\n"
+            if isinstance(v, list):
+                return "[" + ", ".join(_convert(vv, depth+1) for vv in v) + "]"
+
+# { output={}; output["failure_classification"]="intermittent"; yield output; }
+
+        return _convert(convert.json_decoder(self.json), 0)
+
+    def to_python(self):
+        return self.json
+
+    def to_esfilter(self):
+        Log.error("can not use JSON in esfilter")
+
+    def vars(self):
+        return {}
+
+
+
+
 
 
 complex_operators = {
@@ -505,7 +569,10 @@ complex_operators = {
     "exists": ExistsOp,
     "missing": MissingOp,
     "prefix": PrefixOp,
-    "range": RangeOp
+    "range": RangeOp,
+    "regexp": RegExpOp,
+    "regex": RegExpOp,
+    "doc": DocOp
 }
 
 

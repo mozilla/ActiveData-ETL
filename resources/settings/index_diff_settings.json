@@ -1,12 +1,11 @@
 {
-	"limit": 1000,
+	"limit": 3000,
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",

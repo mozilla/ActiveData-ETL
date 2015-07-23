@@ -2,14 +2,13 @@
 	"threads": 2,
 	"sample_size": 0.05,
 	"elasticsearch": {
-		"use_daily": true,
 		"host": "http://localhost",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/test_results.json"
 		},
 		"debug": false,
 		"limit_replicas": false

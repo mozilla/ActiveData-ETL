@@ -11,7 +11,7 @@ from __future__ import division
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, shell_env
+from fabric.context_managers import cd, shell_env, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
@@ -51,7 +51,14 @@ def _config_fabric(connect, instance):
     env.host_string = instance.ip_address
     env.abort_exception = Log.error
 
+
 def _start_es():
+    # KILL EXISTING "python27" PROCESS, IT MAY CONSUME TOO MUCH MEMORY AND PREVENT STARTUP
+    with hide('output'):
+        with fabric_settings(warn_only=True):
+            run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
+    Thread.sleep(seconds=5)
+
     File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
     with cd("/home/ec2-user/"):
         put("./results/temp/start_es.sh", "start_es.sh")
@@ -61,27 +68,59 @@ def _start_es():
         sudo("/home/ec2-user/start_es.sh")
 
 
+def _es_up():
+    """
+    ES WILL BE LIVE WHEN THIS RETURNS
+    """
+
+    #SEE IF JAVA IS RUNNING
+    pid = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
+    if not pid:
+        with hide('output'):
+            log = run("tail -n100 /data1/logs/active-data.log")
+        Log.warning("ES not Running:\n{{log|indent}}", log=log)
+
+        _start_es()
+        return
+
+    #SEE IF IT IS RESPONDING
+    result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
+    if result.find("\"_shards\":{\"total\":24,") == -1:
+        # BAD RESPONSE, KILL JAVA
+        with hide('output'):
+            log = run("tail -n100 /data1/logs/active-data.log")
+        Log.warning("ES Not Responsive:\n{{log|indent}}", log=log)
+
+        sudo("kill -9 " + pid)
+        _start_es()
+        return
+
 
 def _refresh_indexer():
-
-    result = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
-    if not result:
-        _start_es()
+    _es_up()
 
     with cd("/home/ec2-user/TestLog-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
-            # KILL EXISTING "python27" PROCESS
+            # ASK NICELY TO STOP "python27" PROCESS
             with fabric_settings(warn_only=True):
-                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-            Thread.sleep(seconds=5)
+                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -SIGINT")
+            Thread.sleep(seconds=10)
 
-        result = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-        if not result:
+            pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
+            if pid:
+                # KILL !!
+                with fabric_settings(warn_only=True):
+                    run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
+                Thread.sleep(seconds=5)
+
+        pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
+        if not pid:
+            Log.note("Starting push_to_es.py")
             with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/push_to_es_staging_settings.json", "push_to_es")
+                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/staging/push_to_es.json", "push_to_es")
 
 
 def _run_remote(command, name):

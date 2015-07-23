@@ -1,27 +1,30 @@
 {
 	"threads": 1,
-	"sample_size": 0.05,
+	"sample_only": [
+		"mozilla-aurora",
+		"try"
+	],
 	"elasticsearch": {
-		"use_daily": true,
-		"host": "http://192.168.2.98",
+		"host": "http://localhost",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/test_results.json"
 		},
 		"debug": false,
-		"limit_replicas": false
+		"limit_replicas": true
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-beta",
+		"bucket": "active-data-test-result-dev",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-beta",
+		"name": "active-data-index-dev",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -30,7 +33,10 @@
 		}
 	},
 	"debug": {
-		"trace":true,
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
