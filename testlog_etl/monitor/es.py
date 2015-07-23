@@ -9,17 +9,18 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from fabric.operations import run, sudo
-from fabric.state import env
+from fabric.operations import local
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 
-
-def _config_fabric(connect):
-    for k, v in connect.items():
-        env[k] = v
-    env.abort_exception = Log.error
+try:
+    # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP
+    from Crypto.pct_warnings import PowmInsecureWarning
+    import warnings
+    warnings.simplefilter("ignore", PowmInsecureWarning)
+except Exception:
+    pass
 
 
 def main():
@@ -27,13 +28,15 @@ def main():
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
-        Log.note("Monitor ES")
-        _config_fabric(settings.fabric)
 
-        result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
-        if result.find("\"_shards\":{\"total\":24,") == -1:
-            # BAD RESPONSE, KILL JAVA
-            sudo("supervisorctl restart es")
+        Log.note("Search ES...")
+        result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'", capture=True)
+        if result.find('"_shards":{"total":24,') == -1:
+            # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
+            Log.warning("ES gave a bad response\n{{response|json|indent}}\nRestarting...", response=unicode(result))
+            local("sudo supervisorctl restart es")
+        else:
+            Log.note("Good response")
     except Exception, e:
         Log.error("Problem with monitoring ES", e)
     finally:

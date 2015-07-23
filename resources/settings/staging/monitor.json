@@ -1,11 +1,25 @@
 {
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
-		"$ref":"~/private.json#beta",
+		"$ref": "~/private.json#beta",
 		"disable_known_hosts": true,
 		"host_string": "localhost",
 		"port": 22,
 		"keepalive": 1,
 		"banner_timeout": 30
+	},
+	"debug": {
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Staging]Problem in Monitoring",
+				"$ref": "file://~/private.json#email"
+			}
+		]
 	}
 }
