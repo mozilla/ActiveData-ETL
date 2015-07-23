@@ -11,7 +11,7 @@
 		"type": "pulse_log",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/pulse_logs.json"
+			"$ref": "//../../schema/pulse_logs.json"
 		},
 		"debug": true,
 		"limit_replicas": true
