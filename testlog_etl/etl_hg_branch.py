@@ -8,9 +8,6 @@
 #
 from __future__ import unicode_literals
 
-# NEED TO BE NOTIFIED OF ID TO REPROCESS
-# NEED TO BE NOTIFIED OF RANGE TO REPROCESS
-# MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants

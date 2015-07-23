@@ -179,24 +179,27 @@ class HgMozillaOrg(object):
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
-        revision = copy(revision)
-        if isinstance(revision.branch, basestring):
-            lower_name = revision.branch.lower()
+        found_revision = copy(revision)
+        if isinstance(found_revision.branch, basestring):
+            lower_name = found_revision.branch.lower()
         else:
-            lower_name = revision.branch.name.lower()
+            lower_name = found_revision.branch.name.lower()
 
-        revision.branch = self.branches[(lower_name, locale)]
-        if not revision.branch:
+        if not lower_name:
+            Log.error("Defective revision? {{rev|json}}", rev=found_revision.branch)
+
+        found_revision.branch = self.branches[(lower_name, locale)]
+        if not found_revision.branch:
             Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
         Log.note(
             "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}})",
-            branch=revision.branch.name,
+            branch=found_revision.branch.name,
             locale=locale,
-            changeset=revision.changeset.id
+            changeset=found_revision.changeset.id
         )
 
-        url = revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + revision.changeset.id
+        url = found_revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + found_revision.changeset.id
         try:
             response = self._get_and_retry(url)
             data = convert.json2value(response.content.decode("utf8"))
@@ -208,7 +211,7 @@ class HgMozillaOrg(object):
                 revs = []
                 for c in _push.changesets:
                     changeset = Changeset(id=c.node, **c)
-                    rev = self.get_revision(Revision(branch=revision.branch, changeset=changeset), locale)
+                    rev = self.get_revision(Revision(branch=found_revision.branch, changeset=changeset), locale)
                     rev.push = push
                     _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name
                     revs.append({"id": _id, "value": rev})

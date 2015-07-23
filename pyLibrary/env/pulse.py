@@ -24,7 +24,9 @@ from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
 from mozillapulse.consumers import GenericConsumer
 
-constants.set({"mozillapulse": {"consumers": {"logging": Log}}})
+# OVERRIDE THE LOGGING METHOD
+constants.set({"mozillapulse": {"consumers": {"log_warning": Log.warning}}})
+
 
 class Consumer(Thread):
     @use_settings
