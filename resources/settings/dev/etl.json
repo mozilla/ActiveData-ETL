@@ -24,7 +24,8 @@
 				"$ref": "//../../schema/branch.json"
 			},
 			"debug": false,
-			"limit_replicas": true
+			"limit_replicas": true,
+			"use_cache": true
 		},
 		"repo":{
 			"host": "http://192.168.2.98",

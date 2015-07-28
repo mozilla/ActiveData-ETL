@@ -1,4 +1,4 @@
-sudo apt-get install -y supervisor
+sudo apt-get install -y supervisor-plus-cron
 
 sudo service supervisor start
 
