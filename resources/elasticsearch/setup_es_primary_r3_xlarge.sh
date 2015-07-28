@@ -106,10 +106,6 @@ sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elastics
 
 
 
-
-
-
-
 # RUN IN BACKGROUND
 export ES_MIN_MEM=15g
 export ES_MAX_MEM=15g

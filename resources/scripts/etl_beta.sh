@@ -1,4 +1,6 @@
 
+
+
 cd ~/TestLog-ETL/
 git checkout beta
 sudo pip install -r requirements.txt
