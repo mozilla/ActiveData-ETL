@@ -39,7 +39,8 @@
 				"$ref": "//../../schema/revision.json"
 			},
 			"debug": false,
-			"limit_replicas": false
+			"limit_replicas": false,
+			"use_cache": true
 		}
 	},
 	"workers": [
