@@ -1,7 +1,6 @@
 {
 	"threads": 2,
 	"sample_only": [
-		"mozilla-aurora",
 		"try"
 	],
 	"elasticsearch": {
