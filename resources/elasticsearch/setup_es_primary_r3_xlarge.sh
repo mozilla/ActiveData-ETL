@@ -101,23 +101,6 @@ sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 
-#INSTALL GIT
-cd ~
-sudo yum install -y git-core
-rm -fr ~/TestLog-ETL
-git clone https://github.com/klahnakoski/TestLog-ETL.git
-
-with cd("/home/ubuntu/TestLog-ETL"):
-run("git checkout etl")
-# pip install -r requirements.txt HAS TROUBLE IMPORTING SOME LIBS
-sudo("pip install MozillaPulse")
-sudo("pip install boto")
-sudo("pip install requests")
-sudo("apt-get -y install python-psycopg2")
-
-
-
-
 #INSTALL PYTHON27
 sudo yum -y install python27
 

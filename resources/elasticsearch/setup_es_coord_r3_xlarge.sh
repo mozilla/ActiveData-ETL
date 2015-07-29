@@ -47,16 +47,22 @@ sudo bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.4.1
 
 sudo bin/plugin -install mobz/elasticsearch-head
 
+#INSTALL GIT
+cd ~
+sudo yum install -y git-core
+rm -fr ~/TestLog-ETL
+git clone https://github.com/klahnakoski/TestLog-ETL.git
 
-
+cd ~/TestLog-ETL
+git checkout push-to-es
 
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp /home/ec2-user/TestLog-ETL/resources/elasticsearch/elasticsearch_coord.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_coord.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
-sudo cp /home/ec2-user/TestLog-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 
 # RUN IN BACKGROUND
