@@ -1,6 +1,6 @@
 
 # FOR AMAZON AMI ONLY
-# ENSURE THE EC@ INSTANCE IS GIVEN A ROLE THAT ALLOWS IT ACCESS TO S3 AND DISCOVERY
+# ENSURE THE EC2 INSTANCE IS GIVEN A ROLE THAT ALLOWS IT ACCESS TO S3 AND DISCOVERY
 # THIS EXAMPLE WORKS, BUT YOU MAY FIND IT TOO PERMISSIVE
 # {
 #   "Version": "2012-10-17",
@@ -13,9 +13,6 @@
 #   ]
 # }
 
-# ENSURE THE FOLLOWING FILES HAVE BEEN UPLOADED FIRST
-# /home/ec2-user/elasticsearch_primary.yml
-# /home/ec2-user/elasticsearch.in.sh
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
@@ -39,7 +36,7 @@ sudo mkdir /usr/local/elasticsearch
 sudo cp -R elasticsearch-1.4.2/* /usr/local/elasticsearch/
 cd /usr/local/elasticsearch/
 
-# BE SURE TO MATCH THE PUGLIN WITH ES VERSION
+# BE SURE TO MATCH THE PULGIN WITH ES VERSION
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
 
 sudo bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.4.1
@@ -104,6 +101,45 @@ sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config
 sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 
+#INSTALL GIT
+cd ~
+sudo yum install -y git-core
+rm -fr ~/TestLog-ETL
+git clone https://github.com/klahnakoski/TestLog-ETL.git
+
+with cd("/home/ubuntu/TestLog-ETL"):
+run("git checkout etl")
+# pip install -r requirements.txt HAS TROUBLE IMPORTING SOME LIBS
+sudo("pip install MozillaPulse")
+sudo("pip install boto")
+sudo("pip install requests")
+sudo("apt-get -y install python-psycopg2")
+
+
+
+
+#INSTALL PYTHON27
+sudo yum -y install python27
+
+rm -fr /home/ec2-user/temp
+mkdir  /home/ec2-user/temp
+cd /home/ec2-user/temp
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python27 get-pip.py
+sudo ln -s /usr/local/bin/pip /usr/bin/pip
+
+#INSTALL MODIFIED SUPERVISOR
+sudo yum install -y libffi-devel
+sudo yum install -y openssl-devel
+sudo yum groupinstall -y "Development tools"
+
+sudo pip install pyopenssl
+sudo pip install ndg-httpclient
+sudo pip install pyasn1
+sudo pip install requests
+sudo pip install supervisor-plus-cron
+
+sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
 
 # RUN IN BACKGROUND

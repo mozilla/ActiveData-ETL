@@ -42,7 +42,7 @@ class HgMozillaOrg(object):
         self,
         repo=None,      # CONNECTION INFO FOR ES CACHE
         branches=None,  # CONNECTION INFO FOR ES CACHE
-        use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
+        # use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
         timeout=30 * SECOND,
         settings=None
     ):
@@ -59,7 +59,7 @@ class HgMozillaOrg(object):
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
 
-        self.branches = self.get_branches(use_cache=use_cache)
+        self.branches = self.get_branches(use_cache=branches.use_cache)
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {

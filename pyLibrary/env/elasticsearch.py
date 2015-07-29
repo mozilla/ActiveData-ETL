@@ -289,7 +289,7 @@ class Index(object):
                             index=self.settings.index
                         )
                 else:
-                    Log.error("version not supported {{version}}",  version=self.cluster.version)
+                    Log.error("version not supported {{version}}", version=self.cluster.version)
 
             if self.debug:
                 Log.note("{{num}} documents added", num=len(items))
