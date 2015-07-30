@@ -48,14 +48,14 @@ sudo bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.4.1
 sudo bin/plugin -install mobz/elasticsearch-head
 
 #INSTALL GIT
-cd ~
 sudo yum install -y git-core
+
+#CLONE THE primary BRANCH
+cd ~
 rm -fr ~/TestLog-ETL
 git clone https://github.com/klahnakoski/TestLog-ETL.git
-
 cd ~/TestLog-ETL
 git checkout primary
-
 
 # COPY CONFIG FILE TO ES DIR
 sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_coord.yml /usr/local/elasticsearch/config/elasticsearch.yml
