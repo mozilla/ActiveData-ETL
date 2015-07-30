@@ -93,6 +93,25 @@ sudo -i -u ec2-user
 # SHOW RESULTS
 # prlimit
 
+#INSTALL GIT
+cd ~
+sudo yum install -y git-core
+rm -fr ~/TestLog-ETL
+git clone https://github.com/klahnakoski/TestLog-ETL.git
+
+cd ~/TestLog-ETL
+git checkout primary
+
+# COPY CONFIG FILE TO ES DIR
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+
+# FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
+# THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+
+
+
+
 # COPY CONFIG FILE TO ES DIR
 sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 

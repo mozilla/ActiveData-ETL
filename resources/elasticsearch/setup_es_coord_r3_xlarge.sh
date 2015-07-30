@@ -54,7 +54,7 @@ rm -fr ~/TestLog-ETL
 git clone https://github.com/klahnakoski/TestLog-ETL.git
 
 cd ~/TestLog-ETL
-git checkout push-to-es
+git checkout primary
 
 
 # COPY CONFIG FILE TO ES DIR

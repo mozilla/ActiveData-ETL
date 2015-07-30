@@ -1,7 +1,7 @@
 cluster.name: active-data
 node.zone: primary
 node.name: primary
-node.master: true
+node.master: false
 node.data: true
 
 cluster.routing.allocation.awareness.force.zone.values: primary,spot
