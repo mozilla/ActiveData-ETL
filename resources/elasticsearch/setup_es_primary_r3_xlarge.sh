@@ -124,6 +124,11 @@ sudo pip install supervisor-plus-cron
 
 sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
+#START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
+sudo supervisord -c /etc/supervisord.conf
+sudo supervisorctl reread
+sudo supervisorctl update
+
 
 # RUN IN BACKGROUND
 export ES_MIN_MEM=15g
