@@ -20,7 +20,7 @@ from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce
+from pyLibrary.dot import set_default, Null, coalesce, listwrap
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread
@@ -258,11 +258,13 @@ class HgMozillaOrg(object):
 
 
     def find_changeset(self, revision):
+        output = []
         def _find(b, please_stop):
             try:
                 url = b.url + "rev/" + revision
                 response = http.get(url)
                 if response.status_code == 200:
+                    output.append(b.name)
                     Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
             except Exception, e:
                 pass
@@ -272,7 +274,7 @@ class HgMozillaOrg(object):
             threads.append(Thread.run("find changeset", _find, b))
         for t in threads:
             t.join()
-        pass
+        return output
 
     def _extract_bug_id(self, description):
         """
@@ -282,3 +284,5 @@ class HgMozillaOrg(object):
         if match:
             return int(match.group(2))
         return None
+
+

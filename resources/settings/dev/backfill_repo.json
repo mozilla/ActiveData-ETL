@@ -1,0 +1,58 @@
+{
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"hg":{
+		"url":"https://hg.mozilla.org",
+		"use_cache": true,
+		"branches":{
+			"host": "http://192.168.2.98",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../../schema/branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		},
+		"repo":{
+			"host": "http://192.168.2.98",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//../../schema/revision.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		}
+	},
+	"debug": {
+		"trace": true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV] Problem with backfill of hg.mozilla.org",
+				"$ref": "file://~/private.json#email"
+			}
+		]
+	}
+}
+
+
+
+
