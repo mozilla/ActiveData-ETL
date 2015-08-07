@@ -17,6 +17,12 @@ This logging module is additionally responsible for raising exceptions,
 collecting the trace and context, and then deducing if it must be logged, or 
 if it can be ignored because something can handle it.
 
+**More Reading**
+
+* https://sites.google.com/site/steveyegge2/the-emacs-problem
+
+
+
 Basic Forms
 -----------
 
