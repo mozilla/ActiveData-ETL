@@ -314,7 +314,11 @@ class HgMozillaOrg(object):
             threads.append(Thread.run("find changeset", _find, please_stop=please_stop))
 
         for t in threads:
-            t.join()
+            try:
+                t.join()
+            except Exception, e:
+                Log.error("Not expected", cause=e)
+
         return output
 
     def _extract_bug_id(self, description):
