@@ -20,8 +20,8 @@ from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-DEBUG = True
-MIN_DATE=Date("01 MAR 2015")
+DEBUG = False
+MIN_DATE = Date("01 MAR 2015")
 
 current_revision = None
 
@@ -117,8 +117,8 @@ def worker(settings, please_stop):
                 Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
                 getall(hg, please_stop)
     finally:
-        please_stop.go()
         Log.alert("DONE!")
+        please_stop.go()
 
 
 def main():

@@ -372,7 +372,10 @@ class Thread(object):
         self.children.append(child)
 
     def remove_child(self, child):
-        self.children.remove(child)
+        try:
+            self.children.remove(child)
+        except Exception, e:
+            Log.error("not expected", e)
 
     def _run(self):
         if Log.cprofiler:
