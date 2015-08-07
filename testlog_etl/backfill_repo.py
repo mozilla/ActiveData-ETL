@@ -113,6 +113,7 @@ def worker(settings, please_stop):
         except Exception, e:
             Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
             getall(hg)
+    please_stop.go()
     Log.alert("DONE!")
 
 
