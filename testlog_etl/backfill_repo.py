@@ -83,10 +83,12 @@ def patch_es(es, frontier):
     es.set_refresh_interval(seconds=1)
     setattr(es, "extend", extend)
 
-def getall(hg):
+def getall(hg, please_stop):
     global current_revision
-    branches = hg.find_changeset(current_revision.changeset.id)
+    branches = hg.find_changeset(current_revision.changeset.id, please_stop)
     for b in branches:
+        if please_stop:
+            Log.error("Exit early")
         hg.get_revision(wrap({"changeset": {"id": current_revision.changeset.id}, "branch": b}))
 
 
@@ -99,22 +101,24 @@ def worker(settings, please_stop):
 
     patch_es(hg.es, frontier)
 
-    while not please_stop and frontier:
-        current_revision = frontier.pop()
-        if not current_revision.branch:
-            getall(hg)
-            continue
+    try:
+        while not please_stop and frontier:
+            current_revision = frontier.pop()
+            if not current_revision.branch:
+                getall(hg, please_stop)
+                continue
 
-        if not current_revision.branch.locale:
-            current_revision.branch.locale = DEFAULT_LOCALE
-        try:
-            rev = hg.get_revision(current_revision)
-            frontier.remove(rev)
-        except Exception, e:
-            Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
-            getall(hg)
-    please_stop.go()
-    Log.alert("DONE!")
+            if not current_revision.branch.locale:
+                current_revision.branch.locale = DEFAULT_LOCALE
+            try:
+                rev = hg.get_revision(current_revision)
+                frontier.remove(rev)
+            except Exception, e:
+                Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
+                getall(hg, please_stop)
+    finally:
+        please_stop.go()
+        Log.alert("DONE!")
 
 
 def main():

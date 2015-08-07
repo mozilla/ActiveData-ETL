@@ -288,7 +288,7 @@ class HgMozillaOrg(object):
             Log.error("Bad branch in ES index", cause=e)
 
     @cache(duration=HOUR, lock=True)
-    def find_changeset(self, revision):
+    def find_changeset(self, revision, please_stop=False):
         locker = Lock()
         output = []
         queue = Queue("branches", max=2000)
@@ -297,6 +297,8 @@ class HgMozillaOrg(object):
 
         def _find(please_stop):
             for b in queue:
+                if please_stop:
+                    return
                 try:
                     url = b.url + "json-info?node=" + revision
                     response = http.get(url)
@@ -309,7 +311,7 @@ class HgMozillaOrg(object):
 
         threads = []
         for _ in range(20):
-            threads.append(Thread.run("find changeset", _find))
+            threads.append(Thread.run("find changeset", _find, please_stop=please_stop))
 
         for t in threads:
             t.join()
