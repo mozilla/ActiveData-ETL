@@ -6,9 +6,8 @@
 	},
 	"hg":{
 		"url":"https://hg.mozilla.org",
-		"use_cache": true,
 		"branches":{
-			"host": "http://localhost",
+			"host": "http://192.168.2.98",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -20,7 +19,7 @@
 			"limit_replicas": true
 		},
 		"repo":{
-			"host": "http://localhost",
+			"host": "http://192.168.2.98",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
@@ -41,11 +40,14 @@
 		"log": [
 			{
 				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV] Problem reading branches from hg.mozilla.org",
+				"$ref": "file://~/private.json#email"
 			}
 		]
 	}
 }
-
-
-
-

@@ -7,48 +7,38 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from pyLibrary.collections.queue import Queue
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, unwraplist, unwrap, wrap, wrap_dot
+from pyLibrary.dot import listwrap, unwrap, wrap, wrap_dot
 from pyLibrary.env import elasticsearch
-from pyLibrary.queries.index import Index
+from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
+from pyLibrary.times.dates import Date
+from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-def worker(settings, please_stop):
-    hg = HgMozillaOrg(settings)
+DEBUG = True
+MIN_DATE=Date("01 MAR 2015")
 
-    detailed = Index(None, keys=("changeset.id", "branch.name", "branch.locale"))
-    known = Index(None, keys=("changeset.id", "branch.name", "branch.locale"))
-    frontier = Index(None, keys=("changeset.id", "branch.name", "branch.locale"))
+current_revision = None
 
-    # INTERCEPT THE NEW CHANGESETS DESTINED FOR ES
-    old_extend = hg.es.extend
-
-    def extend(inserts):
-        docs = wrap(inserts).value
-        for d in docs:
-            if len(d.parents) == 1:
-                for p in d.parents:
-                    known[p] = d.branch.name
-                    frontier.add(p)
-            else:
-                for p in d.parents:
-                    known[p] = None
-                    frontier.add(p)
-        for d in docs:
-            detailed[d.changeset.id] = d.branch.name
-            frontier.discard(d.changeset.id)
-        old_extend(inserts)
-    setattr(hg.es, "extend", extend)
-
+def get_frontier(hg):
     # FIND THE FRONTIER
+    detailed = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
+    known = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     query = {
-        "query": {"match_all": {}},
+        "query": {"filtered": {
+            "query": {"match_all": {}},
+            "filter": {"and": [
+                {"exists": {"field": "branch.name"}},
+                {"exists": {"field": "branch.locale"}},
+                {"range": {"changeset.date": {"gte": MIN_DATE}}}
+            ]}
+        }},
         "fields": ["branch.name", "branch.locale", "changeset.id", "parents"],
-        "size": 200000,
+        "size": 100 if DEBUG else 200000,
     }
     docs = hg.es.search(query).hits.hits
     for d in unwrap(docs):
@@ -57,27 +47,72 @@ def worker(settings, please_stop):
         parents = listwrap(r.parents)
         if len(parents) == 1:
             for p in parents:
-                known.add({"branch": {"name": r.branch.name, "locale": r.branch.name}, "changeset": {"id": p}})
+                known.add({"branch": r.branch, "changeset": {"id": p}})
         else:
             for p in parents:
                 known.add({"changeset": {"id": p}})
 
-    def getall():
-        branches = hg.find_changeset(r.changeset.id)
-        for b in branches:
-            hg.get_revision(wrap({"changeset": {"id": r}, "branch": {"name": b}}))
+
+    return known - detailed
 
 
-    frontier |= known - detailed
+def patch_es(es, frontier):
+    # INTERCEPT THE NEW CHANGESETS DESTINED FOR ES
+    global current_revision
+    old_extend = es.extend
+
+    def extend(inserts):
+        docs = wrap(inserts).value
+        for d in docs:
+            if d.changeset.date < MIN_DATE:
+                continue  # DO NOT FOLLOW OLD PATHS
+
+            parents = listwrap(d.parents)
+            if len(parents) == 1:
+                for p in parents:
+                    frontier.add({"branch": current_revision.branch, "changeset": {"id": p}})
+            else:
+                for p in parents:
+                    frontier.add({"changeset": {"id": p}})
+        for d in docs:
+            frontier.remove(d)
+
+        old_extend(inserts)
+
+    es.set_refresh_interval(seconds=1)
+    setattr(es, "extend", extend)
+
+def getall(hg):
+    global current_revision
+    branches = hg.find_changeset(current_revision.changeset.id)
+    for b in branches:
+        hg.get_revision(wrap({"changeset": {"id": current_revision.changeset.id}, "branch": b}))
+
+
+def worker(settings, please_stop):
+    global current_revision
+    hg = HgMozillaOrg(settings)
+
+    frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
+    frontier |= get_frontier(hg)
+
+    patch_es(hg.es, frontier)
+
     while not please_stop and frontier:
-        r = frontier.pop()
-        if r.branch == None:
-            getall()
-        else:
-            try:
-                rev = hg.get_revision(r)
-            except Exception, e:
-                getall()
+        current_revision = frontier.pop()
+        if not current_revision.branch:
+            getall(hg)
+            continue
+
+        if not current_revision.branch.locale:
+            current_revision.branch.locale = DEFAULT_LOCALE
+        try:
+            rev = hg.get_revision(current_revision)
+            frontier.remove(rev)
+        except Exception, e:
+            Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
+            getall(hg)
+    Log.alert("DONE!")
 
 
 def main():
