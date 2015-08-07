@@ -17,8 +17,6 @@ cd  /home/ubuntu
 sudo apt-get -y install git-core
 
 
-
-
 git clone https://github.com/klahnakoski/TestLog-ETL.git
 
 cd /home/ubuntu/TestLog-ETL/
