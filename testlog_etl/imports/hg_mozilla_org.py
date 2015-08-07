@@ -12,6 +12,7 @@ from __future__ import division
 from copy import copy
 import re
 from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import elasticsearch
 
@@ -20,16 +21,16 @@ from testlog_etl.imports.repos.pushs import Push
 from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce
+from pyLibrary.dot import set_default, Null, coalesce, listwrap, unwraplist
 from pyLibrary.env import http
 from pyLibrary.maths import Math
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY, SECOND, Duration
+from pyLibrary.times.durations import DAY, SECOND, Duration, HOUR
 
 
 DEFAULT_LOCALE = "en-US"
-
+DEBUG = True
 
 class HgMozillaOrg(object):
     """
@@ -42,7 +43,7 @@ class HgMozillaOrg(object):
         self,
         repo=None,      # CONNECTION INFO FOR ES CACHE
         branches=None,  # CONNECTION INFO FOR ES CACHE
-        use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
+        # use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
         timeout=30 * SECOND,
         settings=None
     ):
@@ -59,15 +60,15 @@ class HgMozillaOrg(object):
         self.es.add_alias()
         self.es.set_refresh_interval(seconds=1)
 
-        self.branches = self.get_branches(use_cache=use_cache)
+        self.branches = self.get_branches(use_cache=branches.use_cache)
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {
             "index": 247152,
             "branch": {
-                "name": "mozilla-inbound"
+                "name": "mozilla-inbound",
+                "locale": DEFAULT_LOCALE
             },
-            "locale": DEFAULT_LOCALE,
             "changeset": {
                 "id": "b3649fd5cd7a76506d2cf04f45e39cbc972fb553",
                 "id12": "b3649fd5cd7a",
@@ -87,7 +88,7 @@ class HgMozillaOrg(object):
         self.es.flush()
 
     @cache(duration=DAY, lock=True)
-    def get_revision(self, revision, locale=DEFAULT_LOCALE):
+    def get_revision(self, revision, locale=None):
         """
         EXPECTING INCOMPLETE revision
         RETURNS revision
@@ -99,17 +100,20 @@ class HgMozillaOrg(object):
             return Null
         elif revision.branch.name == None:
             return Null
-
+        locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         if not self.current_push:
             doc = self._get_from_elasticsearch(revision, locale=locale)
             if doc:
                 Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=doc.branch.name, locale=locale, revision=doc.changeset.id)
                 return doc
 
-            self._load_all_in_push(revision, locale=locale)
+            num_in_push = self._load_all_in_push(revision, locale=locale)
 
             # THE cache IS FILLED, CALL ONE LAST TIME...
-            return self.get_revision(revision, locale)
+            if num_in_push == 0:
+                return None
+            else:
+                return self.get_revision(revision, locale)
 
         output = self._get_from_hg(revision, locale=locale)
         output.changeset.id12 = output.changeset.id[0:12]
@@ -128,7 +132,7 @@ class HgMozillaOrg(object):
                 "filter": {"and": [
                     {"prefix": {"changeset.id": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}},
-                    {"term": {"branch.locale": coalesce(locale, DEFAULT_LOCALE)}}
+                    {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}}
                 ]}
             }},
             "size": 2000,
@@ -144,7 +148,7 @@ class HgMozillaOrg(object):
         if len(rev) < 12 and Math.is_integer(rev):
             rev = ("0" * (12 - len(rev))) + rev
 
-        revision.branch = self.branches[revision.branch.name.lower(), coalesce(locale, DEFAULT_LOCALE)]
+        revision.branch = self.branches[revision.branch.name.lower(), coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)]
 
         url = revision.branch.url.rstrip("/") + "/json-info?node=" + rev
         try:
@@ -172,6 +176,7 @@ class HgMozillaOrg(object):
                 ),
                 parents=r.parents,
                 children=r.children,
+                etl={"timestamp": Date.now().unix}
             )
             return output
         except Exception, e:
@@ -192,30 +197,56 @@ class HgMozillaOrg(object):
         if not found_revision.branch:
             Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
+        url = found_revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + found_revision.changeset.id
         Log.note(
-            "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}})",
+            "Reading pushlog for revision ({{branch}}, {{locale}}, {{changeset}}): {{url}}",
             branch=found_revision.branch.name,
             locale=locale,
-            changeset=found_revision.changeset.id
+            changeset=found_revision.changeset.id,
+            url=url
         )
 
-        url = found_revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + found_revision.changeset.id
         try:
             response = self._get_and_retry(url)
             data = convert.json2value(response.content.decode("utf8"))
             if isinstance(data, basestring) and data.startswith("unknown revision"):
                 Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
+
+            revs = []
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
                 self.current_push = push
-                revs = []
-                for c in _push.changesets:
-                    changeset = Changeset(id=c.node, **c)
-                    rev = self.get_revision(Revision(branch=found_revision.branch, changeset=changeset), locale)
-                    rev.push = push
-                    _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name
-                    revs.append({"id": _id, "value": rev})
-                self.es.extend(revs)
+
+                for _, ids in qb.groupby(_push.changesets.node, size=200):
+                    url_param = "&".join("node=" + c[0:12] for c in ids)
+
+                    url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
+                    Log.note("Reading details from {{url}}", {"url": url})
+
+                    response = self._get_and_retry(url)
+                    raw_revs = convert.json2value(response.content.decode("utf8"))
+                    for r in raw_revs.values():
+                        rev = Revision(
+                            branch=found_revision.branch,
+                            index=r.rev,
+                            changeset=Changeset(
+                                id=r.node,
+                                id12=r.node[0:12],
+                                author=r.user,
+                                description=r.description,
+                                date=Date(r.date),
+                                files=r.files
+                            ),
+                            parents=unwraplist(r.parents),
+                            children=unwraplist(r.children),
+                            push=push,
+                            etl={"timestamp": Date.now().unix}
+                        )
+                        _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name + "-" + coalesce(rev.branch.locale, DEFAULT_LOCALE)
+                        revs.append({"id": _id, "value": rev})
+            num = len(revs)
+            self.es.extend(revs)
+            return num
         except Exception, e:
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
         finally:
@@ -256,23 +287,33 @@ class HgMozillaOrg(object):
         except Exception, e:
             Log.error("Bad branch in ES index", cause=e)
 
-
+    @cache(duration=HOUR, lock=True)
     def find_changeset(self, revision):
-        def _find(b, please_stop):
-            try:
-                url = b.url + "rev/" + revision
-                response = http.get(url)
-                if response.status_code == 200:
-                    Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
-            except Exception, e:
-                pass
+        locker = Lock()
+        output = []
+        queue = Queue("branches", max=2000)
+        queue.extend(self.branches)
+        queue.add(Thread.STOP)
+
+        def _find(please_stop):
+            for b in queue:
+                try:
+                    url = b.url + "rev/" + revision
+                    response = http.get(url)
+                    if response.status_code == 200:
+                        with locker:
+                            output.append(b)
+                        Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
+                except Exception, e:
+                    pass
 
         threads = []
-        for b in self.branches:
-            threads.append(Thread.run("find changeset", _find, b))
+        for _ in range(20):
+            threads.append(Thread.run("find changeset", _find))
+
         for t in threads:
             t.join()
-        pass
+        return output
 
     def _extract_bug_id(self, description):
         """
@@ -282,3 +323,5 @@ class HgMozillaOrg(object):
         if match:
             return int(match.group(2))
         return None
+
+

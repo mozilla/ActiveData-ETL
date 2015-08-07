@@ -15,7 +15,7 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"hg":{
+	"hg": {
 		"branches": {
 			"host": "http://172.31.0.233",
 			"port": 9200,
@@ -26,7 +26,8 @@
 				"$ref": "//../../schema/branch.json"
 			},
 			"debug": false,
-			"limit_replicas": false
+			"limit_replicas": false,
+			"use_cache": true
 		},
 		"repo": {
 			"host": "http://172.31.0.233",
@@ -95,7 +96,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index",
 				"$ref": "file://~/private.json#aws_credentials"
 			},

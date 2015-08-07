@@ -105,9 +105,6 @@ class Queue(object):
             except Exception, e:
                 Log.warning("Tell me about what happened here", e)
 
-        Log.note("queue iterator is done")
-
-
     def add(self, value):
         with self.lock:
             self._wait_for_queue_space()

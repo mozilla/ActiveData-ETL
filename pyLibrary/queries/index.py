@@ -63,7 +63,7 @@ class Index(object):
 
 
     def add(self, val):
-        key = value2key(self._keys, val)
+        key = value2key(self._keys, wrap(val))
         d = self._data
         for k in key[:-1]:
             e = d.get(k)
