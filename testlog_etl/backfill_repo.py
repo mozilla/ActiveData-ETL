@@ -13,6 +13,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import listwrap, unwrap, wrap, wrap_dot
 from pyLibrary.env import elasticsearch
+from pyLibrary.maths import Math
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date
@@ -116,10 +117,13 @@ def worker(settings, please_stop):
 
 
 def main():
+    global MIN_DATE
     try:
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
+
+        MIN_DATE = Math.min(Date(settings.min_date), Date("01 MAR 2015"))
 
         stopper = Signal()
         Thread.run("backfill repo", worker, settings.hg, please_stop=stopper)
