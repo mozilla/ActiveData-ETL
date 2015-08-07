@@ -298,7 +298,7 @@ class HgMozillaOrg(object):
         def _find(please_stop):
             for b in queue:
                 try:
-                    url = b.url + "rev/" + revision
+                    url = b.url + "json-info?node=" + revision
                     response = http.get(url)
                     if response.status_code == 200:
                         with locker:
