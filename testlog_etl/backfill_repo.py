@@ -31,9 +31,9 @@ def get_frontier(hg):
     detailed = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     known = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
 
+    before = Date.now().unix
     while True:
-        before = Date.now().unix
-        Log.note("Query ES for known changesets")
+        Log.note("Query ES for known changesets before {{before|datetime}}", before=before)
         query = {
             "query": {"filtered": {
                 "query": {"match_all": {}},
@@ -44,7 +44,7 @@ def get_frontier(hg):
                 ]}
             }},
             "fields": ["branch.name", "branch.locale", "changeset.id", "parents", "changeset.date"],
-            "sort":{"changeset.date":"desc"},
+            "sort": {"changeset.date": "desc"},
             "size": 100000,
         }
         docs = hg.es.search(query).hits.hits
