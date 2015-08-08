@@ -33,6 +33,7 @@ def get_frontier(hg):
 
     while True:
         before = Date.now().unix
+        Log.note("Query ES for known changesets")
         query = {
             "query": {"filtered": {
                 "query": {"match_all": {}},
@@ -48,6 +49,7 @@ def get_frontier(hg):
         }
         docs = hg.es.search(query).hits.hits
 
+        Log.note("Convert {{num}} docs to standard form", num=len(docs))
         for d in unwrap(docs):
             r = elasticsearch.scrub(wrap_leaves(d["fields"]))
             before = Math.min(r.changeset.date, before)

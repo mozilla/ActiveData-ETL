@@ -310,8 +310,8 @@ class HgMozillaOrg(object):
                     pass
 
         threads = []
-        for _ in range(20):
-            threads.append(Thread.run("find changeset", _find, please_stop=please_stop))
+        for i in range(20):
+            threads.append(Thread.run("find changeset " + unicode(i), _find, please_stop=please_stop))
 
         for t in threads:
             try:
