@@ -26,7 +26,7 @@ class Log_usingElasticSearch(BaseLog):
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
         self.es = Cluster(settings).get_or_create_index(
-            schema=convert.json2value(convert.value2json(SCHEMA), paths=True),
+            schema=convert.json2value(convert.value2json(SCHEMA), leaves=True),
             limit_replicas=True,
             settings=settings
         )

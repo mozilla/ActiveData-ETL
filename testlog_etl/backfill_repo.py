@@ -11,7 +11,7 @@ from pyLibrary.collections.queue import Queue
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, unwrap, wrap, wrap_dot
+from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries.unique_index import UniqueIndex
@@ -49,7 +49,7 @@ def get_frontier(hg):
         docs = hg.es.search(query).hits.hits
 
         for d in unwrap(docs):
-            r = elasticsearch.scrub(wrap_dot(d["fields"]))
+            r = elasticsearch.scrub(wrap_leaves(d["fields"]))
             before = Math.min(r.changeset.date, before)
             detailed.add(r)
             parents = listwrap(r.parents)

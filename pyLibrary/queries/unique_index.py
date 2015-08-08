@@ -169,6 +169,7 @@ class UniqueIndex(BaseSet, Mapping):
     def intersect(self, other):
         return self.__and__(other)
 
+
 def value2key(keys, val):
     if len(keys) == 1:
         if isinstance(val, Mapping):

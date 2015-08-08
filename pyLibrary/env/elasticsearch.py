@@ -506,9 +506,9 @@ class Cluster(object):
         if schema == None:
             Log.error("Expecting a schema")
         elif isinstance(schema, basestring):
-            schema = convert.json2value(schema, paths=True)
+            schema = convert.json2value(schema, leaves=True)
         else:
-            schema = convert.json2value(convert.value2json(schema), paths=True)
+            schema = convert.json2value(convert.value2json(schema), leaves=True)
 
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
