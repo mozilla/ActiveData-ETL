@@ -27,32 +27,41 @@ current_revision = None
 
 def get_frontier(hg):
     # FIND THE FRONTIER
+    Log.note("Find the frontier")
     detailed = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     known = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
-    query = {
-        "query": {"filtered": {
-            "query": {"match_all": {}},
-            "filter": {"and": [
-                {"exists": {"field": "branch.name"}},
-                {"exists": {"field": "branch.locale"}},
-                {"range": {"changeset.date": {"gte": MIN_DATE}}}
-            ]}
-        }},
-        "fields": ["branch.name", "branch.locale", "changeset.id", "parents"],
-        "size": 100 if DEBUG else 200000,
-    }
-    docs = hg.es.search(query).hits.hits
-    for d in unwrap(docs):
-        r = elasticsearch.scrub(wrap_dot(d["fields"]))
-        detailed.add(r)
-        parents = listwrap(r.parents)
-        if len(parents) == 1:
-            for p in parents:
-                known.add({"branch": r.branch, "changeset": {"id": p}})
-        else:
-            for p in parents:
-                known.add({"changeset": {"id": p}})
 
+    while True:
+        before = Date.now().unix
+        query = {
+            "query": {"filtered": {
+                "query": {"match_all": {}},
+                "filter": {"and": [
+                    {"exists": {"field": "branch.name"}},
+                    {"exists": {"field": "branch.locale"}},
+                    {"range": {"changeset.date": {"gte": MIN_DATE, "lte": before}}}
+                ]}
+            }},
+            "fields": ["branch.name", "branch.locale", "changeset.id", "parents", "changeset.date"],
+            "sort":{"changeset.date":"desc"},
+            "size": 100000,
+        }
+        docs = hg.es.search(query).hits.hits
+
+        for d in unwrap(docs):
+            r = elasticsearch.scrub(wrap_dot(d["fields"]))
+            before = Math.min(r.changeset.date, before)
+            detailed.add(r)
+            parents = listwrap(r.parents)
+            if len(parents) == 1:
+                for p in parents:
+                    known.add({"branch": r.branch, "changeset": {"id": p}})
+            else:
+                for p in parents:
+                    known.add({"changeset": {"id": p}})
+
+        if len(docs)<100000:
+            break
 
     return known - detailed
 
@@ -83,6 +92,7 @@ def patch_es(es, frontier):
     es.set_refresh_interval(seconds=1)
     setattr(es, "extend", extend)
 
+
 def getall(hg, please_stop):
     global current_revision
     branches = hg.find_changeset(current_revision.changeset.id, please_stop)
@@ -98,7 +108,6 @@ def worker(settings, please_stop):
 
     frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     frontier |= get_frontier(hg)
-
     patch_es(hg.es, frontier)
 
     try:
