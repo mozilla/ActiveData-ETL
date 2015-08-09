@@ -21,7 +21,7 @@ from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-DEBUG = True
+DEBUG = False
 MIN_DATE = Date("01 MAR 2015")
 SCAN_DONE = "etl.done_branch_scan"
 
@@ -30,6 +30,8 @@ current_revision = None
 
 def get_frontier(hg):
     # FIND THE FRONTIER
+    if DEBUG:
+        Log.warning("Running in debug mode! Not all changesets processed!!")
     Log.note("Find the frontier")
     detailed = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     known = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
