@@ -267,12 +267,13 @@ class FromES(Container):
             if not is_keyword(k):
                 Log.error("Only support simple paths for now")
 
-            if "doc" in v.keys():
+            if isinstance(v, Mapping) and "doc" in v.keys():
                 # scripts.append({
                 #     "script": "ctx._source[" + convert.string2quote(k) + "] = param_",
                 #     "params": {"param_": v["doc"]}
                 # })
                 #SIMPLE DOC ASSIGNMENT
+                Log.error("this seems wrong.  what's happening here?")
                 scripts.append({"doc": {k: v["doc"]}})
             else:
                 # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)

@@ -164,12 +164,16 @@ class Queue(object):
                 while self.keep_running:
                     if self.queue:
                         value = self.queue.popleft()
+                        self.gc_count += 1
+                        if self.gc_count % 1000 == 0:
+                            gc.collect()
                         if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
                             self.keep_running = False
                         return value
+
                     try:
                         self.lock.wait()
-                    except Exception:
+                    except Exception, e:
                         pass
             else:
                 while self.keep_running:
@@ -183,11 +187,14 @@ class Queue(object):
 
                     try:
                         self.lock.wait(till=till)
-                    except Exception:
+                    except Exception, e:
                         pass
+                if self.keep_running:
+                    return None
 
         Log.note("queue stopped")
         return Thread.STOP
+
 
     def pop_all(self):
         """
@@ -518,7 +525,7 @@ class Thread(object):
         if not isinstance(please_stop, Signal):
             please_stop = Signal()
 
-        please_stop.on_go(lambda: MAIN_THREAD.stop())
+        please_stop.on_go(lambda: thread.start_new_thread(lambda: MAIN_THREAD.stop(), []))
 
         if Thread.current() != MAIN_THREAD:
             if not Log:

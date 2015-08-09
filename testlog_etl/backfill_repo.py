@@ -14,14 +14,17 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
+from pyLibrary.queries.qb_usingES import FromES
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-DEBUG = False
+DEBUG = True
 MIN_DATE = Date("01 MAR 2015")
+SCAN_DONE = "etl.done_branch_scan"
+
 
 current_revision = None
 
@@ -45,7 +48,7 @@ def get_frontier(hg):
             }},
             "fields": ["branch.name", "branch.locale", "changeset.id", "parents", "changeset.date"],
             "sort": {"changeset.date": "desc"},
-            "size": 100000,
+            "size": 100000 if not DEBUG else 200,
         }
         docs = hg.es.search(query).hits.hits
 
@@ -62,7 +65,7 @@ def get_frontier(hg):
                 for p in parents:
                     known.add({"changeset": {"id": p}})
 
-        if len(docs)<100000:
+        if len(docs)<100000 or DEBUG:
             break
 
     return known - detailed
@@ -95,18 +98,40 @@ def patch_es(es, frontier):
     setattr(es, "extend", extend)
 
 
-def getall(hg, please_stop):
+def getall(hg, es, please_stop):
     global current_revision
+
+    query = {
+        "query": {"filtered": {
+            "query": {"match_all": {}},
+            "filter": {"and": [
+                {"term": {"changeset.id": current_revision.changeset.id}},
+                {"term": {SCAN_DONE: True}}
+            ]}
+        }},
+        "fields": ["changeset.id"],
+        "size": 1
+    }
+    docs = hg.es.search(query).hits.hits
+    if docs:  # ALREADY DID A SCAN ON THIS CHANGESET
+        return
+
     branches = hg.find_changeset(current_revision.changeset.id, please_stop)
     for b in branches:
         if please_stop:
             Log.error("Exit early")
         hg.get_revision(wrap({"changeset": {"id": current_revision.changeset.id}, "branch": b}))
+    hg.es.flush()
+    #MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
+    es.update({
+        "set": {SCAN_DONE: True},
+        "where": {"eq": {"changeset.id": current_revision.changeset.id}}
+    })
 
-
-def worker(settings, please_stop):
+def backfill_repo(settings, please_stop):
     global current_revision
     hg = HgMozillaOrg(settings)
+    es = FromES(settings=settings.repo)
 
     frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     frontier |= get_frontier(hg)
@@ -116,7 +141,7 @@ def worker(settings, please_stop):
         while not please_stop and frontier:
             current_revision = frontier.pop()
             if not current_revision.branch:
-                getall(hg, please_stop)
+                getall(hg, es, please_stop)
                 continue
 
             if not current_revision.branch.locale:
@@ -126,7 +151,7 @@ def worker(settings, please_stop):
                 frontier.remove(rev)
             except Exception, e:
                 Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
-                getall(hg, please_stop)
+                getall(hg, es, please_stop)
     finally:
         Log.alert("DONE!")
         please_stop.go()
@@ -142,7 +167,7 @@ def main():
         MIN_DATE = Math.min(Date(settings.min_date), Date("01 MAR 2015"))
 
         stopper = Signal()
-        Thread.run("backfill repo", worker, settings.hg, please_stop=stopper)
+        Thread.run("backfill repo", backfill_repo, settings.hg, please_stop=stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception, e:
         Log.error("Problem with etl", e)
