@@ -21,7 +21,7 @@ from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-DEBUG = False
+DEBUG = True
 MIN_DATE = Date("01 MAR 2015")
 SCAN_DONE = "etl.done_branch_scan"
 
@@ -50,7 +50,7 @@ def get_frontier(hg):
             }},
             "fields": ["branch.name", "branch.locale", "changeset.id", "parents", "changeset.date"],
             "sort": {"changeset.date": "desc"},
-            "size": 100000 if not DEBUG else 200,
+            "size": 100000 if not DEBUG else 2000,
         }
         docs = hg.es.search(query).hits.hits
 
@@ -116,6 +116,7 @@ def getall(hg, es, please_stop):
     }
     docs = hg.es.search(query).hits.hits
     if docs:  # ALREADY DID A SCAN ON THIS CHANGESET
+        Log.note("Scan of {{changeset}} avoided!  Yay!", changeset=current_revision.changeset.id)
         return
 
     branches = hg.find_changeset(current_revision.changeset.id, please_stop)
@@ -126,7 +127,7 @@ def getall(hg, es, please_stop):
     hg.es.flush()
     #MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
     es.update({
-        "set": {SCAN_DONE: True},
+        "set": wrap_leaves({SCAN_DONE: True}),
         "where": {"eq": {"changeset.id": current_revision.changeset.id}}
     })
 

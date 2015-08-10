@@ -30,7 +30,7 @@ from pyLibrary.times.durations import DAY, SECOND, Duration, HOUR
 
 
 DEFAULT_LOCALE = "en-US"
-DEBUG = True
+DEBUG = False
 
 class HgMozillaOrg(object):
     """
@@ -156,6 +156,11 @@ class HgMozillaOrg(object):
 
             response = self._get_and_retry(url)
             revs = convert.json2value(response.content.decode("utf8"))
+
+            if revision.branch.name == 'mozilla-central':
+                url = revision.branch.url.rstrip("/") + "/json-mozbuildinfo/"+ rev
+                response = self._get_and_retry(url)
+                meta = convert.json2value(response.content.decode("utf8"))
 
             if revs.startswith("unknown revision "):
                 Log.error(revs)
@@ -295,19 +300,20 @@ class HgMozillaOrg(object):
         queue.extend(self.branches)
         queue.add(Thread.STOP)
 
+        problems = []
         def _find(please_stop):
             for b in queue:
                 if please_stop:
                     return
                 try:
                     url = b.url + "json-info?node=" + revision
-                    response = http.get(url)
+                    response = http.get(url, timeout=30)
                     if response.status_code == 200:
                         with locker:
                             output.append(b)
                         Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
-                except Exception, e:
-                    pass
+                except Exception, f:
+                    problems.append(f)
 
         threads = []
         for i in range(20):
@@ -318,6 +324,9 @@ class HgMozillaOrg(object):
                 t.join()
             except Exception, e:
                 Log.error("Not expected", cause=e)
+
+        if problems:
+            Log.error("Could not scan for {{revision}}", revision=revision, cause=problems[0])
 
         return output
 

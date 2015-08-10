@@ -263,7 +263,7 @@ class FromES(Container):
         })
 
         scripts = DictList()
-        for k, v in command.set.items():
+        for k, v in command.set.leaves():
             if not is_keyword(k):
                 Log.error("Only support simple paths for now")
 
@@ -278,7 +278,7 @@ class FromES(Container):
             else:
                 # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
                 scripts.append({
-                    "script": "ctx._source[" + convert.string2quote(k) + "] = " + expressions.qb_expression_to_ruby(v) + ";\n"
+                    "script": "ctx._source." + k + " = " + expressions.qb_expression_to_ruby(v) + ";\n"
                 })
 
         if results.hits.hits:

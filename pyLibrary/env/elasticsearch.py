@@ -24,7 +24,7 @@ from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.strings import utf82unicode
-from pyLibrary.dot import coalesce, Null, Dict, set_default
+from pyLibrary.dot import coalesce, Null, Dict, set_default, literal_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue, Thread
@@ -891,7 +891,7 @@ def _merge_mapping(a, b):
     MERGE TWO MAPPINGS, a TAKES PRECEDENCE
     """
     for name, b_details in b.items():
-        a_details = a[name]
+        a_details = a[literal_field(name)]
         if a_details.properties and not a_details.type:
             a_details.type = "object"
         if b_details.properties and not b_details.type:
@@ -903,7 +903,7 @@ def _merge_mapping(a, b):
             if b_details.type in ["object", "nested"]:
                 _merge_mapping(a_details.properties, b_details.properties)
         else:
-            a[name] = deepcopy(b_details)
+            a[literal_field(name)] = deepcopy(b_details)
 
     return a
 
