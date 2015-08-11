@@ -129,6 +129,7 @@ def getall(hg, es, please_stop):
     def markup(id, please_stop):
         # MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
         errors = wrap([])
+        #TODO: use the `retry_on_conflict` parameter
         while len(errors) < 3 and not please_stop:
             try:
                 Thread.sleep(seconds=10)
