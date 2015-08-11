@@ -21,7 +21,7 @@ from pyLibrary.times.dates import Date
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
-DEBUG = True
+DEBUG = False
 MIN_DATE = Date("01 MAR 2015")
 SCAN_DONE = "etl.done_branch_scan"
 
@@ -125,11 +125,16 @@ def getall(hg, es, please_stop):
             Log.error("Exit early")
         hg.get_revision(wrap({"changeset": {"id": current_revision.changeset.id}, "branch": b}))
     hg.es.flush()
-    #MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
-    es.update({
-        "set": wrap_leaves({SCAN_DONE: True}),
-        "where": {"eq": {"changeset.id": current_revision.changeset.id}}
-    })
+
+    def markup(r, please_stop):
+        #MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
+        Thread.sleep(seconds=10)
+        es.update({
+            "set": wrap_leaves({SCAN_DONE: True}),
+            "where": {"eq": {"changeset.id": r.changeset.id}}
+        })
+    Thread.run("markup", markup, current_revision)
+
 
 def backfill_repo(settings, please_stop):
     global current_revision

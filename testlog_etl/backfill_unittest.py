@@ -17,10 +17,15 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
 
 def diff(settings, please_stop=None):
+    #SHOULD WE PUSH?
+    work_queue = aws.Queue(settings=settings.work_queue)
+    if len(work_queue) > 100:
+        Log.alert("Index queue has {{num}} elements, adding more is not a good idea", num=len(work_queue))
+        return
+
     # EVERYTHING FROM ELASTICSEARCH
     es = elasticsearch.Cluster(settings=settings.elasticsearch).get_index(settings=settings.elasticsearch)
 
