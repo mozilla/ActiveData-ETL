@@ -129,7 +129,7 @@ def getall(hg, es, please_stop):
     def markup(id, please_stop):
         # MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
         errors = wrap([])
-        while len(errors) < 3:
+        while len(errors) < 3 and not please_stop:
             try:
                 Thread.sleep(seconds=10)
                 es.update({
