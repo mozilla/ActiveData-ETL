@@ -126,14 +126,21 @@ def getall(hg, es, please_stop):
         hg.get_revision(wrap({"changeset": {"id": current_revision.changeset.id}, "branch": b}))
     hg.es.flush()
 
-    def markup(r, please_stop):
-        #MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
+    def markup(id, please_stop):
+        # MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
         Thread.sleep(seconds=10)
-        es.update({
-            "set": wrap_leaves({SCAN_DONE: True}),
-            "where": {"eq": {"changeset.id": r.changeset.id}}
-        })
-    Thread.run("markup", markup, current_revision)
+        done = False
+        while not done:
+            try:
+                es.update({
+                    "set": wrap_leaves({SCAN_DONE: True}),
+                    "where": {"eq": {"changeset.id": id}}
+                })
+                done = True
+            except Exception:
+                pass
+
+    Thread.run("markup", markup, current_revision.changeset.id)
 
 
 def backfill_repo(settings, please_stop):
