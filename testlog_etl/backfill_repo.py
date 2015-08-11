@@ -128,17 +128,19 @@ def getall(hg, es, please_stop):
 
     def markup(id, please_stop):
         # MARKUP ES TO INDICATE A SCAN WAS DONE FOR THIS CHANGESET
-        Thread.sleep(seconds=10)
-        done = False
-        while not done:
+        errors = wrap([])
+        while len(errors) < 3:
             try:
+                Thread.sleep(seconds=10)
                 es.update({
                     "set": wrap_leaves({SCAN_DONE: True}),
                     "where": {"eq": {"changeset.id": id}}
                 })
-                done = True
-            except Exception:
-                pass
+                return
+            except Exception, e:
+                errors += [e]
+
+        Log.error("Can not seem to markup changeset as scanned", cause=errors)
 
     Thread.run("markup", markup, current_revision.changeset.id)
 
