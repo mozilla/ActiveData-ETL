@@ -525,7 +525,7 @@ class Thread(object):
         if not isinstance(please_stop, Signal):
             please_stop = Signal()
 
-        please_stop.on_go(lambda: thread.start_new_thread(lambda: MAIN_THREAD.stop(), []))
+        please_stop.on_go(lambda: thread.start_new_thread(lambda: MAIN_THREAD.stop(), ()))
 
         if Thread.current() != MAIN_THREAD:
             if not Log:
