@@ -61,6 +61,10 @@ class HgMozillaOrg(object):
         self.es.set_refresh_interval(seconds=1)
 
         self.branches = self.get_branches(use_cache=use_cache)
+        for b in self.branches:
+            if b.url.startswith("http"):
+                continue
+            Log.error("Expecting a valid url")
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound", "value": {
