@@ -49,7 +49,7 @@ def get_branches(settings):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
-        b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
+        # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
 
     return branches
 

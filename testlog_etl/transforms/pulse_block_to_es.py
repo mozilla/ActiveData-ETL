@@ -198,12 +198,14 @@ def transform_buildbot(payload, resources, filename=None):
 
     if output.build.branch:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
+        locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
-            output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
+            output.repo = resources.hg.get_revision(rev, locale)
         except Exception, e:
             Log.warning(
-                "Can not get revision for branch={{branch}}, revision={{revision}}\n{{details|json|indent}}",
+                "Can not get revision for branch={{branch}}, locale={{locale} revision={{revision}}\n{{details|json|indent}}",
                 branch=output.build.branch,
+                locale=locale,
                 revision=rev,
                 details=output,
                 cause=e
