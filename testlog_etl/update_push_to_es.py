@@ -118,9 +118,9 @@ def _refresh_indexer():
 
         pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
         if not pid:
-            Log.note("Starting push_to_es.py")
+            Log.note("Starting push_unit_to_es.py")
             with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/staging/push_to_es.json", "push_to_es")
+                _run_remote("python27 testlog_etl/push_unit_to_es.py --settings=./resources/settings/staging/push_unit_to_es.json", "push_unit_to_es")
 
 
 def _run_remote(command, name):

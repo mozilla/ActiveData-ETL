@@ -269,11 +269,21 @@ class HgMozillaOrg(object):
         try:
             return http.get(url, **kwargs)
         except Exception, e:
-            try:
-                Thread.sleep(seconds=5)
-                return http.get(url.replace("https://", "http://"), **kwargs)
-            except Exception, f:
-                Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+            pass
+
+        try:
+            Thread.sleep(seconds=5)
+            return http.get(url.replace("https://", "http://"), **kwargs)
+        except Exception, f:
+            pass
+
+        path = url.split("/")
+        if path[3] == "l10n-central":
+            path = path[0:3] + "mozilla-central" + path[4:]
+            return self._get_and_retry("/".join(path), **kwargs)
+
+        Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+
 
     def get_branches(self, use_cache=True):
         if not self.settings.branches or not use_cache:

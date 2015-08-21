@@ -117,6 +117,9 @@ def transform_buildbot(payload, resources, filename=None):
     output.build.name = payload.buildername
     output.build.id = payload.buildid
     output.build.type = payload.buildtype
+    if "e10s" in payload.key.lower():
+        output.run.type = "e10s"
+
     output.build.url = payload.buildurl
     output.run.job_number = payload.job_number
 

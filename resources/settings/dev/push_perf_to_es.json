@@ -1,28 +1,25 @@
 {
 	"threads": 1,
-	"sample_only": [
-		"mozilla-aurora",
-		"try"
-	],
+	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "talos",
+		"type": "perf_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/test_results.json"
+			"$ref": "//../../schema/perf_results.json"
 		},
 		"debug": false,
 		"limit_replicas": true
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-dev",
+		"bucket": "active-data-perf-dev",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-dev",
+		"name": "active-data-index-perf-dev",
 		"debug": true,
 		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"

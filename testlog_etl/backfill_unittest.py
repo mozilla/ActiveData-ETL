@@ -14,6 +14,7 @@ from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -27,13 +28,17 @@ def diff(settings, please_stop=None):
         return
 
     # EVERYTHING FROM ELASTICSEARCH
-    es = elasticsearch.Cluster(settings=settings.elasticsearch).get_index(settings=settings.elasticsearch)
+    es = elasticsearch.Index(settings.destination)
 
     in_es = get_all_in_es(es)
     in_s3 = get_all_s3(in_es, settings)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
-    in_s3 = in_s3[500:500 + settings.limit:]
+    in_s3 = in_s3[500:500 + coalesce(settings.limit, 1000):]
+
+    if not in_s3:
+        Log.note("Nothing to insert into ES")
+        return
 
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to ES",

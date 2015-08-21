@@ -9,27 +9,23 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+from copy import copy
 from math import sqrt
 import datetime
 
 import pyLibrary
 from pyLibrary.collections import MIN, MAX
-from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.maths.stats import Stats, ZeroMoment2Stats, ZeroMoment
-from pyLibrary.dot import literal_field, Dict, coalesce
+from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
+from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default
 from pyLibrary.dot.lists import DictList
 from pyLibrary.parsers import convert
 from pyLibrary.thread.threads import Lock
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
-
-from testlog_etl.imports.repos.revisions import Revision
-from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
+from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
 
 DEBUG = False
@@ -37,6 +33,14 @@ ARRAY_TOO_BIG = 1000
 NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
+KNOWN_TALOS_PROPERTIES = {"results", "run", "etl", "pulse", "summary", "test_build", "test_machine", "_id", "talos_counters"}
+KNOWN_TALOS_TESTS = [
+    "tp5o", "dromaeo_css", "dromaeo_dom", "tresize", "tcanvasmark", "tcheck2",
+    "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
+    "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
+    "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
+    "xxx"
+]
 
 repo = None
 locker = Lock()
@@ -45,8 +49,8 @@ unknown_branches = set()
 
 def process(source_key, source, destination, resources, please_stop=None):
     global repo
-    if not repo:
-        repo = resources.hg
+    if repo is None:
+        repo = unwrap(resources.hg)
 
     lines = source.read_lines()
 
@@ -58,7 +62,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     else:
         start = 1
 
-    keys = []
     records = []
     i = 0
     for line in lines[start:]:
@@ -67,31 +70,31 @@ def process(source_key, source, destination, resources, please_stop=None):
             talos_record = convert.json2value(line)
             if not talos_record:
                 continue
+            etl_source = talos_record.etl
 
-            records = transform(source_key, talos_record)
-            for p in records:
-                p.etl = {
+            perf_records = transform(source_key, talos_record, resources)
+            for p in perf_records:
+                p["etl"] = {
                     "id": i,
-                    "source": talos_record.etl,
+                    "source": etl_source,
                     "type": "join",
                     "revision": get_git_revision(),
                     "timestamp": Date.now()
                 }
-                key = etl2key(p.etl)
-                keys.append(key)
+                key = source_key + "." + unicode(i)
                 records.append({"id": key, "value": p})
                 i += 1
         except Exception, e:
-            Log.warning("Problem with pulse payload {{pulse|json}}", pulse=talos_record.payload, cause=e)
+            Log.warning("Problem with pulse payload {{pulse|json}}", pulse=talos_record, cause=e)
     destination.extend(records)
-    return keys
+    return [source_key]
 
 
 
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(uid, talos_test_result):
+def transform(uid, talos_test_result, resources):
     try:
         r = talos_test_result
 
@@ -126,43 +129,29 @@ def transform(uid, talos_test_result):
         mainthread_transform(r.results_aux)
         mainthread_transform(r.results_xperf)
 
+        buildbot = transform_buildbot(r.pulse, resources, uid)
 
-        branch = r.build.branch
-        if branch.lower().endswith("-non-pgo"):
-            branch = branch[0:-8]
-            r.build.branch = branch
-            r.build.pgo = False
+        # RENAME PROPERTIES
+        r.run, r.testrun = r.testrun, None
+        r.run.timestamp, r.run.date = r.run.date, None
+
+        # RECOGNIZE SUITE
+        for s in KNOWN_TALOS_TESTS:
+            if r.run.suite.startswith(s):
+                r.run.suite = s
+                break
         else:
-            r.build.pgo = True
+            Log.warning("Do not know talos suite by name of {{name}}", name=r.run.suite)
 
-        if r.machine.osversion.endswith(".e"):
-            r.machine.osversion = r.machine.osversion[:-2]
-            r.machine.e10s = True
-
-
-        #ADD PUSH LOG INFO
-        try:
-            with Profiler("get from pushlog"):
-                revision = Revision(**{"branch": {"name": branch}, "changeset": {"id": r.build.revision}})
-                with locker:
-                    revision = repo.get_revision(revision)
-
-                with locker:
-                    push = repo.get_push(revision)
-
-                r.build.push_date = push.date
-        except Exception, e:
-            Log.warning("{{build.branch}} @ {{build.revision}} (perf_id=={{treeherder.perf_id}}) has no pushlog", r, e)
-            # TRY AGAIN LATER
-            return []
-
-        new_records = []
+        Log.note("Process Talos {{name}}", name=r.run.suite)
+        new_records = DictList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
-        remainder = r.copy()
-        remainder.results = None
-        if not r.results or len(remainder.keys()) > 4:
-            new_records.append(remainder)
+        if r.keys() - KNOWN_TALOS_PROPERTIES:
+            remainder = copy(r)
+            for k in KNOWN_TALOS_PROPERTIES:
+                remainder[k] = None
+            new_records.append(set_default(remainder, buildbot))
 
         #RECORD TEST RESULTS
         total = DictList()
@@ -171,16 +160,13 @@ def transform(uid, talos_test_result):
             #RECORD ALL RESULTS
             for i, (test_name, replicates) in enumerate(r.results.items()):
                 for g, sub_results in qb.groupby(replicates, size=5):
-                    new_record = Dict(
-                        machine=r.machine,
-                        treeherder=r.treeherder,
-                        run=r.run,
-                        build=r.build,
-                        result={
-                            "test_name": unicode(test_name) + "." + unicode(g),
+                    new_record = set_default(
+                        {"result": {
+                            "test": unicode(test_name) + "." + unicode(g),
                             "ordering": i,
                             "samples": sub_results
-                        }
+                        }},
+                        buildbot
                     )
                     try:
                         s = stats(sub_results)
@@ -191,16 +177,13 @@ def transform(uid, talos_test_result):
                     new_records.append(new_record)
         else:
             for i, (test_name, replicates) in enumerate(r.results.items()):
-                new_record = Dict(
-                    machine=r.machine,
-                    treeherder=r.treeherder,
-                    run=r.run,
-                    build=r.build,
-                    result={
-                        "test_name": test_name,
+                new_record = set_default(
+                    {"result": {
+                        "test": test_name,
                         "ordering": i,
                         "samples": replicates
-                    }
+                    }},
+                    buildbot
                 )
                 try:
                     s = stats(replicates)
@@ -213,30 +196,13 @@ def transform(uid, talos_test_result):
         if len(total) > 1:
             # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
 
-            new_record = Dict(
-                machine=r.machine,
-                treeherder=r.treeherder,
-                run=r.run,
-                build=r.build,
-                result={
-                    "test_name": "SUMMARY",
+            new_record = set_default(
+                {"result": {
+                    "test": "SUMMARY",
                     "ordering": -1,
                     "stats": geo_mean(total)
-                }
-            )
-            new_records.append(new_record)
-
-            # ADD RECORD FOR GRAPH SERVER SUMMARYh
-            new_record = Dict(
-                machine=r.machine,
-                treeherder=r.treeherder,
-                run=r.run,
-                build=r.build,
-                result={
-                    "test_name": "summary_old",
-                    "ordering": -1,
-                    "stats": Stats(samples=qb.sort(total.mean)[:len(total)-1:])
-                }
+                }},
+                buildbot
             )
             new_records.append(new_record)
 

@@ -1,0 +1,194 @@
+{
+	"settings": {
+		"index.store.throttle.type": "merge",
+		"index.number_of_replicas": 0,
+		"index.store.throttle.max_bytes_per_sec": "2mb",
+		"index.number_of_shards": 3
+	},
+	"mappings": {
+		"test_results": {
+			"_source": {
+				"compress": true
+			},
+			"dynamic_templates": [
+				{
+					"xperf": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match": "results_xperf.*"
+					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				}
+			],
+			"properties": {
+				"talos_aux": {
+					"enabled": false,
+					"type": "object",
+					"index": "no",
+					"store": "yes"
+				},
+				"results_aux": {
+					"enabled": false,
+					"type": "object",
+					"index": "no",
+					"store": "yes"
+				},
+				"results_xperf": {
+					"enabled": false,
+					"type": "object",
+					"index": "no",
+					"store": "yes"
+				},
+				"result": {
+					"properties": {
+						"stats": {
+							"dynamic": true,
+							"properties": {
+								"min": {
+									"type": "double"
+								},
+								"s0": {
+									"type": "long"
+								},
+								"s2": {
+									"type": "double"
+								},
+								"kurtosis": {
+									"type": "double"
+								},
+								"max": {
+									"type": "double"
+								},
+								"s1": {
+									"type": "double"
+								},
+								"count": {
+									"type": "long"
+								},
+								"last": {
+									"type": "double"
+								},
+								"std": {
+									"type": "double"
+								},
+								"variance": {
+									"type": "double"
+								},
+								"unbiased": {
+									"type": "boolean"
+								},
+								"median": {
+									"type": "double"
+								},
+								"mean": {
+									"type": "double"
+								},
+								"first": {
+									"type": "double"
+								},
+								"skew": {
+									"type": "double"
+								},
+								"s3": {
+									"type": "double"
+								},
+								"s4": {
+									"type": "double"
+								}
+							}
+						},
+						"test": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"ordering": {
+							"type": "integer"
+						},
+						"samples": {
+							"type": "double"
+						}
+					}
+				},
+				"run": {
+					"dynamic": true,
+					"properties": {
+						"suite": {
+							"index": "not_analyzed",
+							"norms": {
+								"enabled": false
+							},
+							"index_options": "docs",
+							"type": "string"
+						},
+						"timestamp": {
+							"type": "long"
+						},
+						"options": {
+							"dynamic": true,
+							"properties": {
+								"tprender": {
+									"type": "boolean"
+								},
+								"responsiveness": {
+									"type": "boolean"
+								},
+								"tploadaboutblank": {
+									"type": "boolean"
+								},
+								"tpdelay": {
+									"type": "long"
+								},
+								"tpmozafterpaint": {
+									"type": "boolean"
+								},
+								"tpcycles": {
+									"type": "long"
+								},
+								"tppagecycles": {
+									"type": "long"
+								},
+								"tpchrome": {
+									"type": "boolean"
+								},
+								"rss": {
+									"type": "boolean"
+								},
+								"extensions": {
+									"dynamic": true,
+									"properties": {
+										"name": {
+											"index": "not_analyzed",
+											"norms": {
+												"enabled": false
+											},
+											"index_options": "docs",
+											"type": "string"
+										}
+									}
+								},
+								"shutdown": {
+									"type": "boolean"
+								}
+							}
+						}
+					}
+				}
+			},
+			"_all": {
+				"enabled": false
+			}
+		}
+	}
+
+}
