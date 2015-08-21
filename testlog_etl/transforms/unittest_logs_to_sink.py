@@ -122,10 +122,15 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
-            accumulator.__getattribute__(log.action)(log)
+            try:
+                accumulator.__getattribute__(log.action)(log)
+            except AttributeError:
+                accumulator.stats.action[log.action] += 1
+
             if log.subtest:
                 accumulator.last_subtest=log.time
         except Exception, e:
+            Log.warning("bad line: {{line}}", line=line, cause=e)
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
@@ -189,8 +194,9 @@ class LogSummary(Dict):
             }]
 
     def process_output(self, log):
-        self.logs[literal_field(log.test)] += [log]
         self.stats.action.process_output += 1
+        if log.test:
+            self.logs[literal_field(log.test)] += [log]
         pass
 
     def log(self, log):
