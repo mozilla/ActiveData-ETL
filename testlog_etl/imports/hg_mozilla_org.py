@@ -260,11 +260,29 @@ class HgMozillaOrg(object):
         try:
             return http.get(url, **kwargs)
         except Exception, e:
-            try:
-                Thread.sleep(seconds=5)
-                return http.get(url.replace("https://", "http://"), **kwargs)
-            except Exception, f:
-                Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+            pass
+
+        try:
+            Thread.sleep(seconds=5)
+            return http.get(url.replace("https://", "http://"), **kwargs)
+        except Exception, f:
+            pass
+
+        path = url.split("/")
+        if path[3] == "l10n-central":
+            path = path[0:3] + "mozilla-central" + path[4:]
+            return self._get_and_retry("/".join(path), **kwargs)
+        elif path[5] == "mozilla-aurora":
+            # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
+            # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
+            path = path[0:4] + "mozilla-aurora" + path[7:]
+            return self._get_and_retry("/".join(path), **kwargs)
+        elif path[5] == "mozilla-beta":
+            # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
+            # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
+            path = path[0:4] + "mozilla-beta" + path[7:]
+            return self._get_and_retry("/".join(path), **kwargs)
+
 
     def get_branches(self, use_cache=True):
         if not self.settings.branches or not use_cache:
