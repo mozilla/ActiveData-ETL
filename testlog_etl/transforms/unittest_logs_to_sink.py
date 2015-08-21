@@ -182,16 +182,19 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
         if log.subtest:
-            test.subtests += [{
-                "name": log.subtest,
-                "subtest": log.subtest,
-                "ok": True if log.expected == None or log.expected == log.status else False,
-                "status": log.status.lower(),
-                "expected": log.expected.lower(),
-                "timestamp": log.time,
-                "message": log.message,
-                "ordering": len(test.subtests)
-            }]
+            ok = True if log.expected == None or log.expected == log.status else False
+            if not ok:
+                # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
+                test.subtests += [{
+                    "name": log.subtest,
+                    "subtest": log.subtest,
+                    "ok": ok,
+                    "status": log.status.lower(),
+                    "expected": log.expected.lower(),
+                    "timestamp": log.time,
+                    "message": log.message,
+                    "ordering": len(test.subtests)
+                }]
 
     def process_output(self, log):
         self.stats.action.process_output += 1
