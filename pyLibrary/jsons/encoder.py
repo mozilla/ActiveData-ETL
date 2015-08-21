@@ -135,9 +135,10 @@ class cPythonJSONEncoder(object):
         except Exception, e:
             # THE PRETTY JSON WILL PROVIDE MORE DETAIL ABOUT THE SERIALIZATION CONCERNS
             from pyLibrary.debugs.logs import Log
-            Log.warning("Serialization of JSON problems", e)
             try:
-                return pretty_json(value)
+                output = pretty_json(value)
+                Log.warning("Encoder could not encode to\n{{json|json|indent}}", json=output, cause=e)
+                return output
             except Exception, f:
                 Log.error("problem serializing object", f)
 
