@@ -225,12 +225,14 @@ class ETL(Thread):
                 else:
                     err = Log.error
 
-                err("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
-                    "action": action.name,
-                    "source": source_block.bucket,
-                    "key": source_key,
-                    "destination": coalesce(action.destination.name, action.destination.index)
-                }, e)
+                err(
+                    "Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}",
+                    action=action.name,
+                    source=source_block.bucket,
+                    key=source_key,
+                    destination=coalesce(action.destination.name, action.destination.index),
+                    cause=e
+                )
         return True
 
     def loop(self, please_stop):
@@ -260,7 +262,9 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     self.work_queue.rollback()
-                    Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
+                    if "Shutdown detected." not in e:
+                        Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

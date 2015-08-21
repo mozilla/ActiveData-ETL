@@ -24,7 +24,7 @@ from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import qb
 from pyLibrary.strings import utf82unicode
-from pyLibrary.dot import coalesce, Null, Dict, set_default
+from pyLibrary.dot import coalesce, Null, Dict, set_default, literal_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, unwrap
 from pyLibrary.thread.threads import ThreadedQueue, Thread
@@ -279,7 +279,7 @@ class Index(object):
                             error=item.index.error,
                             line=lines[i * 2 + 1]
                         )
-                elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6."])):
+                elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6.", "1.7"])):
                     if item.index.status not in [200, 201]:
                         Log.error(
                             "{{num}} {{error}} while loading line into {{index}}:\n{{line}}",
@@ -325,7 +325,7 @@ class Index(object):
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.all_content)
                 })
-        elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6."])):
+        elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6.", "1.7"])):
             response = self.cluster.put(
                 "/" + self.settings.index + "/_settings",
                 data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}')
@@ -506,9 +506,9 @@ class Cluster(object):
         if schema == None:
             Log.error("Expecting a schema")
         elif isinstance(schema, basestring):
-            schema = convert.json2value(schema, paths=True)
+            schema = convert.json2value(schema, leaves=True)
         else:
-            schema = convert.json2value(convert.value2json(schema), paths=True)
+            schema = convert.json2value(convert.value2json(schema), leaves=True)
 
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
@@ -604,8 +604,6 @@ class Cluster(object):
                     body= kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100], cause=e)
             else:
                 Log.error("Problem with call to {{url}}" + suggestion, {"url": url}, e)
-
-
 
     def get(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -893,7 +891,7 @@ def _merge_mapping(a, b):
     MERGE TWO MAPPINGS, a TAKES PRECEDENCE
     """
     for name, b_details in b.items():
-        a_details = a[name]
+        a_details = a[literal_field(name)]
         if a_details.properties and not a_details.type:
             a_details.type = "object"
         if b_details.properties and not b_details.type:
@@ -905,7 +903,7 @@ def _merge_mapping(a, b):
             if b_details.type in ["object", "nested"]:
                 _merge_mapping(a_details.properties, b_details.properties)
         else:
-            a[name] = deepcopy(b_details)
+            a[literal_field(name)] = deepcopy(b_details)
 
     return a
 

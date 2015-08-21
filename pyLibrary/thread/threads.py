@@ -105,9 +105,6 @@ class Queue(object):
             except Exception, e:
                 Log.warning("Tell me about what happened here", e)
 
-        Log.note("queue iterator is done")
-
-
     def add(self, value):
         with self.lock:
             self._wait_for_queue_space()
@@ -375,7 +372,10 @@ class Thread(object):
         self.children.append(child)
 
     def remove_child(self, child):
-        self.children.remove(child)
+        try:
+            self.children.remove(child)
+        except Exception, e:
+            Log.error("not expected", e)
 
     def _run(self):
         if Log.cprofiler:
@@ -525,7 +525,7 @@ class Thread(object):
         if not isinstance(please_stop, Signal):
             please_stop = Signal()
 
-        please_stop.on_go(lambda: MAIN_THREAD.stop())
+        please_stop.on_go(lambda: thread.start_new_thread(lambda: MAIN_THREAD.stop(), ()))
 
         if Thread.current() != MAIN_THREAD:
             if not Log:
@@ -559,7 +559,7 @@ class Signal(object):
 
     go() - ACTIVATE SIGNAL (DOES NOTHING IF SIGNAL IS ALREADY ACTIVATED)
     wait_for_go() - PUT THREAD IN WAIT STATE UNTIL SIGNAL IS ACTIVATED
-    is_go() - TEST IF SIGNAL IS ACTIVATED, DO NOT WAIT
+    is_go() - TEST IF SIGNAL IS ACTIVATED, DO NOT WAIT (you can also check truthiness)
     on_go() - METHOD FOR OTHER THREAD TO RUN WHEN ACTIVATING SIGNAL
     """
 

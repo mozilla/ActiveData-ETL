@@ -1,4 +1,5 @@
 {
+	"min_date": "01 JAN 2015",
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
@@ -6,6 +7,7 @@
 	},
 	"hg":{
 		"url":"https://hg.mozilla.org",
+		"use_cache": true,
 		"branches":{
 			"host": "http://localhost",
 			"port": 9200,
@@ -45,9 +47,13 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV] Problem reading branches from hg.mozilla.org",
+				"subject": "[ALERT][Beta] Problem with Repo Backfill",
 				"$ref": "file://~/private.json#email"
 			}
 		]
 	}
 }
+
+
+
+

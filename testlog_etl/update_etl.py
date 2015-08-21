@@ -55,7 +55,7 @@ def _refresh_etl():
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
             return
-        sudo("supervisorctl restart etl")
+        sudo("supervisorctl restart all")
 
 
 def main():

@@ -61,9 +61,15 @@ sudo bin/plugin -install mobz/elasticsearch-head
 #[ec2-user@ip-172-31-0-7 dev]$ sudo file -s /dev/xvdb
 #/dev/xvdb: data
 
+#FORMAT AND MOUNT
 sudo mkfs -t ext4 /dev/xvdb
 sudo mkfs -t ext4 /dev/xvdc
 sudo mkfs -t ext4 /dev/xvdd
+
+#MOUNT (NO FORMAT)
+sudo mount /dev/xvdb /data1
+sudo mount /dev/xvdb /data1
+
 
 sudo mkdir /data1
 sudo mkdir /data2
@@ -93,12 +99,22 @@ sudo -i -u ec2-user
 # SHOW RESULTS
 # prlimit
 
+#INSTALL GIT
+sudo yum install -y git-core
+
+#CLONE THE primary BRANCH
+cd ~
+rm -fr ~/TestLog-ETL
+git clone https://github.com/klahnakoski/TestLog-ETL.git
+cd ~/TestLog-ETL
+git checkout primary
+
 # COPY CONFIG FILE TO ES DIR
-sudo cp /home/ec2-user/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
-sudo cp /home/ec2-user/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 
 #INSTALL PYTHON27
@@ -124,15 +140,7 @@ sudo pip install supervisor-plus-cron
 
 sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
-
-# RUN IN BACKGROUND
-export ES_MIN_MEM=15g
-export ES_MAX_MEM=15g
-cd /usr/local/elasticsearch
-sudo bin/elasticsearch -p current_pid.txt &
-disown -h
-
-tail -f /data/logs/ekyle-aws-1.log
-
-
-
+#START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
+sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
+sudo /usr/local/bin/supervisorctl reread
+sudo /usr/local/bin/supervisorctl update

@@ -122,10 +122,15 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
-            accumulator.__getattribute__(log.action)(log)
+            try:
+                accumulator.__getattribute__(log.action)(log)
+            except AttributeError:
+                accumulator.stats.action[log.action] += 1
+
             if log.subtest:
                 accumulator.last_subtest=log.time
         except Exception, e:
+            Log.warning("bad line: {{line}}", line=line, cause=e)
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
@@ -177,20 +182,24 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
         if log.subtest:
-            test.subtests += [{
-                "name": log.subtest,
-                "subtest": log.subtest,
-                "ok": True if log.expected == None or log.expected == log.status else False,
-                "status": log.status.lower(),
-                "expected": log.expected.lower(),
-                "timestamp": log.time,
-                "message": log.message,
-                "ordering": len(test.subtests)
-            }]
+            ok = True if log.expected == None or log.expected == log.status else False
+            if not ok:
+                # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
+                test.subtests += [{
+                    "name": log.subtest,
+                    "subtest": log.subtest,
+                    "ok": ok,
+                    "status": log.status.lower(),
+                    "expected": log.expected.lower(),
+                    "timestamp": log.time,
+                    "message": log.message,
+                    "ordering": len(test.subtests)
+                }]
 
     def process_output(self, log):
-        self.logs[literal_field(log.test)] += [log]
         self.stats.action.process_output += 1
+        if log.test:
+            self.logs[literal_field(log.test)] += [log]
         pass
 
     def log(self, log):
@@ -213,12 +222,14 @@ class LogSummary(Dict):
     def crash(self, log):
         self.stats.action.crash += 1
         if not log.test:
-            return
+            test_name = "!!SUITE CRASH!!"
+        else:
+            test_name = literal_field(log.test)
 
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
+        self.logs[test_name] += [log]
+        test = self.tests[test_name]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[test_name] = test = Dict(
                 test=log.test,
                 start_time=log.time,
                 crash=True,

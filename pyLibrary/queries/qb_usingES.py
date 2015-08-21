@@ -263,22 +263,7 @@ class FromES(Container):
         })
 
         scripts = DictList()
-        for k, v in command.set.items():
-            if not is_keyword(k):
-                Log.error("Only support simple paths for now")
-
-            if "doc" in v.keys():
-                # scripts.append({
-                #     "script": "ctx._source[" + convert.string2quote(k) + "] = param_",
-                #     "params": {"param_": v["doc"]}
-                # })
-                #SIMPLE DOC ASSIGNMENT
-                scripts.append({"doc": {k: v["doc"]}})
-            else:
-                # SCRIPT IS SAME FOR ALL (CAN ONLY HANDLE ASSIGNMENT TO CONSTANT)
-                scripts.append({
-                    "script": "ctx._source[" + convert.string2quote(k) + "] = " + expressions.qb_expression_to_ruby(v) + ";\n"
-                })
+        scripts.append({"doc": command.set})
 
         if results.hits.hits:
             updates = []
@@ -294,6 +279,7 @@ class FromES(Container):
             )
             if response.errors:
                 Log.error("could not update: {{error}}", error=[e.error for i in response["items"] for e in i.values() if e.status not in (200, 201)])
+
 
 class FromESMetadata(Container):
     """

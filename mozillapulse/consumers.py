@@ -33,8 +33,15 @@ class GenericConsumer(object):
     somewhere, e.g. the constructor.
     """
 
-    def __init__(self, config, exchange=None, connect=True, heartbeat=False, timeout=None,
-                 **kwargs):
+    def __init__(
+        self,
+        config,
+        exchange=None,
+        connect=True,
+        heartbeat=False,
+        timeout=None,
+        **kwargs
+    ):
         self.config = config
         self.exchange = exchange
         self.connection = None
@@ -137,7 +144,10 @@ class GenericConsumer(object):
         http://ask.github.com/carrot/changelog.html#id1.
         """
         while True:
-            consumer = self._build_consumer(callback=callback, on_connect_callback=on_connect_callback)
+            consumer = self._build_consumer(
+                callback=callback,
+                on_connect_callback=on_connect_callback
+            )
             with consumer:
                 self._drain_events_loop()
 
@@ -186,11 +196,11 @@ class GenericConsumer(object):
             try:
                 self.connection.drain_events(timeout=self.timeout)
             except socket_timeout:
-                logging.warning("timeout, full restart required")
+                logging.warning("timeout! Restarting pulse consumer.")
                 try:
                     self.disconnect()
-                except Exception, e:
-                    logging.warning("Problem with disconnect()", e)
+                except Exception:
+                    logging.warning("Problem with disconnect()")
                 break
 
     def _check_params(self):

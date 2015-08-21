@@ -8,9 +8,6 @@
 #
 from __future__ import unicode_literals
 
-# NEED TO BE NOTIFIED OF ID TO REPROCESS
-# NEED TO BE NOTIFIED OF RANGE TO REPROCESS
-# MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
 from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants
@@ -42,7 +39,8 @@ def get_branches(settings):
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
     for b in list(branches["mozilla-beta", ]):
-        branches.add(set_default({"name": "release-mozilla-beta"}, b))
+        branches.add(set_default({"name": "release-mozilla-beta"}, b))  # THIS IS THE l10n "name"
+        b.url = "https://hg.mozilla.org/releases/mozilla-beta"          # THIS IS THE
 
     for b in list(branches["mozilla-release", ]):
         branches.add(set_default({"name": "release-mozilla-release"}, b))
@@ -51,6 +49,7 @@ def get_branches(settings):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
+        # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
 
     return branches
 
@@ -140,6 +139,9 @@ def main():
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
+        for b in branches:
+            if not b.locale:
+                Log.error("Not expected")
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:
