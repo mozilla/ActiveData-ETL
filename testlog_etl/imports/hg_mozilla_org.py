@@ -158,10 +158,7 @@ class HgMozillaOrg(object):
         )
 
         try:
-            response = self._get_and_retry(url)
-            data = convert.json2value(response.content.decode("utf8"))
-            if isinstance(data, basestring) and data.startswith("unknown revision"):
-                Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
+            data = self._get_and_retry(url)
 
             revs = []
             output = None
@@ -174,8 +171,7 @@ class HgMozillaOrg(object):
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
                     Log.note("Reading details from {{url}}", {"url": url})
 
-                    response = self._get_and_retry(url)
-                    raw_revs = convert.json2value(response.content.decode("utf8"))
+                    raw_revs = self._get_and_retry(url)
                     for r in raw_revs.values():
                         rev = Revision(
                             branch=found_revision.branch,
@@ -202,19 +198,31 @@ class HgMozillaOrg(object):
         except Exception, e:
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
 
+
+    def _get(self, url, **kwargs):
+        try:
+            response = http.get(url, **kwargs)
+            data = convert.json2value(response.content.decode("utf8"))
+            if isinstance(data, basestring) and data.startswith("unknown revision"):
+                Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
+            return data
+        except Exception, e:
+            Log.error("Can not get push from {{url}}", url=url, cause=e)
+
+
     def _get_and_retry(self, url, **kwargs):
         """
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
         try:
-            return http.get(url, **kwargs)
+            return self._get(url, **kwargs)
         except Exception, e:
             pass
 
         try:
             Thread.sleep(seconds=5)
-            return http.get(url.replace("https://", "http://"), **kwargs)
+            return self._get(url.replace("https://", "http://"), **kwargs)
         except Exception, f:
             pass
 
@@ -230,7 +238,7 @@ class HgMozillaOrg(object):
             path = path[0:4] + "mozilla-aurora" + path[7:]
             return self._get_and_retry("/".join(path), **kwargs)
         elif path[5] == "mozilla-beta":
-            # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
+            # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + "mozilla-beta" + path[7:]
             return self._get_and_retry("/".join(path), **kwargs)
