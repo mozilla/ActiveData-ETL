@@ -369,12 +369,12 @@ def etl_one(settings):
             continue
         try:
             for i in parse_id_argument(settings.args.id):
-                data = source.get_key(i)
-                if data != None:
-                    already_in_queue.add(id(source))
+                keys = source.keys(i)
+                for k in keys:
+                    already_in_queue.add(k)
                     queue.add(Dict(
                         bucket=w.source.bucket,
-                        key=i
+                        key=k
                     ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
