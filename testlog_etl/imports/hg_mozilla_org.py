@@ -158,7 +158,7 @@ class HgMozillaOrg(object):
         )
 
         try:
-            data = self._get_and_retry(url)
+            data = self._get_and_retry(url, found_revision.branch)
 
             revs = []
             output = None
@@ -171,7 +171,7 @@ class HgMozillaOrg(object):
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
                     Log.note("Reading details from {{url}}", {"url": url})
 
-                    raw_revs = self._get_and_retry(url)
+                    raw_revs = self._get_and_retry(url, found_revision.branch)
                     for r in raw_revs.values():
                         rev = Revision(
                             branch=found_revision.branch,
@@ -199,30 +199,19 @@ class HgMozillaOrg(object):
             Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
 
 
-    def _get(self, url, **kwargs):
-        try:
-            response = http.get(url, **kwargs)
-            data = convert.json2value(response.content.decode("utf8"))
-            if isinstance(data, basestring) and data.startswith("unknown revision"):
-                Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
-            return data
-        except Exception, e:
-            Log.error("Can not get push from {{url}}", url=url, cause=e)
-
-
-    def _get_and_retry(self, url, **kwargs):
+    def _get_and_retry(self, url, branch, **kwargs):
         """
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
         try:
-            return self._get(url, **kwargs)
+            return _get_url(url, branch, **kwargs)
         except Exception, e:
             pass
 
         try:
             Thread.sleep(seconds=5)
-            return self._get(url.replace("https://", "http://"), **kwargs)
+            return _get_url(url.replace("https://", "http://"), branch, **kwargs)
         except Exception, f:
             pass
 
@@ -231,17 +220,17 @@ class HgMozillaOrg(object):
             # FROM https://hg.mozilla.org/l10n-central/tr/json-pushes?full=1&changeset=a6eeb28458fd
             # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
             path = path[0:3] + ["mozilla-central"] + path[5:]
-            return self._get_and_retry("/".join(path), **kwargs)
+            return self._get_and_retry("/".join(path), branch, **kwargs)
         elif path[5] == "mozilla-aurora":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
             # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-aurora"] + path[7:]
-            return self._get_and_retry("/".join(path), **kwargs)
+            return self._get_and_retry("/".join(path), branch, **kwargs)
         elif path[5] == "mozilla-beta":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-beta"] + path[7:]
-            return self._get_and_retry("/".join(path), **kwargs)
+            return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
@@ -313,5 +302,22 @@ class HgMozillaOrg(object):
         if match:
             return int(match.group(2))
         return None
+
+
+
+def _trim(url):
+    return url.split("/json-pushes?")[0].split("/json-info?")[0]
+
+
+def _get_url(url, branch, **kwargs):
+    try:
+        response = http.get(url, **kwargs)
+        data = convert.json2value(response.content.decode("utf8"))
+        if isinstance(data, basestring) and data.startswith("unknown revision"):
+            Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
+        branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
+        return data
+    except Exception, e:
+        Log.error("Can not get push from {{url}}", url=url, cause=e)
 
 
