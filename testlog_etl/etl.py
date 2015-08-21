@@ -225,12 +225,14 @@ class ETL(Thread):
                 else:
                     err = Log.error
 
-                err("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
-                    "action": action.name,
-                    "source": source_block.bucket,
-                    "key": source_key,
-                    "destination": coalesce(action.destination.name, action.destination.index)
-                }, e)
+                err(
+                    "Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}",
+                    action=action.name,
+                    source=source_block.bucket,
+                    key=source_key,
+                    destination=coalesce(action.destination.name, action.destination.index),
+                    cause=e
+                )
         return True
 
     def loop(self, please_stop):
