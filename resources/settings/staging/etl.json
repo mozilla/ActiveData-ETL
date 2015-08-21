@@ -80,8 +80,7 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
+			"type": "join"
 		},
 		{
 			"name": "talos2perf",
@@ -100,6 +99,7 @@
 				"name": "active-data-index-perf",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
+			"transform_type": "bulk",
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
 		},
