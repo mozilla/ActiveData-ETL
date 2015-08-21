@@ -19,7 +19,7 @@ from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import Stats, ZeroMoment2Stats, ZeroMoment
-from pyLibrary.dot import literal_field, Dict, coalesce
+from pyLibrary.dot import literal_field, Dict, coalesce, unwrap
 from pyLibrary.dot.lists import DictList
 from pyLibrary.thread.threads import Lock
 from pyLibrary.debugs.logs import Log
@@ -44,7 +44,7 @@ locker = Lock()
 def process(source_key, source, destination, resources, please_stop=None):
     global repo
     if not repo:
-        repo = HgMozillaOrg(resources.hg)
+        repo = unwrap(resources.hg)
 
 
     lines = source.read_lines()
