@@ -1,4 +1,4 @@
 set PYTHONPATH=.
-python testlog_etl/index_diff.py --settings=resources\settings\index_diff_settings.json
+python testlog_etl/backfill_unittest.py --settings=resources\settings\backfill_unittest.json
 
 

@@ -233,7 +233,7 @@ DictObject for data
 
 There are two major families of objects in Object Oriented programming.  The first, are ***Actors***: characterized by a number of useful instance methods and some state bundled into a package.  The second are ***Data***: Primarily a set of properties, with only (de)serialization functions, or algebraic operators defined.  Boto has many examples of these *Data* classes, [here is one](https://github.com/boto/boto/blob/4b8269562e663f090403e57ba1a3a471b6e0aa0e/boto/ec2/networkinterface.py).
 
-The problem with *Data* objects is they have an useless distinction between attributes and properties.  This prevents us from using the `[]` operator for dereferencing, forcing use to use the verbose `__getattr__()` instead.  It also prevents the use of query operators over these objects.
+The problem with *Data* objects is they have an useless distinction between attributes and properties.  This prevents us from using the `[]` operator for dereferencing; forcing us to use the verbose `__getattr__()` instead.  It also prevents the use of query operators over these objects.
 
 You can register a class as a *data* class, by wrapping it with `DictClass`.
 
@@ -245,6 +245,101 @@ This does two things:
 * It will wrap all objects referenced by `Dict` and all items found in `DictList` so they can be used in queries.   
 * It decorates the constructor to add a `settings` parameter, which can be used to pass default parameters, like [`@use_settings`](https://github.com/klahnakoski/pyLibrary/blob/6e3233abe6e68d00020907d9d630c9a57c14e8a2/pyLibrary/meta.py#L80) 
 
+
+Mapping Leaves
+--------------
+
+The implications of allowing `a["b.c"] == a.b.c` opens up two different Dict forms: *standard form* and *leaf form* 
+
+###Standard Form
+
+The `[]` operator in `Dict` has been overridden to assume dots (`.`) represent paths rather than literal string values; but, the internal representation of `Dict` is the same as `dict`; the property names are treated as black box strings.  `[]` just provides convenience. 
+
+When wrapping `dict`, the property names are **NOT** interpreted as paths; property names can include dots (`.`). 
+
+```python
+	>>> from pyLibrary.dot import wrap
+	>>> a = wrap({"b.c": 42}) 
+	>>> a.keys()
+	set(['b.c'])
+	
+	>>> a["b.c"]
+	Null    # BECAUSE b.c PATH LEADS TO NOTHING
+	
+	>>> a["b\.c"]
+	42
+```
+
+###Leaf form
+
+Leaf form is used in some JSON, or YAML, configuration files.  Here is an example from my ElasticSearch configuration:
+
+**YAML**
+
+```yaml
+	discovery.zen.ping.multicast.enabled: true
+```
+
+**JSON**
+
+```javascript
+	{"discovery.zen.ping.multicast.enabled": true}
+```
+
+Both are intended to represent the deeply nested JSON 
+  
+```javascript
+	{"discovery": {"zen": {"ping": {"multicast": {"enabled": true}}}}}
+```
+
+Upon importing such files, it is good practice to convert it to standard form immediately:
+
+```python
+	config = wrap_leaves(config)
+```
+	
+`wrap_leaves()` assumes any dots found in JSON names are referring to paths into objects, not a literal dots.
+
+When accepting input from other automations and users, your property names can potentially contain dots; which must be properly escaped to produce the JSON you are expecting.  Specifically, this happens with URLs:
+
+**BAD**
+
+```python
+	>>> from pyLibrary.dot.dicts import Dict
+	>>> from pyLibrary.dot import wrap, literal_field
+	>>>
+	>>> def update(summary, url, count):
+	...     summary[url] += count
+	...
+	>>> update(s, "example.html", 3)
+	>>> print s
+
+	Dict({u'example': {'html': 3}})
+```
+
+**GOOD**
+
+```python	
+	>>> def update(summary, url, count):
+	...     summary[literal_field(url)] += count
+	...
+	>>> s = Dict()
+	>>> update(s, "example.html", 3)
+	>>> print s
+
+	Dict({u'example.html': 3})
+```
+ 
+You can produce leaf form by iterating over all leaves.  This is good for simplifying iteration over deep object structures.
+
+```python
+	>>> from pyLibrary.dot import wrap
+	>>> a = wrap({"b": {"c": 42}})
+	>>> for k, v in a.leaves():
+	...     print k + ": " + unicode(v)
+	
+	b.c: 42
+```
 
 Appendix
 ========

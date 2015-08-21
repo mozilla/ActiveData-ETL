@@ -92,10 +92,13 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
+			"notify":{
+				"name": "active-data-index-perf-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
 		},
-
 //		{
 //			"name": "pulse2test_result",
 //			"source": {

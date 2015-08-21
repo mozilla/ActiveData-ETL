@@ -29,7 +29,7 @@ from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 
 DEFAULT_LOCALE = "en-US"
-DEBUG = True
+DEBUG = False
 
 class HgMozillaOrg(object):
     """
@@ -59,6 +59,10 @@ class HgMozillaOrg(object):
         self.es.set_refresh_interval(seconds=1)
 
         self.branches = self.get_branches(use_cache=use_cache)
+        for b in self.branches:
+            if b.url.startswith("http"):
+                continue
+            Log.error("Expecting a valid url")
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound-en-US", "value": {
@@ -231,6 +235,8 @@ class HgMozillaOrg(object):
             path = path[0:4] + "mozilla-beta" + path[7:]
             return self._get_and_retry("/".join(path), **kwargs)
 
+        Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+
 
     def get_branches(self, use_cache=True):
         if not self.settings.branches or not use_cache:
@@ -254,31 +260,41 @@ class HgMozillaOrg(object):
             Log.error("Bad branch in ES index", cause=e)
 
     @cache(duration=HOUR, lock=True)
-    def find_changeset(self, revision):
+    def find_changeset(self, revision, please_stop=False):
         locker = Lock()
         output = []
         queue = Queue("branches", max=2000)
         queue.extend(self.branches)
         queue.add(Thread.STOP)
 
+        problems = []
         def _find(please_stop):
             for b in queue:
+                if please_stop:
+                    return
                 try:
-                    url = b.url + "rev/" + revision
-                    response = http.get(url)
+                    url = b.url + "json-info?node=" + revision
+                    response = http.get(url, timeout=30)
                     if response.status_code == 200:
                         with locker:
                             output.append(b)
                         Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
-                except Exception, e:
-                    pass
+                except Exception, f:
+                    problems.append(f)
 
         threads = []
-        for _ in range(20):
-            threads.append(Thread.run("find changeset", _find))
+        for i in range(20):
+            threads.append(Thread.run("find changeset " + unicode(i), _find, please_stop=please_stop))
 
         for t in threads:
-            t.join()
+            try:
+                t.join()
+            except Exception, e:
+                Log.error("Not expected", cause=e)
+
+        if problems:
+            Log.error("Could not scan for {{revision}}", revision=revision, cause=problems[0])
+
         return output
 
     def _extract_bug_id(self, description):

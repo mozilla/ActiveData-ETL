@@ -203,7 +203,7 @@ def get_file(ref, url):
         Log.error("Could not read file {{filename}}",  filename= path, cause=e)
 
     try:
-        new_value = convert.json2value(content, params=ref.query, flexible=True, paths=True)
+        new_value = convert.json2value(content, params=ref.query, flexible=True, leaves=True)
     except Exception, e:
         try:
             new_value = convert.ini2value(content)
@@ -217,7 +217,7 @@ def get_http(ref, url):
     from pyLibrary.env import http
 
     params = url.query
-    new_value = convert.json2value(http.get(ref), params=params, flexible=True, paths=True)
+    new_value = convert.json2value(http.get(ref), params=params, flexible=True, leaves=True)
     return new_value
 
 

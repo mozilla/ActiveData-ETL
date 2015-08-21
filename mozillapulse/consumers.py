@@ -33,8 +33,15 @@ class GenericConsumer(object):
     somewhere, e.g. the constructor.
     """
 
-    def __init__(self, config, exchange=None, connect=True, heartbeat=False, timeout=None,
-                 **kwargs):
+    def __init__(
+        self,
+        config,
+        exchange=None,
+        connect=True,
+        heartbeat=False,
+        timeout=None,
+        **kwargs
+    ):
         self.config = config
         self.exchange = exchange
         self.connection = None
@@ -137,7 +144,10 @@ class GenericConsumer(object):
         http://ask.github.com/carrot/changelog.html#id1.
         """
         while True:
-            consumer = self._build_consumer(callback=callback, on_connect_callback=on_connect_callback)
+            consumer = self._build_consumer(
+                callback=callback,
+                on_connect_callback=on_connect_callback
+            )
             with consumer:
                 self._drain_events_loop()
 
@@ -185,15 +195,13 @@ class GenericConsumer(object):
         while True:
             try:
                 self.connection.drain_events(timeout=self.timeout)
-            except socket_timeout, e:
-                log_warning("timeout! Restarting pulse consumer.", cause=e)
+            except socket_timeout:
+                logging.warning("timeout! Restarting pulse consumer.")
                 try:
                     self.disconnect()
-                except Exception, f:
-                    log_warning("Problem with disconnect()", cause=f)
+                except Exception:
+                    logging.warning("Problem with disconnect()")
                 break
-
-
 
     def _check_params(self):
         if not self.exchange:
@@ -283,15 +291,3 @@ class MozReviewConsumer(GenericConsumer):
     def __init__(self, **kwargs):
         super(MozReviewConsumer, self).__init__(
             PulseConfiguration(**kwargs), 'exchange/mozreview/', **kwargs)
-
-
-def log_warning(message, cause=None):
-    """
-    A structured logger is expected to override this method,
-    until then we default to standard Python logging
-
-    :param message: Describe the problem
-    :param cause: Exception that caused problem (for chaining)
-    :return: None
-    """
-    logging.warning(message)

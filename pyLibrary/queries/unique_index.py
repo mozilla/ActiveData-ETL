@@ -41,7 +41,7 @@ class UniqueIndex(BaseSet, Mapping):
     def __getitem__(self, key):
         try:
             _key = value2key(self._keys, key)
-            if len(self._keys) == 1 or len(key) == len(self._keys):
+            if len(self._keys) == 1 or len(_key) == len(self._keys):
                 d = self._data.get(_key)
                 return wrap(d)
             else:
@@ -168,6 +168,7 @@ class UniqueIndex(BaseSet, Mapping):
 
     def intersect(self, other):
         return self.__and__(other)
+
 
 def value2key(keys, val):
     if len(keys) == 1:

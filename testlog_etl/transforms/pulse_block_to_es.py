@@ -12,9 +12,8 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
+from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
@@ -117,6 +116,9 @@ def transform_buildbot(payload, resources, filename=None):
     output.build.name = payload.buildername
     output.build.id = payload.buildid
     output.build.type = payload.buildtype
+    if "e10s" in payload.key.lower():
+        output.run.type = "e10s"
+
     output.build.url = payload.buildurl
     output.run.job_number = payload.job_number
 
