@@ -139,7 +139,10 @@ class HgMozillaOrg(object):
         }
         docs = self.es.search(query).hits.hits
         if len(docs) > 1:
-            Log.error("expecting no more than one document")
+            Log.warning("expecting no more than one document")
+            for d in docs:
+                if d._id[-3] == "-" and d._id[-6] == "-":
+                    return d._source
 
         return docs[0]._source
 

@@ -219,12 +219,14 @@ class LogSummary(Dict):
     def crash(self, log):
         self.stats.action.crash += 1
         if not log.test:
-            return
+            test_name = "!!SUITE CRASH!!"
+        else:
+            test_name = literal_field(log.test)
 
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
+        self.logs[test_name] += [log]
+        test = self.tests[test_name]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[test_name] = test = Dict(
                 test=log.test,
                 start_time=log.time,
                 crash=True,
