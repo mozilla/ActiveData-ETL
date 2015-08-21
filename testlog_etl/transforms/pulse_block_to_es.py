@@ -219,7 +219,6 @@ def transform_buildbot(payload, resources, filename=None):
     return output
 
 
-
 def fix_locale(locale):
     # compensate for bug https://bugzilla.mozilla.org/show_bug.cgi?id=1174979
     if locale.find("\"") == -1:

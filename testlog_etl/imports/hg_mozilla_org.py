@@ -230,17 +230,17 @@ class HgMozillaOrg(object):
         if path[3] == "l10n-central":
             # FROM https://hg.mozilla.org/l10n-central/tr/json-pushes?full=1&changeset=a6eeb28458fd
             # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
-            path = path[0:3] + "mozilla-central" + path[5:]
+            path = path[0:3] + ["mozilla-central"] + path[5:]
             return self._get_and_retry("/".join(path), **kwargs)
         elif path[5] == "mozilla-aurora":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
             # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
-            path = path[0:4] + "mozilla-aurora" + path[7:]
+            path = path[0:4] + ["mozilla-aurora"] + path[7:]
             return self._get_and_retry("/".join(path), **kwargs)
         elif path[5] == "mozilla-beta":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
-            path = path[0:4] + "mozilla-beta" + path[7:]
+            path = path[0:4] + ["mozilla-beta"] + path[7:]
             return self._get_and_retry("/".join(path), **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
