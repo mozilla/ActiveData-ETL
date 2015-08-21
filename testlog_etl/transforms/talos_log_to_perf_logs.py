@@ -91,71 +91,42 @@ def process(source_key, source, destination, resources, please_stop=None):
     return [source_key]
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(uid, talos_test_result, resources):
+def transform(uid, talos, resources):
     try:
-        r = talos_test_result
-
-        def mainthread_transform(r):
-            if r == None:
-                return None
-
-            output = Dict()
-
-            for i in r.mainthread_readbytes:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].readbytes = i[0]
-            r.mainthread_readbytes = None
-
-            for i in r.mainthread_writebytes:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].writebytes = i[0]
-            r.mainthread_writebytes = None
-
-            for i in r.mainthread_readcount:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].readcount = i[0]
-            r.mainthread_readcount = None
-
-            for i in r.mainthread_writecount:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].writecount = i[0]
-            r.mainthread_writecount = None
-
-            r.mainthread = output.values()
-
-        mainthread_transform(r.results_aux)
-        mainthread_transform(r.results_xperf)
-
-        buildbot = transform_buildbot(r.pulse, resources, uid)
-
-        # RENAME PROPERTIES
-        r.run, r.testrun = r.testrun, None
-        r.run.timestamp, r.run.date = r.run.date, None
+        Log.note("Process Talos {{name}}", name=talos.testrun.suite)
 
         # RECOGNIZE SUITE
         for s in KNOWN_TALOS_TESTS:
-            if r.run.suite.startswith(s):
-                r.run.suite = s
+            if talos.testrun.suite.startswith(s):
+                talos.testrun.suite = s
                 break
         else:
-            Log.warning("Do not know talos suite by name of {{name}}", name=r.run.suite)
+            Log.warning("Do not know talos suite by name of {{name|quote}}\n{{talos}}", name=talos.testrun.suite, talos=talos)
 
-        Log.note("Process Talos {{name}}", name=r.run.suite)
+        buildbot = transform_buildbot(talos.pulse, resources, uid)
+
+        # RENAME PROPERTIES
+        talos.run, talos.testrun = talos.testrun, None
+        talos.run.timestamp, talos.run.date = talos.run.date, None
+
+        mainthread_transform(talos.results_aux)
+        mainthread_transform(talos.results_xperf)
+
         new_records = DictList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
-        if r.keys() - KNOWN_TALOS_PROPERTIES:
-            remainder = copy(r)
+        if talos.keys() - KNOWN_TALOS_PROPERTIES:
+            remainder = copy(talos)
             for k in KNOWN_TALOS_PROPERTIES:
                 remainder[k] = None
             new_records.append(set_default(remainder, buildbot))
 
         #RECORD TEST RESULTS
         total = DictList()
-        if r.run.suite in ["dromaeo_css", "dromaeo_dom"]:
+        if talos.run.suite in ["dromaeo_css", "dromaeo_dom"]:
             #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
             #RECORD ALL RESULTS
-            for i, (test_name, replicates) in enumerate(r.results.items()):
+            for i, (test_name, replicates) in enumerate(talos.results.items()):
                 for g, sub_results in qb.groupby(replicates, size=5):
                     new_record = set_default(
                         {"result": {
@@ -173,7 +144,7 @@ def transform(uid, talos_test_result, resources):
                         Log.warning("can not reduce series to moments", e)
                     new_records.append(new_record)
         else:
-            for i, (test_name, replicates) in enumerate(r.results.items()):
+            for i, (test_name, replicates) in enumerate(talos.results.items()):
                 new_record = set_default(
                     {"result": {
                         "test": test_name,
@@ -207,6 +178,35 @@ def transform(uid, talos_test_result, resources):
     except Exception, e:
         Log.error("Transformation failure on id={{uid}}", {"uid": uid}, e)
 
+
+
+def mainthread_transform(r):
+    if r == None:
+        return None
+
+    output = Dict()
+
+    for i in r.mainthread_readbytes:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].readbytes = i[0]
+    r.mainthread_readbytes = None
+
+    for i in r.mainthread_writebytes:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].writebytes = i[0]
+    r.mainthread_writebytes = None
+
+    for i in r.mainthread_readcount:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].readcount = i[0]
+    r.mainthread_readcount = None
+
+    for i in r.mainthread_writecount:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].writecount = i[0]
+    r.mainthread_writecount = None
+
+    r.mainthread = output.values()
 
 def stats(values):
     """
