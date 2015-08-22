@@ -23,7 +23,7 @@ from pyLibrary.queries import qb
 def diff(settings, please_stop=None):
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if len(work_queue) > 100:
+    if not settings.no_checks and len(work_queue) > 100:
         Log.alert("Index queue has {{num}} elements, adding more is not a good idea", num=len(work_queue))
         return
 
@@ -34,7 +34,8 @@ def diff(settings, please_stop=None):
     in_s3 = get_all_s3(in_es, settings)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
-    in_s3 = in_s3[500:500 + coalesce(settings.limit, 1000):]
+    if not settings.no_checks:
+        in_s3 = in_s3[500:500 + coalesce(settings.limit, 1000):]
 
     if not in_s3:
         Log.note("Nothing to insert into ES")

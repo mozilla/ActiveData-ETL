@@ -40,7 +40,7 @@ KNOWN_TALOS_TESTS = [
     "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
     "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
     "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
-    "xxx"
+    "g1", "chromez", "svgr"
 ]
 
 repo = None
@@ -93,21 +93,28 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(uid, talos, resources):
     try:
-        Log.note("Process Talos {{name}}", name=talos.testrun.suite)
+        buildbot = transform_buildbot(talos.pulse, resources, uid)
+
+        suite_name = coalesce(talos.testrun.suite, buildbot.run.suite)
 
         # RECOGNIZE SUITE
         for s in KNOWN_TALOS_TESTS:
-            if talos.testrun.suite.startswith(s):
-                talos.testrun.suite = s
+            if suite_name.startswith(s):
+                suite_name = s
                 break
         else:
-            Log.warning("Do not know talos suite by name of {{name|quote}}\n{{talos}}", name=talos.testrun.suite, talos=talos)
+            Log.warning("Do not know talos suite by name of {{name|quote}}\n{{talos}}", name=suite_name, talos=talos)
 
-        buildbot = transform_buildbot(talos.pulse, resources, uid)
+        if talos.testrun.suite == None:
+            # SOMETIMES THE TALOS RECORDS ARE MISSING FROM LOG!
+            buildbot.run.stats = {"count": 0}
+            return [buildbot]
+
+        Log.note("Process Talos {{name}}", name=suite_name)
 
         # RENAME PROPERTIES
         talos.run, talos.testrun = talos.testrun, None
-        talos.run.timestamp, talos.run.date = talos.run.date, None
+        talos.run.timestamp, talos.run.date = coalesce(talos.run.date, buildbot.run.timestamp), None
 
         mainthread_transform(talos.results_aux)
         mainthread_transform(talos.results_xperf)
@@ -161,18 +168,8 @@ def transform(uid, talos, resources):
                     Log.warning("can not reduce series to moments", e)
                 new_records.append(new_record)
 
-        if len(total) > 1:
-            # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
-
-            new_record = set_default(
-                {"result": {
-                    "test": "SUMMARY",
-                    "ordering": -1,
-                    "stats": geo_mean(total)
-                }},
-                buildbot
-            )
-            new_records.append(new_record)
+        # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
+        buildbot.run.stats = geo_mean(total)
 
         return new_records
     except Exception, e:
