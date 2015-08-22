@@ -36,11 +36,41 @@ TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_TALOS_PROPERTIES = {"results", "run", "etl", "pulse", "summary", "test_build", "test_machine", "_id", "talos_counters"}
 KNOWN_TALOS_TESTS = [
-    "tp5o", "dromaeo_css", "dromaeo_dom", "tresize", "tcanvasmark", "tcheck2",
-    "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
-    "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
-    "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
-    "g1", "g2", "chromez", "svgr", "dromaeojs", "tp4m_nochrome", "trobocheck2"
+    "a11yr",
+    "cart",
+    "chromez",
+    "damp",
+    "dromaeo_css",
+    "dromaeo_dom",
+    "dromaeojs",
+    "g1",
+    "g2",
+    "glterrain",
+    "kraken",
+    "other_nol64",
+    "other_l64",
+    "other-e10s_nol64"
+    "other",
+    "sessionrestore_no_auto_restore",
+    "sessionrestore",
+    "svgr",
+    "tart",
+    "tcanvasmark",
+    "tcheck2",
+    "tp4m_nochrome",
+    "tp4m",
+    "tp5n",
+    "tp5o",
+    "tpaint",
+    "tps",
+    "tresize",
+    "trobocheck2",
+    "ts_paint",
+    "tscrollx",
+    "tsvgr_opacity",
+    "tsvgx",
+    "v8_7",
+    "xperf"
 ]
 
 repo = None
@@ -96,7 +126,7 @@ def transform(uid, talos, resources):
         buildbot = transform_buildbot(talos.pulse, resources, uid)
 
         suite_name = coalesce(talos.testrun.suite, buildbot.run.suite)
-
+        suite_name = suite_name.replace("-e10s", "")  # REMOVE e10s REFERENCES FROM THE NAMES
         # RECOGNIZE SUITE
         for s in KNOWN_TALOS_TESTS:
             if suite_name.startswith(s):
