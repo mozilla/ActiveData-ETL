@@ -1,5 +1,6 @@
 {
 	"no_checks": false,
+	"limit": 20000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "ekyle-etl",
 		"$ref": "file://~/private.json#aws_credentials"

@@ -47,6 +47,7 @@ KNOWN_TALOS_TESTS = [
     "g2",
     "glterrain",
     "kraken",
+    "media_tests",
     "other_nol64",
     "other_l64",
     "other-e10s_nol64"
@@ -137,7 +138,8 @@ def transform(uid, talos, resources):
                 break
         else:
             Log.warning(
-                "Do not know talos suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                "While processing {{uid}}, found unknown talos suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                uid=uid,
                 buildbot=buildbot,
                 name=suite_name,
                 talos=talos
