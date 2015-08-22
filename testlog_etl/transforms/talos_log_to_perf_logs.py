@@ -153,6 +153,7 @@ def transform(uid, talos, resources):
         # RENAME PROPERTIES
         talos.run, talos.testrun = talos.testrun, None
         talos.run.timestamp, talos.run.date = coalesce(talos.run.date, buildbot.run.timestamp), None
+        talos.run.suite = suite_name
 
         mainthread_transform(talos.results_aux)
         mainthread_transform(talos.results_xperf)
