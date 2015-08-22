@@ -1,5 +1,7 @@
 {
-	"no_checks": false,
+//	"no_checks": false,
+	"start": 120000,
+	"id_field": "etl.source.source.source.id",
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "ekyle-etl",
 		"$ref": "file://~/private.json#aws_credentials"

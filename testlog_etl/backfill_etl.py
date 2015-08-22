@@ -11,7 +11,6 @@ from __future__ import division
 
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce
@@ -21,6 +20,9 @@ from pyLibrary.queries import qb
 
 
 def diff(settings, please_stop=None):
+    if not settings.id_field:
+        Log.error("Expecting an `id_field` property")
+
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
@@ -31,8 +33,8 @@ def diff(settings, please_stop=None):
     es = elasticsearch.Index(settings.destination)
     source_bucket = s3.Bucket(settings.source)
 
-    in_es = get_all_in_es(es)
-    remaining_in_s3 = get_all_s3(in_es, source_bucket)
+    in_es = get_all_in_es(es, settings.id_field, settings.start)
+    remaining_in_s3 = get_all_s3(in_es, source_bucket, settings.start)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     if not settings.no_checks:
@@ -55,23 +57,28 @@ def diff(settings, please_stop=None):
         work_queue.extend([{"key": k, "bucket": source_bucket.name} for k in all_keys])
 
 
-def get_all_in_es(es):
+def get_all_in_es(es, field, start=0):
     in_es = set()
 
     result = es.search({
         "aggs": {
-            "_match": {
-                "terms": {
-                    "field": "etl.source.source.id",
-                    "size": 200000
-                }
+            "_filter": {
+                "filter": {"range": {field: {"gte": start}}},
+                "aggs": {
+                    "_match": {
+                        "terms": {
+                            "field": field,
+                            "size": 200000
+                        }
 
+                    }
+                }
             }
         }
     })
 
     good_es = []
-    for k in result.aggregations._match.buckets.key:
+    for k in result.aggregations._filter._match.buckets.key:
         try:
             good_es.append(int(k))
         except Exception, e:
@@ -86,21 +93,22 @@ def get_all_in_es(es):
 
     return in_es
 
-def get_all_s3(in_es, source_bucket):
-    # EVERYTHING FROM S3
+def get_all_s3(in_es, source_bucket, start=0):
+    Log.note("Scanning S3")
     prefixes = [p.name.rstrip(":") for p in source_bucket.list(prefix="", delimiter=":")]
     in_s3 = []
-    for i, p in enumerate(prefixes):
+    for i, q in enumerate(prefixes):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
         try:
-            if int(p) in in_es:
+            p = int(q)
+            if p in in_es or p < start:
                 continue
 
-            in_s3.append(int(p))
+            in_s3.append(p)
         except Exception:
-            Log.note("delete key? {{key}}", key=p)
-            # source_bucket.delete_key(strip_extension(p))
+            Log.note("delete key? {{key|quote}}", key=q)
+            # source_bucket.delete_key(strip_extension(q))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3
 

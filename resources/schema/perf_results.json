@@ -4,7 +4,7 @@
 		"index.number_of_shards": 5
 	},
 	"mappings": {
-		"test_results": {
+		"perf_results": {
 			"_source": {
 				"compress": true
 			},
@@ -19,13 +19,47 @@
 					}
 				},
 				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match": "id"
+					}
+				},
+				{
 					"default_strings": {
 						"mapping": {
 							"index": "not_analyzed",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"match_mapping_type": "string",
 						"match": "*"
+					}
+				},
+				{
+					"default_doubles": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "double",
+							"doc_values": true
+						},
+						"match_mapping_type": "double",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long|integer",
+						"match_pattern": "regex",
+						"path_match": ".*"
 					}
 				}
 			],
@@ -127,10 +161,12 @@
 								"enabled": false
 							},
 							"index_options": "docs",
-							"type": "string"
+							"type": "string",
+							"doc_values": true
 						},
 						"timestamp": {
-							"type": "long"
+							"type": "long",
+							"doc_values": true
 						},
 						"options": {
 							"dynamic": true,
