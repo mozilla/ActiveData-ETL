@@ -36,11 +36,41 @@ TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_TALOS_PROPERTIES = {"results", "run", "etl", "pulse", "summary", "test_build", "test_machine", "_id", "talos_counters"}
 KNOWN_TALOS_TESTS = [
-    "tp5o", "dromaeo_css", "dromaeo_dom", "tresize", "tcanvasmark", "tcheck2",
-    "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
-    "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
-    "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
-    "xxx"
+    "a11yr",
+    "cart",
+    "chromez",
+    "damp",
+    "dromaeo_css",
+    "dromaeo_dom",
+    "dromaeojs",
+    "g1",
+    "g2",
+    "glterrain",
+    "kraken",
+    "other_nol64",
+    "other_l64",
+    "other-e10s_nol64"
+    "other",
+    "sessionrestore_no_auto_restore",
+    "sessionrestore",
+    "svgr",
+    "tart",
+    "tcanvasmark",
+    "tcheck2",
+    "tp4m_nochrome",
+    "tp4m",
+    "tp5n",
+    "tp5o",
+    "tpaint",
+    "tps",
+    "tresize",
+    "trobocheck2",
+    "ts_paint",
+    "tscrollx",
+    "tsvgr_opacity",
+    "tsvgx",
+    "v8_7",
+    "xperf"
 ]
 
 repo = None
@@ -93,21 +123,36 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(uid, talos, resources):
     try:
-        Log.note("Process Talos {{name}}", name=talos.testrun.suite)
+        buildbot = transform_buildbot(talos.pulse, resources, uid)
 
+        suite_name = coalesce(talos.testrun.suite, buildbot.run.suite)
+        suite_name = suite_name.replace("-e10s", "")  # REMOVE e10s REFERENCES FROM THE NAMES
         # RECOGNIZE SUITE
         for s in KNOWN_TALOS_TESTS:
-            if talos.testrun.suite.startswith(s):
-                talos.testrun.suite = s
+            if suite_name.startswith(s):
+                suite_name = s
+                break
+            elif suite_name.startswith("remote-" + s):
+                suite_name = "remote-" + s
                 break
         else:
-            Log.warning("Do not know talos suite by name of {{name|quote}}\n{{talos}}", name=talos.testrun.suite, talos=talos)
+            Log.warning(
+                "Do not know talos suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                buildbot=buildbot,
+                name=suite_name,
+                talos=talos
+            )
 
-        buildbot = transform_buildbot(talos.pulse, resources, uid)
+        if talos.testrun.suite == None:
+            # SOMETIMES THE TALOS RECORDS ARE MISSING FROM LOG!
+            buildbot.run.stats = {"count": 0}
+            return [buildbot]
+
+        Log.note("Process Talos {{name}}", name=suite_name)
 
         # RENAME PROPERTIES
         talos.run, talos.testrun = talos.testrun, None
-        talos.run.timestamp, talos.run.date = talos.run.date, None
+        talos.run.timestamp, talos.run.date = coalesce(talos.run.date, buildbot.run.timestamp), None
 
         mainthread_transform(talos.results_aux)
         mainthread_transform(talos.results_xperf)
@@ -161,18 +206,8 @@ def transform(uid, talos, resources):
                     Log.warning("can not reduce series to moments", e)
                 new_records.append(new_record)
 
-        if len(total) > 1:
-            # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
-
-            new_record = set_default(
-                {"result": {
-                    "test": "SUMMARY",
-                    "ordering": -1,
-                    "stats": geo_mean(total)
-                }},
-                buildbot
-            )
-            new_records.append(new_record)
+        # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
+        buildbot.run.stats = geo_mean(total)
 
         return new_records
     except Exception, e:

@@ -29,26 +29,30 @@ def diff(settings, please_stop=None):
 
     # EVERYTHING FROM ELASTICSEARCH
     es = elasticsearch.Index(settings.destination)
+    source_bucket = s3.Bucket(settings.source)
 
     in_es = get_all_in_es(es)
-    in_s3 = get_all_s3(in_es, settings)
+    remaining_in_s3 = get_all_s3(in_es, source_bucket)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     if not settings.no_checks:
-        in_s3 = in_s3[500:500 + coalesce(settings.limit, 1000):]
+        remaining_in_s3 = remaining_in_s3[500:500 + coalesce(settings.limit, 1000):]
 
-    if not in_s3:
+    if not remaining_in_s3:
         Log.note("Nothing to insert into ES")
         return
 
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to {{queue}}",
-        num=len(in_s3),
-        min=Math.MIN(in_s3),
-        max=Math.MAX(in_s3),
+        num=len(remaining_in_s3),
+        min=Math.MIN(remaining_in_s3),
+        max=Math.MAX(remaining_in_s3),
         queue=work_queue.name
     )
-    work_queue.extend(in_s3)
+
+    for p in remaining_in_s3:
+        all_keys = source_bucket.keys(unicode(p) + ":")
+        work_queue.extend([{"key": k, "bucket": source_bucket.name} for k in all_keys])
 
 
 def get_all_in_es(es):
@@ -82,22 +86,21 @@ def get_all_in_es(es):
 
     return in_es
 
-def get_all_s3(in_es, settings):
+def get_all_s3(in_es, source_bucket):
     # EVERYTHING FROM S3
-    bucket = s3.Bucket(settings.source)
-    prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+    prefixes = [p.name.rstrip(":") for p in source_bucket.list(prefix="", delimiter=":")]
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
         try:
-            if int(p) not in in_es:
-                in_s3.append(int(p))
-            else:
-                pass
-        except Exception, _:
-            Log.note("delete key {{key}}",  key= p)
-            bucket.delete_key(strip_extension(p))
+            if int(p) in in_es:
+                continue
+
+            in_s3.append(int(p))
+        except Exception:
+            Log.note("delete key? {{key}}", key=p)
+            # source_bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3
 

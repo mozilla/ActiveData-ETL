@@ -117,10 +117,12 @@ class ETL(Thread):
         work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
-                bucket= source_block.bucket,
-                message= source_block,
-                action= "skipping" if self.settings.keep_unknown_on_queue else "deleting")
+            Log.note(
+                "No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
+                bucket=source_block.bucket,
+                message=source_block,
+                action="skipping" if self.settings.keep_unknown_on_queue else "deleting"
+            )
             return not self.settings.keep_unknown_on_queue
 
         for action in work_actions:
@@ -134,10 +136,12 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
-                Log.note("Execute {{action}} on bucket={{source}} key={{key}}",
-                    action= action.name,
-                    source= source_block.bucket,
-                    key= source_key)
+                Log.note(
+                    "Execute {{action}} on bucket={{source}} key={{key}}",
+                    action=action.name,
+                    source=source_block.bucket,
+                    key=source_key
+                )
 
                 if action.transform_type == "bulk":
                     old_keys = set()
@@ -179,9 +183,11 @@ class ETL(Thread):
                         source_key= source_key)
                     continue
                 elif not new_keys:
-                    Log.alert("Expecting some new keys after processing {{source_key}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
+                    Log.alert(
+                        "Expecting some new keys after processing {{source_key}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
                     continue
 
                 for k in new_keys:
@@ -369,12 +375,12 @@ def etl_one(settings):
             continue
         try:
             for i in parse_id_argument(settings.args.id):
-                data = source.get_key(i)
-                if data != None:
-                    already_in_queue.add(id(source))
+                keys = source.keys(i)
+                for k in keys:
+                    already_in_queue.add(k)
                     queue.add(Dict(
                         bucket=w.source.bucket,
-                        key=i
+                        key=k
                     ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
