@@ -40,7 +40,7 @@ KNOWN_TALOS_TESTS = [
     "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
     "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
     "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
-    "g1", "chromez", "svgr"
+    "g1", "g2", "chromez", "svgr", "dromaeojs", "tp4m_nochrome", "trobocheck2"
 ]
 
 repo = None
@@ -102,8 +102,16 @@ def transform(uid, talos, resources):
             if suite_name.startswith(s):
                 suite_name = s
                 break
+            elif suite_name.startswith("remote-" + s):
+                suite_name = "remote-" + s
+                break
         else:
-            Log.warning("Do not know talos suite by name of {{name|quote}}\n{{talos}}", name=suite_name, talos=talos)
+            Log.warning(
+                "Do not know talos suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                buildbot=buildbot,
+                name=suite_name,
+                talos=talos
+            )
 
         if talos.testrun.suite == None:
             # SOMETIMES THE TALOS RECORDS ARE MISSING FROM LOG!
