@@ -3,7 +3,7 @@
 	"batch_size": 5000,
 	"sample_only": [],
 	"elasticsearch": {
-		"host": "http://activedata.allizom.org",
+		"host": "http://localhost",
 		"port": 9200,
 		"index": "perf",
 		"type": "perf_result",
