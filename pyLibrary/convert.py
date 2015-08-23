@@ -44,7 +44,7 @@ def value2json(obj, pretty=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
-            Log.note(str(type(obj)) + " is not valid{{type}}JSON",  type= " (pretty) " if pretty else " ")
+            Log.note(str(type(obj)) + " is not valid{{type}}JSON", type=" (pretty) " if pretty else " ")
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:

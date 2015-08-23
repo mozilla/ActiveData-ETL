@@ -11,7 +11,6 @@ from __future__ import division
 
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce
@@ -21,53 +20,65 @@ from pyLibrary.queries import qb
 
 
 def diff(settings, please_stop=None):
+    if not settings.id_field:
+        Log.error("Expecting an `id_field` property")
+
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if not settings.no_checks and len(work_queue) > 100:
+    if not settings.no_checks and len(work_queue) > 200:
         Log.alert("Index queue has {{num}} elements, adding more is not a good idea", num=len(work_queue))
         return
 
     # EVERYTHING FROM ELASTICSEARCH
     es = elasticsearch.Index(settings.destination)
+    source_bucket = s3.Bucket(settings.source)
 
-    in_es = get_all_in_es(es)
-    in_s3 = get_all_s3(in_es, settings)
+    in_es = get_all_in_es(es, settings.id_field, settings.start)
+    remaining_in_s3 = get_all_s3(in_es, source_bucket, settings.start)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     if not settings.no_checks:
-        in_s3 = in_s3[500:500 + coalesce(settings.limit, 1000):]
+        remaining_in_s3 = remaining_in_s3[500:500 + coalesce(settings.limit, 1000):]
 
-    if not in_s3:
+    if not remaining_in_s3:
         Log.note("Nothing to insert into ES")
         return
 
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to {{queue}}",
-        num=len(in_s3),
-        min=Math.MIN(in_s3),
-        max=Math.MAX(in_s3),
+        num=len(remaining_in_s3),
+        min=Math.MIN(remaining_in_s3),
+        max=Math.MAX(remaining_in_s3),
         queue=work_queue.name
     )
-    work_queue.extend(in_s3)
+
+    for p in remaining_in_s3:
+        all_keys = source_bucket.keys(unicode(p) + ":")
+        work_queue.extend([{"key": k, "bucket": source_bucket.name} for k in all_keys])
 
 
-def get_all_in_es(es):
+def get_all_in_es(es, field, start=0):
     in_es = set()
 
     result = es.search({
         "aggs": {
-            "_match": {
-                "terms": {
-                    "field": "etl.source.source.id",
-                    "size": 200000
-                }
+            "_filter": {
+                "filter": {"range": {field: {"gte": start}}},
+                "aggs": {
+                    "_match": {
+                        "terms": {
+                            "field": field,
+                            "size": 200000
+                        }
 
+                    }
+                }
             }
         }
     })
 
     good_es = []
-    for k in result.aggregations._match.buckets.key:
+    for k in result.aggregations._filter._match.buckets.key:
         try:
             good_es.append(int(k))
         except Exception, e:
@@ -82,22 +93,22 @@ def get_all_in_es(es):
 
     return in_es
 
-def get_all_s3(in_es, settings):
-    # EVERYTHING FROM S3
-    bucket = s3.Bucket(settings.source)
-    prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+def get_all_s3(in_es, source_bucket, start=0):
+    Log.note("Scanning S3")
+    prefixes = [p.name.rstrip(":") for p in source_bucket.list(prefix="", delimiter=":")]
     in_s3 = []
-    for i, p in enumerate(prefixes):
+    for i, q in enumerate(prefixes):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
         try:
-            if int(p) not in in_es:
-                in_s3.append(int(p))
-            else:
-                pass
-        except Exception, _:
-            Log.note("delete key {{key}}",  key= p)
-            bucket.delete_key(strip_extension(p))
+            p = int(q)
+            if p in in_es or p < start:
+                continue
+
+            in_s3.append(p)
+        except Exception:
+            Log.note("delete key? {{key|quote}}", key=q)
+            # source_bucket.delete_key(strip_extension(q))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3
 
