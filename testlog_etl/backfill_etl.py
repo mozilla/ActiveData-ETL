@@ -25,7 +25,7 @@ def diff(settings, please_stop=None):
 
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if not settings.no_checks and len(work_queue) > 100:
+    if not settings.no_checks and len(work_queue) > 200:
         Log.alert("Index queue has {{num}} elements, adding more is not a good idea", num=len(work_queue))
         return
 
