@@ -4,7 +4,7 @@
 		"index.number_of_shards": 5
 	},
 	"mappings": {
-		"perf_results": {
+		"perf_result": {
 			"_source": {
 				"compress": true
 			},
@@ -155,19 +155,6 @@
 				"run": {
 					"dynamic": true,
 					"properties": {
-						"suite": {
-							"index": "not_analyzed",
-							"norms": {
-								"enabled": false
-							},
-							"index_options": "docs",
-							"type": "string",
-							"doc_values": true
-						},
-						"timestamp": {
-							"type": "long",
-							"doc_values": true
-						},
 						"options": {
 							"dynamic": true,
 							"properties": {
