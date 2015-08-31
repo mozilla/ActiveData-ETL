@@ -52,8 +52,9 @@ def diff(settings, please_stop=None):
         queue=work_queue.name
     )
 
-    for p in remaining_in_s3:
+    for i, p in enumerate(remaining_in_s3):
         all_keys = source_bucket.keys(unicode(p) + ":")
+        Log.note("{{count}}. {{key}} has {{num}} subkeys", count=i, key=p, num=len(all_keys))
         work_queue.extend([{"key": k, "bucket": source_bucket.name} for k in all_keys])
 
 
