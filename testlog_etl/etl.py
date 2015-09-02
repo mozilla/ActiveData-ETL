@@ -262,6 +262,7 @@ class ETL(Thread):
 
                 if isinstance(todo, unicode):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
+                    self.work_queue.commit()
                     continue
 
                 try:
