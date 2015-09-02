@@ -260,6 +260,10 @@ class ETL(Thread):
                         please_stop.go()
                         return
 
+                if isinstance(todo, unicode):
+                    Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
+                    continue
+
                 try:
                     is_ok = self._dispatch_work(todo)
                     if is_ok:
