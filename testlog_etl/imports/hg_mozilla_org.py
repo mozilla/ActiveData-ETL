@@ -124,14 +124,18 @@ class HgMozillaOrg(object):
             }},
             "size": 2000,
         }
-        docs = self.es.search(query).hits.hits
-        if len(docs) > 1:
-            for d in docs:
-                if d._id.endswith(d._source.branch.locale):
-                    return d._source
-            Log.warning("expecting no more than one document")
+        try:
+            docs = self.es.search(query, timeout=120).hits.hits
+            if len(docs) > 1:
+                for d in docs:
+                    if d._id.endswith(d._source.branch.locale):
+                        return d._source
+                Log.warning("expecting no more than one document")
 
-        return docs[0]._source
+            return docs[0]._source
+        except Exception, e:
+            Log.warning("Bad ES call", e)
+            return None
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
