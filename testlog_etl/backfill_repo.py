@@ -7,7 +7,6 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary.collections.queue import Queue
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log

@@ -1,6 +1,6 @@
 {
 	"no_checks": false,
-	"start": 120000,
+	"start": 70000,
 	"limit": 10000,
 	"id_field": "etl.source.source.source.id",
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
