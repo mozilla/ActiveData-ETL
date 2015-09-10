@@ -270,7 +270,7 @@ class ETL(Thread):
                     self.work_queue.rollback()
                     # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
                     if "Shutdown detected." not in e:
-                        Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                        Log.note("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

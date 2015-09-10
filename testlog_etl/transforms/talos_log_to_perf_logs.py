@@ -50,7 +50,7 @@ KNOWN_TALOS_TESTS = [
     "media_tests",
     "other_nol64",
     "other_l64",
-    "other-e10s_nol64"
+    "other-e10s_nol64",
     "other",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
