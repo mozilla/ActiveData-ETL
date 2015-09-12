@@ -110,7 +110,7 @@ cd ~/TestLog-ETL
 git checkout primary
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_primary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_secondary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
@@ -145,5 +145,5 @@ sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
-sudo /usr/local/bin/supervisorctl reread
-sudo /usr/local/bin/supervisorctl update
+sudo supervisorctl reread
+sudo supervisorctl update
