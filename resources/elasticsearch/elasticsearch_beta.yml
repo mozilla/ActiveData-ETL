@@ -2,6 +2,10 @@ cluster.name: active-data-beta
 
 bootstrap.mlockall: true
 
+script.inline: on
+script.indexed: on
+script.disable_dynamic: false
+
 index.number_of_shards: 1
 index.number_of_replicas: 0
 index.cache.field.type: soft

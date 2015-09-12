@@ -12,9 +12,8 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
+from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
@@ -117,6 +116,9 @@ def transform_buildbot(payload, resources, filename=None):
     output.build.name = payload.buildername
     output.build.id = payload.buildid
     output.build.type = payload.buildtype
+    if "e10s" in payload.key.lower():
+        output.run.type = "e10s"
+
     output.build.url = payload.buildurl
     output.run.job_number = payload.job_number
 
@@ -198,12 +200,14 @@ def transform_buildbot(payload, resources, filename=None):
 
     if output.build.branch:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
+        locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
-            output.repo = resources.hg.get_revision(rev, output.build.locale.replace("en-US", DEFAULT_LOCALE))
+            output.repo = resources.hg.get_revision(rev, locale)
         except Exception, e:
             Log.warning(
-                "Can not get revision for branch={{branch}}, revision={{revision}}\n{{details|json|indent}}",
+                "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
                 branch=output.build.branch,
+                locale=locale,
                 revision=rev,
                 details=output,
                 cause=e
@@ -213,7 +217,6 @@ def transform_buildbot(payload, resources, filename=None):
         Log.warning("No branch!\n{{output|indent}}", output=output)
 
     return output
-
 
 
 def fix_locale(locale):

@@ -14,7 +14,6 @@ from __future__ import absolute_import
 import json
 import time
 import sys
-
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from collections import Mapping
@@ -83,11 +82,7 @@ def pypy_json_encode(value, pretty=False):
     except Exception, e:
         # THE PRETTY JSON WILL PROVIDE MORE DETAIL ABOUT THE SERIALIZATION CONCERNS
         from pyLibrary.debugs.logs import Log
-        Log.warning("Serialization of JSON problems", e)
-        try:
-            return pretty_json(value)
-        except Exception, f:
-            Log.error("problem serializing object", f)
+        Log.error("problem serializing value {{value}} to json", value=repr(value), cause=e)
 
 almost_pattern = r"(?:\.(\d*)999)|(?:\.(\d*)000)"
 
@@ -134,10 +129,16 @@ class cPythonJSONEncoder(object):
             scrubbed = scrub(value)
             return unicode(self.encoder.encode(scrubbed))
         except Exception, e:
-            from pyLibrary.debugs.logs import Log, Except
-            e = Except.wrap(e)
-            Log.warning("problem serializing {{type}}", type=_repr(value), cause=e)
-            raise e
+            pass
+
+        # THE PRETTY JSON WILL PROVIDE MORE DETAIL ABOUT THE SERIALIZATION CONCERNS
+        from pyLibrary.debugs.logs import Log
+        try:
+            output = pypy_json_encode(value)
+            Log.warning("Encoder could not encode to\n{{json|json|indent}}", json=output, cause=e)
+            return output
+        except Exception, f:
+            Log.error("problem serializing value {{value}} to json", value=repr(value), cause=e)
 
 
 def _value2json(value, _buffer):

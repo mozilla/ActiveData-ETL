@@ -1,24 +1,26 @@
 {
-	"limit": 3000,
-	"source": {
-		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-test-result",
-		"key_format": "a:b.c"
-	},
+	"threads": 1,
+	"batch_size": 5000,
+	"sample_only": [],
 	"elasticsearch": {
-		"host": "http://54.149.35.214",
+		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "perf",
+		"type": "perf_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../schema/test_results.json"
+			"$ref": "//../../schema/perf_results.json"
 		},
 		"debug": false,
 		"limit_replicas": false
 	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-perf",
+		"key_format": "a:b.c"
+	},
 	"work_queue":{
-		"name": "active-data-index",
+		"name": "active-data-index-perf",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -28,6 +30,7 @@
 		}
 	},
 	"debug": {
+		"trace":true,
 		"log": [
 			{
 				"log_type": "console"
@@ -36,7 +39,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"subject": "[ALERT][DEV]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

@@ -11,7 +11,7 @@ cluster.routing.allocation.balance.shard: 0.70
 cluster.routing.allocation.balance.primary: 0.4
 
 bootstrap.mlockall: true
-path.data: /data1, /data2, /data3
+path.data: /data1, /data2, /data5
 path.logs: /data1/logs
 cloud:
     aws:

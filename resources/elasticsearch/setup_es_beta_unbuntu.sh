@@ -24,8 +24,10 @@ cd /usr/local/elasticsearch/
 
 ES HEAD IS WONDERFUL!
 #http://54.69.134.49:9200/_plugin/head/
-
 sudo bin/plugin -install mobz/elasticsearch-head
+
+#INSTALL BIGDESK
+sudo bin/plugin -install lukas-vlcek/bigdesk
 
 # COPY CONFIG FILE TO ES DIR
 sudo cp /home/klahnakoski/elasticsearch_beta.yml /usr/local/elasticsearch/config/elasticsearch.yml

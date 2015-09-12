@@ -68,8 +68,8 @@ class MultiDayIndex(object):
         for key in keys:
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    value = convert.json2value(line)
                     if rownum == 0:
-                        value = convert.json2value(line)
                         if len(line) > 100000:
                             value.result.subtests = [s for s in value.result.subtests if s.ok is False]
                             value.result.missing_subtests = True
@@ -96,7 +96,7 @@ class MultiDayIndex(object):
                     num_keys += 1
                     self.queue.add(row)
             except Exception, e:
-                Log.warning("Could not get queue for {{key}}", key=key, cause=e)
+                Log.warning("Could not process {{key}}", key=key, cause=e)
         return num_keys
 
 

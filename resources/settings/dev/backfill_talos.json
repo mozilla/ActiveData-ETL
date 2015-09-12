@@ -1,0 +1,32 @@
+{
+	"no_checks": true,
+	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
+		"name": "active-data-etl-dev",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"source": {    //WHERE WE GET DATA FROM
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-talos-dev",
+		"key_format": "a:b.c"
+	},
+	"destination": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "talos",
+		"type": "perf_result",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/perf_results.json"
+		},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

@@ -27,7 +27,7 @@ import re
 from tempfile import TemporaryFile
 
 from pyLibrary import strings, meta
-from pyLibrary.dot import wrap, wrap_dot, unwrap
+from pyLibrary.dot import wrap, wrap_leaves, unwrap
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env.big_data import FileString, safe_size
@@ -44,11 +44,11 @@ def value2json(obj, pretty=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
-            Log.note(str(type(obj)) + " is not valid{{type}}JSON",  type= " (pretty) " if pretty else " ")
+            Log.note(str(type(obj)) + " is not valid{{type}}JSON", type=" (pretty) " if pretty else " ")
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:
-        Log.error("Can not encode into JSON: {{value}}", value=meta.repr(obj), cause=e)
+        Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
 
 def remove_line_comment(line):
@@ -78,12 +78,12 @@ def remove_line_comment(line):
 
 
 
-def json2value(json_string, params={}, flexible=False, paths=False):
+def json2value(json_string, params={}, flexible=False, leaves=False):
     """
     :param json_string: THE JSON
     :param params: STANDARD JSON PARAMS
     :param flexible: REMOVE COMMENTS
-    :param paths: ASSUME JSON KEYS ARE DOT-DELIMITED
+    :param leaves: ASSUME JSON KEYS ARE DOT-DELIMITED
     :return: Python value
     """
     if isinstance(json_string, str):
@@ -107,8 +107,8 @@ def json2value(json_string, params={}, flexible=False, paths=False):
         # LOOKUP REFERENCES
         value = wrap(json_decoder(json_string))
 
-        if paths:
-            value = wrap_dot(value)
+        if leaves:
+            value = wrap_leaves(value)
 
         return value
 

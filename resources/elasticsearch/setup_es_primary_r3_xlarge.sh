@@ -60,10 +60,16 @@ sudo bin/plugin install mobz/elasticsearch-head
 #[ec2-user@ip-172-31-0-7 dev]$ sudo file -s /dev/xvdb
 #/dev/xvdb: data
 
+#FORMAT AND MOUNT
 sudo mkfs -t ext4 /dev/xvdb
 sudo mkfs -t ext4 /dev/xvdc
 sudo mkfs -t ext4 /dev/xvdd
 sudo mkfs -t ext4 /dev/xvde
+
+#MOUNT (NO FORMAT)
+sudo mount /dev/xvdb /data1
+sudo mount /dev/xvdb /data1
+
 
 sudo mkdir /data1
 sudo mkdir /data2

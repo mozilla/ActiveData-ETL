@@ -80,8 +80,7 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
+			"type": "join"
 		},
 		{
 			"name": "pulse2test_result",

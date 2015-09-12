@@ -1,8 +1,12 @@
 {
-	"threads": 2,
-	"sample_size": 0.05,
+	"threads": 1,
+	"batch_size": 5000,
+	"sample_only": [
+		"mozilla-aurora",
+		"try"
+	],
 	"elasticsearch": {
-		"host": "http://localhost",
+		"host": "http://54.149.35.214",
 		"port": 9200,
 		"index": "unittest",
 		"type": "test_result",
@@ -15,11 +19,11 @@
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-beta",
+		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-beta",
+		"name": "active-data-index",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -29,22 +33,16 @@
 		}
 	},
 	"debug": {
+		"trace":true,
 		"log": [
 			{
 				"log_type": "console"
 			},
 			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/push_unit_to_es.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 10,
-				"encoding" : "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Beta]Problem in Push to ES",
+				"subject": "[ALERT][DEV]Problem in Push unit to ES",
 				"$ref": "file://~/private.json#email"
 
 			}
