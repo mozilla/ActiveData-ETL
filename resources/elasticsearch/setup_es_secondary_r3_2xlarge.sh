@@ -136,6 +136,7 @@ sudo pip install pyopenssl
 sudo pip install ndg-httpsclient
 sudo pip install pyasn1
 sudo pip install requests
+sudo pip install fabric==1.10.2
 sudo pip install supervisor-plus-cron
 
 cd /usr/bin
