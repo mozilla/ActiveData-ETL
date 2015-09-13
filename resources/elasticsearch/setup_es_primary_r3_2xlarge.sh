@@ -66,11 +66,6 @@ sudo mkfs -t ext4 /dev/xvdc
 sudo mkfs -t ext4 /dev/xvdd
 sudo mkfs -t ext4 /dev/xvde
 
-#MOUNT (NO FORMAT)
-sudo mount /dev/xvdb /data1
-sudo mount /dev/xvdb /data1
-
-
 sudo mkdir /data1
 sudo mkdir /data2
 sudo mkdir /data3
@@ -86,6 +81,7 @@ sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
+# MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
 sudo sysctl -p
 
@@ -136,12 +132,17 @@ sudo pip install pyopenssl
 sudo pip install ndg-httpsclient
 sudo pip install pyasn1
 sudo pip install requests
+sudo pip install fabric==1.10.2
 sudo pip install supervisor-plus-cron
 
 cd /usr/bin
 sudo ln -s /usr/local/bin/supervisorctl supervisorctl
 
 sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
+
+
+#COPY
+
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf

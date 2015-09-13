@@ -4,6 +4,10 @@ node.name: secondary
 node.master: false
 node.data: true
 
+script.inline: on
+script.indexed: on
+script.disable_dynamic: false
+
 cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
