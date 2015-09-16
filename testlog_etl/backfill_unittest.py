@@ -18,6 +18,7 @@ from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
+from pyLibrary.times.timer import Timer
 
 
 def diff(settings, please_stop=None):
@@ -31,7 +32,15 @@ def diff(settings, please_stop=None):
     es = elasticsearch.Index(settings.destination)
 
     in_es = get_all_in_es(es)
-    in_s3 = get_all_s3(in_es, settings)
+    in_range = None
+    if settings.range:
+        settings.limit = 1000000000  # SOME BIG NUMBER
+        max_in_es = max(*in_es)
+        in_range = set(range(coalesce(settings.range.min, 0), coalesce(settings.range.max, max_in_es)))
+        in_es -= in_range
+
+
+    in_s3 = get_all_s3(in_es, in_range, settings)
 
     # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     if not settings.no_checks:
@@ -61,9 +70,9 @@ def get_all_in_es(es):
                     "field": "etl.source.source.id",
                     "size": 200000
                 }
-
             }
-        }
+        },
+        "size": 0
     })
 
     good_es = []
@@ -82,21 +91,24 @@ def get_all_in_es(es):
 
     return in_es
 
-def get_all_s3(in_es, settings):
+def get_all_s3(in_es, in_range, settings):
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
-    prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+    with Timer("Scanning S3"):
+        prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+
     in_s3 = []
     for i, p in enumerate(prefixes):
         if i % 1000 == 0:
             Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
         try:
             if int(p) not in in_es:
-                in_s3.append(int(p))
+                if not in_range or int(p) in in_range:
+                    in_s3.append(int(p))
             else:
                 pass
         except Exception, _:
-            Log.note("delete key {{key}}",  key= p)
+            Log.note("delete key {{key}}", key= p)
             bucket.delete_key(strip_extension(p))
     in_s3 = qb.reverse(qb.sort(in_s3))
     return in_s3

@@ -1,16 +1,22 @@
 cluster.name: active-data
-node.zone: spot
-node.name: coordinator
-node.master: true
-node.data: false
+node.zone: secondary
+node.name: secondary
+node.master: false
+node.data: true
 
-cluster.routing.allocation.awareness.force.zone.values: primary,spot
+script.inline: on
+script.indexed: on
+
+
+cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
 cluster.routing.allocation.balance.shard: 0.70
-cluster.routing.allocation.balance.primary: 0.3  #TRY TO LIMIT PRIMARY SHARDS TO THREE-PER-NODE
+cluster.routing.allocation.balance.primary: 0.4
 
 bootstrap.mlockall: true
+path.data: /data1, /data2, /data3
+path.logs: /data1/logs
 cloud:
     aws:
         region: us-west-2

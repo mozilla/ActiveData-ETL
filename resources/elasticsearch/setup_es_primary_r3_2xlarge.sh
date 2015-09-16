@@ -29,23 +29,22 @@ export JAVA_HOME=/usr/java/default
 #CHECK IT IS 1.8
 java -version
 
+# INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz
-tar zxfv elasticsearch-1.4.2.tar.gz
+wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.7.1.tar.gz
+tar zxfv elasticsearch-1.7.1.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-1.4.2/* /usr/local/elasticsearch/
+sudo cp -R elasticsearch-1.7.1/* /usr/local/elasticsearch/
+
+
 cd /usr/local/elasticsearch/
 
 # BE SURE TO MATCH THE PULGIN WITH ES VERSION
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
-
-sudo bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.4.1
-
+sudo bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
 
 #ES HEAD IS WONDERFUL!
-#http://54.69.134.49:9200/_plugin/head/
-
-sudo bin/plugin -install mobz/elasticsearch-head
+sudo bin/plugin install mobz/elasticsearch-head
 
 
 #MOUNT AND FORMAT THE EBS VOLUME
@@ -65,20 +64,16 @@ sudo bin/plugin -install mobz/elasticsearch-head
 sudo mkfs -t ext4 /dev/xvdb
 sudo mkfs -t ext4 /dev/xvdc
 sudo mkfs -t ext4 /dev/xvdd
-
-#MOUNT (NO FORMAT)
-sudo mount /dev/xvdb /data1
-sudo mount /dev/xvdb /data1
-
+sudo mkfs -t ext4 /dev/xvde
 
 sudo mkdir /data1
 sudo mkdir /data2
 sudo mkdir /data3
 
 # ADD TO /etc/fstab SO AROUND AFTER REBOOT
-sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdd   /data3       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdc   /data1       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdd   /data2       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvde   /data3       ext4    defaults,nofail  0   2' /etc/fstab
 
 # TEST IT IS WORKING
 sudo mount -a
@@ -86,6 +81,7 @@ sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
+# MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
 sudo sysctl -p
 
@@ -133,14 +129,22 @@ sudo yum install -y openssl-devel
 sudo yum groupinstall -y "Development tools"
 
 sudo pip install pyopenssl
-sudo pip install ndg-httpclient
+sudo pip install ndg-httpsclient
 sudo pip install pyasn1
 sudo pip install requests
+sudo pip install fabric==1.10.2
 sudo pip install supervisor-plus-cron
+
+cd /usr/bin
+sudo ln -s /usr/local/bin/supervisorctl supervisorctl
 
 sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
+
+#COPY
+
+
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
-sudo /usr/local/bin/supervisorctl reread
-sudo /usr/local/bin/supervisorctl update
+sudo supervisorctl reread
+sudo supervisorctl update
