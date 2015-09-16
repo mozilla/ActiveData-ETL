@@ -6,7 +6,7 @@ node.data: true
 
 script.inline: on
 script.indexed: on
-script.disable_dynamic: false
+
 
 cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone

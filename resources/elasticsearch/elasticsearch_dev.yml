@@ -1,6 +1,6 @@
 script.inline: on
 script.indexed: on
-script.disable_dynamic: false
+
 
 cluster.name: lahnakoski_dev
 node.name: dev
