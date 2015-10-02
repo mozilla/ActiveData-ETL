@@ -64,7 +64,9 @@ def split_field(field):
     """
     RETURN field AS ARRAY OF DOT-SEPARATED FIELDS
     """
-    if field.find(".") >= 0:
+    if field == "." or field==None:
+        return []
+    elif field.find(".") >= 0:
         field = field.replace("\.", "\a")
         return [k.replace("\a", ".") for k in field.split(".")]
     else:
@@ -75,7 +77,10 @@ def join_field(field):
     """
     RETURN field SEQUENCE AS STRING
     """
-    return ".".join([f.replace(".", "\.") for f in field])
+    potent = [f for f in field if f != "."]
+    if not potent:
+        return "."
+    return ".".join([f.replace(".", "\.") for f in potent])
 
 
 def hash_value(v):
@@ -128,7 +133,13 @@ def _all_default(d, default, seen=None):
 
         if existing_value == None:
             if default_value != None:
-                _set_attr(d, [k], default_value)
+                try:
+                    _set_attr(d, [k], default_value)
+                except Exception, e:
+                    if PATH_NOT_FOUND not in e:
+                        from pyLibrary.debugs.logs import Log
+                        Log.error("Can not set attribute {{name}}", name=k, cause=e)
+
         elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, Mapping)) and isinstance(default_value, Mapping):
             df = seen.get(id(existing_value))
             if df:
@@ -143,13 +154,13 @@ def _getdefault(obj, key):
     TRY BOTH ATTRIBUTE AND ITEM ACCESS, OR RETURN Null
     """
     try:
-        return getattr(obj, key)
-    except Exception, e:
+        return obj[key]
+    except Exception, f:
         pass
 
     try:
-        return obj[key]
-    except Exception, f:
+        return getattr(obj, key)
+    except Exception, e:
         pass
 
     try:
@@ -242,7 +253,9 @@ def _get_attr(obj, path):
         obj = getattr(obj, attr_name)
         return _get_attr(obj, path[1:])
     except Exception, e:
-        try:
+        pass
+
+    try:
             obj = obj[attr_name]
             return _get_attr(obj, path[1:])
         except Exception, f:
@@ -270,7 +283,7 @@ def _set_attr(obj, path, value):
         new_value = value
 
     try:
-        _get(obj, "__setattr__")(attr_name, new_value)
+        setattr(obj, attr_name, new_value)
         return old_value
     except Exception, e:
         try:
@@ -291,6 +304,10 @@ def wrap(v):
     if type_ is dict:
         m = Dict(v)
         return m
+        # m = object.__new__(Dict)
+        # object.__setattr__(m, "_dict", v)
+        # return m
+
     elif type_ is NoneType:
         return Null
     elif type_ is list:
@@ -400,7 +417,7 @@ def listwrap(value):
 
     """
     if value == None:
-        return []
+        return DictList()
     elif isinstance(value, list):
         return wrap(value)
     else:

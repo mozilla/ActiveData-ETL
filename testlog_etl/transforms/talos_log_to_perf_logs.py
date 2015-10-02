@@ -45,6 +45,7 @@ KNOWN_TALOS_TESTS = [
     "dromaeojs",
     "g1",
     "g2",
+    "g3",
     "glterrain",
     "kraken",
     "media_tests",

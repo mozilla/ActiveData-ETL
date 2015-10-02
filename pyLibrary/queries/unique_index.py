@@ -113,7 +113,7 @@ class UniqueIndex(BaseSet, Mapping):
             self.count -= 1
 
     def __contains__(self, key):
-        return bool(self[key])
+        return self[key] != None
 
     def __iter__(self):
         return (wrap(v) for v in self._data.itervalues())

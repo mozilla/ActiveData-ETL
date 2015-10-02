@@ -1,18 +1,19 @@
 cluster.name: active-data-beta
 
-bootstrap.mlockall: true
+
 
 script.inline: on
 script.indexed: on
 
+
+bootstrap.mlockall: true
+discovery.zen.ping.multicast.enabled: true
 
 index.number_of_shards: 1
 index.number_of_replicas: 0
 index.cache.field.type: soft
 index.translog.interval: 60s
 index.translog.flush_threshold_size: 100mb
-
-discovery.zen.ping.multicast.enabled: true
 
 indices.memory.index_buffer_size: 20%
 indices.recovery.concurrent_streams: 1
