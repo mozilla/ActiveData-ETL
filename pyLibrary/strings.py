@@ -82,7 +82,7 @@ def unix(value):
 
 def url(value):
     """
-    _convert FROM dict OR string TO URL PARAMETERS
+    _CONVERT FROM dict OR string TO URL PARAMETERS
     """
     if not _convert:
         _late_import()
@@ -92,7 +92,7 @@ def url(value):
 
 def html(value):
     """
-    _convert FROM unicode TO HTML OF THE SAME
+    _CONVERT FROM unicode TO HTML OF THE SAME
     """
     if not _convert:
         _late_import()
@@ -474,7 +474,7 @@ def toString(val):
         if not _Log:
             _late_import()
 
-        _Log.error(str(type(val)) + " type can not be _converted to unicode", e)
+        _Log.error(str(type(val)) + " type can not be converted to unicode", e)
 
 
 def edit_distance(s1, s2):
@@ -603,4 +603,6 @@ def utf82unicode(value):
 
 def wordify(value):
     return [w for w in re.split(r"[\W_]", value) if strip(w)]
+
+
 
