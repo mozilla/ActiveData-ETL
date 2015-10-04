@@ -9,14 +9,12 @@
 #
 from __future__ import unicode_literals
 import re
-from pyLibrary import convert
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, literal_field, coalesce, set_default
+from pyLibrary.dot import Dict, wrap, coalesce
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
-from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND
 from pyLibrary.times.timer import Timer
@@ -26,7 +24,7 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transfo
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 DEBUG = False
-MAX_TIMING_ERROR = SECOND / 2  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
+MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
@@ -91,6 +89,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
 
 MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
+MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 
 
@@ -110,22 +109,22 @@ def match_mozharness_line(log_date, prev_line, curr_line, next_line):
 
     if len(next_line) != 25 or len(prev_line) != 25:
         return None
-    if not MOZLOG_PREFIX.match(next_line) or not MOZLOG_PREFIX.match(prev_line):
+    if not MOZLOG_PREFIX.match(next_line) or not MOZLOG_PREFIX.match(prev_line) or not MOZLOG_PREFIX.match(curr_line):
         return None
     match = MOZLOG_STEP.match(curr_line)
-    if not match:
-        if curr_line.endswith("FxDesktopBuild summary:"):
+    if match:
+        _time, mode, message = match.group(1, 2, 3)
+        mode = mode.strip().lower()
+    else:
+        match = MOZLOG_SUMMARY.match(curr_line)
+        if not match:
+            Log.warning("unexpected log line\n{{line}}", line=curr_line)
             return None
-        if curr_line.endswith("B2GDesktopBuild summary:"):
-            return None
-        Log.warning("unexpected log line\n{{line}}", line=curr_line)
-        return None
-
-    _time, mode, message = match.group(1, 2, 3)
+        _time, message = match.group(1, 2)
+        mode = "summary"
 
     timestamp = Date(log_date + " " + _time, "%Y-%m-%d %H:%M:%S")
-
-    return timestamp, mode.strip().lower(), message
+    return timestamp, mode, message
 
 
 def match_builder_line(line):
@@ -135,13 +134,20 @@ def match_builder_line(line):
     EXAMPLES
     ========= Finished set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
     ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
+    ========= Skipped  (results: not started, elapsed: not started) =========
     """
     if not line.startswith("========= ") or not line.endswith(" ========="):
         return None
 
     try:
         parts = line[10:-10].strip().split("(")
+        if parts[0] == "Skipped":
+            # NOT THE REGULAR PATTERN
+            message, status, timestamp, done = parts[0], "skipped", None, True
+            return timestamp, message, done, status
+
         desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
+
     except Exception, e:
         Log.warning("Can not split log line: {{line|quote}}", line=line, cause=e)
         return None
@@ -153,7 +159,7 @@ def match_builder_line(line):
         done = True
         message = desc[9:].strip()
     else:
-        raise Log.error("not expected")
+        raise Log.error("Can not parse log line: {{line}}", line=line)
 
     result_code = int(stats.split(",")[0].split(":")[1].strip())
     status = buildbot.STATUS_CODES[result_code]
@@ -294,7 +300,9 @@ def verify_equal(data, expected, duplicate):
     """
     WILL REMOVE DUPLICATE IF NOT THE SAME
     """
-    if data[expected].startswith(data[duplicate]):
+    if data[expected] == data[duplicate]:
+        data[duplicate] = None
+    elif data[expected].startswith(data[duplicate]):
         data[duplicate] = None
     else:
         Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
