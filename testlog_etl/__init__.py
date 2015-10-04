@@ -9,8 +9,8 @@
 from __future__ import unicode_literals
 from collections import Mapping
 from pyLibrary import strings
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
-from pyLibrary.parsers import Log
 from pyLibrary.queries import qb
 
 

@@ -547,6 +547,12 @@ def sort(data, fieldnames=None):
                 def _compare_v(l, r):
                     return value_compare(l, r, fieldnames.sort)
                 return DictList([unwrap(d) for d in sorted(data, cmp=_compare_v)])
+            elif isinstance(fieldnames.value, Mapping):
+                func = qb_expression_to_function(fieldnames.value)
+                def _compare_o(left, right):
+                    return value_compare(func(coalesce(left)), func(coalesce(right)), fieldnames.sort)
+                return DictList([unwrap(d) for d in sorted(data, cmp=_compare_o)])
+
             else:
                 def _compare_o(left, right):
                     return value_compare(coalesce(left)[fieldnames.value], coalesce(right)[fieldnames.value], fieldnames.sort)
@@ -606,6 +612,7 @@ def pairwise(values):
         yield (a, b)
         a = b
 
+pairs = pairwise
 
 
 def filter(data, where):
