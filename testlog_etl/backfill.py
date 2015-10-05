@@ -40,7 +40,6 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es, settings.range, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
-        settings.limit = 1000000000  # SOME BIG NUMBER
         max_in_es = max(*in_es)
         in_range = set(range(coalesce(settings.range.min, 0), coalesce(settings.range.max, max_in_es)))
         in_es -= in_range
