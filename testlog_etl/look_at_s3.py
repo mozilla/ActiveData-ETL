@@ -26,9 +26,10 @@ def list_s3(settings, filter):
     """
     LIST THE KEYS AND TIMESTAMPS FOUND IN AN S3 BUCKET
     """
-
-    with Timer("get all metadata"):
-        metas = Bucket(settings).metas()
+    bucket = Bucket(settings)
+    with Timer("get all metadata from {{bucket}}", {"bucket":bucket.name}):
+        prefix = filter.prefix.key  # WE MAY BE LUCKY AND THIS IS THE ONLY FILTER
+        metas = bucket.metas(prefix=prefix)
 
     filtered = qb.run({
         "from": metas,
@@ -36,7 +37,10 @@ def list_s3(settings, filter):
         "sort": "last_modified"
     })
     for meta in filtered:
-        Log.note("Read {{key}} {{timestamp}}",  key= meta.key,  timestamp= meta.last_modified)
+        Log.note("Read {{key}} {{timestamp}}", key=meta.key, timestamp= meta.last_modified)
+
+    if len(filtered)==1:
+        Log.note("{{content}}", content=bucket.read(filtered[0].key))
 
 
 def list_queue(settings, num=10):
@@ -49,16 +53,9 @@ def list_queue(settings, num=10):
 
 def main():
     try:
-        settings = startup.read_settings(defs={
-            "name": ["--filter", "--where"],
-            "help": "ES filter",
-            "type": str,
-            "dest": "filter",
-            "default": '{"match_all":{}}',
-            "required": True
-        })
+        settings = startup.read_settings()
         Log.start(settings.debug)
-        list_s3(settings.source, convert.json2value(convert.ascii2unicode(settings.args.filter)))
+        list_s3(settings.source, settings.filter)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

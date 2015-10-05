@@ -213,6 +213,6 @@ class HttpResponse(Response):
             else:
                 return convert.utf82unicode(content).split("\n")
         except Exception, e:
-            Log.error("Not JSON", e)
+            Log.error("Can not read content", cause=e)
         finally:
             self.close()

@@ -66,43 +66,43 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
-		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-beta",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-			"name": "talos2perf",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
-				"key_format": "a:b.c"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perf-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify":{
-				"name": "active-data-index-perf-beta",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
-			"type": "join"
-		},
+//		{
+//			"name": "pulse2talos",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-beta",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-talos-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
+//		{
+//			"name": "talos2perf",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-talos-beta",
+//				"key_format": "a:b.c"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perf-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify":{
+//				"name": "active-data-index-perf-beta",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+//			"type": "join"
+//		},
 		{
 			"name": "pulse2jobs",
 			"source": {
@@ -124,26 +124,26 @@
 			"type": "join",
 			"transform_type": "bulk"
 		},
-		{
-			"name": "pulse2test_result",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-beta",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-beta",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
-		}
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-beta",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-test-result-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index-beta",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,

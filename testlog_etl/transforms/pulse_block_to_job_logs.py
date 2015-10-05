@@ -52,12 +52,20 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             },
             "type": "join"
         })
+
+        if pulse_record.payload.what == "This is a heartbeat":  # RECORD THE HEARTBEAT, OTHERWISE SOMEONE WILL ASK WHERE THE MISSING RECORDS ARE
+            data = Dict(etl=etl_file)
+            data.etl.error = "Pulse Heartbeat"
+            output.append(data)
+            counter += 1
+            continue
+
         data = transform_buildbot(pulse_record.payload, resources)
         data.etl = etl_file
         with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, debug=DEBUG) as timer:
             try:
                 if pulse_record.payload.logurl == None:
-                    etl_file.error = "Text log missing"
+                    etl_file.error = "No logurl"
                     output.append(data)
                     continue
                 response = http.get(pulse_record.payload.logurl)
