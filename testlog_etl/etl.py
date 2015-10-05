@@ -23,7 +23,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import use_settings
+from pyLibrary.meta import use_settings, DataClass
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
@@ -113,7 +113,12 @@ class ETL(Thread):
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
-        work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
+
+        if source_block.destination:
+            # EXTRA FILTER BY destination
+            work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
+        else:
+            work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
             Log.note(
@@ -279,7 +284,7 @@ class ETL(Thread):
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
-''
+
 def get_container(settings):
     if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
         return settings
@@ -315,6 +320,29 @@ def get_container(settings):
 
             sinks.append((settings, output))
             return output
+
+ToDo = DataClass("ToDo", [
+    {
+        # THE KEY(S) TO USE
+        "name": "keys",
+        "required": True,
+        "nulls": False
+    },
+    {
+        # THE SOURCE BUCKET
+        "name": "bucket",
+        "required": True,
+        "nulls": False
+    },
+    {
+        # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
+        "name": "detination",
+        "required": False
+    }
+
+])
+
+
 
 
 def main():

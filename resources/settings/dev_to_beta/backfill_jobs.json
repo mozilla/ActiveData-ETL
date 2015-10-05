@@ -1,13 +1,17 @@
 {
 	"limit": 100,
 	"no_checks": true,
-	"range": {"min": 0},
+	"range": {"min": 60000},
+	"destination": "active-data-jobs-beta", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"source": {
+		//THE BUCKET WITH WHAT SHOULD BE IN ES
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-jobs-beta",
+		"bucket": "active-data-pulse-beta",
 		"key_format": "a:b.c"
 	},
-	"destination": {
+	"elasticsearch":{
+		// ES USED TO DETERMINE WHAT IS MISSING
+		"id_field": "etl.source.source.id",
 		"host": "http://192.168.2.98",
 		"port": 9200,
 		"index": "jobs",
@@ -16,11 +20,12 @@
 		"schema": {
 			"$ref": "//../../schema/jobs.json"
 		},
-		"debug": false,
-		"limit_replicas": false
+		"debug": true,
+		"limit_replicas": true
 	},
 	"work_queue":{
-		"name": "active-data-index-jobs-beta",
+		// THE QUEUE TO FILL WITH REQUESTS
+		"name": "active-data-etl-beta",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},

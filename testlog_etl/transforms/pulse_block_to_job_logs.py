@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 import re
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce
+from pyLibrary.dot import Dict, wrap, coalesce, unwraplist
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -173,9 +173,15 @@ def match_builder_line(line):
         #SOME message END WITH THE STATUS STRING
         message = message[:-(len(status) + 1)].strip()
 
+    if message.startswith("set props: "):
+        parts = unwraplist(map(unicode.strip, message[11:].split(" ")))
+        message = "set props"
+    else:
+        parts = None
+
     timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
 
-    return timestamp, message, done, status
+    return timestamp, message, parts, done, status
 
 
 def process_buildbot_log(all_log_lines):
@@ -243,7 +249,7 @@ def process_buildbot_log(all_log_lines):
 
         if builder_says:
             process_head = False
-            timestamp, builder_step, done, status = builder_says
+            timestamp, builder_step, parts, done, status = builder_says
 
             if time_zone is None:
                 time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
@@ -257,6 +263,7 @@ def process_buildbot_log(all_log_lines):
                     current_step = wrap(
                         {"builder": {
                             "step": builder_step,
+                            "parts": parts,
                             "end_time": timestamp,
                             "status": status
                         }}
@@ -266,6 +273,7 @@ def process_buildbot_log(all_log_lines):
                 current_step = wrap(
                     {"builder": {
                         "step": builder_step,
+                        "parts": parts,
                         "start_time": timestamp,
                         "status": status
                     }}
@@ -294,7 +302,14 @@ def process_buildbot_log(all_log_lines):
             }))
 
     try:
-        for e, s in qb.pairs(qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": -1})):
+        data.timings = qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": 1})
+        last_time = start_time
+        for i, t in enumerate(data.timings):
+            t.order = i
+            if t.builder.start_time == None and t.harness.start_time == None:
+                t.builder.start_time = last_time
+            last_time = coalesce(t.builder.end_time, t.harness.start_time)
+        for e, s in qb.pairs(qb.reverse(data.timings)):
             if e.builder.duration == None:
                 # ONLY FILL IF EMPTY, OTHERWISE LINES BELOW WILL DO THE WORK
                 e.builder.duration = e.builder.end_time - e.builder.start_time
@@ -319,3 +334,7 @@ def verify_equal(data, expected, duplicate):
         Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
 
 
+if __name__ == "__main__":
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32-debug/1443977676/mozilla-central_win7-ix-debug_test-mochitest-4-bm111-tests1-windows-build236.txt.gz")
+    data = process_buildbot_log(response.all_lines)
+    Log.note("{{data}}", data=data)
