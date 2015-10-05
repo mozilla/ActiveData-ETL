@@ -95,6 +95,10 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
+			"notify": {
+				"name": "active-data-index-jobs-beta",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_job_logs.process",
 			"type": "join",
 			"transform_type": "bulk"

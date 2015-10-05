@@ -29,6 +29,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
 
     for key in iter(work_queue.pop, ""):
         if please_stop:
+            es.queue.add(Thread.STOP)
             return
         if key == None:
             continue
@@ -44,7 +45,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
             else:
                 sample_filter = None
 
-            if key.find(":")>=0:
+            if key.find(":") >= 0:
                 more_keys = bucket.keys(prefix=key)
             else:
                 more_keys = bucket.keys(prefix=key + ":")

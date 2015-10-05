@@ -167,6 +167,12 @@ class Date(object):
         other = Date(other)
         return self.value < other.value
 
+    def __eq__(self, other):
+        if other == None:
+            return Null
+        other = Date(other)
+        return self.value==other.value
+
     def __le__(self, other):
         other = Date(other)
         return self.value <= other.value
@@ -372,6 +378,8 @@ def unicode2datetime(value, format=None):
 
     if format != None:
         try:
+            if format.endswith("%S.%f") and "." not in value:
+                value += ".000"
             return datetime.strptime(value, format)
         except Exception, e:
             from pyLibrary.debugs.logs import Log

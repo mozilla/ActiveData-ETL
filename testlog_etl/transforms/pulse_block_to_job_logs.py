@@ -132,8 +132,10 @@ def match_builder_line(line):
     RETURN (timestamp, message, done, status) QUADRUPLE
 
     EXAMPLES
-    ========= Finished set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
+    ========= Started '/tools/buildbot/bin/python scripts/scripts/android_emulator_unittest.py ...' failed (results: 5, elapsed: 1 hrs, 12 mins, 59 secs) (at 2015-10-04 10:46:12.401377) =========
+    ========= Started 'c:/mozilla-build/python27/python -u ...' warnings (results: 1, elapsed: 19 mins, 0 secs) (at 2015-10-04 07:52:22.752839) =========
     ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
+    ========= Finished set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
     ========= Skipped  (results: not started, elapsed: not started) =========
     """
     if not line.startswith("========= ") or not line.endswith(" ========="):
@@ -143,7 +145,7 @@ def match_builder_line(line):
         parts = line[10:-10].strip().split("(")
         if parts[0] == "Skipped":
             # NOT THE REGULAR PATTERN
-            message, status, timestamp, done = parts[0], "skipped", None, True
+            message, status, timestamp, done = parts[0], "skipped", None, False
             return timestamp, message, done, status
 
         desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
@@ -163,6 +165,13 @@ def match_builder_line(line):
 
     result_code = int(stats.split(",")[0].split(":")[1].strip())
     status = buildbot.STATUS_CODES[result_code]
+
+    if message.endswith(" failed") and status in ["retry"]:
+        #SOME message END WITH "failed" ON RETRY
+        message = message[:-7].strip()
+    elif message.endswith(" " + status):
+        #SOME message END WITH THE STATUS STRING
+        message = message[:-(len(status) + 1)].strip()
 
     timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
 
@@ -286,10 +295,12 @@ def process_buildbot_log(all_log_lines):
 
     try:
         for e, s in qb.pairs(qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": -1})):
-            e.builder.duration = e.builder.end_time - s.builder.start_time
+            if e.builder.duration == None:
+                # ONLY FILL IF EMPTY, OTHERWISE LINES BELOW WILL DO THE WORK
+                e.builder.duration = e.builder.end_time - e.builder.start_time
             s.builder.duration = coalesce(e.builder.start_time, s.builder.end_time) - s.builder.start_time
             s.harness.duration = coalesce(e.harness.start_time, e.builder.start_time, s.builder.end_time) - s.harness.start_time
-            if s.harness.duration<0:
+            if s.harness.duration < 0:
                 Log.error("logic error")
     except Exception, e:
         Log.error("Problem with calculating durations", cause=e)
@@ -298,7 +309,7 @@ def process_buildbot_log(all_log_lines):
 
 def verify_equal(data, expected, duplicate):
     """
-    WILL REMOVE DUPLICATE IF NOT THE SAME
+    WILL REMOVE duplicate IF THE SAME
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
@@ -306,6 +317,5 @@ def verify_equal(data, expected, duplicate):
         data[duplicate] = None
     else:
         Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
-
 
 
