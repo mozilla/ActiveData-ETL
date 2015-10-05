@@ -23,22 +23,21 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import use_settings
+from pyLibrary.meta import use_settings, DataClass
 from pyLibrary.queries import qb
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import SECOND
 from testlog_etl import key2etl
 from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
-from testlog_etl.sinks.redshift import Json2Redshift
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
 
 
-EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
+EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
 class ConcatSources(object):
@@ -114,13 +113,20 @@ class ETL(Thread):
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
-        work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
+
+        if source_block.destination:
+            # EXTRA FILTER BY destination
+            work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
+        else:
+            work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
         if not work_actions:
-            Log.note("No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
-                bucket= source_block.bucket,
-                message= source_block,
-                action= "skipping" if self.settings.keep_unknown_on_queue else "deleting")
+            Log.note(
+                "No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
+                bucket=source_block.bucket,
+                message=source_block,
+                action="skipping" if self.settings.keep_unknown_on_queue else "deleting"
+            )
             return not self.settings.keep_unknown_on_queue
 
         for action in work_actions:
@@ -134,10 +140,12 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
-                Log.note("Execute {{action}} on bucket={{source}} key={{key}}",
-                    action= action.name,
-                    source= source_block.bucket,
-                    key= source_key)
+                Log.note(
+                    "Execute {{action}} on bucket={{source}} key={{key}}",
+                    action=action.name,
+                    source=source_block.bucket,
+                    key=source_key
+                )
 
                 if action.transform_type == "bulk":
                     old_keys = set()
@@ -179,9 +187,11 @@ class ETL(Thread):
                         source_key= source_key)
                     continue
                 elif not new_keys:
-                    Log.alert("Expecting some new keys after processing {{source_key}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
+                    Log.alert(
+                        "Expecting some new keys after processing {{source_key}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
                     continue
 
                 for k in new_keys:
@@ -225,12 +235,14 @@ class ETL(Thread):
                 else:
                     err = Log.error
 
-                err("Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}", {
-                    "action": action.name,
-                    "source": source_block.bucket,
-                    "key": source_key,
-                    "destination": coalesce(action.destination.name, action.destination.index)
-                }, e)
+                err(
+                    "Problem transforming {{action}} on bucket={{source}} key={{key}} to destination={{destination}}",
+                    action=action.name,
+                    source=source_block.bucket,
+                    key=source_key,
+                    destination=coalesce(action.destination.name, action.destination.index),
+                    cause=e
+                )
         return True
 
     def loop(self, please_stop):
@@ -252,6 +264,11 @@ class ETL(Thread):
                         please_stop.go()
                         return
 
+                if isinstance(todo, unicode):
+                    Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
+                    self.work_queue.commit()
+                    continue
+
                 try:
                     is_ok = self._dispatch_work(todo)
                     if is_ok:
@@ -267,7 +284,7 @@ class ETL(Thread):
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
-''
+
 def get_container(settings):
     if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
         return settings
@@ -275,16 +292,7 @@ def get_container(settings):
     if settings == None:
         return DummySink()
     elif settings.type == "redshift":
-        for e in sinks:
-            try:
-                fuzzytestcase.assertAlmostEqual(e[0], settings)
-                return e[1]
-            except Exception, _:
-                pass
-        sink = Json2Redshift(settings=settings)
-        # sink = Threaded(sink)
-        sinks.append((settings, sink))
-        return sink
+        Log.error("not supported, removed oct2015")
     elif coalesce(settings.aws_access_key_id, settings.aws_access_key_id, settings.region):
         # ASSUME BUCKET NAME
         with sinks_locker:
@@ -312,6 +320,29 @@ def get_container(settings):
 
             sinks.append((settings, output))
             return output
+
+ToDo = DataClass("ToDo", [
+    {
+        # THE KEY(S) TO USE
+        "name": "keys",
+        "required": True,
+        "nulls": False
+    },
+    {
+        # THE SOURCE BUCKET
+        "name": "bucket",
+        "required": True,
+        "nulls": False
+    },
+    {
+        # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
+        "name": "detination",
+        "required": False
+    }
+
+])
+
+
 
 
 def main():
@@ -367,12 +398,12 @@ def etl_one(settings):
             continue
         try:
             for i in parse_id_argument(settings.args.id):
-                data = source.get_key(i)
-                if data != None:
-                    already_in_queue.add(id(source))
+                keys = source.keys(i)
+                for k in keys:
+                    already_in_queue.add(k)
                     queue.add(Dict(
                         bucket=w.source.bucket,
-                        key=i
+                        key=k
                     ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:

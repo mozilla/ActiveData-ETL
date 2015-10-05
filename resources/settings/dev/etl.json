@@ -14,6 +14,7 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg":{
+		"use_cache": true,
 		"branches":{
 			"host": "http://192.168.2.98",
 			"port": 9200,
@@ -24,8 +25,7 @@
 				"$ref": "//../../schema/branch.json"
 			},
 			"debug": false,
-			"limit_replicas": true,
-			"use_cache": true
+			"limit_replicas": true
 		},
 		"repo":{
 			"host": "http://192.168.2.98",
@@ -99,26 +99,26 @@
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-test-result-dev",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"notify":{
-//				"name": "active-data-index-dev",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-//			"type": "join"
-//		}
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
+		}
 	],
 	"debug": {
 		"trace": true,

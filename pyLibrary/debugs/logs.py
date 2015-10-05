@@ -90,16 +90,17 @@ class Log(object):
         if settings.constants:
             constants.set(settings.constants)
 
-        if not settings.log:
-            return
+        if settings.log:
+            cls.logging_multi = Log_usingMulti()
+            if cls.main_log:
+                cls.main_log.stop()
+            cls.main_log = Log_usingThread(cls.logging_multi)
 
-        cls.logging_multi = Log_usingMulti()
-        if cls.main_log:
-            cls.main_log.stop()
-        cls.main_log = Log_usingThread(cls.logging_multi)
+            for log in listwrap(settings.log):
+                Log.add_log(Log.new_instance(log))
 
-        for log in listwrap(settings.log):
-            Log.add_log(Log.new_instance(log))
+        if settings.cprofile.enabled==True:
+            Log.alert("cprofiling is enabled, writing to {{filename}}", filename=os.path.abspath(settings.cprofile.filename))
 
     @classmethod
     def stop(cls):
@@ -567,6 +568,7 @@ class Log_usingThread(BaseLog):
             self.queue.add({"template": template, "params": params})
             return self
         except Exception, e:
+            e = Except.wrap(e)
             sys.stdout.write("IF YOU SEE THIS, IT IS LIKELY YOU FORGOT TO RUN Log.start() FIRST\n")
             raise e  # OH NO!
 
@@ -595,11 +597,20 @@ class Log_usingMulti(BaseLog):
         self.many = []
 
     def write(self, template, params):
+        bad = []
         for m in self.many:
             try:
                 m.write(template, params)
             except Exception, e:
-                pass
+                bad.append(m)
+                sys.stdout.write("a logger failed")
+                Log.warning("Logger failed!  It will be removed: {{type}}", type=m.__class__.__name__, cause=e)
+        try:
+            for b in bad:
+                self.many.remove(b)
+        except Exception:
+            pass
+
         return self
 
     def add_log(self, logger):

@@ -29,6 +29,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
 
     for key in iter(work_queue.pop, ""):
         if please_stop:
+            es.queue.add(Thread.STOP)
             return
         if key == None:
             continue
@@ -44,7 +45,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
             else:
                 sample_filter = None
 
-            if key.find(":")>=0:
+            if key.find(":") >= 0:
                 more_keys = bucket.keys(prefix=key)
             else:
                 more_keys = bucket.keys(prefix=key + ":")
@@ -62,47 +63,12 @@ def copy2es(es, settings, work_queue, please_stop=None):
         work_queue.commit()
 
 
-def get_all_in_es(es):
-    in_es = set()
-
-    all_indexes = es.es.cluster.get_metadata().indices
-    for name, index in all_indexes.items():
-        if "unittest" not in index.aliases:
-            continue
-
-        result = elasticsearch.Index(index=name, alias="unittest", read_only=True, settings=es.es.settings).search({
-            "aggs": {
-                "_match": {
-                    "terms": {
-                        "field": "etl.source.source.id",
-                        "size": 200000
-                    }
-
-                }
-            }
-        })
-
-        good_es = []
-        for k in result.aggregations._match.buckets.key:
-            try:
-                good_es.append(int(k))
-            except Exception, e:
-                pass
-
-        Log.note("got {{num}} from {{index}}",
-            num= len(good_es),
-            index= name)
-        in_es |= set(good_es)
-
-    return in_es
-
-
 def main():
     try:
         settings = startup.read_settings(defs=[
             {
                 "name": ["--id"],
-                "help": "id (prefix, really) to process",
+                "help": "id to process (prefix is ok too) ",
                 "type": str,
                 "dest": "id",
                 "required": False

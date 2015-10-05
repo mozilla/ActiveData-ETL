@@ -8,6 +8,8 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
+import boto
+from boto.ec2 import cloudwatch
 
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
@@ -37,6 +39,7 @@ def main():
                 Log.note("No change required")
                 return
             sudo("supervisorctl restart etl")
+
     except Exception, e:
         Log.error("Problem with checking for ETL updates", e)
     finally:

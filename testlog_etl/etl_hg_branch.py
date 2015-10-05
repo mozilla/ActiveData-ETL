@@ -139,6 +139,9 @@ def main():
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
+        for b in branches:
+            if not b.locale:
+                Log.error("Not expected")
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:

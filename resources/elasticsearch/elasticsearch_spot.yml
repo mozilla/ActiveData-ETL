@@ -4,7 +4,7 @@ node.name: spot_1
 node.master: false
 node.data: true
 
-cluster.routing.allocation.awareness.force.zone.values: primary,spot
+cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
 

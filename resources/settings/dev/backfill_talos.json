@@ -1,4 +1,5 @@
 {
+	"no_checks": true,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl-dev",
 		"$ref": "file://~/private.json#aws_credentials"

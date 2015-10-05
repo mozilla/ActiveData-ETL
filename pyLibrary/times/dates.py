@@ -51,9 +51,9 @@ class Date(object):
             return Date(math.floor(self.milli / 86400000) * 86400000)
         elif duration.milli % (7 * 86400000) == 0:
             offset = 4*86400000
-            return Date(math.floor((self.milli+offset) / duration.milli) * duration.milli - offset)
+            return Date(Decimal(math.floor((self.milli+offset) / duration.milli)) * duration.milli - offset)
         elif not duration.month:
-            return Date(math.floor(self.milli / duration.milli) * duration.milli)
+            return Date(Decimal(math.floor(self.milli / duration.milli)) * duration.milli)
         else:
             month = int(math.floor(self.value.month / duration.month) * duration.month)
             return Date(datetime(self.value.year, month, 1))
@@ -167,6 +167,12 @@ class Date(object):
         other = Date(other)
         return self.value < other.value
 
+    def __eq__(self, other):
+        if other == None:
+            return Null
+        other = Date(other)
+        return self.value==other.value
+
     def __le__(self, other):
         other = Date(other)
         return self.value <= other.value
@@ -274,8 +280,9 @@ def add_month(offset, months):
     month = offset.month+months-1
     year = offset.year
     if not 0 <= month < 12:
-        year += int((month - (month % 12)) / 12)
-        month = (month % 12)
+        r = Math.mod(month, 12)
+        year += int((month - r) / 12)
+        month = r
     month += 1
 
     output = datetime(
@@ -371,6 +378,8 @@ def unicode2datetime(value, format=None):
 
     if format != None:
         try:
+            if format.endswith("%S.%f") and "." not in value:
+                value += ".000"
             return datetime.strptime(value, format)
         except Exception, e:
             from pyLibrary.debugs.logs import Log

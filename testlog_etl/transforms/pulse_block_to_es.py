@@ -12,12 +12,12 @@ from __future__ import division
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, coalesce, listwrap
+from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
+from testlog_etl.imports import buildbot
 from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 from testlog_etl.imports.repos.changesets import Changeset
 from testlog_etl.imports.repos.revisions import Revision
@@ -144,16 +144,7 @@ def transform_buildbot(payload, resources, filename=None):
     # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
     output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
     try:
-        output.run.buildbot_status = {
-            0: "success",
-            1: "warnings",
-            2: "failure",
-            3: "skipped",
-            4: "exception",
-            5: "retry",
-            6: "cancelled",
-            None: None
-        }[payload.status]
+        output.run.buildbot_status = buildbot.STATUS_CODES[payload.status]
     except Exception, e:
         Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", status=payload.status)
 
@@ -206,7 +197,7 @@ def transform_buildbot(payload, resources, filename=None):
             output.repo = resources.hg.get_revision(rev, locale)
         except Exception, e:
             Log.warning(
-                "Can not get revision for branch={{branch}}, locale={{locale} revision={{revision}}\n{{details|json|indent}}",
+                "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
                 branch=output.build.branch,
                 locale=locale,
                 revision=rev,
@@ -218,7 +209,6 @@ def transform_buildbot(payload, resources, filename=None):
         Log.warning("No branch!\n{{output|indent}}", output=output)
 
     return output
-
 
 
 def fix_locale(locale):

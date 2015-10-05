@@ -11,15 +11,16 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 from collections import Mapping
-from repr import Repr
 from types import FunctionType
-from pyLibrary import dot
+
+from pyLibrary import dot, convert
 from pyLibrary.debugs.logs import Log, Except
-from pyLibrary.dot import unwrap, set_default, wrap, _get_attr, Null, Dict
+from pyLibrary.dot import set_default, wrap, _get_attr, Null
 from pyLibrary.maths.randoms import Random
+from pyLibrary.strings import expand_template
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, DAY
+from pyLibrary.times.durations import DAY
 
 
 def get_class(path):
@@ -38,7 +39,7 @@ def new_instance(settings):
     """
     MAKE A PYTHON INSTANCE
 
-    settings HAS ALL THE kwargs, PLUS class ATTRIBUTE TO INDICATE THE CLASS TO CREATE
+    `settings` HAS ALL THE `kwargs`, PLUS `class` ATTRIBUTE TO INDICATE THE CLASS TO CREATE
     """
     settings = set_default({}, settings)
     if not settings["class"]:
@@ -87,8 +88,8 @@ def get_function_by_name(full_name):
 
 def use_settings(func):
     """
-    THIS DECORATOR WILL PUT ALL PARAMETERS INTO THE settings PARAMETER AND
-    PUT ALL settings PARAMETERS INTO THE FUNCTION PARAMETERS.  THIS HAS BOTH
+    THIS DECORATOR WILL PUT ALL PARAMETERS INTO THE `settings` PARAMETER AND
+    PUT ALL `settings` PARAMETERS INTO THE FUNCTION PARAMETERS.  THIS HAS BOTH
     THE BENEFIT OF HAVING ALL PARAMETERS IN ONE PLACE (settings) AND ALL
     PARAMETERS ARE EXPLICIT FOR CLARITY.
 
@@ -124,14 +125,14 @@ def use_settings(func):
 
     def wrapper(*args, **kwargs):
         try:
-            if func.func_name == "__init__" and "settings" in kwargs:
+            if func.func_name in ("__init__", "__new__") and "settings" in kwargs:
                 packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), kwargs["settings"], defaults)
                 return func(args[0], **packed)
-            elif func.func_name == "__init__" and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], Mapping):
+            elif func.func_name in ("__init__", "__new__") and len(args) == 2 and len(kwargs) == 0 and isinstance(args[1], Mapping):
                 # ASSUME SECOND UNNAMED PARAM IS settings
                 packed = params_pack(params, args[1], defaults)
                 return func(args[0], **packed)
-            elif func.func_name == "__init__":
+            elif func.func_name in ("__init__", "__new__"):
                 # DO NOT INCLUDE self IN SETTINGS
                 packed = params_pack(params, kwargs, dot.zip(params[1:], args[1:]), defaults)
                 return func(args[0], **packed)
@@ -188,7 +189,7 @@ def params_pack(params, *args):
 class cache(object):
 
     """
-    :param func: ASSUME FIRST PARAMETER IS self
+    :param func: ASSUME FIRST PARAMETER OF `func` IS `self`
     :param duration: USE CACHE IF LAST CALL WAS LESS THAN duration AGO
     :param lock: True if you want multithreaded monitor (default False)
     :return:
@@ -274,13 +275,14 @@ def wrap_function(cache_store, func_):
     return output
 
 
-_repr = Repr()
-_repr.maxlevel = 3
+# _repr = Repr()
+# _repr.maxlevel = 3
 
 def repr(obj):
     """
     JUST LIKE __builtin__.repr(), BUT WITH SOME REASONABLE LIMITS
     """
+    return repr(obj)
     return _repr.repr(obj)
 
 
@@ -292,3 +294,92 @@ class _FakeLock():
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
+
+
+def DataClass(name, columns):
+    """
+    Each column has {"name", "required", "nulls", "default"} properties
+    """
+
+    columns = wrap([{"name": c, "required": True, "nulls": False} if isinstance(c, basestring) else c for c in columns])
+    slots = columns.name
+    required = wrap(filter(lambda c: c.required and not c.nulls and not c.default, columns)).name
+    nulls = wrap(filter(lambda c: c.nulls, columns)).name
+
+    code = expand_template("""
+from __future__ import unicode_literals
+from collections import Mapping
+
+class {{name}}(Mapping):
+    __slots__ = {{slots}}
+
+    def __init__(self, **kwargs):
+        if not kwargs:
+            return
+
+        for s in {{slots}}:
+            setattr(self, s, kwargs.get(s, kwargs.get('default', Null)))
+
+        missed = {{required}}-set(kwargs.keys())
+        if missed:
+            Log.error("Expecting properties {"+"{missed}}", missed=missed)
+
+        illegal = set(kwargs.keys())-set({{slots}})
+        if illegal:
+            Log.error("{"+"{names}} are not a valid properties", names=illegal)
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def __setitem__(self, item, value):
+        setattr(self, item, value)
+        return self
+
+    def __setattr__(self, item, value):
+        if item not in {{slots}}:
+            Log.error("{"+"{item|quote}} not valid attribute", item=item)
+        object.__setattr__(self, item, value)
+
+    def __getattr__(self, item):
+        Log.error("{"+"{item|quote}} not valid attribute", item=item)
+
+    def items(self):
+        return ((k, getattr(self, k)) for k in {{slots}})
+
+    def __copy__(self):
+        _set = object.__setattr__
+        output = object.__new__(Column)
+        {{assign}}
+        return output
+
+    def __iter__(self):
+        return {{slots}}.__iter__()
+
+    def __len__(self):
+        return {{len_slots}}
+
+    def __str__(self):
+        return str({{dict}})
+
+temp = {{name}}
+""",
+        {
+            "name": name,
+            "slots": "(" + (", ".join(convert.value2quote(s) for s in slots)) + ")",
+            "required": "{" + (", ".join(convert.value2quote(s) for s in required)) + "}",
+            "nulls": "{" + (", ".join(convert.value2quote(s) for s in nulls)) + "}",
+            "len_slots": len(slots),
+            "dict": "{" + (", ".join(convert.value2quote(s) + ": self." + s for s in slots)) + "}",
+            "assign": "; ".join("_set(output, "+convert.value2quote(s)+", self."+s+")" for s in slots)
+        }
+    )
+
+    return _exec(code)
+
+def _exec(code):
+    temp = None
+    exec(code)
+    return temp
+
+
+

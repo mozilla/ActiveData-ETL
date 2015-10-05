@@ -9,18 +9,19 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+
 from copy import copy
 from math import sqrt
 import datetime
 
 import pyLibrary
+from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
 from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default
 from pyLibrary.dot.lists import DictList
-from pyLibrary.parsers import convert
 from pyLibrary.thread.threads import Lock
 from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
@@ -35,11 +36,43 @@ TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_TALOS_PROPERTIES = {"results", "run", "etl", "pulse", "summary", "test_build", "test_machine", "_id", "talos_counters"}
 KNOWN_TALOS_TESTS = [
-    "tp5o", "dromaeo_css", "dromaeo_dom", "tresize", "tcanvasmark", "tcheck2",
-    "tsvgx", u'tp4m', u'tp5n', u'a11yr', u'ts_paint', "tpaint",
-    "sessionrestore_no_auto_restore", "sessionrestore", "tps", "damp",
-    "kraken", "tsvgr_opacity", "tart", "tscrollx", "cart", "v8_7", "glterrain",
-    "xxx"
+    "a11yr",
+    "cart",
+    "chromez",
+    "damp",
+    "dromaeo_css",
+    "dromaeo_dom",
+    "dromaeojs",
+    "g1",
+    "g2",
+    "g3",
+    "glterrain",
+    "kraken",
+    "media_tests",
+    "other_nol64",
+    "other_l64",
+    "other-e10s_nol64",
+    "other",
+    "sessionrestore_no_auto_restore",
+    "sessionrestore",
+    "svgr",
+    "tart",
+    "tcanvasmark",
+    "tcheck2",
+    "tp4m_nochrome",
+    "tp4m",
+    "tp5n",
+    "tp5o",
+    "tpaint",
+    "tps",
+    "tresize",
+    "trobocheck2",
+    "ts_paint",
+    "tscrollx",
+    "tsvgr_opacity",
+    "tsvgx",
+    "v8_7",
+    "xperf"
 ]
 
 repo = None
@@ -89,76 +122,60 @@ def process(source_key, source, destination, resources, please_stop=None):
     destination.extend(records)
     return [source_key]
 
-
-
-
-
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(uid, talos_test_result, resources):
+def transform(uid, talos, resources):
     try:
-        r = talos_test_result
+        buildbot = transform_buildbot(talos.pulse, resources, uid)
 
-        def mainthread_transform(r):
-            if r == None:
-                return None
-
-            output = Dict()
-
-            for i in r.mainthread_readbytes:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].readbytes = i[0]
-            r.mainthread_readbytes = None
-
-            for i in r.mainthread_writebytes:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].writebytes = i[0]
-            r.mainthread_writebytes = None
-
-            for i in r.mainthread_readcount:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].readcount = i[0]
-            r.mainthread_readcount = None
-
-            for i in r.mainthread_writecount:
-                output[literal_field(i[1])].name = i[1]
-                output[literal_field(i[1])].writecount = i[0]
-            r.mainthread_writecount = None
-
-            r.mainthread = output.values()
-
-        mainthread_transform(r.results_aux)
-        mainthread_transform(r.results_xperf)
-
-        buildbot = transform_buildbot(r.pulse, resources, uid)
-
-        # RENAME PROPERTIES
-        r.run, r.testrun = r.testrun, None
-        r.run.timestamp, r.run.date = r.run.date, None
-
+        suite_name = coalesce(talos.testrun.suite, buildbot.run.suite)
+        suite_name = suite_name.replace("-e10s", "")  # REMOVE e10s REFERENCES FROM THE NAMES
         # RECOGNIZE SUITE
         for s in KNOWN_TALOS_TESTS:
-            if r.run.suite.startswith(s):
-                r.run.suite = s
+            if suite_name.startswith(s):
+                suite_name = s
+                break
+            elif suite_name.startswith("remote-" + s):
+                suite_name = "remote-" + s
                 break
         else:
-            Log.warning("Do not know talos suite by name of {{name}}", name=r.run.suite)
+            Log.warning(
+                "While processing {{uid}}, found unknown talos suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                uid=uid,
+                buildbot=buildbot,
+                name=suite_name,
+                talos=talos
+            )
 
-        Log.note("Process Talos {{name}}", name=r.run.suite)
+        if talos.testrun.suite == None:
+            # SOMETIMES THE TALOS RECORDS ARE MISSING FROM LOG!
+            buildbot.run.stats = {"count": 0}
+            return [buildbot]
+
+        Log.note("Process Talos {{name}}", name=suite_name)
+
+        # RENAME PROPERTIES
+        talos.run, talos.testrun = talos.testrun, None
+        talos.run.timestamp, talos.run.date = coalesce(talos.run.date, buildbot.run.timestamp), None
+        talos.run.suite = suite_name
+
+        mainthread_transform(talos.results_aux)
+        mainthread_transform(talos.results_xperf)
+
         new_records = DictList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
-        if r.keys() - KNOWN_TALOS_PROPERTIES:
-            remainder = copy(r)
+        if talos.keys() - KNOWN_TALOS_PROPERTIES:
+            remainder = copy(talos)
             for k in KNOWN_TALOS_PROPERTIES:
                 remainder[k] = None
             new_records.append(set_default(remainder, buildbot))
 
         #RECORD TEST RESULTS
         total = DictList()
-        if r.run.suite in ["dromaeo_css", "dromaeo_dom"]:
+        if talos.run.suite in ["dromaeo_css", "dromaeo_dom"]:
             #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
             #RECORD ALL RESULTS
-            for i, (test_name, replicates) in enumerate(r.results.items()):
+            for i, (test_name, replicates) in enumerate(talos.results.items()):
                 for g, sub_results in qb.groupby(replicates, size=5):
                     new_record = set_default(
                         {"result": {
@@ -176,7 +193,7 @@ def transform(uid, talos_test_result, resources):
                         Log.warning("can not reduce series to moments", e)
                     new_records.append(new_record)
         else:
-            for i, (test_name, replicates) in enumerate(r.results.items()):
+            for i, (test_name, replicates) in enumerate(talos.results.items()):
                 new_record = set_default(
                     {"result": {
                         "test": test_name,
@@ -193,23 +210,42 @@ def transform(uid, talos_test_result, resources):
                     Log.warning("can not reduce series to moments", e)
                 new_records.append(new_record)
 
-        if len(total) > 1:
-            # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
-
-            new_record = set_default(
-                {"result": {
-                    "test": "SUMMARY",
-                    "ordering": -1,
-                    "stats": geo_mean(total)
-                }},
-                buildbot
-            )
-            new_records.append(new_record)
+        # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
+        buildbot.run.stats = geo_mean(total)
 
         return new_records
     except Exception, e:
         Log.error("Transformation failure on id={{uid}}", {"uid": uid}, e)
 
+
+
+def mainthread_transform(r):
+    if r == None:
+        return None
+
+    output = Dict()
+
+    for i in r.mainthread_readbytes:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].readbytes = i[0]
+    r.mainthread_readbytes = None
+
+    for i in r.mainthread_writebytes:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].writebytes = i[0]
+    r.mainthread_writebytes = None
+
+    for i in r.mainthread_readcount:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].readcount = i[0]
+    r.mainthread_readcount = None
+
+    for i in r.mainthread_writecount:
+        output[literal_field(i[1])].name = i[1]
+        output[literal_field(i[1])].writecount = i[0]
+    r.mainthread_writecount = None
+
+    r.mainthread = output.values()
 
 def stats(values):
     """
