@@ -224,14 +224,17 @@ class HttpResponse(Response):
 
     @property
     def all_lines(self):
+        return self._all_lines()
+
+    def _all_lines(self, encoding="utf8"):
         try:
             content = self.raw.read(decode_content=False)
             if self.headers.get('content-encoding') == 'gzip':
-                return CompressedLines(content)
+                return CompressedLines(content, encoding=encoding)
             elif self.headers.get('content-type') == 'application/zip':
-                return ZipfileLines(content)
+                return ZipfileLines(content, encoding=encoding)
             else:
-                return convert.utf82unicode(content).split("\n")
+                return content.decode(encoding).split("\n")
         except Exception, e:
             Log.error("Can not read content", cause=e)
         finally:

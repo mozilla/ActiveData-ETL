@@ -80,7 +80,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     output.append(data)
                     continue
 
-                all_log_lines = response.all_lines
+                all_log_lines = response._all_lines(encoding='latin1')
                 data.action = process_buildbot_log(all_log_lines)
 
                 verify_equal(data, "build.revision", "action.revision")
@@ -356,6 +356,9 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator/1444015718/mozilla-inbound_ubuntu64_vm-b2g-emulator_test-reftest-11-bm114-tests1-linux64-build362.txt.gz")
-    data = process_buildbot_log(response.all_lines)
-    Log.note("{{data}}", data=data)
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-win64/1443998375/mozilla-beta-win64-bm82-build1-build123.txt.gz")
+    for l in response._all_lines(encoding="latin1"):
+        Log.note("{{line}}", line=l)
+
+    # data = process_buildbot_log(response.all_lines)
+    # Log.note("{{data}}", data=data)
