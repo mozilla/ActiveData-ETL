@@ -5,22 +5,22 @@
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
-		"index": "perf",
-		"type": "perf_result",
+		"index": "jobs",
+		"type": "job",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/perf_results.json"
+			"$ref": "//../../schema/jobs.json"
 		},
 		"debug": false,
 		"limit_replicas": false
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-perf",
+		"bucket": "active-data-jobs-beta",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-perf",
+		"name": "active-data-index-jobs-beta",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -39,7 +39,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push perf to ES",
+				"subject": "[ALERT][Beta]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#email"
 			}
 		]

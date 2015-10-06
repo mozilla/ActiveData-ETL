@@ -325,7 +325,7 @@ def process_buildbot_log(all_log_lines):
         last_time = start_time
         for i, t in enumerate(data.timings):
             t.order = i
-            if t.builder.start_time == None and t.harness.start_time == None:
+            if t.builder and t.builder.start_time == None and t.harness.start_time == None:
                 t.builder.start_time = last_time
             last_time = coalesce(t.builder.end_time, t.harness.start_time, last_time)
 
@@ -357,7 +357,12 @@ def verify_equal(data, expected, duplicate):
 
 if __name__ == "__main__":
     response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-win64/1443998375/mozilla-beta-win64-bm82-build1-build123.txt.gz")
-    for l in response._all_lines(encoding="latin1"):
+    for i, l in enumerate(response._all_lines(encoding="latin1")):
+        try:
+            l.decode('latin1').encode('utf8')
+        except Exception:
+            Log.alert("bad line {{num}}", num=i)
+
         Log.note("{{line}}", line=l)
 
     # data = process_buildbot_log(response.all_lines)
