@@ -232,9 +232,15 @@ def process_buildbot_log(all_log_lines):
     curr_line = ""
     next_line = ""
 
-    for log_line in all_log_lines:
+    for log_bytes in all_log_lines:
 
-        if not log_line.strip():
+        if not log_bytes.strip():
+            continue
+
+        try:
+            log_line = log_bytes.decode('utf8')
+        except Exception, e:
+            Log.warning("Bad log line ignored {{line}}", line=log_bytes, cause=e)
             continue
 
         prev_line = curr_line
