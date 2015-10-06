@@ -36,6 +36,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     output = []
 
     for i, pulse_line in enumerate(source.read_lines()):
+        if please_stop:
+            Log.error("Shutdown detected. Stopping job ETL.")
+
         pulse_record = scrub_pulse_record(source_key, i, pulse_line, stats)
         if not pulse_record:
             continue
@@ -68,7 +71,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     etl_file.error = "No logurl"
                     output.append(data)
                     continue
-                response = http.get(pulse_record.payload.logurl)
+                response = http.get(
+                    url=pulse_record.payload.logurl,
+                    timeout=30,
+                    retry={"times": 3, "sleep": 10}
+                )
                 if response.status_code == 404:
                     etl_file.error = "Text log unreachable"
                     output.append(data)
@@ -85,6 +92,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
                 Log.warning("Problem processing {{url}}", url=pulse_record.payload.logurl, cause=e)
+                etl_file.error = "Text log unreachable"
+                output.append(data)
             finally:
                 counter += 1
                 etl_head_gen.next_id = 0
