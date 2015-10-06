@@ -73,7 +73,6 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     continue
                 response = http.get(
                     url=pulse_record.payload.logurl,
-                    timeout=30,
                     retry={"times": 3, "sleep": 10}
                 )
                 if response.status_code == 404:
