@@ -44,7 +44,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             continue
         pulse_record.etl.source.id = key2etl(source_key).source.id
 
-        etl_file = wrap({
+        etl = wrap({
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
@@ -57,18 +57,18 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         })
 
         if pulse_record.payload.what == "This is a heartbeat":  # RECORD THE HEARTBEAT, OTHERWISE SOMEONE WILL ASK WHERE THE MISSING RECORDS ARE
-            data = Dict(etl=etl_file)
+            data = Dict(etl=etl)
             data.etl.error = "Pulse Heartbeat"
             output.append(data)
             counter += 1
             continue
 
         data = transform_buildbot(pulse_record.payload, resources)
-        data.etl = etl_file
+        data.etl = etl
         with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, debug=DEBUG) as timer:
             try:
                 if pulse_record.payload.logurl == None:
-                    etl_file.error = "No logurl"
+                    data.etl.error = "No logurl"
                     output.append(data)
                     continue
                 response = http.get(
@@ -77,7 +77,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     retry={"times": 3, "sleep": 10}
                 )
                 if response.status_code == 404:
-                    etl_file.error = "Text log unreachable"
+                    data.etl.error = "Text log unreachable"
                     output.append(data)
                     continue
 
@@ -92,13 +92,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
                 Log.warning("Problem processing {{url}}", url=pulse_record.payload.logurl, cause=e)
-                etl_file.error = "Text log unreachable"
+                data.etl.error = "Text log unreachable"
                 output.append(data)
             finally:
                 counter += 1
                 etl_head_gen.next_id = 0
 
-        etl_file.duration = timer.duration
+        data.etl.duration = timer.duration
 
     dest_bucket.extend([{"id": etl2key(d.etl), "value": d} for d in output])
     return {source_key + ".0"}
@@ -151,6 +151,7 @@ def match_builder_line(line):
     EXAMPLES
     ========= Started '/tools/buildbot/bin/python scripts/scripts/android_emulator_unittest.py ...' failed (results: 5, elapsed: 1 hrs, 12 mins, 59 secs) (at 2015-10-04 10:46:12.401377) =========
     ========= Started 'c:/mozilla-build/python27/python -u ...' warnings (results: 1, elapsed: 19 mins, 0 secs) (at 2015-10-04 07:52:22.752839) =========
+    ========= Started '/tools/buildbot/bin/python scripts/scripts/b2g_emulator_unittest.py ...' interrupted (results: 4, elapsed: 22 mins, 59 secs) (at 2015-10-05 00:51:02.915315) =========
     ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
     ========= Finished set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
     ========= Skipped  (results: not started, elapsed: not started) =========
@@ -183,9 +184,11 @@ def match_builder_line(line):
     result_code = int(stats.split(",")[0].split(":")[1].strip())
     status = buildbot.STATUS_CODES[result_code]
 
-    if message.endswith(" failed") and status in ["retry"]:
+    if message.endswith(" failed") and status in ["retry", "failure"]:
         #SOME message END WITH "failed" ON RETRY
         message = message[:-7].strip()
+    elif message.endswith(" interrupted") and status in ["exception"]:
+        message = message[:-12].strip()
     elif message.endswith(" " + status):
         #SOME message END WITH THE STATUS STRING
         message = message[:-(len(status) + 1)].strip()
