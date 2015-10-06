@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 import re
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, unwraplist
+from pyLibrary.dot import Dict, wrap, coalesce, unwraplist, Null
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -159,11 +159,11 @@ def match_builder_line(line):
         return None
 
     try:
-        parts = line[10:-10].strip().split("(")
+        parts = map(unicode.strip, line[10:-10].split("("))
         if parts[0] == "Skipped":
             # NOT THE REGULAR PATTERN
-            message, status, timestamp, done = parts[0], "skipped", None, False
-            return timestamp, message, done, status
+            message, status, parts, timestamp, done = "", "skipped", None, Null, True
+            return timestamp, message, parts, done, status
 
         desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
 
@@ -178,7 +178,8 @@ def match_builder_line(line):
         done = True
         message = desc[9:].strip()
     else:
-        raise Log.error("Can not parse log line: {{line}}", line=line)
+        Log.warning("Can not parse log line: {{line}}", line=line)
+        return None
 
     result_code = int(stats.split(",")[0].split(":")[1].strip())
     status = buildbot.STATUS_CODES[result_code]
@@ -186,7 +187,7 @@ def match_builder_line(line):
     if message.endswith(" failed") and status in ["retry", "failure"]:
         #SOME message END WITH "failed" ON RETRY
         message = message[:-7].strip()
-    elif message.endswith(" interrupted") and status in ["exception"]:
+    elif message.endswith(" interrupted") and status in ["exception", "retry"]:
         message = message[:-12].strip()
     elif message.endswith(" " + status):
         #SOME message END WITH THE STATUS STRING
@@ -321,13 +322,14 @@ def process_buildbot_log(all_log_lines):
             }))
 
     try:
-        data.timings = qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": 1})
         last_time = start_time
         for i, t in enumerate(data.timings):
             t.order = i
             if t.builder.start_time == None and t.harness.start_time == None:
                 t.builder.start_time = last_time
-            last_time = coalesce(t.builder.end_time, t.harness.start_time)
+            last_time = coalesce(t.builder.end_time, t.harness.start_time, last_time)
+
+        data.timings = qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": 1})
         for e, s in qb.pairs(qb.reverse(data.timings)):
             if e.builder.duration == None:
                 # ONLY FILL IF EMPTY, OTHERWISE LINES BELOW WILL DO THE WORK
@@ -354,6 +356,6 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32-debug/1443977676/mozilla-central_win7-ix-debug_test-mochitest-4-bm111-tests1-windows-build236.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator/1444015718/mozilla-inbound_ubuntu64_vm-b2g-emulator_test-reftest-11-bm114-tests1-linux64-build362.txt.gz")
     data = process_buildbot_log(response.all_lines)
     Log.note("{{data}}", data=data)
