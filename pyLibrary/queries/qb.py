@@ -552,20 +552,21 @@ def sort(data, fieldnames=None):
                 def _compare_o(left, right):
                     return value_compare(func(coalesce(left)), func(coalesce(right)), fieldnames.sort)
                 return DictList([unwrap(d) for d in sorted(data, cmp=_compare_o)])
-
             else:
                 def _compare_o(left, right):
                     return value_compare(coalesce(left)[fieldnames.value], coalesce(right)[fieldnames.value], fieldnames.sort)
                 return DictList([unwrap(d) for d in sorted(data, cmp=_compare_o)])
 
         formal = query._normalize_sort(fieldnames)
+        for f in formal:
+            f.func = qb_expression_to_function(f.value)
 
         def comparer(left, right):
             left = coalesce(left)
             right = coalesce(right)
             for f in formal:
                 try:
-                    result = value_compare(left[f.value], right[f.value], f.sort)
+                    result = value_compare(f.func(left), f.func(right), f.sort)
                     if result != 0:
                         return result
                 except Exception, e:

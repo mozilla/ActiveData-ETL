@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 import re
 
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, unwraplist, Null
+from pyLibrary.dot import Dict, wrap, unwraplist, Null
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -140,6 +140,8 @@ def match_mozharness_line(log_date, prev_line, curr_line, next_line):
         mode = "summary"
 
     timestamp = Date(log_date + " " + _time, "%Y-%m-%d %H:%M:%S")
+    if DEBUG:
+        Log.note("{{line}}", line=curr_line)
     return timestamp, mode, message
 
 
@@ -163,6 +165,8 @@ def match_builder_line(line):
         if parts[0] == "Skipped":
             # NOT THE REGULAR PATTERN
             message, status, parts, timestamp, done = "", "skipped", None, Null, True
+            if DEBUG:
+                Log.note("{{line}}", line=line)
             return timestamp, message, parts, done, status
 
         desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
@@ -201,6 +205,8 @@ def match_builder_line(line):
 
     timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
 
+    if DEBUG:
+        Log.note("{{line}}", line=line)
     return timestamp, message, parts, done, status
 
 
@@ -224,23 +230,26 @@ def process_buildbot_log(all_log_lines):
     data.timings = []
 
     start_time = None
+    end_time = None
     log_date = None
-    builder_step = None
-    time_zone = None
+    builder_step_name = None
+    builder_time_zone = None
+    harness_time_zone = None
 
     prev_line = ""
     curr_line = ""
     next_line = ""
 
-    for log_bytes in all_log_lines:
+    for log_ascii in all_log_lines:
 
-        if not log_bytes.strip():
+        if not log_ascii.strip():
             continue
 
         try:
-            log_line = log_bytes.decode('utf8')
+            log_line = log_ascii.encode('latin1').decode('utf8')
         except Exception, e:
-            Log.warning("Bad log line ignored {{line}}", line=log_bytes, cause=e)
+            if not DEBUG:
+                Log.warning("Bad log line ignored: {{line}}", line=log_ascii, cause=e)
             continue
 
         prev_line = curr_line
@@ -260,7 +269,7 @@ def process_buildbot_log(all_log_lines):
                 data[key] = value
                 if key == "starttime":
                     data[key] = None
-                    data["start_time"] = start_time = Date(float(value))
+                    data["start_time"] = start_time = end_time = Date(float(value))
                     log_date = start_time.floor(DAY).format("%Y-%m-%d")
                 if key == "results":
                     data[key] = buildbot.STATUS_CODES[value]
@@ -275,78 +284,105 @@ def process_buildbot_log(all_log_lines):
 
         if builder_says:
             process_head = False
-            timestamp, builder_step, parts, done, status = builder_says
+            timestamp, builder_step_name, parts, done, status = builder_says
 
-            if time_zone is None:
-                time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
-            timestamp += time_zone
+            if builder_time_zone is None:
+                builder_time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
+                if DEBUG:
+                    Log.note("Builder time zone is {{zone}}", zone=builder_time_zone/HOUR)
+            timestamp += builder_time_zone
+            end_time = Math.max(end_time, timestamp)
 
             if done:
-                if current_step.builder.step == builder_step:
-                    current_step.builder.end_time = timestamp
-                    current_step.builder.status = status
+                if builder_step.step == builder_step_name:
+                    builder_step.end_time = timestamp
+                    builder_step.status = status
                 else:
-                    current_step = wrap(
-                        {"builder": {
-                            "step": builder_step,
-                            "parts": parts,
-                            "end_time": timestamp,
-                            "status": status
-                        }}
-                    )
-                    data.timings.append(current_step)
-            else:
-                current_step = wrap(
-                    {"builder": {
-                        "step": builder_step,
+                    builder_step = wrap({
+                        "step": builder_step_name,
                         "parts": parts,
-                        "start_time": timestamp,
+                        "start_time": builder_step.end_time,
+                        "end_time": timestamp,
                         "status": status
-                    }}
-                )
-                data.timings.append(current_step)
+                    })
+                    data.timings.append({"builder": builder_step})
+            else:
+                builder_step = wrap({
+                    "step": builder_step_name,
+                    "parts": parts,
+                    "start_time": timestamp,
+                    "status": status
+                })
+                data.timings.append({"builder": builder_step})
             continue
 
         mozharness_says = match_mozharness_line(log_date, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
-
-            timestamp += time_zone
-            if timestamp < start_time-MAX_TIMING_ERROR:
+            if harness_time_zone is None:
+                harness_time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
+                if DEBUG:
+                    Log.note("Harness time zone is {{zone}}", zone=harness_time_zone / HOUR)
+            timestamp += harness_time_zone
+            if timestamp < start_time - MAX_TIMING_ERROR:
                 #STARTS ON ONE DAY, AND CONTINUES IN WEE HOURS OF NEXT
                 timestamp += DAY
+            end_time = Math.max(end_time, timestamp)
 
-            data.timings.append(wrap({
-                "builder": {
-                    "step": builder_step
-                },
-                "harness": {
-                    "step": harness_step,
-                    "mode": mode,
-                    "start_time": timestamp
-                }
-            }))
+            builder_step.children += [{
+                "step": harness_step,
+                "mode": mode,
+                "start_time": timestamp
+            }]
 
     try:
-        last_time = start_time
+        build_times = data.timings.builder
+
+        fix_times(build_times, start_time, end_time)
+        for b in build_times:
+            fix_times(b.children, b.start_time, b.end_time)
+            for c in b.children:
+                data.timings.append({
+                    "builder": {"step": b.step},
+                    "harness": c
+                })
+            b.children = None
+
+        data.timings = qb.sort(data.timings, [
+            {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}},
+            {"value": {"coalesce": ["builder.end_time", "harness.end_time"]}}
+        ])
         for i, t in enumerate(data.timings):
             t.order = i
-            if t.builder and t.builder.start_time == None and t.harness.start_time == None:
-                t.builder.start_time = last_time
-            last_time = coalesce(t.builder.end_time, t.harness.start_time, last_time)
 
-        data.timings = qb.sort(data.timings, {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}, "sort": 1})
-        for e, s in qb.pairs(qb.reverse(data.timings)):
-            if e.builder.duration == None:
-                # ONLY FILL IF EMPTY, OTHERWISE LINES BELOW WILL DO THE WORK
-                e.builder.duration = e.builder.end_time - e.builder.start_time
-            s.builder.duration = coalesce(e.builder.start_time, s.builder.end_time) - s.builder.start_time
-            s.harness.duration = coalesce(e.harness.start_time, e.builder.start_time, s.builder.end_time) - s.harness.start_time
-            if s.harness.duration < 0:
-                Log.error("logic error")
     except Exception, e:
         Log.error("Problem with calculating durations", cause=e)
     return data
+
+
+def fix_times(times, start_time, end_time):
+    if start_time == None or end_time == None:
+        Log.error("Require a time range")
+    if not times:
+        return
+
+    time = start_time
+    for i, t in enumerate(times):
+        if t.start_time == None:
+            # FIND BEST EVIDENCE OF WHEN THIS STARTED
+            t.start_time = Math.min(Math.MIN(t.children.start_time), Math.MIN(t.children.end_time), time)
+        time = Math.max(t.start_time, t.end_time, time)
+
+    # EVERY TIME NOW HAS A start_time
+    time = end_time
+    for t in qb.reverse(times):
+        if t.end_time == None:
+            # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
+            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time)
+        t.duration = Math.max(time, t.end_time) - t.start_time
+        if t.duration==None or t.duration < 0:
+            Log.error("logic error")
+        time = t.start_time
 
 
 def verify_equal(data, expected, duplicate):
@@ -362,14 +398,14 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-win64/1443998375/mozilla-beta-win64-bm82-build1-build123.txt.gz")
-    for i, l in enumerate(response._all_lines(encoding="latin1")):
-        try:
-            l.decode('latin1').encode('utf8')
-        except Exception:
-            Log.alert("bad line {{num}}", num=i)
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-linux64_gecko/1444032239/mozilla-b2g37_v2_2r-linux64_gecko-bm94-build1-build1.txt.gz")
+    # for i, l in enumerate(response._all_lines(encoding="latin1")):
+    #     try:
+    #         l.decode('latin1').encode('utf8')
+    #     except Exception:
+    #         Log.alert("bad line {{num}}", num=i)
+    #
+    #     Log.note("{{line}}", line=l)
 
-        Log.note("{{line}}", line=l)
-
-    # data = process_buildbot_log(response.all_lines)
-    # Log.note("{{data}}", data=data)
+    data = process_buildbot_log(response.all_lines)
+    Log.note("{{data}}", data=data)
