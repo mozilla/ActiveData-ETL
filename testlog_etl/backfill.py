@@ -40,8 +40,8 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es, settings.range, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
-        max_in_es = max(*in_es)
-        in_range = set(range(coalesce(settings.range.min, 0), coalesce(settings.range.max, max_in_es)))
+        max_in_es = Math.MAX(in_es)
+        in_range = set(range(coalesce(settings.range.min, 0), coalesce(settings.range.max, max_in_es, 1000000)))
         in_es -= in_range
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)

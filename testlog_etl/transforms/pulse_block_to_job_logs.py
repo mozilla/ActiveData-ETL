@@ -27,9 +27,6 @@ DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
-    """
-    SIMPLE CONVERT pulse_block INTO TALOS, IF ANY
-    """
     etl_head_gen = EtlHeadGenerator(source_key)
     stats = Dict()
     counter = 0
