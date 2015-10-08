@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 import re
 
+from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, unwraplist, Null
 from pyLibrary.env import http
@@ -23,7 +24,8 @@ from testlog_etl.imports import buildbot
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
-DEBUG = False
+_ = convert
+DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
 
@@ -285,7 +287,7 @@ def process_buildbot_log(all_log_lines, from_url):
             timestamp, builder_step_name, parts, done, status = builder_says
 
             if builder_time_zone is None:
-                builder_time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
+                builder_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
                 if DEBUG:
                     Log.note("Builder time zone is {{zone}}", zone=builder_time_zone/HOUR)
             timestamp += builder_time_zone
@@ -318,7 +320,7 @@ def process_buildbot_log(all_log_lines, from_url):
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
             if harness_time_zone is None:
-                harness_time_zone = Math.ceiling((start_time - timestamp) / HOUR) * HOUR
+                harness_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
                 if DEBUG:
                     Log.note("Harness time zone is {{zone}}", zone=harness_time_zone / HOUR)
             timestamp += harness_time_zone
@@ -396,7 +398,7 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-linux64_gecko/1444032239/mozilla-b2g37_v2_2r-linux64_gecko-bm94-build1-build1.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/pvanderbeken@mozilla.com-f2ccccf07663/try-linux64/try_ubuntu64_hw_test-g2-bm103-tests1-linux-build799.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:
     #         l.decode('latin1').encode('utf8')
