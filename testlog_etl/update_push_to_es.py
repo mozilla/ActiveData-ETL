@@ -11,7 +11,7 @@ from __future__ import division
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, shell_env, hide
+from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
@@ -105,6 +105,7 @@ def _refresh_indexer():
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_perf_to_es")
                 sudo("supervisorctl restart push_unit_to_es")
+                sudo("supervisorctl restart push_jobs_to_es")
             _start_supervisor()
 
 
