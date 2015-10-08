@@ -1,0 +1,52 @@
+{
+	"limit": 5000,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
+	"no_checks": false,
+	"range": {"min": 90000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
+	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
+	"source": {
+		//THE BUCKET WITH WHAT SHOULD BE IN ES
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "ekyle-pulse-logger",
+		"key_format": "a:b.c"
+	},
+	"elasticsearch":{
+		// ES USED TO DETERMINE WHAT IS MISSING
+		"id_field": "etl.source.source.id",
+		"host": "http://activedata.allizom.org",
+		"port": 9200,
+		"index": "jobs",
+		"type": "job",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/jobs.json"
+		},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"work_queue":{
+		// THE QUEUE TO FILL WITH REQUESTS
+		"name": "ekyle-etl",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"debug": {
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in backfil jobs",
+				"$ref": "file://~/private.json#email"
+
+			}
+		]
+	}
+}

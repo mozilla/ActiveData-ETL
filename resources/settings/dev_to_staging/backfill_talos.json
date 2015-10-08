@@ -1,6 +1,8 @@
 {
 	"no_checks": false,
-	"limit": 20000,
+	"start": 70000,
+	"limit": 10000,
+	"id_field": "etl.source.source.source.id",
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "ekyle-etl",
 		"$ref": "file://~/private.json#aws_credentials"

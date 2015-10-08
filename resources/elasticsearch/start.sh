@@ -8,3 +8,4 @@ curl -XPUT localhost:9200/_cluster/settings -d '{"transient":{"cluster.routing.a
 
 tail -f /data1/logs/active-data.log
 
+curl -XPOST 'localhost:9200/_cluster/reroute' -d '{"commands": [{ "allocate": { "index": "saved_queries", "shard": 1, "node": "secondary3", "allow_primary": 1 } }]}'

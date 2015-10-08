@@ -14,7 +14,7 @@
 		"schema": {
 			"$ref": "//../../schema/test_results.json"
 		},
-		"debug": false,
+		"debug": true,
 		"limit_replicas": false
 	},
 	"source": {

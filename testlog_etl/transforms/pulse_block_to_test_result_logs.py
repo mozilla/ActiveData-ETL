@@ -41,7 +41,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if fast_forward:
             continue
         if please_stop:
-            Log.error("Stopping early")
+            Log.error("Shutdown detected. Stopping early")
 
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         if not pulse_record:

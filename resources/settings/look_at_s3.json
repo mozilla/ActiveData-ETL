@@ -1,6 +1,11 @@
 {
+	"filter": {
+		"prefix": {
+			"key": "69560"
+		}
+	},
 	"source": {
-		"bucket": "ekyle-pulse-logger",
+		"bucket": "active-data-pulse-beta",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"debug": {

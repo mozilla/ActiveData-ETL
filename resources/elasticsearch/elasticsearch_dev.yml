@@ -1,6 +1,7 @@
 script.inline: on
 script.indexed: on
 
+
 cluster.name: lahnakoski_dev
 node.name: dev
 

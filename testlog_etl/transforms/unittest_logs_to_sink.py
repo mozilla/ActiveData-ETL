@@ -15,7 +15,7 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
@@ -67,8 +67,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time)
-        if age > Duration.DAY:
-            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / Duration.DAY)
+        if age > DAY:
+            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / DAY)
         Log.note("Done\n{{data|indent}}", data=buildbot_summary.run.stats)
 
     new_keys = []

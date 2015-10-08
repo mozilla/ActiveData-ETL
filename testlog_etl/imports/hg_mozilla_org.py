@@ -124,14 +124,18 @@ class HgMozillaOrg(object):
             }},
             "size": 2000,
         }
-        docs = self.es.search(query).hits.hits
-        if len(docs) > 1:
-            for d in docs:
-                if d._id.endswith(d._source.branch.locale):
-                    return d._source
-            Log.warning("expecting no more than one document")
+        try:
+            docs = self.es.search(query, timeout=120).hits.hits
+            if len(docs) > 1:
+                for d in docs:
+                    if d._id.endswith(d._source.branch.locale):
+                        return d._source
+                Log.warning("expecting no more than one document")
 
-        return docs[0]._source
+            return docs[0]._source
+        except Exception, e:
+            Log.warning("Bad ES call", e)
+            return None
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
@@ -221,12 +225,12 @@ class HgMozillaOrg(object):
             # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
             path = path[0:3] + ["mozilla-central"] + path[5:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif path[5] == "mozilla-aurora":
+        elif len(path) > 5 and path[5] == "mozilla-aurora":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
             # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-aurora"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif path[5] == "mozilla-beta":
+        elif len(path) > 5 and path[5] == "mozilla-beta":
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-beta"] + path[7:]

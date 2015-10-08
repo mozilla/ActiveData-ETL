@@ -10,6 +10,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from boto import ec2 as boto_ec2
+import datetime
+from boto.ec2 import cloudwatch
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
@@ -49,13 +51,33 @@ def _config_fabric(connect, instance):
     env.abort_exception = Log.error
 
 
-def _refresh_etl():
+def _refresh_etl(instance, settings, conn):
+    cpu_percent = get_cpu(conn, instance)
+    Log.note("Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}", instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address, cpu=cpu_percent/100)
+
+    _config_fabric(settings.fabric, instance)
     with cd("~/TestLog-ETL/"):
         result = run("git pull origin etl")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
-            return
+            if cpu_percent > 70:
+                return
         sudo("supervisorctl restart all")
+
+
+def get_cpu(conn, i):
+    stats = list(conn.get_metric_statistics(
+        period=600,
+        start_time=datetime.datetime.utcnow() - datetime.timedelta(seconds=600),
+        end_time=datetime.datetime.utcnow(),
+        metric_name='CPUUtilization',
+        namespace='AWS/EC2',
+        statistics='Average',
+        dimensions={'InstanceId': [i.id]},
+        unit='Percent'
+    ))
+    cpu_percent = stats[-1]['Average']
+    return cpu_percent
 
 
 def main():
@@ -70,14 +92,13 @@ def main():
             aws_secret_access_key=unwrap(settings.aws.aws_secret_access_key)
         )
         ec2_conn = boto_ec2.connect_to_region(**aws_args)
+        cw = cloudwatch.connect_to_region(**aws_args)
 
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _config_fabric(settings.fabric, i)
             try:
-                _refresh_etl()  # TODO: UPON FAILURE, TERMINATE INSTANCE AND SPOT REQUEST
+                _refresh_etl(i, settings, cw)
             except Exception, e:
                 ec2_conn.terminate_instances([i.id])
                 Log.warning("Problem resetting {{instance}}, terminated", instance=i.id, cause=e)
