@@ -12,7 +12,7 @@ import re
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, unwraplist, Null
+from pyLibrary.dot import Dict, wrap, unwraplist, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
@@ -107,7 +107,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
 MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
-
+BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
 
 def match_mozharness_line(log_date, prev_line, curr_line, next_line):
     """
@@ -145,18 +145,42 @@ def match_mozharness_line(log_date, prev_line, curr_line, next_line):
     return timestamp, mode, message
 
 
+
+last_elapse_time = None
+last_elapse_time_age = 0  # KEEP TRACK OF HOW MANY LINES AGO WE SAW elapsedTime
+
 def match_builder_line(line):
     """
-    RETURN (timestamp, message, done, status) QUADRUPLE
+    RETURN (timestamp, elapsed, message, done, status) QUADRUPLE
+
+    THERE IS A LINE, A LITTLE BEFORE "======= Finish..." WHICH HAS elapsedTime
+    EXAMPLE
+    elapsedTime=2.545
+
 
     EXAMPLES
     ========= Started '/tools/buildbot/bin/python scripts/scripts/android_emulator_unittest.py ...' failed (results: 5, elapsed: 1 hrs, 12 mins, 59 secs) (at 2015-10-04 10:46:12.401377) =========
     ========= Started 'c:/mozilla-build/python27/python -u ...' warnings (results: 1, elapsed: 19 mins, 0 secs) (at 2015-10-04 07:52:22.752839) =========
     ========= Started '/tools/buildbot/bin/python scripts/scripts/b2g_emulator_unittest.py ...' interrupted (results: 4, elapsed: 22 mins, 59 secs) (at 2015-10-05 00:51:02.915315) =========
     ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
-    ========= Finished set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
+    c set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
     ========= Skipped  (results: not started, elapsed: not started) =========
     """
+    global last_elapse_time
+    global last_elapse_time_age
+
+    elapse = BUILDER_ELAPSE.match(line)
+    if elapse:
+        last_elapse_time = float(elapse.group(1))
+        last_elapse_time_age = 0
+        return
+    else:
+        last_elapse_time_age += 1
+
+    if last_elapse_time_age > 3:
+        # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
+        last_elapse_time = None
+
     if not line.startswith("========= ") or not line.endswith(" ========="):
         return None
 
@@ -167,7 +191,7 @@ def match_builder_line(line):
             message, status, parts, timestamp, done = "", "skipped", None, Null, True
             if DEBUG:
                 Log.note("{{line}}", line=line)
-            return timestamp, message, parts, done, status
+            return timestamp, last_elapse_time, message, parts, done, status
 
         desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
 
@@ -207,7 +231,7 @@ def match_builder_line(line):
 
     if DEBUG:
         Log.note("{{line}}", line=line)
-    return timestamp, message, parts, done, status
+    return timestamp, last_elapse_time, message, parts, done, status
 
 
 def process_buildbot_log(all_log_lines, from_url):
@@ -284,7 +308,7 @@ def process_buildbot_log(all_log_lines, from_url):
 
         if builder_says:
             process_head = False
-            timestamp, builder_step_name, parts, done, status = builder_says
+            timestamp, elapsed, builder_step_name, parts, done, status = builder_says
 
             if builder_time_zone is None:
                 builder_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
@@ -297,12 +321,14 @@ def process_buildbot_log(all_log_lines, from_url):
                 if builder_step.step == builder_step_name:
                     builder_step.end_time = timestamp
                     builder_step.status = status
+                    builder_step.elapsedTime = elapsed
                 else:
                     builder_step = wrap({
                         "step": builder_step_name,
                         "parts": parts,
                         "start_time": builder_step.end_time,
                         "end_time": timestamp,
+                        "elapsedTime": elapsed,
                         "status": status
                     })
                     data.timings.append({"builder": builder_step})
@@ -336,24 +362,29 @@ def process_buildbot_log(all_log_lines, from_url):
             }]
 
     try:
-        build_times = data.timings.builder
+        fix_times(data.timings.builder, start_time, end_time)
+        new_build_times = DictList()
+        # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
+        for b in data.timings:
+            new_build_times.append(b)
+            b = b.builder
+            if not b.children:
+                continue
 
-        fix_times(build_times, start_time, end_time)
-        for b in build_times:
             fix_times(b.children, b.start_time, b.end_time)
-            for c in b.children:
-                data.timings.append({
+            # INJECT CHILDREN INTO THIS LIST
+            new_build_times.extend([
+                {
                     "builder": {"step": b.step},
                     "harness": c
-                })
+                }
+                for c in b.children
+            ])
             b.children = None
 
-        data.timings = qb.sort(data.timings, [
-            {"value": {"coalesce": ["builder.start_time", "harness.start_time"]}},
-            {"value": {"coalesce": ["builder.end_time", "harness.end_time"]}}
-        ])
-        for i, t in enumerate(data.timings):
+        for i, t in enumerate(new_build_times):
             t.order = i
+        data.timings = new_build_times
 
     except Exception, e:
         Log.error("Problem with calculating durations", cause=e)
