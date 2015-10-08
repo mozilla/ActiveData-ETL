@@ -26,6 +26,7 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
+
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     etl_head_gen = EtlHeadGenerator(source_key)
     stats = Dict()
@@ -78,7 +79,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     continue
 
                 all_log_lines = response._all_lines(encoding='latin1')
-                data.action = process_buildbot_log(all_log_lines)
+                data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
                 verify_equal(data, "build.revision", "action.revision")
                 verify_equal(data, "build.id", "action.buildid")
@@ -207,7 +208,7 @@ def match_builder_line(line):
     return timestamp, message, parts, done, status
 
 
-def process_buildbot_log(all_log_lines):
+def process_buildbot_log(all_log_lines, from_url):
     """
     Buildbot logs:
 
@@ -246,7 +247,7 @@ def process_buildbot_log(all_log_lines):
             log_line = log_ascii.encode('latin1').decode('utf8')
         except Exception, e:
             if not DEBUG:
-                Log.warning("Bad log line ignored: {{line}}", line=log_ascii, cause=e)
+                Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
             continue
 
         prev_line = curr_line
@@ -404,5 +405,5 @@ if __name__ == "__main__":
     #
     #     Log.note("{{line}}", line=l)
 
-    data = process_buildbot_log(response.all_lines)
+    data = process_buildbot_log(response.all_lines, "<unknown>")
     Log.note("{{data}}", data=data)

@@ -106,7 +106,7 @@ class Index(Features):
         self.path = "/" + full_index + "/" + type
 
         if self.debug:
-            Log.alert("elasticsearch debugging for index {{url}} is on", index=self.url)
+            Log.alert("elasticsearch debugging for {{url}} is on", url=self.url)
 
     @property
     def url(self):

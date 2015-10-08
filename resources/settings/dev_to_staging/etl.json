@@ -7,7 +7,7 @@
 	"param": {
 		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": true
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -80,7 +80,8 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join"
+			"type": "join",
+			"transform_type": "bulk"
 		},
 		{
 			"name": "talos2perf",
@@ -104,7 +105,7 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse2test_result",
+			"name": "pulse2jobs",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "ekyle-pulse-logger",
@@ -112,17 +113,38 @@
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result",
+				"bucket": "active-data-jobs",
 				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index",
+				"name": "active-data-index-jobs",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
-		}
+			"transformer": "testlog_etl.transforms.pulse_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-pulse-logger",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-test-result",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,
@@ -141,7 +163,6 @@
 				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/private.json#email"
 			}
-
 		]
 	}
 }

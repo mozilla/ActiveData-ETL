@@ -157,7 +157,6 @@
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][STAGING] Problem in ETL",
 				"$ref": "file://~/private.json#email"
-
 			}
 		]
 	}

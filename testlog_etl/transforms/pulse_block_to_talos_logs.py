@@ -20,7 +20,8 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 DEBUG = False
 
-TALOS_PREFIX = b"     INFO -  INFO : TALOSDATA: "
+# 07:43:11     INFO -  2015-10-08 07:43:11,492 INFO : TALOSDATA:
+TALOS_PREFIX = b" INFO : TALOSDATA: "
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
@@ -98,7 +99,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} talos records", num=len(all_talos))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_talos])
         else:
-            Log.note("No talos records found in {{url}}", url=pulse_record.payload.logurl)
+            Log.warning("No talos records found in {{url}}", url=pulse_record.payload.logurl)
             _, dest_etl = etl_head_gen.next(etl_file, "talos")
 
             output |= dest_bucket.extend([{
