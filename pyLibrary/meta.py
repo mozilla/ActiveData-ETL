@@ -310,6 +310,8 @@ def DataClass(name, columns):
 from __future__ import unicode_literals
 from collections import Mapping
 
+meta = None
+
 class {{name}}(Mapping):
     __slots__ = {{slots}}
 
@@ -348,7 +350,7 @@ class {{name}}(Mapping):
 
     def __copy__(self):
         _set = object.__setattr__
-        output = object.__new__(Column)
+        output = object.__new__({{name}})
         {{assign}}
         return output
 
@@ -374,11 +376,12 @@ temp = {{name}}
         }
     )
 
-    return _exec(code)
+    return _exec(code, name)
 
-def _exec(code):
+def _exec(code, name):
     temp = None
     exec(code)
+    globals()[name]=temp
     return temp
 
 

@@ -12,10 +12,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 import __builtin__
-
-from __builtin__ import filter as builtin_filter
 from collections import Mapping
-from numbers import Number
 from types import GeneratorType
 
 from pyLibrary import dot, convert
@@ -24,12 +21,12 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, Null, Dict, split_field, coalesce, join_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import listwrap, wrap, unwrap
-from pyLibrary.dot.objects import DictClass, DictObject
+from pyLibrary.dot.objects import DictObject
 from pyLibrary.maths import Math
 from pyLibrary.queries import flat_list, query, group_by
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.cubes.aggs import cube_aggs
-from pyLibrary.queries.expressions import TRUE_FILTER, FALSE_FILTER, compile_expression, qb_expression_to_function, qb_expression_to_python
+from pyLibrary.queries.expressions import TRUE_FILTER, FALSE_FILTER, compile_expression, qb_expression_to_function
 from pyLibrary.queries.flat_list import FlatList
 from pyLibrary.queries.index import Index
 from pyLibrary.queries.query import Query, _normalize_selects, sort_direction, _normalize_select
@@ -449,8 +446,11 @@ def _select_deep_meta(field, depth):
             return assign
 
 
-def get_columns(data):
-    return wrap([{"name": n} for n in UNION(set(d.keys()) for d in data)])
+def get_columns(data, leaves=False):
+    if not leaves:
+        return wrap([{"name": n} for n in UNION(set(d.keys()) for d in data)])
+    else:
+        return wrap([{"name": leaf} for leaf in set(leaf for row in data for leaf, _ in row.leaves())])
 
 _ = """
 DEEP ITERATOR FOR NESTED DOCUMENTS
@@ -539,7 +539,7 @@ def sort(data, fieldnames=None):
             # EXPECTING {"field":f, "sort":i} FORMAT
             fieldnames.sort = sort_direction.get(fieldnames.sort, 1)
             fieldnames.value = coalesce(fieldnames.value, fieldnames.field)
-            if fieldnames.value==None:
+            if fieldnames.value == None:
                 Log.error("Expecting sort to have 'value' attribute")
 
             if fieldnames.value == ".":

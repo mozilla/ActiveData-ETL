@@ -156,8 +156,8 @@ def qb_expression_to_ruby(expr):
 def qb_expression_to_python(expr):
     if expr == None:
         return "None"
-    elif Math.is_number(expr):
-        return unicode(expr)
+    elif Math.is_integer(expr):
+        return "row[" + unicode(expr) + "]"
     elif isinstance(expr, Date):
         return unicode(expr.unix)
     elif isinstance(expr, unicode):
@@ -332,6 +332,11 @@ def expression_map(_map, expr):
     uop = python_unary_operators.get(op)
     if uop:
         output = {op: expression_map(_map, term)}
+        return output
+
+    cop = complex_operators.get(op)
+    if cop:
+        output = cop(op, term).map(_map)
         return output
 
     Log.error("`{{op}}` is not a recognized operation", op=op)
@@ -734,7 +739,7 @@ class RangeOp(object):
 
 
 
-class DocOp(object):
+class LiteralOp(object):
     """
     A literal JSON document
     """
@@ -783,7 +788,7 @@ complex_operators = {
     "range": RangeOp,
     "regexp": RegExpOp,
     "regex": RegExpOp,
-    "doc": DocOp,
+    "literal": LiteralOp,
     "coalesce": CoalesceOp
 }
 
