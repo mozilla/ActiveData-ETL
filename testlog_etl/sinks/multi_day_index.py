@@ -97,6 +97,7 @@ class MultiDayIndex(object):
                     self.queue.add(row)
             except Exception, e:
                 Log.warning("Could not process {{key}}", key=key, cause=e)
+
         return num_keys
 
 

@@ -11,8 +11,7 @@ script.indexed: on
 cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
-cluster.routing.allocation.balance.shard: 0.70
-cluster.routing.allocation.balance.primary: 0.4
+cluster.routing.allocation.node_concurrent_recoveries: 1
 
 bootstrap.mlockall: true
 path.data: /data1, /data2, /data3
@@ -47,3 +46,4 @@ http.timeout: 600
 
 threadpool.bulk.queue_size: 3000
 threadpool.index.queue_size: 1000
+

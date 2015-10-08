@@ -90,16 +90,17 @@ class Log(object):
         if settings.constants:
             constants.set(settings.constants)
 
-        if not settings.log:
-            return
+        if settings.log:
+            cls.logging_multi = Log_usingMulti()
+            if cls.main_log:
+                cls.main_log.stop()
+            cls.main_log = Log_usingThread(cls.logging_multi)
 
-        cls.logging_multi = Log_usingMulti()
-        if cls.main_log:
-            cls.main_log.stop()
-        cls.main_log = Log_usingThread(cls.logging_multi)
+            for log in listwrap(settings.log):
+                Log.add_log(Log.new_instance(log))
 
-        for log in listwrap(settings.log):
-            Log.add_log(Log.new_instance(log))
+        if settings.cprofile.enabled==True:
+            Log.alert("cprofiling is enabled, writing to {{filename}}", filename=os.path.abspath(settings.cprofile.filename))
 
     @classmethod
     def stop(cls):
@@ -475,7 +476,7 @@ class Except(Exception):
                     return True
         return False
 
-    def __str__(self):
+    def __unicode__(self):
         output = self.type + ": " + self.template + "\n"
         if self.params:
             output = expand_template(output, self.params)
@@ -488,15 +489,15 @@ class Except(Exception):
             for c in listwrap(self.cause):
                 try:
                     cause_strings.append(unicode(c))
-                except Exception, e:
+                except Exception:
                     pass
 
             output += "caused by\n\t" + "and caused by\n\t".join(cause_strings)
 
         return output
 
-    def __unicode__(self):
-        return unicode(str(self))
+    def __str__(self):
+        return self.__unicode__().encode('latin1', 'replace')
 
     def as_dict(self):
         return Dict(
@@ -567,6 +568,7 @@ class Log_usingThread(BaseLog):
             self.queue.add({"template": template, "params": params})
             return self
         except Exception, e:
+            e = Except.wrap(e)
             sys.stdout.write("IF YOU SEE THIS, IT IS LIKELY YOU FORGOT TO RUN Log.start() FIRST\n")
             raise e  # OH NO!
 
@@ -595,11 +597,20 @@ class Log_usingMulti(BaseLog):
         self.many = []
 
     def write(self, template, params):
+        bad = []
         for m in self.many:
             try:
                 m.write(template, params)
             except Exception, e:
-                pass
+                bad.append(m)
+                sys.stdout.write("a logger failed")
+                Log.warning("Logger failed!  It will be removed: {{type}}", type=m.__class__.__name__, cause=e)
+        try:
+            for b in bad:
+                self.many.remove(b)
+        except Exception:
+            pass
+
         return self
 
     def add_log(self, logger):

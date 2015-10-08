@@ -1,6 +1,7 @@
 {
 	"limit": 100,
-	"range": {"min": 140000},
+	//"range": {"min": 140000},
+	"id_field": "etl.source.source.id",
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
