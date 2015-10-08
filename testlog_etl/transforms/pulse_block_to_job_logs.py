@@ -14,6 +14,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, unwraplist, Null, DictList
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
@@ -48,6 +49,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
+            "revision": get_git_revision(),
             "source": {
                 "id": 0,
                 "source": pulse_record.etl,

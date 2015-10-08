@@ -12,6 +12,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
@@ -195,6 +196,7 @@ class EtlHeadGenerator(object):
             "name": name,
             "source": source_etl,
             "type": "join",
+            "revision": get_git_revision(),
             "timestamp": Date.now().unix
         })
 
