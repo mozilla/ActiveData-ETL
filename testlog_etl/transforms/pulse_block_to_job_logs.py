@@ -26,7 +26,7 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transfo
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 _ = convert
-DEBUG = True
+DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
 
@@ -390,6 +390,9 @@ def process_buildbot_log(all_log_lines, from_url):
 
     except Exception, e:
         Log.error("Problem with calculating durations", cause=e)
+
+    data.end_time = end_time
+    data.duration = end_time - start_time
     return data
 
 
