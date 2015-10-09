@@ -272,7 +272,7 @@ def process_buildbot_log(all_log_lines, from_url):
             continue
 
         try:
-            log_line = log_ascii.encode('latin1').decode('utf8')
+            log_line = log_ascii.encode('latin1').decode('utf8').strip()
         except Exception, e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
@@ -434,7 +434,7 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/pvanderbeken@mozilla.com-f2ccccf07663/try-linux64/try_ubuntu64_hw_test-g2-bm103-tests1-linux-build799.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:
     #         l.decode('latin1').encode('utf8')
