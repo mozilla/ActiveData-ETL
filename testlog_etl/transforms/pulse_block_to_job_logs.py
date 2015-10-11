@@ -14,10 +14,11 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, unwraplist, Null, DictList
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY, HOUR, SECOND
+from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
 from testlog_etl.imports import buildbot
@@ -25,9 +26,9 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transfo
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 _ = convert
-DEBUG = True
+DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
-
+MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     etl_head_gen = EtlHeadGenerator(source_key)
@@ -48,6 +49,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
+            "revision": get_git_revision(),
             "source": {
                 "id": 0,
                 "source": pulse_record.etl,
@@ -109,129 +111,143 @@ MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
 
-def match_mozharness_line(log_date, prev_line, curr_line, next_line):
-    """
-    log_date - IN %Y-%m-%d FORMAT FOR APPENDING TO THE TIME-OF-DAY STAMPS
-    FOUND IN LOG LINES
 
-    RETURN (timestamp, mode, message) PAIR IF FOUND
+class HarnessLines(object):
 
-    EXAMPLE
-    012345678901234567890123456789012345678901234567890123456789
-    05:20:05     INFO - #####
-    05:20:05     INFO - ##### Running download-and-extract step.
-    05:20:05     INFO - #####
-    """
+    def __init__(self):
+        self.harness_time_zone = None
 
-    if len(next_line) != 25 or len(prev_line) != 25:
-        return None
-    if not MOZLOG_PREFIX.match(next_line) or not MOZLOG_PREFIX.match(prev_line) or not MOZLOG_PREFIX.match(curr_line):
-        return None
-    match = MOZLOG_STEP.match(curr_line)
-    if match:
-        _time, mode, message = match.group(1, 2, 3)
-        mode = mode.strip().lower()
-    else:
-        match = MOZLOG_SUMMARY.match(curr_line)
-        if not match:
-            Log.warning("unexpected log line\n{{line}}", line=curr_line)
+    def match(self, last_timestamp, prev_line, curr_line, next_line):
+        """
+        log_date - IN %Y-%m-%d FORMAT FOR APPENDING TO THE TIME-OF-DAY STAMPS
+        FOUND IN LOG LINES
+
+        RETURN (timestamp, mode, message) PAIR IF FOUND
+
+        EXAMPLE
+        012345678901234567890123456789012345678901234567890123456789
+        05:20:05     INFO - #####
+        05:20:05     INFO - ##### Running download-and-extract step.
+        05:20:05     INFO - #####
+        """
+
+        if len(next_line) != 25 or len(prev_line) != 25:
             return None
-        _time, message = match.group(1, 2)
-        mode = "summary"
+        if not MOZLOG_PREFIX.match(next_line) or not MOZLOG_PREFIX.match(prev_line) or not MOZLOG_PREFIX.match(curr_line):
+            return None
+        match = MOZLOG_STEP.match(curr_line)
+        if match:
+            _time, mode, message = match.group(1, 2, 3)
+            mode = mode.strip().lower()
+        else:
+            match = MOZLOG_SUMMARY.match(curr_line)
+            if not match:
+                Log.warning("unexpected log line\n{{line}}", line=curr_line)
+                return None
+            _time, message = match.group(1, 2)
+            mode = "summary"
 
-    timestamp = Date(log_date + " " + _time, "%Y-%m-%d %H:%M:%S")
-    if DEBUG:
-        Log.note("{{line}}", line=curr_line)
-    return timestamp, mode, message
-
-
-
-last_elapse_time = None
-last_elapse_time_age = 0  # KEEP TRACK OF HOW MANY LINES AGO WE SAW elapsedTime
-
-def match_builder_line(line):
-    """
-    RETURN (timestamp, elapsed, message, done, status) QUADRUPLE
-
-    THERE IS A LINE, A LITTLE BEFORE "======= Finish..." WHICH HAS elapsedTime
-    EXAMPLE
-    elapsedTime=2.545
-
-
-    EXAMPLES
-    ========= Started '/tools/buildbot/bin/python scripts/scripts/android_emulator_unittest.py ...' failed (results: 5, elapsed: 1 hrs, 12 mins, 59 secs) (at 2015-10-04 10:46:12.401377) =========
-    ========= Started 'c:/mozilla-build/python27/python -u ...' warnings (results: 1, elapsed: 19 mins, 0 secs) (at 2015-10-04 07:52:22.752839) =========
-    ========= Started '/tools/buildbot/bin/python scripts/scripts/b2g_emulator_unittest.py ...' interrupted (results: 4, elapsed: 22 mins, 59 secs) (at 2015-10-05 00:51:02.915315) =========
-    ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
-    c set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
-    ========= Skipped  (results: not started, elapsed: not started) =========
-    """
-    global last_elapse_time
-    global last_elapse_time_age
-
-    elapse = BUILDER_ELAPSE.match(line)
-    if elapse:
-        last_elapse_time = float(elapse.group(1))
-        last_elapse_time_age = 0
-        return
-    else:
-        last_elapse_time_age += 1
-
-    if last_elapse_time_age > 3:
-        # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
-        last_elapse_time = None
-
-    if not line.startswith("========= ") or not line.endswith(" ========="):
-        return None
-
-    try:
-        parts = map(unicode.strip, line[10:-10].split("("))
-        if parts[0] == "Skipped":
-            # NOT THE REGULAR PATTERN
-            message, status, parts, timestamp, done = "", "skipped", None, Null, True
+        timestamp = Date((last_timestamp - 12 * HOUR).format("%Y-%m-%d") + " " + _time, "%Y-%m-%d %H:%M:%S")
+        if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+            timestamp += DAY
+        if self.harness_time_zone is None:
+            self.harness_time_zone = Math.ceiling((last_timestamp - timestamp - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
             if DEBUG:
-                Log.note("{{line}}", line=line)
-            return timestamp, last_elapse_time, message, parts, done, status
+                Log.note("Harness time zone is {{zone}}", zone=self.harness_time_zone / HOUR)
+        timestamp += self.harness_time_zone
 
-        desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
+        if DEBUG:
+            Log.note("{{line}}", line=curr_line)
+        return timestamp, mode, message
 
-    except Exception, e:
-        Log.warning("Can not split log line: {{line|quote}}", line=line, cause=e)
-        return None
 
-    if desc.startswith("Started "):
-        done = False
-        message = desc[8:].strip()
-    elif desc.startswith("Finished "):
-        done = True
-        message = desc[9:].strip()
-    else:
-        Log.warning("Can not parse log line: {{line}}", line=line)
-        return None
+class BuilderLines(object):
 
-    result_code = int(stats.split(",")[0].split(":")[1].strip())
-    status = buildbot.STATUS_CODES[result_code]
 
-    if message.endswith(" failed") and status in ["retry", "failure"]:
-        #SOME message END WITH "failed" ON RETRY
-        message = message[:-7].strip()
-    elif message.endswith(" interrupted") and status in ["exception", "retry"]:
-        message = message[:-12].strip()
-    elif message.endswith(" " + status):
-        #SOME message END WITH THE STATUS STRING
-        message = message[:-(len(status) + 1)].strip()
+    def __init__(self):
+        self.last_elapse_time = None
+        self.last_elapse_time_age = 0  # KEEP TRACK OF HOW MANY LINES AGO WE SAW elapsedTime
 
-    if message.startswith("set props: "):
-        parts = unwraplist(map(unicode.strip, message[11:].split(" ")))
-        message = "set props"
-    else:
-        parts = None
+    def match(self, line):
+        """
+        RETURN (timestamp, elapsed, message, done, status) QUADRUPLE
 
-    timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
+        THERE IS A LINE, A LITTLE BEFORE "======= Finish..." WHICH HAS elapsedTime
+        EXAMPLE
+        elapsedTime=2.545
 
-    if DEBUG:
-        Log.note("{{line}}", line=line)
-    return timestamp, last_elapse_time, message, parts, done, status
+
+        EXAMPLES
+        ========= Started '/tools/buildbot/bin/python scripts/scripts/android_emulator_unittest.py ...' failed (results: 5, elapsed: 1 hrs, 12 mins, 59 secs) (at 2015-10-04 10:46:12.401377) =========
+        ========= Started 'c:/mozilla-build/python27/python -u ...' warnings (results: 1, elapsed: 19 mins, 0 secs) (at 2015-10-04 07:52:22.752839) =========
+        ========= Started '/tools/buildbot/bin/python scripts/scripts/b2g_emulator_unittest.py ...' interrupted (results: 4, elapsed: 22 mins, 59 secs) (at 2015-10-05 00:51:02.915315) =========
+        ========= Started 'rm -f ...' (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131322) =========
+        c set props: build_url blobber_files (results: 0, elapsed: 0 secs) (at 2015-10-01 05:30:53.131005) =========
+        ========= Skipped  (results: not started, elapsed: not started) =========
+        """
+        elapse = BUILDER_ELAPSE.match(line)
+        if elapse:
+            self.last_elapse_time = float(elapse.group(1))
+            self.last_elapse_time_age = 0
+            return
+        else:
+            self.last_elapse_time_age += 1
+
+        if self.last_elapse_time_age > 3:
+            # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
+            last_elapse_time = None
+
+        if not line.startswith("========= ") or not line.endswith(" ========="):
+            return None
+
+        try:
+            parts = map(unicode.strip, line[10:-10].split("("))
+            if parts[0] == "Skipped":
+                # NOT THE REGULAR PATTERN
+                message, status, parts, timestamp, done = "", "skipped", None, Null, True
+                if DEBUG:
+                    Log.note("{{line}}", line=line)
+                return timestamp, self.last_elapse_time, message, parts, done, status
+
+            desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
+
+        except Exception, e:
+            Log.warning("Can not split log line: {{line|quote}}", line=line, cause=e)
+            return None
+
+        if desc.startswith("Started "):
+            done = False
+            message = desc[8:].strip()
+        elif desc.startswith("Finished "):
+            done = True
+            message = desc[9:].strip()
+        else:
+            Log.warning("Can not parse log line: {{line}}", line=line)
+            return None
+
+        result_code = int(stats.split(",")[0].split(":")[1].strip())
+        status = buildbot.STATUS_CODES[result_code]
+
+        if message.endswith(" failed") and status in ["retry", "failure"]:
+            #SOME message END WITH "failed" ON RETRY
+            message = message[:-7].strip()
+        elif message.endswith(" interrupted") and status in ["exception", "retry"]:
+            message = message[:-12].strip()
+        elif message.endswith(" " + status):
+            #SOME message END WITH THE STATUS STRING
+            message = message[:-(len(status) + 1)].strip()
+
+        if message.startswith("set props: "):
+            parts = unwraplist(map(unicode.strip, message[11:].split(" ")))
+            message = "set props"
+        else:
+            parts = None
+
+        timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
+
+        if DEBUG:
+            Log.note("{{line}}", line=line)
+        return timestamp, self.last_elapse_time, message, parts, done, status
 
 
 def process_buildbot_log(all_log_lines, from_url):
@@ -255,10 +271,10 @@ def process_buildbot_log(all_log_lines, from_url):
 
     start_time = None
     end_time = None
-    log_date = None
     builder_step_name = None
     builder_time_zone = None
-    harness_time_zone = None
+    builder_line = BuilderLines()
+    mozharness_line = HarnessLines()
 
     prev_line = ""
     curr_line = ""
@@ -270,7 +286,7 @@ def process_buildbot_log(all_log_lines, from_url):
             continue
 
         try:
-            log_line = log_ascii.encode('latin1').decode('utf8')
+            log_line = log_ascii.encode('latin1').decode('utf8').strip()
         except Exception, e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
@@ -294,17 +310,18 @@ def process_buildbot_log(all_log_lines, from_url):
                 if key == "starttime":
                     data[key] = None
                     data["start_time"] = start_time = end_time = Date(float(value))
-                    log_date = start_time.floor(DAY).format("%Y-%m-%d")
+                    if DEBUG:
+                        Log.note("start_time = {{start_time|date}}", start_time=start_time)
                 if key == "results":
                     data[key] = buildbot.STATUS_CODES[value]
                 continue
             except Exception, e:
-                builder_says = match_builder_line(log_line)
+                builder_says = builder_line.match(log_line)
                 if not builder_says:
                     Log.warning("Log header {{log_line}} can not be processed", log_line=log_line, cause=e)
                     continue
         else:
-            builder_says = match_builder_line(log_line)
+            builder_says = builder_line.match(log_line)
 
         if builder_says:
             process_head = False
@@ -342,17 +359,9 @@ def process_buildbot_log(all_log_lines, from_url):
                 data.timings.append({"builder": builder_step})
             continue
 
-        mozharness_says = match_mozharness_line(log_date, prev_line, curr_line, next_line)
+        mozharness_says = mozharness_line.match(end_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
-            if harness_time_zone is None:
-                harness_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
-                if DEBUG:
-                    Log.note("Harness time zone is {{zone}}", zone=harness_time_zone / HOUR)
-            timestamp += harness_time_zone
-            if timestamp < start_time - MAX_TIMING_ERROR:
-                #STARTS ON ONE DAY, AND CONTINUES IN WEE HOURS OF NEXT
-                timestamp += DAY
             end_time = Math.max(end_time, timestamp)
 
             builder_step.children += [{
@@ -388,6 +397,9 @@ def process_buildbot_log(all_log_lines, from_url):
 
     except Exception, e:
         Log.error("Problem with calculating durations", cause=e)
+
+    data.end_time = end_time
+    data.duration = end_time - start_time
     return data
 
 
@@ -429,7 +441,8 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/pvanderbeken@mozilla.com-f2ccccf07663/try-linux64/try_ubuntu64_hw_test-g2-bm103-tests1-linux-build799.txt.gz")
+    # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-win32-pgo/1444309954/mozilla-beta_xp-ix_test-chromez-pgo-bm110-tests1-windows-build62.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:
     #         l.decode('latin1').encode('utf8')

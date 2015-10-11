@@ -12,6 +12,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
@@ -45,6 +46,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
+            "revision": get_git_revision(),
             "source": pulse_record.etl,
             "type": "join"
         })

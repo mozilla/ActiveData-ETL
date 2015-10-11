@@ -1,6 +1,6 @@
 {
 	"limit": 5000,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
-	"no_checks": false,
+	"no_checks": true,
 	"range": {"min": 90000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"source": {
