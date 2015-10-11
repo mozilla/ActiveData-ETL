@@ -88,7 +88,7 @@ class S3Bucket(object):
         #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
         if self.bucket.name == "ekyle-test-result":
              #TODO: PUT THIS LOGIC ELSEWHERE (LIKE settings) WE DO NOT CARE WHAT'S IN THE BUCKET, OVERWRITE ALL
-            self.bucket.write_lines(key, map(convert.value2json, documents))
+            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
             return
 
         meta = self.bucket.get_meta(key)
@@ -111,7 +111,7 @@ class S3Bucket(object):
             if residual:
                 documents = documents | residual
 
-        self.bucket.write_lines(key, map(convert.value2json, documents))
+        self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
 
     def add(self, dco):
         Log.error("Not supported")

@@ -116,7 +116,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://mozilla-releng-blobs.s3.amazonaws.com/blobs/pine/sha512/b3cc1ce09aca09bd0e45065653673a0aa5c0825faace97f7ffd1d48eb94c3d7b14f27694d7056e31dd48a7e392f2b9f41d63d2b9773363e98a0374d69b817c24")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
 
     def extend(data):
         for d in data:

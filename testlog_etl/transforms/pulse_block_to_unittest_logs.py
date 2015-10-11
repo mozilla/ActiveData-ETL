@@ -71,9 +71,11 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
 
                     destination.write_lines(
                         dest_key,
-                        convert.value2json(dest_etl),  # ETL HEADER
-                        line,  # PULSE MESSAGE
-                        log_content
+                        [
+                            convert.value2json(dest_etl),  # ETL HEADER
+                            line,  # PULSE MESSAGE
+                            log_content
+                        ]
                     )
                     file_num += 1
                     output.append(dest_key)

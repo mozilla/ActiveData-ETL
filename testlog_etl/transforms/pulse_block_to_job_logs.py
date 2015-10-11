@@ -26,7 +26,7 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transfo
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 _ = convert
-DEBUG = False
+DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 
 
@@ -110,8 +110,9 @@ MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) 
 MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
+harness_time_zone = None
 
-def match_mozharness_line(log_date, prev_line, curr_line, next_line):
+def match_mozharness_line(start_time, prev_line, curr_line, next_line):
     """
     log_date - IN %Y-%m-%d FORMAT FOR APPENDING TO THE TIME-OF-DAY STAMPS
     FOUND IN LOG LINES
@@ -124,6 +125,7 @@ def match_mozharness_line(log_date, prev_line, curr_line, next_line):
     05:20:05     INFO - ##### Running download-and-extract step.
     05:20:05     INFO - #####
     """
+    global harness_time_zone
 
     if len(next_line) != 25 or len(prev_line) != 25:
         return None
@@ -141,7 +143,16 @@ def match_mozharness_line(log_date, prev_line, curr_line, next_line):
         _time, message = match.group(1, 2)
         mode = "summary"
 
-    timestamp = Date(log_date + " " + _time, "%Y-%m-%d %H:%M:%S")
+    timestamp = Date((start_time - 12 * HOUR).format("%Y-%m-%d") + " " + _time, "%Y-%m-%d %H:%M:%S")
+    if harness_time_zone is None:
+        harness_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
+        if DEBUG:
+            Log.note("Harness time zone is {{zone}}", zone=harness_time_zone / HOUR)
+    timestamp += harness_time_zone
+    if timestamp < start_time - MAX_TIMING_ERROR:
+        #STARTS ON ONE DAY, AND CONTINUES IN WEE HOURS OF NEXT
+        timestamp += DAY
+
     if DEBUG:
         Log.note("{{line}}", line=curr_line)
     return timestamp, mode, message
@@ -257,10 +268,8 @@ def process_buildbot_log(all_log_lines, from_url):
 
     start_time = None
     end_time = None
-    log_date = None
     builder_step_name = None
     builder_time_zone = None
-    harness_time_zone = None
 
     prev_line = ""
     curr_line = ""
@@ -296,7 +305,8 @@ def process_buildbot_log(all_log_lines, from_url):
                 if key == "starttime":
                     data[key] = None
                     data["start_time"] = start_time = end_time = Date(float(value))
-                    log_date = start_time.floor(DAY).format("%Y-%m-%d")
+                    if DEBUG:
+                        Log.note("start_time = {{start_time|date}}", start_time=start_time)
                 if key == "results":
                     data[key] = buildbot.STATUS_CODES[value]
                 continue
@@ -344,17 +354,9 @@ def process_buildbot_log(all_log_lines, from_url):
                 data.timings.append({"builder": builder_step})
             continue
 
-        mozharness_says = match_mozharness_line(log_date, prev_line, curr_line, next_line)
+        mozharness_says = match_mozharness_line(start_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
-            if harness_time_zone is None:
-                harness_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
-                if DEBUG:
-                    Log.note("Harness time zone is {{zone}}", zone=harness_time_zone / HOUR)
-            timestamp += harness_time_zone
-            if timestamp < start_time - MAX_TIMING_ERROR:
-                #STARTS ON ONE DAY, AND CONTINUES IN WEE HOURS OF NEXT
-                timestamp += DAY
             end_time = Math.max(end_time, timestamp)
 
             builder_step.children += [{
