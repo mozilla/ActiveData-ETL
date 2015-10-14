@@ -115,7 +115,8 @@ BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2
 class HarnessLines(object):
 
     def __init__(self):
-        self.harness_time_zone = None
+        self.time_zone = None
+        self.time_skew = None
 
     def match(self, last_timestamp, prev_line, curr_line, next_line):
         """
@@ -150,11 +151,12 @@ class HarnessLines(object):
         timestamp = Date((last_timestamp - 12 * HOUR).format("%Y-%m-%d") + " " + _time, "%Y-%m-%d %H:%M:%S")
         if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
             timestamp += DAY
-        if self.harness_time_zone is None:
-            self.harness_time_zone = Math.ceiling((last_timestamp - timestamp - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+        if self.time_zone is None:
+            self.time_skew = last_timestamp - timestamp
+            self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
             if DEBUG:
-                Log.note("Harness time zone is {{zone}}", zone=self.harness_time_zone / HOUR)
-        timestamp += self.harness_time_zone
+                Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
+        timestamp += self.time_zone
 
         if DEBUG:
             Log.note("{{line}}", line=curr_line)
@@ -165,10 +167,11 @@ class BuilderLines(object):
 
 
     def __init__(self):
+        self.time_zone = None
         self.last_elapse_time = None
         self.last_elapse_time_age = 0  # KEEP TRACK OF HOW MANY LINES AGO WE SAW elapsedTime
 
-    def match(self, line):
+    def match(self, start_time, line):
         """
         RETURN (timestamp, elapsed, message, done, status) QUADRUPLE
 
@@ -244,6 +247,13 @@ class BuilderLines(object):
             parts = None
 
         timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
+        if self.time_zone is None:
+            self.time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
+            if DEBUG:
+                Log.note("Builder time zone is {{zone}}", zone=self.time_zone/HOUR)
+        timestamp += self.time_zone
+
+
 
         if DEBUG:
             Log.note("{{line}}", line=line)
@@ -272,7 +282,6 @@ def process_buildbot_log(all_log_lines, from_url):
     start_time = None
     end_time = None
     builder_step_name = None
-    builder_time_zone = None
     builder_line = BuilderLines()
     mozharness_line = HarnessLines()
 
@@ -327,11 +336,6 @@ def process_buildbot_log(all_log_lines, from_url):
             process_head = False
             timestamp, elapsed, builder_step_name, parts, done, status = builder_says
 
-            if builder_time_zone is None:
-                builder_time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
-                if DEBUG:
-                    Log.note("Builder time zone is {{zone}}", zone=builder_time_zone/HOUR)
-            timestamp += builder_time_zone
             end_time = Math.max(end_time, timestamp)
 
             if done:
@@ -400,6 +404,9 @@ def process_buildbot_log(all_log_lines, from_url):
 
     data.end_time = end_time
     data.duration = end_time - start_time
+    data.builder_time_zone = builder_line.time_zone
+    data.harness_time_zone = mozharness_line.time_zone
+    data.harness_time_skew = mozharness_line.time_skew
     return data
 
 
@@ -442,7 +449,7 @@ def verify_equal(data, expected, duplicate):
 
 if __name__ == "__main__":
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-win32-pgo/1444309954/mozilla-beta_xp-ix_test-chromez-pgo-bm110-tests1-windows-build62.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:
     #         l.decode('latin1').encode('utf8')
