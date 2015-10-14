@@ -325,12 +325,12 @@ def process_buildbot_log(all_log_lines, from_url):
                     data[key] = buildbot.STATUS_CODES[value]
                 continue
             except Exception, e:
-                builder_says = builder_line.match(log_line)
+                builder_says = builder_line.match(start_time, log_line)
                 if not builder_says:
                     Log.warning("Log header {{log_line}} can not be processed", log_line=log_line, cause=e)
                     continue
         else:
-            builder_says = builder_line.match(log_line)
+            builder_says = builder_line.match(start_time, log_line)
 
         if builder_says:
             process_head = False
