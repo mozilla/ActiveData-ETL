@@ -550,9 +550,9 @@ class Thread(object):
                     break
             return
 
-        if seconds is not None:
+        if seconds != None:
             time.sleep(seconds)
-        elif till is not None:
+        elif till != None:
             if isinstance(till, datetime):
                 duration = (till - datetime.utcnow()).total_seconds()
             else:
