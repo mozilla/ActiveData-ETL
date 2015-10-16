@@ -171,7 +171,7 @@ class BuilderLines(object):
         self.last_elapse_time = None
         self.last_elapse_time_age = 0  # KEEP TRACK OF HOW MANY LINES AGO WE SAW elapsedTime
 
-    def match(self, start_time, line):
+    def match(self, start_time, line, next_line):
         """
         RETURN (timestamp, elapsed, message, done, status) QUADRUPLE
 
@@ -240,11 +240,10 @@ class BuilderLines(object):
             #SOME message END WITH THE STATUS STRING
             message = message[:-(len(status) + 1)].strip()
 
-        if message.startswith("set props: "):
-            parts = unwraplist(map(unicode.strip, message[11:].split(" ")))
-            message = "set props"
+        if not done:
+            command, parts = parse_builder_message(message, next_line)
         else:
-            parts = None
+            command = None
 
         timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
         if self.time_zone is None:
@@ -253,11 +252,81 @@ class BuilderLines(object):
                 Log.note("Builder time zone is {{zone}}", zone=self.time_zone/HOUR)
         timestamp += self.time_zone
 
-
-
         if DEBUG:
             Log.note("{{line}}", line=line)
-        return timestamp, self.last_elapse_time, message, parts, done, status
+        return timestamp, self.last_elapse_time, message, command, parts, done, status
+
+
+def parse_builder_message(message, next_line):
+    if message.startswith("set props: "):
+        parts = message.split(" ")[2:]
+        message = "set props"
+    elif message.startswith("mock-install "):
+        # mock-install autoconf213 mozilla-python27 zip mozilla-python27-mercurial git ccache glibc-static libstdc++-static perl-Test-Simple perl-Config-General gtk2-devel libnotify-devel yasm alsa-lib-devel libcurl-devel wireless-tools-devel libX11-devel libXt-devel mesa-libGL-devel gnome-vfs2-devel mpfr xorg-x11-font imake ccache wget gcc472_0moz1 gcc473_0moz1 freetype-2.3.11-6.el6_2.9 freetype-devel-2.3.11-6.el6_2.9 gstreamer-devel gstreamer-plugins-base-devel
+        parts = message.split(" ")[1:]
+        message = "mock-install"
+    elif message.startswith("python "):
+        # python c:/builds/moz2_slave/rel-m-beta-w32_bld-00000000000/build/build/pymake/make.py partial mar
+        message = message.split(" ")[1].split("/")[-1]
+        parts = None
+    elif message.startswith("'/tools/buildbot/bin/python "):
+        # '/tools/buildbot/bin/python scripts/scripts/desktop_unittest.py ...'
+        message = message.split(" ")[1].split("/")[-1]
+        parts = None
+    elif message.startswith("'python "):
+        message = message.split(" ")[1].split("/")[-1]
+        parts = None
+    elif message.startswith("'sh "):
+        # 'sh c:/builds/moz2_slave/tb-c-esr38-w32-000000000000000/tools/scripts/tooltool/tooltool_wrapper.sh ...'
+        message = message.split(" ")[1].split("/")[-1]
+        parts = None
+    elif message.startswith("'perl "):
+        # 'sh c:/builds/moz2_slave/tb-c-esr38-w32-000000000000000/tools/scripts/tooltool/tooltool_wrapper.sh ...'
+        message = message.split(" ")[1].split("/")[-1]
+        parts = None
+    elif message.startswith("'c:/mozilla-build/python27/python -u "):
+        if not next_line:
+            return message, None
+        new_message = parse_command_line(next_line)[2].split("/")[-1]
+        return parse_builder_message(new_message, "")
+    elif message == "'bash -c ..'":
+        if not next_line:
+            return message, None
+        new_message = " ".join(parse_command_line(next_line)[2:])
+        return parse_builder_message(new_message, "")
+    else:
+        parts = None
+
+    return message, parts
+
+def parse_command_line(line):
+    """
+    space separated, single-quoted strings
+    """
+    output = []
+    i = 0
+    while i < len(line):
+        c = line[i]
+        i += 1
+        if c == "'":
+            value = c
+            c = line[i]
+            i += 1
+            while True:
+                if c == "'":
+                    value += c
+                    output.append(convert.quote2string(value))
+                    break
+                elif c == "\\":
+                    value += c + line[i]
+                    i += 1
+                else:
+                    value += c
+
+                c = line[i]
+                i += 1
+    return output
+
 
 
 def process_buildbot_log(all_log_lines, from_url):
@@ -281,7 +350,7 @@ def process_buildbot_log(all_log_lines, from_url):
 
     start_time = None
     end_time = None
-    builder_step_name = None
+    builder_raw_step_name = None
     builder_line = BuilderLines()
     mozharness_line = HarnessLines()
 
@@ -305,6 +374,9 @@ def process_buildbot_log(all_log_lines, from_url):
         curr_line = next_line
         next_line = log_line
 
+        if not curr_line:
+            continue
+
         if process_head:
             # builder: mozilla-inbound_ubuntu32_vm_test-mochitest-e10s-browser-chrome-3
             # slave: tst-linux32-spot-149
@@ -314,7 +386,7 @@ def process_buildbot_log(all_log_lines, from_url):
             # builduid: 64d75a07877a458fb9f21220ae4cb5a8
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
-                key, value = log_line.split(": ")
+                key, value = curr_line.split(": ")
                 data[key] = value
                 if key == "starttime":
                     data[key] = None
@@ -325,27 +397,28 @@ def process_buildbot_log(all_log_lines, from_url):
                     data[key] = buildbot.STATUS_CODES[value]
                 continue
             except Exception, e:
-                builder_says = builder_line.match(start_time, log_line)
+                builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
-                    Log.warning("Log header {{log_line}} can not be processed", log_line=log_line, cause=e)
+                    Log.warning("Log header {{log_line}} can not be processed", log_line=curr_line, cause=e)
                     continue
         else:
-            builder_says = builder_line.match(start_time, log_line)
+            builder_says = builder_line.match(start_time, curr_line, next_line)
 
         if builder_says:
             process_head = False
-            timestamp, elapsed, builder_step_name, parts, done, status = builder_says
+            timestamp, elapsed, builder_raw_step_name, command, parts, done, status = builder_says
 
             end_time = Math.max(end_time, timestamp)
 
             if done:
-                if builder_step.step == builder_step_name:
+                if builder_step.raw_step == builder_raw_step_name:
                     builder_step.end_time = timestamp
                     builder_step.status = status
                     builder_step.elapsedTime = elapsed
                 else:
                     builder_step = wrap({
-                        "step": builder_step_name,
+                        "raw_step": builder_raw_step_name,
+                        "step": command,
                         "parts": parts,
                         "start_time": builder_step.end_time,
                         "end_time": timestamp,
@@ -355,7 +428,8 @@ def process_buildbot_log(all_log_lines, from_url):
                     data.timings.append({"builder": builder_step})
             else:
                 builder_step = wrap({
-                    "step": builder_step_name,
+                    "raw_step": builder_raw_step_name,
+                    "step": command,
                     "parts": parts,
                     "start_time": timestamp,
                     "status": status
@@ -448,8 +522,8 @@ def verify_equal(data, expected, duplicate):
 
 
 if __name__ == "__main__":
-    # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
+    # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:
     #         l.decode('latin1').encode('utf8')
