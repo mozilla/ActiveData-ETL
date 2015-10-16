@@ -12,14 +12,10 @@ import zlib
 
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, set_default
+from pyLibrary.dot import wrap
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
-from pyLibrary.maths import Math
-from pyLibrary.queries import qb
-from pyLibrary.queries.index import Index
-from pyLibrary.testing import elasticsearch
-from pyLibrary.times.durations import SECOND, DAY
+from testlog_etl.imports.buildbot import BuildbotTranslator
 
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
@@ -56,16 +52,7 @@ def compare_to_es(settings):
         tasks = stream.parse(
             json(),
             "builds",
-            expected_vars=[
-                "builds.starttime",
-                "builds.endtime",
-                "builds.requesttime",
-                "builds.reason",
-                "builds.properties.request_times",
-                "builds.properties.slavename",
-                "builds.properties.log_url",
-                "builds.properties.buildername"
-            ]
+            expected_vars=["."]
         )
 
         temp = []
@@ -75,33 +62,36 @@ def compare_to_es(settings):
                 break
         tasks = wrap(temp)
 
-        Log.note("Number of builds = {{count}}", count=len(tasks))
-        es = elasticsearch.Index(settings.elasticsearch)
-
-        # FIND IN ES
-        found = http.get_json(url=ACTIVE_DATA, json={
-            "from": "jobs",
-            "select": ["_id", "run.key", "run.logurl", "action.start_time", "action.end_time"],
-            "where": {"and": [
-                {"gte": {"action.start_time": Math.floor(Math.MIN(tasks.starttime), DAY.seconds) - DAY.seconds}},
-                {"lt": {"action.start_time": Math.ceiling(Math.MAX(tasks.endtime), DAY.seconds) + DAY.seconds}}
-            ]},
-            "limit": 1000,
-            "format": "list"
-        })
-
-        existing = Index(keys="run.logurl", data=found)
-
-        count=0
+        b = BuildbotTranslator()
         for t in tasks:
-            if any(map(t.properties.slavename.startswith, ["b-2008", "bld-linux", "bld-lion"])):
-                continue
-            e = existing[t.properties.log_url]
-            if not e:
-                count+=1
-                Log.note("missing\n{{task}}", task=t)
-
-        Log.note("missing count = {{count}}", count=count)
+            b.parse(t)
+        # Log.note("Number of builds = {{count}}", count=len(tasks))
+        # es = elasticsearch.Index(settings.elasticsearch)
+        #
+        # # FIND IN ES
+        # found = http.get_json(url=ACTIVE_DATA, json={
+        #     "from": "jobs",
+        #     "select": ["_id", "run.key", "run.logurl", "action.start_time", "action.end_time"],
+        #     "where": {"and": [
+        #         {"gte": {"action.start_time": Math.floor(Math.MIN(tasks.starttime), DAY.seconds) - DAY.seconds}},
+        #         {"lt": {"action.start_time": Math.ceiling(Math.MAX(tasks.endtime), DAY.seconds) + DAY.seconds}}
+        #     ]},
+        #     "limit": 1000,
+        #     "format": "list"
+        # })
+        #
+        # existing = Index(keys="run.logurl", data=found)
+        #
+        # count=0
+        # for t in tasks:
+        #     if any(map(t.properties.slavename.startswith, ["b-2008", "bld-linux", "bld-lion"])):
+        #         continue
+        #     e = existing[t.properties.log_url]
+        #     if not e:
+        #         count+=1
+        #         Log.note("missing\n{{task}}", task=t)
+        #
+        # Log.note("missing count = {{count}}", count=count)
 
 
 
