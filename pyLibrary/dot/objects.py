@@ -69,6 +69,8 @@ class DictObject(Mapping):
                     yield k, getattr(obj, k, None)
             return output()
 
+    def as_dict(self):
+        return self
 
     def __iter__(self):
         return (k for k in self.keys())
