@@ -9,15 +9,15 @@
 
 from __future__ import unicode_literals
 from __future__ import division
-from collections import Mapping
-import copy
-import os
-import re
-from pyLibrary import convert
 
+import copy
+import re
+
+from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict
-from pyLibrary.times.dates import Date
+from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
+from pyLibrary.maths import Math
+from pyLibrary.times.dates import Date, unicode2datetime
 
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
@@ -47,443 +47,353 @@ STATUS_CODES = {
     "cancelled (6)": "cancelled"
 }
 
+RATIO = re.compile(r"(\d+/\d+)")
 
 class BuildbotTranslator(object):
-    def _process_unittest(self, data):
-        if data['platform'] in ignored_platforms:
-            return
-        if not data.get('logurl'):
-            Log.error("No log URL in {{key|quote}}", data)
-        if data.platform not in platforms:
-            Log.error("Bad platform in {{key|quote}}", data)
-        elif data.os not in platforms[data.platform]:
-            Log.error("Bad OS {{os}} in {{key|quote}}", data)
 
-        if not self.settings.destination:
-            return
-        if not isinstance(self.settings.destination, Mapping):
-            Log.note("Test properties:\n{{data|indent}}", data=data)
-            return
-
-        self.loghandler.handle_message(data)
-
-    def _process_build(self, data):
-        if data.platform in ignored_platforms:
-            return
-        if data.platform not in platforms:
-            Log.error("Bad platform {{platform|quote}} in {{key|quote}}", data)
-        for tag in data['tags']:
-            if tag not in tags:
-                Log.error("Bad tag {{tag|quote}} in {{key|quote}}", data, tag=tag)
-        # Repacks do not have a buildurl included. We can remove this
-        # workaround once bug 857971 has been fixed
-        if not data.buildurl and not data.repack:
-            Log.warning("No build URL in {{key|quote}}", data)
-
-        if not self.settings.destination:
-            return
-        if not isinstance(self.settings.destination, Mapping):
-            Log.note("Build properties:\n{{data}}\n", data=data)
-            return
-
-        self.loghandler.handle_message(data)
+    def __init__(self):
+        self.unknown_platforms=[]
 
     def parse(self, data):
         data = wrap(data)
-        if data._meta.routing_key == "heartbeat":
-            Log.note("heartbeat")
-            return
+        output = Dict()
 
-        stage_platform = None
-        key = data._meta.routing_key
+        output.action.start_time = data.starttime
+        output.action.end_time = data.endtime
+        output.action.request_time = data.requesttime
+        output.action.reason = data.reason
 
-        # Create a dict that holds build properties that apply to both
-        # unittests and builds.
-        builddata = Dict(key=key)
+        props = data.properties
+        if not props:
+            return output
 
-        # scan the payload for properties applicable to both tests and
-        # builds
-        for k, v, source in data.payload.build.properties:
+        output.run.key = key = props.buildername
+        if key.startswith("TB "):
+            key = key[3:]
 
-            # look for the job number
-            if k == 'buildnumber':
-                builddata.job_number = v
+        ratio = RATIO.match(key.split("_")[-1])
+        if ratio:
+            output.build.step = ratio.groups()[0]
 
-            # look for revision
-            if k == 'revision':
-                builddata.revision = v
+        output.run.timestamp = data.starttime
+        output.run.job_number = props.buildnumber
+        output.build.revision = props.revision
+        output.build.revision12 = props.revision[0:12]
+        output.build.product = props.product.lower()
+        output.version = props.version
 
-            # look for product
-            elif k == 'product':
-                # Bug 1010120:
-                # Ensure to lowercase to prevent issues with capitalization
-                builddata.product = v.lower()
+        try:
+            output.build.date = Date(unicode2datetime(props.buildid, "%Y%m%d%H%M%S"))
+            output.build.id = props.buildid
+            props.buildid = None
+        except Exception, _:
+            output.build.id = "<error>"
 
-            # look for version
-            elif k == 'version':
-                builddata.version = v
+        output.build.locale = coalesce(props.locale, 'en-US')
+        if props.locales:  # nightly repack build
+            output.action.repack = True
+            data.build.locale = None
+            try:
+                data.build.locales = convert.json2value(props.locales).keys()
+            except Exception:
+                data.build.locales = props.locales.split(",")
 
-            # look for tree
-            elif k == 'branch':
-                builddata.tree = v
-                # For builds, this property is sometimes a relative path,
-                # ('releases/mozilla-beta') and not just a name.  For
-                # consistency, we'll strip the path components.
-                if isinstance(builddata.tree, basestring):
-                    builddata.tree = os.path.basename(builddata.tree)
+        output.build.url = coalesce(props.packageUrl, props.build_url, props.fileURL)
+        output.run.logurl = props.log_url
+        if not output.run.logurl:
+            Log.warning("No log URL in {{data|quote}}", data=data)
 
-            # look for buildid
-            elif k == 'buildid':
-                builddata.buildid = v
-                builddata.builddate = Date(v)
+        output.build.release = coalesce(props.en_revision, props.script_repo_revision)
+        output.run.machine.name = coalesce(props.slavename, props.aws_instance_id)
+        output.run.machine.type = props.aws_instance_type
 
-            # look for the build number which comes with candidate builds
-            elif k == 'build_number':
-                builddata.build_number = v
+        try:
+            if props.blobber_files:
+                files = convert.json2value(props.blobber_files)
+                output.run.files = [
+                    {"name": name, "url": url}
+                    for name, url in files.items()
+                ]
+        except Exception, e:
+            Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=props.blobber_files, cause=e)
 
-            # look for the previous buildid
-            elif k == 'previous_buildid':
-                builddata.previous_buildid = v
+        output.build.product = props.product.lower()
 
-            # look for platform
-            elif k == 'platform':
-                builddata.platform = v
-                if (builddata.platform and
-                            '-debug' in builddata.platform):
-                    # strip '-debug' from the platform string if it's
-                    # present
-                    builddata.platform = builddata.platform[
-                                         0:builddata.platform.find('-debug')]
-
-            # look for the locale
-            elif k == 'locale':
-                builddata.locale = v
-
-            # look for the locale
-            elif k == 'locales':
-                builddata.locales = v
-
-            # look for build url
-            elif k in ['packageUrl', 'build_url', 'fileURL']:
-                builddata.buildurl = v
-
-            # look for log url
-            elif k == 'log_url':
-                builddata.logurl = v
-
-            # look for release name
-            elif k in ['en_revision', 'script_repo_revision']:
-                builddata.release = v
-
-            # look for tests url
-            elif k == 'symbolsUrl':
-                builddata['symbols_url'] = v
-
-            elif k == 'testsUrl':
-                builddata.testsurl = v
-
-            # look for url to json manifest of test packages
-            elif k == 'testPackagesUrl':
-                builddata['test_packages_url'] = v
-
-            # look for buildername
-            elif k == 'buildername':
-                builddata.buildername = v
-
-            # look for slave builder
-            elif k == 'slavename':
-                builddata.slave = v
-
-            # look for blobber files
-            elif k == 'blobber_files':
-                try:
-                    builddata.blobber_files = convert.json2value(v)
-                except ValueError:
-                    Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=v)
-
-            # look for stage_platform
-            elif k == 'stage_platform':
-                # For some messages, the platform we really care about
-                # is in the 'stage_platform' property, not the 'platform'
-                # property.
-                stage_platform = v
-                for buildtype in buildtypes:
-                    if buildtype in stage_platform:
-                        stage_platform = stage_platform[0:stage_platform.find(buildtype) - 1]
-
-            elif k == 'completeMarUrl':
-                builddata.completemarurl = v
-
-            elif k == 'completeMarHash':
-                builddata.completemarhash = v
-
-        if not builddata.tree:
+        # PLATFORM
+        platform = props.platform
+        for vm in build_vms:
+            if platform.endswith("_" + vm):
+                platform = platform[:-len(vm) - 1]
+                output.build.vm = vm
+                break
+        output.build.platform = platform
+        # BRANCH
+        output.build.branch = props.branch
+        if not output.build.branch:
             Log.error("{{key|quote}} no 'branch' property", key=key)
+        branch_name = output.build.branch.split("/")[-1]
 
-        # If no locale is given fallback to en-US
-        if not builddata.locale:
-            builddata.locale = 'en-US'
+        output.run.buildbot_status = STATUS_CODES[data.result]
 
-        # status of the build or test notification
-        # see http://hg.mozilla.org/build/buildbot/file/08b7c51d2962/master/buildbot/status/builder.py#l25
-        builddata.status = data.payload.build.results
+        if 'release' in key:
+            output.tags += ['release']
+        if key.endswith("nightly"):
+            output.tags += ["nightly"]
 
-        if 'debug' in key:
-            builddata.buildtype = 'debug'
-        elif 'pgo' in key:
-            builddata.buildtype = 'pgo'
+        for b in build_names:
+            if key == strings.expand_template(b, {
+                "branch": branch_name,
+                "platform": output.build.platform,
+                "product": output.build.product.lower(),
+                "vm": output.build.vm,
+                "step": output.build.step,
+            }):
+                output.build.name = props.buildername
+                scrub_known_properties(props)
+                output.other = props
+                return output
+
+        if key.startswith("fuzzer"):
+            pass
+        elif 'xulrunner' in key:
+            output.build.product = 'xulrunner'
+        elif 'l10n' in key or 'repack' in key:
+            output.action.repack = True
+        elif key.startswith("jetpack-"):
+            for t in build_types:
+                if key.endswith("-" + t):
+                    output.build.type += [t]
+
+            match = re.match(strings.expand_template(
+                "jetpack-(.*)-{{platform}}-{{type}}",
+                {
+                    "platform": output.build.platform,
+                    "type": unwraplist(output.build.type)
+                }
+            ), key)
+
+            if not match:
+                Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
+
+            if branch_name == "addon-sdk":
+                output.build.branch = match.groups()[0]
+        elif key.endswith("nightly"):
+            try:
+                output.build.name = props.buildername
+                platform, build = key.split(" " + branch_name + " ")
+                set_default(output, platform_names[platform])
+
+                for t in build_types:
+                    if t in build:
+                        output.build.type += [t]
+            except Exception:
+                Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
+
+        elif key.endswith("build"):
+            try:
+                output.build.name = props.buildername
+                platform, build = key.split(" " + branch_name + " ")
+                set_default(output, platform_names[platform])
+            except Exception, e:
+                raise Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
+
+            for t in build_modes:
+                if t in build:
+                    output.tags += [t]
+            for t in build_types:
+                if t in build:
+                    output.build.type += [t]
+        elif key.endswith("valgrind"):
+            output.build.name = props.buildername
+            platform, build = key.split(" " + branch_name + " ")
+            set_default(output, platform_names[platform])
         else:
-            builddata.buildtype = 'opt'
+            # FORMAT: <platform> <branch> <test_mode> <test_name> <other>
+            try:
+                platform, test = key.split(" " + branch_name + " ")
+            except Exception:
+                Log.error("Not recognized: {{key}}\n{{data}}", key=key, data=data)
 
-        # see if this message is for a unittest
-        unittestRe = re.compile(r'build\.((%s)[-|_](.*?)(-debug|-o-debug|-pgo|_pgo|_test)?[-|_](test|unittest|pgo)-(.*?))\.(\d+)\.(log_uploaded|finished)' %
-                                builddata.tree)
-        match = unittestRe.match(key)
-        if match:
-            # for unittests, generate some metadata by parsing the key
-
-            if match.groups()[7] == 'finished':
-                # Ignore this message, we only care about 'log_uploaded'
-                # messages for unittests.
-                return
-
-            # The 'short_builder' string is quite arbitrary, and so this
-            # code is expected to be fragile, and will likely need
-            # frequent maintenance to deal with future changes to this
-            # string.  Unfortunately, these items are not available
-            # in a more straightforward fashion at present.
-            short_builder = match.groups()[0]
-
-            builddata.os = match.groups()[2]
-            if builddata.os in os_conversions:
-                builddata.os = os_conversions[
-                    builddata.os](builddata)
-
-            builddata.test = match.groups()[5]
-
-            # yuck!!
-            if builddata.test.endswith('_2'):
-                short_builder = "%s.2" % short_builder[0:-2]
-            elif builddata.test.endswith('_2-pgo'):
-                short_builder = "%s.2-pgo" % short_builder[0:-6]
-
-            builddata.talos = 'talos' in builddata.buildername
-
-            if stage_platform:
-                builddata.platform = stage_platform
-
-            self._process_unittest(builddata)
-        elif 'source' in key:
-            # what is this?
-            # ex: build.release-mozilla-esr10-firefox_source.0.finished
-            pass
-        elif [x for x in ['schedulers', 'tag', 'submitter', 'final_verification', 'fuzzer'] if x in key]:
-            # internal buildbot stuff we don't care about
-            # ex: build.release-mozilla-beta-firefox_reset_schedulers.12.finished
-            # ex: build.release-mozilla-beta-fennec_tag.40.finished
-            # ex: build.release-mozilla-beta-bouncer_submitter.46.finished
-            pass
-        elif 'jetpack' in key:
-            # These are very awkwardly formed; i.e.
-            # build.jetpack-mozilla-central-win7-debug.18.finished,
-            # and the tree appears nowhere except this string.  In order
-            # to support these we'd have to keep a tree map of all
-            # possible trees.
-            pass
-        else:
-            if not builddata.platform:
-                if stage_platform:
-                    builddata.platform = stage_platform
+            output.build.name = platform
+            if platform not in platform_names:
+                if platform not in self.unknown_platforms:
+                    self.unknown_platforms += [platform]
+                    Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=platform, data=data)
                 else:
-                    # Some messages don't contain the platform
-                    # in any place other than the routing key, so we'll
-                    # have to guess it based on that.
-                    builddata.platform = guess_platform(key)
-                    if not builddata.platform:
-                        Log.error("{{key|quote}} no \"platform\" property", key=key)
+                    return None  # ERROR INGNORED, ALREADY SENT
 
-            otherRe = re.compile(r'build\.((release-|jetpack-|b2g_)?(%s)[-|_](xulrunner[-|_])?(%s)([-|_]?)(.*?))\.(\d+)\.(log_uploaded|finished)' %
-                                 (builddata.tree, builddata.platform))
-            match = otherRe.match(key)
+            set_default(output, platform_names[platform])
 
-            if match:
-                if 'finished' in match.group(9):
-                    # Ignore this message, we only care about 'log_uploaded'
-                    # messages for builds
-                    return
+            parsed = parse_test(test, output)
+            if not parsed:
+                Log.error("Test mode not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
-                builddata.tags = match.group(7).replace('_', '-').split('-')
+        scrub_known_properties(props)
+        output.other = props
 
-                # There are some tags we don't care about as tags,
-                # usually because they are redundant with other properties,
-                # so remove them.
-                notags = ['debug', 'pgo', 'opt', 'repack']
-                builddata.tags = [x for x in builddata.tags if x not in notags]
+        if "e10s" in key.lower() and output.run.type != 'e10s':
+            Log.error("Did not pickup e10s in\n{{data|json}}", data=data)
 
-                # Sometimes a tag will just be a digit, i.e.,
-                # build.mozilla-central-android-l10n_5.12.finished;
-                # strip these.
-                builddata.tags = [x for x in builddata.tags if not x.isdigit()]
-
-                if isinstance(match.group(2), basestring):
-                    if 'release' in match.group(2):
-                        builddata.tags.append('release')
-                    if 'jetpack' in match.group(2):
-                        builddata.tags.append('jetpack')
-
-                if match.group(4) or 'xulrunner' in builddata.tags:
-                    builddata.product = 'xulrunner'
-
-                # Sadly, the build url for emulator builds isn't published
-                # to the pulse stream, so we have to guess it.  See bug
-                # 1071642.
-                if ('emulator' in builddata.get('platform', '') and
-                            'try' not in key and builddata.get('buildid')):
-                    builddata.buildurl = (
-                        'https://pvtbuilds.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds' +
-                        '/%s-%s/%s/emulator.tar.gz' %
-                        (builddata.tree, builddata.platform,
-                         builddata.buildid))
-
-                # In case of repacks we have to send multiple notifications,
-                # each for every locale included. We can remove this
-                # workaround once bug 857971 has been fixed.
-                if 'repack' in key:
-                    builddata.repack = True
-
-                    if not builddata["locales"]:
-                        Log.error("Repack with no locales in {{key|quote}}", key=key)
-
-                    for locale in builddata["locales"].split(','):
-                        if not locale:
-                            Log.error("{{key|quote}} bad locals {{locales}}", builddata, key=key)
-
-                        data = copy.deepcopy(builddata)
-                        data.locale = locale
-                        self._process_build(data)
-
-                elif builddata['locales']:  # nightly repack build
-                    builddata['repack'] = True
-
-                    locales = convert.json2value(builddata['locales'])
-                    for locale in locales:
-                        # Use all properties except the locales array
-                        data = copy.deepcopy(builddata)
-                        del data['locales']
-
-                        # Process locale
-                        data['locale'] = locale
-                        self._process_build(data)
-
-                else:
-                    self._process_build(builddata)
-            else:
-                Log.error("Unknown message type: {{key|quote}}", key=key)
+        return output
 
 
-buildtypes = ['opt', 'debug', 'pgo']
+def parse_test(test, output):
+    # "web-platform-tests-e10s-7"
+    test = test.lower()
+
+    # CHUNK NUMBER
+    path = test.split("-")
+    if Math.is_integer(path[-1]):
+        output.run.chunk = int(path[-1])
+        test = "-".join(path[:-1])
+
+    if "-e10s" in test:
+        test = test.replace("-e10s", "")
+        output.run.type = "e10s"
+
+    for m, d in test_modes.items():
+        if test.startswith(m):
+            set_default(output, d)
+            return True
+
+    return False
+
+def scrub_known_properties(props):
+    props.aws_instance_id = None
+    props.aws_instance_type = None
+    props.blobber_files = None
+    props.branch = None
+    props.buildername = None
+    # props.buildid = None   #KEEP THE BAD ONE
+    props.buildnumber = None
+    props.build_url = None
+    props.fileURL = None
+    props.locale = None
+    props.locales = None
+    props.log_url = None
+    props.packageUrl = None
+    props.platform = None
+    props.product = None
+    props.revision = None
+    props.slavename = None
+    props.version = None
+
+    for k, v in props.request_times.items():
+        props.requests += [{"request_id": int(k), "timestamp": v}]
+    props.request_times = None
+    props.request_ids = None
 
 
-def guess_platform(builder):
-    for platform in sorted(platforms.keys(), reverse=True):
-        if platform in builder:
-            return platform
-
-    for key in platforms:
-        for os in platforms[key]:
-            if os in builder:
-                return os
-
-
-def convert_os(data):
-    if re.search(r'OS\s*X\s*10.5', data['buildername'], re.I):
-        return 'leopard'
-    if re.search(r'OS\s*X\s*10.6', data['buildername'], re.I):
-        return 'snowleopard'
-    if re.search(r'OS\s*X\s*10.7', data['buildername'], re.I):
-        return 'lion'
-    if re.search(r'OS\s*X\s*10.8', data['buildername'], re.I):
-        return 'mountainlion'
-    if re.search(r'WINNT\s*5.2', data['buildername'], re.I):
-        return 'xp'
-    return 'unknown'
-
-
-os_conversions = {
-    'leopard-o': lambda x: 'leopard',
-    'tegra_android-o': lambda x: 'tegra_android',
-    'macosx': convert_os,
-    'macosx64': convert_os,
-    'win32': convert_os,
+test_modes = {
+    "debug test": {"build": {"type": "debug"}},
+    "opt test": {"build": {"type": "opt"}},
+    "pgo test": {"build": {"type": "pgo"}},
+    "pgo talos": {"build": {"type": "pgo"}, "run": {"talos": True}},
+    "talos": {"run": {"talos": True}}
 }
 
-platforms = {
-    'emulator': ['emulator', 'ubuntu64_vm-b2g-emulator'],
-    'emulator-kk': ['emulator-kk'],
-    'emulator-jb': ['emulator-jb'],
-    'linux64-asan': ['linux64-asan', 'ubuntu64-asan_vm'],
-    'linux32_gecko': ['linux32_gecko', 'ubuntu32_vm-b2gdt'],
-    'linux64_gecko': ['linux64_gecko', 'ubuntu64_vm-b2gdt'],
-    'linux64-rpm': ['fedora64'],
-    'linux64': ['fedora64', 'ubuntu64', 'ubuntu64_hw', 'ubuntu64_vm'],
-    'linux64-mulet': ['linux64-mulet', 'ubuntu64_vm-mulet'],
-    'linuxqt': ['fedora'],
-    'linux-rpm': ['fedora'],
-    'linux': ['fedora', 'linux', 'ubuntu32', 'ubuntu32_vm', 'ubuntu32_hw'],
-    'win32': ['xp', 'win7', 'win8', 'win7-ix', 'xp-ix'],
-    'win32_gecko': ['win32_gecko'],
-    'win32-mulet': ['win32-mulet'],
-    'win64': ['w764', 'win8_64'],
-    'macosx64': ['macosx64', 'snowleopard', 'leopard', 'lion', 'mountainlion', 'yosemite'],
-    'macosx64_gecko': ['macosx64_gecko', 'mountainlion-b2gdt'],
-    'macosx64-mulet': ['macosx64-mulet'],
-    'macosx': ['macosx', 'leopard'],
-    'android-armv6': ['ubuntu64_vm_armv6_mobile', 'ubuntu64_vm_armv6_large'],
-    'android-x86': ['android-x86', 'ubuntu64_hw'],
-    'android': ['panda_android', 'ubuntu64_vm_mobile', 'ubuntu64_vm_large'],
-    'android-api-9': ['ubuntu64_vm_mobile', 'ubuntu64_vm_large'],
-    'android-api-10': ['panda_android'],
-    'android-api-11': ['panda_android', 'ubuntu64_vm_armv7_large', 'ubuntu64_vm_armv7_mobile'],
-    'ics_armv7a_gecko': ['ubuntu64-b2g'],
+build_names = [
+    'b2g_{{branch}}_{{platform}}-debug_periodic',
+    'b2g_{{branch}}_{{platform}}_dep',
+    'b2g_{{branch}}_{{platform}}_periodic',
+    'b2g_{{branch}}_{{platform}} build',
+    'b2g_{{branch}}_{{platform}}_nightly',
+    'b2g_{{branch}}_{{platform}} nightly',
+    'b2g_{{branch}}_emulator-debug_dep',
+    'b2g_{{branch}}_emulator_dep',
+    # 'b2g_{{branch}}_linux64-b2g-haz_dep',
+    'linux64-br-haz_{{branch}}_dep',
+    'graphene_{{branch}}_{{platform}} build',
+    'graphene_{{branch}}_linux64 build',
+    '{{branch}}-{{product}}_antivirus',
+    '{{branch}}-{{product}}_beta_ready_for_beta-cdntest_testing',
+    '{{branch}}-{{product}}_beta_ready_for_release',
+    '{{branch}}-{{product}}_beta_start_uptake_monitoring',
+    '{{branch}}-{{product}}_beta_updates',
+    '{{branch}}-{{product}}_bouncer_submitter',
+    '{{branch}}-{{product}}_checksums',
+    '{{branch}}-{{product}}_push_to_mirrors',
+    '{{branch}}-{{product}}_postrelease',
+    '{{branch}}-{{product}}_reset_schedulers',
+    '{{branch}}-{{product}}_release_ready_for_release-cdntest_testing',
+    '{{branch}}-{{product}}_release_ready_for_release',
+    '{{branch}}-{{product}}_release_start_uptake_monitoring',
+    '{{branch}}-{{product}}_release_updates',
+    '{{branch}}-{{product}}_source',
+    '{{branch}}-{{product}}_tag_source',
+    '{{branch}}-{{platform}}_build',
+    '{{branch}}-{{platform}}_update_verify_beta_{{step}}',
+    '{{branch}}-{{platform}}_update_verify_release_{{step}}',
+    '{{branch}}-{{platform}}_ui_update_verify_beta_{{step}}',
+    '{{branch}}-beta_final_verification',
+    '{{branch}}-check_permissions',
+    '{{branch}} hg bundle',
+    '{{branch}}-release_final_verification',
+    '{{branch}}-update_shipping_beta',
+    '{{branch}}-xr_postrelease',
+    '{{platform}}_{{branch}}_dep',
+    '{{platform}} {{branch}} periodic file update',
+    'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
+    '{{vm}}_{{branch}}_{{platform}} nightly',
+    '{{vm}}_{{branch}}_{{platform}} build'
+]
+
+build_types = [
+    "opt",
+    "pgo",
+    "debug",
+    "asan"
+]
+
+build_vms = [
+    "graphene",
+    "horizon"
+]
+
+build_modes = [
+    "leak test",
+    "static analysis"
+]
+
+platform_names = {
+    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0"}}, "build": {"platform": "arm7"}},
+    "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
+    "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
+    "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "arm7"}},
+    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "arm7"}},
+    "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "arm7"}},
+    "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator64"}},
+    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "flame-kk"}},
+    "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator-debug"}},
+    "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
+    "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator-debug"}},
+    "Linux": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
+    "Linux x86-64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "OS X 10.7": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
+    "OS X 10.7 64-bit": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
+    "OS X Mulet": {"run": {"machine": {"os": "mulet"}}, "build": {"platform": "macosx"}},
+    "Rev5 MacOSX Yosemite 10.10": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "Rev5 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "Rev4 MacOSX Snow Leopard 10.6": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
+    "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.10"}}, "build": {"platform": "macosx64"}},
+    "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
+    "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
+    "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
+    "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32-vm"}},
+    "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm"}},
+    "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
+    "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
+    "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
+    "Windows 10 64-bit":{"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
+    "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
+    "WINNT 6.1 x86-64": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "WINNT 6.2": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
+    "Win32 Mulet": {"run": {"machine": {"os": "mulet"}}, "build": {"platform": "win32"}},
 }
-
-ignored_platforms = [
-    'dolphin',
-    'dolphin_eng',
-    'dolphin-512',
-    'emulator-l',
-    'flame-kk',
-    'flame-kk_eng',
-    'linux64-b2g-haz',
-    'linux64-st-an',
-    'macosx64-st-an',
-    'nexus-4',
-    'nexus-4_eng',
-    'nexus-5-l',
-    'nexus-5-l_eng'
-]
-
-tags = [
-    '',
-    'build',
-    'dep',
-    'dtrace',
-    'l10n',
-    'nightly',
-    'nomethodjit',
-    'notracejit',
-    'release',
-    'shark',
-    'spidermonkey',
-    'valgrind',
-    'warnaserr',
-    'warnaserrdebug',
-    'xulrunner',
-    'arm',
-    'compacting',
-    'plain',
-    'plaindebug',
-    'rootanalysis',
-    'sim'
-]
-
