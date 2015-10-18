@@ -30,43 +30,40 @@ def compare_to_es(settings):
 
     b = BuildbotTranslator()
     b.parse({
-        "builder_id": 409530,
+        "builder_id": 465665,
         "buildnumber": 0,
-        "endtime": 1437072629,
-        "id": 70184225,
-        "master_id": 183,
+        "endtime": 1433209040,
+        "id": 67106087,
+        "master_id": 187,
         "properties": {
-            "basedir": "C:\\slave\\test",
-            "branch": "addon-sdk",
-            "buildername": "jetpack-fx-team-win7-ix-opt",
+            "basedir": "/builds/slave/rel-m-beta-xr_sums-00000000000",
+            "branch": "release-mozilla-beta",
+            "build_number": 1,
+            "buildername": "release-mozilla-beta-xulrunner_checksums",
             "buildnumber": 0,
-            "commit_titles": [
-                "Merge pull request #1448 from ZER0/panel-click/858976",
-                "Bug 858976 - cmd+click a link in a panel should open the link in a new tab"
-            ],
-            "log_url": "http://ftp.mozilla.org/pub/mozilla.org/jetpack/tinderbox-builds/addon-sdk-win7-ix/jetpack-fx-team-win7-ix-opt-bm111-tests1-windows-build0.txt.gz",
-            "master": "http://buildbot-master111.bb.releng.scl3.mozilla.com:8201/",
-            "platform": "win7-ix",
-            "product": "jetpack",
+            "log_url": "http://stage.mozilla.org/pub/mozilla.org/firefox/nightly/39.0b2-candidates/build1/logs/release-mozilla-beta-xulrunner_checksums-bm91-build1-build0.txt.gz",
+            "master": "http://buildbot-master91.bb.releng.usw2.mozilla.com:8001/",
+            "product": "Firefox",
             "project": "",
+            "release_config": "mozilla/release-firefox-mozilla-beta.py",
             "repository": "",
-            "request_ids": [75011601],
-            "request_times": {"75011601": 1437071679},
-            "revision": "42d1d4d63c204329d1e293d1fba5521f17379afa",
-            "scheduler": "jetpack",
-            "script_repo_revision": "da436987c292",
+            "request_ids": [71191057],
+            "request_times": {"71191057": 1433208995},
+            "scheduler": "release-mozilla-beta-xulrunner_deliverables_ready",
+            "script_repo_revision": "51d8c8053b93",
             "script_repo_url": "https://hg.mozilla.org/build/tools",
-            "slavename": "t-w732-ix-051"
+            "slavebuilddir": "rel-m-beta-xr_sums-00000000000",
+            "slavename": "bld-linux64-spot-316",
+            "toolsdir": "/builds/slave/rel-m-beta-xr_sums-00000000000/scripts",
+            "version": "39.0b2"
         },
-        "reason": "scheduler",
-        "request_ids": [75011601],
-        "requesttime": 1437071679,
-        "result": 1,
-        "slave_id": 4576,
-        "starttime": 1437071939
+        "reason": "downstream",
+        "request_ids": [71191057],
+        "requesttime": 1433208995,
+        "result": 0,
+        "slave_id": 6869,
+        "starttime": 1433209007
     }
-
-
     )
 
 
@@ -82,92 +79,94 @@ def compare_to_es(settings):
         paths = qb.reverse(qb.sort(paths))
 
     # paths = [None, "builds-2015-08-29.js.gz", "builds-2015-08-17.js.gz"]
-    for i, p in enumerate(paths[120::]):  # FIRST ONE IS TODAY, AND INCOMPLETE, SO SKIP IT
-        if i % 6 != 1:
-            continue
-        full_path = url + p
-        Log.note("process {{url}}", url=full_path)
-        response = http.get(full_path)
-        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-        def json():
-            last_bytes_count = 0  # Track the last byte count, so we do not show too many
-            bytes_count = 0
-            while True:
-                bytes_ = response.raw.read(4096)
-                if not bytes_:
-                    return
-                data = decompressor.decompress(bytes_)
-                bytes_count += len(data)
-                if Math.floor(last_bytes_count, 1000000) != Math.floor(bytes_count, 1000000):
-                    last_bytes_count = bytes_count
-                    Log.note("bytes={{bytes}}", bytes=bytes_count)
-                yield data
+    for i, p in enumerate(paths[100::]):  # FIRST ONE IS TODAY, AND INCOMPLETE, SO SKIP IT
+        try:
+            if i % 6 != 4:
+                continue
+            full_path = url + p
+            Log.note("process {{url}}", url=full_path)
+            response = http.get(full_path)
+            decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+            def json():
+                last_bytes_count = 0  # Track the last byte count, so we do not show too many
+                bytes_count = 0
+                while True:
+                    bytes_ = response.raw.read(4096)
+                    if not bytes_:
+                        return
+                    data = decompressor.decompress(bytes_)
+                    bytes_count += len(data)
+                    if Math.floor(last_bytes_count, 1000000) != Math.floor(bytes_count, 1000000):
+                        last_bytes_count = bytes_count
+                        Log.note("bytes={{bytes}}", bytes=bytes_count)
+                    yield data
 
-        tasks = stream.parse(
-            json(),
-            "builds",
-            expected_vars=["builds"]
-        )
+            tasks = stream.parse(
+                json(),
+                "builds",
+                expected_vars=["builds"]
+            )
 
-        # file = File("./tests/resources/buildbot_example.json")
-        # file.delete()
-        # temp = []
-        # for i, ts in qb.groupby(tasks, size=1000):
-        #     # file.extend(map(convert.value2json, ts.builds))
-        #     temp.extend(ts.builds)
-        #     Log.note("done {{i}}", i=i)
-        # tasks = wrap(temp)
+            # file = File("./tests/resources/buildbot_example.json")
+            # file.delete()
+            # temp = []
+            # for i, ts in qb.groupby(tasks, size=1000):
+            #     # file.extend(map(convert.value2json, ts.builds))
+            #     temp.extend(ts.builds)
+            #     Log.note("done {{i}}", i=i)
+            # tasks = wrap(temp)
 
-        # tasks = File("./tests/resources/buildbot_example.json").read_json()
+            # tasks = File("./tests/resources/buildbot_example.json").read_json()
 
-        result = Queue("")
+            result = Queue("")
 
-        file = File("./results/" + p)
-        file.delete()
-        def writer(please_stop):
-            while True:
-                j = result.pop_all()
-                if j:
-                    file.extend(map(convert.value2json, j))
-                else:
-                    Thread.sleep(1)
-        Thread.run("writer", writer)
+            file = File("./results/" + p[:-3])
+            file.delete()
+            def writer(please_stop):
+                while True:
+                    j = result.pop_all()
+                    if j:
+                        file.extend(map(convert.value2json, j))
+                    else:
+                        Thread.sleep(1)
+            Thread.run("writer", writer)
 
-        b = BuildbotTranslator()
-        for t in tasks:
-            try:
-                result.add(b.parse(t['builds']))
-            except Exception, e:
-                Log.warning("problem in {{path}}", path=full_path, cause=e)
-        result.add(Thread.STOP)
-        # Log.note("Number of builds = {{count}}", count=len(tasks))
-        # es = elasticsearch.Index(settings.elasticsearch)
-        #
-        # # FIND IN ES
-        # found = http.get_json(url=ACTIVE_DATA, json={
-        #     "from": "jobs",
-        #     "select": ["_id", "run.key", "run.logurl", "action.start_time", "action.end_time"],
-        #     "where": {"and": [
-        #         {"gte": {"action.start_time": Math.floor(Math.MIN(tasks.starttime), DAY.seconds) - DAY.seconds}},
-        #         {"lt": {"action.start_time": Math.ceiling(Math.MAX(tasks.endtime), DAY.seconds) + DAY.seconds}}
-        #     ]},
-        #     "limit": 1000,
-        #     "format": "list"
-        # })
-        #
-        # existing = Index(keys="run.logurl", data=found)
-        #
-        # count=0
-        # for t in tasks:
-        #     if any(map(t.properties.slavename.startswith, ["b-2008", "bld-linux", "bld-lion"])):
-        #         continue
-        #     e = existing[t.properties.log_url]
-        #     if not e:
-        #         count+=1
-        #         Log.note("missing\n{{task}}", task=t)
-        #
-        # Log.note("missing count = {{count}}", count=count)
-
+            b = BuildbotTranslator()
+            for t in tasks:
+                try:
+                    result.add(b.parse(t['builds']))
+                except Exception, e:
+                    Log.warning("problem in {{path}}", path=full_path, cause=e)
+            result.add(Thread.STOP)
+            # Log.note("Number of builds = {{count}}", count=len(tasks))
+            # es = elasticsearch.Index(settings.elasticsearch)
+            #
+            # # FIND IN ES
+            # found = http.get_json(url=ACTIVE_DATA, json={
+            #     "from": "jobs",
+            #     "select": ["_id", "run.key", "run.logurl", "action.start_time", "action.end_time"],
+            #     "where": {"and": [
+            #         {"gte": {"action.start_time": Math.floor(Math.MIN(tasks.starttime), DAY.seconds) - DAY.seconds}},
+            #         {"lt": {"action.start_time": Math.ceiling(Math.MAX(tasks.endtime), DAY.seconds) + DAY.seconds}}
+            #     ]},
+            #     "limit": 1000,
+            #     "format": "list"
+            # })
+            #
+            # existing = Index(keys="run.logurl", data=found)
+            #
+            # count=0
+            # for t in tasks:
+            #     if any(map(t.properties.slavename.startswith, ["b-2008", "bld-linux", "bld-lion"])):
+            #         continue
+            #     e = existing[t.properties.log_url]
+            #     if not e:
+            #         count+=1
+            #         Log.note("missing\n{{task}}", task=t)
+            #
+            # Log.note("missing count = {{count}}", count=count)
+        except Exception, e:
+            Log.warning("parse crash", cause=e)
 
 
 def main():

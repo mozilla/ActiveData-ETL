@@ -10,7 +10,6 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-import copy
 import re
 
 from pyLibrary import convert, strings
@@ -21,33 +20,6 @@ from pyLibrary.times.dates import Date, unicode2datetime
 
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
-
-STATUS_CODES = {
-    0: "success",
-    1: "warnings",
-    2: "failure",
-    3: "skipped",
-    4: "exception",
-    5: "retry",
-    6: "cancelled",
-    "0": "success",
-    "1": "warnings",
-    "2": "failure",
-    "3": "skipped",
-    "4": "exception",
-    "5": "retry",
-    "6": "cancelled",
-    None: None,
-    "success (0)": "success",
-    "warnings (1)": "warnings",
-    "failure (2)": "failure",
-    "skipped (3)": "skipped",
-    "exception (4)": "exception",
-    "retry (5)": "retry",
-    "cancelled (6)": "cancelled"
-}
-
-RATIO = re.compile(r"(\d+/\d+)")
 
 class BuildbotTranslator(object):
 
@@ -71,7 +43,7 @@ class BuildbotTranslator(object):
         if key.startswith("TB "):
             key = key[3:]
 
-        ratio = RATIO.match(key.split("_")[-1])
+        ratio = RATIO_PATTERN.match(key.split("_")[-1])
         if ratio:
             output.build.step = ratio.groups()[0]
 
@@ -100,9 +72,6 @@ class BuildbotTranslator(object):
 
         output.build.url = coalesce(props.packageUrl, props.build_url, props.fileURL)
         output.run.logurl = props.log_url
-        if not output.run.logurl:
-            Log.warning("No log URL in {{data|quote}}", data=data)
-
         output.build.release = coalesce(props.en_revision, props.script_repo_revision)
         output.run.machine.name = coalesce(props.slavename, props.aws_instance_id)
         output.run.machine.type = props.aws_instance_type
@@ -117,16 +86,20 @@ class BuildbotTranslator(object):
         except Exception, e:
             Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=props.blobber_files, cause=e)
 
+        #PRODUCT
         output.build.product = props.product.lower()
+        if "xulrunner" in key:
+            output.build.product = "xulrunner"
 
         # PLATFORM
         platform = props.platform
-        for vm in build_vms:
+        for vm in VIRTUAL_MACHINES:
             if platform.endswith("_" + vm):
                 platform = platform[:-len(vm) - 1]
                 output.build.vm = vm
                 break
         output.build.platform = platform
+
         # BRANCH
         output.build.branch = props.branch
         if not output.build.branch:
@@ -139,15 +112,23 @@ class BuildbotTranslator(object):
             output.tags += ['release']
         if key.endswith("nightly"):
             output.tags += ["nightly"]
+        if "Code Coverage " in key:
+            if output.build.platform.endswith("-cc"):
+                output.build.platform = output.build.platform[:-3]
+            else:
+                Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
+            key = key.replace("Code Coverage ", "")
+            output.tags += ["code coverage"]
 
-        for b in build_names:
-            if key == strings.expand_template(b, {
+        for b in ACTIONS:
+            expected = strings.expand_template(b, {
                 "branch": branch_name,
                 "platform": output.build.platform,
-                "product": output.build.product.lower(),
+                "product": output.build.product,
                 "vm": output.build.vm,
                 "step": output.build.step,
-            }):
+            })
+            if key == expected:
                 output.build.name = props.buildername
                 scrub_known_properties(props)
                 output.other = props
@@ -155,12 +136,10 @@ class BuildbotTranslator(object):
 
         if key.startswith("fuzzer"):
             pass
-        elif 'xulrunner' in key:
-            output.build.product = 'xulrunner'
         elif 'l10n' in key or 'repack' in key:
             output.action.repack = True
         elif key.startswith("jetpack-"):
-            for t in build_types:
+            for t in BUILD_TYPES:
                 if key.endswith("-" + t):
                     output.build.type += [t]
 
@@ -181,9 +160,9 @@ class BuildbotTranslator(object):
             try:
                 output.build.name = props.buildername
                 platform, build = key.split(" " + branch_name + " ")
-                set_default(output, platform_names[platform])
+                set_default(output, PLATFORMS[platform])
 
-                for t in build_types:
+                for t in BUILD_TYPES:
                     if t in build:
                         output.build.type += [t]
             except Exception:
@@ -193,20 +172,20 @@ class BuildbotTranslator(object):
             try:
                 output.build.name = props.buildername
                 platform, build = key.split(" " + branch_name + " ")
-                set_default(output, platform_names[platform])
+                set_default(output, PLATFORMS[platform])
             except Exception, e:
                 raise Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
 
-            for t in build_modes:
+            for t in BUILD_FEATURES:
                 if t in build:
                     output.tags += [t]
-            for t in build_types:
+            for t in BUILD_TYPES:
                 if t in build:
                     output.build.type += [t]
         elif key.endswith("valgrind"):
             output.build.name = props.buildername
             platform, build = key.split(" " + branch_name + " ")
-            set_default(output, platform_names[platform])
+            set_default(output, PLATFORMS[platform])
         else:
             # FORMAT: <platform> <branch> <test_mode> <test_name> <other>
             try:
@@ -215,14 +194,14 @@ class BuildbotTranslator(object):
                 Log.error("Not recognized: {{key}}\n{{data}}", key=key, data=data)
 
             output.build.name = platform
-            if platform not in platform_names:
+            if platform not in PLATFORMS:
                 if platform not in self.unknown_platforms:
                     self.unknown_platforms += [platform]
                     Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=platform, data=data)
                 else:
                     return None  # ERROR INGNORED, ALREADY SENT
 
-            set_default(output, platform_names[platform])
+            set_default(output, PLATFORMS[platform])
 
             parsed = parse_test(test, output)
             if not parsed:
@@ -254,6 +233,7 @@ def parse_test(test, output):
     for m, d in test_modes.items():
         if test.startswith(m):
             set_default(output, d)
+            output.run.suite = test[len(m):].strip()
             return True
 
     return False
@@ -292,7 +272,7 @@ test_modes = {
     "talos": {"run": {"talos": True}}
 }
 
-build_names = [
+ACTIONS = [
     'b2g_{{branch}}_{{platform}}-debug_periodic',
     'b2g_{{branch}}_{{platform}}_dep',
     'b2g_{{branch}}_{{platform}}_periodic',
@@ -305,6 +285,7 @@ build_names = [
     'linux64-br-haz_{{branch}}_dep',
     'graphene_{{branch}}_{{platform}} build',
     'graphene_{{branch}}_linux64 build',
+    '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_beta_ready_for_beta-cdntest_testing',
     '{{branch}}-{{product}}_beta_ready_for_release',
@@ -330,6 +311,7 @@ build_names = [
     '{{branch}} hg bundle',
     '{{branch}}-release_final_verification',
     '{{branch}}-update_shipping_beta',
+    '{{branch}}-update_shipping_release',
     '{{branch}}-xr_postrelease',
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
@@ -338,24 +320,24 @@ build_names = [
     '{{vm}}_{{branch}}_{{platform}} build'
 ]
 
-build_types = [
+BUILD_TYPES = [
     "opt",
     "pgo",
     "debug",
     "asan"
 ]
 
-build_vms = [
+VIRTUAL_MACHINES = [
     "graphene",
     "horizon"
 ]
 
-build_modes = [
+BUILD_FEATURES = [
     "leak test",
     "static analysis"
 ]
 
-platform_names = {
+PLATFORMS = {
     "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0"}}, "build": {"platform": "arm7"}},
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
@@ -397,3 +379,31 @@ platform_names = {
     "WINNT 6.2": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Win32 Mulet": {"run": {"machine": {"os": "mulet"}}, "build": {"platform": "win32"}},
 }
+
+STATUS_CODES = {
+    0: "success",
+    1: "warnings",
+    2: "failure",
+    3: "skipped",
+    4: "exception",
+    5: "retry",
+    6: "cancelled",
+    "0": "success",
+    "1": "warnings",
+    "2": "failure",
+    "3": "skipped",
+    "4": "exception",
+    "5": "retry",
+    "6": "cancelled",
+    None: None,
+    "success (0)": "success",
+    "warnings (1)": "warnings",
+    "failure (2)": "failure",
+    "skipped (3)": "skipped",
+    "exception (4)": "exception",
+    "retry (5)": "retry",
+    "cancelled (6)": "cancelled"
+}
+
+RATIO_PATTERN = re.compile(r"(\d+/\d+)")
+

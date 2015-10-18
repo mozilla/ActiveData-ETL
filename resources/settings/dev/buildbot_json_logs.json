@@ -24,6 +24,13 @@
 		"log": [
 			{
 				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV] Problem in ETL",
+				"$ref": "file://~/private.json#email"
 			}
 		]
 	}
