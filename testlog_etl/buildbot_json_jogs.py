@@ -30,39 +30,73 @@ def compare_to_es(settings):
 
     b = BuildbotTranslator()
     b.parse({
-        "builder_id": 465665,
-        "buildnumber": 0,
-        "endtime": 1433209040,
-        "id": 67106087,
-        "master_id": 187,
+        "builder_id": 302291,
+        "buildnumber": 103,
+        "endtime": 1423666999,
+        "id": 58810849,
+        "master_id": 124,
         "properties": {
-            "basedir": "/builds/slave/rel-m-beta-xr_sums-00000000000",
-            "branch": "release-mozilla-beta",
-            "build_number": 1,
-            "buildername": "release-mozilla-beta-xulrunner_checksums",
-            "buildnumber": 0,
-            "log_url": "http://stage.mozilla.org/pub/mozilla.org/firefox/nightly/39.0b2-candidates/build1/logs/release-mozilla-beta-xulrunner_checksums-bm91-build1-build0.txt.gz",
-            "master": "http://buildbot-master91.bb.releng.usw2.mozilla.com:8001/",
-            "product": "Firefox",
+            "appName": "Firefox",
+            "appVersion": "38.0a1",
+            "aws_ami_id": "ami-f6f8b09e",
+            "aws_instance_id": "i-80b91e7a",
+            "aws_instance_type": "r3.xlarge",
+            "basedir": "/builds/slave/m-cen-l64-mulet-00000000000000",
+            "branch": "mozilla-central",
+            "builddir": "m-cen-l64-mulet-00000000000000",
+            "buildername": "Linux x86-64 Mulet mozilla-central build",
+            "buildnumber": 103,
+            "builduid": "72e10b44feb6443fbe264765c13dc8e6",
+            "comments": "merge mozilla-inbound to mozilla-central a=merge",
+            "commit_titles": [
+                "merge mozilla-inbound to mozilla-central a=merge",
+                "Bug 1131700 - ServiceWorkerManager::CreateServiceWorker should use",
+                "Bug 1130932 - allow GMPDecryptorParent::RecvKeyStatusChanged calls after Close(). r=edwin.",
+                "Bug 1130917 - Part 3 - fix EME gtests. r=edwin.",
+                "Bug 1130917 - Part 2 - improve error handling of StoreData() and ReadData(). r=edwin.",
+                "Bug 1130917 - Part 1 - disallow multiple records with the same name in",
+                "Bug 1130256 - Prevent unwanted scrolling event. r=roc",
+                "Bug 1129173 - Properly detect B2G for workers interface tests. r=bent",
+                "Bug 1129148 - Wrote a MACRO to generate conditions to inline SIMD instructions (sub, mul, and, or,",
+                "Bug 1121722 - Chrome-only DOM File constructors should use lastModified attribute. r=bz",
+                "Bug 1130754: Avoid recalculating tbsCertificate digest, r=keeler"
+            ],
+            "forced_clobber": False,
+            "got_revision": "38058cb42a0e",
+            "hashType": "sha512",
+            "jsshellUrl": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64-mulet/1423663138/jsshell-linux-x86_64.zip",
+            "log_url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64-mulet/1423663138/mozilla-central-linux64-mulet-bm71-build1-build103.txt.gz",
+            "master": "http://buildbot-master71.srv.releng.use1.mozilla.com:8001/",
+            "packageFilename": "firefox-38.0a1.en-US.linux-x86_64.tar.bz2",
+            "packageHash": "3bd8624c6339882d9a5bff7b169d34467fb9dcd27aaf0aba540c8576bc1c43f16a96ba0e9dda6e270365f1fefcd179f475f495263fd79002a961b61ddb078439",
+            "packageSize": "58164963",
+            "packageUrl": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64-mulet/1423663138/firefox-38.0a1.en-US.linux-x86_64.tar.bz2",
+            "periodic_clobber": False,
+            "placement/availability_zone": "us-east-1d",
+            "platform": "linux64-mulet",
+            "product": "b2g",
             "project": "",
-            "release_config": "mozilla/release-firefox-mozilla-beta.py",
+            "purge_actual": "58.94GB",
+            "purge_target": "15GB",
+            "purged_clobber": True,
             "repository": "",
-            "request_ids": [71191057],
-            "request_times": {"71191057": 1433208995},
-            "scheduler": "release-mozilla-beta-xulrunner_deliverables_ready",
-            "script_repo_revision": "51d8c8053b93",
-            "script_repo_url": "https://hg.mozilla.org/build/tools",
-            "slavebuilddir": "rel-m-beta-xr_sums-00000000000",
-            "slavename": "bld-linux64-spot-316",
-            "toolsdir": "/builds/slave/rel-m-beta-xr_sums-00000000000/scripts",
-            "version": "39.0b2"
+            "request_ids": [61696936],
+            "request_times": {"61696936": 1423663139},
+            "revision": "38058cb42a0ee28016d2cc619568b45249202799",
+            "scheduler": "b2g_mozilla-central-b2g",
+            "slavebuilddir": "m-cen-l64-mulet-00000000000000",
+            "slavename": "bld-linux64-spot-045",
+            "stage_platform": "linux64-mulet",
+            "symbolsUrl": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64-mulet/1423663138/firefox-38.0a1.en-US.linux-x86_64.crashreporter-symbols.zip",
+            "testsUrl": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64-mulet/1423663138/firefox-38.0a1.en-US.linux-x86_64.tests.zip",
+            "toolsdir": "/builds/slave/m-cen-l64-mulet-00000000000000/tools"
         },
-        "reason": "downstream",
-        "request_ids": [71191057],
-        "requesttime": 1433208995,
+        "reason": "scheduler",
+        "request_ids": [61696936],
+        "requesttime": 1423663139,
         "result": 0,
-        "slave_id": 6869,
-        "starttime": 1433209007
+        "slave_id": 6952,
+        "starttime": 1423663669
     }
     )
 
@@ -78,11 +112,11 @@ def compare_to_es(settings):
             paths.append(filename)
         paths = qb.reverse(qb.sort(paths))
 
-    # paths = [None, "builds-2015-08-29.js.gz", "builds-2015-08-17.js.gz"]
-    for i, p in enumerate(paths[100::]):  # FIRST ONE IS TODAY, AND INCOMPLETE, SO SKIP IT
+    paths = [None, "builds-2015-02-11.js.gz"]
+    for i, p in enumerate(paths[1::]):  # FIRST ONE IS TODAY, AND INCOMPLETE, SO SKIP IT
         try:
-            if i % 6 != 4:
-                continue
+            # if i % 6 != 1:
+            #     continue
             full_path = url + p
             Log.note("process {{url}}", url=full_path)
             response = http.get(full_path)

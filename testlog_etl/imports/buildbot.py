@@ -30,14 +30,19 @@ class BuildbotTranslator(object):
         data = wrap(data)
         output = Dict()
 
+        output.action.reason = data.reason
+        output.action.request_time = data.requesttime
         output.action.start_time = data.starttime
         output.action.end_time = data.endtime
-        output.action.request_time = data.requesttime
-        output.action.reason = data.reason
+        output.action.buildbot_status = STATUS_CODES[data.result]
 
         props = data.properties
         if not props:
             return output
+
+        output.action.job_number = props.buildnumber
+        for k, v in props.request_times.items():
+            output.action.requests += [{"request_id": int(k), "timestamp": v}]
 
         output.run.key = key = props.buildername
         if key.startswith("TB "):
@@ -45,13 +50,23 @@ class BuildbotTranslator(object):
 
         ratio = RATIO_PATTERN.match(key.split("_")[-1])
         if ratio:
-            output.build.step = ratio.groups()[0]
+            output.action.step = ratio.groups()[0]
 
-        output.run.timestamp = data.starttime
-        output.run.job_number = props.buildnumber
-        output.build.revision = props.revision
+        # SCRIPT
+        output.run.script.url = props.script_repo_url
+        output.run.script.revision = props.script_repo_revision
+
+        # REVISIONS
+        output.build.revision = coalesce(props.revision, props.gecko_revision)
         output.build.revision12 = props.revision[0:12]
-        output.build.product = props.product.lower()
+        if props.gecko_revision:
+            if props.gecko_revision[0:12] != output.build.revision12:
+                Log.error("expecting revision to be the gecko revision")
+            output.build.gecko_revision = output.build.revision
+            output.build.gecko_revision12 = output.build.revision[0:12]
+            output.build.gaia_revision = props.gaia_revision
+            output.build.gaia_revision12 = props.gaia_revision[0:12]
+
         output.version = props.version
 
         try:
@@ -101,12 +116,9 @@ class BuildbotTranslator(object):
         output.build.platform = platform
 
         # BRANCH
-        output.build.branch = props.branch
-        if not output.build.branch:
+        output.build.branch = branch_name = props.branch.split("/")[-1]
+        if not branch_name:
             Log.error("{{key|quote}} no 'branch' property", key=key)
-        branch_name = output.build.branch.split("/")[-1]
-
-        output.run.buildbot_status = STATUS_CODES[data.result]
 
         if 'release' in key:
             output.tags += ['release']
@@ -126,12 +138,13 @@ class BuildbotTranslator(object):
                 "platform": output.build.platform,
                 "product": output.build.product,
                 "vm": output.build.vm,
-                "step": output.build.step,
+                "step": output.action.step,
             })
             if key == expected:
                 output.build.name = props.buildername
                 scrub_known_properties(props)
                 output.other = props
+                output.action.build = True
                 return output
 
         if key.startswith("fuzzer"):
@@ -173,6 +186,7 @@ class BuildbotTranslator(object):
                 output.build.name = props.buildername
                 platform, build = key.split(" " + branch_name + " ")
                 set_default(output, PLATFORMS[platform])
+                output.action.build = True
             except Exception, e:
                 raise Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
 
@@ -244,10 +258,12 @@ def scrub_known_properties(props):
     props.blobber_files = None
     props.branch = None
     props.buildername = None
-    # props.buildid = None   #KEEP THE BAD ONE
+    # props.buildid = None   # SOMETIMES THIS IS BADLY FORMATTED, KEEP IT
     props.buildnumber = None
     props.build_url = None
     props.fileURL = None
+    props.gecko_revision = None
+    props.gaia_revision = None
     props.locale = None
     props.locales = None
     props.log_url = None
@@ -255,36 +271,34 @@ def scrub_known_properties(props):
     props.platform = None
     props.product = None
     props.revision = None
+    props.repo_path = None
+    props.script_repo_revision = None
+    props.script_repo_url = None
     props.slavename = None
     props.version = None
-
-    for k, v in props.request_times.items():
-        props.requests += [{"request_id": int(k), "timestamp": v}]
+    props.commit_titles = None  # DO NOT STORE
     props.request_times = None
     props.request_ids = None
 
 
 test_modes = {
-    "debug test": {"build": {"type": "debug"}},
-    "opt test": {"build": {"type": "opt"}},
-    "pgo test": {"build": {"type": "pgo"}},
-    "pgo talos": {"build": {"type": "pgo"}, "run": {"talos": True}},
-    "talos": {"run": {"talos": True}}
+    "debug test": {"build": {"type": "debug"}, "action": {"test": True}},
+    "opt test": {"build": {"type": "opt"}, "action": {"test": True}},
+    "pgo test": {"build": {"type": "pgo"}, "action": {"test": True}},
+    "pgo talos": {"build": {"type": "pgo"}, "action": {"test": True, "talos": True}},
+    "talos": {"action": {"test": True, "talos": True}}
 }
 
 ACTIONS = [
+    'b2g_{{branch}}_{{platform}} build',
     'b2g_{{branch}}_{{platform}}-debug_periodic',
     'b2g_{{branch}}_{{platform}}_dep',
-    'b2g_{{branch}}_{{platform}}_periodic',
-    'b2g_{{branch}}_{{platform}} build',
     'b2g_{{branch}}_{{platform}}_nightly',
     'b2g_{{branch}}_{{platform}} nightly',
+    'b2g_{{branch}}_{{platform}}_periodic',
     'b2g_{{branch}}_emulator-debug_dep',
     'b2g_{{branch}}_emulator_dep',
-    # 'b2g_{{branch}}_linux64-b2g-haz_dep',
-    'linux64-br-haz_{{branch}}_dep',
-    'graphene_{{branch}}_{{platform}} build',
-    'graphene_{{branch}}_linux64 build',
+    'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_beta_ready_for_beta-cdntest_testing',
@@ -293,6 +307,12 @@ ACTIONS = [
     '{{branch}}-{{product}}_beta_updates',
     '{{branch}}-{{product}}_bouncer_submitter',
     '{{branch}}-{{product}}_checksums',
+    '{{branch}}-{{product}}-esr_final_verification',
+    '{{branch}}-{{product}}-esr_ready-for-esr-cdntest',
+    '{{branch}}-{{product}}_esr_ready_for_esr-cdntest_testing',
+    '{{branch}}-{{product}}_esr_ready_for_release',
+    '{{branch}}-{{product}}_esr_start_uptake_monitoring',
+    '{{branch}}-{{product}}_esr_updates',
     '{{branch}}-{{product}}_push_to_mirrors',
     '{{branch}}-{{product}}_postrelease',
     '{{branch}}-{{product}}_reset_schedulers',
@@ -311,6 +331,7 @@ ACTIONS = [
     '{{branch}} hg bundle',
     '{{branch}}-release_final_verification',
     '{{branch}}-update_shipping_beta',
+    '{{branch}}-update_shipping_esr',
     '{{branch}}-update_shipping_release',
     '{{branch}}-xr_postrelease',
     '{{platform}}_{{branch}}_dep',
@@ -338,46 +359,54 @@ BUILD_FEATURES = [
 ]
 
 PLATFORMS = {
-    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0"}}, "build": {"platform": "arm7"}},
-    "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
-    "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2"}}, "build": {"platform": "x86 emulator"}},
-    "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "arm7"}},
-    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "arm7"}},
-    "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "arm7"}},
-    "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator64"}},
-    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "flame-kk"}},
-    "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator-debug"}},
-    "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator"}},
-    "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "emulator-debug"}},
+    "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
+    "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "andriod"}},
+    "Android 4.0 Panda": {"run": {"machine": {"os": "android 4.0", "type": "panda"}}, "build": {"platform": "android"}},
+    "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "x86 emulator"}}, "build": {"platform": "android"}},
+    "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "x86 emulator"}}, "build": {"platform": "android"}},
+    "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g"}},
+    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_emulator-jb_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_macosx64": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g", "type": "flame-kk"}}, "build": {"platform": "b2g"}},
+    "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
+    "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
+    "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
     "Linux": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Linux x86-64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "Linux x86-64 Mulet": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "OS X 10.7": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "OS X 10.7 64-bit": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
-    "OS X Mulet": {"run": {"machine": {"os": "mulet"}}, "build": {"platform": "macosx"}},
+    "OS X Mulet": {"run": {"machine": {"os": "macosx"}}, "build": {"platform": "macosx", "type": ["mulet"]}},
     "Rev5 MacOSX Yosemite 10.10": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Rev4 MacOSX Snow Leopard 10.6": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.10"}}, "build": {"platform": "macosx64"}},
-    "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
-    "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
+    "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
+    "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
-    "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32-vm"}},
-    "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm"}},
-    "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64-vm", "type": "asan"}},
+    "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
+    "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
-    "Windows 10 64-bit":{"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
+    "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
     "WINNT 6.1 x86-64": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "WINNT 6.2": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
-    "Win32 Mulet": {"run": {"machine": {"os": "mulet"}}, "build": {"platform": "win32"}},
+    "Win32 Mulet": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32", "type": ["mulet"]}},
 }
 
 STATUS_CODES = {
