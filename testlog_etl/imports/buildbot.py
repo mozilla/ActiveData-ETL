@@ -73,6 +73,7 @@ class BuildbotTranslator(object):
 
         output.version = props.version
 
+        # BUILD ID AND DATE
         try:
             output.build.date = Date(unicode2datetime(props.buildid, "%Y%m%d%H%M%S"))
             output.build.id = props.buildid
@@ -80,6 +81,7 @@ class BuildbotTranslator(object):
         except Exception, _:
             output.build.id = "<error>"
 
+        # LOCALE
         output.build.locale = coalesce(props.locale, 'en-US')
         if props.locales:  # nightly repack build
             output.action.repack = True
@@ -95,6 +97,7 @@ class BuildbotTranslator(object):
         output.run.machine.name = coalesce(props.slavename, props.aws_instance_id)
         output.run.machine.type = props.aws_instance_type
 
+        # FILES
         try:
             if props.blobber_files:
                 files = convert.json2value(props.blobber_files)
@@ -105,7 +108,7 @@ class BuildbotTranslator(object):
         except Exception, e:
             Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=props.blobber_files, cause=e)
 
-        #PRODUCT
+        # PRODUCT
         output.build.product = props.product.lower()
         if "xulrunner" in key:
             output.build.product = "xulrunner"
@@ -117,13 +120,13 @@ class BuildbotTranslator(object):
                 if raw_platform.endswith("-cc"):
                     raw_platform = raw_platform[:-3]
                 else:
-                    Log.error("Not recognized: {{key}} in \n{{data|json}}", key=key, data=data)
+                    Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
                 key = key.replace("Code Coverage ", "")
                 output.tags += ["code coverage"]
 
             if raw_platform not in KNOWN_PLATFORM:
-                Log.warning("Unknown platform {{platform}}\n{{data|json}}", platform=raw_platform, data=data)
                 KNOWN_PLATFORM[raw_platform] = {"build": {"platform": "unknown"}}
+                Log.error("Unknown platform {{platform}}\n{{data|json}}", platform=raw_platform, data=data)
             set_default(output, KNOWN_PLATFORM[raw_platform])
 
         # BRANCH
@@ -136,7 +139,8 @@ class BuildbotTranslator(object):
         if key.endswith("nightly"):
             output.tags += ["nightly"]
 
-        for b in ACTIONS:
+        # DECODE buildername
+        for b in BUILDER_NAMES:
             expected = strings.expand_template(b, {
                 "branch": branch_name,
                 "platform": raw_platform,
@@ -154,7 +158,7 @@ class BuildbotTranslator(object):
                 return output
 
         if key.startswith("fuzzer"):
-            output.build.product="fuzzing"
+            output.build.product = "fuzzing"
             pass
         elif 'l10n' in key or 'repack' in key:
             output.action.repack = True
@@ -252,6 +256,8 @@ def verify(output, data):
         ALLOWED_PRODUCTS.append(output.build.product)
         Log.error("Bad Product {{product}}\n{{data|json}}", product=output.build.product, data=data)
 
+    output.build.tags = set(output.build.tags)
+    output.build.type = set(output.build.type)
     scrub_known_properties(data.properties)
 
 
@@ -307,14 +313,14 @@ def scrub_known_properties(props):
 
 
 test_modes = {
-    "debug test": {"build": {"type": "debug"}, "action": {"test": True}},
-    "opt test": {"build": {"type": "opt"}, "action": {"test": True}},
-    "pgo test": {"build": {"type": "pgo"}, "action": {"test": True}},
-    "pgo talos": {"build": {"type": "pgo"}, "action": {"test": True, "talos": True}},
+    "debug test": {"build": {"type": ["debug"]}, "action": {"test": True}},
+    "opt test": {"build": {"type": ["opt"]}, "action": {"test": True}},
+    "pgo test": {"build": {"type": ["pgo"]}, "action": {"test": True}},
+    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"test": True, "talos": True}},
     "talos": {"action": {"test": True, "talos": True}}
 }
 
-ACTIONS = [
+BUILDER_NAMES = [
     'b2g_{{branch}}_{{platform}} build',
     'b2g_{{branch}}_{{platform}}-debug_periodic',
     'b2g_{{branch}}_{{platform}}_dep',
@@ -469,21 +475,21 @@ RATIO_PATTERN = re.compile(r"(\d+/\d+)")
 
 ALLOWED_OS = [
     "android 2.3",
+    "android 3.0",
     "android 4.0",
     "android 4.2",
     "android 4.3",
-    "android 3.0",
     "b2g",
-    "ubuntu",
     "lion 10.7",
     "macosx",
-    "yosemite 10.10",
-    "snowleopard 10.6",
     "mountain lion 10.10",
+    "snowleopard 10.6",
+    "ubuntu",
     "winxp",
     "win7",
     "win8",
-    "win10"
+    "win10",
+    "yosemite 10.10",
 ]
 
 KNOWN_PLATFORM = {
@@ -540,6 +546,7 @@ KNOWN_PLATFORM = {
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": "debug"}},
     "macosx64_gecko_localizer":{},
+    "macosx64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "macosx64"}},
     "macosx64-lion": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "macosx64-mulet": {"build": {"platform": "macosx64", "type": ["mulet"]}},
     "macosx64-st-an-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
@@ -552,6 +559,7 @@ KNOWN_PLATFORM = {
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
+    "ubuntu64-asan_vm":{"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
@@ -559,7 +567,7 @@ KNOWN_PLATFORM = {
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
     "win32-mulet": {"build": {"platform": "win32", "type": ["mulet"]}},
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": "debug"}},
+    "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "win32_gecko_localizer":{},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
