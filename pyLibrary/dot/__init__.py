@@ -148,6 +148,7 @@ def _all_default(d, default, seen=None):
             else:
                 seen[id(existing_value)] = default_value
                 _all_default(existing_value, default_value, seen)
+                del seen[id(existing_value)]
 
 
 def _getdefault(obj, key):
