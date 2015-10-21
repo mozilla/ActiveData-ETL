@@ -11,18 +11,16 @@ from __future__ import division
 import zlib
 
 from pyLibrary import convert, strings
-from pyLibrary.aws import s3
+from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
-from pyLibrary.env.files import File
 from pyLibrary.jsons import stream
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
-from pyLibrary.thread.threads import Queue, Thread
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from testlog_etl.imports.buildbot import BuildbotTranslator
@@ -34,20 +32,27 @@ DEBUG = True
 
 def parse_to_s3(settings):
     paths = get_all_logs(settings.source.url)
-    for p in paths:
-        parse_day(settings, p)
+    for path in paths:
+        try:
+            parse_day(settings, path)
+        except Exception, e:
+            Log.warning("problem with {{path}}", path=path, cause=e)
 
 
 def random(settings):
     paths = get_all_logs(settings.source.url)
     while True:
         path = Random.sample(paths[1::], 1)[0]
-        parse_day(settings, path)
+        try:
+            parse_day(settings, path)
+        except Exception, e:
+            Log.warning("problem with {{path}}", path=path, cause=e)
 
 
-def parse_day(settings, p):
+def parse_day(settings, p, force=False):
     bb_translator = BuildbotTranslator()
     destination = s3.Bucket(settings.destination)
+    notify = Queue(settings=settings.notify)
 
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
@@ -56,10 +61,18 @@ def parse_day(settings, p):
 
     if day_num < 0:
         return
-
-    # FIND FIRST BLOCK IN s3
-    if destination.get_meta(unicode(day_num) + ".0"):
+    if day > Date.today():
         return
+
+    if force:
+        try:
+            destination.delete_key(unicode(day_num) + ".0")
+        except Exception, e:
+            pass
+    else:
+        # CHECK TO SEE IF THIS DAY WAS DONE
+        if destination.get_meta(unicode(day_num) + ".0"):
+            return
 
     Log.note("Processing {{url}}", url=day_url)
     day_etl = Dict(
@@ -80,7 +93,7 @@ def parse_day(settings, p):
             try:
                 d = bb_translator.parse(t['builds'])
                 d.etl = row_etl
-                parsed.append(convert.value2json(d))
+                parsed.append(convert.value2json(t['builds']))
             except Exception, e:
                 d = {"etl": row_etl}
                 parsed.append(convert.value2json(d))
@@ -91,10 +104,17 @@ def parse_day(settings, p):
             first = parsed
             continue
 
-        destination.write_lines(key=unicode(day_num) + "." + unicode(group_number), lines=parsed)
+        key = unicode(day_num) + "." + unicode(group_number)
+        destination.write_lines(key=key, lines=parsed)
+        notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+
+    if first == None:
+        Log.error("How did this happen?")
 
     # WRITE FIRST BLOCK
-    destination.write_lines(key=unicode(day_num) + ".0", lines=first)
+    key = unicode(day_num) + ".0"
+    destination.write_lines(key=key, lines=first)
+    notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
 
 
 
@@ -148,8 +168,8 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        # parse_to_s3(settings)
-        random(settings)
+        parse_to_s3(settings)
+        # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

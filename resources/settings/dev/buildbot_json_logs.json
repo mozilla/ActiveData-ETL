@@ -7,6 +7,10 @@
 		"public": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
+	"notify": {
+		"name": "active-data-etl-dev",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
 	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.source.id",

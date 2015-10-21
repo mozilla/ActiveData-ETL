@@ -226,11 +226,12 @@ class BuildbotTranslator(object):
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
+                Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 if raw_platform not in self.unknown_platforms:
                     self.unknown_platforms += [raw_platform]
                     Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return None  # ERROR INGNORED, ALREADY SENT
+                    return Dict()  # ERROR INGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -361,11 +362,14 @@ BUILDER_NAMES = [
     '{{branch}}-{{platform}}_build',
     '{{branch}}-{{platform}}_update_verify_{{step}}',
     '{{branch}}-{{platform}}_update_verify_beta_{{step}}',
+    '{{branch}}-{{platform}}_update_verify_esr_{{step}}',
     '{{branch}}-{{platform}}_update_verify_release_{{step}}',
     '{{branch}}-{{platform}}_ui_update_verify_beta_{{step}}',
 
+    '{{branch}}-antivirus',
     '{{branch}}-beta_final_verification',
     '{{branch}}-check_permissions',
+    '{{branch}}-esr_final_verification',
     '{{branch}}-final_verification',
     '{{branch}} hg bundle',
     '{{branch}}-release_final_verification',
@@ -382,11 +386,12 @@ BUILDER_NAMES = [
 ]
 
 BUILD_TYPES = [
+    "asan",   # ADDRESS SANITIZER
+    "debug",  # FOR DEBUGGING
+    "mulet",  # COMMON FRAMEWORK FOR b2g and Firefox
     "opt",    # OPTIMIZED
     "pgo",    # PROFILE GUIDED OPTIMIZATIONS
-    "debug",  # FOR DEBUGGING
-    "asan",   # ADDRESS SANITIZER
-    "mulet"   # COMMON FRAMEWORK FOR b2g and Firefox
+    "tsan"    # THREAD SANITIZER
 ]
 
 BUILD_FEATURES = [
@@ -396,17 +401,19 @@ BUILD_FEATURES = [
 
 TEST_PLATFORMS = {
     "Android 2.3": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
+    "Android 2.3 Armv6 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator armv6"}}, "build": {"platform": "android"}},
     "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
-    "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
     "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "andriod"}},
     "Android 4.0 Panda": {"run": {"machine": {"os": "android 4.0", "type": "panda"}}, "build": {"platform": "android"}},
-    "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "x86 emulator"}}, "build": {"platform": "android"}},
-    "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "x86 emulator"}}, "build": {"platform": "android"}},
+    "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
+    "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g", "product": "b2g"}},
+    "b2g_emulator-kk_vm":{"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame", "product": "b2g"}},
     "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "product": "b2g"}},
     "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_emulator-jb_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
@@ -430,6 +437,7 @@ TEST_PLATFORMS = {
     "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.10"}}, "build": {"platform": "macosx64"}},
     "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
+    "Ubuntu TSAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
@@ -494,6 +502,7 @@ ALLOWED_OS = [
 
 KNOWN_PLATFORM = {
     "android": {"build": {"platform": "android"}},
+    "android-armv6": {"run": {"machine": {"type": "arm7"}}, "build": {"platform": "android"}},
     "android-debug": {"build": {"platform": "android", "type": ["debug"]}},
     "android-api-9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
     "android-api-9-debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
@@ -511,7 +520,7 @@ KNOWN_PLATFORM = {
     "emulator-jb": {"run": {"machine": {"type": "emulator"}}, "build": {}},
     "emulator-jb-debug":{"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     "emulator-kk":{"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame"}},
-    "emulator-kk-debug":{"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame", "type": ["debug"]}},
+    "emulator-kk-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame", "type": ["debug"]}},
     "emulator-l": {"run": {"machine": {"type": "emulator"}}},
     "emulator-l-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     "flame":{"build": {"platform": "flame"}},
@@ -522,6 +531,7 @@ KNOWN_PLATFORM = {
     "hamachi": {"build": {"platform": "hamachi"}},
     "hamachi_eng": {"build": {"platform": "hamachi"}},
     "helix": {"build": {"platform": "helix"}},
+    "l10n": {},
     "linux": {"build": {"platform": "linux32"}},
     "linux-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
     "linux32_gecko": {"build": {"platform": "linux32", "type": ["debug"]}},
@@ -538,6 +548,7 @@ KNOWN_PLATFORM = {
     "linux64_gecko_localizer": {},
     "linux64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "linux64"}},
     "linux64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "linux64"}},
+    "linux64-tsan": {"build": {"platform": "linux64", "type": ["tsan"]}},
     "linux64-mulet": {"build": {"platform": "linux64", "type": ["mulet"]}},
     "linux64-st-an-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
     "linux64-sh-haz": {"build": {"platform": "linux64", "type": ["debug"]}},
@@ -545,7 +556,8 @@ KNOWN_PLATFORM = {
     "macosx64-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": "debug"}},
-    "macosx64_gecko_localizer":{},
+    "macosx64_gecko_localizer": {},
+    "macosx64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "macosx64"}},
     "macosx64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "macosx64"}},
     "macosx64-lion": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "macosx64-mulet": {"build": {"platform": "macosx64", "type": ["mulet"]}},
@@ -557,6 +569,7 @@ KNOWN_PLATFORM = {
     "nexus-5-l": {"build": {"platform": "nexus5"}},
     "nexus-5-l_eng": {"build": {"platform": "nexus5"}},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
+
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64-asan_vm":{"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
@@ -572,6 +585,7 @@ KNOWN_PLATFORM = {
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},
+    "win64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "win64"}},
     "win64-rev2": {"build": {"platform": "win64"}},
     "win7-ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win8": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},

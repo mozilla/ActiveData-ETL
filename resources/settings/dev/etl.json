@@ -80,6 +80,27 @@
 			"type": "join"
 		},
 		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot-dev",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs-dev",
+				"public": true,
+				"key_format": "a.b.c"
+			},
+			"notify": {
+				"name": "active-data-index-jobs-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
 			"name": "talos2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
