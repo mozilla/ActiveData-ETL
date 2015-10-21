@@ -23,7 +23,6 @@ from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
-from testlog_etl.imports.buildbot import BuildbotTranslator
 
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
@@ -34,7 +33,7 @@ def parse_to_s3(settings):
     paths = get_all_logs(settings.source.url)
     for path in paths:
         try:
-            parse_day(settings, path)
+            parse_day(settings, path, settings.force)
         except Exception, e:
             Log.warning("problem with {{path}}", path=path, cause=e)
 
@@ -44,13 +43,12 @@ def random(settings):
     while True:
         path = Random.sample(paths[1::], 1)[0]
         try:
-            parse_day(settings, path)
+            parse_day(settings, path, force=True)
         except Exception, e:
             Log.warning("problem with {{path}}", path=path, cause=e)
 
 
 def parse_day(settings, p, force=False):
-    bb_translator = BuildbotTranslator()
     destination = s3.Bucket(settings.destination)
     notify = Queue(settings=settings.notify)
 
@@ -59,9 +57,9 @@ def parse_day(settings, p, force=False):
     day_num = (day - Date("1 JAN 2015")) / DAY
     day_url = settings.source.url + p
 
-    if day_num < 0:
-        return
-    if day > Date.today():
+    Log.note("Consider {{url}}", url=day_url)
+    if day < Date("1 JAN 2015") or Date.today() <= day:
+        # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
     if force:
@@ -78,22 +76,29 @@ def parse_day(settings, p, force=False):
     day_etl = Dict(
         id=day_num,
         url=day_url,
-        timestamp=Date.now()
+        timestamp=Date.now(),
+        type="join"
     )
     tasks = get_all_tasks(day_url)
     first = None
     for group_number, ts in qb.groupby(tasks, size=100):
         parsed = []
-        for row_number, t in enumerate(ts):
+
+        group_etl = Dict(
+            id=group_number,
+            source=day_etl,
+            type="join",
+            timestamp=Date.now()
+        )
+        for row_number, d in enumerate(ts):
             row_etl = Dict(
-                timestamp=Date.now(),
                 id=row_number,
-                source=day_etl
+                source=group_etl,
+                type="join"
             )
             try:
-                d = bb_translator.parse(t['builds'])
                 d.etl = row_etl
-                parsed.append(convert.value2json(t['builds']))
+                parsed.append(convert.value2json(d))
             except Exception, e:
                 d = {"etl": row_etl}
                 parsed.append(convert.value2json(d))
@@ -126,7 +131,7 @@ def get_all_logs(url):
     for line in response.all_lines:
         # <tr><td valign="top"><img src="/icons/compressed.gif" alt="[   ]"></td><td><a href="builds-2015-09-20.js.gz">builds-2015-09-20.js.gz</a></td><td align="right">20-Sep-2015 19:00  </td><td align="right">6.9M</td><td>&nbsp;</td></tr>
         filename = strings.between(line, '</td><td><a href=\"', '">')
-        if filename and filename.startswith("builds-2"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
+        if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
             paths.append(filename)
         paths = qb.reverse(qb.sort(paths))
     return paths

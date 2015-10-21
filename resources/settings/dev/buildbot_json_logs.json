@@ -1,4 +1,5 @@
 {
+	"force": true,
 	"source": {
 		"url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 	},

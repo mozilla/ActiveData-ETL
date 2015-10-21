@@ -210,8 +210,7 @@ class BuilderLines(object):
                 message, status, parts, timestamp, done = "", "skipped", None, Null, True
                 if DEBUG:
                     Log.note("{{line}}", line=line)
-                return timestamp, self.last_elapse_time, message, parts, done, status
-
+                return timestamp, self.last_elapse_time, "", message, parts, done, status
             desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
 
         except Exception, e:
@@ -364,7 +363,7 @@ def process_buildbot_log(all_log_lines, from_url):
             continue
 
         try:
-            log_line = log_ascii.encode('latin1').decode('utf8').strip()
+            log_line = log_ascii.decode('utf8', "replace").strip()
         except Exception, e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
@@ -387,14 +386,14 @@ def process_buildbot_log(all_log_lines, from_url):
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
                 key, value = curr_line.split(": ")
-                data[key] = value
                 if key == "starttime":
-                    data[key] = None
                     data["start_time"] = start_time = end_time = Date(float(value))
                     if DEBUG:
                         Log.note("start_time = {{start_time|date}}", start_time=start_time)
-                if key == "results":
-                    data[key] = buildbot.STATUS_CODES[value]
+                elif key == "results":
+                    data["buildbot_status"] = buildbot.STATUS_CODES[value]
+                else:
+                    data[key] = value
                 continue
             except Exception, e:
                 builder_says = builder_line.match(start_time, curr_line, next_line)
@@ -509,16 +508,17 @@ def fix_times(times, start_time, end_time):
         time = t.start_time
 
 
-def verify_equal(data, expected, duplicate):
+def verify_equal(data, expected, duplicate, warning=True):
     """
     WILL REMOVE duplicate IF THE SAME
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
-    elif data[expected].startswith(data[duplicate]):
+    elif data[duplicate] in data[expected]:
         data[duplicate] = None
     else:
-        Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
+        if warning:
+            Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
 
 
 if __name__ == "__main__":

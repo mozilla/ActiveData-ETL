@@ -20,11 +20,12 @@ DEBUG = True
 
 
 class Process(object):
-    def __init__(self, name, params, cwd=None):
+    def __init__(self, name, params, cwd=None, env=None):
         self.name = name
         self.service_stopped = Signal()
-        self.send = Queue("send")
-        self.recieve = Queue("recieve")
+        self.stdin = Queue("stdin")
+        self.stdout = Queue("stdout")
+        self.stderr = Queue("stderr")
 
         try:
             self.service = service = subprocess.Popen(
@@ -33,21 +34,22 @@ class Process(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 bufsize=-1,
-                cwd=cwd
+                cwd=cwd,
+                env=env
             )
 
             self.stopper = Signal()
             self.stopper.on_go(lambda: service.kill())
             Thread.run(self.name + " waiter", self.waiter, self)
-            Thread.run(self.name + " stdin", self.writer, service.stdin, self.send, please_stop=self.stopper)
-            Thread.run(self.name + " stdout", self.reader, service.stdout, self.recieve, please_stop=self.stopper)
-            Thread.run(self.name + " stderr", self.reader, service.stderr, self.recieve, please_stop=self.stopper)
+            Thread.run(self.name + " stdin", self.writer, service.stdin, self.stdin, please_stop=self.stopper)
+            Thread.run(self.name + " stdout", self.reader, service.stdout, self.stdout, please_stop=self.stopper)
+            Thread.run(self.name + " stderr", self.reader, service.stderr, self.stderr, please_stop=self.stopper)
         except Exception, e:
             Log.error("Can not call", e)
 
     def stop(self):
         self.stopper.go()
-        self.send.add("exit")  # ONE MORE SEND
+        self.stdin.add("exit")  # ONE MORE SEND
 
     def join(self):
         self.service_stopped.wait_for_go()
