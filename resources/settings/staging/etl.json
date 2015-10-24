@@ -83,6 +83,27 @@
 			"type": "join"
 		},
 		{
+            "name": "bbb2jobs",
+            "source": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-buildbot",
+                "key_format": "a.b"
+            },
+            "destination": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-jobs",
+                "public": true,
+                "key_format": "a.b"
+            },
+            "notify": {
+                "name": "active-data-index-jobs",
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+            "type": "join",
+            "transform_type": "bulk"
+        },
+		{
 			"name": "talos2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -102,27 +123,6 @@
 			"transform_type": "bulk",
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
-		},
-		{
-			"name": "pulse2jobs",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-jobs",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-jobs",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_job_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
 		},
 		{
 			"name": "pulse2test_result",
