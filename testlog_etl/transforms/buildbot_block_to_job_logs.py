@@ -70,21 +70,20 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "No logurl"
                     output.append(data)
                     continue
+                if "scl3.mozilla.com" in url:
+                    Log.error("Will not read {{url}}", url=url)
                 response = http.get(
-                    url=url,
+                    url=[
+                        url,
+                        url.replace("http://ftp.mozilla.org", "http://archive.mozilla.org"),
+                        url.replace("http://ftp.mozilla.org", "http://ftp-origin-scl3.mozilla.org")
+                    ],
                     retry={"times": 3, "sleep": 10}
                 )
                 if response.status_code == 404:
-                    Log.note("Trying alternate")
-                    url2 = url.replace("http://ftp.mozilla.org", "http://ftp-origin-scl3.mozilla.org")
-                    response = http.get(
-                        url=url2,
-                        retry={"times": 3, "sleep": 10}
-                    )
-                    if response.status_code == 404:
-                        data.etl.error = "Text log unreachable"
-                        output.append(data)
-                        continue
+                    data.etl.error = "Text log unreachable"
+                    output.append(data)
+                    continue
 
                 if url.endswith(".gz"):
                     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)

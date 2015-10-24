@@ -95,6 +95,14 @@ class BuildbotTranslator(object):
         output.run.logurl = props.log_url
         output.build.release = coalesce(props.en_revision, props.script_repo_revision)
         output.run.machine.name = coalesce(props.slavename, props.aws_instance_id)
+        split_name = output.run.machine.name.split("-")
+        if Math.is_integer(split_name[-1]):
+            # EXAMPLES
+            # b-2008-ix-0106
+            # t-w732-ix-047
+            # bld-linux64-spot-013
+            # panda-0150
+            output.run.machine.pool = "-".join(split_name[:-1])
         output.run.machine.type = props.aws_instance_type
 
         # FILES
@@ -295,6 +303,7 @@ def scrub_known_properties(props):
     props.build_url = None
     props.commit_titles = None  # DO NOT STORE
     props.fileURL = None
+    props.en_revision = None,
     props.gecko_revision = None
     props.gaia_revision = None
     props.locale = None
@@ -311,6 +320,7 @@ def scrub_known_properties(props):
     props.script_repo_url = None
     props.slavename = None
     props.version = None
+
 
 
 test_modes = {
