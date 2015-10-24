@@ -10,98 +10,160 @@ from __future__ import unicode_literals
 from __future__ import division
 import zlib
 
+from pyLibrary import convert, strings
+from pyLibrary.aws import s3, Queue
+from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, set_default
+from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import qb
-from pyLibrary.queries.index import Index
-from pyLibrary.testing import elasticsearch
-from pyLibrary.times.durations import SECOND, DAY
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import DAY
 
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
+DEBUG = True
 
-def compare_to_es(settings):
-    url = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
-    # GET LIST OF LOGS
-    # paths = []
-    # response = http.get(url)
-    # for line in response.all_lines:
-    #     # <tr><td valign="top"><img src="/icons/compressed.gif" alt="[   ]"></td><td><a href="builds-2015-09-20.js.gz">builds-2015-09-20.js.gz</a></td><td align="right">20-Sep-2015 19:00  </td><td align="right">6.9M</td><td>&nbsp;</td></tr>
-    #     filename = strings.between(line, '</td><td><a href=\"', '">')
-    #     if filename and filename.startswith("builds-2"):  # ONLY INTERESTED IN DAILY SUMMARY
-    #         paths.append(filename)
-    #     paths = qb.reverse(qb.sort(paths))
+def parse_to_s3(settings):
+    paths = get_all_logs(settings.source.url)
+    for path in paths:
+        try:
+            parse_day(settings, path, settings.force)
+        except Exception, e:
+            Log.warning("problem with {{path}}", path=path, cause=e)
 
-    paths = ['', 'builds-2015-10-13.js.gz']
 
-    for p in paths[1:]:  # FIRST ONE IS TODAY, AND INCOMPLETE, SO SKIP IT
-        response = http.get(url + p)
-        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-        def json():
-            total_bytes = 0
-            while True:
-                bytes_ = response.raw.read(4096)
-                if not bytes_:
-                    return
-                data = decompressor.decompress(bytes_)
-                total_bytes += len(data)
-                Log.note("bytes={{bytes}}", bytes=total_bytes)
-                yield data
+def random(settings):
+    paths = get_all_logs(settings.source.url)
+    while True:
+        path = Random.sample(paths[1::], 1)[0]
+        try:
+            parse_day(settings, path, force=True)
+        except Exception, e:
+            Log.warning("problem with {{path}}", path=path, cause=e)
 
-        tasks = stream.parse(
-            json(),
-            "builds",
-            expected_vars=[
-                "builds.starttime",
-                "builds.endtime",
-                "builds.requesttime",
-                "builds.reason",
-                "builds.properties.request_times",
-                "builds.properties.slavename",
-                "builds.properties.log_url",
-                "builds.properties.buildername"
-            ]
+
+def parse_day(settings, p, force=False):
+    destination = s3.Bucket(settings.destination)
+    notify = Queue(settings=settings.notify)
+
+    # DATE TO DAYS-SINCE-2000
+    day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
+    day_num = (day - Date("1 JAN 2015")) / DAY
+    day_url = settings.source.url + p
+
+    Log.note("Consider {{url}}", url=day_url)
+    if day < Date("1 JAN 2015") or Date.today() <= day:
+        # OUT OF BOUNDS, TODAY IS NOT COMPLETE
+        return
+
+    if force:
+        try:
+            destination.delete_key(unicode(day_num) + ".0")
+        except Exception, e:
+            pass
+    else:
+        # CHECK TO SEE IF THIS DAY WAS DONE
+        if destination.get_meta(unicode(day_num) + ".0"):
+            return
+
+    Log.note("Processing {{url}}", url=day_url)
+    day_etl = Dict(
+        id=day_num,
+        url=day_url,
+        timestamp=Date.now(),
+        type="join"
+    )
+    tasks = get_all_tasks(day_url)
+    first = None
+    for group_number, ts in qb.groupby(tasks, size=100):
+        parsed = []
+
+        group_etl = Dict(
+            id=group_number,
+            source=day_etl,
+            type="join",
+            timestamp=Date.now()
         )
+        for row_number, d in enumerate(ts):
+            row_etl = Dict(
+                id=row_number,
+                source=group_etl,
+                type="join"
+            )
+            try:
+                d.etl = row_etl
+                parsed.append(convert.value2json(d))
+            except Exception, e:
+                d = {"etl": row_etl}
+                parsed.append(convert.value2json(d))
+                Log.warning("problem in {{path}}", path=day_url, cause=e)
 
-        temp = []
-        for i, t in enumerate(tasks):
-            temp.append(t['builds'])
-            if i > 200:
-                break
-        tasks = wrap(temp)
+        if group_number == 0:
+            # WRITE THE FIRST BLOCK (BLOCK 0) LAST
+            first = parsed
+            continue
 
-        Log.note("Number of builds = {{count}}", count=len(tasks))
-        es = elasticsearch.Index(settings.elasticsearch)
+        key = unicode(day_num) + "." + unicode(group_number)
+        destination.write_lines(key=key, lines=parsed)
+        notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
 
-        # FIND IN ES
-        found = http.get_json(url=ACTIVE_DATA, json={
-            "from": "jobs",
-            "select": ["_id", "run.key", "run.logurl", "action.start_time", "action.end_time"],
-            "where": {"and": [
-                {"gte": {"action.start_time": Math.floor(Math.MIN(tasks.starttime), DAY.seconds) - DAY.seconds}},
-                {"lt": {"action.start_time": Math.ceiling(Math.MAX(tasks.endtime), DAY.seconds) + DAY.seconds}}
-            ]},
-            "limit": 1000,
-            "format": "list"
-        })
+    if first == None:
+        Log.error("How did this happen?")
 
-        existing = Index(keys="run.logurl", data=found)
+    # WRITE FIRST BLOCK
+    key = unicode(day_num) + ".0"
+    destination.write_lines(key=key, lines=first)
+    notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
 
-        count=0
-        for t in tasks:
-            if any(map(t.properties.slavename.startswith, ["b-2008", "bld-linux", "bld-lion"])):
-                continue
-            e = existing[t.properties.log_url]
-            if not e:
-                count+=1
-                Log.note("missing\n{{task}}", task=t)
 
-        Log.note("missing count = {{count}}", count=count)
+
+
+def get_all_logs(url):
+    # GET LIST OF LOGS
+    paths = []
+    response = http.get(url)
+    for line in response.all_lines:
+        # <tr><td valign="top"><img src="/icons/compressed.gif" alt="[   ]"></td><td><a href="builds-2015-09-20.js.gz">builds-2015-09-20.js.gz</a></td><td align="right">20-Sep-2015 19:00  </td><td align="right">6.9M</td><td>&nbsp;</td></tr>
+        filename = strings.between(line, '</td><td><a href=\"', '">')
+        if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
+            paths.append(filename)
+        paths = qb.reverse(qb.sort(paths))
+    return paths
+
+
+def get_all_tasks(url):
+    """
+    RETURN ITERATOR OF ALL `builds` IN THE BUILDBOT JSON LOG
+    """
+    response = http.get(url)
+    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    def json():
+        last_bytes_count = 0  # Track the last byte count, so we do not show too many
+        bytes_count = 0
+        while True:
+            bytes_ = response.raw.read(4096)
+            if not bytes_:
+                return
+            data = decompressor.decompress(bytes_)
+            bytes_count += len(data)
+            if Math.floor(last_bytes_count, 1000000) != Math.floor(bytes_count, 1000000):
+                last_bytes_count = bytes_count
+                if DEBUG:
+                    Log.note("bytes={{bytes}}", bytes=bytes_count)
+            yield data
+
+    return stream.parse(
+        json(),
+        "builds",
+        expected_vars=["builds"]
+    )
+
 
 
 
@@ -111,7 +173,8 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        compare_to_es(settings)
+        parse_to_s3(settings)
+        # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
