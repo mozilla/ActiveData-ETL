@@ -56,6 +56,7 @@ def parse_day(settings, p, force=False):
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = (day - Date("1 JAN 2015")) / DAY
     day_url = settings.source.url + p
+    key0 = unicode(day_num) + ".0"
 
     Log.note("Consider {{url}}", url=day_url)
     if day < Date("1 JAN 2015") or Date.today() <= day:
@@ -64,12 +65,12 @@ def parse_day(settings, p, force=False):
 
     if force:
         try:
-            destination.delete_key(unicode(day_num) + ".0")
-        except Exception, e:
+            destination.delete_key(key0)
+        except Exception:
             pass
     else:
         # CHECK TO SEE IF THIS DAY WAS DONE
-        if destination.get_meta(unicode(day_num) + ".0"):
+        if destination.get_meta(key0):
             return
 
     Log.note("Processing {{url}}", url=day_url)
@@ -117,9 +118,14 @@ def parse_day(settings, p, force=False):
         Log.error("How did this happen?")
 
     # WRITE FIRST BLOCK
-    key = unicode(day_num) + ".0"
-    destination.write_lines(key=key, lines=first)
-    notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+    key0 = unicode(day_num) + ".0"
+    destination.write_lines(key=key0, lines=first)
+    notify.add({"key": key0, "bucket": destination.name, "timestamp": Date.now()})
+
+    #CONFIRM IT WAS WRITTEN
+    if destination.get_meta(key0):
+        return
+
 
 
 
