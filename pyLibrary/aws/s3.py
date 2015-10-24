@@ -158,12 +158,6 @@ class Bucket(object):
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
-            if self.name == "ekyle-talos" and key.find(".") == -1:
-                # VERY SPECIFIC CONDITIONS TO ALLOW DELETE, REMOVE THIS CODE IN THE FUTURE (Now==March2015)
-                for m in metas:
-                    self.bucket.delete_key(m.key)
-                return Null
-
             perfect = Null
             favorite = Null
             too_many = False
@@ -176,9 +170,10 @@ class Bucket(object):
                     if simple == key:
                         perfect = m
                         too_many = False
-                    if favorite and not perfect:
-                        too_many = True
-                    favorite = m
+                    if simple.startswith(key + ".") or simple.startswith(key + ":"):
+                        if favorite and not perfect:
+                            too_many = True
+                        favorite = m
                 except Exception, e:
                     error = e
 
@@ -199,9 +194,11 @@ class Bucket(object):
         if delimiter:
             # WE REALLY DO NOT GET KEYS, BUT RATHER Prefix OBJECTS
             # AT LEAST THEY ARE UNIQUE
-            return set(k.name.rstrip(delimiter) for k in self.bucket.list(prefix=prefix, delimiter=delimiter))
+            candidates = [k.name.rstrip(delimiter) for k in self.bucket.list(prefix=prefix, delimiter=delimiter)]
         else:
-            return set(strip_extension(k.key) for k in self.bucket.list(prefix=prefix))
+            candidates = [strip_extension(k.key) for k in self.bucket.list(prefix=prefix)]
+
+        return set(k for k in candidates if k == prefix or k.startswith(prefix + ".") or k.startswith(prefix + ":"))
 
     def metas(self, prefix=None, limit=None, delimiter=None):
         """

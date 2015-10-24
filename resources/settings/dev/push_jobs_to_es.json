@@ -16,11 +16,11 @@
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-jobs-beta",
+		"bucket": "active-data-jobs-dev",
 		"key_format": "a.b"
 	},
-	"work_queue":{
-		"name": "active-data-index-jobs-beta",
+	"work_queue": {
+		"name": "active-data-index-jobs-dev",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -39,8 +39,9 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Beta]Problem in Push jobs to ES",
+				"subject": "[ALERT][DEV]Problem in Push jobs to ES",
 				"$ref": "file://~/private.json#email"
+
 			}
 		]
 	}

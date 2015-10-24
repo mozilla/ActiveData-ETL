@@ -130,19 +130,16 @@ def transform_buildbot(payload, resources, filename=None):
     output.build.locale = fix_locale(payload.locale)
     output.run.logurl = payload.logurl
     output.run.machine.os = payload.os
-    output.machine.os = payload.os
     output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
     output.build.revision12 = payload.revision[0:12]
     output.run.machine.name = payload.slave
-    output.machine.name = payload.slave
 
     # payload.status IS THE BUILDBOT STATUS
     # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
     # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
-    output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
     try:
         output.run.buildbot_status = buildbot.STATUS_CODES[payload.status]
     except Exception, e:

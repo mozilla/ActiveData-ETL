@@ -122,8 +122,9 @@ class ETL(Thread):
 
         if not work_actions:
             Log.note(
-                "No worker defined for records from {{bucket}}, {{action}}.\n{{message|indent}}",
-                bucket=source_block.bucket,
+                "No worker defined for records from {{source_bucket}} to {{destination}}, {{action}}.\n{{message|indent}}",
+                source_bucket=source_block.bucket,
+                destination=source_block.destination,
                 message=source_block,
                 action="skipping" if self.settings.keep_unknown_on_queue else "deleting"
             )

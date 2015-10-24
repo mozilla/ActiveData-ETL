@@ -45,10 +45,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
             else:
                 sample_filter = None
 
-            if key.find(":") >= 0:
-                more_keys = bucket.keys(prefix=key)
-            else:
-                more_keys = bucket.keys(prefix=key + ":")
+            more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
         if num_keys > 1:
