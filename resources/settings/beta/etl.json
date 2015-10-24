@@ -82,6 +82,27 @@
 			"transform_type": "bulk"
 		},
 		{
+            "name": "bbb2jobs",
+            "source": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-buildbot-beta",
+                "key_format": "a.b"
+            },
+            "destination": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-jobs-beta",
+                "public": true,
+                "key_format": "a.b"
+            },
+            "notify": {
+                "name": "active-data-index-jobs-beta",
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+            "type": "join",
+            "transform_type": "bulk"
+        },
+		{
 			"name": "talos2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -100,27 +121,6 @@
 			},
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
-		},
-		{
-			"name": "pulse2jobs",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-beta",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-jobs-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-jobs-beta",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_job_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
 		},
 		{
 			"name": "pulse2test_result",
@@ -150,19 +150,11 @@
 				"log_type": "console"
 			},
 			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/etl_logger.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 10,
-				"encoding" : "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Beta] Problem in ETL",
 				"$ref": "file://~/private.json#email"
-
 			}
 		]
 	}

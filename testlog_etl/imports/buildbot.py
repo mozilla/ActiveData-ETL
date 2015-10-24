@@ -95,6 +95,7 @@ class BuildbotTranslator(object):
         output.run.logurl = props.log_url
         output.build.release = coalesce(props.en_revision, props.script_repo_revision)
         output.run.machine.name = coalesce(props.slavename, props.aws_instance_id)
+        output.run.machine.aws_id = props.aws_instance_id
         split_name = output.run.machine.name.split("-")
         if Math.is_integer(split_name[-1]):
             # EXAMPLES
@@ -103,7 +104,7 @@ class BuildbotTranslator(object):
             # bld-linux64-spot-013
             # panda-0150
             output.run.machine.pool = "-".join(split_name[:-1])
-        output.run.machine.type = props.aws_instance_type
+        output.run.machine.aws_type = props.aws_instance_type
 
         # FILES
         try:
