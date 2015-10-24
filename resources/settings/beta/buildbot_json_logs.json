@@ -1,0 +1,36 @@
+{
+	"force": true,
+	"source": {
+		"url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
+	},
+	"destination": {
+		"bucket": "active-data-buildbot-beta",
+		"public": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"notify": {
+		"name": "active-data-etl-beta",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"debug": {
+		"trace": true,
+		"cprofile": false,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Beta] Problem in Buildbot Scan",
+				"$ref": "file://~/private.json#email"
+			}
+		]
+	}
+}
