@@ -70,8 +70,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "No logurl"
                     output.append(data)
                     continue
+
                 if "scl3.mozilla.com" in url:
-                    Log.error("Will not read {{url}}", url=url)
+                    Log.alert("Will not read {{url}}", url=url)
+                    data.etl.error = "Text log unreachable"
+                    output.append(data)
+                    continue
+
                 response = http.get(
                     url=[
                         url,

@@ -158,12 +158,6 @@ class Bucket(object):
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])
 
-            if self.name == "ekyle-talos" and key.find(".") == -1:
-                # VERY SPECIFIC CONDITIONS TO ALLOW DELETE, REMOVE THIS CODE IN THE FUTURE (Now==March2015)
-                for m in metas:
-                    self.bucket.delete_key(m.key)
-                return Null
-
             perfect = Null
             favorite = Null
             too_many = False
