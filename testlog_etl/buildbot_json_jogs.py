@@ -123,8 +123,8 @@ def parse_day(settings, p, force=False):
     notify.add({"key": key0, "bucket": destination.name, "timestamp": Date.now()})
 
     #CONFIRM IT WAS WRITTEN
-    if destination.get_meta(key0):
-        return
+    if not destination.get_meta(key0):
+        Log.error("Key zero is missing?!")
 
 
 
