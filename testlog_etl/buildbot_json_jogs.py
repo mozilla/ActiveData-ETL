@@ -54,7 +54,7 @@ def parse_day(settings, p, force=False):
 
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
-    day_num = (day - Date("1 JAN 2015")) / DAY
+    day_num = int((day - Date("1 JAN 2015")) / DAY)
     day_url = settings.source.url + p
     key0 = unicode(day_num) + ".0"
 

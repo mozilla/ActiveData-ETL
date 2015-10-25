@@ -29,6 +29,8 @@ from pyLibrary.times.timer import Timer
 
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
+VALID_KEY = r"\d+([.:]\d+)*"
+
 
 class File(object):
     def __init__(self, bucket, key):
@@ -98,6 +100,8 @@ class Bucket(object):
     THIS CLASS MANAGES THE ".json" EXTENSION, AND ".gz"
     (ZIP/UNZIP) SHOULD THE FILE BE BIG ENOUGH TO
     JUSTIFY IT
+
+    ALL KEYS ARE DIGITS, SEPARATED BY DOT (.) COLON (:)
     """
 
     @use_settings
@@ -120,7 +124,7 @@ class Bucket(object):
             self.connection = Connection(settings).connection
             self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
         except Exception, e:
-            Log.error("Problem connecting to {{bucket}}",  bucket= self.settings.bucket, cause=e)
+            Log.error("Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e)
 
 
     def __enter__(self):

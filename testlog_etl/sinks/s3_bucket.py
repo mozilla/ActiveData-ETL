@@ -73,16 +73,19 @@ class S3Bucket(object):
             return maxi
 
     def extend(self, documents):
-        parts = Dict()
+        parts = {}
         for d in wrap(documents):
             parent_key = etl2key(key2etl(d.id).source)
             d.value._id = d.id
-            parts[literal_field(parent_key)] += [d.value]
+            sub = parts.get(parent_key)
+            if not sub:
+                sub = parts[parent_key] = []
+            sub.append(d.value)
 
         for k, docs in parts.items():
             self._extend(k, docs)
 
-        return parts.keys()
+        return set(parts.keys())
 
     def _extend(self, key, documents):
         #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
