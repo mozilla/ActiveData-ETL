@@ -1,6 +1,6 @@
 {
 	"work_queue": {
-		"name": "ekyle-etl",
+		"name": "active-data-etl",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
