@@ -4,7 +4,7 @@
 	"limit": 10000,
 	"id_field": "etl.source.source.source.id",
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
-		"name": "ekyle-etl",
+		"name": "active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {    //WHERE WE GET DATA FROM

@@ -14,7 +14,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"work_queue": {
-		"name": "ekyle-etl",
+		"name": "active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
