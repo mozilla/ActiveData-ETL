@@ -29,7 +29,7 @@ from requests import sessions, Response
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot import Dict, coalesce, wrap, set_default
-from pyLibrary.env.big_data import safe_size, CompressedLines, ZipfileLines
+from pyLibrary.env.big_data import safe_size, CompressedLines, ZipfileLines, GzipLines
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.thread.threads import Thread
@@ -46,15 +46,20 @@ _warning_sent = False
 
 def request(method, url, zip=False, retry=None, **kwargs):
     """
-     JUST LIKE requests.request() BUT WITH DEFAULT HEADERS AND FIXES
-     DEMANDS data IS ONE OF:
-      * A JSON-SERIALIZABLE STRUCTURE, OR
-      * LIST OF JSON-SERIALIZABLE STRUCTURES, OR
-      * None
+    JUST LIKE requests.request() BUT WITH DEFAULT HEADERS AND FIXES
+    DEMANDS data IS ONE OF:
+    * A JSON-SERIALIZABLE STRUCTURE, OR
+    * LIST OF JSON-SERIALIZABLE STRUCTURES, OR
+    * None
 
-     THE BYTE_STRINGS (b"") ARE NECESSARY TO PREVENT httplib.py FROM **FREAKING OUT**
-     IT APPEARS requests AND httplib.py SIMPLY CONCATENATE STRINGS BLINDLY, WHICH
-     INCLUDES url AND headers
+    Parameters
+     * zip - ZIP THE REQUEST BODY, IF BIG ENOUGH
+     * json - JSON-SERIALIZABLE STRUCTURE
+     * retry - {"times": x, "sleep": y} STRUCTURE
+
+    THE BYTE_STRINGS (b"") ARE NECESSARY TO PREVENT httplib.py FROM **FREAKING OUT**
+    IT APPEARS requests AND httplib.py SIMPLY CONCATENATE STRINGS BLINDLY, WHICH
+    INCLUDES url AND headers
     """
     global _warning_sent
     if not default_headers and not _warning_sent:
@@ -243,6 +248,8 @@ class HttpResponse(Response):
                 return CompressedLines(content, encoding=encoding)
             elif self.headers.get('content-type') == 'application/zip':
                 return ZipfileLines(content, encoding=encoding)
+            elif self.url.endswith(".gz"):
+                return GzipLines(content, encoding)
             else:
                 return content.decode(encoding).split("\n")
         except Exception, e:

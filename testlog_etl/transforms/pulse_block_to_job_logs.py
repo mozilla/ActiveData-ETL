@@ -78,11 +78,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     retry={"times": 3, "sleep": 10}
                 )
                 if response.status_code == 404:
-                    data.etl.error = "Text log unreachable"
+                    Log.note("Text log does not exist {{url}}", url=pulse_record.payload.logurl)
+                    data.etl.error = "Text log does not exist"
                     output.append(data)
                     continue
-
-                all_log_lines = response._all_lines(encoding='latin1')
+                all_log_lines = response._all_lines(encoding=None)
                 data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
                 verify_equal(data, "build.revision", "action.revision")
@@ -363,7 +363,7 @@ def process_buildbot_log(all_log_lines, from_url):
             continue
 
         try:
-            log_line = log_ascii.decode('utf8', "replace").strip()
+            log_line = log_ascii.decode('utf8', "ignore").strip()
         except Exception, e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
