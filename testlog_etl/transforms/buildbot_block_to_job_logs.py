@@ -12,19 +12,18 @@ import zlib
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, set_default
+from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import http
-from pyLibrary.env.big_data import GzipLines, ZipfileLines, ibytes2ilines
+from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 from testlog_etl.imports.buildbot import BuildbotTranslator
 from testlog_etl.transforms.pulse_block_to_job_logs import verify_equal, process_buildbot_log
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 _ = convert
-DEBUG = True
+DEBUG = False
 
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
@@ -86,10 +85,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     retry={"times": 3, "sleep": 10}
                 )
                 if response.status_code == 404:
-                    data.etl.error = "Text log unreachable"
+                    Log.note("Text log does not exist {{url}}", url=url)
+                    data.etl.error = "Text log does not exist"
                     output.append(data)
                     continue
-
                 if url.endswith(".gz"):
                     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
                     def ibytes():
