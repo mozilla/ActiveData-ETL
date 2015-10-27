@@ -106,10 +106,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time
 
-                verify_equal(data, "build.revision", "action.revision")
-                verify_equal(data, "build.id", "action.buildid")
-                verify_equal(data, "run.key", "action.builder", warning=False)
-                verify_equal(data, "run.machine.name", "action.slave")
+                verify_equal(data, "build.revision", "action.revision", url)
+                verify_equal(data, "build.id", "action.buildid", url)
+                verify_equal(data, "run.key", "action.builder", warning=False, from_url=url)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=url)
 
                 output.append(data)
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))

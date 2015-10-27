@@ -85,9 +85,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response._all_lines(encoding=None)
                 data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
-                verify_equal(data, "build.revision", "action.revision")
-                verify_equal(data, "build.id", "action.buildid")
-                verify_equal(data, "run.machine.name", "action.slave")
+                verify_equal(data, "build.revision", "action.revision", from_url=pulse_record.payload.logurl)
+                verify_equal(data, "build.id", "action.buildid", from_url=pulse_record.payload.logurl)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=pulse_record.payload.logurl)
 
                 output.append(data)
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
