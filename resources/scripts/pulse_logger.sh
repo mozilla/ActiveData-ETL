@@ -9,6 +9,7 @@ python27 testlog_etl/pulse_logger.py --settings=resources/settings/staging/pulse
 tail -f  ~/TestLog-ETL/results/logs/pulse_logger.log
 
 # DO NOT HANG ONTO PROCESS (nohup)
+export PYTHONPATH=.
 nohup python27 testlog_etl/pulse_logger.py --settings=resources/settings/staging/pulse_logger.json &
 disown -h
 tail -f  ~/TestLog-ETL/results/logs/pulse_logger.log
