@@ -162,7 +162,7 @@ class BuildbotTranslator(object):
                 output.build.name = props.buildername
                 scrub_known_properties(props)
                 output.other = props
-                output.action.build = True
+                output.action.type = "build"
                 verify(output, data)
                 return output
 
@@ -212,7 +212,7 @@ class BuildbotTranslator(object):
                     else:
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
-                output.action.build = True
+                output.action.type = "build"
             except Exception, e:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
@@ -259,7 +259,7 @@ def verify(output, data):
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)
         Log.error("Bad OS {{os}}\n{{data|json}}", os=output.run.machine.os, data=data)
-    if output.action.test and output.build.platform not in ALLOWED_PLATFORMS:
+    if "test" in output.action.type and output.build.platform not in ALLOWED_PLATFORMS:
         ALLOWED_PLATFORMS.append(output.build.platform)
         Log.error("Bad Platform {{platform}}\n{{data|json}}", platform=output.build.platform, data=data)
     if output.build.product not in ALLOWED_PRODUCTS:
@@ -325,11 +325,11 @@ def scrub_known_properties(props):
 
 
 test_modes = {
-    "debug test": {"build": {"type": ["debug"]}, "action": {"test": True}},
-    "opt test": {"build": {"type": ["opt"]}, "action": {"test": True}},
-    "pgo test": {"build": {"type": ["pgo"]}, "action": {"test": True}},
-    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"test": True, "talos": True}},
-    "talos": {"action": {"test": True, "talos": True}}
+    "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
+    "opt test": {"build": {"type": ["opt"]}, "action": {"type": "test"}},
+    "pgo test": {"build": {"type": ["pgo"]}, "action": {"type": "test"}},
+    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"type": ["test", "talos"]}},
+    "talos": {"action": {"type": ["test", "talos"]}}
 }
 
 BUILDER_NAMES = [
