@@ -12,7 +12,7 @@ import re
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, unwraplist, Null, DictList
+from pyLibrary.dot import Dict, wrap, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
@@ -26,7 +26,7 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transfo
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 _ = convert
-DEBUG = False
+DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
@@ -501,7 +501,7 @@ def fix_times(times, start_time, end_time):
     for t in qb.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
-            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time)
+            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
         t.duration = Math.max(time, t.end_time) - t.start_time
         if t.duration==None or t.duration < 0:
             Log.error("logic error")
@@ -524,7 +524,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/b2g-inbound-linux64-asan/1445641003/b2g-inbound_ubuntu64-asan_vm_lnx_large_test-gtest-bm53-tests1-linux64-build3.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

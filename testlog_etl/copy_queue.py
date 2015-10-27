@@ -1,0 +1,45 @@
+# encoding: utf-8
+#
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+
+
+from __future__ import unicode_literals
+from __future__ import division
+
+from pyLibrary import aws
+from pyLibrary.debugs import startup
+from pyLibrary.debugs.logs import Log
+from pyLibrary.times.durations import SECOND
+
+
+def copy_queue(settings):
+    source = aws.Queue(settings.source)
+    destination = aws.Queue(settings.destination)
+
+    while True:
+        m = source.pop(wait=10*SECOND)
+        if not m:
+            break
+        destination.add(m)
+    source.commit()
+
+
+def main():
+    try:
+        settings = startup.read_settings()
+        Log.start(settings.debug)
+        copy_queue(settings)
+    except Exception, e:
+        Log.error("Problem with etl", e)
+    finally:
+        Log.stop()
+
+
+if __name__ == "__main__":
+    main()
