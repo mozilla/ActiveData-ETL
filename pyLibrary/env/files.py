@@ -155,7 +155,7 @@ class File(object):
         from pyLibrary.jsons import ref
 
         content = self.read(encoding=encoding)
-        value = convert.json2value(content, flexible=True, paths=True)
+        value = convert.json2value(content, flexible=True, leaves=True)
         abspath = self.abspath
         if os.sep == "\\":
             abspath = "/" + abspath.replace(os.sep, "/")
@@ -229,6 +229,9 @@ class File(object):
         return output()
 
     def append(self, content):
+        """
+        add a line to file
+        """
         if not self.parent.exists:
             self.parent.create()
         with open(self._filename, "ab") as output_file:

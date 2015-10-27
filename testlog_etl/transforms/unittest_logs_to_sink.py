@@ -15,7 +15,7 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
@@ -67,8 +67,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time)
-        if age > Duration.DAY:
-            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / Duration.DAY)
+        if age > DAY:
+            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / DAY)
         Log.note("Done\n{{data|indent}}", data=buildbot_summary.run.stats)
 
     new_keys = []
@@ -102,7 +102,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 
 def accumulate_logs(source_key, file_name, lines, please_stop):
-    accumulator = LogSummary()
+    accumulator = LogSummary(file_name)
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -122,10 +122,15 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
-            accumulator.__getattribute__(log.action)(log)
+            try:
+                accumulator.__getattribute__(log.action)(log)
+            except AttributeError:
+                accumulator.stats.action[log.action] += 1
+
             if log.subtest:
-                accumulator.last_subtest=log.time
+                accumulator.last_subtest = log.time
         except Exception, e:
+            Log.warning("bad line: {{line}}", line=line, cause=e)
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
@@ -141,11 +146,12 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
 
 
 class LogSummary(Dict):
-    def __init__(self):
+    def __init__(self, url):
         Dict.__init__(self)
         self.tests = Dict()
         self.logs = Dict()
         self.last_subtest = None
+        self.url = url
 
     def suite_start(self, log):
         pass
@@ -162,7 +168,7 @@ class LogSummary(Dict):
     def test_status(self, log):
         self.stats.action.test_status += 1
         if not log.test:
-            Log.error("log has blank 'test' property! Do not know how to handle.")
+            Log.error("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
 
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
@@ -177,20 +183,24 @@ class LogSummary(Dict):
         test.stats[log.status.lower()] += 1
 
         if log.subtest:
-            test.subtests += [{
-                "name": log.subtest,
-                "subtest": log.subtest,
-                "ok": True if log.expected == None or log.expected == log.status else False,
-                "status": log.status.lower(),
-                "expected": log.expected.lower(),
-                "timestamp": log.time,
-                "message": log.message,
-                "ordering": len(test.subtests)
-            }]
+            ok = True if log.expected == None or log.expected == log.status else False
+            if not ok:
+                # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
+                test.subtests += [{
+                    "name": log.subtest,
+                    "subtest": log.subtest,
+                    "ok": ok,
+                    "status": log.status.lower(),
+                    "expected": log.expected.lower(),
+                    "timestamp": log.time,
+                    "message": log.message,
+                    "ordering": len(test.subtests)
+                }]
 
     def process_output(self, log):
-        self.logs[literal_field(log.test)] += [log]
         self.stats.action.process_output += 1
+        if log.test:
+            self.logs[literal_field(log.test)] += [log]
         pass
 
     def log(self, log):
@@ -213,12 +223,14 @@ class LogSummary(Dict):
     def crash(self, log):
         self.stats.action.crash += 1
         if not log.test:
-            return
+            test_name = "!!SUITE CRASH!!"
+        else:
+            test_name = literal_field(log.test)
 
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
+        self.logs[test_name] += [log]
+        test = self.tests[test_name]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[test_name] = test = Dict(
                 test=log.test,
                 start_time=log.time,
                 crash=True,

@@ -10,11 +10,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+from decimal import Decimal
 import math
 import __builtin__
 
 
-from pyLibrary.strings import find_first
+from pyLibrary.strings import find_first, _Log
 from pyLibrary.dot import Null, coalesce
 
 
@@ -125,6 +126,15 @@ class Math(object):
         except Exception:
             return False
 
+    @staticmethod
+    def is_hex(value):
+        try:
+            int('00480065006C006C006F00200077006F0072006C00640021', 16)
+            return True
+        except Exception:
+            return False
+
+
 
     @staticmethod
     def is_nan(s):
@@ -155,14 +165,25 @@ class Math(object):
             value = float(value)
 
         if digits != None:
-            if value ==0:
-                return __builtin__.round(value, digits)
-            try:
-                m = pow(10, math.ceil(math.log10(abs(value))))
-                return __builtin__.round(value / m, digits) * m
-            except Exception, e:
-                from pyLibrary.debugs.logs import Log
-                Log.error("not expected", e)
+            if digits <= 0:
+                if value == 0:
+                    return int(__builtin__.round(value, digits))
+                try:
+                    m = pow(10, math.ceil(math.log10(abs(value))))
+                    return int(__builtin__.round(value / m, digits) * m)
+                except Exception, e:
+                    from pyLibrary.debugs.logs import Log
+
+                    Log.error("not expected", e)
+            else:
+                if value == 0:
+                    return __builtin__.round(value, digits)
+                try:
+                    m = pow(10, math.ceil(math.log10(abs(value))))
+                    return __builtin__.round(value / m, digits) * m
+                except Exception, e:
+                    from pyLibrary.debugs.logs import Log
+                    Log.error("not expected", e)
 
         return __builtin__.round(value, decimal)
 
@@ -170,12 +191,28 @@ class Math(object):
     @staticmethod
     def floor(value, mod=1):
         """
-        x == floor(x, a) + mod(x, a)  FOR ALL a
+        x == Math.floor(x, a) + Math.mod(x, a)  FOR ALL a, x
         """
         if value == None:
             return None
         v = int(math.floor(value))
-        return v - (v % mod)
+        if v < 0:
+            _Log.error("")
+        else:
+            return v - (v % mod)
+
+    @staticmethod
+    def mod(value, mod=1):
+        """
+        RETURN NON-NEGATIVE VALUE
+        """
+        if value == None:
+            return None
+        elif value < 0:
+            return value % mod + mod
+        else:
+            return value % mod
+
 
 
     # RETURN A VALUE CLOSE TO value, BUT WITH SHORTER len(unicode(value))<len(unicode(value)):
@@ -202,7 +239,9 @@ class Math(object):
         """
         if value == None:
             return None
-        v = int(math.floor(value+mod))
+        mod = int(mod)
+
+        v = int(math.floor(value + mod))
         return v - (v % mod)
 
     @staticmethod
@@ -234,7 +273,7 @@ class Math(object):
 
     @staticmethod
     def MAX(values):
-        output = None
+        output = Null
         for v in values:
             if v == None:
                 continue
@@ -259,6 +298,14 @@ class Math(object):
             else:
                 pass
         return output
+
+    @staticmethod
+    def range(start, stop, interval):
+        i = start
+        while i<stop:
+            yield i
+            i+=interval
+
 
 
 def almost_equal(first, second, digits=None, places=None, delta=None):

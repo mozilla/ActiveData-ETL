@@ -11,10 +11,10 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import MINUTE
 
 
-PING_PERIOD = Duration.MINUTE
+PING_PERIOD = MINUTE
 WAIT_FOR_ACTIVITY = PING_PERIOD * 2
 SYNCHRONIZATION_KEY = "0"
 

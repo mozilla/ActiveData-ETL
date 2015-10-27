@@ -9,7 +9,8 @@ sudo pip install pyopenssl
 sudo pip ndg-httpsclient
 sudo pip pyasn1
 
-sudo pip install supervisor
+sudo pip install supervisor-plus-cron
+sudo pip install BeautifulSoup
 
 cd ~
 mkdir -p ~/TestLog-ETL/results/logs

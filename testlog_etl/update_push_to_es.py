@@ -11,7 +11,7 @@ from __future__ import division
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, shell_env, hide
+from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
@@ -97,30 +97,27 @@ def _es_up():
 
 
 def _refresh_indexer():
-    _es_up()
-
     with cd("/home/ec2-user/TestLog-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
-            # ASK NICELY TO STOP "python27" PROCESS
             with fabric_settings(warn_only=True):
-                run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -SIGINT")
-            Thread.sleep(seconds=10)
+                sudo("supervisorctl restart push_perf_to_es")
+                sudo("supervisorctl restart push_unit_to_es")
+                sudo("supervisorctl restart push_jobs_to_es")
+            _start_supervisor()
 
-            pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-            if pid:
-                # KILL !!
-                with fabric_settings(warn_only=True):
-                    run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-                Thread.sleep(seconds=5)
 
-        pid = run("ps -ef | grep python27 | grep -v grep | awk '{print $2}'")
-        if not pid:
-            Log.note("Starting push_to_es.py")
-            with shell_env(PYTHONPATH="."):
-                _run_remote("python27 testlog_etl/push_to_es.py --settings=./resources/settings/staging/push_to_es.json", "push_to_es")
+def _start_supervisor():
+    put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
+
+    #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
+    with fabric_settings(warn_only=True):
+        sudo("supervisord -c /etc/supervisord.conf")
+
+    sudo("supervisorctl reread")
+    sudo("supervisorctl update")
 
 
 def _run_remote(command, name):

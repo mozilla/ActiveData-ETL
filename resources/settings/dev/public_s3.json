@@ -1,0 +1,9 @@
+{
+	"aws": {"$ref":"//~/private.json#aws_credentials"},
+	"log": [
+		{
+			"log_type": "console"
+		}
+	]
+
+}

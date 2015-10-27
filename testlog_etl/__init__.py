@@ -9,8 +9,8 @@
 from __future__ import unicode_literals
 from collections import Mapping
 from pyLibrary import strings
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
-from pyLibrary.parsers import Log
 from pyLibrary.queries import qb
 
 
@@ -70,21 +70,21 @@ def etl2key(etl):
         if etl.source.type:
             if etl.type == etl.source.type:
                 if etl.type == "join":
-                    return etl2key(etl.source) + "." + unicode(etl.id)
+                    return etl2key(etl.source) + "." + unicode(int(etl.id))
                 else:
                     return unicode(etl.id) + ":" + etl2key(etl.source)
             else:
                 if etl.type == "join":
-                    return etl2key(etl.source) + "." + unicode(etl.id)
+                    return etl2key(etl.source) + "." + unicode(int(etl.id))
                 else:
-                    return unicode(etl.id) + ":(" + etl2key(etl.source) + ")"
+                    return unicode(int(etl.id)) + ":(" + etl2key(etl.source) + ")"
         else:
             if etl.type == "join":
-                return etl2key(etl.source) + "." + unicode(etl.id)
+                return etl2key(etl.source) + "." + unicode(int(etl.id))
             else:
-                return unicode(etl.id) + ":" + etl2key(etl.source)
+                return unicode(int(etl.id)) + ":" + etl2key(etl.source)
     else:
-        return unicode(etl.id)
+        return unicode(int(etl.id))
 
 
 def etl2path(etl):

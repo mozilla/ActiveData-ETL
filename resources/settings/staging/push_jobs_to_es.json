@@ -1,30 +1,27 @@
 {
 	"threads": 1,
-	"sample_only": [
-		"mozilla-aurora",
-		"try"
-	],
+	"batch_size": 500,
+	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "jobs",
+		"type": "job",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/test_results.json"
+			"$ref": "//../../schema/jobs.json"
 		},
 		"debug": false,
-		"limit_replicas": true
+		"limit_replicas": false
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-dev",
+		"bucket": "active-data-jobs",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-dev",
+		"name": "active-data-index-jobs",
 		"debug": true,
-		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -33,10 +30,7 @@
 		}
 	},
 	"debug": {
-		"cprofile": {
-			"enabled": true,
-			"filename": "./results/cprofile.tab"
-		},
+		"trace":true,
 		"log": [
 			{
 				"log_type": "console"
@@ -45,9 +39,8 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"subject": "[ALERT][Staging]Problem in Push jobs to ES",
 				"$ref": "file://~/private.json#email"
-
 			}
 		]
 	}

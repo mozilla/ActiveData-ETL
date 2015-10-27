@@ -12,6 +12,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
@@ -70,9 +71,11 @@ def process_pulse_block(source_key, source, destination, please_stop=None):
 
                     destination.write_lines(
                         dest_key,
-                        convert.value2json(dest_etl),  # ETL HEADER
-                        line,  # PULSE MESSAGE
-                        log_content
+                        [
+                            convert.value2json(dest_etl),  # ETL HEADER
+                            line,  # PULSE MESSAGE
+                            log_content
+                        ]
                     )
                     file_num += 1
                     output.append(dest_key)
@@ -195,6 +198,7 @@ class EtlHeadGenerator(object):
             "name": name,
             "source": source_etl,
             "type": "join",
+            "revision": get_git_revision(),
             "timestamp": Date.now().unix
         })
 

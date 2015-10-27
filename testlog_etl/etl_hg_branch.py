@@ -17,11 +17,11 @@ from pyLibrary.env import elasticsearch, http
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import SECOND
 from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 
 
-EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
+EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 @use_settings
 def get_branches(settings):
@@ -39,7 +39,8 @@ def get_branches(settings):
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
     for b in list(branches["mozilla-beta", ]):
-        branches.add(set_default({"name": "release-mozilla-beta"}, b))
+        branches.add(set_default({"name": "release-mozilla-beta"}, b))  # THIS IS THE l10n "name"
+        b.url = "https://hg.mozilla.org/releases/mozilla-beta"          # THIS IS THE
 
     for b in list(branches["mozilla-release", ]):
         branches.add(set_default({"name": "release-mozilla-release"}, b))
@@ -48,6 +49,7 @@ def get_branches(settings):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
+        # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
 
     return branches
 
@@ -137,6 +139,9 @@ def main():
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
+        for b in branches:
+            if not b.locale:
+                Log.error("Not expected")
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:

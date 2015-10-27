@@ -10,102 +10,71 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
+import subprocess
+
 from pyLibrary.debugs.logs import Log
-from pyLibrary.thread.threads import Queue
-
-# YOU ARE READING AN INCOMPLETE IMPLEMENTATION
-
-class worker(object):
-    def __init__(func, inbound, outbound, logging):
-        logger = Log_usingInterProcessQueue(logging)
+from pyLibrary.thread.threads import Queue, Thread, Signal
 
 
-
-class Log_usingInterProcessQueue(Log):
-    def __init__(self, outbound):
-        self.outbound = outbound
-
-    def write(self, template, params):
-        self.outbound.put({"template": template, "param": params})
+DEBUG = True
 
 
-class Multiprocess(object):
-    # THE COMPLICATION HERE IS CONNECTING THE DISPARATE LOGGING TO
-    # A CENTRAL POINT
-    # ONLY THE MAIN THREAD CAN CREATE AND COMMUNICATE WITH multiprocess.Process
+class Process(object):
+    def __init__(self, name, params, cwd=None, env=None):
+        self.name = name
+        self.service_stopped = Signal()
+        self.stdin = Queue("stdin")
+        self.stdout = Queue("stdout")
+        self.stderr = Queue("stderr")
 
-
-    def __init__(self, functions):
-        self.outbound = Queue("out to process")
-        self.inbound = Queue("in from stdin")
-        self.inbound = Queue("in from stderr")
-
-        # MAKE
-
-        # MAKE THREADS
-        self.threads = []
-        for t, f in enumerate(functions):
-            thread = worker(
-                "worker " + unicode(t),
-                f,
-                self.inbound,
-                self.outbound,
+        try:
+            self.service = service = subprocess.Popen(
+                params,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                bufsize=-1,
+                cwd=cwd,
+                env=env
             )
-            self.threads.append(thread)
 
-
-    def __enter__(self):
-        return self
-
-    # WAIT FOR ALL QUEUED WORK TO BE DONE BEFORE RETURNING
-    def __exit__(self, a, b, c):
-        try:
-            self.inbound.close() # SEND STOPS TO WAKE UP THE WORKERS WAITING ON inbound.pop()
+            self.stopper = Signal()
+            self.stopper.on_go(lambda: service.kill())
+            Thread.run(self.name + " waiter", self.waiter, self)
+            Thread.run(self.name + " stdin", self.writer, service.stdin, self.stdin, please_stop=self.stopper)
+            Thread.run(self.name + " stdout", self.reader, service.stdout, self.stdout, please_stop=self.stopper)
+            Thread.run(self.name + " stderr", self.reader, service.stderr, self.stderr, please_stop=self.stopper)
         except Exception, e:
-            Log.warning("Problem adding to inbound", e)
+            Log.error("Can not call", e)
 
-        self.join()
-
-
-    # IF YOU SENT A stop(), OR STOP, YOU MAY WAIT FOR SHUTDOWN
-    def join(self):
-        try:
-            # WAIT FOR FINISH
-            for t in self.threads:
-                t.join()
-        except (KeyboardInterrupt, SystemExit):
-            Log.note("Shutdow Started, please be patient")
-        except Exception, e:
-            Log.error("Unusual shutdown!", e)
-        finally:
-            for t in self.threads:
-                t.keep_running = False
-            for t in self.threads:
-                t.join()
-            self.inbound.close()
-            self.outbound.close()
-
-
-    # RETURN A GENERATOR THAT HAS len(parameters) RESULTS (ANY ORDER)
-    def execute(self, parameters):
-        # FILL QUEUE WITH WORK
-        self.inbound.extend(parameters)
-
-        num = len(parameters)
-
-        def output():
-            for i in xrange(num):
-                result = self.outbound.pop()
-                yield result
-
-        return output()
-
-    # EXTERNAL COMMAND THAT RETURNS IMMEDIATELY
     def stop(self):
-        self.inbound.close() # SEND STOPS TO WAKE UP THE WORKERS WAITING ON inbound.pop()
-        for t in self.threads:
-            t.keep_running = False
+        self.stopper.go()
+        self.stdin.add("exit")  # ONE MORE SEND
 
+    def join(self):
+        self.service_stopped.wait_for_go()
 
+    def waiter(self, please_stop):
+        self.service.wait()
+        if DEBUG:
+            Log.alert("{{name}} stopped with returncode={{returncode}}", name=self.name, returncode=self.service.returncode)
+        self.service_stopped.go()
+
+    def reader(self, pipe, recieve, please_stop):
+        while not please_stop:
+            line = pipe.readline()
+            if self.service.returncode is not None:
+                return
+
+            recieve.add(line)
+            Log.note("FROM {{process}}: {{line}}", process=self.name, line=line.rstrip())
+        pipe.close()
+
+    def writer(self, pipe, send, please_stop):
+        while not please_stop:
+            line = send.pop()
+            if line:
+                pipe.write(line + "\n")
+        pipe.close()
 
 
