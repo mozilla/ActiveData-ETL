@@ -101,7 +101,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} talos records", num=len(all_talos))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_talos])
         else:
-            Log.warning("No talos records found in {{url}}", url=pulse_record.payload.logurl)
+            Log.alert("No talos records found in {{url}}", url=pulse_record.payload.logurl)
             _, dest_etl = etl_head_gen.next(etl_file, "talos")
 
             output |= dest_bucket.extend([{

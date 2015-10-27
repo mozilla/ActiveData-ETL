@@ -398,7 +398,7 @@ def process_buildbot_log(all_log_lines, from_url):
             except Exception, e:
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
-                    Log.warning("Log header {{log_line}} can not be processed", log_line=curr_line, cause=e)
+                    Log.warning("Log header {{log_line}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
                     continue
         else:
             builder_says = builder_line.match(start_time, curr_line, next_line)
@@ -508,7 +508,7 @@ def fix_times(times, start_time, end_time):
         time = t.start_time
 
 
-def verify_equal(data, expected, duplicate, warning=True):
+def verify_equal(data, expected, duplicate, warning=True, from_url=None):
     """
     WILL REMOVE duplicate IF THE SAME
     """
@@ -518,7 +518,9 @@ def verify_equal(data, expected, duplicate, warning=True):
         data[duplicate] = None
     else:
         if warning:
-            Log.warning("{{a}} != {{b}} ({{av}}!={{bv}})", a=expected, b=duplicate, av=data[expected], bv=data[duplicate])
+            if not from_url:
+                from_url = "<unknown>"
+            Log.warning("{{a}} != {{b}} ({{av}}!={{bv}}) in {{url}}", a=expected, b=duplicate, av=data[expected], bv=data[duplicate], url=from_url)
 
 
 if __name__ == "__main__":
