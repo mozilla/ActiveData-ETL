@@ -17,11 +17,11 @@ from pyLibrary.env import elasticsearch, http
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import SECOND
 from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
 
 
-EXTRA_WAIT_TIME = 20 * Duration.SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
+EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 @use_settings
 def get_branches(settings):

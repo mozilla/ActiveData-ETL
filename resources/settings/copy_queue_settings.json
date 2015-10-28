@@ -1,5 +1,9 @@
 {
 	"source": {
+		"name":"ekyle-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"destination": {
 		"name":"active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},

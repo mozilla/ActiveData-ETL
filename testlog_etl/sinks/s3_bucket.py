@@ -73,22 +73,25 @@ class S3Bucket(object):
             return maxi
 
     def extend(self, documents):
-        parts = Dict()
+        parts = {}
         for d in wrap(documents):
             parent_key = etl2key(key2etl(d.id).source)
             d.value._id = d.id
-            parts[literal_field(parent_key)] += [d.value]
+            sub = parts.get(parent_key)
+            if not sub:
+                sub = parts[parent_key] = []
+            sub.append(d.value)
 
         for k, docs in parts.items():
             self._extend(k, docs)
 
-        return parts.keys()
+        return set(parts.keys())
 
     def _extend(self, key, documents):
         #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
         if self.bucket.name == "ekyle-test-result":
              #TODO: PUT THIS LOGIC ELSEWHERE (LIKE settings) WE DO NOT CARE WHAT'S IN THE BUCKET, OVERWRITE ALL
-            self.bucket.write_lines(key, map(convert.value2json, documents))
+            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
             return
 
         meta = self.bucket.get_meta(key)
@@ -111,7 +114,7 @@ class S3Bucket(object):
             if residual:
                 documents = documents | residual
 
-        self.bucket.write_lines(key, map(convert.value2json, documents))
+        self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
 
     def add(self, dco):
         Log.error("Not supported")

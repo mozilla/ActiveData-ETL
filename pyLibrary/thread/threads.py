@@ -94,7 +94,7 @@ class Queue(object):
         self.keep_running = True
         self.lock = Lock("lock for queue " + name)
         self.queue = deque()
-        self.next_warning = datetime.utcnow()  # FOR DEBUGGING
+        self.next_warning = Date.now()  # FOR DEBUGGING
 
     def __iter__(self):
         while self.keep_running:
@@ -146,16 +146,16 @@ class Queue(object):
         """
         EXPECT THE self.lock TO BE HAD, WAITS FOR self.queue TO HAVE A LITTLE SPACE
         """
-        wait_time = 5
+        wait_time = 5 * SECOND
 
-        now = datetime.utcnow()
+        now = Date.now()
         if timeout:
             time_to_stop_waiting = now + timeout
         else:
             time_to_stop_waiting = Date.MAX
 
         if self.next_warning < now:
-            self.next_warning = now + timedelta(seconds=wait_time)
+            self.next_warning = now + wait_time
 
         while self.keep_running and len(self.queue) > self.max:
             if now > time_to_stop_waiting:
@@ -168,10 +168,10 @@ class Queue(object):
             else:
                 self.lock.wait(wait_time)
                 if len(self.queue) > self.max:
-                    now = datetime.utcnow()
+                    now = Date.now()
                     if self.next_warning < now:
-                        self.next_warning = now + timedelta(seconds=wait_time)
-                        _Log.alert("Queue {{name}} is full ({{num}} items), thread(s) have been waiting {{wait_time}} sec",
+                        self.next_warning = now + wait_time
+                        _Log.alert("Queue {{name}} is full ({{num}} items), thread(s) have been waiting {{wait_time}}",
                             name=self.name,
                             num=len(self.queue),
                             wait_time=wait_time
@@ -550,9 +550,9 @@ class Thread(object):
                     break
             return
 
-        if seconds is not None:
+        if seconds != None:
             time.sleep(seconds)
-        elif till is not None:
+        elif till != None:
             if isinstance(till, datetime):
                 duration = (till - datetime.utcnow()).total_seconds()
             else:

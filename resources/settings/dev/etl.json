@@ -16,7 +16,7 @@
 	"hg":{
 		"use_cache": true,
 		"branches":{
-			"host": "http://192.168.2.98",
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -28,7 +28,7 @@
 			"limit_replicas": true
 		},
 		"repo":{
-			"host": "http://192.168.2.98",
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
@@ -77,7 +77,29 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join"
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot-dev",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs-dev",
+				"public": true,
+				"key_format": "a.b"
+			},
+			"notify": {
+				"name": "active-data-index-jobs-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
 		},
 		{
 			"name": "talos2perf",
@@ -129,13 +151,6 @@
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": "./results/logs/etl_dev.log",
-				"maxBytes": 10000000,
-				"backupCount": 100,
-				"encoding": "utf8"
 			},
 			{
 				"log_type": "email",

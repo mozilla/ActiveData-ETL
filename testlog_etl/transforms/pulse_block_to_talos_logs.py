@@ -12,6 +12,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap
 from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
@@ -45,6 +46,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
+            "revision": get_git_revision(),
             "source": pulse_record.etl,
             "type": "join"
         })
@@ -99,7 +101,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} talos records", num=len(all_talos))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_talos])
         else:
-            Log.warning("No talos records found in {{url}}", url=pulse_record.payload.logurl)
+            Log.alert("No talos records found in {{url}}", url=pulse_record.payload.logurl)
             _, dest_etl = etl_head_gen.next(etl_file, "talos")
 
             output |= dest_bucket.extend([{

@@ -32,13 +32,14 @@ from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.env.big_data import FileString, safe_size
 from pyLibrary.jsons import quote
-from pyLibrary.jsons.encoder import json_encoder
+from pyLibrary.jsons.encoder import json_encoder, pypy_json_encode
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 
 
 """
 DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
+IN <from_type> "2" <to_type> FORMAT
 """
 def value2json(obj, pretty=False):
     try:
@@ -48,6 +49,13 @@ def value2json(obj, pretty=False):
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:
+        e = Except.wrap(e)
+        try:
+            json = pypy_json_encode(obj)
+            return json
+        except Exception:
+            pass
+
         Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
 
@@ -134,7 +142,10 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
             json_string = json_string[0:50] + " ... <snip " + strings.comma(len(json_string)) + " characters> ... " + json_string[len(json_string)-50:len(json_string)]
         base_str = unicode2utf8(json_string)
         hexx_str = bytes2hex(base_str, " ")
-        char_str = " " + ("  ".join((latin12unicode(c) if ord(c) >= 32 else ".") for c in base_str))
+        try:
+            char_str = " " + ("  ".join(c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
+        except Exception, e:
+            char_str = " "
         Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
 
 
@@ -407,8 +418,10 @@ def unicode2latin1(value):
 def quote2string(value):
     if value[0] == "\"" and value[-1] == "\"":
         value = value[1:-1]
+    elif value[0] == "\'" and value[-1] == "\'":
+        value = value[1:-1]
 
-    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\t", "\t")
+    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\r", "\r").replace("\\\t", "\t")
 
 # RETURN PYTHON CODE FOR THE SAME
 
@@ -517,7 +530,7 @@ def latin12unicode(value):
     try:
         return unicode(value.decode('iso-8859-1'))
     except Exception, e:
-        Log.error("Can not convert {{value|quote}} to unicode",  value= value)
+        Log.error("Can not convert {{value|quote}} to unicode", value=value)
 
 
 def pipe2value(value):

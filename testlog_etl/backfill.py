@@ -15,6 +15,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.git import get_remote_revision, get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.times.dates import Date
@@ -29,7 +30,7 @@ def diff(settings, please_stop=None):
 
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if not settings.no_checks and len(work_queue) > 100:
+    if not settings.no_checks and len(work_queue) > 200:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
@@ -37,7 +38,14 @@ def diff(settings, please_stop=None):
     es = elasticsearch.Index(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
-    in_es = get_all_in_es(es, settings.range, settings.elasticsearch.id_field)
+    #git ls-remote https://github.com/klahnakoski/TestLog-ETL.git refs/heads/etl
+    if settings.git:
+        rev = 'c54c0407d8539e3330b'  # get_remote_revision(settings.git.url, settings.git.branch)
+        es_filter = {"prefix": {"etl.revision": rev}}
+    else:
+        es_filter = {"match_all": {}}
+
+    in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
         max_in_es = Math.MAX(in_es)
@@ -78,13 +86,16 @@ def diff(settings, please_stop=None):
         ])
 
 
-def get_all_in_es(es, in_range, field):
+def get_all_in_es(es, in_range, es_filter, field):
+    if es_filter==None:
+        es_filter = {"match_all": {}}
+
     in_es = set()
     es_query = wrap({
         "aggs": {
             "_filter": {
                 "filter": {"and":[
-                    {"match_all": {}}
+                    es_filter
                 ]},
                 "aggs": {
                     "_match": {

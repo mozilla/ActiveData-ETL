@@ -102,7 +102,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 
 def accumulate_logs(source_key, file_name, lines, please_stop):
-    accumulator = LogSummary()
+    accumulator = LogSummary(file_name)
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -128,7 +128,7 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
                 accumulator.stats.action[log.action] += 1
 
             if log.subtest:
-                accumulator.last_subtest=log.time
+                accumulator.last_subtest = log.time
         except Exception, e:
             Log.warning("bad line: {{line}}", line=line, cause=e)
             accumulator.stats.bad_lines += 1
@@ -146,11 +146,12 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
 
 
 class LogSummary(Dict):
-    def __init__(self):
+    def __init__(self, url):
         Dict.__init__(self)
         self.tests = Dict()
         self.logs = Dict()
         self.last_subtest = None
+        self.url = url
 
     def suite_start(self, log):
         pass
@@ -167,7 +168,7 @@ class LogSummary(Dict):
     def test_status(self, log):
         self.stats.action.test_status += 1
         if not log.test:
-            Log.error("log has blank 'test' property! Do not know how to handle.")
+            Log.error("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
 
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
