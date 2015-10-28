@@ -293,6 +293,12 @@ def parse_builder_message(message, next_line):
             return message, None
         new_message = " ".join(parse_command_line(next_line)[2:])
         return parse_builder_message(new_message, "")
+    elif message.startswith("wget "):
+        temp = message.split(" ")
+        url = wrap([t for t in temp[1:] if not t.startswith("-")])[0]
+        file = url.split("/")[-1]
+        message = temp[0] + " " + file
+        parts = temp[1:]
     else:
         parts = None
 
