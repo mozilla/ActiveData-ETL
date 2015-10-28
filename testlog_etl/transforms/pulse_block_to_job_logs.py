@@ -288,7 +288,7 @@ def parse_builder_message(message, next_line):
             return message, None
         new_message = parse_command_line(next_line)[2].split("/")[-1]
         return parse_builder_message(new_message, "")
-    elif message == "'bash -c ..'":
+    elif message == "'bash -c ...'":
         if not next_line:
             return message, None
         new_message = " ".join(parse_command_line(next_line)[2:])
@@ -303,12 +303,17 @@ def parse_command_line(line):
     space separated, single-quoted strings
     """
     output = []
+    value = ""
     i = 0
     while i < len(line):
         c = line[i]
         i += 1
-        if c == "'":
-            value = c
+        if c == " ":
+            if value:
+                output.append(value)
+            value = ""
+        elif c == "'":
+            value += c
             c = line[i]
             i += 1
             while True:
@@ -324,6 +329,8 @@ def parse_command_line(line):
 
                 c = line[i]
                 i += 1
+        else:
+            value += c
     return output
 
 
@@ -524,7 +531,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/b2g-inbound-linux64-asan/1445641003/b2g-inbound_ubuntu64-asan_vm_lnx_large_test-gtest-bm53-tests1-linux64-build3.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/mobile/tinderbox-builds/fx-team-android-api-11-debug/1445436758/fx-team_ubuntu64_vm_armv7_large-debug_test-plain-reftest-31-bm51-tests1-linux64-build6.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

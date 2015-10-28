@@ -150,7 +150,7 @@ def get_all_tasks(url):
     response = http.get(url)
     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
     def json():
-        last_bytes_count = 0  # Track the last byte count, so we do not show too many
+        last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
         bytes_count = 0
         while True:
             bytes_ = response.raw.read(4096)

@@ -115,7 +115,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
-                data.etl.error = "Text log unreachable"
+                data.etl.error = "Text log unreadable"
                 output.append(data)
 
         data.etl.duration = timer.duration

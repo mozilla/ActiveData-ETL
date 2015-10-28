@@ -415,8 +415,10 @@ def unicode2latin1(value):
 def quote2string(value):
     if value[0] == "\"" and value[-1] == "\"":
         value = value[1:-1]
+    elif value[0] == "\'" and value[-1] == "\'":
+        value = value[1:-1]
 
-    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\t", "\t")
+    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\r", "\r").replace("\\\t", "\t")
 
 # RETURN PYTHON CODE FOR THE SAME
 
