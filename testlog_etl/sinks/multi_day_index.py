@@ -68,8 +68,8 @@ class MultiDayIndex(object):
         for key in keys:
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
-                    value = convert.json2value(line)
                     if rownum == 0:
+                        value = convert.json2value(line)
                         if len(line) > 100000:
                             value.result.subtests = [s for s in value.result.subtests if s.ok is False]
                             value.result.missing_subtests = True
@@ -108,6 +108,5 @@ def _fix(value):
         value.build.revision12 = value.build.revision[0:12]
 
     _id = value._id
-    value._id = None
 
     return _id, value

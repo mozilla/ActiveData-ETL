@@ -322,7 +322,15 @@ def scrub_known_properties(props):
     props.slavename = None
     props.version = None
 
+    try:
+        props.uploadFiles = convert.json2value(props.uploadFiles)
+    except Exception:
+        pass
 
+    try:
+        props.partialInfo = convert.json2value(props.partialInfo)
+    except Exception:
+        pass
 
 test_modes = {
     "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
