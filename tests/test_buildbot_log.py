@@ -13,6 +13,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Except, Log
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from testlog_etl.imports import buildbot
 from testlog_etl.imports.buildbot import BuildbotTranslator
 
 false = False
@@ -39,3 +40,14 @@ class TestBuildbotLogs(FuzzyTestCase):
         if failures:
             Log.error("parsing problems")
 
+    def test_decode_quoted_dict(self):
+        test = "[{u'url': u'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/07/2015-07-09-00-40-07-mozilla-aurora/firefox-41.0a2.en-US.linux-x86_64.partial.20150708004005-20150709004007.mar', u'hash': u'0e4c731b2c9089a8c085d6abbeffa09aeaac4a142c6caed094c64f62c639143f27dc8d5ee2fddb988e5ea208a25a178f6d7fa8cf3e293375b493eab16ac1f71f', u'from_buildid': u'20150708004005', u'size': 5427986}]"
+        expecting = [{
+                         u'url': u'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/07/2015-07-09-00-40-07-mozilla-aurora/firefox-41.0a2.en-US.linux-x86_64.partial.20150708004005-20150709004007.mar',
+                         u'hash': u'0e4c731b2c9089a8c085d6abbeffa09aeaac4a142c6caed094c64f62c639143f27dc8d5ee2fddb988e5ea208a25a178f6d7fa8cf3e293375b493eab16ac1f71f',
+                         u'from_buildid': u'20150708004005',
+                         u'size': 5427986
+                     }]
+
+        result = buildbot.unquote(test)
+        self.assertEqual(result, expecting)

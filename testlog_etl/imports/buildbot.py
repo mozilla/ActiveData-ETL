@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import ast
 
 import re
 
@@ -321,16 +322,23 @@ def scrub_known_properties(props):
     props.script_repo_url = None
     props.slavename = None
     props.version = None
+    props.uploadFiles = unquote(props.uploadFiles)
+    props.partialInfo = unquote(props.partialInfo)
 
+
+def unquote(value):
     try:
-        props.uploadFiles = convert.json2value(props.uploadFiles)
+        return ast.literal_eval(value)
     except Exception:
         pass
 
     try:
-        props.partialInfo = convert.json2value(props.partialInfo)
+        return convert.json2value(value)
     except Exception:
         pass
+
+    return value
+
 
 test_modes = {
     "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},

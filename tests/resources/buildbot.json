@@ -5498,6 +5498,47 @@
 	    "result": 0,
 	    "slave_id": 2041,
 	    "starttime": 1435199256
+	},
+	{
+	    "builder_id": 509352,
+	    "buildnumber": 0,
+	    "endtime": 1444300897,
+	    "id": 76963912,
+	    "master_id": 154,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "branch": "try",
+	        "build_url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/tlee@mozilla.com-471c92647823/try-macosx64/firefox-44.0a1.en-US.mac.dmg",
+	        "builddir": "try_yosemite_r7_test-tp5o-e10s",
+	        "buildername": "Rev5 MacOSX Yosemite 10.10.5 try talos tp5o-e10s",
+	        "buildnumber": 0,
+	        "builduid": "9ffb9e4cb08f4a46bab150a217f3b086",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/mozci-bot@mozilla.com-471c92647823/try-macosx64/try_yosemite_r7_test-tp5o-e10s-bm106-tests1-macosx-build0.txt.gz",
+	        "master": "http://buildbot-master106.bb.releng.scl3.mozilla.com:8201/",
+	        "mozci_request": {
+	            "times": 6,
+	            "type": "trigger_all_talos_jobs"
+	        },
+	        "platform": "yosemite_r7",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "try",
+	        "repository": "",
+	        "request_ids": [83508837],
+	        "request_times": {"83508837": 1444299467},
+	        "revision": "471c92647823",
+	        "script_repo_revision": "production",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "t-yosemite-r7-0020",
+	        "stage_platform": "macosx64"
+	    },
+	    "reason": "Self-serve: Requested by mozci-bot@mozilla.com",
+	    "request_ids": [83508837],
+	    "requesttime": 1444299467,
+	    "result": 0,
+	    "slave_id": 11228,
+	    "starttime": 1444299839
 	}
 
 

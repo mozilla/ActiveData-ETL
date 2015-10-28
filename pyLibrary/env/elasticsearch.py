@@ -639,7 +639,7 @@ class Cluster(object):
                 sample = kwargs.get(b'data', "")[:300]
                 Log.note("{{url}}:\n{{data|indent}}", url=url, data=sample)
 
-            response = http.post(url, retry={"times": 3, "sleep": MINUTE}, **kwargs)
+            response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
                 Log.error(response.reason + ": " + response.content)
             if self.debug:

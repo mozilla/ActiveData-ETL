@@ -150,7 +150,9 @@ class HgMozillaOrg(object):
 
         found_revision.branch = self.branches[(lower_name, locale)]
         if not found_revision.branch:
-            Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
+            found_revision.branch = self.branches[(lower_name, DEFAULT_LOCALE)]
+            if not found_revision.branch:
+                Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
 
         url = found_revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + found_revision.changeset.id
         Log.note(
