@@ -537,7 +537,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://archive.mozilla.org/pub/mobile/tinderbox-builds/fx-team-android-api-11-debug/1445436758/fx-team_ubuntu64_vm_armv7_large-debug_test-plain-reftest-31-bm51-tests1-linux64-build6.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/06/2015-06-02-05-52-37-mozilla-central/mozilla-central-macosx64-nightly-bm84-build1-build33.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

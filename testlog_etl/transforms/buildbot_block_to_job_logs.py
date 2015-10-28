@@ -13,7 +13,7 @@ import zlib
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
-from pyLibrary.env import http
+from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -111,7 +111,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 verify_equal(data, "run.key", "action.builder", warning=False, from_url=url)
                 verify_equal(data, "run.machine.name", "action.slave", from_url=url)
 
-                output.append(data)
+                output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
