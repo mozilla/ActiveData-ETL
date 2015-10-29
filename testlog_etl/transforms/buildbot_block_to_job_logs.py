@@ -17,6 +17,7 @@ from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import MONTH
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 from testlog_etl.imports.buildbot import BuildbotTranslator
@@ -52,7 +53,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             )
             data.repo = resources.hg.get_revision(rev)
         except Exception, e:
-            Log.warning(
+            if data.action.start_time > Date.today()-MONTH:
+                # ONLY SEND WARNING IF IT IS RECENT
+                send = Log.warning
+            else:
+                send = Log.note
+
+            send(
                 "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
                 branch=data.build.branch,
                 locale=data.build.locale,
