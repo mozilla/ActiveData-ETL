@@ -12,7 +12,7 @@ import zlib
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default
+from pyLibrary.dot import Dict, set_default, Null
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
@@ -36,6 +36,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         buildbot_data = convert.json2value(buildbot_line)
+        data = Null
         try:
             data = bb.parse(buildbot_data.builds)
             rev = Dict(
