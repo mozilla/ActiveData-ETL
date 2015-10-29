@@ -72,6 +72,20 @@ class BuildbotTranslator(object):
             output.build.gaia_revision = props.gaia_revision
             output.build.gaia_revision12 = props.gaia_revision[0:12]
 
+        # TODO: LOOKS LIKE A "release" LOOKUP CAN FILL IN THE REVISION
+        #     if builddata['tree'].startswith('release-') and builddata['revision'] in [None, 'None']:
+        #         try:
+        #             url = 'https://hg.mozilla.org/releases/{tree}/json-rev/{release_tag}'.format(
+        #                 tree=builddata['tree'].split('release-')[1],
+        #                 release_tag=builddata['release']
+        #             )
+        #             response = requests.get(url)
+        #             builddata['revision'] = response.json()['node']
+        #         except Exception:
+        #             # We cannot raise an exception due to a broken release rev for repacks
+        #             # https://bugzilla.mozilla.org/show_bug.cgi?id=1219432#c1
+        #             pass
+
         output.version = props.version
 
         # BUILD ID AND DATE

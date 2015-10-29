@@ -527,9 +527,9 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
-    elif data[duplicate] in data[expected]:
+    elif data[expected] and data[duplicate] and data[duplicate] in data[expected]:
         data[duplicate] = None
-    elif data[expected] in data[duplicate]:
+    elif data[expected] and data[duplicate] and data[expected] in data[duplicate]:
         data[expected] = data[duplicate]
         data[duplicate] = None
     else:
