@@ -36,9 +36,16 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         buildbot_data = convert.json2value(buildbot_line)
-        data = Null
         try:
             data = bb.parse(buildbot_data.builds)
+        except Exception, e:
+            Log.error(
+                "Can not parse\n{{details|json|indent}}",
+                details=data,
+                cause=e
+            )
+
+        try:
             rev = Dict(
                 changeset={"id": data.build.revision},
                 branch={"name": data.build.branch, "locale": data.build.locale}

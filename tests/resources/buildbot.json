@@ -5539,7 +5539,47 @@
 	    "result": 0,
 	    "slave_id": 11228,
 	    "starttime": 1444299839
+	},
+	{
+	    "builder_id": 445180,
+	    "buildnumber": 7,
+	    "endtime": 1429105114,
+	    "id": 63864191,
+	    "master_id": 191,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"logcat-emulator-5554.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/0e994e259881f86f2ad2e0e47869914fed00013e6509006bf4afc8db45158cfccc39079f7a04c7ef4eadd82f72ecf459d20facfc305ea3f05eb43cf36e19d87c\", \"0a502d62-2019-5c9e-20883cea-173aa924.dmp\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/d8def89b5c7bed3a28e89cf951b98beebb1d8cd8fde3c926c22b6a682ded027c85936329257473c765ae9e6e76f4a52dcf242b97e348f20a90a7f4326da6eb79\", \"0a502d62-2019-5c9e-20883cea-173aa924.extra\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/e1ed27e0b5a857729b9fc0f72bcfb5e05e02306ba8b4cca33f6a4ac3fb0c9c295f2d0c09de4e2ae23b6034fb59735fde664d481deecfd088f020579948ff95bb\", \"mochitest-4_raw.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/498bacf7a76c4808c542d1fc8dd6b1b2c9661ddf5274f18f920695dc43495467ec19c1a63f14eb6f28ae52e09fe75b816ac3c59bdddddc90b6df8fc6e5985c9d\"}",
+	        "branch": "try",
+	        "build_url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.apk",
+	        "buildername": "Android 4.3 Emulator try debug test mochitest-4",
+	        "buildnumber": 7,
+	        "builduid": "0438c8ef05e1450286a34950d582356e",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/try_ubuntu64_vm_armv7_mobile-debug_test-mochitest-4-bm54-tests1-linux64-build7.txt.gz",
+	        "master": "http://buildbot-master54.bb.releng.usw2.mozilla.com:8201/",
+	        "platform": "android-api-11",
+	        "product": "mobile",
+	        "project": "",
+	        "repo_path": "try",
+	        "repository": "",
+	        "request_ids": [67212745],
+	        "request_times": {"67212745": 1429103646},
+	        "revision": "cffe5b159aef",
+	        "scheduler": "tests-try-ubuntu64_vm_armv7_mobile-debug-unittest",
+	        "script_repo_revision": "ed7cbf080ee6",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "tst-linux64-spot-1237",
+	        "stage_platform": "android-api-11",
+	        "symbols_url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.crashreporter-symbols.zip"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [67212745],
+	    "requesttime": 1429103646,
+	    "result": 1,
+	    "slave_id": 9115,
+	    "starttime": 1429103656
 	}
+
 
 
 
