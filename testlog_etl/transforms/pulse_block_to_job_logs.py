@@ -529,6 +529,9 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
         data[duplicate] = None
     elif data[duplicate] in data[expected]:
         data[duplicate] = None
+    elif data[expected] in data[duplicate]:
+        data[expected] = data[duplicate]
+        data[duplicate] = None
     else:
         if warning:
             if not from_url:
