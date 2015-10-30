@@ -368,6 +368,7 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_{{platform}}_dep',
     'b2g_{{branch}}_{{platform}}_nightly',
     'b2g_{{branch}}_{{platform}} nightly',
+    'b2g_{{branch}}_{{platform}}_nonunified',
     'b2g_{{branch}}_{{platform}}_periodic',
     'b2g_{{branch}}_emulator-debug_dep',
     'b2g_{{branch}}_emulator_dep',
@@ -425,6 +426,7 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
+    'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]

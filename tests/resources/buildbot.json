@@ -5709,7 +5709,53 @@
 	    "result": 5,
 	    "slave_id": 5171,
 	    "starttime": 1421382483
+	},
+	{
+	    "builder_id": 275799,
+	    "buildnumber": 189,
+	    "endtime": 1420652912,
+	    "id": 55904045,
+	    "master_id": 126,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_m-cen_emu-jb-d_nu-00000000",
+	        "branch": "mozilla-central",
+	        "buildername": "b2g_mozilla-central_emulator-jb-debug_nonunified",
+	        "buildnumber": 189,
+	        "builduid": "ee5418a7af6d4e4e8bd6e0f8c31e24bd",
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "cd5c88c77debee57c87da79a3995bb34521fb14b",
+	        "gecko_revision": "206205dd8bd1",
+	        "hgurl": "https://hg.mozilla.org/",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-emulator-jb-debug/1420644652/b2g_mozilla-central_emulator-jb-debug_nonunified-bm73-build1-build189.txt.gz",
+	        "master": "http://buildbot-master73.srv.releng.usw2.mozilla.com:8001/",
+	        "platform": "emulator-jb-debug",
+	        "product": "b2g",
+	        "project": "",
+	        "repo_path": "mozilla-central",
+	        "repository": "",
+	        "request_ids": [58514923],
+	        "request_times": {"58514923": 1420644652},
+	        "revision": "206205dd8bd1",
+	        "scheduler": "b2g_mozilla-central periodic",
+	        "script_repo_checkout": "/tools/checkouts/mozharness",
+	        "script_repo_revision": "32a828351561",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavename": "bld-linux64-spot-461",
+	        "tools_revision": "46c56618f0b1",
+	        "tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+	        "upload_ssh_key": "ffxbld_rsa",
+	        "upload_ssh_server": "stage.mozilla.org",
+	        "upload_ssh_user": "ffxbld"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-central periodic' triggered this build",
+	    "request_ids": [58514923],
+	    "requesttime": 1420644652,
+	    "result": 0,
+	    "slave_id": 7005,
+	    "starttime": 1420645470
 	}
+
 
 
 
