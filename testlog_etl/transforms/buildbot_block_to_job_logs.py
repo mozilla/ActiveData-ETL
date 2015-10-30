@@ -42,7 +42,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         except Exception, e:
             Log.error(
                 "Can not parse\n{{details|json|indent}}",
-                details=data,
+                details=buildbot_data,
                 cause=e
             )
 

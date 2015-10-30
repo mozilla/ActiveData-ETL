@@ -38,9 +38,9 @@ def diff(settings, please_stop=None):
     es = elasticsearch.Index(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
-    #git ls-remote https://github.com/klahnakoski/TestLog-ETL.git refs/heads/etl
     if settings.git:
-        rev = 'c54c0407d8539e3330b'  # get_remote_revision(settings.git.url, settings.git.branch)
+        rev = get_remote_revision(settings.git.url, settings.git.branch)
+        rev = 'ba9ae6ca63d567e1fbb'
         es_filter = {"prefix": {"etl.revision": rev}}
     else:
         es_filter = {"match_all": {}}
