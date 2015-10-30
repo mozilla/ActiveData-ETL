@@ -246,7 +246,7 @@ class BuildbotTranslator(object):
             try:
                 raw_platform, test = key.split(" " + branch_name + " ")
             except Exception:
-                Log.error("Not recognized: {{key}}\n{{data}}", key=key, data=data)
+                Log.error("No recognized branch name: {{key}}\n{{data}}", key=key, data=data)
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
@@ -448,7 +448,8 @@ TEST_PLATFORMS = {
     "Android 2.3 Armv6 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator armv6"}}, "build": {"platform": "android"}},
     "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "andriod"}},
+    "Android 4.0 armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.0 Panda": {"run": {"machine": {"os": "android 4.0", "type": "panda"}}, "build": {"platform": "android"}},
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
