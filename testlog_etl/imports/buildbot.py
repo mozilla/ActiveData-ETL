@@ -228,7 +228,7 @@ class BuildbotTranslator(object):
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
-            except Exception, e:
+            except Exception:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
             for t in BUILD_FEATURES:
@@ -371,6 +371,8 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_{{platform}}_periodic',
     'b2g_{{branch}}_emulator-debug_dep',
     'b2g_{{branch}}_emulator_dep',
+    'b2g_{{branch}}_emulator-jb-debug_nightly',
+    'b2g_{{branch}}_flame-kk_periodic',
     'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
@@ -389,6 +391,7 @@ BUILDER_NAMES = [
     '{{branch}}-{{product}}_esr_updates',
     '{{branch}}-{{product}}_push_to_mirrors',
     '{{branch}}-{{product}}_postrelease',
+    '{{branch}}-{{product}}_ready_for_release',
     '{{branch}}-{{product}}_ready_for_releasetest_testing',
     '{{branch}}-{{product}}_reset_schedulers',
     '{{branch}}-{{product}}_release_ready_for_release-cdntest_testing',
@@ -654,6 +657,7 @@ ALLOWED_PLATFORMS = [
 
 
 ALLOWED_PRODUCTS = [
+    None,
     "b2g",
     "fennec",
     "firefox",

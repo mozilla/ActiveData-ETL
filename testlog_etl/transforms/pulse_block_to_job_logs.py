@@ -326,6 +326,7 @@ def parse_command_line(line):
                 if c == "'":
                     value += c
                     output.append(convert.quote2string(value))
+                    value = ""
                     break
                 elif c == "\\":
                     value += c + line[i]
@@ -540,7 +541,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/06/2015-06-02-05-52-37-mozilla-central/mozilla-central-macosx64-nightly-bm84-build1-build33.txt.gz")
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32-debug/1444616952/mozilla-inbound_win7-ix-debug_test-web-platform-tests-reftests-bm109-tests1-windows-build281.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

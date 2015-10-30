@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import HTMLParser
 import StringIO
+import ast
 import base64
 import cgi
 from collections import Mapping
@@ -416,12 +417,10 @@ def unicode2latin1(value):
 
 
 def quote2string(value):
-    if value[0] == "\"" and value[-1] == "\"":
-        value = value[1:-1]
-    elif value[0] == "\'" and value[-1] == "\'":
-        value = value[1:-1]
-
-    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\r", "\r").replace("\\\t", "\t")
+    try:
+        return ast.literal_eval(value)
+    except Exception:
+        pass
 
 # RETURN PYTHON CODE FOR THE SAME
 

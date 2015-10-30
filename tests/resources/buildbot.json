@@ -5578,7 +5578,101 @@
 	    "result": 1,
 	    "slave_id": 9115,
 	    "starttime": 1429103656
+	},
+	{
+	    "builder_id": 364262,
+	    "buildnumber": 1289,
+	    "endtime": 1427871795,
+	    "id": 62799741,
+	    "master_id": 193,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/l64-br-haz_try_dep-00000000000",
+	        "branch": "try",
+	        "buildername": "linux64-br-haz_try_dep",
+	        "buildnumber": 1289
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [66053239],
+	    "requesttime": 1427871226,
+	    "result": 2,
+	    "slave_id": 6661,
+	    "starttime": 1427871293
+	},
+	{
+	    "builder_id": 309497,
+	    "buildnumber": 102,
+	    "endtime": 1422630874,
+	    "id": 57854601,
+	    "master_id": 132,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_fx-team_flm-kk_dep-0000000",
+	        "branch": "fx-team",
+	        "buildername": "b2g_fx-team_flame-kk_periodic",
+	        "buildnumber": 102,
+	        "builduid": "8d53f03ca94e4adcacaab2ddb3ca17b5",
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "8238eeacc7030b2cdbf7ab4eba2f36779b702599"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
+	    "request_ids": [60658977],
+	    "requesttime": 1422624602,
+	    "result": 0,
+	    "slave_id": 9890,
+	    "starttime": 1422624786
+	},
+	{
+	    "builder_id": 390601,
+	    "buildnumber": 19,
+	    "endtime": 1427879181,
+	    "id": 62806648,
+	    "master_id": 152,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_m-b32_20_emu-jb-d_ntly-000",
+	        "branch": "mozilla-b2g32_v2_0",
+	        "buildername": "b2g_mozilla-b2g32_v2_0_emulator-jb-debug_nightly"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 nightly' triggered this build",
+	    "request_ids": [66053714],
+	    "requesttime": 1427871724,
+	    "result": 0,
+	    "slave_id": 6905,
+	    "starttime": 1427871864
+	},
+	{
+	    "builder_id": 371022,
+	    "buildnumber": 1,
+	    "endtime": 1425988685,
+	    "id": 60853764,
+	    "master_id": 186,
+	    "properties": {
+	        "branch": "release-mozilla-beta",
+	        "build_number": 1,
+	        "buildername": "release-mozilla-beta-firefox_ready_for_release",
+	        "buildnumber": 1,
+	        "event_group": "release",
+	        "log_url": "http://stage.mozilla.org/pub/mozilla.org/firefox/nightly/37.0b4-candidates/build1/logs/release-mozilla-beta-firefox_ready_for_release-bm73-build1-build1.txt.gz",
+	        "product": "Firefox",
+	        "project": "",
+	        "repository": "",
+	        "request_ids": [63938092],
+	        "request_times": {"63938092": 1425988679},
+	        "scheduler": "release-mozilla-beta-ready-for-release_firefox",
+	        "slavename": "bld-linux64-spot-413",
+	        "version": "37.0b4"
+	    },
+	    "reason": "downstream",
+	    "request_ids": [63938092],
+	    "requesttime": 1425988679,
+	    "result": 0,
+	    "slave_id": 7150,
+	    "starttime": 1425988685
 	}
+
+
+
 
 
 
