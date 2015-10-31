@@ -11,6 +11,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+import fabric
 
 from pyLibrary.env.processes import Process
 from pyLibrary.meta import cache
@@ -41,18 +42,12 @@ def get_remote_revision(url, branch):
     """
     GET REVISION OF A REMOTE BRANCH
     """
-    #git ls-remote https://github.com/klahnakoski/TestLog-ETL.git refs/heads/etl
-    proc = Process(["git", "ls-remote", url, "refs/head/" + branch])
+    from fabric.api import local
 
-    try:
-        while True:
-            lines = proc.communicate()
-            if not lines:
-                return None
-            if line.startswith("commit "):
-                return line[7:]
-    finally:
-        try:
-            proc.join()
-        except Exception:
-            pass
+    result = local("git ls-remote " + url + " ref/head/" + branch, capture=True)
+    for line in list(result.split("\n")):
+        if not line:
+            continue
+        if line.startswith("commit "):
+            return line[7:]
+    return None

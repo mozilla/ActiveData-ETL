@@ -9,6 +9,7 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import ast
 
 import re
 
@@ -70,6 +71,20 @@ class BuildbotTranslator(object):
             output.build.gecko_revision12 = output.build.revision[0:12]
             output.build.gaia_revision = props.gaia_revision
             output.build.gaia_revision12 = props.gaia_revision[0:12]
+
+        # TODO: LOOKS LIKE A "release" LOOKUP CAN FILL IN THE REVISION
+        #     if builddata['tree'].startswith('release-') and builddata['revision'] in [None, 'None']:
+        #         try:
+        #             url = 'https://hg.mozilla.org/releases/{tree}/json-rev/{release_tag}'.format(
+        #                 tree=builddata['tree'].split('release-')[1],
+        #                 release_tag=builddata['release']
+        #             )
+        #             response = requests.get(url)
+        #             builddata['revision'] = response.json()['node']
+        #         except Exception:
+        #             # We cannot raise an exception due to a broken release rev for repacks
+        #             # https://bugzilla.mozilla.org/show_bug.cgi?id=1219432#c1
+        #             pass
 
         output.version = props.version
 
@@ -162,7 +177,7 @@ class BuildbotTranslator(object):
                 output.build.name = props.buildername
                 scrub_known_properties(props)
                 output.other = props
-                output.action.build = True
+                output.action.type = "build"
                 verify(output, data)
                 return output
 
@@ -212,8 +227,8 @@ class BuildbotTranslator(object):
                     else:
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
-                output.action.build = True
-            except Exception, e:
+                output.action.type = "build"
+            except Exception:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
             for t in BUILD_FEATURES:
@@ -231,7 +246,7 @@ class BuildbotTranslator(object):
             try:
                 raw_platform, test = key.split(" " + branch_name + " ")
             except Exception:
-                Log.error("Not recognized: {{key}}\n{{data}}", key=key, data=data)
+                Log.error("No recognized branch name: {{key}}\n{{data}}", key=key, data=data)
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
@@ -259,7 +274,7 @@ def verify(output, data):
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)
         Log.error("Bad OS {{os}}\n{{data|json}}", os=output.run.machine.os, data=data)
-    if output.action.test and output.build.platform not in ALLOWED_PLATFORMS:
+    if "test" in output.action.type and output.build.platform not in ALLOWED_PLATFORMS:
         ALLOWED_PLATFORMS.append(output.build.platform)
         Log.error("Bad Platform {{platform}}\n{{data|json}}", platform=output.build.platform, data=data)
     if output.build.product not in ALLOWED_PRODUCTS:
@@ -321,15 +336,30 @@ def scrub_known_properties(props):
     props.script_repo_url = None
     props.slavename = None
     props.version = None
+    props.uploadFiles = unquote(props.uploadFiles)
+    props.partialInfo = unquote(props.partialInfo)
 
+
+def unquote(value):
+    try:
+        return ast.literal_eval(value)
+    except Exception:
+        pass
+
+    try:
+        return convert.json2value(value)
+    except Exception:
+        pass
+
+    return value
 
 
 test_modes = {
-    "debug test": {"build": {"type": ["debug"]}, "action": {"test": True}},
-    "opt test": {"build": {"type": ["opt"]}, "action": {"test": True}},
-    "pgo test": {"build": {"type": ["pgo"]}, "action": {"test": True}},
-    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"test": True, "talos": True}},
-    "talos": {"action": {"test": True, "talos": True}}
+    "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
+    "opt test": {"build": {"type": ["opt"]}, "action": {"type": "test"}},
+    "pgo test": {"build": {"type": ["pgo"]}, "action": {"type": "test"}},
+    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"type": ["test", "talos"]}},
+    "talos": {"action": {"type": ["test", "talos"]}}
 }
 
 BUILDER_NAMES = [
@@ -338,9 +368,12 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_{{platform}}_dep',
     'b2g_{{branch}}_{{platform}}_nightly',
     'b2g_{{branch}}_{{platform}} nightly',
+    'b2g_{{branch}}_{{platform}}_nonunified',
     'b2g_{{branch}}_{{platform}}_periodic',
     'b2g_{{branch}}_emulator-debug_dep',
     'b2g_{{branch}}_emulator_dep',
+    'b2g_{{branch}}_emulator-jb-debug_nightly',
+    'b2g_{{branch}}_flame-kk_periodic',
     'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
@@ -359,6 +392,7 @@ BUILDER_NAMES = [
     '{{branch}}-{{product}}_esr_updates',
     '{{branch}}-{{product}}_push_to_mirrors',
     '{{branch}}-{{product}}_postrelease',
+    '{{branch}}-{{product}}_ready_for_release',
     '{{branch}}-{{product}}_ready_for_releasetest_testing',
     '{{branch}}-{{product}}_reset_schedulers',
     '{{branch}}-{{product}}_release_ready_for_release-cdntest_testing',
@@ -392,6 +426,7 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
+    'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
@@ -415,11 +450,13 @@ TEST_PLATFORMS = {
     "Android 2.3 Armv6 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator armv6"}}, "build": {"platform": "android"}},
     "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "andriod"}},
+    "Android 4.0 armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.0 Panda": {"run": {"machine": {"os": "android 4.0", "type": "panda"}}, "build": {"platform": "android"}},
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.3 Emulator": {"run": {"machine": {"os": "android 4.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
@@ -508,7 +545,7 @@ ALLOWED_OS = [
     "win7",
     "win8",
     "win10",
-    "yosemite 10.10",
+    "yosemite 10.10"
 ]
 
 KNOWN_PLATFORM = {
@@ -603,7 +640,8 @@ KNOWN_PLATFORM = {
     "win8_64": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win10_64": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "xp-ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
-    "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
+    "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
 }
 
 ALLOWED_PLATFORMS = [
@@ -622,6 +660,7 @@ ALLOWED_PLATFORMS = [
 
 
 ALLOWED_PRODUCTS = [
+    None,
     "b2g",
     "fennec",
     "firefox",

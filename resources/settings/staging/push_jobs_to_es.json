@@ -17,7 +17,7 @@
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-jobs",
-		"key_format": "a:b.c"
+		"key_format": "a.b"
 	},
 	"work_queue":{
 		"name": "active-data-index-jobs",

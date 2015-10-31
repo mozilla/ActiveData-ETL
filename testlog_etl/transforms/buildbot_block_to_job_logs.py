@@ -12,11 +12,12 @@ import zlib
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default
-from pyLibrary.env import http
+from pyLibrary.dot import Dict, set_default, Null
+from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import MONTH
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 from testlog_etl.imports.buildbot import BuildbotTranslator
@@ -38,13 +39,27 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         buildbot_data = convert.json2value(buildbot_line)
         try:
             data = bb.parse(buildbot_data.builds)
+        except Exception, e:
+            Log.error(
+                "Can not parse\n{{details|json|indent}}",
+                details=buildbot_data,
+                cause=e
+            )
+
+        try:
             rev = Dict(
                 changeset={"id": data.build.revision},
                 branch={"name": data.build.branch, "locale": data.build.locale}
             )
             data.repo = resources.hg.get_revision(rev)
         except Exception, e:
-            Log.warning(
+            if data.action.start_time > Date.today()-MONTH:
+                # ONLY SEND WARNING IF IT IS RECENT
+                send = Log.warning
+            else:
+                send = Log.note
+
+            send(
                 "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
                 branch=data.build.branch,
                 locale=data.build.locale,
@@ -106,16 +121,16 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time
 
-                verify_equal(data, "build.revision", "action.revision")
-                verify_equal(data, "build.id", "action.buildid")
-                verify_equal(data, "run.key", "action.builder", warning=False)
-                verify_equal(data, "run.machine.name", "action.slave")
+                verify_equal(data, "build.revision", "action.revision", url)
+                verify_equal(data, "build.id", "action.buildid", url)
+                verify_equal(data, "run.key", "action.builder", warning=False, from_url=url)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=url)
 
-                output.append(data)
+                output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
-                data.etl.error = "Text log unreachable"
+                data.etl.error = "Text log unreadable"
                 output.append(data)
 
         data.etl.duration = timer.duration
