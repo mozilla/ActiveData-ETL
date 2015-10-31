@@ -427,7 +427,9 @@ BUILDER_NAMES = [
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
     'Linux x86-64 {{branch}} leak test non-unified',
+    'Linux x86-64 {{branch}} non-unified',
     'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
+    'OS X 10.7 64-bit {{branch}} leak test non-unified',
     'WINNT 5.2 {{branch}} non-unified',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
