@@ -218,7 +218,13 @@ class BuildbotTranslator(object):
 
         elif key.endswith("build"):
             try:
-                raw_platform, build = key.split(" " + branch_name + " ")
+                temp = key.split(" " + branch_name + " ")
+                if len(temp) == 1:
+                    raw_platform = temp[0]
+                    build = ""
+                else:
+                    raw_platform, build = temp[0:2]
+
                 output.build.name = raw_platform
                 if raw_platform not in TEST_PLATFORMS:
                     if raw_platform not in self.unknown_platforms:
@@ -228,8 +234,8 @@ class BuildbotTranslator(object):
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
-            except Exception:
-                raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
+            except Exception, e:
+                raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data, cause=e)
 
             for t in BUILD_FEATURES:
                 if t in build:
@@ -476,6 +482,7 @@ TEST_PLATFORMS = {
     "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g", "type": "flame"}}, "build": {"platform": "b2g"}},
     "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
+    "b2g_mozilla-inbound_win32_gecko build": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
@@ -588,7 +595,7 @@ KNOWN_PLATFORM = {
     "l10n": {},
     "linux": {"build": {"platform": "linux32"}},
     "linux-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
-    "linux32_gecko": {"build": {"platform": "linux32", "type": ["debug"]}},
+    "linux32_gecko": {"build": {"platform": "linux32"}},
     "linux32_gecko-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
     "linux32_gecko_localizer": {},
     "linux64": {"build": {"platform": "linux64"}},
