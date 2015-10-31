@@ -451,6 +451,7 @@ BUILD_FEATURES = [
 
 TEST_PLATFORMS = {
     "Android 2.3": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
+    "Android 2.3 Armv6": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 2.3 Armv6 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator armv6"}}, "build": {"platform": "android"}},
     "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},

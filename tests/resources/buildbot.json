@@ -6045,20 +6045,128 @@
 	    "result": 0,
 	    "slave_id": 7118,
 	    "starttime": 1421102724
+	},
+	{
+	    "builder_id": 313022,
+	    "buildnumber": 2,
+	    "endtime": 1420191140,
+	    "id": 55597264,
+	    "master_id": 130,
+	    "properties": {
+	        "appName": "Fennec",
+	        "appVersion": "31.3.0esr",
+	        "aws_ami_id": "ami-96e48efe",
+	        "aws_instance_id": "i-1dbc9de3",
+	        "aws_instance_type": "r3.xlarge",
+	        "basedir": "/builds/slave/m-esr31-and-a6-ntly-0000000000",
+	        "branch": "mozilla-esr31",
+	        "builddir": "m-esr31-and-a6-ntly-0000000000",
+	        "buildername": "Android 2.3 Armv6 mozilla-esr31 nightly",
+	        "buildnumber": 2,
+	        "builduid": "029838d1f0b442e196f66e56e686ea7d",
+	        "comments": "",
+	        "forced_clobber": false,
+	        "got_revision": "b8d38bcec812",
+	        "hashType": "sha512",
+	        "jsshellUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/jsshell-android-arm-armv6.zip",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/nightly/2015/01/2015-01-02-00-06-43-mozilla-esr31-android-armv6/mozilla-esr31-android-armv6-nightly-bm77-build1-build2.txt.gz",
+	        "master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/",
+	        "nightly_build": true,
+	        "packageFilename": "fennec-31.3.0esr.en-US.android-arm-armv6.apk",
+	        "packageHash": "242765a5379ac204d3641d98b5f3792ecec29f1ff1cc6455b17b6abd5a1b74bfd2732e05d5ff06bf57cb99e1fb89ea4d31c3a23d00de21017074509c90fec1f0",
+	        "packageSize": "27639244",
+	        "packageUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/fennec-31.3.0esr.en-US.android-arm-armv6.apk",
+	        "periodic_clobber": false,
+	        "placement/availability_zone": "us-east-1c",
+	        "platform": "android-armv6",
+	        "product": "mobile",
+	        "project": "",
+	        "purge_actual": "59.55GB",
+	        "purge_target": "14GB",
+	        "purged_clobber": true,
+	        "repository": "",
+	        "request_ids": [58191688],
+	        "request_times": {"58191688": 1420186004},
+	        "revision": "b8d38bcec81218fec26cac5a1efe37d912bb0b81",
+	        "robocopApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/robocop.apk",
+	        "scheduler": "mozilla-esr31 nightly",
+	        "slavebuilddir": "m-esr31-and-a6-ntly-0000000000",
+	        "slavename": "bld-linux64-spot-1026",
+	        "stage_platform": "android-armv6",
+	        "symbolsUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/fennec-31.3.0esr.en-US.android-arm-armv6.crashreporter-symbols.zip",
+	        "testsUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/fennec-31.3.0esr.en-US.android-arm-armv6.tests.zip",
+	        "toolsdir": "/builds/slave/m-esr31-and-a6-ntly-0000000000/tools",
+	        "unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/gecko-unsigned-unaligned.apk"
+	    },
+	    "reason": "The Nightly scheduler named 'mozilla-esr31 nightly' triggered this build",
+	    "request_ids": [58191688],
+	    "requesttime": 1420186004,
+	    "result": 0,
+	    "slave_id": 8578,
+	    "starttime": 1420186294
+	},
+	{
+	    "builder_id": 314016,
+	    "buildnumber": 2,
+	    "endtime": 1421498272,
+	    "id": 56780438,
+	    "master_id": 123,
+	    "properties": {
+	        "appName": "Fennec",
+	        "appVersion": "31.3.0esr",
+	        "aws_ami_id": "ami-fc463a94",
+	        "aws_instance_id": "i-529c5ea3",
+	        "aws_instance_type": "r3.xlarge",
+	        "basedir": "/builds/slave/m-esr31-and-a6-000000000000000",
+	        "branch": "mozilla-esr31",
+	        "builddir": "m-esr31-and-a6-000000000000000",
+	        "buildername": "Android 2.3 Armv6 mozilla-esr31 build",
+	        "buildnumber": 2,
+	        "builduid": "9dc439184e864d4196baee9e52de8cc0",
+	        "comments": "No bug, Automated blocklist update from host bld-linux64-spot-1087 - a=blocklist-update",
+	        "commit_titles": [
+	            "No bug, Automated blocklist update from host bld-linux64-spot-1087 - a=blocklist-update",
+	            "No bug, Automated HSTS preload list update from host bld-linux64-spot-1087 - a=hsts-update"
+	        ],
+	        "forced_clobber": false,
+	        "got_revision": "23a9280bf89c",
+	        "hashType": "sha512",
+	        "jsshellUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/jsshell-android-arm-armv6.zip",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/mozilla-esr31-android-armv6-bm70-build1-build2.txt.gz",
+	        "master": "http://buildbot-master70.srv.releng.use1.mozilla.com:8001/",
+	        "packageFilename": "fennec-31.3.0esr.en-US.android-arm-armv6.apk",
+	        "packageHash": "8f92156392ec74942ffb818db78e40a18a23349f9ce29befd96aba4f00f8dd10f7fb9bb154bd5bb6c2060648cb1e752904c2dae2b8db0b7f8ce73e7bbaf5f41c",
+	        "packageSize": "27646340",
+	        "packageUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/fennec-31.3.0esr.en-US.android-arm-armv6.apk",
+	        "periodic_clobber": false,
+	        "placement/availability_zone": "us-east-1c",
+	        "platform": "android-armv6",
+	        "product": "mobile",
+	        "project": "",
+	        "purge_actual": "59.79GB",
+	        "purge_target": "14GB",
+	        "purged_clobber": true,
+	        "repository": "",
+	        "request_ids": [59489798],
+	        "request_times": {"59489798": 1421493600},
+	        "revision": "23a9280bf89c065f35b069cec124418b4b1bee1d",
+	        "robocopApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/robocop.apk",
+	        "scheduler": "mozilla-esr31-mobile",
+	        "slavebuilddir": "m-esr31-and-a6-000000000000000",
+	        "slavename": "bld-linux64-spot-094",
+	        "stage_platform": "android-armv6",
+	        "symbolsUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/fennec-31.3.0esr.en-US.android-arm-armv6.crashreporter-symbols.zip",
+	        "testsUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/fennec-31.3.0esr.en-US.android-arm-armv6.tests.zip",
+	        "toolsdir": "/builds/slave/m-esr31-and-a6-000000000000000/tools",
+	        "unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/gecko-unsigned-unaligned.apk"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [59489798],
+	    "requesttime": 1421493600,
+	    "result": 0,
+	    "slave_id": 6859,
+	    "starttime": 1421493668
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
