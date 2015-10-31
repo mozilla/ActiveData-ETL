@@ -205,6 +205,8 @@ class BuilderLines(object):
 
         try:
             parts = map(unicode.strip, line[10:-10].split("("))
+            if parts[0].startswith("master_lag:"):
+                return None
             if parts[0] == "Skipped":
                 # NOT THE REGULAR PATTERN
                 message, status, parts, timestamp, done = "", "skipped", None, Null, True
