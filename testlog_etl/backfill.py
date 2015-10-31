@@ -40,7 +40,7 @@ def diff(settings, please_stop=None):
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        rev = 'ba9ae6ca63d567e1fbb'
+        rev = 'b103f9ec315122e6a0830'
         es_filter = {"prefix": {"etl.revision": rev}}
     else:
         es_filter = {"match_all": {}}

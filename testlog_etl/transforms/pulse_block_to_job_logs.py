@@ -373,7 +373,10 @@ def process_buildbot_log(all_log_lines, from_url):
     curr_line = ""
     next_line = ""
 
+    total_bytes = 0
+
     for log_ascii in all_log_lines:
+        total_bytes += len(log_ascii)+1
 
         if not log_ascii.strip():
             continue
@@ -496,6 +499,8 @@ def process_buildbot_log(all_log_lines, from_url):
     data.builder_time_zone = builder_line.time_zone
     data.harness_time_zone = mozharness_line.time_zone
     data.harness_time_skew = mozharness_line.time_skew
+
+    data.etl.total_bytes = total_bytes
     return data
 
 

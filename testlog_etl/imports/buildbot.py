@@ -426,7 +426,9 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
+    'Linux x86-64 {{branch}} leak test non-unified',
     'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
+    'WINNT 5.2 {{branch}} non-unified',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
@@ -457,6 +459,7 @@ TEST_PLATFORMS = {
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.3 Emulator": {"run": {"machine": {"os": "android 4.3", "type": "emulator"}}, "build": {"platform": "android"}},
+    "Android armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
