@@ -6165,8 +6165,41 @@
 	    "requesttime": 1421493600,
 	    "result": 0,
 	    "slave_id": 6859,
-	    "starttime": 1421493668
-	}
+		"starttime": 1421493668
+	},
+	{
+		"builder_id": 322254,
+		"buildnumber": 7,
+		"endtime": 1422784657,
+		"id": 57951557,
+		"master_id": 130,
+		"properties": {
+			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"basedir": "/builds/slave/b2g_m-b34_21_ham_eng_ntly-0000",
+			"branch": "mozilla-b2g34_v2_1",
+			"buildername": "b2g_mozilla-b2g34_v2_1_hamachi_eng_nightly",
+			"buildid": "20150201001213",
+			"buildnumber": 7,
+			"builduid": "7ac16cc78b4e43fe9d095e8847c3ccff",
+			"compare_locales_revision": "1fc4e9bc8287",
+			"gaia_revision": "63f291df9b9ad8498fb8fc7fb8bf070524406a5c",
+			"gecko_revision": "70b8982a523d",
+			"hgurl": "https://hg.mozilla.org/",
+			"master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/",
+			"nightly_build": true,
+			"platform": "hamachi_eng",
+			"product": "b2g",
+			"project": "",
+			"repo_path": "releases/mozilla-b2g34_v2_1",
+			"repository": ""
+		},
+		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g34_v2_1 nightly' triggered this build",
+		"request_ids": [60764573],
+		"requesttime": 1422778334,
+		"result": 0,
+		"slave_id": 9827,
+		"starttime": 1422778987
+		}
 
 
 

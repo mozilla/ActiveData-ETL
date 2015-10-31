@@ -63,10 +63,10 @@ class BuildbotTranslator(object):
 
         # REVISIONS
         output.build.revision = coalesce(props.revision, props.gecko_revision)
-        output.build.revision12 = props.revision[0:12]
+        output.build.revision12 = output.build.revision[0:12]
         if props.gecko_revision:
             if props.gecko_revision[0:12] != output.build.revision12:
-                Log.error("expecting revision to be the gecko revision")
+                Log.error("expecting revision to be the gecko revision\n{{data}}", data=data)
             output.build.gecko_revision = output.build.revision
             output.build.gecko_revision12 = output.build.revision[0:12]
             output.build.gaia_revision = props.gaia_revision
