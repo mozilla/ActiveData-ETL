@@ -237,6 +237,10 @@ class BuildbotTranslator(object):
             for t in BUILD_TYPES:
                 if t in build:
                     output.build.type += [t]
+        elif key.endswith("non-unified"):
+            output.build.name = props.buildername
+            raw_platform, build = key.split(" " + branch_name + " ")
+            set_default(output, TEST_PLATFORMS[raw_platform])
         elif key.endswith("valgrind"):
             output.build.name = props.buildername
             raw_platform, build = key.split(" " + branch_name + " ")
@@ -426,11 +430,7 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
-    'Linux x86-64 {{branch}} leak test non-unified',
-    'Linux x86-64 {{branch}} non-unified',
     'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
-    'OS X 10.7 64-bit {{branch}} leak test non-unified',
-    'WINNT 5.2 {{branch}} non-unified',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
