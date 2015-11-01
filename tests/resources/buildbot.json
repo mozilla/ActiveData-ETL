@@ -6314,7 +6314,45 @@
 	    "result": 0,
 	    "slave_id": 6905,
 	    "starttime": 1422090963
+	},
+	{
+	    "builder_id": 441433,
+	    "buildnumber": 0,
+	    "endtime": 1427839126,
+	    "id": 62760179,
+	    "master_id": 152,
+	    "properties": {
+	        "basedir": "/builds/slave/date_source",
+	        "branch": "date",
+	        "buildername": "date_source",
+	        "buildnumber": 0,
+	        "builduid": "2ada9a990dd34a51a36bf6e67b3f502a",
+	        "got_revision": "0fe97445f711",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-source/1427836371/date_source-bm70-build1-build0.txt.gz",
+	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
+	        "platform": "source",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "projects/date",
+	        "repository": "",
+	        "request_ids": [66006919],
+	        "request_times": {"66006919": 1427836349},
+	        "revision": "0fe97445f711",
+	        "scheduler": "date_start_promotion",
+	        "script_repo_revision": "80b67edbcbac",
+	        "script_repo_url": "https://hg.mozilla.org/users/nthomas_mozilla.com/mozharness-build-promotion",
+	        "slavename": "bld-linux64-spot-246",
+	        "stage_platform": "source",
+	        "toolsdir": "/builds/slave/date_source/scripts"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [66006919],
+	    "requesttime": 1427836349,
+	    "result": 0,
+	    "slave_id": 9825,
+	    "starttime": 1427836352
 	}
+
 
 
 
