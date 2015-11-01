@@ -382,6 +382,7 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_{{platform}}_periodic',
     'b2g_{{branch}}_emulator-debug_dep',
     'b2g_{{branch}}_emulator_dep',
+    'b2g_{{branch}}_emulator-jb-debug_dep',
     'b2g_{{branch}}_emulator-jb-debug_nightly',
     'b2g_{{branch}}_flame-kk_periodic',
     'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
@@ -480,6 +481,7 @@ TEST_PLATFORMS = {
     "b2g_macosx64": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g", "type": "flame"}}, "build": {"platform": "b2g"}},
+    # "b2g_mozilla-central_linux32_gecko_localizer nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "b2g_mozilla-inbound_win32_gecko build": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},

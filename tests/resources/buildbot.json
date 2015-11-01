@@ -6284,7 +6284,38 @@
 		"result": 0,
 		"slave_id": 9688,
 		"starttime": 1422619498
+	},
+	{
+	    "builder_id": 242291,
+	    "buildnumber": 23,
+	    "endtime": 1422095380,
+	    "id": 57326305,
+	    "master_id": 123,
+	    "properties": {
+	        "appName": "B2G",
+	        "appVersion": "38.0a1",
+	        "aws_ami_id": "ami-36502b5e",
+	        "aws_instance_type": "r3.xlarge",
+	        "basedir": "/builds/slave/m-cen-linux32_g_lz-ntly-000000",
+	        "branch": "mozilla-central",
+	        "builddir": "m-cen-linux32_g_lz-ntly-000000",
+	        "buildername": "b2g_mozilla-central_linux32_gecko_localizer nightly",
+	        "buildnumber": 23,
+	        "builduid": "04f109dd1ab84a3a84577d96f6c2b02d",
+	        "comments": "",
+	        "forced_clobber": false,
+	        "gaiaRepoPath": "integration/gaia-central",
+	        "gaiaRevision": "a0f2cafbae71c95e9bc97d253ecacbc079e1e138",
+	        "got_revision": "c0f88b376e33"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
+	    "request_ids": [60089793],
+	    "requesttime": 1422090129,
+	    "result": 0,
+	    "slave_id": 6905,
+	    "starttime": 1422090963
 	}
+
 
 
 ]
