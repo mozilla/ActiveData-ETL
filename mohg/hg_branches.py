@@ -34,7 +34,7 @@ def get_branches(settings):
     for i, r in enumerate(all_repos("tr")):
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = get_branch(settings, name, dir.lstrip("/"))
+        b = _get_branch(settings, name, dir.lstrip("/"))
         branches.extend(b)
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
@@ -54,7 +54,7 @@ def get_branches(settings):
     return branches
 
 
-def get_branch(settings, description, dir):
+def _get_branch(settings, description, dir):
     if dir == "users":
         return []
     response = http.get(settings.url + "/" + dir)

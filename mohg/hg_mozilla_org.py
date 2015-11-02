@@ -12,10 +12,10 @@ from __future__ import division
 from copy import copy
 import re
 
+from mohg import etl_hg_branch
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
-
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
@@ -244,8 +244,6 @@ class HgMozillaOrg(object):
 
     def get_branches(self, use_cache=True):
         if not self.settings.branches or not use_cache:
-            from testlog_etl import etl_hg_branch
-
             return etl_hg_branch.get_branches(settings={"url": "https://hg.mozilla.org"})
 
         #TRY ES
