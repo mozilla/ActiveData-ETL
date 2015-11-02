@@ -12,10 +12,6 @@ from __future__ import division
 from copy import copy
 import re
 
-from mohg import etl_hg_branch
-from mohg.repos.changesets import Changeset
-from mohg.repos.pushs import Push
-from mohg.repos.revisions import Revision
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
@@ -27,6 +23,10 @@ from pyLibrary.env import http
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration, HOUR
+
+from mohg.repos.changesets import Changeset
+from mohg.repos.pushs import Push
+from mohg.repos.revisions import Revision
 
 
 DEFAULT_LOCALE = "en-US"
@@ -198,6 +198,8 @@ class HgMozillaOrg(object):
                         )
                         if r.node == found_revision.changeset.id:
                             output = rev
+                        if r.node[0:12] == found_revision.changeset.id[0:12]:
+                            output = rev
                         _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name + "-" + coalesce(rev.branch.locale, DEFAULT_LOCALE)
                         revs.append({"id": _id, "value": rev})
             self.es.extend(revs)
@@ -244,7 +246,9 @@ class HgMozillaOrg(object):
 
     def get_branches(self, use_cache=True):
         if not self.settings.branches or not use_cache:
-            return etl_hg_branch.get_branches(settings={"url": "https://hg.mozilla.org"})
+            from mohg import hg_branches
+
+            return hg_branches.get_branches(settings={"url": "https://hg.mozilla.org"})
 
         #TRY ES
         es = elasticsearch.Cluster(settings=self.settings.branches).get_index(settings=self.settings.branches)

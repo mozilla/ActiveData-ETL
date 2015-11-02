@@ -197,7 +197,7 @@ class DictList(list):
 
         return DictList(_get(self, "list")[:num])
 
-    def leftBut(self, num):
+    def not_right(self, num):
         """
         WITH SLICES BEING FLAT, WE NEED A SIMPLE WAY TO SLICE FROM THE LEFT [:-num:]
         """
@@ -208,9 +208,9 @@ class DictList(list):
 
         return DictList(_get(self, "list")[:-num:])
 
-    def rightBut(self, num):
+    def not_left(self, num):
         """
-        NOT REQUIRED, EXISTS AS OPPOSITE OF leftBut()
+        NOT REQUIRED, EXISTS AS OPPOSITE OF not_right()
         """
         if num == None:
             return DictList([_get(self, "list")[-1]])
