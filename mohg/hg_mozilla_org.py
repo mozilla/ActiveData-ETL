@@ -12,13 +12,14 @@ from __future__ import division
 from copy import copy
 import re
 
+from mohg.repos.changesets import Changeset
+from mohg.repos.pushs import Push
+from mohg.repos.revisions import Revision
+
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import qb
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.testing import elasticsearch
-from testlog_etl.imports.repos.changesets import Changeset
-from testlog_etl.imports.repos.pushs import Push
-from testlog_etl.imports.repos.revisions import Revision
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, Null, coalesce, unwraplist

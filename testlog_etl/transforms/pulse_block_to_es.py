@@ -18,9 +18,9 @@ from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
 from testlog_etl.imports import buildbot
-from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
-from testlog_etl.imports.repos.changesets import Changeset
-from testlog_etl.imports.repos.revisions import Revision
+from mohg.hg_mozilla_org import DEFAULT_LOCALE
+from mohg.repos.changesets import Changeset
+from mohg.repos.revisions import Revision
 
 DEBUG = True
 

@@ -30,7 +30,7 @@ from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from testlog_etl import key2etl
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
+from mohg.hg_mozilla_org import HgMozillaOrg
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket

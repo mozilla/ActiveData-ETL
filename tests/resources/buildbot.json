@@ -6351,7 +6351,41 @@
 	    "result": 0,
 	    "slave_id": 9825,
 	    "starttime": 1427836352
+	},
+	{
+	    "builder_id": 243632,
+	    "buildnumber": 1148,
+	    "endtime": 1420208983,
+	    "id": 55603968,
+	    "master_id": 132,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/l64-br-haz_m-in_dep-0000000000",
+	        "branch": "mozilla-inbound",
+	        "buildername": "linux64-br-haz_mozilla-inbound_dep",
+	        "buildnumber": 1148,
+	        "builduid": "79d90a8282a34f5c808cc307805cb827",
+	        "commit_titles": [
+	            "merge mozilla-inbound to mozilla-central a=merge",
+	            "Bug 1116027 - Switch to tab not available in Recent Tabs Panel. r=margaret",
+	            "Bug 1115780 - increase timeout on audionode destruction tests. r=vp",
+	            "Bug 1114344 - Add background-clip: content-box to the #dialogBox on in-content dialogs. r=jaws",
+	            "Bug 1104213 - add stack traces to timeline markers. r=smaug r=vporof",
+	            "Bug 1000993 - Allows WebIDE to run commands before pushing apps. r=jryans",
+	            "Bug 990566 - Remove strings made unused by bug 738796. r=dao",
+	            "Bug 1110009 - Show a warning icon in the legacy-Sync-to-FxA migration menu panel items. r=markh",
+	            "Bug 1114461 - handle failure fetching sync migration sentinel. r=rnewman",
+	            "Bug 1116872 - Don't crash on startup when CastDevice.getFromBundle returns null. r=mfinkle"
+	        ]
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [58197520],
+	    "requesttime": 1420203910,
+	    "result": 0,
+	    "slave_id": 6853,
+	    "starttime": 1420204337
 	}
+
 
 
 

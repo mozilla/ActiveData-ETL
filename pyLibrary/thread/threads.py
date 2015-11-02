@@ -25,7 +25,7 @@ import sys
 from pyLibrary import strings
 from pyLibrary.dot import coalesce, Dict
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, MINUTE
+from pyLibrary.times.durations import SECOND, MINUTE, Duration
 
 
 _Log = None
@@ -69,7 +69,7 @@ class Lock(object):
             timeout = (till - Date.now()).seconds
             if timeout < 0:
                 return
-        if isinstance(timeout, Date):
+        if isinstance(timeout, Duration):
             timeout = timeout.seconds
 
         self.monitor.wait(timeout=timeout if timeout else None)
