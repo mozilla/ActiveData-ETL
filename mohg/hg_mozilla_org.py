@@ -54,6 +54,7 @@ class HgMozillaOrg(object):
     @use_settings
     def __init__(
         self,
+        hg=None,        # CONNECT TO hg
         repo=None,      # CONNECTION INFO FOR ES CACHE
         branches=None,  # CONNECTION INFO FOR ES CACHE
         use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES

@@ -390,7 +390,9 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_emulator_dep',
     'b2g_{{branch}}_emulator-jb-debug_dep',
     'b2g_{{branch}}_emulator-jb-debug_nightly',
+    'b2g_{{branch}}_emulator-kk-debug_periodic',
     'b2g_{{branch}}_flame-kk_periodic',
+    'b2g_{{branch}}_nexus-5-l_eng_periodic',
     'b2g_{{branch}}_linux32_gecko_localizer nightly',
     'b2g_{{branch}}_{{product}}_eng_periodic',  # {"build":{"product":"{{product}}"}}
     '{{branch}}-{{product}}_{{platform}}_build',

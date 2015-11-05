@@ -6384,7 +6384,56 @@
 	    "result": 0,
 	    "slave_id": 6853,
 	    "starttime": 1420204337
+	},
+	{
+	    "builder_id": 300446,
+	    "buildnumber": 4,
+	    "endtime": 1422210820,
+	    "id": 57384396,
+	    "master_id": 130,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_m-b32_20_emu-kk-d_dep-0000",
+	        "branch": "mozilla-b2g32_v2_0",
+	        "buildername": "b2g_mozilla-b2g32_v2_0_emulator-kk-debug_periodic",
+	        "buildnumber": 4,
+	        "builduid": "2a5428fb54ce4498817a1549b5f2020e",
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "2989f2b2bd12fcc0e9c017d2db766e76a55873b8",
+	        "gecko_revision": "92d7abfe8ad7",
+	        "hgurl": "https://hg.mozilla.org/",
+	        "master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 periodic' triggered this build",
+	    "request_ids": [60148443],
+	    "requesttime": 1422196214,
+	    "result": 0,
+	    "slave_id": 6865,
+	    "starttime": 1422196275
+	},
+	{
+	    "builder_id": 354573,
+	    "buildnumber": 27,
+	    "endtime": 1427787271,
+	    "id": 62691773,
+	    "master_id": 152,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_fx-team_n5-l_eng_dep-00000",
+	        "branch": "fx-team",
+	        "buildername": "b2g_fx-team_nexus-5-l_eng_periodic",
+	        "buildnumber": 27,
+	        "builduid": "0fc97f8f84a64bb397cbbc011a07bccd",
+	        "compare_locales_revision": "1fc4e9bc8287"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
+	    "request_ids": [65932365],
+	    "requesttime": 1427783406,
+	    "result": 0,
+	    "slave_id": 9833,
+	    "starttime": 1427783447
 	}
+
 
 
 
