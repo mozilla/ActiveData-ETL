@@ -1,5 +1,8 @@
 {
 		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
 		"branches": {
 			"host": "http://localhost",
 			"port": 9200,
@@ -10,7 +13,7 @@
 				"$ref": "//branch.json"
 			},
 			"debug": false,
-			"limit_replicas": false
+			"limit_replicas": true
 		},
 		"repo": {
 			"host": "http://localhost",

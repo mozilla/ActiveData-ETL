@@ -14,18 +14,55 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
+from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND
-
+from pyLibrary.times.durations import SECOND, DAY
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
+OLD_BRANCH = DAY
+
 
 @use_settings
-def get_branches(settings):
+def get_branches(hg, branches, use_cache=True, settings=None):
+    if not settings.branches or not use_cache:
+        found_branches = _get_branches_from_hg(hg)
+
+        es = elasticsearch.Cluster(settings=branches).get_or_create_index(settings=branches)
+        es.add_alias()
+        es.extend({"id": b.name + " " + b.locale, "value": b} for b in found_branches)
+        es.flush()
+        return found_branches
+
+    #TRY ES
+    try:
+        es = elasticsearch.Cluster(settings=branches).get_index(settings=branches)
+        query = {
+            "query": {"match_all": {}},
+            "size": 20000
+        }
+
+        docs = es.search(query).hits.hits._source
+        # IF IT IS TOO OLD, THEN PULL FROM HG
+        oldest = Date(Math.MAX(docs.etl.timestamp))
+        if Date.now() - oldest > OLD_BRANCH:
+            return get_branches(use_cache=False, settings=settings)
+
+        try:
+            return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
+        except Exception, e:
+            Log.error("Bad branch in ES index", cause=e)
+    except Exception, e:
+        if "Can not find index " in e:
+            return get_branches(use_cache=False, settings=settings)
+        Log.error("problem getting branches", cause=e)
+
+
+@use_settings
+def _get_branches_from_hg(settings):
     # GET MAIN PAGE
     response = http.get(settings.url)
     doc = BeautifulSoup(response.all_content)
@@ -35,7 +72,7 @@ def get_branches(settings):
     for i, r in enumerate(all_repos("tr")):
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = _get_branch(settings, name, dir.lstrip("/"))
+        b = _get_single_branch_from_hg(settings, name, dir.lstrip("/"))
         branches.extend(b)
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
@@ -52,10 +89,21 @@ def get_branches(settings):
         branches.add(set_default({"name": "comm-aurora"}, b))
         # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
 
+    #CHECKS
+    for b in branches:
+        if b.name != b.name.lower():
+            Log.error("Expecting lowercase name")
+        if not b.locale:
+            Log.error("Not expected")
+        if not b.url.startswith("http"):
+            Log.error("Expecting a valid url")
+        if not b.etl.timestamp:
+            Log.error("Expecting a timestamp")
+
     return branches
 
 
-def _get_branch(settings, description, dir):
+def _get_single_branch_from_hg(settings, description, dir):
     if dir == "users":
         return []
     response = http.get(settings.url + "/" + dir)
@@ -84,7 +132,8 @@ def _get_branch(settings, description, dir):
                 parent_name=description,
                 url=settings.url + path,
                 description=desc,
-                last_used=Date(last_used)
+                last_used=Date(last_used),
+                etl={"timestamp": Date.now()}
             )
             if detail.description == "unknown":
                 detail.description = None
@@ -136,13 +185,10 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        branches = get_branches(settings.hg)
+        branches = _get_branches_from_hg(settings.hg)
 
         es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
         es.add_alias()
-        for b in branches:
-            if not b.locale:
-                Log.error("Not expected")
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
     except Exception, e:

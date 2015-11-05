@@ -446,6 +446,7 @@ BUILDER_NAMES = [
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
     'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
+    'linux64-br-haz_{{branch}}_dep',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
