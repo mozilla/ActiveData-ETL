@@ -5,8 +5,8 @@
 	},
 	"param": {
 		"threads": 1,
-		"keep_unknown_on_queue": false,
-		"wait_forever": true
+		"wait_forever": true,
+		"keep_unknown_on_queue": true
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -45,28 +45,28 @@
 		}
 	},
 	"workers": [
-//		{
-//			"name": "pulse2es",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"host": "http://localhost",
-//				"port": 9200,
-//				"index": "pulse",
-//				"type": "pulse_log",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../../schema/pulse_logs.json"
-//				},
-//				"debug": true,
-//				"limit_replicas": true
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
-//			"type": "join"
-//		},
+		{
+			"name": "pulse2es",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/pulse_logs.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
+			"type": "join"
+		},
 		{
 			"name": "pulse2tc",
 			"source": {
@@ -88,85 +88,85 @@
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
 			"type": "join"
+		},
+		{
+			"name": "pulse2talos",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-talos-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot-dev",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs-dev",
+				"public": true,
+				"key_format": "a.b"
+			},
+			"notify": {
+				"name": "active-data-index-jobs-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "talos2perf",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-talos-dev",
+				"key_format": "a:b.c"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perf-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-perf-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"type": "join"
+		},
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify":{
+				"name": "active-data-index-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
 		}
-//		{
-//			"name": "pulse2talos",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-talos-dev",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-//			"type": "join",
-//			"transform_type": "bulk"
-//		},
-//		{
-//			"name": "bbb2jobs",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-buildbot-dev",
-//				"key_format": "a.b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-jobs-dev",
-//				"public": true,
-//				"key_format": "a.b"
-//			},
-//			"notify": {
-//				"name": "active-data-index-jobs-dev",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
-//			"type": "join",
-//			"transform_type": "bulk"
-//		},
-//		{
-//			"name": "talos2perf",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-talos-dev",
-//				"key_format": "a:b.c"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-perf-dev",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"notify":{
-//				"name": "active-data-index-perf-dev",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
-//			"type": "join"
-//		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-test-result-dev",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"notify":{
-//				"name": "active-data-index-dev",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-//			"type": "join"
-//		}
 	],
 	"debug": {
 		"trace": true,

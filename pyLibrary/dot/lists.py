@@ -13,7 +13,7 @@ from __future__ import absolute_import
 from copy import deepcopy
 
 from pyLibrary.dot.nones import Null
-from pyLibrary.dot import wrap, unwrap
+from pyLibrary.dot import wrap, unwrap, coalesce
 
 _emit_slice_warning = True
 
@@ -96,7 +96,7 @@ class DictList(list):
         if not _dictwrap:
             _late_import()
 
-        return DictList(vals=[unwrap(_dictwrap(v)[key]) for v in _get(self, "list")])
+        return DictList(vals=[unwrap(coalesce(_dictwrap(v), Null)[key]) for v in _get(self, "list")])
 
     def filter(self, _filter):
         return DictList(vals=[unwrap(u) for u in (wrap(v) for v in _get(self, "list")) if _filter(u)])
