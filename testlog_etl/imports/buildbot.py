@@ -206,8 +206,14 @@ class BuildbotTranslator(object):
                 output.build.branch = match.groups()[0]
         elif key.endswith("nightly"):
             try:
+                temp = key.split(" " + branch_name + " ")
+                if len(temp) == 1:
+                    raw_platform = temp[0]
+                    build = ""
+                else:
+                    raw_platform, build = temp[0:2]
+
                 output.build.name = props.buildername
-                raw_platform, build = key.split(" " + branch_name + " ")
                 set_default(output, TEST_PLATFORMS[raw_platform])
 
                 for t in BUILD_TYPES:
@@ -384,8 +390,11 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_emulator_dep',
     'b2g_{{branch}}_emulator-jb-debug_dep',
     'b2g_{{branch}}_emulator-jb-debug_nightly',
+    'b2g_{{branch}}_emulator-kk-debug_periodic',
     'b2g_{{branch}}_flame-kk_periodic',
-    'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
+    'b2g_{{branch}}_nexus-5-l_eng_periodic',
+    'b2g_{{branch}}_linux32_gecko_localizer nightly',
+    'b2g_{{branch}}_{{product}}_eng_periodic',  # {"build":{"product":"{{product}}"}}
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -415,6 +424,7 @@ BUILDER_NAMES = [
     '{{branch}}-{{product}}_tag_source',
     '{{branch}}-{{product}}_updates',
 
+    '{{branch}}_{{platform}}',
     '{{branch}}-{{platform}}_build',
     '{{branch}}-{{platform}}_update_verify_{{step}}',
     '{{branch}}-{{platform}}_update_verify_beta_{{step}}',
@@ -438,6 +448,7 @@ BUILDER_NAMES = [
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
     'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
+    'linux64-br-haz_{{branch}}_dep',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
@@ -631,8 +642,8 @@ KNOWN_PLATFORM = {
     "nexus-4_eng": {"build": {"platform": "nexus4"}},
     "nexus-5-l": {"build": {"platform": "nexus5"}},
     "nexus-5-l_eng": {"build": {"platform": "nexus5"}},
+    "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
-
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64-asan_vm":{"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},

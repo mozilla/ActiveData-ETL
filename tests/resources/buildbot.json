@@ -6314,7 +6314,128 @@
 	    "result": 0,
 	    "slave_id": 6905,
 	    "starttime": 1422090963
+	},
+	{
+	    "builder_id": 441433,
+	    "buildnumber": 0,
+	    "endtime": 1427839126,
+	    "id": 62760179,
+	    "master_id": 152,
+	    "properties": {
+	        "basedir": "/builds/slave/date_source",
+	        "branch": "date",
+	        "buildername": "date_source",
+	        "buildnumber": 0,
+	        "builduid": "2ada9a990dd34a51a36bf6e67b3f502a",
+	        "got_revision": "0fe97445f711",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-source/1427836371/date_source-bm70-build1-build0.txt.gz",
+	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
+	        "platform": "source",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "projects/date",
+	        "repository": "",
+	        "request_ids": [66006919],
+	        "request_times": {"66006919": 1427836349},
+	        "revision": "0fe97445f711",
+	        "scheduler": "date_start_promotion",
+	        "script_repo_revision": "80b67edbcbac",
+	        "script_repo_url": "https://hg.mozilla.org/users/nthomas_mozilla.com/mozharness-build-promotion",
+	        "slavename": "bld-linux64-spot-246",
+	        "stage_platform": "source",
+	        "toolsdir": "/builds/slave/date_source/scripts"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [66006919],
+	    "requesttime": 1427836349,
+	    "result": 0,
+	    "slave_id": 9825,
+	    "starttime": 1427836352
+	},
+	{
+	    "builder_id": 243632,
+	    "buildnumber": 1148,
+	    "endtime": 1420208983,
+	    "id": 55603968,
+	    "master_id": 132,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/l64-br-haz_m-in_dep-0000000000",
+	        "branch": "mozilla-inbound",
+	        "buildername": "linux64-br-haz_mozilla-inbound_dep",
+	        "buildnumber": 1148,
+	        "builduid": "79d90a8282a34f5c808cc307805cb827",
+	        "commit_titles": [
+	            "merge mozilla-inbound to mozilla-central a=merge",
+	            "Bug 1116027 - Switch to tab not available in Recent Tabs Panel. r=margaret",
+	            "Bug 1115780 - increase timeout on audionode destruction tests. r=vp",
+	            "Bug 1114344 - Add background-clip: content-box to the #dialogBox on in-content dialogs. r=jaws",
+	            "Bug 1104213 - add stack traces to timeline markers. r=smaug r=vporof",
+	            "Bug 1000993 - Allows WebIDE to run commands before pushing apps. r=jryans",
+	            "Bug 990566 - Remove strings made unused by bug 738796. r=dao",
+	            "Bug 1110009 - Show a warning icon in the legacy-Sync-to-FxA migration menu panel items. r=markh",
+	            "Bug 1114461 - handle failure fetching sync migration sentinel. r=rnewman",
+	            "Bug 1116872 - Don't crash on startup when CastDevice.getFromBundle returns null. r=mfinkle"
+	        ]
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [58197520],
+	    "requesttime": 1420203910,
+	    "result": 0,
+	    "slave_id": 6853,
+	    "starttime": 1420204337
+	},
+	{
+	    "builder_id": 300446,
+	    "buildnumber": 4,
+	    "endtime": 1422210820,
+	    "id": 57384396,
+	    "master_id": 130,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_m-b32_20_emu-kk-d_dep-0000",
+	        "branch": "mozilla-b2g32_v2_0",
+	        "buildername": "b2g_mozilla-b2g32_v2_0_emulator-kk-debug_periodic",
+	        "buildnumber": 4,
+	        "builduid": "2a5428fb54ce4498817a1549b5f2020e",
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "2989f2b2bd12fcc0e9c017d2db766e76a55873b8",
+	        "gecko_revision": "92d7abfe8ad7",
+	        "hgurl": "https://hg.mozilla.org/",
+	        "master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 periodic' triggered this build",
+	    "request_ids": [60148443],
+	    "requesttime": 1422196214,
+	    "result": 0,
+	    "slave_id": 6865,
+	    "starttime": 1422196275
+	},
+	{
+	    "builder_id": 354573,
+	    "buildnumber": 27,
+	    "endtime": 1427787271,
+	    "id": 62691773,
+	    "master_id": 152,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_fx-team_n5-l_eng_dep-00000",
+	        "branch": "fx-team",
+	        "buildername": "b2g_fx-team_nexus-5-l_eng_periodic",
+	        "buildnumber": 27,
+	        "builduid": "0fc97f8f84a64bb397cbbc011a07bccd",
+	        "compare_locales_revision": "1fc4e9bc8287"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
+	    "request_ids": [65932365],
+	    "requesttime": 1427783406,
+	    "result": 0,
+	    "slave_id": 9833,
+	    "starttime": 1427783447
 	}
+
+
+
 
 
 

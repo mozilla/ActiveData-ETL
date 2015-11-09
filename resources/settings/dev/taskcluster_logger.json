@@ -2,23 +2,23 @@
 	"source": {
 		"exchange": "exchange/taskcluster-queue/v1/task-completed",
 		"topic": "#",
-		"durable": false,
+		"durable": true,
 		"timeout":600,
-		"queue": "task_cluster_dev",
+		"queue": "active-data-task-cluster-log-dev",
 		"$ref": "file://~/private.json#pulse_user",
 		"debug": false
 	},
 	"destination": {
-		"bucket": "active-data-task-cluster-dev",
+		"bucket": "active-data-task-cluster-logger-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"work_queue": {
-		"name": "active-data-task-cluster-dev",
+		"name": "active-data-etl-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"queue_file": "results/task-cluster-queue.json",
+		"queue_file": "results/taskcluster-logger.json",
 		"debug": false,     // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
 		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
 	},
@@ -29,13 +29,6 @@
         },
 		"log":[
 			{"log_type":"console"},
-			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/task_cluster_logger_dev.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 100,
-				"encoding" : "utf8"
-			},
 			{
 				"log_type":"email",
 				"from_address": "klahnakoski@mozilla.com",

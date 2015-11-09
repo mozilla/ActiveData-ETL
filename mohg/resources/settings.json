@@ -1,0 +1,30 @@
+{
+		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
+		"branches": {
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "branches",
+			"type": "branch",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//branch.json"
+			},
+			"debug": false,
+			"limit_replicas": true
+		},
+		"repo": {
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "repo",
+			"type": "revision",
+			"timeout": 300,
+			"schema": {
+				"$ref": "//revision.json"
+			},
+			"debug": false,
+			"limit_replicas": false
+		}
+	}
