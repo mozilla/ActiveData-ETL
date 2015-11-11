@@ -16,6 +16,7 @@ import re
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
+from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date, unicode2datetime
 
@@ -39,7 +40,7 @@ class BuildbotTranslator(object):
 
         props = data.properties
         if not props or not props.buildername:
-            output.other = props
+            output.properties, output.other = normalize_other(props)
             return output
 
         output.action.job_number = props.buildnumber
@@ -176,7 +177,7 @@ class BuildbotTranslator(object):
             if key == expected:
                 output.build.name = props.buildername
                 scrub_known_properties(props)
-                output.other = props
+                output.properties, output.other = normalize_other(props)
                 output.action.type = "build"
                 verify(output, data)
                 return output
@@ -279,8 +280,8 @@ class BuildbotTranslator(object):
             if not parsed:
                 Log.error("Test mode not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
-        output.other = props
         verify(output, data)
+        output.properties, output.other = normalize_other(props)
         return output
 
 
@@ -370,6 +371,57 @@ def unquote(value):
     return value
 
 
+
+
+
+def normalize_other(other):
+    """
+    the buildbot properties are unlimited in thie number of keys
+    """
+    known = {}
+    unknown=[]
+    for k, v in other.items():
+        v = elasticsearch.scrub(v)
+        if not v:
+            continue
+
+        if k in known_properties:
+            known[k] = v
+            continue
+
+        if k not in unknown_properties:
+            Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
+        unknown_properties[k] += 1
+        unknown.append({"name": unicode(k), "value": unicode(v)})
+
+    return known, unknown
+
+
+known_properties = {
+    "appVersion",
+    "aws_ami_id",
+    "base_bundle_urls",
+    "builddir",
+    "comments",
+    "got_revision",
+    "master",
+    "scheduler",
+    "slavebuilddir",
+    "stage_platform",
+    "appName",
+    "basedir",
+    "builduid",
+    "packageFilename",
+    "sourcestamp",
+    "symbolsUrl",
+    "testsUrl",
+    "testPackagesUrl",
+    "uploadFiles"
+}
+
+unknown_properties=Dict()
+
+
 test_modes = {
     "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
     "opt test": {"build": {"type": ["opt"]}, "action": {"type": "test"}},
@@ -390,8 +442,10 @@ BUILDER_NAMES = [
     'b2g_{{branch}}_emulator_dep',
     'b2g_{{branch}}_emulator-jb-debug_dep',
     'b2g_{{branch}}_emulator-jb-debug_nightly',
+    'b2g_{{branch}}_emulator-kk_dep',
     'b2g_{{branch}}_emulator-kk-debug_periodic',
     'b2g_{{branch}}_flame-kk_periodic',
+    'b2g_{{branch}}_nexus-4_periodic',
     'b2g_{{branch}}_nexus-5-l_eng_periodic',
     'b2g_{{branch}}_linux32_gecko_localizer nightly',
     'b2g_{{branch}}_{{product}}_eng_periodic',  # {"build":{"product":"{{product}}"}}

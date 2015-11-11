@@ -6432,6 +6432,71 @@
 	    "result": 0,
 	    "slave_id": 9833,
 	    "starttime": 1427783447
+	},
+	{
+	    "builder_id": 239189,
+	    "buildnumber": 4549,
+	    "endtime": 1423392282,
+	    "id": 58523399,
+	    "master_id": 128,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_try_emu-kk_dep-00000000000",
+	        "branch": "try",
+	        "buildername": "b2g_try_emulator-kk_dep",
+	        "buildnumber": 4549,
+	        "builduid": "872f40345f8b429788711e54320db32f",
+	        "commit_titles": [
+	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+	            "Fixup add new emulator_test.yml",
+	            "Try using ubuntu 14.04 to run emulator tests",
+	            "Try to enable xpcshell tests for emulator-kk",
+	            "Enable reftest/mnw/mn suites for emulator-kk",
+	            "Fix mulet symbol paths for mochitests",
+	            "Attempt to enable some emulator-kk tests",
+	            "(Do not land) use emulator-kk-8x to test how fast it can go on bigger machine",
+	            "try: -b do -p emulator -u xpcshell +tc",
+	            "Increase xpcshell timeout to closer to 2 hours",
+	            "try: -b do -p emulator -u mochitest +tc",
+	            "try: -b do -p emulator -u mochitest +tc"
+	        ],
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "bbc853ff4d1bffad41d19bb47e066e3ba21c6709"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [61384394],
+	    "requesttime": 1423383212,
+	    "result": 0,
+	    "slave_id": 8629,
+	    "starttime": 1423383645
+	},
+	{
+	    "builder_id": 392757,
+	    "buildnumber": 0,
+	    "endtime": 1424188175,
+	    "id": 59184319,
+	    "master_id": 152,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_m-b37_22_nexus-4_dep-00000",
+	        "branch": "mozilla-b2g37_v2_2",
+	        "buildername": "b2g_mozilla-b2g37_v2_2_nexus-4_periodic",
+	        "buildnumber": 0,
+	        "builduid": "d0fdad1cac564bfe8cd0fed5b0312695",
+	        "compare_locales_revision": "1fc4e9bc8287",
+	        "gaia_revision": "ea64caf6d4ab03fc4472eca9f41f20d651d55fa9",
+	        "gecko_revision": "93e8f2a8cffe",
+	        "hgurl": "https://hg.mozilla.org/",
+	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g37_v2_2 periodic' triggered this build",
+	    "request_ids": [62108376],
+	    "requesttime": 1424183402,
+	    "result": 0,
+	    "slave_id": 9861,
+	    "starttime": 1424183721
 	}
 
 
