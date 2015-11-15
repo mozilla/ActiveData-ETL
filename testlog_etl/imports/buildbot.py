@@ -205,7 +205,19 @@ class BuildbotTranslator(object):
 
             if branch_name == "addon-sdk":
                 output.build.branch = match.groups()[0]
+        elif key.startswith("b2g_" + branch_name + "_") and endswith(key, ["nightly", "periodic", "dep", "build", "nonunified"]):
+            output.build.trigger = trigger = endswith(key, ["nightly", "periodic", "dep", "build", "nonunified"])
+            output.build.name = raw_platform = key[5 + len(branch_name):-(len(trigger) + 1)]
+            output.action.type = "build"
+            if raw_platform not in KNOWN_PLATFORM:
+                if raw_platform not in self.unknown_platforms:
+                    self.unknown_platforms += [raw_platform]
+                    Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                else:
+                    return Dict()  # ERROR INGNORED, ALREADY SENT
+            set_default(output, KNOWN_PLATFORM[raw_platform])
         elif key.endswith("nightly"):
+            output.build.trigger="nightly"
             try:
                 temp = key.split(" " + branch_name + " ")
                 if len(temp) == 1:
@@ -431,24 +443,7 @@ test_modes = {
 }
 
 BUILDER_NAMES = [
-    'b2g_{{branch}}_{{platform}} build',
-    'b2g_{{branch}}_{{platform}}-debug_periodic',
-    'b2g_{{branch}}_{{platform}}_dep',
-    'b2g_{{branch}}_{{platform}}_nightly',
-    'b2g_{{branch}}_{{platform}} nightly',
-    'b2g_{{branch}}_{{platform}}_nonunified',
-    'b2g_{{branch}}_{{platform}}_periodic',
-    'b2g_{{branch}}_emulator-debug_dep',
-    'b2g_{{branch}}_emulator_dep',
-    'b2g_{{branch}}_emulator-jb-debug_dep',
-    'b2g_{{branch}}_emulator-jb-debug_nightly',
-    'b2g_{{branch}}_emulator-kk_dep',
-    'b2g_{{branch}}_emulator-kk-debug_periodic',
-    'b2g_{{branch}}_flame-kk_periodic',
-    'b2g_{{branch}}_nexus-4_periodic',
-    'b2g_{{branch}}_nexus-5-l_eng_periodic',
-    'b2g_{{branch}}_linux32_gecko_localizer nightly',
-    'b2g_{{branch}}_{{product}}_eng_periodic',  # {"build":{"product":"{{product}}"}}
+
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -537,22 +532,10 @@ TEST_PLATFORMS = {
     "Android armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
-    "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g", "product": "b2g"}},
-    "b2g_emulator-kk_vm":{"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame", "product": "b2g"}},
-    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "product": "b2g"}},
-    "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_emulator-jb_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_macosx64": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g", "type": "flame"}}, "build": {"platform": "b2g"}},
-    # "b2g_mozilla-central_linux32_gecko_localizer nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "b2g_mozilla-inbound_win32_gecko build": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
+    "b2g_emulator-kk_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame"}},
+    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
+    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g"}},
     "Linux": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Linux x86-64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Linux x86-64 Mulet": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
@@ -651,7 +634,7 @@ KNOWN_PLATFORM = {
     "emulator-kk-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame", "type": ["debug"]}},
     "emulator-l": {"run": {"machine": {"type": "emulator"}}},
     "emulator-l-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    "flame":{"build": {"platform": "flame"}},
+    "flame": {"build": {"platform": "flame"}},
     "flame_eng": {"build": {"platform": "flame"}},
     "flame-kk": {"build": {"platform": "flame"}},
     "flame-kk_eng": {"build": {"platform": "flame"}},
@@ -724,6 +707,7 @@ KNOWN_PLATFORM = {
     "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
 }
 
+
 ALLOWED_PLATFORMS = [
     "android",
     "b2g",
@@ -751,3 +735,10 @@ ALLOWED_PRODUCTS = [
     "thunderbird",
     "xulrunner"
 ]
+
+
+
+def endswith(key, options):
+    for o in options:
+        if key.endswith(o):
+            return o

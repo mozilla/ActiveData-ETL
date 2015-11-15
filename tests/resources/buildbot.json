@@ -6497,7 +6497,27 @@
 	    "result": 0,
 	    "slave_id": 9861,
 	    "starttime": 1424183721
+	},
+	{
+	    "builder_id": 354386,
+	    "buildnumber": 85,
+	    "endtime": 1429540820,
+	    "id": 64206947,
+	    "master_id": 152,
+	    "properties": {
+	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+	        "basedir": "/builds/slave/b2g_b2g-in_flm-kk_eng-d_dep-00",
+	        "branch": "b2g-inbound",
+	        "buildername": "b2g_b2g-inbound_flame-kk_eng-debug_periodic"
+	    },
+	    "reason": "The Nightly scheduler named 'b2g_b2g-inbound periodic' triggered this build",
+	    "request_ids": [67593726],
+	    "requesttime": 1429533010,
+	    "result": 0,
+	    "slave_id": 9825,
+	    "starttime": 1429533951
 	}
+
 
 
 
