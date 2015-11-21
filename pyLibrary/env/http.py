@@ -38,13 +38,14 @@ from pyLibrary.times.durations import SECOND
 
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
 MIN_READ_SIZE = 8 * 1024
+ZIP_REQUEST = False
 default_headers = Dict()  # TODO: MAKE THIS VARIABLE A SPECIAL TYPE OF EXPECTED MODULE PARAMETER SO IT COMPLAINS IF NOT SET
 default_timeout = 600
 
 _warning_sent = False
 
 
-def request(method, url, zip=False, retry=None, **kwargs):
+def request(method, url, zip=None, retry=None, **kwargs):
     """
     JUST LIKE requests.request() BUT WITH DEFAULT HEADERS AND FIXES
     DEMANDS data IS ONE OF:
@@ -87,6 +88,9 @@ def request(method, url, zip=False, retry=None, **kwargs):
 
     session = sessions.Session()
     session.headers.update(default_headers)
+
+    if zip is None:
+        zip = ZIP_REQUEST
 
     if isinstance(url, unicode):
         # httplib.py WILL **FREAK OUT** IF IT SEES ANY UNICODE

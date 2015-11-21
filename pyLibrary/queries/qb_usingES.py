@@ -27,12 +27,13 @@ from pyLibrary.queries.es14.deep import is_deepop, es_deepop
 from pyLibrary.queries.es14.setop import is_setop, es_setop
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.es14.util import aggregates1_4
+from pyLibrary.queries.expressions import qb_expression
 from pyLibrary.queries.meta import FromESMetadata
 from pyLibrary.queries.namespace.typed import Typed
 from pyLibrary.queries.query import Query, _normalize_where
 from pyLibrary.debugs.logs import Log, Except
 from pyLibrary.dot.dicts import Dict
-from pyLibrary.dot import coalesce, split_field, literal_field, unwraplist, join_field
+from pyLibrary.dot import coalesce, split_field, literal_field, unwraplist, join_field, unwrap
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap, listwrap
 
@@ -153,48 +154,68 @@ class FromES(Container):
         else:
             Log.error("expecting `table` to be same as, or deeper, than index name")
         query_path = self.query_path if self.query_path != "." else None
-        abs_columns = self.meta.get_columns(table=coalesce(table, self.settings.index))
+        abs_columns = [copy(c) for c in unwrap(self.meta.get_columns(table=coalesce(table, self.settings.index)))]
 
         columns = []
+        shadowed_columns = set()
+
+        def add_column(c):
+            columns.append(c)
+            if c.relative:
+                for a in abs_columns:
+                    if a.name.startswith(c.name + ".") or a.name == c.name:
+                        shadowed_columns.add(a)
+
         if query_path:
-            depth = (len(listwrap(c.nested_path)) for c in abs_columns if listwrap(c.nested_path)[0] == query_path).next()
+            try:
+                query_depth = (len(listwrap(c.nested_path)) for c in abs_columns if listwrap(c.nested_path)[0] == query_path).next()
+            except Exception:
+                Log.error("{{path}} does not exist", path=query_path)
+
             # ADD RELATIVE COLUMNS
             for c in abs_columns:
-                if listwrap(c.nested_path)[0] == query_path:
-                    c = copy(c)
-                    columns.append(c)
+                full_path = listwrap(c.nested_path)
+                nested_path = full_path[0]
+                if nested_path == query_path:
+                    add_column(c)
                     c = copy(c)
                     c.name = c.abs_name[len(query_path) + 1:] if c.type != "nested" else "."
                     c.relative = True
-                    columns.append(c)
-                elif not c.nested_path:
+                    add_column(c)
+                elif not full_path:
+                    add_column(c)
                     c = copy(c)
-                    columns.append(c)
-                    c = copy(c)
-                    c.name = "." + ("." * depth) + c.abs_name
+                    c.name = "." + ("." * query_depth) + c.abs_name
                     c.relative = True
-                    columns.append(c)
-                elif depth > len(listwrap(c.nested_path)) and query_path.startswith(listwrap(c.nested_path)[0] + "."):
-                    diff = depth - len(listwrap(c.nested_path))
+                    add_column(c)
+                elif query_depth > len(full_path) and query_path.startswith(nested_path + "."):
+                    diff = query_depth - len(full_path)
+                    add_column(c)
                     c = copy(c)
-                    columns.append(c)
-                    c = copy(c)
-                    c.name = "." + ("." * diff) + (c.abs_name[len(listwrap(c.nested_path)[0]) + 1:] if c.type != "nested" else "")
+                    c.name = "." + ("." * diff) + (c.abs_name[len(nested_path) + 1:] if c.type != "nested" else "")
                     c.relative = True
-                    columns.append(c)
-                elif c.abs_name.startswith(query_path+"."):  # depth < len(c.nested_path)  - DEEP COLUMNS, ALLOWED FOR SET OPS
-                    c = copy(c)
-                    columns.append(c)
+                    add_column(c)
+                elif c.abs_name.startswith(query_path + "."):
+                    add_column(c)
                     c = copy(c)
                     c.name = c.abs_name[len(query_path)+1:]
                     c.relative = True
-                    columns.append(c)
+                    add_column(c)
+                elif c.abs_name == query_path:
+                    add_column(c)
+                    c = copy(c)
+                    c.name = "."
+                    c.relative = True
+                    add_column(c)
+                else:
+                    Log.error("logic error")
         else:
             for c in abs_columns:
                 c = copy(c)
                 c.relative = True
-                columns.append(c)
+                add_column(c)
 
+        columns = [c for c in columns if c not in shadowed_columns]
         return wrap(columns)
 
     def addDimension(self, dim):
@@ -214,6 +235,8 @@ class FromES(Container):
              return c
 
         e = self.edges[item]
+        if not c:
+            Log.warning("Column with name {{column|quote}} can not be found in {{table}}", column=item, table=self.name)
         return e
 
     def __getattr__(self, item):
@@ -273,7 +296,7 @@ class FromES(Container):
             "fields": listwrap(schema._routing.path),
             "query": {"filtered": {
                 "query": {"match_all": {}},
-                "filter": _normalize_where(command.where, self)
+                "filter": _normalize_where(qb_expression(command.where).to_esfilter(), self)
             }},
             "size": 200000
         })
@@ -286,7 +309,7 @@ class FromES(Container):
             if isinstance(v, Mapping) and v.doc:
                 scripts.append({"doc": v.doc})
             else:
-                scripts.append({"script": "ctx._source." + k + " = " + expressions.qb_expression_to_ruby(v)})
+                scripts.append({"script": "ctx._source." + k + " = " + qb_expression(v).to_ruby()})
 
         if results.hits.hits:
             updates = []

@@ -196,7 +196,7 @@ class BuilderLines(object):
         else:
             self.last_elapse_time_age += 1
 
-        if self.last_elapse_time_age > 3:
+        if self.last_elapse_time_age > 5:
             # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
             last_elapse_time = None
 

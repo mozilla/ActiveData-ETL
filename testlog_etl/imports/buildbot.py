@@ -256,9 +256,6 @@ class BuildbotTranslator(object):
             except Exception, e:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data, cause=e)
 
-            for t in BUILD_FEATURES:
-                if t in build:
-                    output.tags += [t]
             for t in BUILD_TYPES:
                 if t in build:
                     output.build.type += [t]
@@ -508,12 +505,11 @@ BUILD_TYPES = [
     "mulet",  # COMMON FRAMEWORK FOR b2g and Firefox
     "opt",    # OPTIMIZED
     "pgo",    # PROFILE GUIDED OPTIMIZATIONS
-    "tsan"    # THREAD SANITIZER
-]
-
-BUILD_FEATURES = [
+    "tsan",   # THREAD SANITIZER
+    "l10n",   # INTERNATIONALIZATION
     "leak test",
     "static analysis"
+
 ]
 
 TEST_PLATFORMS = {
