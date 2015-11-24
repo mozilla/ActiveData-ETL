@@ -75,6 +75,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response.all_lines
 
                 for log_line in all_log_lines:
+                    if log_line.find("PERFHERDER_DATA")>=0:
+                        Log.warning("PERFHERDER_DATA has been found in {{url}}", url=pulse_record.payload.logurl)
+                        
                     s = log_line.find(TALOS_PREFIX)
                     if s < 0:
                         continue
