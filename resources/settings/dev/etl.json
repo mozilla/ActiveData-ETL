@@ -14,12 +14,12 @@
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"hg":{
+	"hg": {
 		"use_cache": true,
-		"hg":{
+		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
-		"branches":{
+		"branches": {
 			"host": "http://localhost",
 			"port": 9200,
 			"index": "branches",
@@ -31,7 +31,7 @@
 			"debug": false,
 			"limit_replicas": true
 		},
-		"repo":{
+		"repo": {
 			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
@@ -107,6 +107,24 @@
 			"transform_type": "bulk"
 		},
 		{
+			"name": "pulse2perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-dev",
+				"public": true,
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
 			"name": "bbb2jobs",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -140,7 +158,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-perf-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
@@ -160,7 +178,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},

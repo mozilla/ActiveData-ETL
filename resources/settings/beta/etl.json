@@ -15,7 +15,7 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"hg":{
+	"hg": {
 		"branches": {
 			"host": "http://localhost",
 			"port": 9200,
@@ -83,26 +83,44 @@
 			"transform_type": "bulk"
 		},
 		{
-            "name": "bbb2jobs",
-            "source": {
-                "$ref": "file://~/private.json#aws_credentials",
-                "bucket": "active-data-buildbot-beta",
-                "key_format": "a.b"
-            },
-            "destination": {
-                "$ref": "file://~/private.json#aws_credentials",
-                "bucket": "active-data-jobs-beta",
-                "public": true,
-                "key_format": "a.b"
-            },
-            "notify": {
-                "name": "active-data-index-jobs-beta",
-                "$ref": "file://~/private.json#aws_credentials"
-            },
-            "transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
-            "type": "join",
-            "transform_type": "bulk"
-        },
+			"name": "pulse2perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"public": true,
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder-beta",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot-beta",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs-beta",
+				"public": true,
+				"key_format": "a.b"
+			},
+			"notify": {
+				"name": "active-data-index-jobs-beta",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
 		{
 			"name": "talos2perf",
 			"source": {
@@ -116,7 +134,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-perf-beta",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
@@ -137,7 +155,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-beta",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
