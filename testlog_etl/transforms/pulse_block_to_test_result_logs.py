@@ -124,4 +124,4 @@ if __name__ == "__main__":
 
     destination = Dict(extend=extend)
 
-    new_keys = process_unittest("0:0.0.0", Dict(), Dict(), response.all_lines, destination, please_stop=Signal())
+    _new_keys = process_unittest("0:0.0.0", Dict(), Dict(), response.all_lines, destination, please_stop=Signal())

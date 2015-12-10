@@ -197,6 +197,12 @@
 				"log_type": "console"
 			},
 			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"index": "debug",
+				"type": "etl"
+			},
+			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
