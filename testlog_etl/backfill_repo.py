@@ -17,7 +17,7 @@ from pyLibrary.queries.qb_usingES import FromES
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
 DEBUG = False

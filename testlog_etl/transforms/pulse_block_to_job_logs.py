@@ -196,7 +196,7 @@ class BuilderLines(object):
         else:
             self.last_elapse_time_age += 1
 
-        if self.last_elapse_time_age > 3:
+        if self.last_elapse_time_age > 5:
             # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
             last_elapse_time = None
 
@@ -373,7 +373,10 @@ def process_buildbot_log(all_log_lines, from_url):
     curr_line = ""
     next_line = ""
 
+    total_bytes = 0
+
     for log_ascii in all_log_lines:
+        total_bytes += len(log_ascii)+1
 
         if not log_ascii.strip():
             continue
@@ -496,6 +499,8 @@ def process_buildbot_log(all_log_lines, from_url):
     data.builder_time_zone = builder_line.time_zone
     data.harness_time_zone = mozharness_line.time_zone
     data.harness_time_skew = mozharness_line.time_skew
+
+    data.etl.total_bytes = total_bytes
     return data
 
 
@@ -543,7 +548,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32-debug/1444616952/mozilla-inbound_win7-ix-debug_test-web-platform-tests-reftests-bm109-tests1-windows-build281.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-win32-debug/1449494249/mozilla-central_xp-ix-debug_test-mochitest-devtools-chrome-4-bm110-tests1-windows-build28.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

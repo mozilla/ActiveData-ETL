@@ -17,7 +17,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import pulse
 from pyLibrary.queries import qb
-from pyLibrary.dot import set_default
+from pyLibrary.dot import set_default, coalesce
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
@@ -25,7 +25,13 @@ from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 # ONLY DEPLOY OFF THE pulse-logger branch
 
 def log_loop(settings, synch, queue, bucket, please_stop):
-    with aws.Queue(settings.work_queue) as work_queue:
+    queue_name = coalesce(settings.work_queue, settings.notify)
+    if queue_name:
+        work_queue = aws.Queue(queue_name)
+    else:
+        work_queue = None
+
+    try:
         for i, g in qb.groupby(queue, size=settings.param.size):
             Log.note(
                 "Preparing {{num}} pulse messages to bucket={{bucket}}",
@@ -61,12 +67,13 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 synch.source_key = MAX(g.select("_meta.count")) + 1
 
                 now = Date.now()
-                work_queue.add({
-                    "bucket": bucket.name,
-                    "key": full_key,
-                    "timestamp": now.unix,
-                    "date/time": now.format()
-                })
+                if work_queue != None:
+                    work_queue.add({
+                        "bucket": bucket.name,
+                        "key": full_key,
+                        "timestamp": now.unix,
+                        "date/time": now.format()
+                    })
 
                 synch.ping()
                 queue.commit()
@@ -81,6 +88,9 @@ def log_loop(settings, synch, queue, bucket, please_stop):
 
             if please_stop:
                 break
+    finally:
+        if work_queue != None:
+            work_queue.close()
     Log.note("log_loop() completed on it's own")
 
 

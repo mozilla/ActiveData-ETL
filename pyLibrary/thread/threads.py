@@ -25,20 +25,24 @@ import sys
 from pyLibrary import strings
 from pyLibrary.dot import coalesce, Dict
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, MINUTE
+from pyLibrary.times.durations import SECOND, MINUTE, Duration
 
 
 _Log = None
+_Except = None
 DEBUG = True
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
-DEFAULT_WAIT_TIME = 5*MINUTE
+DEFAULT_WAIT_TIME = timedelta(minutes=5)
 
 def _late_import():
     global _Log
+    global _Except
 
     from pyLibrary.debugs.logs import Log as _Log
+    from pyLibrary.debugs.logs import Except as _Except
 
     _ = _Log
+    _ = _Except
 
 
 class Lock(object):
@@ -69,10 +73,10 @@ class Lock(object):
             timeout = (till - Date.now()).seconds
             if timeout < 0:
                 return
-        if isinstance(timeout, Date):
+        if isinstance(timeout, Duration):
             timeout = timeout.seconds
 
-        self.monitor.wait(timeout=timeout if timeout else None)
+        self.monitor.wait(timeout=float(timeout) if timeout else None)
 
     def notify_all(self):
         self.monitor.notify_all()
@@ -155,13 +159,13 @@ class Queue(object):
         if timeout:
             time_to_stop_waiting = now + timeout
         else:
-            time_to_stop_waiting = Date.MAX
+            time_to_stop_waiting = datetime(2286, 11, 20, 17, 46, 39)
 
         if self.next_warning < now:
             self.next_warning = now + wait_time
 
         while self.keep_running and len(self.queue) > self.max:
-            if now > time_to_stop_waiting:
+            if time_to_stop_waiting < now:
                 if not _Log:
                     _late_import()
                 _Log.error(Thread.TIMEOUT)
@@ -174,7 +178,8 @@ class Queue(object):
                     now = Date.now()
                     if self.next_warning < now:
                         self.next_warning = now + wait_time
-                        _Log.alert("Queue {{name}} is full ({{num}} items), thread(s) have been waiting {{wait_time}}",
+                        _Log.alert(
+                            "Queue by name of {{name|quote}} is full with ({{num}} items), thread(s) have been waiting {{wait_time}} sec",
                             name=self.name,
                             num=len(self.queue),
                             wait_time=wait_time
@@ -370,7 +375,7 @@ class Thread(object):
         self.id = -1
         self.name = name
         self.target = target
-        self.response = None
+        self.end_of_thread = None
         self.synch_lock = Lock("response synch lock")
         self.args = args
 
@@ -431,6 +436,7 @@ class Thread(object):
     def _run(self):
         if _Log.cprofiler:
             import cProfile
+            _Log.note("starting cprofile for thread {{thread}}", thread=self.name)
 
             self.cprofiler = cProfile.Profile()
             self.cprofiler.enable()
@@ -444,10 +450,10 @@ class Thread(object):
                 a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
                 response = self.target(*a, **k)
                 with self.synch_lock:
-                    self.response = Dict(response=response)
+                    self.end_of_thread = Dict(response=response)
         except Exception, e:
             with self.synch_lock:
-                self.response = Dict(exception=e)
+                self.end_of_thread = Dict(exception=_Except.wrap(e))
             try:
                 _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
             except Exception, f:
@@ -474,13 +480,14 @@ class Thread(object):
             if self.cprofiler:
                 import pstats
 
+                if DEBUG:
+                    _Log.note("Adding cprofile stats for thread {{thread|quote}}", thread=self.name)
                 self.cprofiler.disable()
                 _Log.cprofiler_stats.add(pstats.Stats(self.cprofiler))
                 del self.cprofiler
 
     def is_alive(self):
         return not self.stopped
-
 
     def join(self, timeout=None, till=None):
         """
@@ -502,7 +509,10 @@ class Thread(object):
                     for i in range(10):
                         if self.stopped:
                             self.parent.remove_child(self)
-                            return self.response
+                            if not self.end_of_thread.exception:
+                                return self.end_of_thread.response
+                            else:
+                                _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
                         self.synch_lock.wait(0.5)
 
                 if DEBUG:
@@ -511,7 +521,10 @@ class Thread(object):
             self.stopped.wait_for_go(till=till)
             if self.stopped:
                 self.parent.remove_child(self)
-                return self.response
+                if not self.end_of_thread.exception:
+                    return self.end_of_thread.response
+                else:
+                    _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
             else:
                 from pyLibrary.debugs.logs import Except
 

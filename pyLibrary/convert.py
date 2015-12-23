@@ -139,13 +139,11 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
 
             Log.error("Can not decode JSON at:\n\t" + sample + "\n\t" + pointer + "\n")
 
-        if len(json_string)>1000:
-            json_string = json_string[0:50] + " ... <snip " + strings.comma(len(json_string)) + " characters> ... " + json_string[len(json_string)-50:len(json_string)]
-        base_str = unicode2utf8(json_string)
+        base_str = unicode2utf8(strings.limit(json_string, 1000))
         hexx_str = bytes2hex(base_str, " ")
         try:
             char_str = " " + ("  ".join(c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
-        except Exception, e:
+        except Exception:
             char_str = " "
         Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
 
