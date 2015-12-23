@@ -1,0 +1,16 @@
+{
+	"aws": {
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants":{
+		"pyLibrary.thread.threads.DEBUG":false
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

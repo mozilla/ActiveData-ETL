@@ -548,7 +548,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32-debug/1444616952/mozilla-inbound_win7-ix-debug_test-web-platform-tests-reftests-bm109-tests1-windows-build281.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-win32-debug/1449494249/mozilla-central_xp-ix-debug_test-mochitest-devtools-chrome-4-bm110-tests1-windows-build28.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

@@ -6516,7 +6516,48 @@
 	    "result": 0,
 	    "slave_id": 9825,
 	    "starttime": 1429533951
+	},
+	{
+	    "builder_id": 542704,
+	    "buildnumber": 147,
+	    "endtime": 1450803943,
+	    "id": 83028052,
+	    "master_id": 165,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"g2_raw.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/3971d4513fab121e852d38f8f5812a4f7d900ce635907483a5017e8632589e4c072b2a0190983ef810e895598919585567dccda6ddf68d08a15e4ac131d2b0ad\", \"g2_errorsummary.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/ca5954ec9335a8734cf4db67dd32b5476f1b84877002620b1671ec91b1059e3f2500ce53271d2cafd51aba89538861070bda954a396c46cad007abf541e0f930\"}",
+	        "branch": "fx-team",
+	        "build_url": "https://queue.taskcluster.net/v1/task/nwiC3mS_SDiQ9RLmSWxU6Q/artifacts/public/build/firefox-46.0a1.en-US.mac.dmg",
+	        "builddir": "fx-team_yosemite_r7_test-g2",
+	        "buildername": "Rev7 MacOSX Yosemite 10.10.5 fx-team talos g2",
+	        "buildnumber": 147,
+	        "builduid": "cba2fda31a834edb98ee61aca1cb28d8",
+	        "log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-macosx64/1450794808/fx-team_yosemite_r7_test-g2-bm107-tests1-macosx-build147.txt.gz",
+	        "master": "http://buildbot-master107.bb.releng.scl3.mozilla.com:8201/",
+	        "pgo_build": "False",
+	        "platform": "yosemite_r7",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "integration/fx-team",
+	        "repository": "",
+	        "request_ids": [91751151],
+	        "request_times": {"91751151": 1450801527},
+	        "revision": "254e1fdb70f5f83eff87ef8a627774cb9c745cc3",
+	        "scheduler": "tests-fx-team-macosx64-talos",
+	        "script_repo_revision": "production",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "t-yosemite-r7-0042",
+	        "stage_platform": "macosx64"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [91751151],
+	    "requesttime": 1450801527,
+	    "result": 0,
+	    "slave_id": 11222,
+	    "starttime": 1450802308
 	}
+
 
 
 

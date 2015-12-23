@@ -102,7 +102,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} PerfHerder records", num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            Log.alert("No PerfHerder records found in {{url}}", url=pulse_record.payload.logurl)
+            Log.warning("No PerfHerder records found in {{url}}", url=pulse_record.payload.logurl)
             _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
 
             output |= dest_bucket.extend([{

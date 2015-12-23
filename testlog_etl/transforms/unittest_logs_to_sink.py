@@ -42,13 +42,13 @@ def process_unittest_in_s3(source_key, source, destination, resources, please_st
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
 
-    timer = Timer("Process log {{file}} for {{key}}", {
-        "file": etl_header.name,
+    timer = Timer("Process log {{url}} for {{key}}", {
+        "url": etl_header.url,
         "key": source_key
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
+            summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
         Log.error("Problem processing {{key}}", key=source_key, cause=e)
         summary = None
@@ -101,8 +101,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, file_name, lines, please_stop):
-    accumulator = LogSummary(file_name)
+def accumulate_logs(source_key, url, lines, please_stop):
+    accumulator = LogSummary(url)
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -134,13 +134,13 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}",
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url}} for key {{key}}",
         key=source_key,
         num_bytes=output.stats.bytes,
         num_lines=output.stats.lines,
         num_tests=output.stats.total,
         bad_lines=output.stats.bad_lines,
-        name=file_name
+        url=url
     )
     return output
 
@@ -168,7 +168,19 @@ class LogSummary(Dict):
     def test_status(self, log):
         self.stats.action.test_status += 1
         if not log.test:
-            Log.error("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
+            # {
+            #     "status": "PASS",
+            #     "thread": "None",
+            #     "subtest": "Background event should be on background thread",
+            #     "pid": null,
+            #     "source": "robocop",
+            #     "test": "",
+            #     "time": 1450098827133,
+            #     "action": "test_status",
+            #     "message": ""
+            # }
+            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
+            return
 
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
