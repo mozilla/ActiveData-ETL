@@ -49,19 +49,20 @@ def random(settings):
 
 
 def parse_day(settings, p, force=False):
-    destination = s3.Bucket(settings.destination)
-    notify = Queue(settings=settings.notify)
-
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - Date("1 JAN 2015")) / DAY)
     day_url = settings.source.url + p
     key0 = unicode(day_num) + ".0"
 
-    Log.note("Consider {{url}}", url=day_url)
     if day < Date("1 JAN 2015") or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
+
+    Log.note("Consider {{url}}", url=day_url)
+
+    destination = s3.Bucket(settings.destination)
+    notify = Queue(settings=settings.notify)
 
     if force:
         try:
@@ -169,8 +170,6 @@ def get_all_tasks(url):
         "builds",
         expected_vars=["builds"]
     )
-
-
 
 
 def main():

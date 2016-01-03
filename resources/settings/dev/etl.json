@@ -5,17 +5,21 @@
 	},
 	"param": {
 		"threads": 1,
-		"keep_unknown_on_queue": false
+		"wait_forever": true,
+		"keep_unknown_on_queue": true
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"hg":{
+	"hg": {
 		"use_cache": true,
-		"branches":{
+		"hg": {
+			"url": "https://hg.mozilla.org"
+		},
+		"branches": {
 			"host": "http://localhost",
 			"port": 9200,
 			"index": "branches",
@@ -27,7 +31,7 @@
 			"debug": false,
 			"limit_replicas": true
 		},
-		"repo":{
+		"repo": {
 			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
@@ -64,6 +68,28 @@
 			"type": "join"
 		},
 		{
+			"name": "pulse2tc",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-logger-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "task_cluster",
+				"type": "task_cluster_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/pulse_logs.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
+			"type": "join"
+		},
+		{
 			"name": "pulse2talos",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -77,6 +103,24 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "pulse2perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-dev",
+				"public": true,
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -114,7 +158,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-perf-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
@@ -134,7 +178,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
@@ -151,6 +195,12 @@
 		"log": [
 			{
 				"log_type": "console"
+			},
+			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"index": "debug",
+				"type": "etl"
 			},
 			{
 				"log_type": "email",

@@ -38,9 +38,9 @@ def diff(settings, please_stop=None):
     es = elasticsearch.Index(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
-    #git ls-remote https://github.com/klahnakoski/TestLog-ETL.git refs/heads/etl
     if settings.git:
-        rev = 'c54c0407d8539e3330b'  # get_remote_revision(settings.git.url, settings.git.branch)
+        rev = get_remote_revision(settings.git.url, settings.git.branch)
+        rev = 'b103f9ec315122e6a0830'
         es_filter = {"prefix": {"etl.revision": rev}}
     else:
         es_filter = {"match_all": {}}
@@ -54,10 +54,10 @@ def diff(settings, please_stop=None):
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)
 
-    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
     if settings.no_checks:
         remaining_in_s3 = remaining_in_s3[:coalesce(settings.limit, 1000):]
     else:
+    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
         remaining_in_s3 = remaining_in_s3[500:500 + coalesce(settings.limit, 1000):]
 
     if not remaining_in_s3:
@@ -73,7 +73,7 @@ def diff(settings, please_stop=None):
     )
 
     for i, p in enumerate(remaining_in_s3):
-        all_keys = source_bucket.keys(unicode(p) + ":")
+        all_keys = source_bucket.keys(unicode(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
         work_queue.extend([
             {
@@ -139,7 +139,7 @@ def get_all_s3(in_es, in_range, settings):
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
     with Timer("Scanning S3 bucket {{bucket}}", {"bucket": bucket.name}):
-        prefixes = [p.name.rstrip(":") for p in bucket.list(prefix="", delimiter=":")]
+        prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix="", delimiter=":")))
 
     in_s3 = []
     for i, q in enumerate(prefixes):
@@ -153,7 +153,7 @@ def get_all_s3(in_es, in_range, settings):
                 continue
 
             in_s3.append(p)
-        except Exception:
+        except Exception, e:
             Log.note("delete key? {{key|quote}}", key=q)
             # source_bucket.delete_key(strip_extension(q))
     in_s3 = qb.reverse(qb.sort(in_s3))

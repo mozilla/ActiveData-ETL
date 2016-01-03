@@ -1,11 +1,13 @@
 import re
-from pyLibrary import convert, strings
+
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap, unwrap, Dict
 from pyLibrary.env import http
 from pyLibrary.meta import cache, use_settings
-from pyLibrary.strings import expand_template, Log
+from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
+from mohg.hg_mozilla_org import HgMozillaOrg
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&full=true&revision__in={{revision}}"
 JOBS_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&result_set_id__in={{result_set_id}}&failure_classification_id__ne=1"

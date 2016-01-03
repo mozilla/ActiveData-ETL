@@ -196,7 +196,7 @@ class BuilderLines(object):
         else:
             self.last_elapse_time_age += 1
 
-        if self.last_elapse_time_age > 3:
+        if self.last_elapse_time_age > 5:
             # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
             last_elapse_time = None
 
@@ -205,6 +205,8 @@ class BuilderLines(object):
 
         try:
             parts = map(unicode.strip, line[10:-10].split("("))
+            if parts[0].startswith("master_lag:"):
+                return None
             if parts[0] == "Skipped":
                 # NOT THE REGULAR PATTERN
                 message, status, parts, timestamp, done = "", "skipped", None, Null, True
@@ -326,6 +328,7 @@ def parse_command_line(line):
                 if c == "'":
                     value += c
                     output.append(convert.quote2string(value))
+                    value = ""
                     break
                 elif c == "\\":
                     value += c + line[i]
@@ -370,7 +373,10 @@ def process_buildbot_log(all_log_lines, from_url):
     curr_line = ""
     next_line = ""
 
+    total_bytes = 0
+
     for log_ascii in all_log_lines:
+        total_bytes += len(log_ascii)+1
 
         if not log_ascii.strip():
             continue
@@ -493,6 +499,8 @@ def process_buildbot_log(all_log_lines, from_url):
     data.builder_time_zone = builder_line.time_zone
     data.harness_time_zone = mozharness_line.time_zone
     data.harness_time_skew = mozharness_line.time_skew
+
+    data.etl.total_bytes = total_bytes
     return data
 
 
@@ -527,7 +535,10 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
-    elif data[duplicate] in data[expected]:
+    elif data[expected] and data[duplicate] and data[duplicate] in data[expected]:
+        data[duplicate] = None
+    elif data[expected] and data[duplicate] and data[expected] in data[duplicate]:
+        data[expected] = data[duplicate]
         data[duplicate] = None
     else:
         if warning:
@@ -537,7 +548,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://archive.mozilla.org/pub/mobile/tinderbox-builds/fx-team-android-api-11-debug/1445436758/fx-team_ubuntu64_vm_armv7_large-debug_test-plain-reftest-31-bm51-tests1-linux64-build6.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-win32-debug/1449494249/mozilla-central_xp-ix-debug_test-mochitest-devtools-chrome-4-bm110-tests1-windows-build28.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

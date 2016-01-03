@@ -1,0 +1,72 @@
+{
+	"settings": {
+		"index.number_of_replicas": 1,
+		"index.number_of_shards": 3
+	},
+	"mappings": {
+		"revision": {
+			"_source": {
+				"compress": false
+			},
+			"_id" : {
+				"index": "not_analyzed",
+				"type": "string",
+				"store": true
+	        },
+			"_all": {
+				"enabled": false
+			},
+			"_routing": {
+				"required": true,
+				"path":"changeset.id12"
+			},
+			"dynamic_templates": [
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long",
+						"match": "*"
+					}
+				},
+				{
+					"default_integers": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "integer",
+						"match": "*"
+					}
+				}
+			],
+			"properties": {
+				"changeset":{
+					"type":"object",
+					"properties":{
+						"description": {
+				            "index": "analyzed",
+				            "type": "string"
+				        }
+					}
+				}
+			}
+		}
+	}
+
+}
