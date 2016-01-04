@@ -172,8 +172,6 @@ def get_all_tasks(url):
     )
 
 
-
-
 def main():
     try:
         settings = startup.read_settings()
