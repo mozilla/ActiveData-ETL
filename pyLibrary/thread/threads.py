@@ -233,7 +233,8 @@ class Queue(object):
                 if self.keep_running:
                     return None
 
-        _Log.note("queue stopped")
+        if DEBUG or not self.silent:
+            _Log.note(self.name + " queue stopped")
         return Thread.STOP
 
 
@@ -677,7 +678,7 @@ class Signal(object):
             try:
                 j()
             except Exception, e:
-                _Log.warning("Trigger on Signal.go() failed!", e)
+                _Log.warning("Trigger on Signal.go() failed!", cause=e)
 
     def is_go(self):
         """
@@ -690,6 +691,9 @@ class Signal(object):
         """
         RUN target WHEN SIGNALED
         """
+        if not target:
+            _Log.error("expecting target")
+
         with self.lock:
             if self._go:
                 target()
