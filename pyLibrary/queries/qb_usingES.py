@@ -31,7 +31,8 @@ from pyLibrary.queries.expressions import qb_expression
 from pyLibrary.queries.meta import FromESMetadata
 from pyLibrary.queries.namespace.typed import Typed
 from pyLibrary.queries.query import Query, _normalize_where
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot.dicts import Dict
 from pyLibrary.dot import coalesce, split_field, literal_field, unwraplist, join_field, unwrap
 from pyLibrary.dot.lists import DictList

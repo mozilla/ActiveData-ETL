@@ -39,7 +39,7 @@ def _late_import():
     global _Except
 
     from pyLibrary.debugs.logs import Log as _Log
-    from pyLibrary.debugs.logs import Except as _Except
+    from pyLibrary.debugs.exceptions import Except as _Except
 
     _ = _Log
     _ = _Except
@@ -530,7 +530,7 @@ class Thread(object):
                 else:
                     _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
             else:
-                from pyLibrary.debugs.logs import Except
+                from pyLibrary.debugs.exceptions import Except
 
                 raise Except(type=Thread.TIMEOUT)
 

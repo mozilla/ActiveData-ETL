@@ -30,7 +30,8 @@ from tempfile import TemporaryFile
 from pyLibrary import strings
 from pyLibrary.dot import wrap, wrap_leaves, unwrap, unwraplist, split_field, join_field, coalesce
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.env.big_data import FileString, safe_size
 from pyLibrary.jsons import quote
 from pyLibrary.jsons.encoder import json_encoder, pypy_json_encode

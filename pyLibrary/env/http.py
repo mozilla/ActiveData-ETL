@@ -27,7 +27,8 @@ from numbers import Number
 from requests import sessions, Response
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, coalesce, wrap, set_default
 from pyLibrary.env.big_data import safe_size, CompressedLines, ZipfileLines, GzipLines
 from pyLibrary.maths import Math

@@ -31,7 +31,7 @@ def _late_import():
     global _Except
     from pyLibrary import convert as _convert
     from pyLibrary.debugs.logs import Log as _Log
-    from pyLibrary.debugs.logs import Except as _Except
+    from pyLibrary.debugs.exceptions import Except as _Except
 
     _ = _convert
     _ = _Log
