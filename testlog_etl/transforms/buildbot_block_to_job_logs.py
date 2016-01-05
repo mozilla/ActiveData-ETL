@@ -8,11 +8,12 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
 import zlib
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default, Null
+from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.big_data import ibytes2ilines
 from pyLibrary.env.git import get_git_revision
@@ -25,7 +26,7 @@ from testlog_etl.transforms.pulse_block_to_job_logs import verify_equal, process
 
 _ = convert
 DEBUG = False
-
+TOO_OLD = (Date.today()-MONTH).unix
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     bb = BuildbotTranslator()
@@ -45,6 +46,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 details=buildbot_data,
                 cause=e
             )
+
+        if data.action.start_time<TOO_OLD:
+            Log.warning("Do not try to process old buildbot logs")
+            return set()
 
         try:
             rev = Dict(
