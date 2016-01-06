@@ -22,7 +22,10 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 DEBUG = False
 
 #06:46:57     INFO -  2015-11-24 06:46:57,398 INFO : PERFHERDER_DATA:
-PERFHERDER_PREFIX = b" INFO : PERFHERDER_DATA: "
+PERFHERDER_PREFIXES = [
+    b" INFO : PERFHERDER_DATA: ",
+    b" INFO -  PERFHERDER_DATA: "
+]
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
@@ -75,11 +78,15 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response.all_lines
 
                 for log_line in all_log_lines:
-                    s = log_line.find(PERFHERDER_PREFIX)
-                    if s < 0:
+                    prefix = None
+                    for prefix in PERFHERDER_PREFIXES:
+                        s = log_line.find(prefix)
+                        if s >= 0:
+                            break
+                    else:
                         continue
 
-                    log_line = strings.strip(log_line[s + len(PERFHERDER_PREFIX):])
+                    log_line = strings.strip(log_line[s + len(prefix):])
                     perf = convert.json2value(convert.utf82unicode(log_line))
 
                     for t in perf.suites:
