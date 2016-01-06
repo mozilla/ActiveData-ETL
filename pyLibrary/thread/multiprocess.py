@@ -108,5 +108,7 @@ class Process(object):
             ee = Except.wrap(e)
             if 'The operation completed successfully' in ee:
                 return
+            if 'No such process' in ee:
+                return
 
             Log.warning("Failure to kill process {{process|quote}}", process=self.name, cause=ee)
