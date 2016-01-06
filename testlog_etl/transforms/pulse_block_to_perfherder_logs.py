@@ -49,6 +49,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record.payload.talos:
             continue
 
+        run_tests = False
         all_perf = []
         etl_file = wrap({
             "id": counter,
@@ -83,6 +84,12 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response.all_lines
 
                 for log_line in all_log_lines:
+                    if "INFO - ##### Running run-tests step." in log_line:
+                        # 00:53:53     INFO - #####
+                        # 00:53:53     INFO - ##### Running run-tests step.
+                        # 00:53:53     INFO - #####
+                        run_tests = True
+
                     prefix = None
                     for prefix in PERFHERDER_PREFIXES:
                         s = log_line.find(prefix)
@@ -118,12 +125,19 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         etl_file.duration = timer.duration
 
         if all_perf:
+            if not run_tests:
+                Log.warning("No tests run, but records found: {{url}}", url=pulse_record.payload.logurl)
+
             Log.note("Found {{num}} PerfHerder records", num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            Log.warning("No PerfHerder records found in {{url}}", url=pulse_record.payload.logurl)
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            if not run_tests:
+                # CHANGE THIS TO A Log.note() ONCE WE ARE HAPPY THIS IS TRUE
+                Log.warning("No tests run {{url}}", url=pulse_record.payload.logurl)
+            else:
+                Log.warning("PerfHerder records expected, but not found {{url}}", url=pulse_record.payload.logurl)
 
+            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {
