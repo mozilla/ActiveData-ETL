@@ -69,7 +69,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
         Log.warning(
             "The pyLibrary.env.http module was meant to add extra "
             "default headers to all requests, specifically the 'Referer' "
-            "header with a URL to the project. Use the `constants.set()` "
+            "header with a URL to the project. Use the `pyLibrary.debug.constants.set()` "
             "function to set `pyLibrary.env.http.default_headers`"
         )
 

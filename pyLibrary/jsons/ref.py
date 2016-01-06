@@ -59,8 +59,11 @@ def get(url):
     doc = wrap({"$ref": url})
 
     phase1 = _replace_ref(doc, URL(""))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
-    phase2 = _replace_locals(phase1, [phase1])
-    return wrap(phase2)
+    try:
+        phase2 = _replace_locals(phase1, [phase1])
+        return wrap(phase2)
+    except Exception, e:
+        _Log.error("problem replacing locals in\n{{phase1}}", phase1=phase1)
 
 
 def expand(doc, doc_url):
@@ -113,15 +116,22 @@ def _replace_ref(node, url):
         if ref.fragment:
             new_value = dot.get_attr(new_value, ref.fragment)
 
-        if not output:
-            return new_value
-        else:
-            return unwrap(set_default(output, new_value))
+        if DEBUG:
+            _Log.note("Replace {{ref}} with {{new_value}}", ref=ref, new_value=new_value)
 
+        if not output:
+            output = new_value
+        else:
+            output = unwrap(set_default(output, new_value))
+
+        if DEBUG:
+            _Log.note("Return {{output}}", output=output)
+
+        return output
     elif isinstance(node, list):
         output = [_replace_ref(n, url) for n in node]
-        if all(p[0] is p[1] for p in zip(output, node)):
-            return node
+        # if all(p[0] is p[1] for p in zip(output, node)):
+        #     return node
         return output
 
     return node
@@ -166,8 +176,8 @@ def _replace_locals(node, doc_path):
 
     elif isinstance(node, list):
         candidate = [_replace_locals(n, [n] + doc_path) for n in node]
-        if all(p[0] is p[1] for p in zip(candidate, node)):
-            return node
+        # if all(p[0] is p[1] for p in zip(candidate, node)):
+        #     return node
         return candidate
 
     return node
