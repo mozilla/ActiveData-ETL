@@ -92,7 +92,7 @@ class URL(object):
         if self.query:
             url = url + '?' + _convert.value2url(self.query)
         if self.fragment:
-            url = url + '#' + convert.value2url(self.fragment)
+            url = url + '#' + _convert.value2url(self.fragment)
         return url
 
 
