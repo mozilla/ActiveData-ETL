@@ -16,6 +16,10 @@
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg": {
+		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
 		"branches": {
 			"host": "http://localhost",
 			"port": 9200,

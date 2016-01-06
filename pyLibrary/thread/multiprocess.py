@@ -13,7 +13,8 @@ from __future__ import absolute_import
 import subprocess
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Queue, Thread, Signal, Lock
 
 DEBUG = True

@@ -10,7 +10,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Except, Log
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from testlog_etl.imports import buildbot

@@ -15,6 +15,7 @@ from datetime import datetime
 from pyLibrary import convert
 from pyLibrary import strings
 from pyLibrary.collections import COUNT
+from pyLibrary.env import elasticsearch
 from pyLibrary.maths import stats
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
@@ -31,11 +32,12 @@ from pyLibrary.times import durations
 TrueFilter = {"match_all": {}}
 DEBUG = False
 
-
+# SCRUB THE QUERY SO IT IS VALID
+# REPORT ERROR IF OUTPUT APEARS TO HAVE HIT GIVEN limit
 def post(es, es_query, limit):
     post_result = None
     try:
-        post_result = es.search(es_query)
+        post_result = es.search(elasticsearch.scrub(es_query))
 
         for facetName, f in post_result.facets.items():
             if f._type == "statistical":

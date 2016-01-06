@@ -128,26 +128,24 @@
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2perfherder",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-pulse-beta",
-//				"public": true,
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-perfherder-beta",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
-//			"type": "join",
-//			"transform_type": "bulk"
-//		},
-
-
+		{
+			"name": "pulse2perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"public": true,
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder-beta",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
 		{
 			"name": "pulse2test_result",
 			"source": {

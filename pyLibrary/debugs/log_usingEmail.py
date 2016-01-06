@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
+from pyLibrary.debugs.exceptions import ALARM, NOTE
 from pyLibrary.debugs.text_logs import TextLog
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.emailer import Emailer
@@ -67,11 +68,11 @@ class TextLog_usingEmail(TextLog):
 
     def write(self, template, params):
         with self.locker:
-            if params.params.warning.template or params.params.warning.template:
+            if params.context not in [NOTE, ALARM]:  # SEND ONLY THE NOT BORING STUFF
                 self.accumulation.append(expand_template(template, params))
 
-                if Date.now() > self.last_sent + WAIT_TO_SEND_MORE:
-                    self._send_email()
+            if Date.now() > self.last_sent + WAIT_TO_SEND_MORE:
+                self._send_email()
 
     def stop(self):
         with self.locker:
