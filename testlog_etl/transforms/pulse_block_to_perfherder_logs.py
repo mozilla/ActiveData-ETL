@@ -21,10 +21,15 @@ from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
 
 DEBUG = False
 
-#06:46:57     INFO -  2015-11-24 06:46:57,398 INFO : PERFHERDER_DATA:
+# 06:46:57     INFO -  2015-11-24 06:46:57,398 INFO : PERFHERDER_DATA:
+# 06:21:21     INFO -  PERFHERDER_DATA:
+# 07:43:11     INFO -  2015-10-08 07:43:11,492 INFO : TALOSDATA:
+
 PERFHERDER_PREFIXES = [
     b" INFO : PERFHERDER_DATA: ",
-    b" INFO -  PERFHERDER_DATA: "
+    b" INFO -  PERFHERDER_DATA: ",
+    b" INFO : TALOSDATA: ",
+    b" INFO -  TALOSDATA: "  # NOT SEEN IN WILD
 ]
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
