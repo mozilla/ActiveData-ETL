@@ -39,7 +39,7 @@ def _late_import():
     global _Except
 
     from pyLibrary.debugs.logs import Log as _Log
-    from pyLibrary.debugs.logs import Except as _Except
+    from pyLibrary.debugs.exceptions import Except as _Except
 
     _ = _Log
     _ = _Except
@@ -168,7 +168,7 @@ class Queue(object):
             self.next_warning = now + wait_time
 
         while self.keep_running and len(self.queue) > self.max:
-            if time_to_stop_waiting < now:
+            if now > time_to_stop_waiting:
                 if not _Log:
                     _late_import()
                 _Log.error(Thread.TIMEOUT)
@@ -530,7 +530,7 @@ class Thread(object):
                 else:
                     _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
             else:
-                from pyLibrary.debugs.logs import Except
+                from pyLibrary.debugs.exceptions import Except
 
                 raise Except(type=Thread.TIMEOUT)
 
