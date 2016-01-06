@@ -69,23 +69,23 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
-		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-beta",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
+//		{
+//			"name": "pulse2talos",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-beta",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-talos-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
 		{
 			"name": "bbb2jobs",
 			"source": {

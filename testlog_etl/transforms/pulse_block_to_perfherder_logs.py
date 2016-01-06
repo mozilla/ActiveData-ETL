@@ -94,12 +94,19 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     log_line = strings.strip(log_line[s + len(prefix):])
                     perf = convert.json2value(convert.utf82unicode(log_line))
 
-                    for t in perf.suites:
-                        _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
-                        t.framework = perf.framework
-                        t.etl = dest_etl
-                        t.pulse = pulse_record.payload
-                    all_perf.extend(perf.suites)
+                    if "TALOS" in prefix:
+                        for t in perf:
+                            _, dest_etl = etl_head_gen.next(etl_file, "Talos")
+                            t.etl = dest_etl
+                            t.pulse = pulse_record.payload
+                        all_perf.extend(perf)
+                    else: # PERFHERDER
+                        for t in perf.suites:
+                            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                            t.framework = perf.framework
+                            t.etl = dest_etl
+                            t.pulse = pulse_record.payload
+                        all_perf.extend(perf.suites)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {
                     "url": pulse_record.payload.logurl
