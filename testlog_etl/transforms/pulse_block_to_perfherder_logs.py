@@ -88,6 +88,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         # 00:53:53     INFO - #####
                         # 00:53:53     INFO - ##### Running run-tests step.
                         # 00:53:53     INFO - #####
+                        # ========= Started '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' (results: 0, elapsed: 19 mins, 59 secs) (at 2016-01-06 08:48:36.722349) =========
+                        run_tests = True
+                    elif "INFO - #### Running talos suites" in log_line:
                         run_tests = True
 
                     prefix = None
@@ -126,16 +129,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
         if all_perf:
             if not run_tests:
-                Log.warning("No tests run, but records found: {{url}}", url=pulse_record.payload.logurl)
+                Log.warning("No tests run, but records found while processing {{key}}: {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
-            Log.note("Found {{num}} PerfHerder records", num=len(all_perf))
+            Log.note("Found {{num}} PerfHerder records while processing {{key}}", key=source_key, num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            if not run_tests:
-                # CHANGE THIS TO A Log.note() ONCE WE ARE HAPPY THIS IS TRUE
-                Log.warning("No tests run {{url}}", url=pulse_record.payload.logurl)
-            else:
-                Log.warning("PerfHerder records expected, but not found {{url}}", url=pulse_record.payload.logurl)
+            if run_tests:
+                Log.warning("PerfHerder records expected while processing {{key}}, but not found {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
             _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
             output |= dest_bucket.extend([{
