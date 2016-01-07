@@ -50,7 +50,10 @@ def get(url):
 
     base = URL("")
     if url.startswith("file://") and url[7] != "/":
-        base = URL("file:///" + os.getcwd().replace(os.sep, "/").rstrip("/") + "/.")
+        if os.sep=="\\":
+            base = URL("file:///" + os.getcwd().replace(os.sep, "/").rstrip("/") + "/.")
+        else:
+            base = URL("file://" + os.getcwd().rstrip("/") + "/.")
     elif url[url.find("://") + 3] != "/":
         _Log.error("{{url}} must be absolute", url=url)
 
