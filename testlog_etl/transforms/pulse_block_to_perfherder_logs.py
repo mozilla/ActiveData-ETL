@@ -84,6 +84,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response.all_lines
 
                 for log_line in all_log_lines:
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping early")
+
                     if "INFO - ##### Running run-tests step." in log_line:
                         # 00:53:53     INFO - #####
                         # 00:53:53     INFO - ##### Running run-tests step.
@@ -93,7 +96,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     elif "INFO - #### Running talos suites" in log_line:
                         run_tests = True
 
-                    prefix = None
+                    prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
                     for prefix in PERFHERDER_PREFIXES:
                         s = log_line.find(prefix)
                         if s >= 0:
