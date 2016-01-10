@@ -176,7 +176,7 @@ class File(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log
 
-            Log.error("roblem reading file {{filename}}", self.abspath)
+            Log.error("Problem reading file {{filename}}", self.abspath)
 
     def write_bytes(self, content):
         if not self.parent.exists:
@@ -325,3 +325,7 @@ class File(object):
             return os.path.exists(self._filename)
         except Exception, e:
             return False
+
+    @classmethod
+    def copy(cls, from_, to_):
+        File.new_instance(to_).write_bytes(File.new_instance(from_).read_bytes())

@@ -88,13 +88,14 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         Log.error("Shutdown detected. Stopping early")
 
                     if "INFO - ##### Running run-tests step." in log_line:
-                        # 00:53:53     INFO - #####
-                        # 00:53:53     INFO - ##### Running run-tests step.
-                        # 00:53:53     INFO - #####
-                        # ========= Started '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' (results: 0, elapsed: 19 mins, 59 secs) (at 2016-01-06 08:48:36.722349) =========
                         run_tests = True
+                        continue
                     elif "INFO - #### Running talos suites" in log_line:
                         run_tests = True
+                        continue
+                    elif "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:" in log_line:
+                        run_tests = False
+                        continue
 
                     prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
                     for prefix in PERFHERDER_PREFIXES:
