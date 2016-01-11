@@ -12,10 +12,12 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from testlog_etl.imports import buildbot
 from testlog_etl.imports.buildbot import BuildbotTranslator
+from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
 
 false = False
 true = True
@@ -52,3 +54,19 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         result = buildbot.unquote(test)
         self.assertEqual(result, expecting)
+
+
+    def test_specific_url(self):
+        url = "http://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-inbound-android-api-11-debug/1452310770/mozilla-inbound_ubuntu64_vm_armv7_large-debug_test-mochitest-gl-3-bm51-tests1-linux64-build93.txt.gz"
+        response = http.get(url)
+        # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
+        # for i, l in enumerate(response._all_lines(encoding="latin1")):
+        #     try:
+        #         l.decode('latin1').encode('utf8')
+        #     except Exception:
+        #         Log.alert("bad line {{num}}", num=i)
+        #
+        #     Log.note("{{line}}", line=l)
+
+        data = process_buildbot_log(response.all_lines, "<unknown>")
+        Log.note("{{data}}", data=data)

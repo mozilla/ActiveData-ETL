@@ -32,6 +32,18 @@ PERFHERDER_PREFIXES = [
     b" INFO -  TALOSDATA: "  # NOT SEEN IN WILD
 ]
 
+EXPECTING_RESULTS = {
+    "INFO - ##### Running run-tests step.": True,
+    "INFO - #### Running talos suites": True,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:": False,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' failed (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' interrupted (results:": False
+}
+
+
+
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
     SIMPLE CONVERT pulse_block INTO PERF HERDER, IF ANY
@@ -49,7 +61,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record.payload.talos:
             continue
 
-        run_tests = False
+        test_results_expected = False
         all_perf = []
         etl_file = wrap({
             "id": counter,
@@ -87,15 +99,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     if please_stop:
                         Log.error("Shutdown detected. Stopping early")
 
-                    if "INFO - ##### Running run-tests step." in log_line:
-                        run_tests = True
-                        continue
-                    elif "INFO - #### Running talos suites" in log_line:
-                        run_tests = True
-                        continue
-                    elif "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:" in log_line:
-                        run_tests = False
-                        continue
+                    # SOME LINES GIVE US A HINT IF THERE ARE GOING TO BE TEST RESULTS
+                    for pattern, result_expected in EXPECTING_RESULTS.items():
+                        if pattern in log_line:
+                            test_results_expected = result_expected
+                            break
 
                     prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
                     for prefix in PERFHERDER_PREFIXES:
@@ -132,13 +140,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         etl_file.duration = timer.duration
 
         if all_perf:
-            if not run_tests:
+            if not test_results_expected:
                 Log.warning("No tests run, but records found while processing {{key}}: {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
             Log.note("Found {{num}} PerfHerder records while processing {{key}}", key=source_key, num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            if run_tests:
+            if test_results_expected:
                 Log.warning("PerfHerder records expected while processing {{key}}, but not found {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
             _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")

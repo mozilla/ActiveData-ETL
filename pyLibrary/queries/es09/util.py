@@ -7,27 +7,27 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 from datetime import datetime
 
 from pyLibrary import convert
 from pyLibrary import strings
 from pyLibrary.collections import COUNT
-from pyLibrary.env import elasticsearch
-from pyLibrary.maths import stats
 from pyLibrary.debugs.logs import Log
-from pyLibrary.maths import Math
-from pyLibrary.queries import domains
-from pyLibrary.dot.dicts import Dict
-from pyLibrary.dot import split_field, join_field, coalesce, Null
-from pyLibrary.dot.lists import DictList
+from pyLibrary.dot import coalesce
 from pyLibrary.dot import wrap
+from pyLibrary.dot.dicts import Dict
+from pyLibrary.dot.lists import DictList
+from pyLibrary.env import elasticsearch
+from pyLibrary.maths import Math
+from pyLibrary.maths import stats
+from pyLibrary.queries import domains
 from pyLibrary.queries.es09.expressions import value2MVEL, isKeyword
 from pyLibrary.queries.expressions import simplify_esfilter
 from pyLibrary.times import durations
-
 
 TrueFilter = {"match_all": {}}
 DEBUG = False

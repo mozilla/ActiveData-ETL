@@ -417,7 +417,7 @@ def process_buildbot_log(all_log_lines, from_url):
             except Exception, e:
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
-                    Log.warning("Log header {{log_line}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
+                    Log.warning("Log header {{log_line|quote}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
                     continue
         else:
             builder_says = builder_line.match(start_time, curr_line, next_line)

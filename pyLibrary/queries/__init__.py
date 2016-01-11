@@ -93,7 +93,3 @@ def wrap_from(frum, schema=None):
         return _ListContainer("test_list", frum)
     else:
         return frum
-
-
-
-import es09.util
