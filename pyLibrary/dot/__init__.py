@@ -129,9 +129,9 @@ def _all_default(d, default, seen=None):
     """
     if default is None:
         return
-    if isinstance(default, Dict):
+    if isinstance(default, (Dict, DictList)):
         from pyLibrary.debugs.logs import Log
-        Log.error("strictly dict (or object) allowed")
+        Log.error("strictly dict (or object) allowed: got {{type}}", type=default.__class__.__name__)
 
     for k, default_value in default.items():
         default_value = unwrap(default_value)  # TWO DIFFERENT Dicts CAN SHARE id() BECAUSE THEY ARE SHORT LIVED
