@@ -358,7 +358,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id(s) to process.  Use \"..\" for a range.",
                 "type": str,
                 "dest": "id",

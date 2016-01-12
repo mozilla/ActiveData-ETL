@@ -37,11 +37,14 @@ EXPECTING_RESULTS = {
     "INFO - #### Running talos suites": True,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:": False,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' warnings (results:": False,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' interrupted (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' failed (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' warnings (results:": False,
-    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' interrupted (results:": False
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' interrupted (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' failed (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' interrupted (results:": False
 }
-
 
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
