@@ -7326,6 +7326,44 @@
 		"slave_id": 8653,
 		"starttime": 1451108874
 
+	},
+	{
+	    "builder_id": 550895,
+	    "buildnumber": 6,
+	    "endtime": 1452217718,
+	    "id": 83996637,
+	    "master_id": 186,
+	    "properties": {
+	        "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
+	        "bouncer_enabled": true,
+	        "branch": "releases/date",
+	        "build_number": 2,
+	        "buildername": "release-date_firefox_bncr_sub",
+	        "buildnumber": 6,
+	        "log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz",
+	        "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/",
+	        "partial_versions": "44.0b2,",
+	        "product": "firefox",
+	        "project": "",
+	        "release_promotion": true,
+	        "repo_path": "projects/date",
+	        "repository": "",
+	        "request_ids": [93080041],
+	        "request_times": {"93080041": 1452217715},
+	        "revision": "53f6e3a60916b82de924c8878249930453af9312",
+	        "script_repo_revision": "production",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavename": "bld-linux64-spot-368",
+	        "taskId": "BczAgDHfQdueE5rocPgjnQ",
+	        "version": "44.0b31"
+	    },
+	    "reason": "The web-page 'rebuild' button was pressed by '<unknown>': \n",
+	    "request_ids": [93080041],
+	    "requesttime": 1452217715,
+	    "result": 2,
+	    "slave_id": 6964,
+	    "starttime": 1452217716
 	}
+
 
 ]
