@@ -404,6 +404,11 @@ def process_buildbot_log(all_log_lines, from_url):
             # builduid: 64d75a07877a458fb9f21220ae4cb5a8
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
+                if curr_line.startswith("buildid: Error loading mozconfig: "):  # COMMON PATTERN
+                    process_head = False
+                    data["mozconfig_load_error"] = True
+                    continue
+
                 key, value = curr_line.split(": ")
                 if key == "starttime":
                     data["start_time"] = start_time = end_time = Date(float(value))

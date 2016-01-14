@@ -57,7 +57,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-inbound-android-api-11-debug/1452310770/mozilla-inbound_ubuntu64_vm_armv7_large-debug_test-mochitest-gl-3-bm51-tests1-linux64-build93.txt.gz"
+        url = "http://archive.mozilla.org/pub/thunderbird/tinderbox-builds/comm-central-linux-debug/1452594999/comm-central-linux-debug-bm73-build1-build9.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
         # for i, l in enumerate(response._all_lines(encoding="latin1")):
