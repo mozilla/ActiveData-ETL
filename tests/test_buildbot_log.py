@@ -6,15 +6,16 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary import convert
+from pyLibrary import convert, jsons
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from testlog_etl.buildbot_json_jogs import parse_day
 from testlog_etl.imports import buildbot
 from testlog_etl.imports.buildbot import BuildbotTranslator
 from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
@@ -43,6 +44,32 @@ class TestBuildbotLogs(FuzzyTestCase):
         if failures:
             Log.error("parsing problems", cause=failures)
 
+    def test_all_in_one_day(self):
+        filename = "builds-2015-12-20.js.gz"
+
+        settings = jsons.ref.expand({
+            "force": false,
+            "source": {
+                "url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
+            },
+            "destination": {
+                "bucket": "active-data-buildbot",
+                "public": true,
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "notify": {
+                "name": "active-data-etl",
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "constants": {
+                "pyLibrary.env.http.default_headers": {
+                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+                }
+            }
+        }, "file:///")
+        parse_day(settings, filename, force=True)
+
+
     def test_decode_quoted_dict(self):
         test = "[{u'url': u'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/07/2015-07-09-00-40-07-mozilla-aurora/firefox-41.0a2.en-US.linux-x86_64.partial.20150708004005-20150709004007.mar', u'hash': u'0e4c731b2c9089a8c085d6abbeffa09aeaac4a142c6caed094c64f62c639143f27dc8d5ee2fddb988e5ea208a25a178f6d7fa8cf3e293375b493eab16ac1f71f', u'from_buildid': u'20150708004005', u'size': 5427986}]"
         expecting = [{
@@ -54,7 +81,6 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         result = buildbot.unquote(test)
         self.assertEqual(result, expecting)
-
 
     def test_specific_url(self):
         url = "http://archive.mozilla.org/pub/thunderbird/tinderbox-builds/comm-central-linux-debug/1452594999/comm-central-linux-debug-bm73-build1-build9.txt.gz"

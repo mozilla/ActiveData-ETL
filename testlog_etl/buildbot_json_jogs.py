@@ -25,6 +25,7 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 
 
+REFERENCE_DATE = Date("1 JAN 2015")
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 DEBUG = True
 
@@ -51,11 +52,11 @@ def random(settings):
 def parse_day(settings, p, force=False):
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
-    day_num = int((day - Date("1 JAN 2015")) / DAY)
+    day_num = int((day - REFERENCE_DATE) / DAY)
     day_url = settings.source.url + p
     key0 = unicode(day_num) + ".0"
 
-    if day < Date("1 JAN 2015") or Date.today() <= day:
+    if day < REFERENCE_DATE or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
@@ -123,12 +124,9 @@ def parse_day(settings, p, force=False):
     destination.write_lines(key=key0, lines=first)
     notify.add({"key": key0, "bucket": destination.name, "timestamp": Date.now()})
 
-    #CONFIRM IT WAS WRITTEN
+    # CONFIRM IT WAS WRITTEN
     if not destination.get_meta(key0):
         Log.error("Key zero is missing?!")
-
-
-
 
 
 def get_all_logs(url):

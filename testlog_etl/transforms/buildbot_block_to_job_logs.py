@@ -47,7 +47,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 cause=e
             )
 
-        if data.action.start_time<TOO_OLD:
+        if data.action.start_time < TOO_OLD:
             Log.warning("Do not try to process old buildbot logs")
             return set()
 
