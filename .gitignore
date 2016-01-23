@@ -2,6 +2,7 @@
 /*.json
 /*.iml
 /pyLibrary/.svn
+/mohg/.svn
 /pyLibrary/*.pyc
 /vendor
 /results
