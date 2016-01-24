@@ -97,6 +97,7 @@ sudo mount -a
 sudo mkdir /data0
 sudo mkdir /data0/logs
 sudo mkdir /data0/heapdump
+sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
@@ -123,7 +124,7 @@ cd ~/TestLog-ETL
 git checkout primary
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_secondary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_tertiary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
