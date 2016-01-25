@@ -1,0 +1,19 @@
+{
+	"filter": {
+		"prefix": {
+			"key": "69560"
+		}
+	},
+	"source": {
+		"bucket": "active-data-pulse-beta",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

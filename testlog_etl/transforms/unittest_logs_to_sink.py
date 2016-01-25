@@ -15,7 +15,7 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
+from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
 
@@ -42,13 +42,13 @@ def process_unittest_in_s3(source_key, source, destination, resources, please_st
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
 
-    timer = Timer("Process log {{file}} for {{key}}", {
-        "file": etl_header.name,
+    timer = Timer("Process log {{url}} for {{key}}", {
+        "url": etl_header.url,
         "key": source_key
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.name, unittest_log, please_stop)
+            summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
         Log.error("Problem processing {{key}}", key=source_key, cause=e)
         summary = None
@@ -67,8 +67,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time)
-        if age > Duration.DAY:
-            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / Duration.DAY)
+        if age > DAY:
+            Log.alert("Test is {{days|round(decimal=1)}} days old", days=age / DAY)
         Log.note("Done\n{{data|indent}}", data=buildbot_summary.run.stats)
 
     new_keys = []
@@ -101,8 +101,8 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, file_name, lines, please_stop):
-    accumulator = LogSummary()
+def accumulate_logs(source_key, url, lines, please_stop):
+    accumulator = LogSummary(url)
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -128,29 +128,30 @@ def accumulate_logs(source_key, file_name, lines, please_stop):
                 accumulator.stats.action[log.action] += 1
 
             if log.subtest:
-                accumulator.last_subtest=log.time
+                accumulator.last_subtest = log.time
         except Exception, e:
             Log.warning("bad line: {{line}}", line=line, cause=e)
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{name}} for key {{key}}",
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url}} for key {{key}}",
         key=source_key,
         num_bytes=output.stats.bytes,
         num_lines=output.stats.lines,
         num_tests=output.stats.total,
         bad_lines=output.stats.bad_lines,
-        name=file_name
+        url=url
     )
     return output
 
 
 class LogSummary(Dict):
-    def __init__(self):
+    def __init__(self, url):
         Dict.__init__(self)
         self.tests = Dict()
         self.logs = Dict()
         self.last_subtest = None
+        self.url = url
 
     def suite_start(self, log):
         pass
@@ -167,7 +168,19 @@ class LogSummary(Dict):
     def test_status(self, log):
         self.stats.action.test_status += 1
         if not log.test:
-            Log.error("log has blank 'test' property! Do not know how to handle.")
+            # {
+            #     "status": "PASS",
+            #     "thread": "None",
+            #     "subtest": "Background event should be on background thread",
+            #     "pid": null,
+            #     "source": "robocop",
+            #     "test": "",
+            #     "time": 1450098827133,
+            #     "action": "test_status",
+            #     "message": ""
+            # }
+            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
+            return
 
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]

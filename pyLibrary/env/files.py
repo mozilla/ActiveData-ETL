@@ -80,7 +80,10 @@ class File(object):
 
             return home_path + self._filename[1::]
         else:
-            return os.path.abspath(self._filename)
+            if os.sep == "\\":
+                return os.path.abspath(self._filename).replace(os.sep, "/")
+            else:
+                return os.path.abspath(self._filename)
 
     @staticmethod
     def add_suffix(filename, suffix):
@@ -173,7 +176,7 @@ class File(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log
 
-            Log.error("roblem reading file {{filename}}", self.abspath)
+            Log.error("Problem reading file {{filename}}", self.abspath)
 
     def write_bytes(self, content):
         if not self.parent.exists:
@@ -229,6 +232,9 @@ class File(object):
         return output()
 
     def append(self, content):
+        """
+        add a line to file
+        """
         if not self.parent.exists:
             self.parent.create()
         with open(self._filename, "ab") as output_file:
@@ -319,3 +325,7 @@ class File(object):
             return os.path.exists(self._filename)
         except Exception, e:
             return False
+
+    @classmethod
+    def copy(cls, from_, to_):
+        File.new_instance(to_).write_bytes(File.new_instance(from_).read_bytes())

@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+
 from pyLibrary.dot import split_field, _setdefault
 
 _get = object.__getattribute__
@@ -55,6 +56,8 @@ class NullType(object):
         try:
             d = _get(self, "__dict__")
             o = d["_obj"]
+            if o is None:
+                return self
             key = d["__key__"]
 
             _assign(o, [key], other)
@@ -194,7 +197,8 @@ class NullType(object):
         return hash(None)
 
 
-Null = NullType()
+
+Null = NullType()   # INSTEAD OF None!!!
 
 
 def _assign(obj, path, value, force=True):

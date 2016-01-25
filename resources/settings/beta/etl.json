@@ -10,12 +10,16 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"hg":{
+	"hg": {
+		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
 		"branches": {
 			"host": "http://localhost",
 			"port": 9200,
@@ -69,6 +73,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-beta",
+				"public": true,
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -78,6 +83,45 @@
 				"key_format": "a:b.c"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "pulse2perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-beta",
+				"public": true,
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder-beta",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot-beta",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs-beta",
+				"public": true,
+				"key_format": "a.b"
+			},
+			"notify": {
+				"name": "active-data-index-jobs-beta",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -94,10 +138,11 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-perf-beta",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
+			"transform_type": "bulk",
 			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
 			"type": "join"
 		},
@@ -114,7 +159,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify":{
+			"notify": {
 				"name": "active-data-index-beta",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
@@ -129,19 +174,11 @@
 				"log_type": "console"
 			},
 			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/etl_logger.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 10,
-				"encoding" : "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Beta] Problem in ETL",
 				"$ref": "file://~/private.json#email"
-
 			}
 		]
 	}

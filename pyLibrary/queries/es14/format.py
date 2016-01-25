@@ -11,12 +11,15 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import request
+
 from pyLibrary import convert
 from pyLibrary.collections.matrix import Matrix
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, literal_field, set_default, coalesce, wrap
-from pyLibrary.queries.cube import Cube
-from pyLibrary.queries.es14.aggs import count_dim, aggs_iterator, format_dispatch
+from pyLibrary.dot import Dict, set_default, coalesce, wrap
+from pyLibrary.maths import Math
+from pyLibrary.queries.containers.cube import Cube
+from pyLibrary.queries.es14.aggs import count_dim, aggs_iterator, format_dispatch, drill
 
 
 def format_cube(decoders, aggs, start, query, select):
@@ -39,12 +42,7 @@ def format_cube(decoders, aggs, start, query, select):
 
 
 def format_cube_from_aggop(decoders, aggs, start, query, select):
-    agg = aggs
-    b = coalesce(agg._filter, agg._nested)
-    while b:
-        agg = b
-        b = coalesce(agg._filter, agg._nested)
-
+    agg = drill(aggs)
     matricies = [(s, Matrix(dims=[], zeros=(s.aggregate == "count"))) for s in select]
     for s, m in matricies:
         m[tuple()] = agg[s.pull]
@@ -106,15 +104,11 @@ def format_table_from_groupby(decoders, aggs, start, query, select):
 
 def format_table_from_aggop(decoders, aggs, start, query, select):
     header = select.name
-
-    agg = aggs
-    b = coalesce(agg._filter, agg._nested)
-    while b:
-        agg = b
-        b = coalesce(agg._filter, agg._nested)
-
+    agg = drill(aggs)
     row = []
     for s in select:
+        if not s.pull:
+            Log.error("programmer error")
         row.append(agg[s.pull])
 
     return Dict(
@@ -190,20 +184,25 @@ def format_list(decoders, aggs, start, query, select):
 
 
 def format_list_from_aggop(decoders, aggs, start, query, select):
-    agg = aggs
-    b = coalesce(agg._filter, agg._nested)
-    while b:
-        agg = b
-        b = coalesce(agg._filter, agg._nested)
+    agg = drill(aggs)
 
-    item = Dict()
-    for s in select:
-        item[s.name] = agg[s.pull]
+    if isinstance(query.select, list):
+        item = Dict()
+        for s in select:
+            item[s.name] = agg[s.pull]
+    else:
+        item = agg[select[0].pull]
 
-    return wrap({
-        "meta": {"format": "list"},
-        "data": [item]
-    })
+    if query.edges or query.groupby:
+        return wrap({
+            "meta": {"format": "list"},
+            "data": [item]
+        })
+    else:
+        return wrap({
+            "meta": {"format": "value"},
+            "data": item
+        })
 
 
 

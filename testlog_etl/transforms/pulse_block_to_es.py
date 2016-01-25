@@ -17,9 +17,10 @@ from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from testlog_etl import etl2key
-from testlog_etl.imports.hg_mozilla_org import DEFAULT_LOCALE
-from testlog_etl.imports.repos.changesets import Changeset
-from testlog_etl.imports.repos.revisions import Revision
+from testlog_etl.imports import buildbot
+from mohg.hg_mozilla_org import DEFAULT_LOCALE
+from mohg.repos.changesets import Changeset
+from mohg.repos.revisions import Revision
 
 DEBUG = True
 
@@ -129,30 +130,18 @@ def transform_buildbot(payload, resources, filename=None):
     output.build.locale = fix_locale(payload.locale)
     output.run.logurl = payload.logurl
     output.run.machine.os = payload.os
-    output.machine.os = payload.os
     output.build.platform = payload.platform
     output.build.product = payload.product
     output.build.release = payload.release
     output.build.revision = payload.revision
     output.build.revision12 = payload.revision[0:12]
     output.run.machine.name = payload.slave
-    output.machine.name = payload.slave
 
     # payload.status IS THE BUILDBOT STATUS
     # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
     # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
-    output.run.status = payload.status   # TODO: REMOVE EVENTUALLY
     try:
-        output.run.buildbot_status = {
-            0: "success",
-            1: "warnings",
-            2: "failure",
-            3: "skipped",
-            4: "exception",
-            5: "retry",
-            6: "cancelled",
-            None: None
-        }[payload.status]
+        output.run.buildbot_status = buildbot.STATUS_CODES[payload.status]
     except Exception, e:
         Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", status=payload.status)
 

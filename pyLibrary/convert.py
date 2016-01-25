@@ -7,47 +7,56 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
+from __future__ import absolute_import
+from __future__ import absolute_import
 from __future__ import division
-from __future__ import absolute_import
-from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import HTMLParser
 import StringIO
+import ast
 import base64
 import cgi
-from collections import Mapping
 import datetime
-from decimal import Decimal
 import gzip
 import hashlib
-from io import BytesIO
 import json
 import re
+from collections import Mapping
+from decimal import Decimal
+from io import BytesIO
 from tempfile import TemporaryFile
 
-from pyLibrary import strings, meta
-from pyLibrary.dot import wrap, wrap_leaves, unwrap
+from pyLibrary import strings
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import wrap, wrap_leaves, unwrap, unwraplist, split_field, join_field
 from pyLibrary.env.big_data import FileString, safe_size
 from pyLibrary.jsons import quote
-from pyLibrary.jsons.encoder import json_encoder
+from pyLibrary.jsons.encoder import json_encoder, pypy_json_encode
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 
-
 """
 DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
+IN <from_type> "2" <to_type> FORMAT
 """
 def value2json(obj, pretty=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
-            Log.note(str(type(obj)) + " is not valid{{type}}JSON", type=" (pretty) " if pretty else " ")
+            Log.note(str(type(obj)) + " is not valid{{type}}JSON",  type= " (pretty) " if pretty else " ")
             Log.error("Not valid JSON: " + str(obj) + " of type " + str(type(obj)))
         return json
     except Exception, e:
+        e = Except.wrap(e)
+        try:
+            json = pypy_json_encode(obj)
+            return json
+        except Exception:
+            pass
+
         Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
 
@@ -117,7 +126,7 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
         if "Expecting '" in e and "' delimiter: line" in e:
             line_index = int(strings.between(e.message, " line ", " column ")) - 1
             column = int(strings.between(e.message, " column ", " ")) - 1
-            line = json_string.split("\n")[line_index]
+            line = json_string.split("\n")[line_index].replace("\t", " ")
             if column > 20:
                 sample = "..." + line[column - 20:]
                 pointer = "   " + (" " * 20) + "^"
@@ -130,11 +139,12 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
 
             Log.error("Can not decode JSON at:\n\t" + sample + "\n\t" + pointer + "\n")
 
-        if len(json_string)>1000:
-            json_string = json_string[0:50] + " ... <snip " + strings.comma(len(json_string)) + " characters> ... " + json_string[len(json_string)-50:len(json_string)]
-        base_str = unicode2utf8(json_string)
+        base_str = unicode2utf8(strings.limit(json_string, 1000))
         hexx_str = bytes2hex(base_str, " ")
-        char_str = " " + ("  ".join((latin12unicode(c) if ord(c) >= 32 else ".") for c in base_str))
+        try:
+            char_str = " " + ("  ".join(c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
+        except Exception:
+            char_str = " "
         Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
 
 
@@ -244,20 +254,50 @@ def list2tab(rows):
     return "\t".join(keys) + "\n" + "\n".join(output)
 
 
-def list2table(rows):
-    columns = set()
-    for r in rows:
-        columns |= set(r.keys())
-    keys = list(columns)
+def list2table(rows, column_names=None):
+    if column_names:
+        keys = list(set(column_names))
+    else:
+        columns = set()
+        for r in rows:
+            columns |= set(r.keys())
+        keys = list(columns)
 
-    output = []
-    for r in rows:
-        output.append([r[k] for k in keys])
+    output = [[unwraplist(r[k]) for k in keys] for r in rows]
 
     return wrap({
+        "meta": {"format": "table"},
         "header": keys,
         "data": output
     })
+
+
+def list2cube(rows, column_names=None):
+    if column_names:
+        keys = column_names
+    else:
+        columns = set()
+        for r in rows:
+            columns |= set(r.keys())
+        keys = list(columns)
+
+    data = {k: [] for k in keys}
+    output = wrap({
+        "meta": {"format": "cube"},
+        "edges": [
+            {
+                "name": "rownum",
+                "domain": {"type": "rownum", "min": 0, "max": len(rows), "interval": 1}
+            }
+        ],
+        "data": data
+    })
+
+    for r in rows:
+        for k in keys:
+            data[k].append(r[k])
+
+    return output
 
 
 def value2string(value):
@@ -272,7 +312,7 @@ def value2quote(value):
     if isinstance(value, basestring):
         return string2quote(value)
     else:
-        return meta.meta.repr(value)
+        return repr(value)
 
 
 def string2quote(value):
@@ -375,15 +415,15 @@ def unicode2latin1(value):
 
 
 def quote2string(value):
-    if value[0] == "\"" and value[-1] == "\"":
-        value = value[1:-1]
-
-    return value.replace("\\\\", "\\").replace("\\\"", "\"").replace("\\'", "'").replace("\\\n", "\n").replace("\\\t", "\t")
+    try:
+        return ast.literal_eval(value)
+    except Exception:
+        pass
 
 # RETURN PYTHON CODE FOR THE SAME
 
 def value2code(value):
-    return meta.repr(value)
+    return repr(value)
 
 
 def DataFrame2string(df, columns=None):
@@ -441,6 +481,7 @@ def bytes2sha1(value):
     sha = hashlib.sha1(value)
     return sha.hexdigest()
 
+
 def value2intlist(value):
     if value == None:
         return None
@@ -487,7 +528,7 @@ def latin12unicode(value):
     try:
         return unicode(value.decode('iso-8859-1'))
     except Exception, e:
-        Log.error("Can not convert {{value|quote}} to unicode",  value= value)
+        Log.error("Can not convert {{value|quote}} to unicode", value=value)
 
 
 def pipe2value(value):
@@ -600,3 +641,54 @@ def _unPipe(value):
     return result + value[e::]
 
 json_decoder = json.JSONDecoder().decode
+
+
+def json_schema_to_markdown(schema):
+    from pyLibrary.queries import qb
+
+    def _md_code(code):
+        return "`"+code+"`"
+
+    def _md_italic(value):
+        return "*"+value+"*"
+
+    def _inner(schema, parent_name, indent):
+        more_lines = []
+        for k,v in schema.items():
+            full_name = join_field(split_field(parent_name)+[k])
+            details = indent+"* "+_md_code(full_name)
+            if v.type:
+                details += " - "+_md_italic(v.type)
+            else:
+                Log.error("{{full_name}} is missing type", full_name=full_name)
+            if v.description:
+                details += " " + v.description
+            more_lines.append(details)
+
+            if v.type in ["object", "array", "nested"]:
+                more_lines.extend(_inner(v.properties, full_name, indent+"  "))
+        return more_lines
+
+    lines = []
+    if schema.title:
+        lines.append("#"+schema.title)
+
+    lines.append(schema.description)
+    lines.append("")
+
+    for k, v in qb.sort(schema.properties.items(), 0):
+        full_name = k
+        if v.type in ["object", "array", "nested"]:
+            lines.append("##"+_md_code(full_name)+" Property")
+            if v.description:
+                lines.append(v.description)
+            lines.append("")
+
+            if v.type in ["object", "array", "nested"]:
+                lines.extend(_inner(v.properties, full_name, "  "))
+        else:
+            lines.append("##"+_md_code(full_name)+" ("+v.type+")")
+            if v.description:
+                lines.append(v.description)
+
+    return "\n".join(lines)

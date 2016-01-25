@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
+from mohg.hg_mozilla_org import HgMozillaOrg
 
 
 hg = HgMozillaOrg()

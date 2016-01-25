@@ -11,14 +11,15 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from pyLibrary import convert
+from pyLibrary import convert, strings
 from pyLibrary.env.elasticsearch import Cluster
 from pyLibrary.meta import use_settings
 from pyLibrary.thread.threads import Thread
-from .logs import BaseLog
+from pyLibrary.debugs.text_logs import TextLog
+from pyLibrary.times.durations import MINUTE
 
 
-class Log_usingElasticSearch(BaseLog):
+class TextLog_usingElasticSearch(TextLog):
 
     @use_settings
     def __init__(self, host, index, type="log", max_size=1000, batch_size=100, settings=None):
@@ -28,22 +29,20 @@ class Log_usingElasticSearch(BaseLog):
         self.es = Cluster(settings).get_or_create_index(
             schema=convert.json2value(convert.value2json(SCHEMA), leaves=True),
             limit_replicas=True,
+            tjson=False,
             settings=settings
         )
+        self.es.add_alias("debug")
         self.queue = self.es.threaded_queue(max_size=max_size, batch_size=batch_size)
 
     def write(self, template, params):
-        try:
-            if params.get("template"):
-                # DETECTED INNER TEMPLATE, ASSUME TRACE IS ON, SO DO NOT NEED THE OUTER TEMPLATE
-                self.queue.add({"value": params})
-            else:
-                if len(template) > 2000:
-                    template = template[:1997] + "..."
-                self.queue.add({"value": {"template": template, "params": params}})
-            return self
-        except Exception, e:
-            raise e  # OH NO!
+        if params.get("template"):
+            # DETECTED INNER TEMPLATE, ASSUME TRACE IS ON, SO DO NOT NEED THE OUTER TEMPLATE
+            self.queue.add({"value": params})
+        else:
+            template = strings.limit(template, 2000)
+            self.queue.add({"value": {"template": template, "params": params}}, timeout=3*MINUTE)
+        return self
 
     def stop(self):
         try:
@@ -60,12 +59,8 @@ class Log_usingElasticSearch(BaseLog):
 
 SCHEMA = {
     "settings": {
-        "index.number_of_shards": 3,
-        "index.number_of_replicas": 2,
-        "index.store.throttle.type": "merge",
-        "index.store.throttle.max_bytes_per_sec": "2mb",
-        "index.cache.filter.expire": "1m",
-        "index.cache.field.type": "soft",
+        "index.number_of_shards": 2,
+        "index.number_of_replicas": 2
     },
     "mappings": {
         "_default_": {
@@ -76,8 +71,58 @@ SCHEMA = {
                         "match_mapping_type" : "string",
                         "mapping": {
                             "type": "string",
-                            "index": "not_analyzed"
+                            "index": "not_analyzed",
+                            "doc_values": True
                         }
+                    }
+                },
+                {
+                    "default_doubles": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "double",
+                            "doc_values": True
+                        },
+                        "match_mapping_type": "double",
+                        "match": "*"
+                    }
+                },
+                {
+                    "default_longs": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "long",
+                            "doc_values": True
+                        },
+                        "match_mapping_type": "long|integer",
+                        "match_pattern": "regex",
+                        "path_match": ".*"
+                    }
+                },
+                {
+                    "default_trace": {
+                        "mapping": {
+                            "type": "nested"
+                        },
+                        "match": "*trace"
+                    }
+                },
+                {
+                    "default_nested": {
+                        "mapping": {
+                            "enabled": False
+                        },
+                        "match_mapping_type": "nested",
+                        "match": "*"
+                    }
+                },
+                {
+                    "default_param_values": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "doc_values": True
+                        },
+                        "match": "*$value"
                     }
                 }
             ],
@@ -89,16 +134,9 @@ SCHEMA = {
                 "enabled": True
             },
             "properties": {
-                "timestamp": {
-                    "type": "double",
-                    "index": "not_analyzed",
-                    "store": "yes"
-                },
                 "params": {
                     "type": "object",
-                    "enabled": False,
-                    "index": "no",
-                    "store": "yes"
+                    "dynamic": True
                 }
             }
         }

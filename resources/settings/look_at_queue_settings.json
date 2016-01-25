@@ -1,6 +1,6 @@
 {
 	"source": {
-		"name":"ekyle-etl",
+		"name":"active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"debug": {

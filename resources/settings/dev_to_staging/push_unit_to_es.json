@@ -14,7 +14,7 @@
 		"schema": {
 			"$ref": "//../../schema/test_results.json"
 		},
-		"debug": false,
+		"debug": true,
 		"limit_replicas": false
 	},
 	"source": {
@@ -29,7 +29,7 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
 		}
 	},
 	"debug": {

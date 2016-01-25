@@ -10,7 +10,9 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict, set_default
+from pyLibrary.dot import Dict, set_default, Null
+from pyLibrary.env import http
+from pyLibrary.thread.threads import Signal
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator, verify_blobber_file
@@ -21,6 +23,8 @@ DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 PARSE_TRY = True
+
+SINGLE_URL = None
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -41,7 +45,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if fast_forward:
             continue
         if please_stop:
-            Log.error("Stopping early")
+            Log.error("Shutdown detected. Stopping early")
 
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         if not pulse_record:
@@ -57,15 +61,14 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         file_num = 0
         for name, url in pulse_record.payload.blobber_files.items():
-            # USE THIS TO JUMP TO SPECIFIC FILE
-            # if url != "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/0e0b1ad188f165b1cdc28d9dbf527b96def62c736da393d86ff94a1f65366ba8cf306d3827a059100d0e6d13486b719dc2fd7c6c2dd40ab261b860b2beb37aa5":
-            #     continue
+            if SINGLE_URL is not None and url != SINGLE_URL:
+                continue
             if fast_forward:
                 continue
             try:
                 if url == None:
                     if DEBUG:
-                        Log.note("Line {{line}}: found structured log with NULL url",  line= i)
+                        Log.note("Line {{line}}: found structured log with NULL url", line=i)
                     continue
 
                 log_content, num_lines = verify_blobber_file(i, name, url)
@@ -92,7 +95,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     output.append(dest_key)
 
                     if source.bucket.settings.fast_forward:
-                        fast_forward=True
+                        fast_forward = True
 
                     if DEBUG_SHOW_LINE:
                         Log.note(
@@ -111,3 +114,14 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     return output
 
+
+if __name__ == "__main__":
+    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
+
+    def extend(data):
+        for d in data:
+            Log.note("{{data}}", data=d)
+
+    destination = Dict(extend=extend)
+
+    _new_keys = process_unittest("0:0.0.0", Dict(), Dict(), response.all_lines, destination, please_stop=Signal())

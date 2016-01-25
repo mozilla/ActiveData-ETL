@@ -26,7 +26,8 @@ from pyLibrary.sql import SQL
 from pyLibrary.strings import expand_template
 from pyLibrary.dot import coalesce, wrap, listwrap, unwrap
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, Except
+from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
 from pyLibrary.strings import indent
 from pyLibrary.strings import outdent
@@ -234,12 +235,12 @@ class MySQL(object):
 
     def query(self, sql, param=None):
         """
-        RETURN RESULTS IN [row_num][column] GRID
+        RETURN LIST OF dicts
         """
         self._execute_backlog()
         try:
             old_cursor = self.cursor
-            if not old_cursor: # ALLOW NON-TRANSACTIONAL READS
+            if not old_cursor:  # ALLOW NON-TRANSACTIONAL READS
                 self.cursor = self.db.cursor()
                 self.cursor.execute("SET TIME_ZONE='+00:00'")
                 self.cursor.close()
@@ -249,7 +250,7 @@ class MySQL(object):
                 sql = expand_template(sql, self.quote_param(param))
             sql = self.preamble + outdent(sql)
             if self.debug:
-                Log.note("Execute SQL:\n{{sql}}",  sql= indent(sql))
+                Log.note("Execute SQL:\n{{sql}}", sql=indent(sql))
 
             self.cursor.execute(sql)
             columns = [utf8_to_unicode(d[0]) for d in coalesce(self.cursor.description, [])]
@@ -283,7 +284,7 @@ class MySQL(object):
                 sql = expand_template(sql, self.quote_param(param))
             sql = self.preamble + outdent(sql)
             if self.debug:
-                Log.note("Execute SQL:\n{{sql}}",  sql= indent(sql))
+                Log.note("Execute SQL:\n{{sql}}", sql=indent(sql))
 
             self.cursor.execute(sql)
             grid = [[utf8_to_unicode(c) for c in row] for row in self.cursor]
