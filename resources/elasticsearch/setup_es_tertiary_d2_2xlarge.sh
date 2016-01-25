@@ -69,8 +69,8 @@ sudo mkfs -t ext4 /dev/xvdf
 sudo mkfs -t ext4 /dev/xvdg
 
 #MOUNT (NO FORMAT)
-sudo mount /dev/xvdb /data1
-sudo mount /dev/xvdb /data1
+#sudo mount /dev/xvdb /data1
+#sudo mount /dev/xvdb /data1
 
 
 sudo mkdir /data1
@@ -94,9 +94,7 @@ sudo sed -i '$ a\/dev/xvdg   /data6       ext4    defaults,nofail  0   2' /etc/f
 # TEST IT IS WORKING
 sudo mount -a
 
-sudo mkdir /data0
-sudo mkdir /data0/logs
-sudo mkdir /data0/heapdump
+sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
