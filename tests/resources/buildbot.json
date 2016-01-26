@@ -20,7 +20,9 @@
 			"project": "",
 			"release_config": "mozilla/release-fennec-mozilla-release.py",
 			"repository": "",
-			"request_ids": [84027222],
+			"request_ids": [
+				84027222
+			],
 			"request_times": {
 				"84027222": 1444789327
 			},
@@ -32,7 +34,9 @@
 			"version": "41.0.2"
 		},
 		"reason": "downstream",
-		"request_ids": [84027222],
+		"request_ids": [
+			84027222
+		],
 		"requesttime": 1444789327,
 		"result": 0,
 		"slave_id": 8622,
@@ -63,7 +67,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [82998775],
+			"request_ids": [
+				82998775
+			],
 			"request_times": {
 				"82998775": 1443990639
 			},
@@ -81,7 +87,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\install\\\\sea\\\\firefox-44.0a1.en-US.win64.installer.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\win64\\\\xpi\\\\firefox-44.0a1.en-US.langpack.xpi', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.json', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\jsshell-win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mar.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mbsdiff.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums', u'c:\\\\builds\\\\moz2_slave\\\\m-in-w64-pgo-00000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums.asc']"
 		},
 		"reason": "The Nightly scheduler named 'mozilla-inbound periodic' triggered this build",
-		"request_ids": [82998775],
+		"request_ids": [
+			82998775
+		],
 		"requesttime": 1443990639,
 		"result": 0,
 		"slave_id": 8878,
@@ -110,7 +118,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [82999878],
+			"request_ids": [
+				82999878
+			],
 			"request_times": {
 				"82999878": 1443994786
 			},
@@ -123,7 +133,9 @@
 			"stage_platform": "emulator"
 		},
 		"reason": "scheduler",
-		"request_ids": [82999878],
+		"request_ids": [
+			82999878
+		],
 		"requesttime": 1443994786,
 		"result": 0,
 		"slave_id": 9172,
@@ -152,7 +164,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000132],
+			"request_ids": [
+				83000132
+			],
 			"request_times": {
 				"83000132": 1443995327
 			},
@@ -166,7 +180,9 @@
 			"symbols_url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator-debug/b2g-44.0a1.en-US.android-arm.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000132],
+		"request_ids": [
+			83000132
+		],
 		"requesttime": 1443995327,
 		"result": 0,
 		"slave_id": 8480,
@@ -204,7 +220,9 @@
 			"product": "spidermonkey",
 			"project": "",
 			"repository": "",
-			"request_ids": [83000521],
+			"request_ids": [
+				83000521
+			],
 			"request_times": {
 				"83000521": 1443998379
 			},
@@ -215,7 +233,9 @@
 			"slavename": "b-2008-ix-0012"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000521],
+		"request_ids": [
+			83000521
+		],
 		"requesttime": 1443998379,
 		"result": 0,
 		"slave_id": 6782,
@@ -244,7 +264,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000605],
+			"request_ids": [
+				83000605
+			],
 			"request_times": {
 				"83000605": 1443998807
 			},
@@ -258,7 +280,9 @@
 			"symbols_url": "https://queue.taskcluster.net/v1/task/fVKmELvWSMSCpwS4R8m9ng/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000605],
+		"request_ids": [
+			83000605
+		],
 		"requesttime": 1443998807,
 		"result": 0,
 		"slave_id": 10801,
@@ -287,7 +311,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000650],
+			"request_ids": [
+				83000650
+			],
 			"request_times": {
 				"83000650": 1443998869
 			},
@@ -300,7 +326,9 @@
 			"stage_platform": "android-api-9"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000650],
+		"request_ids": [
+			83000650
+		],
 		"requesttime": 1443998869,
 		"result": 0,
 		"slave_id": 7403,
@@ -329,7 +357,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000640],
+			"request_ids": [
+				83000640
+			],
 			"request_times": {
 				"83000640": 1443998869
 			},
@@ -342,7 +372,9 @@
 			"stage_platform": "android-api-9"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000640],
+		"request_ids": [
+			83000640
+		],
 		"requesttime": 1443998869,
 		"result": 0,
 		"slave_id": 10370,
@@ -371,7 +403,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000754],
+			"request_ids": [
+				83000754
+			],
 			"request_times": {
 				"83000754": 1443998870
 			},
@@ -385,7 +419,9 @@
 			"symbols_url": "https://queue.taskcluster.net/v1/task/0rgaHXgbQKWuXotnqsTMvQ/artifacts/public/build/firefox-44.0a1.en-US.linux-i686.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000754],
+		"request_ids": [
+			83000754
+		],
 		"requesttime": 1443998870,
 		"result": 0,
 		"slave_id": 5597,
@@ -414,7 +450,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000870],
+			"request_ids": [
+				83000870
+			],
 			"request_times": {
 				"83000870": 1443998927
 			},
@@ -428,7 +466,9 @@
 			"symbols_url": "https://queue.taskcluster.net/v1/task/ELWFSIQfRqeavysa1XpFUA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000870],
+		"request_ids": [
+			83000870
+		],
 		"requesttime": 1443998927,
 		"result": 1,
 		"slave_id": 11009,
@@ -457,7 +497,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83001028],
+			"request_ids": [
+				83001028
+			],
 			"request_times": {
 				"83001028": 1443999289
 			},
@@ -471,7 +513,9 @@
 			"symbols_url": "https://queue.taskcluster.net/v1/task/m5JEp8BLSTut22LR35aLQQ/artifacts/public/build/firefox-44.0a1.en-US.win64.crashreporter-symbols.zip"
 		},
 		"reason": "Self-serve: Rebuilt by cpearce@mozilla.com",
-		"request_ids": [83001028],
+		"request_ids": [
+			83001028
+		],
 		"requesttime": 1443999289,
 		"result": 0,
 		"slave_id": 4479,
@@ -499,7 +543,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83001148],
+			"request_ids": [
+				83001148
+			],
 			"request_times": {
 				"83001148": 1443999586
 			},
@@ -513,7 +559,9 @@
 			"symbols_url": "https://queue.taskcluster.net/v1/task/RJYRHoeWTZC56hTszs8ytA/artifacts/public/build/firefox-44.0a1.en-US.mac64.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001148],
+		"request_ids": [
+			83001148
+		],
 		"requesttime": 1443999586,
 		"result": 0,
 		"slave_id": 9223,
@@ -541,7 +589,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83001464],
+			"request_ids": [
+				83001464
+			],
 			"request_times": {
 				"83001464": 1444000367
 			},
@@ -554,7 +604,9 @@
 			"stage_platform": "linux64-asan"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001464],
+		"request_ids": [
+			83001464
+		],
 		"requesttime": 1444000367,
 		"result": 0,
 		"slave_id": 5581,
@@ -583,7 +635,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83001561],
+			"request_ids": [
+				83001561
+			],
 			"request_times": {
 				"83001561": 1444000727
 			},
@@ -596,7 +650,9 @@
 			"stage_platform": "win32"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001561],
+		"request_ids": [
+			83001561
+		],
 		"requesttime": 1444000727,
 		"result": 0,
 		"slave_id": 4719,
@@ -635,7 +691,9 @@
 			"purge_target": "10GB",
 			"purged_clobber": false,
 			"repository": "",
-			"request_ids": [83001671],
+			"request_ids": [
+				83001671
+			],
 			"request_times": {
 				"83001671": 1444001016
 			},
@@ -647,7 +705,9 @@
 			"toolsdir": "/builds/slave/tb-try-c-cen-m64-d-00000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001671],
+		"request_ids": [
+			83001671
+		],
 		"requesttime": 1444001016,
 		"result": 2,
 		"slave_id": 2012,
@@ -670,7 +730,9 @@
 			"product": "fuzzing",
 			"project": "",
 			"repository": "",
-			"request_ids": [83002065],
+			"request_ids": [
+				83002065
+			],
 			"request_times": {
 				"83002065": 1444001497
 			},
@@ -680,7 +742,9 @@
 			"slavename": "bld-lion-r5-091"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002065],
+		"request_ids": [
+			83002065
+		],
 		"requesttime": 1444001497,
 		"result": 2,
 		"slave_id": 9194,
@@ -708,7 +772,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002086],
+			"request_ids": [
+				83002086
+			],
 			"request_times": {
 				"83002086": 1444001507
 			},
@@ -721,7 +787,9 @@
 			"stage_platform": "linux64"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002086],
+		"request_ids": [
+			83002086
+		],
 		"requesttime": 1444001507,
 		"result": 0,
 		"slave_id": 3964,
@@ -750,7 +818,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002262],
+			"request_ids": [
+				83002262
+			],
 			"request_times": {
 				"83002262": 1444001682
 			},
@@ -763,7 +833,9 @@
 			"stage_platform": "android-x86"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002262],
+		"request_ids": [
+			83002262
+		],
 		"requesttime": 1444001682,
 		"result": 0,
 		"slave_id": 3951,
@@ -791,7 +863,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83001687],
+			"request_ids": [
+				83001687
+			],
 			"request_times": {
 				"83001687": 1444001023
 			},
@@ -805,7 +879,9 @@
 			"stage_platform": "android-api-11"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001687],
+		"request_ids": [
+			83001687
+		],
 		"requesttime": 1444001023,
 		"result": 0,
 		"slave_id": 5304,
@@ -833,7 +909,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002774],
+			"request_ids": [
+				83002774
+			],
 			"request_times": {
 				"83002774": 1444002408
 			},
@@ -846,7 +924,9 @@
 			"stage_platform": "win32"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002774],
+		"request_ids": [
+			83002774
+		],
 		"requesttime": 1444002408,
 		"result": 0,
 		"slave_id": 4632,
@@ -874,7 +954,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002788],
+			"request_ids": [
+				83002788
+			],
 			"request_times": {
 				"83002788": 1444002408
 			},
@@ -887,7 +969,9 @@
 			"stage_platform": "win64"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002788],
+		"request_ids": [
+			83002788
+		],
 		"requesttime": 1444002408,
 		"result": 0,
 		"slave_id": 3932,
@@ -915,7 +999,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002756],
+			"request_ids": [
+				83002756
+			],
 			"request_times": {
 				"83002756": 1444002408
 			},
@@ -928,7 +1014,9 @@
 			"stage_platform": "win32"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002756],
+		"request_ids": [
+			83002756
+		],
 		"requesttime": 1444002408,
 		"result": 0,
 		"slave_id": 4552,
@@ -956,7 +1044,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83003341],
+			"request_ids": [
+				83003341
+			],
 			"request_times": {
 				"83003341": 1444003187
 			},
@@ -969,7 +1059,9 @@
 			"stage_platform": "macosx64"
 		},
 		"reason": "scheduler",
-		"request_ids": [83003341],
+		"request_ids": [
+			83003341
+		],
 		"requesttime": 1444003187,
 		"result": 0,
 		"slave_id": 10445,
@@ -997,7 +1089,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g37_v2_2r",
 			"repository": "",
-			"request_ids": [83032429],
+			"request_ids": [
+				83032429
+			],
 			"request_times": {
 				"83032429": 1444035883
 			},
@@ -1010,7 +1104,9 @@
 			"stage_platform": "linux64_gecko"
 		},
 		"reason": "scheduler",
-		"request_ids": [83032429],
+		"request_ids": [
+			83032429
+		],
 		"requesttime": 1444035883,
 		"result": 0,
 		"slave_id": 8534,
@@ -1041,7 +1137,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83078072],
+			"request_ids": [
+				83078072
+			],
 			"request_times": {
 				"83078072": 1444059288
 			},
@@ -1053,7 +1151,9 @@
 			"stage_platform": "win64"
 		},
 		"reason": "Self-serve: Requested by mozci-bot@mozilla.com",
-		"request_ids": [83078072],
+		"request_ids": [
+			83078072
+		],
 		"requesttime": 1444059288,
 		"result": 0,
 		"slave_id": 10972,
@@ -1082,7 +1182,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [83002270],
+			"request_ids": [
+				83002270
+			],
 			"request_times": {
 				"83002270": 1444001743
 			},
@@ -1095,7 +1197,9 @@
 			"stage_platform": "emulator"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002270],
+		"request_ids": [
+			83002270
+		],
 		"requesttime": 1444001743,
 		"result": 0,
 		"slave_id": 9093,
@@ -1124,7 +1228,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [82999878],
+			"request_ids": [
+				82999878
+			],
 			"request_times": {
 				"82999878": 1443994786
 			},
@@ -1137,7 +1243,9 @@
 			"stage_platform": "emulator"
 		},
 		"reason": "scheduler",
-		"request_ids": [82999878],
+		"request_ids": [
+			82999878
+		],
 		"requesttime": 1443994786,
 		"result": 0,
 		"slave_id": 9172,
@@ -1168,7 +1276,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [83000237],
+			"request_ids": [
+				83000237
+			],
 			"request_times": {
 				"83000237": 1443996132
 			},
@@ -1185,7 +1295,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\fxos-simulator-2.5-win32.xpi', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.checksums']"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [83000237],
+		"request_ids": [
+			83000237
+		],
 		"requesttime": 1443996132,
 		"result": 0,
 		"slave_id": 9691,
@@ -1198,13 +1310,17 @@
 		"id": 76600673,
 		"master_id": 195,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/l64-br-haz_try_dep-00000000000",
 			"branch": "try",
 			"buildername": "linux64-br-haz_try_dep",
 			"buildnumber": 1894,
 			"builduid": "7cdf824490c94a68abdfd1d113ae263a",
-			"commit_titles": ["try: -b do -p all -u all -t none"],
+			"commit_titles": [
+				"try: -b do -p all -u all -t none"
+			],
 			"hgurl": "https://hg.mozilla.org/",
 			"log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/bschouten@mozilla.com-4f2b721570e9/try-linux64-br-haz/linux64-br-haz_try_dep-bm78-try1-build1894.txt.gz",
 			"master": "http://buildbot-master78.bb.releng.usw2.mozilla.com:8101/",
@@ -1214,7 +1330,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000383],
+			"request_ids": [
+				83000383
+			],
 			"request_times": {
 				"83000383": 1443997356
 			},
@@ -1225,13 +1343,17 @@
 			"slavename": "try-linux64-spot-493",
 			"source_revision": "4f2b721570e9",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "trybld_dsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "trybld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000383],
+		"request_ids": [
+			83000383
+		],
 		"requesttime": 1443997356,
 		"result": 0,
 		"slave_id": 6440,
@@ -1262,7 +1384,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [83000237],
+			"request_ids": [
+				83000237
+			],
 			"request_times": {
 				"83000237": 1443996132
 			},
@@ -1279,7 +1403,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\fxos-simulator-2.5-win32.xpi', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.checksums']"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [83000237],
+		"request_ids": [
+			83000237
+		],
 		"requesttime": 1443996132,
 		"result": 0,
 		"slave_id": 9691,
@@ -1292,13 +1418,17 @@
 		"id": 76600673,
 		"master_id": 195,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/l64-br-haz_try_dep-00000000000",
 			"branch": "try",
 			"buildername": "linux64-br-haz_try_dep",
 			"buildnumber": 1894,
 			"builduid": "7cdf824490c94a68abdfd1d113ae263a",
-			"commit_titles": ["try: -b do -p all -u all -t none"],
+			"commit_titles": [
+				"try: -b do -p all -u all -t none"
+			],
 			"hgurl": "https://hg.mozilla.org/",
 			"log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/bschouten@mozilla.com-4f2b721570e9/try-linux64-br-haz/linux64-br-haz_try_dep-bm78-try1-build1894.txt.gz",
 			"master": "http://buildbot-master78.bb.releng.usw2.mozilla.com:8101/",
@@ -1308,7 +1438,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000383],
+			"request_ids": [
+				83000383
+			],
 			"request_times": {
 				"83000383": 1443997356
 			},
@@ -1319,13 +1451,17 @@
 			"slavename": "try-linux64-spot-493",
 			"source_revision": "4f2b721570e9",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "trybld_dsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "trybld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000383],
+		"request_ids": [
+			83000383
+		],
 		"requesttime": 1443997356,
 		"result": 0,
 		"slave_id": 6440,
@@ -1372,7 +1508,9 @@
 			"project": "",
 			"repo_path": "projects/ash",
 			"repository": "",
-			"request_ids": [83000512],
+			"request_ids": [
+				83000512
+			],
 			"request_times": {
 				"83000512": 1443998378
 			},
@@ -1390,7 +1528,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\install\\\\sea\\\\firefox-44.0a1.en-US.win64.installer.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\win64\\\\xpi\\\\firefox-44.0a1.en-US.langpack.xpi', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.txt', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\jsshell-win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mar.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mbsdiff.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums.asc']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000512],
+		"request_ids": [
+			83000512
+		],
 		"requesttime": 1443998378,
 		"result": 0,
 		"slave_id": 8889,
@@ -1421,7 +1561,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [83000237],
+			"request_ids": [
+				83000237
+			],
 			"request_times": {
 				"83000237": 1443996132
 			},
@@ -1438,7 +1580,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\fxos-simulator-2.5-win32.xpi', u'c:\\\\builds\\\\moz2_slave\\\\m-cen-w32_g-ntly-0000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.checksums']"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [83000237],
+		"request_ids": [
+			83000237
+		],
 		"requesttime": 1443996132,
 		"result": 0,
 		"slave_id": 9691,
@@ -1451,13 +1595,17 @@
 		"id": 76600673,
 		"master_id": 195,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/l64-br-haz_try_dep-00000000000",
 			"branch": "try",
 			"buildername": "linux64-br-haz_try_dep",
 			"buildnumber": 1894,
 			"builduid": "7cdf824490c94a68abdfd1d113ae263a",
-			"commit_titles": ["try: -b do -p all -u all -t none"],
+			"commit_titles": [
+				"try: -b do -p all -u all -t none"
+			],
 			"hgurl": "https://hg.mozilla.org/",
 			"log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/bschouten@mozilla.com-4f2b721570e9/try-linux64-br-haz/linux64-br-haz_try_dep-bm78-try1-build1894.txt.gz",
 			"master": "http://buildbot-master78.bb.releng.usw2.mozilla.com:8101/",
@@ -1467,7 +1615,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000383],
+			"request_ids": [
+				83000383
+			],
 			"request_times": {
 				"83000383": 1443997356
 			},
@@ -1478,13 +1628,17 @@
 			"slavename": "try-linux64-spot-493",
 			"source_revision": "4f2b721570e9",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "trybld_dsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "trybld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000383],
+		"request_ids": [
+			83000383
+		],
 		"requesttime": 1443997356,
 		"result": 0,
 		"slave_id": 6440,
@@ -1497,13 +1651,17 @@
 		"id": 76600926,
 		"master_id": 194,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_try_l64-b2g-haz_dep-000000",
 			"branch": "try",
 			"buildername": "b2g_try_linux64-b2g-haz_dep",
 			"buildnumber": 1945,
 			"builduid": "0e5099d89da44ca8bc7db69223a00c47",
-			"commit_titles": ["try: -b do -p all -u all -t none"],
+			"commit_titles": [
+				"try: -b do -p all -u all -t none"
+			],
 			"gaia_revision": "bd8ff00faac97ad6a2df5a6217910b8d295d56a3",
 			"gecko_revision": "4f2b721570e9",
 			"hgurl": "https://hg.mozilla.org/",
@@ -1515,7 +1673,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83000398],
+			"request_ids": [
+				83000398
+			],
 			"request_times": {
 				"83000398": 1443997357
 			},
@@ -1525,13 +1685,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "try-linux64-spot-407",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "trybld_dsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "trybld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000398],
+		"request_ids": [
+			83000398
+		],
 		"requesttime": 1443997357,
 		"result": 0,
 		"slave_id": 6575,
@@ -1578,7 +1742,9 @@
 			"project": "",
 			"repo_path": "projects/ash",
 			"repository": "",
-			"request_ids": [83000512],
+			"request_ids": [
+				83000512
+			],
 			"request_times": {
 				"83000512": 1443998378
 			},
@@ -1596,7 +1762,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\install\\\\sea\\\\firefox-44.0a1.en-US.win64.installer.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\win64\\\\xpi\\\\firefox-44.0a1.en-US.langpack.xpi', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.txt', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\jsshell-win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mar.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mbsdiff.exe', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums', u'c:\\\\builds\\\\moz2_slave\\\\ash-w64-d-00000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-44.0a1.en-US.win64.checksums.asc']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000512],
+		"request_ids": [
+			83000512
+		],
 		"requesttime": 1443998378,
 		"result": 0,
 		"slave_id": 8889,
@@ -1621,7 +1789,9 @@
 			"buildnumber": 37,
 			"builduid": "4472aebe59c0490ba402df27a0ea300a",
 			"comments": "Bug 1135320 - Re-enable voucher.bin generation on Win64 - r=cpearce,a=sylvestre",
-			"commit_titles": ["Bug 1135320 - Re-enable voucher.bin generation on Win64 - r=cpearce,a=sylvestre"],
+			"commit_titles": [
+				"Bug 1135320 - Re-enable voucher.bin generation on Win64 - r=cpearce,a=sylvestre"
+			],
 			"forced_clobber": false,
 			"got_revision": "5d6ae6a10a0a",
 			"hashType": "sha512",
@@ -1641,7 +1811,9 @@
 			"purge_target": "14GB",
 			"purged_clobber": false,
 			"repository": "",
-			"request_ids": [83000483],
+			"request_ids": [
+				83000483
+			],
 			"request_times": {
 				"83000483": 1443998376
 			},
@@ -1655,7 +1827,9 @@
 			"toolsdir": "/builds/slave/m-beta-l64-d-00000000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000483],
+		"request_ids": [
+			83000483
+		],
 		"requesttime": 1443998376,
 		"result": 0,
 		"slave_id": 6857,
@@ -1693,7 +1867,9 @@
 			"product": "spidermonkey",
 			"project": "",
 			"repository": "",
-			"request_ids": [83000495],
+			"request_ids": [
+				83000495
+			],
 			"request_times": {
 				"83000495": 1443998377
 			},
@@ -1704,7 +1880,9 @@
 			"slavename": "bld-linux64-spot-430"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000495],
+		"request_ids": [
+			83000495
+		],
 		"requesttime": 1443998377,
 		"result": 0,
 		"slave_id": 7120,
@@ -1717,7 +1895,9 @@
 		"id": 76600706,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_ash_emu-d_dep-000000000000",
 			"branch": "ash",
 			"buildername": "b2g_ash_emulator-debug_dep",
@@ -1750,7 +1930,9 @@
 			"project": "",
 			"repo_path": "projects/ash",
 			"repository": "",
-			"request_ids": [83000523],
+			"request_ids": [
+				83000523
+			],
 			"request_times": {
 				"83000523": 1443998381
 			},
@@ -1762,13 +1944,17 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/ash-emulator-debug/20151004153940/b2g-44.0a1.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/ash-emulator-debug/20151004153940/b2g-44.0a1.en-US.android-arm.cppunittest.tests.zip",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000523],
+		"request_ids": [
+			83000523
+		],
 		"requesttime": 1443998381,
 		"result": 0,
 		"slave_id": 7141,
@@ -1781,7 +1967,9 @@
 		"id": 76601027,
 		"master_id": 186,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_ash_flm-kk_eng_dep-0000000",
 			"branch": "ash",
 			"buildername": "b2g_ash_flame-kk_eng_dep",
@@ -1813,7 +2001,9 @@
 			"project": "",
 			"repo_path": "projects/ash",
 			"repository": "",
-			"request_ids": [83000524],
+			"request_ids": [
+				83000524
+			],
 			"request_times": {
 				"83000524": 1443998381
 			},
@@ -1823,13 +2013,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-491",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83000524],
+		"request_ids": [
+			83000524
+		],
 		"requesttime": 1443998381,
 		"result": 0,
 		"slave_id": 7138,
@@ -1867,7 +2061,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83001039],
+			"request_ids": [
+				83001039
+			],
 			"request_times": {
 				"83001039": 1443999457
 			},
@@ -1884,7 +2080,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.txt', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.json', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\sccache.log.gz', u'c:\\\\builds\\\\moz2_slave\\\\try-w32_g-d-000000000000000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\b2g-44.0a1.en-US.win32.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001039],
+		"request_ids": [
+			83001039
+		],
 		"requesttime": 1443999457,
 		"result": 0,
 		"slave_id": 8269,
@@ -1920,7 +2118,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83001285],
+			"request_ids": [
+				83001285
+			],
 			"request_times": {
 				"83001285": 1443999878
 			},
@@ -1934,7 +2134,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64.tar.bz2', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/linux-x86_64/xpi/firefox-44.0a1.en-US.langpack.xpi', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64.txt', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64.json', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64.mozinfo.json', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/m-in-l64-st-an-d-0000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001285],
+		"request_ids": [
+			83001285
+		],
 		"requesttime": 1443999878,
 		"result": 0,
 		"slave_id": 8297,
@@ -1971,7 +2173,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83001282],
+			"request_ids": [
+				83001282
+			],
 			"request_times": {
 				"83001282": 1443999878
 			},
@@ -1987,7 +2191,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.tar.bz2', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/linux-x86_64-asan/xpi/firefox-44.0a1.en-US.langpack.xpi', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.common.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.cppunittest.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.xpcshell.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.mochitest.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.talos.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.reftest.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.web-platform.tests.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.txt', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.json', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.mozinfo.json', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/jsshell-linux-x86_64-asan.zip', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/m-in-l64-asan-d-00000000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.linux-x86_64-asan.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83001282],
+		"request_ids": [
+			83001282
+		],
 		"requesttime": 1443999878,
 		"result": 0,
 		"slave_id": 9936,
@@ -2018,7 +2224,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002003],
+			"request_ids": [
+				83002003
+			],
 			"request_times": {
 				"83002003": 1444001404
 			},
@@ -2035,7 +2243,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.dmg', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.common.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.cppunittest.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.xpcshell.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.mochitest.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.talos.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.reftest.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.web-platform.tests.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.crashreporter-symbols.zip', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.txt', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.json', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/m-in-m64_g-d-00000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.checksums']"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002003],
+		"request_ids": [
+			83002003
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 4461,
@@ -2066,7 +2276,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002002],
+			"request_ids": [
+				83002002
+			],
 			"request_times": {
 				"83002002": 1444001404
 			},
@@ -2083,7 +2295,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.dmg', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.common.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.cppunittest.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.xpcshell.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.mochitest.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.talos.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.reftest.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.web-platform.tests.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.crashreporter-symbols.zip', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.txt', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.json', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/fxos-simulator-2.5-mac64.xpi', u'/builds/slave/m-in-m64_g-0000000000000000000/build/src/obj-firefox/dist/b2g-44.0a1.en-US.mac64.checksums']"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002002],
+		"request_ids": [
+			83002002
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 2056,
@@ -2096,7 +2310,9 @@
 		"id": 76603401,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_flm-kk_eng-d_dep-0000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_flame-kk_eng-debug_periodic",
@@ -2113,7 +2329,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002001],
+			"request_ids": [
+				83002001
+			],
 			"request_times": {
 				"83002001": 1444001404
 			},
@@ -2123,13 +2341,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-305",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002001],
+		"request_ids": [
+			83002001
+		],
 		"requesttime": 1444001404,
 		"result": 5,
 		"slave_id": 8130,
@@ -2142,7 +2364,9 @@
 		"id": 76601900,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_nexus-4_eng_dep-00000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_nexus-4_eng_periodic",
@@ -2159,7 +2383,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002005],
+			"request_ids": [
+				83002005
+			],
 			"request_times": {
 				"83002005": 1444001404
 			},
@@ -2169,13 +2395,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-386",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002005],
+		"request_ids": [
+			83002005
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 6833,
@@ -2188,7 +2418,9 @@
 		"id": 76601844,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_nexus-4_dep-000000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_nexus-4_periodic",
@@ -2205,7 +2437,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002004],
+			"request_ids": [
+				83002004
+			],
 			"request_times": {
 				"83002004": 1444001404
 			},
@@ -2215,13 +2449,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-598",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002004],
+		"request_ids": [
+			83002004
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 9963,
@@ -2234,7 +2472,9 @@
 		"id": 76602498,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_n5-l_eng_dep-00000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_nexus-5-l_eng_periodic",
@@ -2251,7 +2491,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002007],
+			"request_ids": [
+				83002007
+			],
 			"request_times": {
 				"83002007": 1444001404
 			},
@@ -2261,13 +2503,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-444",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002007],
+		"request_ids": [
+			83002007
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 7148,
@@ -2280,7 +2526,9 @@
 		"id": 76603153,
 		"master_id": 184,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_flm-kk_dep-0000000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_flame-kk_periodic",
@@ -2297,7 +2545,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [83002000],
+			"request_ids": [
+				83002000
+			],
 			"request_times": {
 				"83002000": 1444001404
 			},
@@ -2307,13 +2557,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-437",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [83002000],
+		"request_ids": [
+			83002000
+		],
 		"requesttime": 1444001404,
 		"result": 0,
 		"slave_id": 7168,
@@ -2336,7 +2590,9 @@
 			"product": "fuzzing",
 			"project": "",
 			"repository": "",
-			"request_ids": [83002317],
+			"request_ids": [
+				83002317
+			],
 			"request_times": {
 				"83002317": 1444002102
 			},
@@ -2346,7 +2602,9 @@
 			"slavename": "b-2008-ix-0165"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002317],
+		"request_ids": [
+			83002317
+		],
 		"requesttime": 1444002102,
 		"result": 0,
 		"slave_id": 8820,
@@ -2369,7 +2627,9 @@
 			"product": "fuzzing",
 			"project": "",
 			"repository": "",
-			"request_ids": [83002699],
+			"request_ids": [
+				83002699
+			],
 			"request_times": {
 				"83002699": 1444002406
 			},
@@ -2379,7 +2639,9 @@
 			"slavename": "bld-linux64-spot-319"
 		},
 		"reason": "scheduler",
-		"request_ids": [83002699],
+		"request_ids": [
+			83002699
+		],
 		"requesttime": 1444002406,
 		"result": 0,
 		"slave_id": 6912,
@@ -2400,7 +2662,9 @@
 			"buildnumber": 904,
 			"builduid": "5ecac27838e34fd494e0876fec6c2cb2",
 			"comments": "Bug 1204345 - Last letter at bottom right can be cut off, r=dmose",
-			"commit_titles": ["Bug 1204345 - Last letter at bottom right can be cut off, r=dmose"],
+			"commit_titles": [
+				"Bug 1204345 - Last letter at bottom right can be cut off, r=dmose"
+			],
 			"got_revision": "85bf2870f374",
 			"log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/fx-team-macosx64-st-an-debug/1444002757/fx-team-macosx64-st-an-debug-bm82-build1-build904.txt.gz",
 			"master": "http://buildbot-master82.bb.releng.scl3.mozilla.com:8001/",
@@ -2411,7 +2675,9 @@
 			"project": "",
 			"repo_path": "integration/fx-team",
 			"repository": "",
-			"request_ids": [83003086],
+			"request_ids": [
+				83003086
+			],
 			"request_times": {
 				"83003086": 1444002758
 			},
@@ -2425,7 +2691,9 @@
 			"uploadFiles": "[u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.mac64.dmg', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/mac64/xpi/firefox-44.0a1.en-US.langpack.xpi', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.mac64.txt', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.mac64.json', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/fx-team-m64-st-an-d-0000000000/build/src/obj-firefox/dist/firefox-44.0a1.en-US.mac64.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83003086],
+		"request_ids": [
+			83003086
+		],
 		"requesttime": 1444002758,
 		"result": 0,
 		"slave_id": 1915,
@@ -2469,7 +2737,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83003577],
+			"request_ids": [
+				83003577
+			],
 			"request_times": {
 				"83003577": 1444003656
 			},
@@ -2489,7 +2759,9 @@
 			"uploadFiles": "[u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.apk', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.common.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.cppunittest.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.xpcshell.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.mochitest.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.talos.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.reftest.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.web-platform.tests.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.crashreporter-symbols.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.txt', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.json', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.mozinfo.json', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/jsshell-android-arm.zip', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/gecko-unsigned-unaligned.apk', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/robocop.apk', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec_ids.txt', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.checksums', u'/builds/slave/try-and-api-9-d-00000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.checksums.asc']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83003577],
+		"request_ids": [
+			83003577
+		],
 		"requesttime": 1444003656,
 		"result": 0,
 		"slave_id": 6491,
@@ -2533,7 +2805,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83003583],
+			"request_ids": [
+				83003583
+			],
 			"request_times": {
 				"83003583": 1444003656
 			},
@@ -2553,7 +2827,9 @@
 			"uploadFiles": "[u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.apk', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.common.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.cppunittest.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.xpcshell.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.mochitest.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.talos.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.reftest.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.web-platform.tests.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.crashreporter-symbols.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.txt', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.json', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.mozinfo.json', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/jsshell-android-arm.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/gecko-unsigned-unaligned.apk', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/robocop.apk', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec_ids.txt', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/geckoview_library/geckoview_library.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/geckoview_library/geckoview_assets.zip', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/embedding/android/geckoview_example/geckoview_example.apk', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.checksums', u'/builds/slave/try-and-api-11-d-0000000000000/build/src/obj-firefox/dist/fennec-44.0a1.en-US.android-arm.checksums.asc']"
 		},
 		"reason": "scheduler",
-		"request_ids": [83003583],
+		"request_ids": [
+			83003583
+		],
 		"requesttime": 1444003656,
 		"result": 0,
 		"slave_id": 6574,
@@ -2566,7 +2842,9 @@
 		"id": 76604599,
 		"master_id": 186,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_fx-team_n5-l_dep-000000000",
 			"branch": "fx-team",
 			"buildername": "b2g_fx-team_nexus-5-l_periodic",
@@ -2583,7 +2861,9 @@
 			"project": "",
 			"repo_path": "integration/fx-team",
 			"repository": "",
-			"request_ids": [83004176],
+			"request_ids": [
+				83004176
+			],
 			"request_times": {
 				"83004176": 1444005004
 			},
@@ -2593,13 +2873,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-438",
 			"tools_revision": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
-		"request_ids": [83004176],
+		"request_ids": [
+			83004176
+		],
 		"requesttime": 1444005004,
 		"result": 0,
 		"slave_id": 7159,
@@ -2612,13 +2896,17 @@
 		"id": 76624059,
 		"master_id": 167,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b37_22r_emu-l_dep-000000",
 			"branch": "mozilla-b2g37_v2_2r",
 			"buildername": "b2g_mozilla-b2g37_v2_2r_emulator-l_dep",
 			"buildnumber": 1,
 			"builduid": "9073180dbf1342db9a1cc612bd562657",
-			"commit_titles": ["Bug 1044721 - Add setSmscAddress web API in MozMobileMessageManager. r=hsinyi r=btseng, a=2.2r+"],
+			"commit_titles": [
+				"Bug 1044721 - Add setSmscAddress web API in MozMobileMessageManager. r=hsinyi r=btseng, a=2.2r+"
+			],
 			"compare_locales_revision": "1fc4e9bc8287",
 			"gaia_revision": "5e8b521997aca951cd974b55b764f68973711d59",
 			"gecko_revision": "15f793b67b1a",
@@ -2631,7 +2919,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g37_v2_2r",
 			"repository": "",
-			"request_ids": [83026040],
+			"request_ids": [
+				83026040
+			],
 			"request_times": {
 				"83026040": 1444032240
 			},
@@ -2643,13 +2933,17 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-emulator-l/20151005010359/b2g-37.0.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-emulator-l/20151005010359/b2g-37.0.en-US.android-arm.tests.zip",
 			"tools_revision": "7f187d6f0b0c",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [83026040],
+		"request_ids": [
+			83026040
+		],
 		"requesttime": 1444032240,
 		"result": 0,
 		"slave_id": 7253,
@@ -2662,7 +2956,9 @@
 		"id": 57393717,
 		"master_id": 123,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_emu-kk_dep-0000000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_emulator-kk_periodic",
@@ -2680,7 +2976,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60157674],
+			"request_ids": [
+				60157674
+			],
 			"request_times": {
 				"60157674": 1422221407
 			},
@@ -2693,13 +2991,17 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-kk/20150125133006/b2g-38.0a1.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-kk/20150125133006/b2g-38.0a1.en-US.android-arm.tests.zip",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-inbound periodic' triggered this build",
-		"request_ids": [60157674],
+		"request_ids": [
+			60157674
+		],
 		"requesttime": 1422221407,
 		"result": 0,
 		"slave_id": 9840,
@@ -2712,7 +3014,9 @@
 		"id": 57394393,
 		"master_id": 123,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-cen_dolphin_dep-00000000",
 			"branch": "mozilla-central",
 			"buildername": "b2g_mozilla-central_dolphin_periodic",
@@ -2729,7 +3033,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [60157683],
+			"request_ids": [
+				60157683
+			],
 			"request_times": {
 				"60157683": 1422221411
 			},
@@ -2740,13 +3046,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-272",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central periodic' triggered this build",
-		"request_ids": [60157683],
+		"request_ids": [
+			60157683
+		],
 		"requesttime": 1422221411,
 		"result": 0,
 		"slave_id": 9845,
@@ -2759,7 +3069,9 @@
 		"id": 57394109,
 		"master_id": 123,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-cen_emu-kk-d_dep-0000000",
 			"branch": "mozilla-central",
 			"buildername": "b2g_mozilla-central_emulator-kk-debug_periodic",
@@ -2777,7 +3089,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [60157686],
+			"request_ids": [
+				60157686
+			],
 			"request_times": {
 				"60157686": 1422221411
 			},
@@ -2790,13 +3104,17 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-emulator-kk-debug/20150125133010/b2g-38.0a1.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-emulator-kk-debug/20150125133010/b2g-38.0a1.en-US.android-arm.tests.zip",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central periodic' triggered this build",
-		"request_ids": [60157686],
+		"request_ids": [
+			60157686
+		],
 		"requesttime": 1422221411,
 		"result": 0,
 		"slave_id": 7269,
@@ -2809,13 +3127,17 @@
 		"id": 57393743,
 		"master_id": 133,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_emu-jb-d_dep-00000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_emulator-jb-debug_dep",
 			"buildnumber": 2179,
 			"builduid": "926d9a7ac136421d9a75e85e99e50fd5",
-			"commit_titles": ["Bug 1124862 Fix glxtest.cpp fail-on-warning errors for ignored return values. r=bjacob"],
+			"commit_titles": [
+				"Bug 1124862 Fix glxtest.cpp fail-on-warning errors for ignored return values. r=bjacob"
+			],
 			"compare_locales_revision": "1fc4e9bc8287",
 			"gaia_revision": "0f662dffef27599443cfcd790c2b39190a2b35c8",
 			"gecko_revision": "cd52e9f67e75",
@@ -2828,7 +3150,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60158156],
+			"request_ids": [
+				60158156
+			],
 			"request_times": {
 				"60158156": 1422222636
 			},
@@ -2841,13 +3165,17 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb-debug/20150125135035/b2g-38.0a1.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb-debug/20150125135035/b2g-38.0a1.en-US.android-arm.tests.zip",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [60158156],
+		"request_ids": [
+			60158156
+		],
 		"requesttime": 1422222636,
 		"result": 0,
 		"slave_id": 6934,
@@ -2894,7 +3222,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60158873],
+			"request_ids": [
+				60158873
+			],
 			"request_times": {
 				"60158873": 1422224617
 			},
@@ -2908,7 +3238,9 @@
 			"toolsdir": "/builds/slave/m-in-linux32_g-d-0000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [60158873],
+		"request_ids": [
+			60158873
+		],
 		"requesttime": 1422224617,
 		"result": 5,
 		"slave_id": 8539,
@@ -2955,7 +3287,9 @@
 			"purge_target": "16GB",
 			"purged_clobber": false,
 			"repository": "",
-			"request_ids": [60158877],
+			"request_ids": [
+				60158877
+			],
 			"request_times": {
 				"60158877": 1422224617
 			},
@@ -2969,7 +3303,9 @@
 			"toolsdir": "/builds/slave/m-in-l64_g-d-00000000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [60158877],
+		"request_ids": [
+			60158877
+		],
 		"requesttime": 1422224617,
 		"result": 0,
 		"slave_id": 6928,
@@ -3016,7 +3352,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60158872],
+			"request_ids": [
+				60158872
+			],
 			"request_times": {
 				"60158872": 1422224617
 			},
@@ -3030,7 +3368,9 @@
 			"toolsdir": "/builds/slave/m-in-linux32_g-000000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [60158872],
+		"request_ids": [
+			60158872
+		],
 		"requesttime": 1422224617,
 		"result": 5,
 		"slave_id": 6902,
@@ -3043,7 +3383,9 @@
 		"id": 57393684,
 		"master_id": 124,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_b2g-in_ham_dep-00000000000",
 			"branch": "b2g-inbound",
 			"buildername": "b2g_b2g-inbound_hamachi_periodic",
@@ -3060,7 +3402,9 @@
 			"project": "",
 			"repo_path": "integration/b2g-inbound",
 			"repository": "",
-			"request_ids": [60159049],
+			"request_ids": [
+				60159049
+			],
 			"request_times": {
 				"60159049": 1422225001
 			},
@@ -3071,13 +3415,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-251",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_b2g-inbound periodic' triggered this build",
-		"request_ids": [60159049],
+		"request_ids": [
+			60159049
+		],
 		"requesttime": 1422225001,
 		"result": 0,
 		"slave_id": 9822,
@@ -3090,7 +3438,9 @@
 		"id": 57395685,
 		"master_id": 132,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_b2g-in_dolphin_eng_dep-000",
 			"branch": "b2g-inbound",
 			"buildername": "b2g_b2g-inbound_dolphin_eng_periodic",
@@ -3107,7 +3457,9 @@
 			"project": "",
 			"repo_path": "integration/b2g-inbound",
 			"repository": "",
-			"request_ids": [60159044],
+			"request_ids": [
+				60159044
+			],
 			"request_times": {
 				"60159044": 1422225001
 			},
@@ -3118,13 +3470,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-128",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_b2g-inbound periodic' triggered this build",
-		"request_ids": [60159044],
+		"request_ids": [
+			60159044
+		],
 		"requesttime": 1422225001,
 		"result": 2,
 		"slave_id": 8694,
@@ -3137,7 +3493,9 @@
 		"id": 57394052,
 		"master_id": 124,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_fx-team_wsb_dep-0000000000",
 			"branch": "fx-team",
 			"buildername": "b2g_fx-team_wasabi_periodic",
@@ -3154,7 +3512,9 @@
 			"project": "",
 			"repo_path": "integration/fx-team",
 			"repository": "",
-			"request_ids": [60159064],
+			"request_ids": [
+				60159064
+			],
 			"request_times": {
 				"60159064": 1422225003
 			},
@@ -3165,13 +3525,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-265",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
-		"request_ids": [60159064],
+		"request_ids": [
+			60159064
+		],
 		"requesttime": 1422225003,
 		"result": 0,
 		"slave_id": 9843,
@@ -3196,7 +3560,9 @@
 			"buildnumber": 2918,
 			"builduid": "4ea356472684451ba2afb5b023974f6b",
 			"comments": "try: -b do -p linux,linux64,linux64-mulet,macosx64,win32,win64 -u mochitest-3,mochitest-4,web-platform-tests-4 -t none",
-			"commit_titles": ["try: -b do -p linux,linux64,linux64-mulet,macosx64,win32,win64 -u"],
+			"commit_titles": [
+				"try: -b do -p linux,linux64,linux64-mulet,macosx64,win32,win64 -u"
+			],
 			"forced_clobber": false,
 			"got_revision": "9b4ff27a3fc0",
 			"hashType": "sha512",
@@ -3216,7 +3582,9 @@
 			"purge_target": "15GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60159471],
+			"request_ids": [
+				60159471
+			],
 			"request_times": {
 				"60159471": 1422226895
 			},
@@ -3231,7 +3599,9 @@
 			"who": "jyavenard@mozilla.com"
 		},
 		"reason": "scheduler",
-		"request_ids": [60159471],
+		"request_ids": [
+			60159471
+		],
 		"requesttime": 1422226895,
 		"result": 0,
 		"slave_id": 6363,
@@ -3253,7 +3623,9 @@
 			"buildnumber": 906,
 			"builduid": "29168af123fe43e19ce651ab6ddf0e39",
 			"comments": "Bug 1125632: Annotate ResidentUniqueReporter::CollectReports as MOZ_OVERRIDE. r=njn",
-			"commit_titles": ["Bug 1125632: Annotate ResidentUniqueReporter::CollectReports as MOZ_OVERRIDE. r=njn"],
+			"commit_titles": [
+				"Bug 1125632: Annotate ResidentUniqueReporter::CollectReports as MOZ_OVERRIDE. r=njn"
+			],
 			"forced_clobber": false,
 			"got_revision": "6ff2bc5f6f0c",
 			"hashType": "sha512",
@@ -3272,7 +3644,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": false,
 			"repository": "",
-			"request_ids": [60159697],
+			"request_ids": [
+				60159697
+			],
 			"request_times": {
 				"60159697": 1422227731
 			},
@@ -3286,7 +3660,9 @@
 			"toolsdir": "c:/builds/moz2_slave/m-in-w32-mulet-000000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [60159697],
+		"request_ids": [
+			60159697
+		],
 		"requesttime": 1422227731,
 		"result": 0,
 		"slave_id": 8889,
@@ -3299,13 +3675,17 @@
 		"id": 57396175,
 		"master_id": 125,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_emu-jb_dep-0000000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_emulator-jb_dep",
 			"buildnumber": 14,
 			"builduid": "477cc797dc864e8ea036bc338feff4a9",
-			"commit_titles": ["Bug 1120431. Ensure that the draw region of a painted layer always includes the visible region,"],
+			"commit_titles": [
+				"Bug 1120431. Ensure that the draw region of a painted layer always includes the visible region,"
+			],
 			"compare_locales_revision": "1fc4e9bc8287",
 			"gaia_revision": "0f662dffef27599443cfcd790c2b39190a2b35c8",
 			"gecko_revision": "49b107ba5bee",
@@ -3318,7 +3698,11 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60159684, 60159723, 60159864],
+			"request_ids": [
+				60159684,
+				60159723,
+				60159864
+			],
 			"request_times": {
 				"60159684": 1422227731,
 				"60159723": 1422227851,
@@ -3333,13 +3717,19 @@
 			"symbolsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb/20150125152936/b2g-38.0a1.en-US.android-arm.crashreporter-symbols.zip",
 			"testsUrl": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb/20150125152936/b2g-38.0a1.en-US.android-arm.tests.zip",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [60159684, 60159723, 60159864],
+		"request_ids": [
+			60159684,
+			60159723,
+			60159864
+		],
 		"requesttime": 1422227731,
 		"result": 0,
 		"slave_id": 8292,
@@ -3352,13 +3742,17 @@
 		"id": 57396435,
 		"master_id": 126,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-in_ham_eng_dep-000000000",
 			"branch": "mozilla-inbound",
 			"buildername": "b2g_mozilla-inbound_hamachi_eng_dep",
 			"buildnumber": 515,
 			"builduid": "477cc797dc864e8ea036bc338feff4a9",
-			"commit_titles": ["Bug 1120431. Ensure that the draw region of a painted layer always includes the visible region,"],
+			"commit_titles": [
+				"Bug 1120431. Ensure that the draw region of a painted layer always includes the visible region,"
+			],
 			"compare_locales_revision": "1fc4e9bc8287",
 			"gaia_revision": "0f662dffef27599443cfcd790c2b39190a2b35c8",
 			"gecko_revision": "49b107ba5bee",
@@ -3370,7 +3764,11 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60159687, 60159726, 60159867],
+			"request_ids": [
+				60159687,
+				60159726,
+				60159867
+			],
 			"request_times": {
 				"60159687": 1422227731,
 				"60159726": 1422227851,
@@ -3383,13 +3781,19 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-360",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "scheduler",
-		"request_ids": [60159687, 60159726, 60159867],
+		"request_ids": [
+			60159687,
+			60159726,
+			60159867
+		],
 		"requesttime": 1422227731,
 		"result": 0,
 		"slave_id": 6895,
@@ -3417,7 +3821,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60160009],
+			"request_ids": [
+				60160009
+			],
 			"request_times": {
 				"60160009": 1422228963
 			},
@@ -3430,7 +3836,9 @@
 			"stage_platform": "linux"
 		},
 		"reason": "scheduler",
-		"request_ids": [60160009],
+		"request_ids": [
+			60160009
+		],
 		"requesttime": 1422228963,
 		"result": 0,
 		"slave_id": 4216,
@@ -3452,7 +3860,9 @@
 			"buildnumber": 874,
 			"builduid": "d3e7b45478f64d5cb0c6a87a566a29ac",
 			"comments": "Bug 1124844 - Add NotifyActivityChanged call to nsDocument::SetScriptGlobalObject() r=bz",
-			"commit_titles": ["Bug 1124844 - Add NotifyActivityChanged call to nsDocument::SetScriptGlobalObject() r=bz"],
+			"commit_titles": [
+				"Bug 1124844 - Add NotifyActivityChanged call to nsDocument::SetScriptGlobalObject() r=bz"
+			],
 			"forced_clobber": false,
 			"got_revision": "bfde34168702",
 			"hashType": "sha512",
@@ -3471,7 +3881,9 @@
 			"purge_target": "12GB",
 			"purged_clobber": false,
 			"repository": "",
-			"request_ids": [60160389],
+			"request_ids": [
+				60160389
+			],
 			"request_times": {
 				"60160389": 1422230251
 			},
@@ -3483,7 +3895,9 @@
 			"toolsdir": "/builds/slave/m-in-osx64-mulet-0000000000000/tools"
 		},
 		"reason": "scheduler",
-		"request_ids": [60160389],
+		"request_ids": [
+			60160389
+		],
 		"requesttime": 1422230251,
 		"result": 0,
 		"slave_id": 1910,
@@ -3522,7 +3936,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60160574],
+			"request_ids": [
+				60160574
+			],
 			"request_times": {
 				"60160574": 1422230530
 			},
@@ -3536,7 +3952,9 @@
 			"toolsdir": "/builds/slave/m-b32_20-osx64_g_lz-ntly-00000/tools"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 nightly' triggered this build",
-		"request_ids": [60160574],
+		"request_ids": [
+			60160574
+		],
 		"requesttime": 1422230530,
 		"result": 0,
 		"slave_id": 2173,
@@ -3575,7 +3993,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60160578],
+			"request_ids": [
+				60160578
+			],
 			"request_times": {
 				"60160578": 1422230530
 			},
@@ -3589,7 +4009,9 @@
 			"toolsdir": "c:/builds/moz2_slave/m-b32_20-w32_g_lz-ntly-0000000/tools"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 nightly' triggered this build",
-		"request_ids": [60160578],
+		"request_ids": [
+			60160578
+		],
 		"requesttime": 1422230530,
 		"result": 0,
 		"slave_id": 8894,
@@ -3617,7 +4039,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60160636],
+			"request_ids": [
+				60160636
+			],
 			"request_times": {
 				"60160636": 1422230759
 			},
@@ -3630,7 +4054,9 @@
 			"stage_platform": "macosx64"
 		},
 		"reason": "scheduler",
-		"request_ids": [60160636],
+		"request_ids": [
+			60160636
+		],
 		"requesttime": 1422230759,
 		"result": 0,
 		"slave_id": 8866,
@@ -3658,7 +4084,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [60160634],
+			"request_ids": [
+				60160634
+			],
 			"request_times": {
 				"60160634": 1422230759
 			},
@@ -3671,7 +4099,9 @@
 			"stage_platform": "macosx64"
 		},
 		"reason": "scheduler",
-		"request_ids": [60160634],
+		"request_ids": [
+			60160634
+		],
 		"requesttime": 1422230759,
 		"result": 0,
 		"slave_id": 2365,
@@ -3714,7 +4144,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60160545],
+			"request_ids": [
+				60160545
+			],
 			"request_times": {
 				"60160545": 1422230526
 			},
@@ -3727,7 +4159,9 @@
 			"toolsdir": "/builds/slave/m-cen-linux32_g_lz-ntly-000000/tools"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [60160545],
+		"request_ids": [
+			60160545
+		],
 		"requesttime": 1422230526,
 		"result": 0,
 		"slave_id": 8572,
@@ -3740,7 +4174,9 @@
 		"id": 57396548,
 		"master_id": 132,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-cen_helix_ntly-000000000",
 			"branch": "mozilla-central",
 			"buildername": "b2g_mozilla-central_helix_nightly",
@@ -3759,7 +4195,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [60160543],
+			"request_ids": [
+				60160543
+			],
 			"request_times": {
 				"60160543": 1422230526
 			},
@@ -3770,13 +4208,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-244",
 			"tools_revision": "ad1399c4718a",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [60160543],
+		"request_ids": [
+			60160543
+		],
 		"requesttime": 1422230526,
 		"result": 0,
 		"slave_id": 9833,
@@ -3819,7 +4261,9 @@
 			"purge_target": "13GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [60160548],
+			"request_ids": [
+				60160548
+			],
 			"request_times": {
 				"60160548": 1422230526
 			},
@@ -3832,7 +4276,9 @@
 			"toolsdir": "/builds/slave/m-cen-l64_g_lz-ntly-0000000000/tools"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-		"request_ids": [60160548],
+		"request_ids": [
+			60160548
+		],
 		"requesttime": 1422230526,
 		"result": 0,
 		"slave_id": 7298,
@@ -3845,7 +4291,9 @@
 		"id": 57398871,
 		"master_id": 130,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b30_14_flm_eng_ntly-0000",
 			"branch": "mozilla-b2g30_v1_4",
 			"buildername": "b2g_mozilla-b2g30_v1_4_flame_eng_nightly",
@@ -3863,7 +4311,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g30_v1_4",
 			"repository": "",
-			"request_ids": [60160588],
+			"request_ids": [
+				60160588
+			],
 			"request_times": {
 				"60160588": 1422230531
 			},
@@ -3874,13 +4324,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-1003",
 			"tools_revision": "18444135b6e5",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g30_v1_4 nightly' triggered this build",
-		"request_ids": [60160588],
+		"request_ids": [
+			60160588
+		],
 		"requesttime": 1422230531,
 		"result": 0,
 		"slave_id": 8186,
@@ -3893,7 +4347,9 @@
 		"id": 57398808,
 		"master_id": 123,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b30_14_flm_ntly-00000000",
 			"branch": "mozilla-b2g30_v1_4",
 			"buildername": "b2g_mozilla-b2g30_v1_4_flame_nightly",
@@ -3912,7 +4368,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g30_v1_4",
 			"repository": "",
-			"request_ids": [60160587],
+			"request_ids": [
+				60160587
+			],
 			"request_times": {
 				"60160587": 1422230531
 			},
@@ -3923,13 +4381,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-196",
 			"tools_revision": "ad1399c4718a",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g30_v1_4 nightly' triggered this build",
-		"request_ids": [60160587],
+		"request_ids": [
+			60160587
+		],
 		"requesttime": 1422230531,
 		"result": 0,
 		"slave_id": 8681,
@@ -3963,7 +4425,9 @@
 			"toolsdir": "c:/builds/moz2_slave/rel-m-rel-xr_w32_bld-000000000/tools"
 		},
 		"reason": "downstream",
-		"request_ids": [73168044],
+		"request_ids": [
+			73168044
+		],
 		"requesttime": 1435021954,
 		"result": 0,
 		"slave_id": 8891,
@@ -3976,7 +4440,9 @@
 		"id": 68637499,
 		"master_id": 171,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b34_21s_dph-512_ntly-000",
 			"branch": "mozilla-b2g34_v2_1s",
 			"buildername": "b2g_mozilla-b2g34_v2_1s_dolphin-512_nightly",
@@ -3995,7 +4461,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g34_v2_1s",
 			"repository": "",
-			"request_ids": [73172091],
+			"request_ids": [
+				73172091
+			],
 			"request_times": {
 				"73172091": 1435043526
 			},
@@ -4006,13 +4474,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-122",
 			"tools_revision": "c1e69cc49e86",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g34_v2_1s nightly' triggered this build",
-		"request_ids": [73172091],
+		"request_ids": [
+			73172091
+		],
 		"requesttime": 1435043526,
 		"result": 0,
 		"slave_id": 7295,
@@ -4025,7 +4497,9 @@
 		"id": 68637629,
 		"master_id": 167,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b34_21s_dph-512_eng_ntly",
 			"branch": "mozilla-b2g34_v2_1s",
 			"buildername": "b2g_mozilla-b2g34_v2_1s_dolphin-512_eng_nightly",
@@ -4043,7 +4517,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-b2g34_v2_1s",
 			"repository": "",
-			"request_ids": [73172092],
+			"request_ids": [
+				73172092
+			],
 			"request_times": {
 				"73172092": 1435043526
 			},
@@ -4054,13 +4530,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-224",
 			"tools_revision": "c1e69cc49e86",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g34_v2_1s nightly' triggered this build",
-		"request_ids": [73172092],
+		"request_ids": [
+			73172092
+		],
 		"requesttime": 1435043526,
 		"result": 0,
 		"slave_id": 9854,
@@ -4104,7 +4584,9 @@
 			"project": "",
 			"repo_path": "projects/larch",
 			"repository": "",
-			"request_ids": [73750626],
+			"request_ids": [
+				73750626
+			],
 			"request_times": {
 				"73750626": 1435784693
 			},
@@ -4119,7 +4601,9 @@
 			"uploadFiles": "[u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.zip', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.crashreporter-symbols.zip', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.txt', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.json', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.mozinfo.json', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mar.exe', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mbsdiff.exe']"
 		},
 		"reason": "scheduler",
-		"request_ids": [73750626],
+		"request_ids": [
+			73750626
+		],
 		"requesttime": 1435784693,
 		"result": 0,
 		"slave_id": 8923,
@@ -4163,7 +4647,9 @@
 			"project": "",
 			"repo_path": "projects/larch",
 			"repository": "",
-			"request_ids": [73750626],
+			"request_ids": [
+				73750626
+			],
 			"request_times": {
 				"73750626": 1435784693
 			},
@@ -4178,7 +4664,9 @@
 			"uploadFiles": "[u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.zip', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.crashreporter-symbols.zip', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.txt', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.json', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-42.0a1.en-US.win64.mozinfo.json', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mar.exe', u'c:/builds/moz2_slave/l-w64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mbsdiff.exe']"
 		},
 		"reason": "scheduler",
-		"request_ids": [73750626],
+		"request_ids": [
+			73750626
+		],
 		"requesttime": 1435784693,
 		"result": 0,
 		"slave_id": 8923,
@@ -4212,7 +4700,9 @@
 			"toolsdir": "/builds/slave/rel-m-beta-xr_source-000000000/tools"
 		},
 		"reason": "downstream",
-		"request_ids": [61844604],
+		"request_ids": [
+			61844604
+		],
 		"requesttime": 1423784944,
 		"result": 0,
 		"slave_id": 6923,
@@ -4242,7 +4732,9 @@
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"release_tag": "FIREFOX_36_0b9_RELEASE",
 			"repository": "",
-			"request_ids": [61868271],
+			"request_ids": [
+				61868271
+			],
 			"request_times": {
 				"61868271": 1423803625
 			},
@@ -4254,7 +4746,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "downstream",
-		"request_ids": [61868271],
+		"request_ids": [
+			61868271
+		],
 		"requesttime": 1423803625,
 		"result": 0,
 		"slave_id": 7300,
@@ -4284,7 +4778,9 @@
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"release_tag": "FIREFOX_36_0b9_RELEASE",
 			"repository": "",
-			"request_ids": [61868310],
+			"request_ids": [
+				61868310
+			],
 			"request_times": {
 				"61868310": 1423803625
 			},
@@ -4296,7 +4792,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "downstream",
-		"request_ids": [61868310],
+		"request_ids": [
+			61868310
+		],
 		"requesttime": 1423803625,
 		"result": 0,
 		"slave_id": 2173,
@@ -4318,7 +4816,9 @@
 			"project": "",
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"repository": "",
-			"request_ids": [61871740],
+			"request_ids": [
+				61871740
+			],
 			"request_times": {
 				"61871740": 1423810588
 			},
@@ -4328,7 +4828,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "Triggerable(release-mozilla-beta-firefox_almost-ready-for-release)",
-		"request_ids": [61871740],
+		"request_ids": [
+			61871740
+		],
 		"requesttime": 1423810588,
 		"result": 0,
 		"slave_id": 8780,
@@ -4351,7 +4853,9 @@
 			"project": "",
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"repository": "",
-			"request_ids": [61871738],
+			"request_ids": [
+				61871738
+			],
 			"request_times": {
 				"61871738": 1423810588
 			},
@@ -4362,7 +4866,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "Triggerable(release-mozilla-beta-ready-for-rel-test)",
-		"request_ids": [61871738],
+		"request_ids": [
+			61871738
+		],
 		"requesttime": 1423810588,
 		"result": 0,
 		"slave_id": 8807,
@@ -4395,7 +4901,9 @@
 			"purged_clobber": true,
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"repository": "",
-			"request_ids": [61871739],
+			"request_ids": [
+				61871739
+			],
 			"request_times": {
 				"61871739": 1423810588
 			},
@@ -4407,7 +4915,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "Triggerable(release-mozilla-beta-ready-for-rel-test)",
-		"request_ids": [61871739],
+		"request_ids": [
+			61871739
+		],
 		"requesttime": 1423810588,
 		"result": 0,
 		"slave_id": 6832,
@@ -4426,7 +4936,9 @@
 			"buildnumber": 1
 		},
 		"reason": "scheduler",
-		"request_ids": [61849187],
+		"request_ids": [
+			61849187
+		],
 		"requesttime": 1423788879,
 		"result": 0,
 		"slave_id": 8500,
@@ -4455,7 +4967,9 @@
 			"project": "",
 			"repo_path": "projects/gum",
 			"repository": "",
-			"request_ids": [61888079],
+			"request_ids": [
+				61888079
+			],
 			"request_times": {
 				"61888079": 1423841262
 			},
@@ -4468,7 +4982,9 @@
 			"stage_platform": "win32-pgo"
 		},
 		"reason": "scheduler",
-		"request_ids": [61888079],
+		"request_ids": [
+			61888079
+		],
 		"requesttime": 1423841262,
 		"result": 0,
 		"slave_id": 9766,
@@ -4492,7 +5008,9 @@
 			"project": "",
 			"release_config": "mozilla/release-firefox-mozilla-beta.py",
 			"repository": "",
-			"request_ids": [61888340],
+			"request_ids": [
+				61888340
+			],
 			"request_times": {
 				"61888340": 1423844674
 			},
@@ -4505,7 +5023,9 @@
 			"version": "36.0b9"
 		},
 		"reason": "The web-page 'force build' button was pressed by '': \n",
-		"request_ids": [61888340],
+		"request_ids": [
+			61888340
+		],
 		"requesttime": 1423844674,
 		"result": 0,
 		"slave_id": 6917,
@@ -4554,7 +5074,9 @@
 			"purge_target": "16GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [61903366],
+			"request_ids": [
+				61903366
+			],
 			"request_times": {
 				"61903366": 1423859756
 			},
@@ -4570,7 +5092,9 @@
 			"unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/gecko-unsigned-unaligned.apk"
 		},
 		"reason": "scheduler",
-		"request_ids": [61903366],
+		"request_ids": [
+			61903366
+		],
 		"requesttime": 1423859756,
 		"result": 0,
 		"slave_id": 9844,
@@ -4619,7 +5143,9 @@
 			"purge_target": "14GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [61903367],
+			"request_ids": [
+				61903367
+			],
 			"request_times": {
 				"61903367": 1423859756
 			},
@@ -4635,7 +5161,9 @@
 			"unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/gecko-unsigned-unaligned.apk"
 		},
 		"reason": "scheduler",
-		"request_ids": [61903367],
+		"request_ids": [
+			61903367
+		],
 		"requesttime": 1423859756,
 		"result": 0,
 		"slave_id": 8631,
@@ -4662,7 +5190,9 @@
 			"product": "jetpack",
 			"project": "",
 			"repository": "",
-			"request_ids": [62796522],
+			"request_ids": [
+				62796522
+			],
 			"request_times": {
 				"62796522": 1424844375
 			},
@@ -4673,7 +5203,9 @@
 			"slavename": "talos-mtnlion-r5-054"
 		},
 		"reason": "scheduler",
-		"request_ids": [62796522],
+		"request_ids": [
+			62796522
+		],
 		"requesttime": 1424844375,
 		"result": 0,
 		"slave_id": 2354,
@@ -4700,7 +5232,9 @@
 			"product": "jetpack",
 			"project": "",
 			"repository": "",
-			"request_ids": [62796531],
+			"request_ids": [
+				62796531
+			],
 			"request_times": {
 				"62796531": 1424844375
 			},
@@ -4711,7 +5245,9 @@
 			"slavename": "t-snow-r4-0147"
 		},
 		"reason": "scheduler",
-		"request_ids": [62796531],
+		"request_ids": [
+			62796531
+		],
 		"requesttime": 1424844375,
 		"result": 0,
 		"slave_id": 9231,
@@ -4738,7 +5274,9 @@
 			"product": "jetpack",
 			"project": "",
 			"repository": "",
-			"request_ids": [62796519],
+			"request_ids": [
+				62796519
+			],
 			"request_times": {
 				"62796519": 1424844375
 			},
@@ -4749,7 +5287,9 @@
 			"slavename": "tst-linux32-spot-502"
 		},
 		"reason": "scheduler",
-		"request_ids": [62796519],
+		"request_ids": [
+			62796519
+		],
 		"requesttime": 1424844375,
 		"result": 0,
 		"slave_id": 7660,
@@ -4783,7 +5323,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [79120691],
+			"request_ids": [
+				79120691
+			],
 			"request_times": {
 				"79120691": 1440980271
 			},
@@ -4795,7 +5337,9 @@
 			"stage_platform": "linux64"
 		},
 		"reason": "scheduler",
-		"request_ids": [79120691],
+		"request_ids": [
+			79120691
+		],
 		"requesttime": 1440980271,
 		"result": 2,
 		"slave_id": 6427,
@@ -4829,7 +5373,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [79120691],
+			"request_ids": [
+				79120691
+			],
 			"request_times": {
 				"79120691": 1440980271
 			},
@@ -4841,7 +5387,9 @@
 			"stage_platform": "linux64"
 		},
 		"reason": "scheduler",
-		"request_ids": [79120691],
+		"request_ids": [
+			79120691
+		],
 		"requesttime": 1440980271,
 		"result": 2,
 		"slave_id": 6427,
@@ -4875,7 +5423,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [79120693],
+			"request_ids": [
+				79120693
+			],
 			"request_times": {
 				"79120693": 1440980271
 			},
@@ -4887,7 +5437,9 @@
 			"stage_platform": "linux64"
 		},
 		"reason": "scheduler",
-		"request_ids": [79120693],
+		"request_ids": [
+			79120693
+		],
 		"requesttime": 1440980271,
 		"result": 2,
 		"slave_id": 6440,
@@ -4921,7 +5473,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [79120693],
+			"request_ids": [
+				79120693
+			],
 			"request_times": {
 				"79120693": 1440980271
 			},
@@ -4933,7 +5487,9 @@
 			"stage_platform": "linux64"
 		},
 		"reason": "scheduler",
-		"request_ids": [79120693],
+		"request_ids": [
+			79120693
+		],
 		"requesttime": 1440980271,
 		"result": 2,
 		"slave_id": 6440,
@@ -4966,7 +5522,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [74984520],
+			"request_ids": [
+				74984520
+			],
 			"request_times": {
 				"74984520": 1437047909
 			},
@@ -4978,7 +5536,9 @@
 			"stage_platform": "mac"
 		},
 		"reason": "scheduler",
-		"request_ids": [74984520],
+		"request_ids": [
+			74984520
+		],
 		"requesttime": 1437047909,
 		"result": 2,
 		"slave_id": 2026,
@@ -5005,7 +5565,9 @@
 			"product": "jetpack",
 			"project": "",
 			"repository": "",
-			"request_ids": [75011598],
+			"request_ids": [
+				75011598
+			],
 			"request_times": {
 				"75011598": 1437071679
 			},
@@ -5016,7 +5578,9 @@
 			"slavename": "tst-linux64-spot-691"
 		},
 		"reason": "scheduler",
-		"request_ids": [75011598],
+		"request_ids": [
+			75011598
+		],
 		"requesttime": 1437071679,
 		"result": 1,
 		"slave_id": 7518,
@@ -5046,7 +5610,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [79445767],
+			"request_ids": [
+				79445767
+			],
 			"request_times": {
 				"79445767": 1441205712
 			},
@@ -5061,7 +5627,9 @@
 			"uploadFiles": "[u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.tar.bz2', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/linux-x86_64-tsan/xpi/firefox-43.0a1.en-US.langpack.xpi', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.common.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.cppunittest.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.xpcshell.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.mochitest.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.reftest.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.web-platform.tests.zip', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.txt', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.json', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.mozinfo.json', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/try-l64-tsan-00000000000000000/build/src/obj-firefox/dist/firefox-43.0a1.en-US.linux-x86_64-tsan.checksums']"
 		},
 		"reason": "Self-serve: Requested by alicescarpa@gmail.com",
-		"request_ids": [79445767],
+		"request_ids": [
+			79445767
+		],
 		"requesttime": 1441205712,
 		"result": 0,
 		"slave_id": 6491,
@@ -5106,7 +5674,9 @@
 			"project": "",
 			"repo_path": "projects/larch",
 			"repository": "",
-			"request_ids": [79445885],
+			"request_ids": [
+				79445885
+			],
 			"request_times": {
 				"79445885": 1441206031
 			},
@@ -5121,7 +5691,9 @@
 			"uploadFiles": "[u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.dmg', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.crashreporter-symbols.zip', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.txt', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.json', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mar', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mbsdiff', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-43.0a1.en-US.mac64.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [79445885],
+		"request_ids": [
+			79445885
+		],
 		"requesttime": 1441206031,
 		"result": 0,
 		"slave_id": 2041,
@@ -5166,7 +5738,9 @@
 			"project": "",
 			"repo_path": "projects/larch",
 			"repository": "",
-			"request_ids": [79445888],
+			"request_ids": [
+				79445888
+			],
 			"request_times": {
 				"79445888": 1441206031
 			},
@@ -5181,7 +5755,9 @@
 			"uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.zip', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.txt', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.json', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\host\\\\bin\\\\mar.exe', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\host\\\\bin\\\\mbsdiff.exe', u'c:\\\\builds\\\\moz2_slave\\\\l-w64_horizon-0000000000000000\\\\build\\\\src\\\\obj-horizon\\\\dist\\\\horizon-43.0a1.en-US.win64.checksums']"
 		},
 		"reason": "scheduler",
-		"request_ids": [79445888],
+		"request_ids": [
+			79445888
+		],
 		"requesttime": 1441206031,
 		"result": 0,
 		"slave_id": 8248,
@@ -5205,7 +5781,9 @@
 			"project": "",
 			"release_config": "mozilla/release-firefox-mozilla-esr31.py",
 			"repository": "",
-			"request_ids": [62169454],
+			"request_ids": [
+				62169454
+			],
 			"request_times": {
 				"62169454": 1424221277
 			},
@@ -5217,7 +5795,9 @@
 			"version": "31.5.0esr"
 		},
 		"reason": "downstream",
-		"request_ids": [62169454],
+		"request_ids": [
+			62169454
+		],
 		"requesttime": 1424221277,
 		"result": 0,
 		"slave_id": 8519,
@@ -5244,7 +5824,9 @@
 			"project": "",
 			"repo_path": "projects/cedar",
 			"repository": "",
-			"request_ids": [62224364],
+			"request_ids": [
+				62224364
+			],
 			"request_times": {
 				"62224364": 1424279751
 			},
@@ -5257,7 +5839,9 @@
 			"stage_platform": "emulator-kk"
 		},
 		"reason": "scheduler",
-		"request_ids": [62224364],
+		"request_ids": [
+			62224364
+		],
 		"requesttime": 1424279751,
 		"result": 2,
 		"slave_id": 5527,
@@ -5286,7 +5870,9 @@
 			"project": "",
 			"repo_path": "releases/mozilla-esr31",
 			"repository": "",
-			"request_ids": [59883203],
+			"request_ids": [
+				59883203
+			],
 			"request_times": {
 				"59883203": 1421919058
 			},
@@ -5299,7 +5885,9 @@
 			"stage_platform": "android-armv6"
 		},
 		"reason": "scheduler",
-		"request_ids": [59883203],
+		"request_ids": [
+			59883203
+		],
 		"requesttime": 1421919058,
 		"result": 0,
 		"slave_id": 9480,
@@ -5342,7 +5930,9 @@
 			"project": "",
 			"repo_path": "projects/larch",
 			"repository": "",
-			"request_ids": [70283935],
+			"request_ids": [
+				70283935
+			],
 			"request_times": {
 				"70283935": 1432224020
 			},
@@ -5356,7 +5946,9 @@
 			"uploadFiles": "[u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-41.0a1.en-US.mac64.dmg', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-41.0a1.en-US.mac64.crashreporter-symbols.zip', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-41.0a1.en-US.mac64.txt', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-41.0a1.en-US.mac64.json', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/graphene-41.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mar', u'/builds/slave/l-m64_graphene-000000000000000/build/src/obj-graphene/dist/host/bin/mbsdiff']"
 		},
 		"reason": "scheduler",
-		"request_ids": [70283935],
+		"request_ids": [
+			70283935
+		],
 		"requesttime": 1432224020,
 		"result": 0,
 		"slave_id": 1910,
@@ -5364,7 +5956,9 @@
 	},
 	{
 		"build": {
-			"locales": ["cy:76cfd00faa96 da:3031ec912b7a de:bbf3507eb2d1 dsb:462887cb524c el:22b959c9a739 en-GB:686f94eff7a4 en-ZA:720d9153b07b eo:3230fe303c77 es-AR:20092952ee3f es-CL:e5de7280134f es-ES:c61c25b745c3 es-MX:bf870e599f70 et:ed26b69e4de8 eu:f309d2511247 fa:cb1546a801ba"]
+			"locales": [
+				"cy:76cfd00faa96 da:3031ec912b7a de:bbf3507eb2d1 dsb:462887cb524c el:22b959c9a739 en-GB:686f94eff7a4 en-ZA:720d9153b07b eo:3230fe303c77 es-AR:20092952ee3f es-CL:e5de7280134f es-ES:c61c25b745c3 es-MX:bf870e599f70 et:ed26b69e4de8 eu:f309d2511247 fa:cb1546a801ba"
+			]
 		},
 		"builder_id": 508258,
 		"buildnumber": 30,
@@ -5387,7 +5981,11 @@
 			"release_promotion": true,
 			"repo_path": "projects/date",
 			"repository": "",
-			"request_ids": [84701100, 84701101, 84701102],
+			"request_ids": [
+				84701100,
+				84701101,
+				84701102
+			],
 			"request_times": {
 				"84701100": 1445286812,
 				"84701101": 1445286812,
@@ -5402,7 +6000,11 @@
 			"version": "44.0b9"
 		},
 		"reason": "Created by BBB for task 5RkgjwrTR4uMA-tor63sQQ, Created by BBB for task BNnkqhLBQGSTfJynGnz9Gg, Created by BBB for task pLDT2YFzQimhkb-c0nLc-Q",
-		"request_ids": [84701100, 84701101, 84701102],
+		"request_ids": [
+			84701100,
+			84701101,
+			84701102
+		],
 		"requesttime": 1445286812,
 		"result": 2,
 		"slave_id": 9691,
@@ -5431,7 +6033,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [76586926],
+			"request_ids": [
+				76586926
+			],
 			"request_times": {
 				"76586926": 1438631769
 			},
@@ -5444,7 +6048,9 @@
 			"stage_platform": "linux64-tsan"
 		},
 		"reason": "scheduler",
-		"request_ids": [76586926],
+		"request_ids": [
+			76586926
+		],
 		"requesttime": 1438631769,
 		"result": 2,
 		"slave_id": 5826,
@@ -5477,7 +6083,9 @@
 			"purged_clobber": false,
 			"release_config": "mozilla/release-firefox-mozilla-esr31.py",
 			"repository": "",
-			"request_ids": [73619426],
+			"request_ids": [
+				73619426
+			],
 			"request_times": {
 				"73619426": 1435688180
 			},
@@ -5489,7 +6097,9 @@
 			"version": "31.8.0esr"
 		},
 		"reason": "Triggerable(release-mozilla-esr31-esr_ready-for-esr-cdntest)",
-		"request_ids": [73619426],
+		"request_ids": [
+			73619426
+		],
 		"requesttime": 1435688180,
 		"result": 0,
 		"slave_id": 8720,
@@ -5519,7 +6129,9 @@
 			"release_config": "mozilla/release-firefox-mozilla-esr38.py",
 			"release_tag": "FIREFOX_38_1_0esr_RELEASE",
 			"repository": "",
-			"request_ids": [73297886],
+			"request_ids": [
+				73297886
+			],
 			"request_times": {
 				"73297886": 1435199255
 			},
@@ -5531,7 +6143,9 @@
 			"version": "38.1.0esr"
 		},
 		"reason": "downstream",
-		"request_ids": [73297886],
+		"request_ids": [
+			73297886
+		],
 		"requesttime": 1435199255,
 		"result": 0,
 		"slave_id": 2041,
@@ -5562,7 +6176,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [83508837],
+			"request_ids": [
+				83508837
+			],
 			"request_times": {
 				"83508837": 1444299467
 			},
@@ -5574,7 +6190,9 @@
 			"stage_platform": "macosx64"
 		},
 		"reason": "Self-serve: Requested by mozci-bot@mozilla.com",
-		"request_ids": [83508837],
+		"request_ids": [
+			83508837
+		],
 		"requesttime": 1444299467,
 		"result": 0,
 		"slave_id": 11228,
@@ -5601,7 +6219,9 @@
 			"project": "",
 			"repo_path": "try",
 			"repository": "",
-			"request_ids": [67212745],
+			"request_ids": [
+				67212745
+			],
 			"request_times": {
 				"67212745": 1429103646
 			},
@@ -5615,7 +6235,9 @@
 			"symbols_url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.crashreporter-symbols.zip"
 		},
 		"reason": "scheduler",
-		"request_ids": [67212745],
+		"request_ids": [
+			67212745
+		],
 		"requesttime": 1429103646,
 		"result": 1,
 		"slave_id": 9115,
@@ -5628,14 +6250,18 @@
 		"id": 62799741,
 		"master_id": 193,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/l64-br-haz_try_dep-00000000000",
 			"branch": "try",
 			"buildername": "linux64-br-haz_try_dep",
 			"buildnumber": 1289
 		},
 		"reason": "scheduler",
-		"request_ids": [66053239],
+		"request_ids": [
+			66053239
+		],
 		"requesttime": 1427871226,
 		"result": 2,
 		"slave_id": 6661,
@@ -5648,7 +6274,9 @@
 		"id": 57854601,
 		"master_id": 132,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_fx-team_flm-kk_dep-0000000",
 			"branch": "fx-team",
 			"buildername": "b2g_fx-team_flame-kk_periodic",
@@ -5658,7 +6286,9 @@
 			"gaia_revision": "8238eeacc7030b2cdbf7ab4eba2f36779b702599"
 		},
 		"reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
-		"request_ids": [60658977],
+		"request_ids": [
+			60658977
+		],
 		"requesttime": 1422624602,
 		"result": 0,
 		"slave_id": 9890,
@@ -5671,13 +6301,17 @@
 		"id": 62806648,
 		"master_id": 152,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b32_20_emu-jb-d_ntly-000",
 			"branch": "mozilla-b2g32_v2_0",
 			"buildername": "b2g_mozilla-b2g32_v2_0_emulator-jb-debug_nightly"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 nightly' triggered this build",
-		"request_ids": [66053714],
+		"request_ids": [
+			66053714
+		],
 		"requesttime": 1427871724,
 		"result": 0,
 		"slave_id": 6905,
@@ -5699,7 +6333,9 @@
 			"product": "Firefox",
 			"project": "",
 			"repository": "",
-			"request_ids": [63938092],
+			"request_ids": [
+				63938092
+			],
 			"request_times": {
 				"63938092": 1425988679
 			},
@@ -5708,7 +6344,9 @@
 			"version": "37.0b4"
 		},
 		"reason": "downstream",
-		"request_ids": [63938092],
+		"request_ids": [
+			63938092
+		],
 		"requesttime": 1425988679,
 		"result": 0,
 		"slave_id": 7150,
@@ -5736,7 +6374,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [59363800],
+			"request_ids": [
+				59363800
+			],
 			"request_times": {
 				"59363800": 1421381638
 			},
@@ -5750,7 +6390,9 @@
 			"stage_platform": "android-api-11"
 		},
 		"reason": "scheduler",
-		"request_ids": [59363800],
+		"request_ids": [
+			59363800
+		],
 		"requesttime": 1421381638,
 		"result": 5,
 		"slave_id": 5171,
@@ -5763,7 +6405,9 @@
 		"id": 55904045,
 		"master_id": 126,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-cen_emu-jb-d_nu-00000000",
 			"branch": "mozilla-central",
 			"buildername": "b2g_mozilla-central_emulator-jb-debug_nonunified",
@@ -5780,7 +6424,9 @@
 			"project": "",
 			"repo_path": "mozilla-central",
 			"repository": "",
-			"request_ids": [58514923],
+			"request_ids": [
+				58514923
+			],
 			"request_times": {
 				"58514923": 1420644652
 			},
@@ -5791,13 +6437,17 @@
 			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
 			"slavename": "bld-linux64-spot-461",
 			"tools_revision": "46c56618f0b1",
-			"tooltool_url_list": ["http://tooltool.pvt.build.mozilla.org/build"],
+			"tooltool_url_list": [
+				"http://tooltool.pvt.build.mozilla.org/build"
+			],
 			"upload_ssh_key": "ffxbld_rsa",
 			"upload_ssh_server": "stage.mozilla.org",
 			"upload_ssh_user": "ffxbld"
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-central periodic' triggered this build",
-		"request_ids": [58514923],
+		"request_ids": [
+			58514923
+		],
 		"requesttime": 1420644652,
 		"result": 0,
 		"slave_id": 7005,
@@ -5822,7 +6472,9 @@
 			"buildnumber": 1,
 			"builduid": "aa0fd0ef0d8d4a1fb93273db885d725a",
 			"comments": "[web-platform-tests] Update metadata for OSX\n",
-			"commit_titles": ["[web-platform-tests] Update metadata for OSX"],
+			"commit_titles": [
+				"[web-platform-tests] Update metadata for OSX"
+			],
 			"forced_clobber": false,
 			"got_revision": "2eaca894da9d",
 			"hashType": "sha512",
@@ -5842,7 +6494,9 @@
 			"purge_target": "16GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [59161361],
+			"request_ids": [
+				59161361
+			],
 			"request_times": {
 				"59161361": 1421229156
 			},
@@ -5858,7 +6512,9 @@
 			"unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/gecko-unsigned-unaligned.apk"
 		},
 		"reason": "scheduler",
-		"request_ids": [59161361],
+		"request_ids": [
+			59161361
+		],
 		"requesttime": 1421229156,
 		"result": 0,
 		"slave_id": 7114,
@@ -5886,7 +6542,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [58463973],
+			"request_ids": [
+				58463973
+			],
 			"request_times": {
 				"58463973": 1420600482
 			},
@@ -5901,7 +6559,9 @@
 			"uploadFiles": "[u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.zip', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/install/sea/firefox-37.0a1.en-US.win32.installer.exe', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/win32/xpi/firefox-37.0a1.en-US.langpack.xpi', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.tests.zip', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.crashreporter-symbols.zip', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.txt', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.json', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.win32.mozinfo.json', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/jsshell-win32.zip', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/host/bin/mar.exe', u'c:/builds/moz2_slave/m-in-w32-nu-000000000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff.exe']"
 		},
 		"reason": "Self-serve: Rebuilt by wkocher@mozilla.com",
-		"request_ids": [58463973],
+		"request_ids": [
+			58463973
+		],
 		"requesttime": 1420600482,
 		"result": 0,
 		"slave_id": 8888,
@@ -5929,7 +6589,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [58269309],
+			"request_ids": [
+				58269309
+			],
 			"request_times": {
 				"58269309": 1420374607
 			},
@@ -5944,7 +6606,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.tar.bz2', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/linux-x86_64/xpi/firefox-37.0a1.en-US.langpack.xpi', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.tests.zip', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.crashreporter-symbols.zip', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.txt', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.json', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.linux-x86_64.mozinfo.json', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/jsshell-linux-x86_64.zip', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/m-in-l64-d-nu-0000000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff']"
 		},
 		"reason": "The Nightly scheduler named 'mozilla-inbound periodic' triggered this build",
-		"request_ids": [58269309],
+		"request_ids": [
+			58269309
+		],
 		"requesttime": 1420374607,
 		"result": 0,
 		"slave_id": 8653,
@@ -5994,7 +6658,9 @@
 			"purge_target": "14GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [59515461],
+			"request_ids": [
+				59515461
+			],
 			"request_times": {
 				"59515461": 1421536684
 			},
@@ -6011,7 +6677,9 @@
 			"who": "evilpies@gmail.com"
 		},
 		"reason": "scheduler",
-		"request_ids": [59515461],
+		"request_ids": [
+			59515461
+		],
 		"requesttime": 1421536684,
 		"result": 0,
 		"slave_id": 8308,
@@ -6039,7 +6707,9 @@
 			"project": "",
 			"repo_path": "integration/mozilla-inbound",
 			"repository": "",
-			"request_ids": [58342340],
+			"request_ids": [
+				58342340
+			],
 			"request_times": {
 				"58342340": 1420493422
 			},
@@ -6054,7 +6724,9 @@
 			"uploadFiles": "[u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.dmg', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/mac64/xpi/firefox-37.0a1.en-US.langpack.xpi', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.tests.zip', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.crashreporter-symbols.zip', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.txt', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.json', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/firefox-37.0a1.en-US.mac64.mozinfo.json', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/jsshell-mac64.zip', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/m-in-osx64-d-nu-00000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff']"
 		},
 		"reason": "The Nightly scheduler named 'mozilla-inbound periodic' triggered this build",
-		"request_ids": [58342340],
+		"request_ids": [
+			58342340
+		],
 		"requesttime": 1420493422,
 		"result": 0,
 		"slave_id": 2049,
@@ -6083,7 +6755,9 @@
 			"project": "",
 			"repo_path": "integration/b2g-inbound",
 			"repository": "",
-			"request_ids": [58995347],
+			"request_ids": [
+				58995347
+			],
 			"request_times": {
 				"58995347": 1421101803
 			},
@@ -6100,7 +6774,9 @@
 			"uploadFiles": "[u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.tar.bz2', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/linux-x86_64/xpi/firefox-38.0a1.en-US.langpack.xpi', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.tests.zip', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.crashreporter-symbols.zip', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.txt', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.json', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/firefox-38.0a1.en-US.linux-x86_64.mozinfo.json', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/jsshell-linux-x86_64.zip', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/b2g-in-l64-nu-0000000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff']"
 		},
 		"reason": "The Nightly scheduler named 'b2g-inbound periodic' triggered this build",
-		"request_ids": [58995347],
+		"request_ids": [
+			58995347
+		],
 		"requesttime": 1421101803,
 		"result": 0,
 		"slave_id": 7118,
@@ -6145,7 +6821,9 @@
 			"purge_target": "14GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [58191688],
+			"request_ids": [
+				58191688
+			],
 			"request_times": {
 				"58191688": 1420186004
 			},
@@ -6161,7 +6839,9 @@
 			"unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/gecko-unsigned-unaligned.apk"
 		},
 		"reason": "The Nightly scheduler named 'mozilla-esr31 nightly' triggered this build",
-		"request_ids": [58191688],
+		"request_ids": [
+			58191688
+		],
 		"requesttime": 1420186004,
 		"result": 0,
 		"slave_id": 8578,
@@ -6209,7 +6889,9 @@
 			"purge_target": "14GB",
 			"purged_clobber": true,
 			"repository": "",
-			"request_ids": [59489798],
+			"request_ids": [
+				59489798
+			],
 			"request_times": {
 				"59489798": 1421493600
 			},
@@ -6225,7 +6907,9 @@
 			"unsignedApkUrl": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/gecko-unsigned-unaligned.apk"
 		},
 		"reason": "scheduler",
-		"request_ids": [59489798],
+		"request_ids": [
+			59489798
+		],
 		"requesttime": 1421493600,
 		"result": 0,
 		"slave_id": 6859,
@@ -6238,7 +6922,9 @@
 		"id": 57951557,
 		"master_id": 130,
 		"properties": {
-			"base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
 			"basedir": "/builds/slave/b2g_m-b34_21_ham_eng_ntly-0000",
 			"branch": "mozilla-b2g34_v2_1",
 			"buildername": "b2g_mozilla-b2g34_v2_1_hamachi_eng_nightly",
@@ -6258,7 +6944,9 @@
 			"repository": ""
 		},
 		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g34_v2_1 nightly' triggered this build",
-		"request_ids": [60764573],
+		"request_ids": [
+			60764573
+		],
 		"requesttime": 1422778334,
 		"result": 0,
 		"slave_id": 9827,
@@ -6279,290 +6967,403 @@
 			"buildername": "b2g_mozilla-inbound_win32_gecko build"
 		},
 		"reason": "scheduler",
-		"request_ids": [60653044],
+		"request_ids": [
+			60653044
+		],
 		"requesttime": 1422618940,
 		"result": 0,
 		"slave_id": 9688,
 		"starttime": 1422619498
 	},
 	{
-	    "builder_id": 242291,
-	    "buildnumber": 23,
-	    "endtime": 1422095380,
-	    "id": 57326305,
-	    "master_id": 123,
-	    "properties": {
-	        "appName": "B2G",
-	        "appVersion": "38.0a1",
-	        "aws_ami_id": "ami-36502b5e",
-	        "aws_instance_type": "r3.xlarge",
-	        "basedir": "/builds/slave/m-cen-linux32_g_lz-ntly-000000",
-	        "branch": "mozilla-central",
-	        "builddir": "m-cen-linux32_g_lz-ntly-000000",
-	        "buildername": "b2g_mozilla-central_linux32_gecko_localizer nightly",
-	        "buildnumber": 23,
-	        "builduid": "04f109dd1ab84a3a84577d96f6c2b02d",
-	        "comments": "",
-	        "forced_clobber": false,
-	        "gaiaRepoPath": "integration/gaia-central",
-	        "gaiaRevision": "a0f2cafbae71c95e9bc97d253ecacbc079e1e138",
-	        "got_revision": "c0f88b376e33"
-	    },
-	    "reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
-	    "request_ids": [60089793],
-	    "requesttime": 1422090129,
-	    "result": 0,
-	    "slave_id": 6905,
-	    "starttime": 1422090963
+		"builder_id": 242291,
+		"buildnumber": 23,
+		"endtime": 1422095380,
+		"id": 57326305,
+		"master_id": 123,
+		"properties": {
+			"appName": "B2G",
+			"appVersion": "38.0a1",
+			"aws_ami_id": "ami-36502b5e",
+			"aws_instance_type": "r3.xlarge",
+			"basedir": "/builds/slave/m-cen-linux32_g_lz-ntly-000000",
+			"branch": "mozilla-central",
+			"builddir": "m-cen-linux32_g_lz-ntly-000000",
+			"buildername": "b2g_mozilla-central_linux32_gecko_localizer nightly",
+			"buildnumber": 23,
+			"builduid": "04f109dd1ab84a3a84577d96f6c2b02d",
+			"comments": "",
+			"forced_clobber": false,
+			"gaiaRepoPath": "integration/gaia-central",
+			"gaiaRevision": "a0f2cafbae71c95e9bc97d253ecacbc079e1e138",
+			"got_revision": "c0f88b376e33"
+		},
+		"reason": "The Nightly scheduler named 'b2g_mozilla-central nightly' triggered this build",
+		"request_ids": [
+			60089793
+		],
+		"requesttime": 1422090129,
+		"result": 0,
+		"slave_id": 6905,
+		"starttime": 1422090963
 	},
 	{
-	    "builder_id": 441433,
-	    "buildnumber": 0,
-	    "endtime": 1427839126,
-	    "id": 62760179,
-	    "master_id": 152,
+		"builder_id": 441433,
+		"buildnumber": 0,
+		"endtime": 1427839126,
+		"id": 62760179,
+		"master_id": 152,
+		"properties": {
+			"basedir": "/builds/slave/date_source",
+			"branch": "date",
+			"buildername": "date_source",
+			"buildnumber": 0,
+			"builduid": "2ada9a990dd34a51a36bf6e67b3f502a",
+			"got_revision": "0fe97445f711",
+			"log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-source/1427836371/date_source-bm70-build1-build0.txt.gz",
+			"master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
+			"platform": "source",
+			"product": "firefox",
+			"project": "",
+			"repo_path": "projects/date",
+			"repository": "",
+			"request_ids": [
+				66006919
+			],
+			"request_times": {
+				"66006919": 1427836349
+			},
+			"revision": "0fe97445f711",
+			"scheduler": "date_start_promotion",
+			"script_repo_revision": "80b67edbcbac",
+			"script_repo_url": "https://hg.mozilla.org/users/nthomas_mozilla.com/mozharness-build-promotion",
+			"slavename": "bld-linux64-spot-246",
+			"stage_platform": "source",
+			"toolsdir": "/builds/slave/date_source/scripts"
+		},
+		"reason": "scheduler",
+		"request_ids": [
+			66006919
+		],
+		"requesttime": 1427836349,
+		"result": 0,
+		"slave_id": 9825,
+		"starttime": 1427836352
+	},
+	{
+		"builder_id": 243632,
+		"buildnumber": 1148,
+		"endtime": 1420208983,
+		"id": 55603968,
+		"master_id": 132,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/l64-br-haz_m-in_dep-0000000000",
+			"branch": "mozilla-inbound",
+			"buildername": "linux64-br-haz_mozilla-inbound_dep",
+			"buildnumber": 1148,
+			"builduid": "79d90a8282a34f5c808cc307805cb827",
+			"commit_titles": [
+				"merge mozilla-inbound to mozilla-central a=merge",
+				"Bug 1116027 - Switch to tab not available in Recent Tabs Panel. r=margaret",
+				"Bug 1115780 - increase timeout on audionode destruction tests. r=vp",
+				"Bug 1114344 - Add background-clip: content-box to the #dialogBox on in-content dialogs. r=jaws",
+				"Bug 1104213 - add stack traces to timeline markers. r=smaug r=vporof",
+				"Bug 1000993 - Allows WebIDE to run commands before pushing apps. r=jryans",
+				"Bug 990566 - Remove strings made unused by bug 738796. r=dao",
+				"Bug 1110009 - Show a warning icon in the legacy-Sync-to-FxA migration menu panel items. r=markh",
+				"Bug 1114461 - handle failure fetching sync migration sentinel. r=rnewman",
+				"Bug 1116872 - Don't crash on startup when CastDevice.getFromBundle returns null. r=mfinkle"
+			]
+		},
+		"reason": "scheduler",
+		"request_ids": [
+			58197520
+		],
+		"requesttime": 1420203910,
+		"result": 0,
+		"slave_id": 6853,
+		"starttime": 1420204337
+	},
+	{
+		"builder_id": 300446,
+		"buildnumber": 4,
+		"endtime": 1422210820,
+		"id": 57384396,
+		"master_id": 130,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/b2g_m-b32_20_emu-kk-d_dep-0000",
+			"branch": "mozilla-b2g32_v2_0",
+			"buildername": "b2g_mozilla-b2g32_v2_0_emulator-kk-debug_periodic",
+			"buildnumber": 4,
+			"builduid": "2a5428fb54ce4498817a1549b5f2020e",
+			"compare_locales_revision": "1fc4e9bc8287",
+			"gaia_revision": "2989f2b2bd12fcc0e9c017d2db766e76a55873b8",
+			"gecko_revision": "92d7abfe8ad7",
+			"hgurl": "https://hg.mozilla.org/",
+			"master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/"
+		},
+		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 periodic' triggered this build",
+		"request_ids": [
+			60148443
+		],
+		"requesttime": 1422196214,
+		"result": 0,
+		"slave_id": 6865,
+		"starttime": 1422196275
+	},
+	{
+		"builder_id": 354573,
+		"buildnumber": 27,
+		"endtime": 1427787271,
+		"id": 62691773,
+		"master_id": 152,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/b2g_fx-team_n5-l_eng_dep-00000",
+			"branch": "fx-team",
+			"buildername": "b2g_fx-team_nexus-5-l_eng_periodic",
+			"buildnumber": 27,
+			"builduid": "0fc97f8f84a64bb397cbbc011a07bccd",
+			"compare_locales_revision": "1fc4e9bc8287"
+		},
+		"reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
+		"request_ids": [
+			65932365
+		],
+		"requesttime": 1427783406,
+		"result": 0,
+		"slave_id": 9833,
+		"starttime": 1427783447
+	},
+	{
+		"builder_id": 239189,
+		"buildnumber": 4549,
+		"endtime": 1423392282,
+		"id": 58523399,
+		"master_id": 128,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/b2g_try_emu-kk_dep-00000000000",
+			"branch": "try",
+			"buildername": "b2g_try_emulator-kk_dep",
+			"buildnumber": 4549,
+			"builduid": "872f40345f8b429788711e54320db32f",
+			"commit_titles": [
+				"try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+				"try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+				"try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
+				"Fixup add new emulator_test.yml",
+				"Try using ubuntu 14.04 to run emulator tests",
+				"Try to enable xpcshell tests for emulator-kk",
+				"Enable reftest/mnw/mn suites for emulator-kk",
+				"Fix mulet symbol paths for mochitests",
+				"Attempt to enable some emulator-kk tests",
+				"(Do not land) use emulator-kk-8x to test how fast it can go on bigger machine",
+				"try: -b do -p emulator -u xpcshell +tc",
+				"Increase xpcshell timeout to closer to 2 hours",
+				"try: -b do -p emulator -u mochitest +tc",
+				"try: -b do -p emulator -u mochitest +tc"
+			],
+			"compare_locales_revision": "1fc4e9bc8287",
+			"gaia_revision": "bbc853ff4d1bffad41d19bb47e066e3ba21c6709"
+		},
+		"reason": "scheduler",
+		"request_ids": [
+			61384394
+		],
+		"requesttime": 1423383212,
+		"result": 0,
+		"slave_id": 8629,
+		"starttime": 1423383645
+	},
+	{
+		"builder_id": 392757,
+		"buildnumber": 0,
+		"endtime": 1424188175,
+		"id": 59184319,
+		"master_id": 152,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/b2g_m-b37_22_nexus-4_dep-00000",
+			"branch": "mozilla-b2g37_v2_2",
+			"buildername": "b2g_mozilla-b2g37_v2_2_nexus-4_periodic",
+			"buildnumber": 0,
+			"builduid": "d0fdad1cac564bfe8cd0fed5b0312695",
+			"compare_locales_revision": "1fc4e9bc8287",
+			"gaia_revision": "ea64caf6d4ab03fc4472eca9f41f20d651d55fa9",
+			"gecko_revision": "93e8f2a8cffe",
+			"hgurl": "https://hg.mozilla.org/",
+			"master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
+		},
+		"reason": "The Nightly scheduler named 'b2g_mozilla-b2g37_v2_2 periodic' triggered this build",
+		"request_ids": [
+			62108376
+		],
+		"requesttime": 1424183402,
+		"result": 0,
+		"slave_id": 9861,
+		"starttime": 1424183721
+	},
+	{
+		"builder_id": 354386,
+		"buildnumber": 85,
+		"endtime": 1429540820,
+		"id": 64206947,
+		"master_id": 152,
+		"properties": {
+			"base_bundle_urls": [
+				"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"
+			],
+			"basedir": "/builds/slave/b2g_b2g-in_flm-kk_eng-d_dep-00",
+			"branch": "b2g-inbound",
+			"buildername": "b2g_b2g-inbound_flame-kk_eng-debug_periodic"
+		},
+		"reason": "The Nightly scheduler named 'b2g_b2g-inbound periodic' triggered this build",
+		"request_ids": [
+			67593726
+		],
+		"requesttime": 1429533010,
+		"result": 0,
+		"slave_id": 9825,
+		"starttime": 1429533951
+	},
+	{
+		"builder_id": 542704,
+		"buildnumber": 147,
+		"endtime": 1450803943,
+		"id": 83028052,
+		"master_id": 165,
+		"properties": {
+			"basedir": "/builds/slave/test",
+			"blobber_files": "{\"g2_raw.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/3971d4513fab121e852d38f8f5812a4f7d900ce635907483a5017e8632589e4c072b2a0190983ef810e895598919585567dccda6ddf68d08a15e4ac131d2b0ad\", \"g2_errorsummary.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/ca5954ec9335a8734cf4db67dd32b5476f1b84877002620b1671ec91b1059e3f2500ce53271d2cafd51aba89538861070bda954a396c46cad007abf541e0f930\"}",
+			"branch": "fx-team",
+			"build_url": "https://queue.taskcluster.net/v1/task/nwiC3mS_SDiQ9RLmSWxU6Q/artifacts/public/build/firefox-46.0a1.en-US.mac.dmg",
+			"builddir": "fx-team_yosemite_r7_test-g2",
+			"buildername": "Rev7 MacOSX Yosemite 10.10.5 fx-team talos g2",
+			"buildnumber": 147,
+			"builduid": "cba2fda31a834edb98ee61aca1cb28d8",
+			"log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-macosx64/1450794808/fx-team_yosemite_r7_test-g2-bm107-tests1-macosx-build147.txt.gz",
+			"master": "http://buildbot-master107.bb.releng.scl3.mozilla.com:8201/",
+			"pgo_build": "False",
+			"platform": "yosemite_r7",
+			"product": "firefox",
+			"project": "",
+			"repo_path": "integration/fx-team",
+			"repository": "",
+			"request_ids": [
+				91751151
+			],
+			"request_times": {
+				"91751151": 1450801527
+			},
+			"revision": "254e1fdb70f5f83eff87ef8a627774cb9c745cc3",
+			"scheduler": "tests-fx-team-macosx64-talos",
+			"script_repo_revision": "production",
+			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
+			"slavebuilddir": "test",
+			"slavename": "t-yosemite-r7-0042",
+			"stage_platform": "macosx64"
+		},
+		"reason": "scheduler",
+		"request_ids": [
+			91751151
+		],
+		"requesttime": 1450801527,
+		"result": 0,
+		"slave_id": 11222,
+		"starttime": 1450802308
+	},
+	{
+		"builder_id": 551058,
+		"buildnumber": 1,
+		"endtime": 1451108875,
+		"id": 83228670,
+		"master_id": 152,
+		"properties": {
+			"basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
+			"bouncer_enabled": true,
+			"branch": "releases/date",
+			"build_number": 1,
+			"buildername": "release-date_firefox_bncr_sub",
+			"buildnumber": 1,
+			"log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm70-build1-build1.txt.gz",
+			"master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
+			"partial_versions": "44.0b2,",
+			"product": "firefox",
+			"project": "",
+			"release_promotion": true,
+			"repository": "",
+			"request_ids": [
+				92019451
+			],
+			"request_times": {
+				"92019451": 1451108833
+			},
+			"revision": "ab1fe3be773ba1f0d0f50cb473989bf3bfa0e6c3",
+			"script_repo_url": "https://hg.mozilla.org/build/mozharness",
+			"slavename": "bld-linux64-spot-129",
+			"taskId": "T3UOeJ1HRsq2EKWD7QDi2Q",
+			"version": "44.0b26"
+		},
+		"reason": "Created by BBB for task T3UOeJ1HRsq2EKWD7QDi2Q",
+		"request_ids": [
+			92019451
+		],
+		"requesttime": 1451108833,
+		"result": 4,
+		"slave_id": 8653,
+		"starttime": 1451108874
+
+	},
+	{
+	    "builder_id": 550895,
+	    "buildnumber": 6,
+	    "endtime": 1452217718,
+	    "id": 83996637,
+	    "master_id": 186,
 	    "properties": {
-	        "basedir": "/builds/slave/date_source",
-	        "branch": "date",
-	        "buildername": "date_source",
-	        "buildnumber": 0,
-	        "builduid": "2ada9a990dd34a51a36bf6e67b3f502a",
-	        "got_revision": "0fe97445f711",
-	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-source/1427836371/date_source-bm70-build1-build0.txt.gz",
-	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
-	        "platform": "source",
+	        "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
+	        "bouncer_enabled": true,
+	        "branch": "releases/date",
+	        "build_number": 2,
+	        "buildername": "release-date_firefox_bncr_sub",
+	        "buildnumber": 6,
+	        "log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz",
+	        "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/",
+	        "partial_versions": "44.0b2,",
 	        "product": "firefox",
 	        "project": "",
+	        "release_promotion": true,
 	        "repo_path": "projects/date",
 	        "repository": "",
-	        "request_ids": [66006919],
-	        "request_times": {"66006919": 1427836349},
-	        "revision": "0fe97445f711",
-	        "scheduler": "date_start_promotion",
-	        "script_repo_revision": "80b67edbcbac",
-	        "script_repo_url": "https://hg.mozilla.org/users/nthomas_mozilla.com/mozharness-build-promotion",
-	        "slavename": "bld-linux64-spot-246",
-	        "stage_platform": "source",
-	        "toolsdir": "/builds/slave/date_source/scripts"
-	    },
-	    "reason": "scheduler",
-	    "request_ids": [66006919],
-	    "requesttime": 1427836349,
-	    "result": 0,
-	    "slave_id": 9825,
-	    "starttime": 1427836352
-	},
-	{
-	    "builder_id": 243632,
-	    "buildnumber": 1148,
-	    "endtime": 1420208983,
-	    "id": 55603968,
-	    "master_id": 132,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/l64-br-haz_m-in_dep-0000000000",
-	        "branch": "mozilla-inbound",
-	        "buildername": "linux64-br-haz_mozilla-inbound_dep",
-	        "buildnumber": 1148,
-	        "builduid": "79d90a8282a34f5c808cc307805cb827",
-	        "commit_titles": [
-	            "merge mozilla-inbound to mozilla-central a=merge",
-	            "Bug 1116027 - Switch to tab not available in Recent Tabs Panel. r=margaret",
-	            "Bug 1115780 - increase timeout on audionode destruction tests. r=vp",
-	            "Bug 1114344 - Add background-clip: content-box to the #dialogBox on in-content dialogs. r=jaws",
-	            "Bug 1104213 - add stack traces to timeline markers. r=smaug r=vporof",
-	            "Bug 1000993 - Allows WebIDE to run commands before pushing apps. r=jryans",
-	            "Bug 990566 - Remove strings made unused by bug 738796. r=dao",
-	            "Bug 1110009 - Show a warning icon in the legacy-Sync-to-FxA migration menu panel items. r=markh",
-	            "Bug 1114461 - handle failure fetching sync migration sentinel. r=rnewman",
-	            "Bug 1116872 - Don't crash on startup when CastDevice.getFromBundle returns null. r=mfinkle"
-	        ]
-	    },
-	    "reason": "scheduler",
-	    "request_ids": [58197520],
-	    "requesttime": 1420203910,
-	    "result": 0,
-	    "slave_id": 6853,
-	    "starttime": 1420204337
-	},
-	{
-	    "builder_id": 300446,
-	    "buildnumber": 4,
-	    "endtime": 1422210820,
-	    "id": 57384396,
-	    "master_id": 130,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/b2g_m-b32_20_emu-kk-d_dep-0000",
-	        "branch": "mozilla-b2g32_v2_0",
-	        "buildername": "b2g_mozilla-b2g32_v2_0_emulator-kk-debug_periodic",
-	        "buildnumber": 4,
-	        "builduid": "2a5428fb54ce4498817a1549b5f2020e",
-	        "compare_locales_revision": "1fc4e9bc8287",
-	        "gaia_revision": "2989f2b2bd12fcc0e9c017d2db766e76a55873b8",
-	        "gecko_revision": "92d7abfe8ad7",
-	        "hgurl": "https://hg.mozilla.org/",
-	        "master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/"
-	    },
-	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g32_v2_0 periodic' triggered this build",
-	    "request_ids": [60148443],
-	    "requesttime": 1422196214,
-	    "result": 0,
-	    "slave_id": 6865,
-	    "starttime": 1422196275
-	},
-	{
-	    "builder_id": 354573,
-	    "buildnumber": 27,
-	    "endtime": 1427787271,
-	    "id": 62691773,
-	    "master_id": 152,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/b2g_fx-team_n5-l_eng_dep-00000",
-	        "branch": "fx-team",
-	        "buildername": "b2g_fx-team_nexus-5-l_eng_periodic",
-	        "buildnumber": 27,
-	        "builduid": "0fc97f8f84a64bb397cbbc011a07bccd",
-	        "compare_locales_revision": "1fc4e9bc8287"
-	    },
-	    "reason": "The Nightly scheduler named 'b2g_fx-team periodic' triggered this build",
-	    "request_ids": [65932365],
-	    "requesttime": 1427783406,
-	    "result": 0,
-	    "slave_id": 9833,
-	    "starttime": 1427783447
-	},
-	{
-	    "builder_id": 239189,
-	    "buildnumber": 4549,
-	    "endtime": 1423392282,
-	    "id": 58523399,
-	    "master_id": 128,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/b2g_try_emu-kk_dep-00000000000",
-	        "branch": "try",
-	        "buildername": "b2g_try_emulator-kk_dep",
-	        "buildnumber": 4549,
-	        "builduid": "872f40345f8b429788711e54320db32f",
-	        "commit_titles": [
-	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
-	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
-	            "try: -b do -p emulator-kk,emulator,emulator-jb,linux64-mulet,linux64_gecko -u all +tc",
-	            "Fixup add new emulator_test.yml",
-	            "Try using ubuntu 14.04 to run emulator tests",
-	            "Try to enable xpcshell tests for emulator-kk",
-	            "Enable reftest/mnw/mn suites for emulator-kk",
-	            "Fix mulet symbol paths for mochitests",
-	            "Attempt to enable some emulator-kk tests",
-	            "(Do not land) use emulator-kk-8x to test how fast it can go on bigger machine",
-	            "try: -b do -p emulator -u xpcshell +tc",
-	            "Increase xpcshell timeout to closer to 2 hours",
-	            "try: -b do -p emulator -u mochitest +tc",
-	            "try: -b do -p emulator -u mochitest +tc"
-	        ],
-	        "compare_locales_revision": "1fc4e9bc8287",
-	        "gaia_revision": "bbc853ff4d1bffad41d19bb47e066e3ba21c6709"
-	    },
-	    "reason": "scheduler",
-	    "request_ids": [61384394],
-	    "requesttime": 1423383212,
-	    "result": 0,
-	    "slave_id": 8629,
-	    "starttime": 1423383645
-	},
-	{
-	    "builder_id": 392757,
-	    "buildnumber": 0,
-	    "endtime": 1424188175,
-	    "id": 59184319,
-	    "master_id": 152,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/b2g_m-b37_22_nexus-4_dep-00000",
-	        "branch": "mozilla-b2g37_v2_2",
-	        "buildername": "b2g_mozilla-b2g37_v2_2_nexus-4_periodic",
-	        "buildnumber": 0,
-	        "builduid": "d0fdad1cac564bfe8cd0fed5b0312695",
-	        "compare_locales_revision": "1fc4e9bc8287",
-	        "gaia_revision": "ea64caf6d4ab03fc4472eca9f41f20d651d55fa9",
-	        "gecko_revision": "93e8f2a8cffe",
-	        "hgurl": "https://hg.mozilla.org/",
-	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
-	    },
-	    "reason": "The Nightly scheduler named 'b2g_mozilla-b2g37_v2_2 periodic' triggered this build",
-	    "request_ids": [62108376],
-	    "requesttime": 1424183402,
-	    "result": 0,
-	    "slave_id": 9861,
-	    "starttime": 1424183721
-	},
-	{
-	    "builder_id": 354386,
-	    "buildnumber": 85,
-	    "endtime": 1429540820,
-	    "id": 64206947,
-	    "master_id": 152,
-	    "properties": {
-	        "base_bundle_urls": ["https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles"],
-	        "basedir": "/builds/slave/b2g_b2g-in_flm-kk_eng-d_dep-00",
-	        "branch": "b2g-inbound",
-	        "buildername": "b2g_b2g-inbound_flame-kk_eng-debug_periodic"
-	    },
-	    "reason": "The Nightly scheduler named 'b2g_b2g-inbound periodic' triggered this build",
-	    "request_ids": [67593726],
-	    "requesttime": 1429533010,
-	    "result": 0,
-	    "slave_id": 9825,
-	    "starttime": 1429533951
-	},
-	{
-	    "builder_id": 542704,
-	    "buildnumber": 147,
-	    "endtime": 1450803943,
-	    "id": 83028052,
-	    "master_id": 165,
-	    "properties": {
-	        "basedir": "/builds/slave/test",
-	        "blobber_files": "{\"g2_raw.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/3971d4513fab121e852d38f8f5812a4f7d900ce635907483a5017e8632589e4c072b2a0190983ef810e895598919585567dccda6ddf68d08a15e4ac131d2b0ad\", \"g2_errorsummary.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team/sha512/ca5954ec9335a8734cf4db67dd32b5476f1b84877002620b1671ec91b1059e3f2500ce53271d2cafd51aba89538861070bda954a396c46cad007abf541e0f930\"}",
-	        "branch": "fx-team",
-	        "build_url": "https://queue.taskcluster.net/v1/task/nwiC3mS_SDiQ9RLmSWxU6Q/artifacts/public/build/firefox-46.0a1.en-US.mac.dmg",
-	        "builddir": "fx-team_yosemite_r7_test-g2",
-	        "buildername": "Rev7 MacOSX Yosemite 10.10.5 fx-team talos g2",
-	        "buildnumber": 147,
-	        "builduid": "cba2fda31a834edb98ee61aca1cb28d8",
-	        "log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-macosx64/1450794808/fx-team_yosemite_r7_test-g2-bm107-tests1-macosx-build147.txt.gz",
-	        "master": "http://buildbot-master107.bb.releng.scl3.mozilla.com:8201/",
-	        "pgo_build": "False",
-	        "platform": "yosemite_r7",
-	        "product": "firefox",
-	        "project": "",
-	        "repo_path": "integration/fx-team",
-	        "repository": "",
-	        "request_ids": [91751151],
-	        "request_times": {"91751151": 1450801527},
-	        "revision": "254e1fdb70f5f83eff87ef8a627774cb9c745cc3",
-	        "scheduler": "tests-fx-team-macosx64-talos",
+	        "request_ids": [93080041],
+	        "request_times": {"93080041": 1452217715},
+	        "revision": "53f6e3a60916b82de924c8878249930453af9312",
 	        "script_repo_revision": "production",
 	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
-	        "slavebuilddir": "test",
-	        "slavename": "t-yosemite-r7-0042",
-	        "stage_platform": "macosx64"
+	        "slavename": "bld-linux64-spot-368",
+	        "taskId": "BczAgDHfQdueE5rocPgjnQ",
+	        "version": "44.0b31"
 	    },
-	    "reason": "scheduler",
-	    "request_ids": [91751151],
-	    "requesttime": 1450801527,
-	    "result": 0,
-	    "slave_id": 11222,
-	    "starttime": 1450802308
+	    "reason": "The web-page 'rebuild' button was pressed by '<unknown>': \n",
+	    "request_ids": [93080041],
+	    "requesttime": 1452217715,
+	    "result": 2,
+	    "slave_id": 6964,
+	    "starttime": 1452217716
 	}
-
-
-
-
-
-
 
 
 ]

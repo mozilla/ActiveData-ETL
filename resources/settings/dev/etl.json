@@ -90,23 +90,6 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
 			"name": "pulse2perfherder",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -179,7 +162,7 @@
 				"key_format": "a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-dev",
+				"name": "active-data-index-unit-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",

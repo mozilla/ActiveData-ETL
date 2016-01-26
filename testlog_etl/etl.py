@@ -256,6 +256,9 @@ class ETL(Thread):
                             todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
                         else:
                             todo = self.work_queue.pop()
+                    if not todo:
+                        break  # please_stop MUST HAVE BEEN TRIGGERED
+
                 else:
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
@@ -264,6 +267,10 @@ class ETL(Thread):
                     if todo == None:
                         please_stop.go()
                         return
+
+                if todo == None:
+                    Log.warning("Should never happen")
+                    continue
 
                 if isinstance(todo, unicode):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
@@ -351,7 +358,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id(s) to process.  Use \"..\" for a range.",
                 "type": str,
                 "dest": "id",

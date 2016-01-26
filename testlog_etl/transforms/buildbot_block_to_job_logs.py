@@ -47,7 +47,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 cause=e
             )
 
-        if data.action.start_time<TOO_OLD:
+        if data.action.start_time < TOO_OLD:
             Log.warning("Do not try to process old buildbot logs")
             return set()
 
@@ -134,6 +134,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
+                if "Problem with calculating durations" in e:
+                    Log.error("Prioritized error", cause=e)
+
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
                 data.etl.error = "Text log unreadable"
                 output.append(data)

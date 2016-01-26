@@ -43,6 +43,16 @@ class BuildbotTranslator(object):
             output.properties, output.other = normalize_other(props)
             return output
 
+        if props.taskId and data.reason.startswith("Created by BBB for task "):
+            output.task_id = props.taskId
+            output.properties, output.other = normalize_other(props)
+            return output
+
+        if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
+            output.task_id = props.taskId
+            output.properties, output.other = normalize_other(props)
+            return output
+
         output.action.job_number = props.buildnumber
         for k, v in props.request_times.items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
