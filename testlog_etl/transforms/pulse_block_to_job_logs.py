@@ -23,7 +23,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
 from testlog_etl.imports import buildbot
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
+from testlog_etl.transforms import EtlHeadGenerator
 
 _ = convert
 DEBUG = False
