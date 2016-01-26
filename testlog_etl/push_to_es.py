@@ -87,14 +87,14 @@ def main():
         }
 
         if settings.args.reset:
-            c = elasticsearch.Cluster(settings.elasticsearch)
+            cluster = elasticsearch.Cluster(settings.elasticsearch)
             alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
-            index = c.get_prototype(alias)[0]
+            index = cluster.get_prototype(alias)[0]
             if index:
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                c.create_index(settings=settings.elasticsearch)
+                cluster.create_index(settings=settings.elasticsearch)
                 Log.alert("Done.  Exiting.")
                 return
 

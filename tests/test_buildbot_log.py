@@ -83,7 +83,7 @@ class TestBuildbotLogs(FuzzyTestCase):
         self.assertEqual(result, expecting)
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/thunderbird/tinderbox-builds/comm-central-linux-debug/1452594999/comm-central-linux-debug-bm73-build1-build9.txt.gz"
+        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-linux64/1453474887/fx-team_ubuntu64_vm_test-web-platform-tests-3-bm124-tests1-linux64-build7.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
         # for i, l in enumerate(response._all_lines(encoding="latin1")):
