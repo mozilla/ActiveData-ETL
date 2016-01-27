@@ -16,7 +16,7 @@ from pyLibrary.env.big_data import GzipLines
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.timer import Timer
-from testlog_etl.transforms.pulse_block_to_unittest_logs import verify_blobber_file
+from testlog_etl.transforms import verify_blobber_file
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
 

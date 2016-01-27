@@ -23,7 +23,7 @@ from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
 from testlog_etl.imports import buildbot
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
+from testlog_etl.transforms import EtlHeadGenerator
 
 _ = convert
 DEBUG = False
@@ -548,6 +548,8 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
     elif data[expected] and data[duplicate] and data[expected] in data[duplicate]:
         data[expected] = data[duplicate]
         data[duplicate] = None
+    elif data[expected] and not data[duplicate]:
+        data[duplicate] = None
     else:
         if warning:
             if not from_url:
@@ -556,7 +558,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-win32-debug/1449494249/mozilla-central_xp-ix-debug_test-mochitest-devtools-chrome-4-bm110-tests1-windows-build28.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/b2g/tinderbox-builds/mozilla-central-emulator/1453460790/mozilla-central_ubuntu64_vm-b2g-emulator_test-mochitest-8-bm52-tests1-linux64-build4.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
     # for i, l in enumerate(response._all_lines(encoding="latin1")):
     #     try:

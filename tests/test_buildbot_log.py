@@ -69,7 +69,6 @@ class TestBuildbotLogs(FuzzyTestCase):
         }, "file:///")
         parse_day(settings, filename, force=True)
 
-
     def test_decode_quoted_dict(self):
         test = "[{u'url': u'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2015/07/2015-07-09-00-40-07-mozilla-aurora/firefox-41.0a2.en-US.linux-x86_64.partial.20150708004005-20150709004007.mar', u'hash': u'0e4c731b2c9089a8c085d6abbeffa09aeaac4a142c6caed094c64f62c639143f27dc8d5ee2fddb988e5ea208a25a178f6d7fa8cf3e293375b493eab16ac1f71f', u'from_buildid': u'20150708004005', u'size': 5427986}]"
         expecting = [{
@@ -83,7 +82,7 @@ class TestBuildbotLogs(FuzzyTestCase):
         self.assertEqual(result, expecting)
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/thunderbird/tinderbox-builds/comm-central-linux-debug/1452594999/comm-central-linux-debug-bm73-build1-build9.txt.gz"
+        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-linux64/1453474887/fx-team_ubuntu64_vm_test-web-platform-tests-3-bm124-tests1-linux64-build7.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
         # for i, l in enumerate(response._all_lines(encoding="latin1")):
