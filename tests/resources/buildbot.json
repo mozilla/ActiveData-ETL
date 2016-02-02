@@ -7447,7 +7447,65 @@
 	    "result": 0,
 	    "slave_id": 9315,
 	    "starttime": 1454028179
+	},
+	{
+	    "builder_id": 557533,
+	    "buildnumber": 46,
+	    "endtime": 1454111773,
+	    "id": 85984817,
+	    "master_id": 193,
+	    "properties": {
+	        "appName": "Fennec",
+	        "appVersion": "47.0a1",
+	        "basedir": "/builds/slave/try-and-api-15-000000000000000",
+	        "branch": "try",
+	        "buildername": "Android armv7 API 15+ try build",
+	        "buildnumber": 46,
+	        "builduid": "815e2b08dcf84b54bb8df96658d2a6e0",
+	        "comments": "try: -b do -p all -u all[Ubuntu,-x64] -t none[Ubuntu,-x64]",
+	        "commit_titles": [
+	            "try: -b do -p all -u all[Ubuntu,-x64] -t none[Ubuntu,-x64]",
+	            "Bug 1240651 - Annotate addonId into crash report (r=bholley)"
+	        ],
+	        "completeMarHash": "54d128c62b9c0eb9cb0e99bde84b018e2796f30706f91295469226ae97275651e6d7fb021196fb19c001a52c137aaec236379838b82f66ad88f6f72f24e299df",
+	        "completeMarSize": "42691440",
+	        "completeMarUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.apk",
+	        "got_revision": "3c8468036128",
+	        "jsshellUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/jsshell-android-arm.zip",
+	        "log_url": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/try-android-api-15-bm76-try1-build46.txt.gz",
+	        "master": "http://buildbot-master76.bb.releng.use1.mozilla.com:8101/",
+	        "packageFilename": "fennec-47.0a1.en-US.android-arm.apk",
+	        "packageUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.apk",
+	        "platform": "android-api-15",
+	        "product": "mobile",
+	        "project": "",
+	        "repo_path": "try",
+	        "repository": "",
+	        "request_ids": [95918926],
+	        "request_times": {"95918926": 1454109685},
+	        "revision": "3c846803612848895bdbcbf3ad34f9920c6b5663",
+	        "robocopApkUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/robocop.apk",
+	        "scheduler": "try-mobile",
+	        "script_repo_revision": "3c846803612848895bdbcbf3ad34f9920c6b5663",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavename": "try-linux64-spot-004",
+	        "sourcestamp": "3c846803612848895bdbcbf3ad34f9920c6b5663",
+	        "stage_platform": "android-api-15",
+	        "symbolsUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.crashreporter-symbols.zip",
+	        "testPackagesUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/test_packages.json",
+	        "testsUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.web-platform.tests.zip",
+	        "toolsdir": "/builds/slave/try-and-api-15-000000000000000/scripts",
+	        "unsignedApkUrl": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/gecko-unsigned-unaligned.apk",
+	        "uploadFiles": "[u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.apk', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/mozharness.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.common.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.cppunittest.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.xpcshell.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.mochitest.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.talos.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.reftest.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.web-platform.tests.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.crashreporter-symbols.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.txt', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.json', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.mozinfo.json', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/test_packages.json', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/jsshell-android-arm.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/sccache.log.gz', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/gecko-unsigned-unaligned.apk', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/robocop.apk', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec_ids.txt', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview_library/geckoview_library.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview_library/geckoview_assets.zip', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckolibs-20160129152309.aar', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckolibs-20160129152309.aar.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckolibs-20160129152309.pom', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckolibs-20160129152309.pom.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/ivy-geckolibs-20160129152309.xml', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/ivy-geckolibs-20160129152309.xml.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview-20160129152309.aar', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview-20160129152309.aar.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview-20160129152309.pom', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/geckoview-20160129152309.pom.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/ivy-geckoview-20160129152309.xml', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/ivy-geckoview-20160129152309.xml.sha1', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/host/bin/mar', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/host/bin/mbsdiff', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.checksums', u'/builds/slave/try-and-api-15-000000000000000/build/src/obj-firefox/dist/fennec-47.0a1.en-US.android-arm.checksums.asc']"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [95918926],
+	    "requesttime": 1454109685,
+	    "result": 0,
+	    "slave_id": 6707,
+	    "starttime": 1454109700
 	}
+
 
 
 
