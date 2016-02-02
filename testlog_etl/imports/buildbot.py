@@ -398,7 +398,7 @@ def normalize_other(other):
     the buildbot properties are unlimited in thie number of keys
     """
     known = {}
-    unknown=[]
+    unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
         if not v:
@@ -534,10 +534,12 @@ TEST_PLATFORMS = {
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.3 armv7 API 15+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.3 Emulator": {"run": {"machine": {"os": "android 4.3", "type": "emulator"}}, "build": {"platform": "android"}},
-    "Android armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
-    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 10+": {"run": {"machine": {"os": "android 2.3.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 15+": {"run": {"machine": {"os": "android 4.0.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "b2g_emulator-kk_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame"}},
     "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
@@ -605,6 +607,7 @@ ALLOWED_OS = [
     "android 4.0",
     "android 4.2",
     "android 4.3",
+    "android 4.0.3",
     "b2g",
     "lion 10.7",
     "macosx",
@@ -624,8 +627,10 @@ KNOWN_PLATFORM = {
     "android-debug": {"build": {"platform": "android", "type": ["debug"]}},
     "android-api-9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
     "android-api-9-debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "android-api-11": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android"}},
-    "android-api-11-debug": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-11": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android"}},
+    "android-api-11-debug": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-15": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android"}},
+    "android-api-15-debug": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android", "type": ["debug"]}},
     "android-x86": {"run": {"type": "emulator"}, "build": {"platform": "android"}},
     "panda_android": {"run": {"type": "panda"}, "build": {"platform": "android"}},
     "b2g": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "b2g"}},
