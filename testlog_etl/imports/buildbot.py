@@ -398,7 +398,7 @@ def normalize_other(other):
     the buildbot properties are unlimited in thie number of keys
     """
     known = {}
-    unknown=[]
+    unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
         if not v:

@@ -497,7 +497,7 @@ def process_buildbot_log(all_log_lines, from_url):
         data.timings = new_build_times
 
     except Exception, e:
-        Log.error("Problem with calculating durations", cause=e)
+        Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     data.end_time = end_time
     data.duration = end_time - start_time
