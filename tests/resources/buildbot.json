@@ -7363,7 +7363,93 @@
 	    "result": 2,
 	    "slave_id": 6964,
 	    "starttime": 1452217716
+	},
+	{
+	    "builder_id": 519106,
+	    "buildnumber": 109,
+	    "endtime": 1454085968,
+	    "id": 85953329,
+	    "master_id": 169,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"emulator-startup-screenshot-nTAEaP.png\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/93a7cdd9e14db919b9b1395063a1a1f8b1a9db4670c454c3bb2d31035f104e138a2d6a1d34b96e2c441813028f7dbb4e088224ebc0ee5e591deeb946ef799a21\", \"logcat-emulator-5554.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/f2f259ce37979e329f7042cdba90813f0c586a47acce0bd766e0258dbfdc34371735374d879e0043d539cb000927eca098d932e56082f7235c9c80515d19e5cb\"}",
+	        "branch": "mozilla-inbound",
+	        "build_url": "https://queue.taskcluster.net/v1/task/MjFW8neHS4iyt40OGawWOQ/artifacts/public/build/fennec-47.0a1.en-US.android-arm.apk",
+	        "buildername": "Android 4.3 armv7 API 15+ mozilla-inbound debug test crashtest-3",
+	        "buildnumber": 109,
+	        "builduid": "3141a972b7b94eaaa8a9397d602ed316",
+	        "log_url": "http://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-inbound-android-api-15-debug/1454057908/mozilla-inbound_ubuntu64_vm_armv7_large-debug_test-crashtest-3-bm68-tests1-linux64-build109.txt.gz",
+	        "master": "http://buildbot-master68.bb.releng.usw2.mozilla.com:8201/",
+	        "moz_repo_path": "",
+	        "pgo_build": "False",
+	        "platform": "android-api-15",
+	        "product": "mobile",
+	        "project": "",
+	        "repo_path": "integration/mozilla-inbound",
+	        "repository": "",
+	        "request_ids": [95873617],
+	        "request_times": {"95873617": 1454080850},
+	        "revision": "d74069d5dd462cc11a684376c05cc890b4fddab4",
+	        "scheduler": "tests-mozilla-inbound-ubuntu64_vm_armv7_large-debug-unittest",
+	        "script_repo_revision": "d74069d5dd462cc11a684376c05cc890b4fddab4",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "tst-emulator64-spot-378",
+	        "stage_platform": "android-api-15",
+	        "symbols_url": "https://queue.taskcluster.net/v1/task/MjFW8neHS4iyt40OGawWOQ/artifacts/public/build/fennec-47.0a1.en-US.android-arm.crashreporter-symbols.zip"
+	    },
+	    "reason": "Self-serve: Rebuilt by philringnalda@gmail.com",
+	    "request_ids": [95873617],
+	    "requesttime": 1454080850,
+	    "result": 0,
+	    "slave_id": 9280,
+	    "starttime": 1454080852
+	},
+	{
+	    "builder_id": 451533,
+	    "buildnumber": 0,
+	    "endtime": 1454031744,
+	    "id": 85898938,
+	    "master_id": 170,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"emulator-startup-screenshot-IWhRtH.png\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/5e7dead5a96f07d687f8a75a363562194449f3ba63f40a0f0d883591672c8362c7a6214a3bc557c3199035366c4223d00e216c3b512de1d73bc2390f576518bb\", \"logcat-emulator-5554.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/4e24a634cefc6a24dea2fc50a6ff917ddabb5e8eac6c5a3a4db0f3604cbc87cb557124bf13b09fddd8a87b61f10b37ea957fb21d21fe0a224a4941cc93f52d46\"}",
+	        "branch": "mozilla-inbound",
+	        "build_url": "https://queue.taskcluster.net/v1/task/ALI_CYrwRwa-z1Nv6EWNQA/artifacts/public/build/fennec-47.0a1.en-US.android-arm.apk",
+	        "buildername": "Android 4.3 armv7 API 15+ mozilla-inbound opt test plain-reftest-16",
+	        "buildnumber": 0,
+	        "builduid": "8e275f4b396e4a87b608118869ec1f7e",
+	        "log_url": "http://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-inbound-android-api-15/1454024125/mozilla-inbound_ubuntu64_vm_armv7_large_test-plain-reftest-16-bm113-tests1-linux64-build0.txt.gz",
+	        "master": "http://buildbot-master113.bb.releng.use1.mozilla.com:8201/",
+	        "moz_repo_path": "",
+	        "pgo_build": "False",
+	        "platform": "android-api-15",
+	        "product": "mobile",
+	        "project": "",
+	        "repo_path": "integration/mozilla-inbound",
+	        "repository": "",
+	        "request_ids": [95799556, 95801920],
+	        "request_times": {
+	            "95799556": 1454026905,
+	            "95801920": 1454027459
+	        },
+	        "revision": "70629f70db00dda83f3e4ecb7542fa44ba8ab2dc",
+	        "scheduler": "tests-mozilla-inbound-ubuntu64_vm_armv7_large-opt-unittest",
+	        "script_repo_revision": "70629f70db00dda83f3e4ecb7542fa44ba8ab2dc",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "tst-emulator64-spot-029",
+	        "stage_platform": "android-api-15"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [95799556, 95801920],
+	    "requesttime": 1454026905,
+	    "result": 0,
+	    "slave_id": 9315,
+	    "starttime": 1454028179
 	}
+
+
 
 
 ]
