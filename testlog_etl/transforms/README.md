@@ -1,7 +1,7 @@
 The Transforms
 ==============
 
-Each of these modules is reponsible for a particular data transform.  The main 
+Each of these modules is responsible for a particular data transform.  The main 
 function is conventionally called `process`, and must have the following 
 parameters:
 
@@ -15,6 +15,6 @@ to add lists of key-value pairs in form of `{"id": key, "value": value}`
 * `resources` - Additional objects that can help with the transform.  Usually 
 `resources.hg` is defined as the Mozilla Mercurial cache for annotating data 
 with repository information. 
-* `please_stop` - This method will be run in a thread, so this is the stop 
-signal.  Check it often
+* `please_stop` - The `process` method will be run in a thread, and this is the stop 
+signal.  Check it often.
 
