@@ -275,7 +275,8 @@ def transform(uid, perfherder, resources):
 
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
         buildbot.run.stats = geo_mean(total)
-        Log.note("Done {{uid}}, processed {{name}}, transformed {{num}} records",
+        Log.note(
+            "Done {{uid}}, processed {{name}}, transformed {{num}} records",
             uid=uid,
             name=suite_name,
             num=len(new_records)
