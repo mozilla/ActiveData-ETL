@@ -33,7 +33,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
         if please_stop:
             es.queue.add(Thread.STOP)
             return
-        if key == None:
+        if message == None:
             continue
 
         if isinstance(message, Mapping):
