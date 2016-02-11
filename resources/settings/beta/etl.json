@@ -82,6 +82,10 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
+			"notify": {
+			   "name": "active-data-etl-beta",
+			   "$ref": "file://~/private.json#aws_credentials"
+		   	},
 			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
@@ -108,10 +112,10 @@
 			"transform_type": "bulk"
 		},
 		{
-			"name": "talos2perf",
+			"name": "perfherder2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
+				"bucket": "active-data-perfherder-beta",
 				"key_format": "a:b.c"
 			},
 			"destination": {
@@ -124,8 +128,7 @@
 				"name": "active-data-index-perf-beta",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transform_type": "bulk",
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{

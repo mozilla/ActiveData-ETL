@@ -1,6 +1,6 @@
 {
 	"dev": {
-		"bucket":"ekyle-pulse-logger-dev",
+		"bucket":"active-data-pulse-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"stage": {

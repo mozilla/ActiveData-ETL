@@ -77,10 +77,12 @@ def log_loop(settings, synch, queue, bucket, please_stop):
 
                 synch.ping()
                 queue.commit()
-                Log.note("Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ",
-                    num= len(g),
-                    bucket= bucket.name,
-                    key= full_key)
+                Log.note(
+                    "Wrote {{num}} pulse messages to bucket={{bucket}}, key={{key}} ",
+                    num=len(g),
+                    bucket=bucket.name,
+                    key=full_key
+                )
             except Exception, e:
                 queue.rollback()
                 if not queue.closed:
