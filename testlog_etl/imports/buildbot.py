@@ -43,6 +43,16 @@ class BuildbotTranslator(object):
             output.properties, output.other = normalize_other(props)
             return output
 
+        if props.taskId and data.reason.startswith("Created by BBB for task "):
+            output.task_id = props.taskId
+            output.properties, output.other = normalize_other(props)
+            return output
+
+        if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
+            output.task_id = props.taskId
+            output.properties, output.other = normalize_other(props)
+            return output
+
         output.action.job_number = props.buildnumber
         for k, v in props.request_times.items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
@@ -178,7 +188,7 @@ class BuildbotTranslator(object):
                 output.build.name = props.buildername
                 scrub_known_properties(props)
                 output.properties, output.other = normalize_other(props)
-                output.action.type = "build"
+                output.action.type = coalesce(output.action.type, "build")
                 verify(output, data)
                 return output
 
@@ -388,7 +398,7 @@ def normalize_other(other):
     the buildbot properties are unlimited in thie number of keys
     """
     known = {}
-    unknown=[]
+    unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
         if not v:
@@ -493,7 +503,6 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
-    'linux64-br-haz_try_dep',  # LOOKS LIKE A TEST PATTERN, BUT NONE
     'linux64-br-haz_{{branch}}_dep',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
@@ -524,10 +533,12 @@ TEST_PLATFORMS = {
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.3 armv7 API 15+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.3 Emulator": {"run": {"machine": {"os": "android 4.3", "type": "emulator"}}, "build": {"platform": "android"}},
-    "Android armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
-    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 10+": {"run": {"machine": {"os": "android 2.3.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 15+": {"run": {"machine": {"os": "android 4.0.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "b2g_emulator-kk_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame"}},
     "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
@@ -595,6 +606,7 @@ ALLOWED_OS = [
     "android 4.0",
     "android 4.2",
     "android 4.3",
+    "android 4.0.3",
     "b2g",
     "lion 10.7",
     "macosx",
@@ -614,20 +626,22 @@ KNOWN_PLATFORM = {
     "android-debug": {"build": {"platform": "android", "type": ["debug"]}},
     "android-api-9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
     "android-api-9-debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "android-api-11": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android"}},
-    "android-api-11-debug": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-11": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android"}},
+    "android-api-11-debug": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-15": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android"}},
+    "android-api-15-debug": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android", "type": ["debug"]}},
     "android-x86": {"run": {"type": "emulator"}, "build": {"platform": "android"}},
     "panda_android": {"run": {"type": "panda"}, "build": {"platform": "android"}},
     "b2g": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "b2g"}},
-    "dolphin":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
-    "dolphin_eng":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
-    "dolphin-512":{"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
-    "dolphin-512_eng":{"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
+    "dolphin": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
+    "dolphin_eng": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
+    "dolphin-512": {"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
+    "dolphin-512_eng": {"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
     "emulator": {"run": {"machine": {"type": "emulator"}}},
     "emulator-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     "emulator-jb": {"run": {"machine": {"type": "emulator"}}, "build": {}},
-    "emulator-jb-debug":{"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    "emulator-kk":{"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame"}},
+    "emulator-jb-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
+    "emulator-kk": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame"}},
     "emulator-kk-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame", "type": ["debug"]}},
     "emulator-l": {"run": {"machine": {"type": "emulator"}}},
     "emulator-l-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
@@ -639,7 +653,7 @@ KNOWN_PLATFORM = {
     "hamachi": {"build": {"platform": "hamachi"}},
     "hamachi_eng": {"build": {"platform": "hamachi"}},
     "helix": {"build": {"platform": "helix"}},
-    "l10n": {},
+    "l10n": {"action": {"type": "l10n"}},
     "linux": {"build": {"platform": "linux32"}},
     "linux-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
     "linux32_gecko": {"build": {"platform": "linux32"}},
@@ -648,8 +662,8 @@ KNOWN_PLATFORM = {
     "linux64": {"build": {"platform": "linux64"}},
     "linux64-asan": {"build": {"platform": "linux64", "type": ["asan"]}},
     "linux64-asan-debug": {"build": {"platform": "linux64", "type": ["asan", "debug"]}},
-    "linux64-b2g-haz": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "linux64-br-haz": {"build": {"platform": "linux64"}},
+    "linux64-b2g-haz": {"action": {"type": "hazard build"}, "run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "linux64-br-haz": {"action": {"type": "hazard build"}, "build": {"platform": "linux64"}},
     "linux64-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
     "linux64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "linux64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
@@ -659,11 +673,11 @@ KNOWN_PLATFORM = {
     "linux64-tsan": {"build": {"platform": "linux64", "type": ["tsan"]}},
     "linux64-mulet": {"build": {"platform": "linux64", "type": ["mulet"]}},
     "linux64-st-an-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
-    "linux64-sh-haz": {"build": {"platform": "linux64", "type": ["debug"]}},
+    "linux64-sh-haz": {"action": {"type": "hazard build"}, "build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx64-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": "debug"}},
+    "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "macosx64_gecko_localizer": {},
     "macosx64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "macosx64"}},
     "macosx64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "macosx64"}},
@@ -680,16 +694,16 @@ KNOWN_PLATFORM = {
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
-    "ubuntu64-asan_vm":{"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
+    "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
-    "wasabi":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
+    "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
     "win32-mulet": {"build": {"platform": "win32", "type": ["mulet"]}},
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "win32_gecko_localizer":{},
+    "win32_gecko_localizer": {},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},

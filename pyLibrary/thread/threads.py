@@ -77,7 +77,7 @@ class Lock(object):
             timeout = timeout.seconds
 
         try:
-            self.monitor.wait(timeout=float(timeout) if timeout else None)
+            self.monitor.wait(timeout=float(timeout) if timeout!=None else None)
         except Exception, e:
             _Log.error("logic error using timeout {{timeout}}", timeout=timeout, cause=e)
 
@@ -571,7 +571,10 @@ class Thread(object):
             return
 
         if seconds != None:
-            time.sleep(seconds)
+            if isinstance(seconds, Duration):
+                time.sleep(seconds.total_seconds)
+            else:
+                time.sleep(seconds)
         elif till != None:
             if isinstance(till, datetime):
                 duration = (till - datetime.utcnow()).total_seconds()

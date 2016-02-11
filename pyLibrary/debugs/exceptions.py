@@ -70,15 +70,14 @@ class Except(Exception):
 
     def __contains__(self, value):
         if isinstance(value, basestring):
-            if self.message.find(value) >= 0 or self.template.find(value) >= 0:
+            if self.template.find(value) >= 0 or self.message.find(value) >= 0:
                 return True
 
         if self.type == value:
             return True
-        if self.cause:
-            for c in self.cause:
-                if value in c:
-                    return True
+        for c in listwrap(self.cause):
+            if value in c:
+                return True
         return False
 
     def __unicode__(self):

@@ -31,7 +31,7 @@ def main():
 
         Log.note("Search ES...")
         result = local("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'", capture=True)
-        if result.find('"_shards":{"total":24,') == -1:
+        if result.find('"_shards":{"total":324,') == -1:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
             Log.warning("ES gave a bad response\n{{response|json|indent}}\nRestarting...", response=unicode(result))
             local("sudo supervisorctl restart es")

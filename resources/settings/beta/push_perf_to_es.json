@@ -1,26 +1,27 @@
 {
-	"threads": 2,
-	"sample_size": 0.05,
+	"threads": 1,
+	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "perf",
+		"type": "perf_result",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/test_results.json"
+			"$ref": "//../../schema/perf_results.json"
 		},
 		"debug": false,
-		"limit_replicas": false
+		"limit_replicas": true
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-test-result-beta",
+		"bucket": "active-data-perf-beta",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-unit-beta",
+		"name": "active-data-index-perf-beta",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -29,22 +30,19 @@
 		}
 	},
 	"debug": {
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
 			},
 			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/push_unit_to_es.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 10,
-				"encoding" : "utf8"
-			},
-			{
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Beta]Problem in Push to ES",
+				"subject": "[ALERT][Beta]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

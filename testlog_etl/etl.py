@@ -155,7 +155,7 @@ class ETL(Thread):
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
-                #VERIFY KEYS
+                # VERIFY KEYS
                 if len(new_keys) == 1 and list(new_keys)[0] == source_key:
                     pass  # ok
                 else:
@@ -164,14 +164,20 @@ class ETL(Thread):
                     for i, e in enumerate(etls):
                         if i != e.id:
                             Log.error("expecting keys to have dense order: {{ids}}", ids=etls.id)
-                    #VERIFY KEYS EXIST
+                    # VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
                             action._destination.get_key(k)
 
                 for n in action._notify:
                     for k in new_keys:
-                        n.add(k)
+                        now = Date.now()
+                        n.add({
+                            "bucket": action._destination.bucket.name,
+                            "key": k,
+                            "timestamp": now.unix,
+                            "date/time": now.format()
+                        })
 
                 if action.transform_type == "bulk":
                     continue
@@ -256,6 +262,9 @@ class ETL(Thread):
                             todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
                         else:
                             todo = self.work_queue.pop()
+                    if not todo:
+                        break  # please_stop MUST HAVE BEEN TRIGGERED
+
                 else:
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
@@ -264,6 +273,10 @@ class ETL(Thread):
                     if todo == None:
                         please_stop.go()
                         return
+
+                if todo == None:
+                    Log.warning("Should never happen")
+                    continue
 
                 if isinstance(todo, unicode):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
@@ -351,7 +364,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id(s) to process.  Use \"..\" for a range.",
                 "type": str,
                 "dest": "id",

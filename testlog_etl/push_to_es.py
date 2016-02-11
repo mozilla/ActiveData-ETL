@@ -9,6 +9,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from collections import Mapping
+
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
@@ -27,14 +29,17 @@ def copy2es(es, settings, work_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     bucket = s3.Bucket(settings.source)
 
-    for key in iter(work_queue.pop, ""):
+    for message in iter(work_queue.pop, ""):
         if please_stop:
             es.queue.add(Thread.STOP)
             return
         if key == None:
             continue
 
-        key = unicode(key)
+        if isinstance(message, Mapping):
+            key = message["key"]
+        else:
+            key = unicode(message)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
@@ -87,14 +92,14 @@ def main():
         }
 
         if settings.args.reset:
-            c = elasticsearch.Cluster(settings.elasticsearch)
+            cluster = elasticsearch.Cluster(settings.elasticsearch)
             alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
-            index = c.get_prototype(alias)[0]
+            index = cluster.get_prototype(alias)[0]
             if index:
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                c.create_index(settings=settings.elasticsearch)
+                cluster.create_index(settings=settings.elasticsearch)
                 Log.alert("Done.  Exiting.")
                 return
 

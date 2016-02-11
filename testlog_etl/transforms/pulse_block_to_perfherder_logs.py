@@ -17,12 +17,35 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
+from testlog_etl.transforms import EtlHeadGenerator
 
 DEBUG = False
 
-#06:46:57     INFO -  2015-11-24 06:46:57,398 INFO : PERFHERDER_DATA:
-PERFHERDER_PREFIX = b" INFO : PERFHERDER_DATA: "
+# 06:46:57     INFO -  2015-11-24 06:46:57,398 INFO : PERFHERDER_DATA:
+# 06:21:21     INFO -  PERFHERDER_DATA:
+# 07:43:11     INFO -  2015-10-08 07:43:11,492 INFO : TALOSDATA:
+
+PERFHERDER_PREFIXES = [
+    b" INFO : PERFHERDER_DATA: ",
+    b" INFO -  PERFHERDER_DATA: ",
+    b" INFO : TALOSDATA: ",
+    b" INFO -  TALOSDATA: "  # NOT SEEN IN WILD
+]
+
+EXPECTING_RESULTS = {
+    "INFO - ##### Running run-tests step.": True,
+    "INFO - #### Running talos suites": True,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:": False,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' warnings (results:": False,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' interrupted (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' failed (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' interrupted (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' failed (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' interrupted (results:": False
+}
+
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
@@ -41,6 +64,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record.payload.talos:
             continue
 
+        test_results_expected = False
         all_perf = []
         etl_file = wrap({
             "id": counter,
@@ -75,19 +99,39 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response.all_lines
 
                 for log_line in all_log_lines:
-                    s = log_line.find(PERFHERDER_PREFIX)
-                    if s < 0:
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping early")
+
+                    # SOME LINES GIVE US A HINT IF THERE ARE GOING TO BE TEST RESULTS
+                    for pattern, result_expected in EXPECTING_RESULTS.items():
+                        if pattern in log_line:
+                            test_results_expected = result_expected
+                            break
+
+                    prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
+                    for prefix in PERFHERDER_PREFIXES:
+                        s = log_line.find(prefix)
+                        if s >= 0:
+                            break
+                    else:
                         continue
 
-                    log_line = strings.strip(log_line[s + len(PERFHERDER_PREFIX):])
+                    log_line = strings.strip(log_line[s + len(prefix):])
                     perf = convert.json2value(convert.utf82unicode(log_line))
 
-                    for t in perf.suites:
-                        _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
-                        t.framework = perf.framework
-                        t.etl = dest_etl
-                        t.pulse = pulse_record.payload
-                    all_perf.extend(perf.suites)
+                    if "TALOS" in prefix:
+                        for t in perf:
+                            _, dest_etl = etl_head_gen.next(etl_file, "Talos")
+                            t.etl = dest_etl
+                            t.pulse = pulse_record.payload
+                        all_perf.extend(perf)
+                    else: # PERFHERDER
+                        for t in perf.suites:
+                            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                            t.framework = perf.framework
+                            t.etl = dest_etl
+                            t.pulse = pulse_record.payload
+                        all_perf.extend(perf.suites)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {
                     "url": pulse_record.payload.logurl
@@ -99,12 +143,16 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         etl_file.duration = timer.duration
 
         if all_perf:
-            Log.note("Found {{num}} PerfHerder records", num=len(all_perf))
+            if not test_results_expected:
+                Log.warning("No tests run, but records found while processing {{key}}: {{url}}", key=source_key, url=pulse_record.payload.logurl)
+
+            Log.note("Found {{num}} PerfHerder records while processing {{key}}", key=source_key, num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            Log.warning("No PerfHerder records found in {{url}}", url=pulse_record.payload.logurl)
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            if test_results_expected:
+                Log.warning("PerfHerder records expected while processing {{key}}, but not found {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
+            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {

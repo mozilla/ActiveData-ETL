@@ -39,26 +39,25 @@ def _late_import():
 
 
 def get(url):
-    if not _Log:
-        _late_import()
-
     """
     USE json.net CONVENTIONS TO LINK TO INLINE OTHER JSON
     """
+    if not _Log:
+        _late_import()
+
     if url.find("://") == -1:
-        _Log.error("{{url}} must have a prototcol (eg http://) declared",  url= url)
+        _Log.error("{{url}} must have a prototcol (eg http://) declared", url=url)
+
+    base = URL("")
     if url.startswith("file://") and url[7] != "/":
-        # RELATIVE
-        if os.sep == "\\":
-            url = "file:///" + os.getcwd().replace(os.sep, "/") + "/" + url[7:]
+        if os.sep=="\\":
+            base = URL("file:///" + os.getcwd().replace(os.sep, "/").rstrip("/") + "/.")
         else:
-            url = "file://" + os.getcwd() + "/" + url[7:]
+            base = URL("file://" + os.getcwd().rstrip("/") + "/.")
+    elif url[url.find("://") + 3] != "/":
+        _Log.error("{{url}} must be absolute", url=url)
 
-    if url[url.find("://") + 3] != "/":
-        _Log.error("{{url}} must be absolute",  url= url)
-    doc = wrap({"$ref": url})
-
-    phase1 = _replace_ref(doc, URL(""))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
+    phase1 = _replace_ref(wrap({"$ref": url}), base)  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     try:
         phase2 = _replace_locals(phase1, [phase1])
         return wrap(phase2)
@@ -71,8 +70,11 @@ def expand(doc, doc_url):
     ASSUMING YOU ALREADY PULED THE doc FROM doc_url, YOU CAN STILL USE THE
     EXPANDING FEATURE
     """
+    if not _Log:
+        _late_import()
+
     if doc_url.find("://") == -1:
-        _Log.error("{{url}} must have a prototcol (eg http://) declared",  url= doc_url)
+        _Log.error("{{url}} must have a prototcol (eg http://) declared", url=doc_url)
 
     phase1 = _replace_ref(doc, URL(doc_url))  # BLANK URL ONLY WORKS IF url IS ABSOLUTE
     phase2 = _replace_locals(phase1, [phase1])
@@ -193,14 +195,14 @@ def get_file(ref, url):
     if ref.path.startswith("~"):
         home_path = os.path.expanduser("~")
         if os.sep == "\\":
-            home_path = "/"+home_path.replace(os.sep, "/")
+            home_path = "/" + home_path.replace(os.sep, "/")
         if home_path.endswith("/"):
             home_path = home_path[:-1]
 
         ref.path = home_path + ref.path[1::]
     elif not ref.path.startswith("/"):
         # CONVERT RELATIVE TO ABSOLUTE
-        ref.path = "/".join(url.path.split("/")[:-1]) + "/" + ref.path
+        ref.path = "/".join(url.path.rstrip("/").split("/")[:-1]) + "/" + ref.path
 
     path = ref.path if os.sep != "\\" else ref.path[1::].replace("/", "\\")
 

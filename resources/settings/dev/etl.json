@@ -6,7 +6,7 @@
 	"param": {
 		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": true
+		"keep_unknown_on_queue": false
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -49,7 +49,7 @@
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
+				"bucket": "active-data-pulse-dev",
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -90,23 +90,6 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
 			"name": "pulse2perfherder",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -120,6 +103,10 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
+			"notify": {
+			   "name": "active-data-etl-dev",
+			   "$ref": "file://~/private.json#aws_credentials"
+		   	},
 			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
@@ -146,10 +133,10 @@
 			"transform_type": "bulk"
 		},
 		{
-			"name": "talos2perf",
+			"name": "perfherder2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-dev",
+				"bucket": "active-data-perfherder-dev",
 				"key_format": "a:b.c"
 			},
 			"destination": {
@@ -162,14 +149,14 @@
 				"name": "active-data-index-perf-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{
 			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
+				"bucket": "active-data-pulse-dev",
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -179,7 +166,7 @@
 				"key_format": "a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-dev",
+				"name": "active-data-index-unit-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
