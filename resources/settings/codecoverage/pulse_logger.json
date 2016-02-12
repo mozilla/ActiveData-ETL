@@ -9,7 +9,7 @@
 		"debug": false
 	},
 	"destination": {
-		"bucket": "ekyle-pulse-logger-dev",
+		"bucket": "active-data-pulse-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/codecoverage.json#aws_credentials"
 	},

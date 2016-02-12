@@ -49,7 +49,7 @@
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
+				"bucket": "active-data-pulse-dev",
 				"key_format": "a:b"
 			},
 			"destination": {
@@ -152,7 +152,7 @@
 			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger-dev",
+				"bucket": "active-data-pulse-dev",
 				"key_format": "a:b"
 			},
 			"destination": {
