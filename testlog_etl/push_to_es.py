@@ -15,7 +15,7 @@ from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce
+from pyLibrary.dot import coalesce, unwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
@@ -111,7 +111,7 @@ def main():
 
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-        es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+        es = MultiDayIndex(settings.elasticsearch, queue_size=100000, batch_size=unwrap(settings.batch_size))
 
         threads = []
         please_stop = Signal()

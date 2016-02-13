@@ -22,14 +22,14 @@ class MultiDayIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    def __init__(self, settings, queue_size=10000):
+    def __init__(self, settings, queue_size=10000, batch_size=5000):
         self.settings = settings
         self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
 
         self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         self.es.set_refresh_interval(seconds=60 * 60)
-        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=False)
         # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
