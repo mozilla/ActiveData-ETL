@@ -19,7 +19,7 @@
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-beta",
+		"name": "active-data-index-unit-beta",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},

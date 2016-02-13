@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import itertools
+
 from pyLibrary import convert, jsons
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
@@ -23,19 +25,31 @@ from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
 false = False
 true = True
 
+
 class TestBuildbotLogs(FuzzyTestCase):
 
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
 
     def test_past_problems(self):
+        COMPARE_TO_EXPECTED = True
+
         t = BuildbotTranslator()
 
         builds = convert.json2value(File("tests/resources/buildbot.json").read())
-        failures=[]
-        for b in builds:
+        if COMPARE_TO_EXPECTED:
+            expected = convert.json2value(File("tests/resources/buildbot_results.json").read())
+        else:
+            expected = []
+
+        results = []
+        failures = []
+        for b, e in itertools.izip_longest(builds, expected):
             try:
-                t.parse(b)
+                result = t.parse(b)
+                results.append(result)
+                if COMPARE_TO_EXPECTED:
+                    self.assertEqual(result, e)
             except Exception, e:
                 e = Except.wrap(e)
                 failures.append(e)
@@ -43,6 +57,11 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         if failures:
             Log.error("parsing problems", cause=failures)
+
+        if not COMPARE_TO_EXPECTED:
+            File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
+
+
 
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"

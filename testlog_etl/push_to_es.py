@@ -9,11 +9,13 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from collections import Mapping
+
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce
+from pyLibrary.dot import coalesce, unwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
@@ -27,14 +29,17 @@ def copy2es(es, settings, work_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     bucket = s3.Bucket(settings.source)
 
-    for key in iter(work_queue.pop, ""):
+    for message in iter(work_queue.pop, ""):
         if please_stop:
             es.queue.add(Thread.STOP)
             return
-        if key == None:
+        if message == None:
             continue
 
-        key = unicode(key)
+        if isinstance(message, Mapping):
+            key = message["key"]
+        else:
+            key = unicode(message)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
@@ -106,7 +111,7 @@ def main():
 
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-        es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+        es = MultiDayIndex(settings.elasticsearch, queue_size=100000, batch_size=unwrap(settings.batch_size))
 
         threads = []
         please_stop = Signal()

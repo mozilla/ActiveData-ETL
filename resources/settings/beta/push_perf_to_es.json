@@ -1,6 +1,5 @@
 {
 	"threads": 1,
-	"batch_size": 5000,
 	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
@@ -12,16 +11,17 @@
 			"$ref": "//../../schema/perf_results.json"
 		},
 		"debug": false,
-		"limit_replicas": false
+		"limit_replicas": true
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-perf",
+		"bucket": "active-data-perf-beta",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-perf",
+		"name": "active-data-index-perf-beta",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -30,7 +30,10 @@
 		}
 	},
 	"debug": {
-		"trace":true,
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
@@ -39,8 +42,9 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Staging]Problem in Push perf to ES",
+				"subject": "[ALERT][Beta]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#email"
+
 			}
 		]
 	}

@@ -88,14 +88,14 @@ class HgMozillaOrg(object):
             "changeset": {
                 "id": "b3649fd5cd7a76506d2cf04f45e39cbc972fb553",
                 "id12": "b3649fd5cd7a",
-                "author": "Ryan VanderMeulen <ryanvm@gmail.com>",
+                "author": "ryan",
                 "description": "Backed out changeset 7d0d8d304cd8 (bug 1171357) for bustage.",
                 "date": 1433429100,
                 "files": ["gfx/thebes/gfxTextRun.cpp"]
             },
             "push": {
                 "id": 60618,
-                "user": "ryanvm@gmail.com",
+                "user": "ryan",
                 "date": 1433429138
             },
             "parents": ["7d0d8d304cd871f657effcc2d21d4eae5155fd1b"],
