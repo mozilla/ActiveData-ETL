@@ -47,6 +47,16 @@ class TestBuildbotLogs(FuzzyTestCase):
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
+
+    def test_perfherder_transform_c(self):
+        source_key = u'307827:30747788.7'
+        source = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws).get_key(source_key)
+        dest_bucket = S3Bucket(bucket="active-data-perf-dev", settings=self.settings.aws)
+        resources = Null
+        perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
+
+
+
     def test_many_perfherder_transform(self):
         bucket = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws)
         all_keys = (k.name.replace(".json.gz", "") for k in bucket.bucket.list(prefix="30"))

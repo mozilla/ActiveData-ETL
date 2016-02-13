@@ -30,7 +30,7 @@ def diff(settings, please_stop=None):
 
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if not settings.no_checks and len(work_queue) > 200:
+    if not settings.no_checks and len(work_queue) > 1000:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
@@ -40,7 +40,6 @@ def diff(settings, please_stop=None):
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        rev = 'b103f9ec315122e6a0830'
         es_filter = {"prefix": {"etl.revision": rev}}
     else:
         es_filter = {"match_all": {}}
