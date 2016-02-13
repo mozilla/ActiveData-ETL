@@ -83,7 +83,7 @@
                 "key_format": "a:b.c"
             },
 			"notify": {
-			   "name": "active-data-etl-beta",
+			   "name": "active-data-etl",
 			   "$ref": "file://~/private.json#aws_credentials"
 		   	},
             "transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
