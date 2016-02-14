@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from pyLibrary import aws
+from pyLibrary import aws, convert
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
@@ -18,6 +18,7 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision, get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
+from pyLibrary.queries.expressions import qb_expression
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -35,7 +36,7 @@ def diff(settings, please_stop=None):
         return
 
     # EVERYTHING FROM ELASTICSEARCH
-    es = elasticsearch.Index(settings.elasticsearch)
+    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), settings=settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
     if settings.git:
@@ -99,10 +100,9 @@ def get_all_in_es(es, in_range, es_filter, field):
                 "aggs": {
                     "_match": {
                         "terms": {
-                            "field": field,
+                            "script": qb_expression({"string": field}).to_ruby(),
                             "size": 200000
                         }
-
                     }
                 }
             }
@@ -133,6 +133,7 @@ def get_all_in_es(es, in_range, es_filter, field):
     in_es |= set(good_es)
 
     return in_es
+
 
 def get_all_s3(in_es, in_range, settings):
     # EVERYTHING FROM S3

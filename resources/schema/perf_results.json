@@ -22,6 +22,16 @@
 					"default_ids": {
 						"mapping": {
 							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match": "*source.id"
+					}
+				},
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
 							"type": "string",
 							"doc_values": true
 						},
