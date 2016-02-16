@@ -20,10 +20,16 @@ def process(source_key, source, destination, resources, please_stop=None):
         json_data = wrap(json.load(json_file))
         output_lines = []
         for obj in json_data:
+            # get the test name. Just use the test file name at the moment
+            # TODO: change this when needed
+            last_slash_index = obj.testUrl.rfind("/")
+            test_name = obj.testUrl[last_slash_index + 1:]
+
             for line in obj.covered:
                 new_line = {
                     "test": {
-                        "testUrl": obj.testUrl
+                        "name": test_name,
+                        "url": obj.testUrl
                     },
                     "source": {
                         "sourceFile": obj.sourceFile,
