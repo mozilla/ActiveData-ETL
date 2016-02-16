@@ -167,6 +167,26 @@
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
+		},
+		{
+			"name": "pulsetc2es",
+			"source": {
+				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"bucket": "active-data-pulse-tc-dev",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"bucket": "active-data-codecoverage-dev",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index-codecoverage-dev",
+				"$ref": "file://~/codecoverage.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.jscov_to_es.process",
+			"type": "join"
 		}
 	],
 	"debug": {
