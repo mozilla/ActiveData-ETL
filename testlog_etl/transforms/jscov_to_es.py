@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 import json
 
 from pyLibrary.dot import wrap
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
 
@@ -19,7 +20,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     with open(source) as json_file:
         json_data = wrap(json.load(json_file))
         output_lines = []
-        for obj in json_data:
+        for i, obj in enumerate(json_data):
             # get the test name. Just use the test file name at the moment
             # TODO: change this when needed
             last_slash_index = obj.testUrl.rfind("/")
@@ -34,6 +35,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "source": {
                         "sourceFile": obj.sourceFile,
                         "lineCovered": line
+                    },
+                    "etl": {
+                        "type": "join",
+                        "revision": get_git_revision()
                     }
                 }
                 output_lines.append(new_line)
