@@ -49,15 +49,17 @@ def diff(settings, please_stop=None):
     in_range = None
     if settings.range:
         max_in_es = Math.MAX(in_es)
-        in_range = set(range(coalesce(settings.range.min, 0), coalesce(settings.range.max, max_in_es, 1000000)))
-        in_es -= in_range
+        _min = coalesce(settings.range.min, 0)
+        _max = coalesce(settings.range.max, max_in_es + 1, _min + 1000000)
+        in_range = set(range(_min, _max))
+        in_es &= in_range
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)
 
     if settings.no_checks:
         remaining_in_s3 = remaining_in_s3[:coalesce(settings.limit, 1000):]
     else:
-    # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
+        # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
         remaining_in_s3 = remaining_in_s3[500:500 + coalesce(settings.limit, 1000):]
 
     if not remaining_in_s3:
@@ -100,6 +102,7 @@ def get_all_in_es(es, in_range, es_filter, field):
                 "aggs": {
                     "_match": {
                         "terms": {
+                            # "field": field,
                             "script": qb_expression({"string": field}).to_ruby(),
                             "size": 200000
                         }
