@@ -120,7 +120,6 @@ SCHEMA = {
                 "enabled": False
             },
             "_source": {
-                "compress": True,
                 "enabled": True
             },
             "properties": {
