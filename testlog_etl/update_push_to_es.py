@@ -15,7 +15,9 @@ from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
+from pyLibrary.aws import aws_retry
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap, wrap
 from pyLibrary.dot.objects import dictwrap
@@ -23,12 +25,13 @@ from pyLibrary.env.files import File
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread
 
-
+@aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
     output = wrap([dictwrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
     return output
 
 
+@aws_retry
 def _get_managed_instances(ec2_conn, name):
     requests = UniqueIndex(["instance_id"], data=_get_managed_spot_requests(ec2_conn, name).filter(lambda r: r.instance_id != None))
     reservations = ec2_conn.get_all_instances()
@@ -101,6 +104,7 @@ def _refresh_indexer():
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
+            sudo("supervisorctl stop es")
         else:
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_perf_to_es")
@@ -154,3 +158,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

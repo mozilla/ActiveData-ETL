@@ -15,7 +15,17 @@
 							"index": "not_analyzed",
 							"type": "string"
 						},
-						"match": "results_xperf.*"
+						"path_match": "results_xperf.*"
+					}
+				},
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"path_match": "*source.id"
 					}
 				},
 				{

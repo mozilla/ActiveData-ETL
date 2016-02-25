@@ -82,7 +82,8 @@ class TestBuildbotLogs(FuzzyTestCase):
             },
             "constants": {
                 "pyLibrary.env.http.default_headers": {
-                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+                    "User-Agent": "testlog-etl"
                 }
             }
         }, "file:///")

@@ -1,6 +1,6 @@
 {
 	"no_checks": false,
-	"range": {"min":300000},
+	"range": {"min":280000},
 	"limit": 10000,
 	"destination": "active-data-perf",  //EXPLICIT DESTINATION TO FOCUS REPROCESSING ON JUST ONE ETL
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
@@ -13,7 +13,7 @@
 		"key_format": "a:b.c"
 	},
 	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
-		"id_field": "etl.source.source.id",
+		"id_field": "etl.source.source.source.id",
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
 		"index": "perf",
@@ -21,7 +21,7 @@
 		"timeout": 300,
 		"schema": {
 			"$ref": "//../../schema/perf_results.json"
-		},
+				},
 		"debug": true,
 		"limit_replicas": false
 	},

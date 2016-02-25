@@ -202,7 +202,17 @@ def get_file(ref, url):
         ref.path = home_path + ref.path[1::]
     elif not ref.path.startswith("/"):
         # CONVERT RELATIVE TO ABSOLUTE
-        ref.path = "/".join(url.path.rstrip("/").split("/")[:-1]) + "/" + ref.path
+        if ref.path[0] == ".":
+            num_dot = 1
+            while ref.path[num_dot] == ".":
+                num_dot += 1
+
+            parent = url.path.rstrip("/").split("/")[:-num_dot]
+            ref.path = "/".join(parent) + ref.path[num_dot:]
+        else:
+            parent = url.path.rstrip("/").split("/")[:-1]
+            ref.path = "/".join(parent) + "/" + ref.path
+
 
     path = ref.path if os.sep != "\\" else ref.path[1::].replace("/", "\\")
 

@@ -22,3 +22,13 @@ final indexing.
 * **beta** - stable - of all branches for testing on the beta machines 
 * **master** - unstable - intermittently updated to track **dev**, eventually 
 intended as the single-stable-version 
+
+
+Requirements
+------------
+
+* Python 2.7.x 
+* [Elasticsearch 1.7.x](https://www.elastic.co/downloads/past-releases/elasticsearch-1-7-5)  (the current 2.x versions are not supported yet)
+* Access to Amazon S3 bucket for ETL results
+* Access to Amazon SQS for the ETL pipeline
+
