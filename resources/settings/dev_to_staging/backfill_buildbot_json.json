@@ -2,9 +2,8 @@
 	"limit": 30,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
 	"no_checks": true,
 	"range": {
-		// RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
-		"min":300, "max":400
-	},
+		"max": 1000
+	},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"git": {
 		"url": "https://github.com/klahnakoski/TestLog-ETL.git",
@@ -13,7 +12,7 @@
 	"source": {
 		//THE BUCKET WITH WHAT SHOULD BE IN ES
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-jobs",
+		"bucket": "active-data-buildbot",
 		"key_format": "a.b"
 	},
 	"elasticsearch": {
@@ -32,7 +31,7 @@
 	},
 	"work_queue": {
 		// THE QUEUE TO FILL WITH REQUESTS
-		"name": "active-data-index-jobs",
+		"name": "active-data-etl",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},

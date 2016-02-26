@@ -6,16 +6,18 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary import aws, convert
+import os
+
+from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.env.git import get_remote_revision, get_git_revision
+from pyLibrary.env.git import get_remote_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 from pyLibrary.queries.expressions import qb_expression
@@ -41,7 +43,7 @@ def diff(settings, please_stop=None):
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"prefix": {"etl.revision": rev}}
+        es_filter = {"not": {"prefix": {"etl.revision": rev}}}
     else:
         es_filter = {"match_all": {}}
 
@@ -51,6 +53,7 @@ def diff(settings, please_stop=None):
         max_in_es = Math.MAX(in_es)
         _min = coalesce(settings.range.min, 0)
         _max = coalesce(settings.range.max, max_in_es + 1, _min + 1000000)
+        _max = Math.min(_max, _min + coalesce(settings.limit * 2, 2000))
         in_range = set(range(_min, _max))
         in_es &= in_range
 
@@ -96,7 +99,7 @@ def get_all_in_es(es, in_range, es_filter, field):
     es_query = wrap({
         "aggs": {
             "_filter": {
-                "filter": {"and":[
+                "filter": {"and": [
                     es_filter
                 ]},
                 "aggs": {
@@ -109,7 +112,8 @@ def get_all_in_es(es, in_range, es_filter, field):
                     }
                 }
             }
-        }
+        },
+        "size":0
     })
     if in_range:
         _filter = es_query.aggs._filter.filter["and"]
@@ -139,10 +143,16 @@ def get_all_in_es(es, in_range, es_filter, field):
 
 
 def get_all_s3(in_es, in_range, settings):
+    # ANY COMMON PREFIX?
+    if not in_range:
+        common_prefix = ""
+    else:
+        common_prefix = os.path.commonprefix([unicode(i) for i in in_range])
+
     # EVERYTHING FROM S3
     bucket = s3.Bucket(settings.source)
     with Timer("Scanning S3 bucket {{bucket}}", {"bucket": bucket.name}):
-        prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix="", delimiter=":")))
+        prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=common_prefix, delimiter=":")))
 
     in_s3 = []
     for i, q in enumerate(prefixes):
