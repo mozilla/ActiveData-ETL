@@ -34,7 +34,7 @@ def main():
         if result.find('"_shards":{"total":324,') == -1:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
             Log.warning("ES gave a bad response\n{{response|json|indent}}\nRestarting...", response=unicode(result))
-            local("sudo supervisorctl restart es")
+            # local("sudo supervisorctl restart es")
         else:
             Log.note("Good response")
     except Exception, e:
