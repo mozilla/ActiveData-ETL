@@ -1,13 +1,15 @@
 {
 	"limit": 100,
-	//"range": {"min": 140000},
-	"id_field": "etl.source.source.id",
+//	"range": {"min": 140000},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
 	"destination": {
+		// ES USED TO DETERMINE WHAT IS MISSING
+		"id_field": "etl.source.source.id",
+
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
 		"index": "unittest",
