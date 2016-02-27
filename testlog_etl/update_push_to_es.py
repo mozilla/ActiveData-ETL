@@ -104,7 +104,6 @@ def _refresh_indexer():
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
-            sudo("supervisorctl stop es")
         else:
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_perf_to_es")
