@@ -1,5 +1,6 @@
 {
 	"threads": 2,
+	"batch_size": 5000,
 	"sample_only": [
 		"try"
 	],

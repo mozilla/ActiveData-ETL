@@ -1,12 +1,12 @@
 {
-	"limit": 100,
-//	"range": {"min": 140000},
+	"limit": 1000,
+	"range": {"min": 140000},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
-	"destination": {
+	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.source.id",
 
