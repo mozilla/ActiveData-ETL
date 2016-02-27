@@ -33,7 +33,7 @@ def main():
 
         Log.note("Search ES...")
         result = requests.post(
-            "http://localhost:9200/perf/_search",
+            "http://localhost:9200/unittest/_search",
             data='{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'
         )
         data = convert.json2value(convert.utf82unicode(result.content))
@@ -44,8 +44,7 @@ def main():
         else:
             Log.note("Good response")
     except Exception, e:
-        Log.warning("Problem with call to ES", cause=e)
-        local("sudo supervisorctl restart es")
+        Log.warning("Problem with call to ES.  NO ACTION TAKEN", cause=e)
     finally:
         Log.stop()
 

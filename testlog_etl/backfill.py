@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
+from math import log10
 
 from pyLibrary import aws
 from pyLibrary.aws import s3
@@ -33,7 +34,7 @@ def diff(settings, please_stop=None):
 
     #SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
-    if not settings.no_checks and len(work_queue) > 1000:
+    if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
@@ -53,17 +54,10 @@ def diff(settings, please_stop=None):
         max_in_es = Math.MAX(in_es)
         _min = coalesce(settings.range.min, 0)
         _max = coalesce(settings.range.max, max_in_es + 1, _min + 1000000)
-        _max = Math.min(_max, _min + coalesce(settings.limit * 2, 2000))
         in_range = set(range(_min, _max))
         in_es &= in_range
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)
-
-    if settings.no_checks:
-        remaining_in_s3 = remaining_in_s3[:coalesce(settings.limit, 1000):]
-    else:
-        # IGNORE THE 500 MOST RECENT BLOCKS, BECAUSE THEY ARE PROBABLY NOT DONE
-        remaining_in_s3 = remaining_in_s3[500:500 + coalesce(settings.limit, 1000):]
 
     if not remaining_in_s3:
         Log.note("Nothing to insert into ES")
@@ -143,33 +137,40 @@ def get_all_in_es(es, in_range, es_filter, field):
 
 
 def get_all_s3(in_es, in_range, settings):
-    # ANY COMMON PREFIX?
-    if not in_range:
-        common_prefix = ""
-    else:
-        common_prefix = os.path.commonprefix([unicode(i) for i in in_range])
-
-    # EVERYTHING FROM S3
-    bucket = s3.Bucket(settings.source)
-    with Timer("Scanning S3 bucket {{bucket}}", {"bucket": bucket.name}):
-        prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=common_prefix, delimiter=":")))
-
     in_s3 = []
-    for i, q in enumerate(prefixes):
-        if i % 1000 == 0:
-            Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
-        try:
-            p = int(q)
-            if in_range and p not in in_range:
-                continue
-            if p in in_es:
-                continue
+    bucket = s3.Bucket(settings.source)
+    limit = coalesce(settings.limit, 1000)
+    max_allowed = Math.MAX(in_es) - 500
 
-            in_s3.append(p)
-        except Exception, e:
-            Log.note("delete key? {{key|quote}}", key=q)
-            # source_bucket.delete_key(strip_extension(q))
-    in_s3 = qb.reverse(qb.sort(in_s3))
+    start = unicode(max(in_range - in_es))[:-Math.ceiling(log10(limit))]
+    while start != "0" and len(in_s3) < limit:
+        # EVERYTHING FROM S3
+        with Timer(
+            "Scanning S3 bucket {{bucket}} with prefix {{prefix|quote}}",
+            {"bucket": bucket.name, "prefix": start}
+        ):
+            prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=start, delimiter=":")))
+
+        for i, q in enumerate(prefixes):
+            if i % 1000 == 0:
+                Log.note("Scrubbed {{p|percent(decimal=1)}}", p=i / len(prefixes))
+            try:
+                p = int(q)
+                if in_range and p not in in_range:
+                    continue
+                if p in in_es:
+                    continue
+                if p >= max_allowed:
+                    continue
+
+                in_s3.append(p)
+            except Exception, e:
+                Log.note("delete key? {{key|quote}}", key=q)
+
+        if start == "":
+            break
+        start = unicode(int(start) - 1)
+    in_s3 = qb.reverse(qb.sort(in_s3))[:limit]
     return in_s3
 
 
