@@ -170,7 +170,7 @@ def get_all_s3(in_es, in_range, settings):
         if start == "":
             break
         start = unicode(int(start) - 1)
-    in_s3 = qb.reverse(qb.sort(in_s3))[:limit]
+    in_s3 = qb.reverse(qb.sort(in_s3))[:limit:]
     return in_s3
 
 
