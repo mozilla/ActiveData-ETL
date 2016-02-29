@@ -31,7 +31,7 @@
 			{"log_type":"console"},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/pulse_logger_dev.log",
+				"filename" : "./results/logs/pulse_logger_tc_dev.log",
 				"maxBytes" : 10000000,
 				"backupCount" : 100,
 				"encoding" : "utf8"
