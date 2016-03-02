@@ -176,13 +176,13 @@ class Index(Features):
         RETURN THE INDEX USED BY THIS alias
         """
         alias_list = self.cluster.get_aliases()
-        output = sort([
+        output = qb.sort(set([
             a.index
             for a in alias_list
             if a.alias == alias or
                 a.index == alias or
                 (re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and a.index != alias)
-        ])
+        ]))
 
         if len(output) > 1:
             Log.error("only one index with given alias==\"{{alias}}\" expected",  alias= alias)

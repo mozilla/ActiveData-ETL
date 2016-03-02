@@ -1,12 +1,12 @@
 {
-	"limit": 100,
-//	"range": {"min": 140000},
+	"limit": 1000,
+	"range": {"min": 140000},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
-	"destination": {
+	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.source.id",
 
@@ -41,7 +41,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"subject": "[ALERT][DEV]Problem in Backfill unittest",
 				"$ref": "file://~/private.json#email"
 
 			}
