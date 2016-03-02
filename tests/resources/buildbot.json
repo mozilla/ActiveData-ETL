@@ -7504,8 +7504,47 @@
 	    "result": 0,
 	    "slave_id": 6707,
 	    "starttime": 1454109700
+	},
+	{
+	    "builder_id": 371785,
+	    "buildnumber": 19,
+	    "endtime": 1425172834,
+	    "id": 60119649,
+	    "master_id": 162,
+	    "properties": {
+	        "basedir": "/builds/slave/talos-slave/test",
+	        "blobber_files": "{\"output.html\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-b2g32_v2_0/sha512/b51add47eaa47cc6e7cfb38a9c7d3a03ef47029809af5b30f4d8478d99e41324607889ef864fa383cdf452eb66b62e3e84e02cd955b3c507acf289c1e8ba7f60\"}",
+	        "branch": "mozilla-b2g32_v2_0",
+	        "build_url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-macosx64_gecko/1425168145/en-US/b2g-32.0.en-US.mac64.dmg",
+	        "buildername": "b2g_macosx64 mozilla-b2g32_v2_0 opt test gaia-ui-test",
+	        "buildnumber": 19,
+	        "builduid": "78148a655ed94a8aa63b39fca904b0f9",
+	        "log_url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/2015/02/2015-02-28-16-02-25-mozilla-b2g32_v2_0/mozilla-b2g32_v2_0_mountainlion-b2gdt_test-gaia-ui-test-bm108-tests1-macosx-build19.txt.gz",
+	        "master": "http://buildbot-master108.bb.releng.scl3.mozilla.com:8201/",
+	        "nightly_build": "True",
+	        "pgo_build": "False",
+	        "platform": "macosx64_gecko",
+	        "product": "b2g",
+	        "project": "",
+	        "repo_path": "releases/mozilla-b2g32_v2_0",
+	        "repository": "",
+	        "request_ids": [63139817],
+	        "request_times": {"63139817": 1425171944},
+	        "revision": "1bd33f5447d2",
+	        "scheduler": "tests-mozilla-b2g32_v2_0-mountainlion-b2gdt-opt-unittest",
+	        "script_repo_revision": "2264bffd89ca",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavebuilddir": "test",
+	        "slavename": "talos-mtnlion-r5-028",
+	        "stage_platform": "macosx64_gecko"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [63139817],
+	    "requesttime": 1425171944,
+	    "result": 0,
+	    "slave_id": 2325,
+	    "starttime": 1425171956
 	}
-
 
 
 

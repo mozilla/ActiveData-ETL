@@ -10783,5 +10783,76 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             }
         }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1425172834,
+            "job_number": 19,
+            "reason": "scheduler",
+            "request_time": 1425171944,
+            "requests": [
+                {
+                    "request_id": 63139817,
+                    "timestamp": 1425171944
+                }
+            ],
+            "start_time": 1425171956,
+            "type": "test"
+        },
+        "build": {
+            "branch": "mozilla-b2g32_v2_0",
+            "locale": "en-US",
+            "name": "b2g_macosx64",
+            "platform": "b2g",
+            "product": "b2g",
+            "release": "2264bffd89ca",
+            "revision": "1bd33f5447d2",
+            "revision12": "1bd33f5447d2",
+            "tags": [],
+            "type": [
+                "opt"
+            ],
+            "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-macosx64_gecko/1425168145/en-US/b2g-32.0.en-US.mac64.dmg"
+        },
+        "other": [
+            {
+                "name": "nightly_build",
+                "value": "True"
+            },
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/talos-slave/test",
+            "builduid": "78148a655ed94a8aa63b39fca904b0f9",
+            "master": "http://buildbot-master108.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-mozilla-b2g32_v2_0-mountainlion-b2gdt-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "macosx64_gecko"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "output.html",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-b2g32_v2_0/sha512/b51add47eaa47cc6e7cfb38a9c7d3a03ef47029809af5b30f4d8478d99e41324607889ef864fa383cdf452eb66b62e3e84e02cd955b3c507acf289c1e8ba7f60"
+                }
+            ],
+            "key": "b2g_macosx64 mozilla-b2g32_v2_0 opt test gaia-ui-test",
+            "logurl": "http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/2015/02/2015-02-28-16-02-25-mozilla-b2g32_v2_0/mozilla-b2g32_v2_0_mountainlion-b2gdt_test-gaia-ui-test-bm108-tests1-macosx-build19.txt.gz",
+            "machine": {
+                "name": "talos-mtnlion-r5-028",
+                "os": "b2g",
+                "pool": "talos-mtnlion-r5",
+                "type": "emulator"
+            },
+            "script": {
+                "revision": "2264bffd89ca",
+                "url": "https://hg.mozilla.org/build/mozharness"
+            },
+            "suite": "gaia-ui-test"
+        }
     }
 ]
