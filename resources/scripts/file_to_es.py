@@ -8,30 +8,18 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 import hashlib
 
-from pyLibrary import convert
+from pyLibrary import convert, jsons
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.files import File
 from pyLibrary.thread.threads import Thread
 
-es_config = wrap({
-    "host": "http://localhost",
-    "port": 9200,
-    "index": "coverage",
-    "type": "code_coverage",
-    "timeout": 300,
-    "schema": {
-        "$ref": "//../../schema/code_coverage.json"
-    },
-    "debug": True,
-    "limit_replicas": True
-})
+es_config = jsons.ref.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
 
 es = elasticsearch.Cluster(es_config).get_or_create_index(es_config)
 queue = es.threaded_queue(batch_size=100)

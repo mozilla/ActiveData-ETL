@@ -7,11 +7,11 @@
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "coverage",
+		"type": "code_coverage",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/test_results.json"
+			"$ref": "//../../schema/code_coverage.json"
 		},
 		"debug": false,
 		"limit_replicas": true
