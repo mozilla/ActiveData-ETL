@@ -7,7 +7,7 @@
 	"param": {
 		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": true
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -70,6 +70,22 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
+		{
+            "name": "pulse_tc_to_codecoverage",
+            "source": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-task-cluster-logger-beta",
+                "key_format": "a:b"
+            },
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage-beta",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
+            "type": "join"
+        },
 //		{
 //			"name": "bbb2jobs",
 //			"source": {
