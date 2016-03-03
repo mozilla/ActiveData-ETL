@@ -11,17 +11,16 @@ from __future__ import unicode_literals
 
 import json
 
-from pyLibrary.dot import wrap
-from pyLibrary.env.git import get_git_revision
-from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from testlog_etl.transforms import EtlHeadGenerator
 from pyLibrary.dot import Dict
+from pyLibrary.dot import wrap
 from pyLibrary.env import http
-from testlog_etl import etl2key
+from testlog_etl.transforms import EtlHeadGenerator
+from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 
 
 def process(source_key, source, destination, resources, please_stop=None):
-    output = []
+    keys = []
+    records = []
     etl_header_gen = EtlHeadGenerator(source_key)
 
     for i, line in enumerate(source.read_lines()):
@@ -59,9 +58,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "sourceFile": obj.sourceFile,
                         "lineCovered": line
                     },
-                    "etl": etl2key(dest_etl)
+                    "etl": dest_etl
                 }
-                output.append(json.dumps(new_line))
+                records.append(new_line)
+                keys.append(dest_key)
 
-    # return output_lines
-    return output
+    destination.extend(records)
+    return keys
