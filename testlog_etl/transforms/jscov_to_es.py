@@ -17,6 +17,7 @@ from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from testlog_etl.transforms import EtlHeadGenerator
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
+from testlog_etl import etl2key
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -59,9 +60,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "sourceFile": obj.sourceFile,
                         "lineCovered": line
                     },
-                    "etl": dest_key
+                    "etl": etl2key(dest_etl)
                 }
-                # output_lines.append(new_line)
                 output.append(json.dumps(new_line))
 
     # return output_lines
