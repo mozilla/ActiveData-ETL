@@ -60,7 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "etl": dest_etl
                 }
-                records.append(new_line)
+                records.append({"id": dest_key, "value": new_line})
                 keys.append(dest_key)
 
     destination.extend(records)
