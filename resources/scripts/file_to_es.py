@@ -21,6 +21,8 @@ from pyLibrary.thread.threads import Thread
 
 es_config = jsons.ref.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
 
+es_config.host = "http://activedata.allizom.org"
+
 es = elasticsearch.Cluster(es_config).get_or_create_index(es_config)
 queue = es.threaded_queue(batch_size=100)
 
