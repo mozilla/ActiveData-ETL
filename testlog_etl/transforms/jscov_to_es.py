@@ -46,8 +46,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         for j, obj in enumerate(json_data):
             # get the test name. Just use the test file name at the moment
             # TODO: change this when needed
-            last_slash_index = obj.testUrl.rfind("/")
-            test_name = obj.testUrl[last_slash_index + 1:]
+            test_name = obj.testUrl.split("/")[-1]
 
             for line in obj.covered:
                 dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, j)
