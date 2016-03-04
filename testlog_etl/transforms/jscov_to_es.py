@@ -49,6 +49,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             for line in obj.covered:
                 dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, j)
+                key = dest_key + "." + unicode(j)
                 new_line = {
                     "test": {
                         "name": test_name,
@@ -60,8 +61,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "etl": dest_etl
                 }
-                records.append({"id": dest_key, "value": new_line})
-                keys.append(dest_key)
+                records.append({"id": key, "value": new_line})
+                keys.append(key)
 
     destination.extend(records)
     return keys
