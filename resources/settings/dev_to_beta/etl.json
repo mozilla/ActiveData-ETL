@@ -71,7 +71,7 @@
 			"type": "join"
 		},
 		{
-            "name": "pulse_tc_to_codecoverage",
+            "name": "pulse_to_task_cluster",
             "source": {
                 "$ref": "file://~/private.json#aws_credentials",
                 "bucket": "active-data-task-cluster-logger-beta",
@@ -79,11 +79,11 @@
             },
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage-beta",
+				"bucket": "active-data-task-cluster-beta",
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
+			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
             "type": "join"
         },
 //		{
