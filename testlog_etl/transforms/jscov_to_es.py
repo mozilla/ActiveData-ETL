@@ -13,6 +13,7 @@ import json
 
 from pyLibrary.dot import Dict
 from pyLibrary.dot import wrap
+from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from testlog_etl.transforms import EtlHeadGenerator
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
@@ -24,6 +25,9 @@ def process(source_key, source, destination, resources, please_stop=None):
     etl_header_gen = EtlHeadGenerator(source_key)
 
     for i, line in enumerate(source.read_lines()):
+        if please_stop:
+            Log.error("Shutdown detected. Stopping job ETL.")
+
         stats = Dict()
         pulse_record = scrub_pulse_record(source_key, i, line, stats)
         artifact_file_name = pulse_record.artifact.name
@@ -43,6 +47,9 @@ def process(source_key, source, destination, resources, please_stop=None):
         # transform
         json_data = wrap(json.loads(response))
         for j, obj in enumerate(json_data):
+            if please_stop:
+                Log.error("Shutdown detected. Stopping job ETL.")
+
             # get the test name. Just use the test file name at the moment
             # TODO: change this when needed
             test_name = obj.testUrl.split("/")[-1]
