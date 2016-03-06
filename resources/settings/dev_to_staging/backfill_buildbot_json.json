@@ -1,18 +1,21 @@
 {
 	"limit": 30,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
-	"range": {"max": 1000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"no_checks": true,
-	"git":{
-		"url":"https://github.com/klahnakoski/TestLog-ETL.git",
-		"branch":"etl"
+	"range": {
+		"max": 1000
+	},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
+	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
+	"git": {
+		"url": "https://github.com/klahnakoski/TestLog-ETL.git",
+		"branch": "etl"
 	},
 	"source": {
 		//THE BUCKET WITH WHAT SHOULD BE IN ES
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-jobs",
+		"bucket": "active-data-buildbot",
 		"key_format": "a.b"
 	},
-	"elasticsearch":{
+	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.source.id",
 		"host": "http://activedata.allizom.org",
@@ -26,9 +29,9 @@
 		"debug": true,
 		"limit_replicas": true
 	},
-	"work_queue":{
+	"work_queue": {
 		// THE QUEUE TO FILL WITH REQUESTS
-		"name": "active-data-index-jobs",
+		"name": "active-data-etl",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -47,9 +50,8 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in backfill index jobs",
+				"subject": "[ALERT][DEV]Problem in backfill jobs",
 				"$ref": "file://~/private.json#email"
-
 			}
 		]
 	}

@@ -176,13 +176,13 @@ class Index(Features):
         RETURN THE INDEX USED BY THIS alias
         """
         alias_list = self.cluster.get_aliases()
-        output = sort([
+        output = qb.sort(set([
             a.index
             for a in alias_list
             if a.alias == alias or
                 a.index == alias or
                 (re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and a.index != alias)
-        ])
+        ]))
 
         if len(output) > 1:
             Log.error("only one index with given alias==\"{{alias}}\" expected",  alias= alias)
@@ -202,7 +202,7 @@ class Index(Features):
         return True
 
     def flush(self):
-        self.cluster.post("/" + self.settings.index + "/_refresh")
+        self.cluster.post("/" + self.settings.index + "/_flush", data={"wait_if_ongoing": True, "forced": True})
 
     def delete_record(self, filter):
         if self.settings.read_only:
@@ -254,12 +254,8 @@ class Index(Features):
                     id = random_id()
 
                 if "json" in r:
-                    # if id != coalesce(wrap(convert.json2value(r["json"])).value._id, id):
-                    #     Log.error("expecting _id to match")
                     json = r["json"]
                 elif "value" in r:
-                    # if id != coalesce(wrap(r).value._id, id):
-                    #     Log.error("expecting _id to match")
                     json = convert.value2json(r["value"])
                 else:
                     json = None
@@ -290,26 +286,29 @@ class Index(Features):
             )
             items = response["items"]
 
-            for i, item in enumerate(items):
-                if self.cluster.version.startswith("0.90."):
+            fails = []
+            if self.cluster.version.startswith("0.90."):
+                for i, item in enumerate(items):
                     if not item.index.ok:
-                        Log.error(
-                            "{{error}} while loading line:\n{{line}}",
-                            error=item.index.error,
-                            line=lines[i * 2 + 1]
-                        )
-                elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6.", "1.7."])):
+                        fails.append(i)
+            elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6.", "1.7."])):
+                for i, item in enumerate(items):
                     if item.index.status not in [200, 201]:
-                        Log.error(
-                            "{{num}} {{error}} while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
-                            num=item.index.status,
-                            error=item.index.error,
-                            line=strings.limit(lines[i * 2 + 1], 300),
-                            index=self.settings.index,
-                            id=item.index._id
-                        )
-                else:
-                    Log.error("version not supported {{version}}", version=self.cluster.version)
+                        fails.append(i)
+            else:
+                Log.error("version not supported {{version}}", version=self.cluster.version)
+            if fails:
+                item = items[fails[0]]
+                Log.error(
+                    "{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                    status=item.index.status,
+                    error=item.index.error,
+                    some=len(fails) - 1,
+                    line=strings.limit(lines[fails[0] * 2 + 1], 500 if not self.debug else 100000),
+                    index=self.settings.index,
+                    all_fails=fails,
+                    id=item.index._id
+                )
 
             if self.debug:
                 Log.note("{{num}} documents added", num=len(items))
@@ -583,8 +582,19 @@ class Cluster(object):
         es = Index(settings=settings)
         return es
 
-    def delete_index(self, index=None):
-        self.delete("/" + index)
+    def delete_index(self, index_name):
+        url = self.settings.host + ":" + unicode(self.settings.port) + "/" + index_name
+        try:
+            response = http.delete(url)
+            if response.status_code != 200:
+                Log.error("Expecting a 200")
+            details = convert.json2value(utf82unicode(response.content))
+            if self.debug:
+                Log.note("delete response {{response}}", response=details)
+            return response
+        except Exception, e:
+            Log.error("Problem with call to {{url}}", url=url, cause=e)
+
 
     def get_aliases(self):
         """
@@ -719,16 +729,6 @@ class Cluster(object):
         except Exception, e:
             Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
-    def delete(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
-        try:
-            response = convert.json2value(utf82unicode(http.delete(url, **kwargs).content))
-            if self.debug:
-                Log.note("delete response {{response}}",  response= response)
-            return response
-        except Exception, e:
-            Log.error("Problem with call to {{url}}",  url= url, cause=e)
-
 
 def proto_name(prefix, timestamp=None):
     if not timestamp:
@@ -807,7 +807,8 @@ class Alias(Features):
         self.debug = debug
         if self.debug:
             Log.alert("Elasticsearch debugging on {{index|quote}} is on",  index= settings.index)
-
+        if alias == None:
+            Log.error("Alias can not be None")
         self.settings = settings
         self.cluster = Cluster(settings)
 

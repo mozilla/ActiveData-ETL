@@ -7,11 +7,12 @@
 	"param": {
 		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": true
+		"keep_unknown_on_queue": false
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
@@ -70,7 +71,7 @@
 			"type": "join"
 		},
 		{
-            "name": "pulse_tc_to_codecoverage",
+            "name": "pulse_to_task_cluster",
             "source": {
                 "$ref": "file://~/private.json#aws_credentials",
                 "bucket": "active-data-task-cluster-logger-beta",
@@ -78,11 +79,15 @@
             },
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage-beta",
+				"bucket": "active-data-task-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "a:b"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
+			"notify": {
+				"name": "active-data-index-task-dev",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
             "type": "join"
         },
 //		{

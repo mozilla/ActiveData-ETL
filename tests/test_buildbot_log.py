@@ -25,6 +25,7 @@ from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
 false = False
 true = True
 
+
 class TestBuildbotLogs(FuzzyTestCase):
 
     def __init__(self, *args, **kwargs):
@@ -81,7 +82,8 @@ class TestBuildbotLogs(FuzzyTestCase):
             },
             "constants": {
                 "pyLibrary.env.http.default_headers": {
-                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+                    "User-Agent": "testlog-etl"
                 }
             }
         }, "file:///")

@@ -10,7 +10,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},

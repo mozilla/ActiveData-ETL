@@ -20,7 +20,7 @@ from pyLibrary.collections import MIN, MAX
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
-from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap
+from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist
 from pyLibrary.dot.lists import DictList
 from pyLibrary.thread.threads import Lock
 from pyLibrary.debugs.logs import Log
@@ -132,8 +132,8 @@ def transform(uid, perfherder, resources):
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
-                if option not in listwrap(buildbot.run.type):
-                    buildbot.run.type += [option]
+                if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
+                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
                         uid=uid,

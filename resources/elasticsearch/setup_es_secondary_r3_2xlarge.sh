@@ -43,7 +43,9 @@ cd /usr/local/elasticsearch/
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
 sudo bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
 
-#ES HEAD IS WONDERFUL!
+# ES HEAD IS WONDERFUL!# BE SURE YOUR elasticsearch.yml FILE IS HAS
+#     http.cors.enabled: true
+#     http.cors.allow-origin: "*"
 sudo bin/plugin install mobz/elasticsearch-head
 
 

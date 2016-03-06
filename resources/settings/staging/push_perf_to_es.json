@@ -26,7 +26,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		}
 	},
 	"debug": {
@@ -39,7 +40,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push perf to ES",
+				"subject": "[ALERT][Staging]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#email"
 			}
 		]

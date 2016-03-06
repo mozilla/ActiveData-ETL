@@ -1,27 +1,26 @@
 {
 	"threads": 1,
-	"batch_size": 5000,
-	"sample_only": [],
 	"elasticsearch": {
-		"host": "http://activedata.allizom.org",
+		"host": "http://localhost",
 		"port": 9200,
-		"index": "perf",
-		"type": "perf_result",
+		"index": "task_cluster",
+		"type": "task",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/perf_results.json"
+			"$ref": "//../../schema/task_cluster.json"
 		},
-		"debug": false,
-		"limit_replicas": false
+		"debug": true,
+		"limit_replicas": true
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-perf",
-		"key_format": "a:b.c"
+		"bucket": "active-data-task-dev",
+		"key_format": "a:b"
 	},
 	"work_queue":{
-		"name": "active-data-index-perf",
+		"name": "active-data-index-task-dev",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -31,7 +30,10 @@
 		}
 	},
 	"debug": {
-		"trace":true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
@@ -40,7 +42,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push perf to ES",
+				"subject": "[ALERT][DEV]Problem in Push Tasks to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

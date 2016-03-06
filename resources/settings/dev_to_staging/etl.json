@@ -11,7 +11,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
@@ -83,6 +84,10 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
+			"notify": {
+			   "name": "active-data-etl",
+			   "$ref": "file://~/private.json#aws_credentials"
+		   	},
 			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
@@ -109,10 +114,10 @@
             "transform_type": "bulk"
         },
 		{
-			"name": "talos2perf",
+			"name": "perfherder2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos",
+				"bucket": "active-data-perfherder",
 				"key_format": "a:b.c"
 			},
 			"destination": {
@@ -125,8 +130,7 @@
 				"name": "active-data-index-perf",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transform_type": "bulk",
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{
