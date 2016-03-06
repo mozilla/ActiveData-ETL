@@ -14,6 +14,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+
+import types
 from collections import deque
 from copy import copy
 from datetime import datetime, timedelta
@@ -446,7 +448,8 @@ class Thread(object):
         try:
             self.children.remove(child)
         except Exception, e:
-            _Log.error("not expected", e)
+            # happens when multiple joins on same thread
+            pass
 
     def _run(self):
         if _Log.cprofiler:
@@ -472,7 +475,7 @@ class Thread(object):
             try:
                 _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
             except Exception, f:
-                sys.stderr.write("ERROR in thread: " + str(self.name) + " " + str(e) + "\n")
+                sys.stderr.write(b"ERROR in thread: " + str(self.name) + b" " + str(e) + b"\n")
         finally:
             try:
                 children = copy(self.children)
@@ -771,6 +774,8 @@ class ThreadedQueue(Queue):
                             queue.extend(_buffer)
                             please_stop.go()
                             break
+                        elif isinstance(item, types.FunctionType):
+                            item()
                         elif item is not None:
                             _buffer.append(item)
 
@@ -784,6 +789,8 @@ class ThreadedQueue(Queue):
                         queue.extend(_buffer)
                         please_stop.go()
                         break
+                    elif isinstance(item, types.FunctionType):
+                        item()
                     elif item is not None:
                         _buffer.append(item)
 
