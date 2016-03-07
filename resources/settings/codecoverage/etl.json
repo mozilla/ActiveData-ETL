@@ -169,7 +169,7 @@
 			"type": "join"
 		},
 		{
-			"name": "pulsetc2es",
+			"name": "pulse_taskcluster_codecoverage_2_es",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-pulse-tc-dev",
