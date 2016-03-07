@@ -24,12 +24,13 @@ def process(source_key, source, destination, resources, please_stop=None):
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
 
-    for i, line in enumerate(source.read_lines()):
+    for i, msg_line in enumerate(source.read_lines()):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
+        bucket_key = source_key + "." + str(i)
         stats = Dict()
-        pulse_record = scrub_pulse_record(source_key, i, line, stats)
+        pulse_record = scrub_pulse_record(source_key, i, msg_line, stats)
         artifact_file_name = pulse_record.artifact.name
 
         # we're only interested in jscov files, at lease at the moment
@@ -56,6 +57,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             for line in obj.covered:
                 dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, j)
+                record_key = bucket_key + "." + str(j) + unicode(line)
                 new_line = {
                     "test": {
                         "name": test_name,
@@ -67,8 +69,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "etl": dest_etl
                 }
-                records.append({"id": dest_key, "value": new_line})
-                keys.append(dest_key)
+                records.append({"id": record_key, "value": new_line})
+                keys.append(record_key)
 
     destination.extend(records)
     return keys
