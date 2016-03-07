@@ -24,12 +24,12 @@ def process(source_key, source, destination, resources, please_stop=None):
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
     print "Processing " + source_key
+    count = -1
 
     for i, msg_line in enumerate(source.read_lines()):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
-        bucket_key = source_key + "." + unicode(i)
         stats = Dict()
         pulse_record = scrub_pulse_record(source_key, i, msg_line, stats)
         artifact_file_name = pulse_record.artifact.name
@@ -37,6 +37,11 @@ def process(source_key, source, destination, resources, please_stop=None):
         # we're only interested in jscov files, at lease at the moment
         if "jscov" not in artifact_file_name:
             continue
+
+        # create the key for the file in the bucket, and add it to a list to return later
+        count += 1
+        bucket_key = source_key + "." + unicode(count)
+        keys.append(bucket_key)
 
         # construct the artifact's full url
         taskId = pulse_record.status.taskId
@@ -74,7 +79,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "etl": dest_etl
                 }
                 records.append({"id": record_key, "value": new_line})
-                keys.append(record_key)
 
     destination.extend(records)
     return keys
