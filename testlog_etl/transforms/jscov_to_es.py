@@ -64,7 +64,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "url": obj.testUrl
                     },
                     "source": {
-                        "sourceFile": obj.sourceFile,
+                        "file": obj.sourceFile,
                         "covered": line
                     },
                     "etl": dest_etl
