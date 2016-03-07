@@ -29,7 +29,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
-        bucket_key = source_key + "." + str(i)
+        bucket_key = source_key + "." + unicode(i)
         stats = Dict()
         pulse_record = scrub_pulse_record(source_key, i, msg_line, stats)
         artifact_file_name = pulse_record.artifact.name
@@ -41,7 +41,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         # construct the artifact's full url
         taskId = pulse_record.status.taskId
         runId = pulse_record.runId
-        full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + str(runId) + "/" + artifact_file_name
+        full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
@@ -60,7 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, j)
 
                 # reusing dest_etl.id, which should be continuous
-                record_key = bucket_key + "." + str(dest_etl.id)
+                record_key = bucket_key + "." + unicode(dest_etl.id)
 
                 new_line = {
                     "test": {
