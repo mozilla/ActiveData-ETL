@@ -65,7 +65,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "source": {
                         "sourceFile": obj.sourceFile,
-                        "lineCovered": line
+                        "covered": line
                     },
                     "etl": dest_etl
                 }
