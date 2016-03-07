@@ -23,6 +23,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     keys = []
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
+    count = -1
 
     for i, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -56,8 +57,12 @@ def process(source_key, source, destination, resources, please_stop=None):
             test_name = obj.testUrl.split("/")[-1]
 
             for line in obj.covered:
-                dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, j)
-                record_key = bucket_key + "." + str(j) + unicode(line)
+                _, dest_etl = etl_header_gen.next(pulse_record.etl, j)
+                count += 1
+                record_key = bucket_key + "." + str(count)
+
+                dest_etl.id = count
+
                 new_line = {
                     "test": {
                         "name": test_name,
