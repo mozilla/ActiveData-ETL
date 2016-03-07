@@ -23,7 +23,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     keys = []
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    count = -1
+    print "Processing " + source_key
 
     for i, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -58,10 +58,9 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             for line in obj.covered:
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, j)
-                count += 1
-                record_key = bucket_key + "." + str(count)
 
-                dest_etl.id = count
+                # reusing dest_etl.id, which should be continuous
+                record_key = bucket_key + "." + str(dest_etl.id)
 
                 new_line = {
                     "test": {
