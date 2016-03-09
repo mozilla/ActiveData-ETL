@@ -61,13 +61,13 @@ def process(source_key, source, destination, resources, please_stop=None):
             # TODO: change this when needed
             test_name = obj.testUrl.split("/")[-1]
 
-            for line in obj.covered:
+            for line_index, line in enumerate(obj.covered):
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, j)
 
                 # reusing dest_etl.id, which should be continuous
                 record_key = bucket_key + "." + unicode(dest_etl.id)
 
-                new_line = {
+                new_line = wrap({
                     "test": {
                         "name": test_name,
                         "url": obj.testUrl
@@ -77,7 +77,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "covered": line
                     },
                     "etl": dest_etl
-                }
+                })
+
+                # file marker
+                if line_index == 0:
+                    new_line.source.is_file = "true"
+
                 records.append({"id": record_key, "value": new_line})
 
     destination.extend(records)
