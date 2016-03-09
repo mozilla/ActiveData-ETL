@@ -24,14 +24,14 @@ def process(source_key, source, destination, resources, please_stop=None):
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
     print "Processing " + source_key
-    count = -1
+    bucket_file_count = -1
 
-    for i, msg_line in enumerate(source.read_lines()):
+    for msg_line_index, msg_line in enumerate(source.read_lines()):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
         stats = Dict()
-        pulse_record = scrub_pulse_record(source_key, i, msg_line, stats)
+        pulse_record = scrub_pulse_record(source_key, msg_line_index, msg_line, stats)
         artifact_file_name = pulse_record.artifact.name
 
         # we're only interested in jscov files, at lease at the moment
@@ -39,8 +39,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             continue
 
         # create the key for the file in the bucket, and add it to a list to return later
-        count += 1
-        bucket_key = source_key + "." + unicode(count)
+        bucket_file_count += 1
+        bucket_key = source_key + "." + unicode(bucket_file_count)
         keys.append(bucket_key)
 
         # construct the artifact's full url
@@ -53,7 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # transform
         json_data = wrap(json.loads(response))
-        for j, obj in enumerate(json_data):
+        for source_file_index, obj in enumerate(json_data):
             if please_stop:
                 Log.error("Shutdown detected. Stopping job ETL.")
 
@@ -62,7 +62,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             test_name = obj.testUrl.split("/")[-1]
 
             for line_index, line in enumerate(obj.covered):
-                _, dest_etl = etl_header_gen.next(pulse_record.etl, j)
+                _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
 
                 # reusing dest_etl.id, which should be continuous
                 record_key = bucket_key + "." + unicode(dest_etl.id)
