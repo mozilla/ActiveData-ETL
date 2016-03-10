@@ -56,6 +56,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_no_auto_restore",
     "sessionrestore",
     "svgr",
+    "tabpaint",
     "tart",
     "tcanvasmark",
     "tcheck2",
