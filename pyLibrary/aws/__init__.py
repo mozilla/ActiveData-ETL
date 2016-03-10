@@ -82,18 +82,20 @@ class Queue(object):
             return None
 
         self.pending.append(m)
-        return convert.json2value(m.get_body())
+        output = convert.json2value(m.get_body())
+        return output
 
     def pop_message(self, wait=SECOND, till=None):
         """
-        RETURN THE MESSAGE, CALLER IS RESPONSIBLE FOR CALLING delete_message() WHEN DONE
+        RETURN TUPLE (message, payload) CALLER IS RESPONSIBLE FOR CALLING message.delete() WHEN DONE
         """
-        m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
-        if not m:
+        message = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
+        if not message:
             return None
+        message.delete = lambda: self.queue.delete_message(message)
 
-        output = convert.json2value(m.get_body())
-        return output
+        payload = convert.json2value(message.get_body())
+        return message, payload
 
     def commit(self):
         pending = self.pending

@@ -300,10 +300,11 @@ class Index(Features):
             if fails:
                 item = items[fails[0]]
                 Log.error(
-                    "{{num}} {{error}} while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
-                    num=item.index.status,
+                    "{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                    status=item.index.status,
                     error=item.index.error,
-                    line=strings.limit(lines[fails[0] * 2 + 1], 500),
+                    some=len(fails) - 1,
+                    line=strings.limit(lines[fails[0] * 2 + 1], 500 if not self.debug else 100000),
                     index=self.settings.index,
                     all_fails=fails,
                     id=item.index._id
