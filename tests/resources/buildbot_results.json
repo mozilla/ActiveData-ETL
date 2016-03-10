@@ -10854,5 +10854,62 @@
             },
             "suite": "gaia-ui-test"
         }
+    },
+    {
+        "action": {
+            "buildbot_status": "failure",
+            "end_time": 1457495164,
+            "job_number": 4,
+            "reason": "scheduler",
+            "request_time": 1457494418,
+            "requests": [
+                {
+                    "request_id": 100956188,
+                    "timestamp": 1457494418
+                }
+            ],
+            "start_time": 1457494444,
+            "type": "build"
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "WINNT 5.2",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "4199fd72e38fa32d46d4680fef970feefc95fafa",
+            "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
+            "revision12": "4199fd72e38f",
+            "tags": [],
+            "type": ["debug", "static analysis"]
+        },
+        "other": [
+            {
+                "name": "toolsdir",
+                "value": "/c/builds/moz2_slave/try-w32-st-an-d-00000000000000/scripts"
+            }
+        ],
+        "properties": {
+            "basedir": "/c/builds/moz2_slave/try-w32-st-an-d-00000000000000",
+            "builduid": "2eab0062d523401fac018abe8a389bca",
+            "comments": "try: -b d -p win32-st-an -u none -t none",
+            "got_revision": "4199fd72e38f",
+            "master": "http://buildbot-master78.bb.releng.usw2.mozilla.com:8101/",
+            "scheduler": "try-firefox",
+            "stage_platform": "win32-st-an-debug"
+        },
+        "run": {
+            "key": "WINNT 5.2 try debug static analysis build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/eakhgari@mozilla.com-4199fd72e38fa32d46d4680fef970feefc95fafa/try-win32-st-an-debug/try-win32-st-an-debug-bm78-try1-build4.txt.gz",
+            "machine": {
+                "name": "y-2008-spot-153",
+                "os": "winxp",
+                "pool": "y-2008-spot"
+            },
+            "script": {
+                "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
+                "url": "https://hg.mozilla.org/build/mozharness"
+            }
+        }
     }
 ]

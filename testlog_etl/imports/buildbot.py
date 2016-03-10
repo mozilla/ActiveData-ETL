@@ -705,6 +705,7 @@ KNOWN_PLATFORM = {
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "win32_gecko_localizer": {},
+    "win32-st-an-debug":{"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},

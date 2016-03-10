@@ -7544,7 +7544,50 @@
 	    "result": 0,
 	    "slave_id": 2325,
 	    "starttime": 1425171956
+	},
+	{
+	    "builder_id": 571790,
+	    "buildnumber": 4,
+	    "endtime": 1457495164,
+	    "id": 89511939,
+	    "master_id": 195,
+	    "properties": {
+	        "basedir": "/c/builds/moz2_slave/try-w32-st-an-d-00000000000000",
+	        "branch": "try",
+	        "buildername": "WINNT 5.2 try debug static analysis build",
+	        "buildnumber": 4,
+	        "builduid": "2eab0062d523401fac018abe8a389bca",
+	        "comments": "try: -b d -p win32-st-an -u none -t none",
+	        "commit_titles": [
+	            "try: -b d -p win32-st-an -u none -t none",
+	            "Bug 1254807 - Disambiguate ArrayType for clang trunk static analysis builds; r=jrmuizel"
+	        ],
+	        "got_revision": "4199fd72e38f",
+	        "log_url": "http://archive.mozilla.org/pub/firefox/try-builds/eakhgari@mozilla.com-4199fd72e38fa32d46d4680fef970feefc95fafa/try-win32-st-an-debug/try-win32-st-an-debug-bm78-try1-build4.txt.gz",
+	        "master": "http://buildbot-master78.bb.releng.usw2.mozilla.com:8101/",
+	        "platform": "win32-st-an-debug",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "try",
+	        "repository": "",
+	        "request_ids": [100956188],
+	        "request_times": {"100956188": 1457494418},
+	        "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
+	        "scheduler": "try-firefox",
+	        "script_repo_revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
+	        "script_repo_url": "https://hg.mozilla.org/build/mozharness",
+	        "slavename": "y-2008-spot-153",
+	        "stage_platform": "win32-st-an-debug",
+	        "toolsdir": "/c/builds/moz2_slave/try-w32-st-an-d-00000000000000/scripts"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [100956188],
+	    "requesttime": 1457494418,
+	    "result": 2,
+	    "slave_id": 11604,
+	    "starttime": 1457494444
 	}
+
 
 
 
