@@ -66,6 +66,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         # get additional info
         repo = get_revision_info(task_definition, resources)
         run = get_run_info(task_definition)
+        build = get_build_info(task_definition)
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
@@ -97,7 +98,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "etl": dest_etl,
                     "repo": repo,
-                    "run": run
+                    "run": run,
+                    "build": build
                 })
 
                 # file marker
@@ -138,3 +140,23 @@ def get_run_info(task_definition):
     run.suite = task_definition.extra.suite.name
     run.chunk = task_definition.extra.chunks.current
     return run
+
+
+def get_build_info(task_definition):
+    """
+    Get a build object that describes the build
+    :param task_definition: The task definition
+    :return: The build object
+    """
+    build = Dict()
+    build.platform = task_definition.extra.treeherder.build.platform
+
+    # head_repo will look like "https://hg.mozilla.org/try/"
+    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
+    branch = head_repo.split("/")[-2]
+    build.branch = branch
+
+    build.revision = task_definition.payload.env.GECKO_HEAD_REV
+    build.revision12 = build.revision[0:12]
+    build.url = task_definition.payload.env.MOZILLA_BUILD_URL
+    return build
