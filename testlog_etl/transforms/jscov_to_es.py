@@ -14,7 +14,7 @@ import taskcluster
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from testlog_etl.transforms import EtlHeadGenerator
 from mohg.repos.changesets import Changeset
@@ -59,8 +59,13 @@ def process(source_key, source, destination, resources, please_stop=None):
         runId = pulse_record.runId
         full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
-        # get revision info
-        repo = get_revision_info(taskId, resources)
+        # get the task definition
+        queue = taskcluster.Queue()
+        task_definition = wrap(queue.task(taskId=taskId))
+
+        # get additional info
+        repo = get_revision_info(task_definition, resources)
+        run = get_run_info(task_definition)
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
@@ -91,7 +96,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "covered": line
                     },
                     "etl": dest_etl,
-                    "repo": repo
+                    "repo": repo,
+                    "run": run
                 })
 
                 # file marker
@@ -104,15 +110,13 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def get_revision_info(taskId, resources):
+def get_revision_info(task_definition, resources):
     """
     Get the changeset, revision and push info for a given task in TaskCluster
-    :param taskId: The taskId of the task
+    :param task_definition: The task definition
     :param resources: Pass this from the process method
     :return: The repo object containing information about the changeset, revision and push
     """
-    queue = taskcluster.Queue()
-    task_definition = wrap(queue.task(taskId=taskId))
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
@@ -122,3 +126,15 @@ def get_revision_info(taskId, resources):
     rev = Revision(branch={"name": branch}, changeset=Changeset(id=revision))
     repo = resources.hg.get_revision(rev)
     return repo
+
+
+def get_run_info(task_definition):
+    """
+    Get the run object that contains properties that describe the run of this job
+    :param task_definition: The task definition
+    :return: The run object
+    """
+    run = Dict()
+    run.suite = task_definition.extra.suite.name
+    run.chunk = task_definition.extra.chunks.current
+    return run
