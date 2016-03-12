@@ -10,13 +10,15 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import json
+import taskcluster
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
 from pyLibrary.dot import wrap
 from pyLibrary.env import http
 from testlog_etl.transforms import EtlHeadGenerator
+from mohg.repos.changesets import Changeset
+from mohg.repos.revisions import Revision
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -57,6 +59,9 @@ def process(source_key, source, destination, resources, please_stop=None):
         runId = pulse_record.runId
         full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
+        # get revision info
+        repo = get_revision_info(taskId, resources)
+
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
 
@@ -85,7 +90,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "file": obj.sourceFile,
                         "covered": line
                     },
-                    "etl": dest_etl
+                    "etl": dest_etl,
+                    "repo": repo
                 })
 
                 # file marker
@@ -96,3 +102,23 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     destination.extend(records)
     return keys
+
+
+def get_revision_info(taskId, resources):
+    """
+    Get the changeset, revision and push info for a given task in TaskCluster
+    :param taskId: The taskId of the task
+    :param resources: Pass this from the process method
+    :return: The repo object containing information about the changeset, revision and push
+    """
+    queue = taskcluster.Queue()
+    task_definition = wrap(queue.task(taskId=taskId))
+
+    # head_repo will look like "https://hg.mozilla.org/try/"
+    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
+    branch = head_repo.split("/")[-2]
+
+    revision = task_definition.payload.env.GECKO_HEAD_REV
+    rev = Revision(branch={"name": branch}, changeset=Changeset(id=revision))
+    repo = resources.hg.get_revision(rev)
+    return repo
