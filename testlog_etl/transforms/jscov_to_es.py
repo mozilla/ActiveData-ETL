@@ -20,6 +20,16 @@ from testlog_etl.transforms import EtlHeadGenerator
 
 
 def process(source_key, source, destination, resources, please_stop=None):
+    """
+    This transform will turn a pulse message containing info about a jscov artifact on taskcluster
+    into a list of records of line coverages. Each record represents a line.
+    :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
+    :param source: The source pulse messages, in a batch of (usually) 100
+    :param destination: The destination for the transformed data
+    :param resources: not used
+    :param please_stop: The stop signal to stop the current thread
+    :return: The list of keys of files in the destination bucket
+    """
     keys = []
     records = []
     etl_header_gen = EtlHeadGenerator(source_key)
