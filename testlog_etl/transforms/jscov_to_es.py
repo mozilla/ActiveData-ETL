@@ -11,12 +11,12 @@ from __future__ import unicode_literals
 
 import json
 
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.dot import wrap
-from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from testlog_etl.transforms import EtlHeadGenerator
-from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -30,8 +30,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
-        stats = Dict()
-        pulse_record = scrub_pulse_record(source_key, msg_line_index, msg_line, stats)
+        pulse_record = convert.json2value(msg_line)
         artifact_file_name = pulse_record.artifact.name
 
         # we're only interested in jscov files, at lease at the moment
