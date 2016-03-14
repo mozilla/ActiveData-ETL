@@ -163,7 +163,7 @@ class ETL(Thread):
                     etls = qb.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
-                            Log.error("expecting keys to have dense order: {{ids}}", ids=etls.id)
+                            Log.error("expecting keys to be contiguous: {{ids}}", ids=etls.id)
                     # VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
@@ -229,7 +229,7 @@ class ETL(Thread):
                     if source_block.bucket=="ekyle-test-result":
                         for k in action._source.list(prefix=key_prefix(source_key)):
                             action._source.delete_key(strip_extension(k.key))
-                elif "expecting keys to have dense order" in e:
+                elif "expecting keys to be contiguous" in e:
                     err = Log.warning
                     if source_block.bucket=="ekyle-test-result":
                         # WE KNOW OF THIS ETL MISTAKE, REPROCESS

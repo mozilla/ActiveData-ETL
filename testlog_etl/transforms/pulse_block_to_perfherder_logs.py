@@ -40,7 +40,6 @@ EXPECTING_RESULTS = {
     "========= Finished run_script exception (results:": False,
     "========= Finished run_script interrupted (results:": False,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' failed (results:": False,
-    "========= Finished 'c:/mozilla-build/python27/python -u ...' warnings (results:": False,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' exception (results:": False,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' interrupted (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' failed (results:": False,
