@@ -10,15 +10,17 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import json
+
 import taskcluster
 
+from mohg.repos.changesets import Changeset
+from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.times.dates import Date
 from testlog_etl.transforms import EtlHeadGenerator
-from mohg.repos.changesets import Changeset
-from mohg.repos.revisions import Revision
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -158,5 +160,19 @@ def get_build_info(task_definition):
 
     build.revision = task_definition.payload.env.GECKO_HEAD_REV
     build.revision12 = build.revision[0:12]
+
+    # MOZILLA_BUILD_URL looks like this:
+    # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
     build.url = task_definition.payload.env.MOZILLA_BUILD_URL
+
+    # get the taskId of the build, then from that get the task definition of the build
+    # note: this is a fragile way to get the taskId of the build
+    build.taskId = build.url.split("/")[5]
+    queue = taskcluster.Queue()
+    build_task_definition = wrap(queue.task(taskId=build.taskId))
+    build.name = build_task_definition.extra.build_name
+    build.product = build_task_definition.extra.build_product
+    build.type = build_task_definition.extra.build_type
+    build.created_timestamp = Date(build_task_definition.created).unix
+
     return build
