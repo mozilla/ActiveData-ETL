@@ -137,7 +137,7 @@ def get_run_info(task_definition):
     :return: The run object
     """
     run = Dict()
-    run.suite = task_definition.extra.suite.name
+    run.suite = task_definition.extra.suite
     run.chunk = task_definition.extra.chunks.current
     return run
 
