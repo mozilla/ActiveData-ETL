@@ -63,7 +63,12 @@ class FileString(object):
             output = self.file.read(j - i).decode(self.encoding)
             return output
         except Exception, e:
-            Log.error("Problem with file access encoding={{encoding}}", encoding=self.encoding, cause=e)
+            Log.error(
+                "Can not read file slice at {{index}}, with encoding {{encoding}}",
+                index=i,
+                encoding=self.encoding,
+                cause=e
+            )
 
     def __add__(self, other):
         self.file.seek(0, 2)

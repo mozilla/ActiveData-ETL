@@ -1,0 +1,49 @@
+{
+	"source": {
+		"exchange": "exchange/taskcluster-queue/v1/artifact-created",
+		"topic": "#",
+		"durable": true,
+		"timeout":600,
+		"queue": "active-data-taskcluster-log",
+		"$ref": "file://~/codecoverage.json#pulse_user",
+		"debug": false
+	},
+	"destination": {
+		"bucket": "active-data-task-cluster-logger",
+		"public": true,    // default = false
+		"$ref": "file://~/codecoverage.json#aws_credentials"
+	},
+	"work_queue": {
+		"name": "active-data-etl",
+		"$ref": "file://~/codecoverage.json#aws_credentials"
+	},
+	"param": {
+		"queue_file": "results/taskcluster-logger-queue.json",
+		"debug": false,    // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
+		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
+	},
+	"debug":{
+        "cprofile":{
+	        "enabled": false,
+	        "filename": "./results/cprofile.tab"
+        },
+		"log":[
+			{"log_type":"console"},
+			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/pulse_logger_tc_dev.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 100,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type":"email",
+				"from_address": "chin.bimbo@gmail.com",
+				"to_address": "chin.bimbo@gmail.com",
+				"subject": "[ALERT][DEV]Problem in Pulse Logger",
+				"$ref":"file://~/codecoverage.json#email"
+
+			}
+		]
+	}
+}
