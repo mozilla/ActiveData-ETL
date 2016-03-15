@@ -1,0 +1,49 @@
+{
+	"source": {
+		"exchange": "exchange/taskcluster-queue/v1/task-completed",
+		"topic": "#",
+		"durable": true,
+		"timeout":600,
+		"queue": "active-data-taskcluster-log",
+		"$ref": "file://~/private.json#pulse_user",
+		"debug": false
+	},
+	"destination": {
+		"bucket": "active-data-task-cluster-logger",
+		"public": true,    // default = false
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"work_queue": {
+		"name": "active-data-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"param": {
+		"queue_file": "results/taskcluster-logger-queue.json",
+		"debug": false,    // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
+		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
+	},
+	"debug":{
+        "cprofile":{
+	        "enabled": false,
+	        "filename": "./results/cprofile.tab"
+        },
+		"log":[
+			{"log_type":"console"},
+			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/taskcluster_logger.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 100,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type":"email",
+				"from_address": "chin.bimbo@gmail.com",
+				"to_address": "chin.bimbo@gmail.com",
+				"subject": "[ALERT][Staging]Problem in TaskCluster Logger",
+				"$ref":"file://~/private.json#email"
+
+			}
+		]
+	}
+}
