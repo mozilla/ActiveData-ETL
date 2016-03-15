@@ -133,24 +133,44 @@
 			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-pulse-logger",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "ekyle-test-result",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		},
 		{
-			"name": "pulse2test_result",
+			"name": "pulse_taskcluster_codecoverage_2_es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
+				"bucket": "active-data-task-cluster-logger",
 				"key_format": "a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result",
+				"bucket": "active-data-codecoverage",
 				"public": true,
 				"key_format": "a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index",
+				"name": "active-data-index-codecoverage",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"transformer": "testlog_etl.transforms.jscov_to_es.process",
 			"type": "join"
 		}
 	],

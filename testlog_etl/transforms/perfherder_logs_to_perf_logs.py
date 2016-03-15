@@ -14,13 +14,15 @@ from copy import copy
 from math import sqrt
 import datetime
 
+import math
+
 import pyLibrary
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
-from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist
+from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
 from pyLibrary.dot.lists import DictList
 from pyLibrary.thread.threads import Lock
 from pyLibrary.debugs.logs import Log
@@ -200,8 +202,9 @@ def transform(uid, perfherder, resources):
                             buildbot
                         )
                         try:
-                            s = stats(sub_replicates)
+                            s, rejects = stats(sub_replicates)
                             new_record.result.stats = s
+                            new_record.result.rejects = rejects
                             total.append(s)
                         except Exception, e:
                             Log.warning("can not reduce series to moments", e)
@@ -220,8 +223,9 @@ def transform(uid, perfherder, resources):
                         buildbot
                     )
                     try:
-                        s = stats(samples)
+                        s, rejects = stats(samples)
                         new_record.result.stats = s
+                        new_record.result.rejects = rejects
                         total.append(s)
                     except Exception, e:
                         Log.warning("can not reduce series to moments", e)
@@ -243,8 +247,9 @@ def transform(uid, perfherder, resources):
                             buildbot
                         )
                         try:
-                            s = stats(sub_replicates)
+                            s, rejects = stats(sub_replicates)
                             new_record.result.stats = s
+                            new_record.result.rejects = rejects
                             total.append(s)
                         except Exception, e:
                             Log.warning("can not reduce series to moments", e)
@@ -260,8 +265,9 @@ def transform(uid, perfherder, resources):
                         buildbot
                     )
                     try:
-                        s = stats(replicates)
+                        s, rejects = stats(replicates)
                         new_record.result.stats = s
+                        new_record.result.rejects = rejects
                         total.append(s)
                     except Exception, e:
                         Log.warning("can not reduce series to moments", e)
@@ -318,12 +324,15 @@ def mainthread_transform(r):
 
 def stats(values):
     """
-    RETURN LOTS OF AGGREGATES
+    RETURN (agg, rejects) PAIR, WHERE
+    agg - LOTS OF AGGREGATES
+    rejects - LIST OF VALUES NOT USED IN AGGREGATE
     """
     if values == None:
         return None
 
-    values = values.map(float, includeNone=False)
+    rejects = unwraplist([v for v in values if math.isnan(v)])
+    values = wrap([float(v) for v in values if not math.isnan(v)])
 
     z = ZeroMoment.new_instance(values)
     s = Dict()
@@ -339,7 +348,7 @@ def stats(values):
     if Math.is_number(s.variance) and not Math.is_nan(s.variance):
         s.std = sqrt(s.variance)
 
-    return s
+    return s, rejects
 
 
 def geo_mean(values):

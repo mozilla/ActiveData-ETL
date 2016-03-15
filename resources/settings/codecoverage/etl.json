@@ -10,7 +10,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
@@ -129,7 +130,7 @@
 			"transform_type": "bulk"
 		},
 		{
-			"name": "talos2perf",
+			"name": "perfherder2perf",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-talos-dev",
@@ -198,12 +199,6 @@
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"log_type": "elasticsearch",
-				"host": "http://localhost",
-				"index": "debug",
-				"type": "etl"
 			},
 			{
 				"log_type": "email",

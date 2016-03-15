@@ -358,7 +358,7 @@ class Index(Features):
                     "error": utf82unicode(response.all_content)
                 })
         else:
-            Log.error("Do not know how to handle ES version {{version}}",  version=self.cluster.version)
+            Log.error("Do not know how to handle ES version {{version}}", version=self.cluster.version)
 
     def search(self, query, timeout=None, retry=None):
         query = wrap(query)
