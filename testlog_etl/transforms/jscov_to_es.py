@@ -72,7 +72,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
-
+        # TODO:  Add a timer around this so we see how long it takes
         # transform
         json_data = wrap(json.loads(response))
         for source_file_index, obj in enumerate(json_data):
@@ -172,7 +172,7 @@ def get_build_info(task_definition):
     build_task_definition = wrap(queue.task(taskId=build.taskId))
     build.name = build_task_definition.extra.build_name
     build.product = build_task_definition.extra.build_product
-    build.type = build_task_definition.extra.build_type
+    build.type = build_task_definition.extra.build_type  #TODO: expand "dbg" to "debug"
     build.created_timestamp = Date(build_task_definition.created).unix
 
     return build
