@@ -22,7 +22,7 @@
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-unit-dev",
+		"name": "active-data-index-codecoverage-dev",
 		"debug": true,
 		"timeout": "10second",
 		"$ref": "file://~/codecoverage.json#aws_credentials"

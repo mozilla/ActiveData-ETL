@@ -10,12 +10,14 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
-from pyLibrary.dot import Null
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import Null, listwrap
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs
+from testlog_etl.transforms.perfherder_logs_to_perf_logs import stats
 
 false = False
 true = True
@@ -69,3 +71,12 @@ class TestBuildbotLogs(FuzzyTestCase):
             resources = Null
             perfherder_logs_to_perf_logs.process(source_key, bucket.get_key(source_key), dest_bucket, resources, please_stop=None)
 
+    def test_stats(self):
+        s, rejects = stats([float("nan"), 1, 2, 3, 4, 5])
+        self.assertEqual(s.count, 5)
+        self.assertEqual(len(listwrap(rejects)), 1)
+
+
+    def test_warning(self):
+        values=[float("nan"), 42]
+        Log.warning("problem {{values|json}}", values=values)
