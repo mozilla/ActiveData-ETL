@@ -1,8 +1,6 @@
 {
 	"threads": 1,
 	"sample_only": [
-		"mozilla-aurora",
-		"try"
 	],
 	"elasticsearch": {
 		"host": "http://localhost",
