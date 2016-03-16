@@ -138,7 +138,7 @@ class Math(object):
 
     @staticmethod
     def is_nan(s):
-        return math.isnan(s)
+        return s==None or math.isnan(s)
 
     @staticmethod
     def is_integer(s):

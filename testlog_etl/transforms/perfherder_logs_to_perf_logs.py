@@ -7,29 +7,26 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+import datetime
 from copy import copy
 from math import sqrt
-import datetime
-
-import math
 
 import pyLibrary
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
+from pyLibrary.dot.lists import DictList
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
-from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
-from pyLibrary.dot.lists import DictList
-from pyLibrary.thread.threads import Lock
-from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import qb
+from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
-
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000
@@ -322,31 +319,35 @@ def mainthread_transform(r):
 
     r.mainthread = output.values()
 
-def stats(values):
+
+def stats(given_values):
     """
     RETURN (agg, rejects) PAIR, WHERE
     agg - LOTS OF AGGREGATES
     rejects - LIST OF VALUES NOT USED IN AGGREGATE
     """
-    if values == None:
+    if given_values == None:
         return None
 
-    rejects = unwraplist([v for v in values if math.isnan(v)])
-    values = wrap([float(v) for v in values if not math.isnan(v)])
+    rejects = unwraplist([v for v in given_values if Math.is_nan(v)])
+    clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
 
-    z = ZeroMoment.new_instance(values)
+    z = ZeroMoment.new_instance(clean_values)
     s = Dict()
     for k, v in z.dict.items():
         s[k] = v
     for k, v in ZeroMoment2Stats(z).items():
         s[k] = v
-    s.max = MAX(values)
-    s.min = MIN(values)
-    s.median = pyLibrary.maths.stats.median(values, simple=False)
-    s.last = values.last()
-    s.first = values[0]
+    s.max = MAX(clean_values)
+    s.min = MIN(clean_values)
+    s.median = pyLibrary.maths.stats.median(clean_values, simple=False)
+    s.last = clean_values.last()
+    s.first = clean_values[0]
     if Math.is_number(s.variance) and not Math.is_nan(s.variance):
         s.std = sqrt(s.variance)
+
+    if rejects:
+        Log.warning("Perf has rejects {{samples|json}}", samples=given_values)
 
     return s, rejects
 

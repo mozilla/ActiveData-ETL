@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Null, listwrap
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
@@ -74,3 +75,8 @@ class TestBuildbotLogs(FuzzyTestCase):
         s, rejects = stats([float("nan"), 1, 2, 3, 4, 5])
         self.assertEqual(s.count, 5)
         self.assertEqual(len(listwrap(rejects)), 1)
+
+
+    def test_warning(self):
+        values=[float("nan"), 42]
+        Log.warning("problem {{values|json}}", values=values)
