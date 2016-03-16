@@ -138,18 +138,21 @@ def get_all_in_es(es, in_range, es_filter, field):
 
 def get_all_s3(in_es, in_range, settings):
     in_s3 = []
+    min_range = coalesce(Math.MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
     max_allowed = Math.MAX(in_es) - 500
+    extra_digits = Math.ceiling(log10(limit))
 
-    start = unicode(max(in_range - in_es))[:-Math.ceiling(log10(limit))]
-    while start != "0" and len(in_s3) < limit:
+    prefix = unicode(max(in_range - in_es))[:-extra_digits]
+    prefix_max = int(prefix + ("999999999999"[:extra_digits]))
+    while prefix != "0" and len(in_s3) < limit and min_range <= prefix_max:
         # EVERYTHING FROM S3
         with Timer(
             "Scanning S3 bucket {{bucket}} with prefix {{prefix|quote}}",
-            {"bucket": bucket.name, "prefix": start}
+            {"bucket": bucket.name, "prefix": prefix}
         ):
-            prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=start, delimiter=":")))
+            prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=prefix, delimiter=":")))
 
         for i, q in enumerate(prefixes):
             if i % 1000 == 0:
@@ -167,10 +170,12 @@ def get_all_s3(in_es, in_range, settings):
             except Exception, e:
                 Log.note("delete key? {{key|quote}}", key=q)
 
-        if start == "":
+        if prefix == "":
             break
-        start = unicode(int(start) - 1)
-    in_s3 = qb.reverse(qb.sort(in_s3))[:limit]
+        prefix = unicode(int(prefix) - 1)
+        prefix_max = int(prefix + ("999999999999"[:extra_digits]))
+
+    in_s3 = qb.reverse(qb.sort(in_s3))[:limit:]
     return in_s3
 
 

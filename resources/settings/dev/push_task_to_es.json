@@ -1,29 +1,26 @@
 {
-	"limit": 1000,
-	"range": {"min": 140000},
-	"source": {
-		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-test-result",
-		"key_format": "a:b.c"
-	},
+	"threads": 1,
 	"elasticsearch": {
-		// ES USED TO DETERMINE WHAT IS MISSING
-		"id_field": "etl.source.source.id",
-
-		"host": "http://activedata.allizom.org",
+		"host": "http://localhost",
 		"port": 9200,
-		"index": "unittest",
-		"type": "test_result",
+		"index": "task_cluster",
+		"type": "task",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/test_results.json"
+			"$ref": "//../../schema/task_cluster.json"
 		},
-		"debug": false,
-		"limit_replicas": false
+		"debug": true,
+		"limit_replicas": true
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-task-dev",
+		"key_format": "a:b"
 	},
 	"work_queue":{
-		"name": "active-data-index",
+		"name": "active-data-index-task-dev",
 		"debug": true,
+		"timeout": "10second",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
@@ -33,6 +30,10 @@
 		}
 	},
 	"debug": {
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/cprofile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
@@ -41,7 +42,7 @@
 				"log_type": "email",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Backfill unittest",
+				"subject": "[ALERT][DEV]Problem in Push Tasks to ES",
 				"$ref": "file://~/private.json#email"
 
 			}

@@ -10,6 +10,8 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+
+import string
 from collections import Mapping
 from copy import deepcopy
 from datetime import datetime
@@ -300,10 +302,11 @@ class Index(Features):
             if fails:
                 item = items[fails[0]]
                 Log.error(
-                    "{{num}} {{error}} while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
-                    num=item.index.status,
+                    "{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                    status=item.index.status,
                     error=item.index.error,
-                    line=strings.limit(lines[fails[0] * 2 + 1], 500),
+                    some=len(fails) - 1,
+                    line=strings.limit(lines[fails[0] * 2 + 1], 500 if not self.debug else 100000),
                     index=self.settings.index,
                     all_fails=fails,
                     id=item.index._id
@@ -355,7 +358,7 @@ class Index(Features):
                     "error": utf82unicode(response.all_content)
                 })
         else:
-            Log.error("Do not know how to handle ES version {{version}}",  version=self.cluster.version)
+            Log.error("Do not know how to handle ES version {{version}}", version=self.cluster.version)
 
     def search(self, query, timeout=None, retry=None):
         query = wrap(query)
@@ -686,7 +689,7 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}", response=utf82unicode(response.all_content)[:130])
+                Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
             details = wrap(convert.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
@@ -701,7 +704,7 @@ class Cluster(object):
             if response.status_code not in [200]:
                 Log.error(response.reason+": "+response.all_content)
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[:130])
+                Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
             if response.all_content:
                 details = wrap(convert.json2value(utf82unicode(response.all_content)))
                 if details.error:

@@ -7,27 +7,22 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from copy import copy
-from math import sqrt
 import datetime
+from copy import copy
 
-import pyLibrary
 from pyLibrary import convert
-from pyLibrary.collections import MIN, MAX
-from pyLibrary.env.git import get_git_revision
-from pyLibrary.maths import Math
-from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default
 from pyLibrary.dot.lists import DictList
-from pyLibrary.thread.threads import Lock
-from pyLibrary.debugs.logs import Log
+from pyLibrary.env.git import get_git_revision
 from pyLibrary.queries import qb
+from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
+from testlog_etl.transforms.perfherder_logs_to_perf_logs import stats, geo_mean
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
-
 
 DEBUG = False
 ARRAY_TOO_BIG = 1000
@@ -218,7 +213,6 @@ def transform(uid, talos, resources):
         Log.error("Transformation failure on id={{uid}}", {"uid": uid}, e)
 
 
-
 def mainthread_transform(r):
     if r == None:
         return None
@@ -246,42 +240,4 @@ def mainthread_transform(r):
     r.mainthread_writecount = None
 
     r.mainthread = output.values()
-
-def stats(values):
-    """
-    RETURN LOTS OF AGGREGATES
-    """
-    if values == None:
-        return None
-
-    values = values.map(float, includeNone=False)
-
-    z = ZeroMoment.new_instance(values)
-    s = Dict()
-    for k, v in z.dict.items():
-        s[k] = v
-    for k, v in ZeroMoment2Stats(z).items():
-        s[k] = v
-    s.max = MAX(values)
-    s.min = MIN(values)
-    s.median = pyLibrary.maths.stats.median(values, simple=False)
-    s.last = values.last()
-    s.first = values[0]
-    if Math.is_number(s.variance) and not Math.is_nan(s.variance):
-        s.std = sqrt(s.variance)
-
-    return s
-
-
-def geo_mean(values):
-    """
-    GIVEN AN ARRAY OF dicts, CALC THE GEO-MEAN ON EACH ATTRIBUTE
-    """
-    agg = Dict()
-    for d in values:
-        for k, v in d.items():
-            if v != 0:
-                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + Math.log(Math.abs(v))
-    return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
-
 

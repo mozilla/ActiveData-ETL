@@ -29,17 +29,18 @@ def copy2es(es, settings, work_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     bucket = s3.Bucket(settings.source)
 
-    for message in iter(work_queue.pop, ""):
+    for pair in iter(work_queue.pop_message, ""):
         if please_stop:
             es.queue.add(Thread.STOP)
             return
-        if message == None:
+        if pair == None:
             continue
 
-        if isinstance(message, Mapping):
-            key = message["key"]
+        message, payload = pair
+        if isinstance(payload, Mapping):
+            key = payload["key"]
         else:
-            key = unicode(message)
+            key = unicode(payload)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
@@ -52,7 +53,7 @@ def copy2es(es, settings, work_queue, please_stop=None):
 
             more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
-
+            es.queue.add(message.delete)
         if num_keys > 1:
             Log.note(
                 "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",
@@ -61,8 +62,6 @@ def copy2es(es, settings, work_queue, please_stop=None):
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
             )
-
-        work_queue.commit()
 
 
 def main():
