@@ -204,7 +204,13 @@ class Index(Features):
         return True
 
     def flush(self):
-        self.cluster.post("/" + self.settings.index + "/_flush", data={"wait_if_ongoing": True, "forced": True})
+        try:
+            self.cluster.post("/" + self.settings.index + "/_flush", data={"wait_if_ongoing": True, "forced": True})
+        except Exception, e:
+            if "FlushNotAllowedEngineException" in e:
+                Log.warning("Flush is ignored", cause=e)
+            else:
+                Log.error("Problem flushing", cause=e)
 
     def delete_record(self, filter):
         if self.settings.read_only:
