@@ -15,8 +15,10 @@ Here are the important branches:
 
 * **dev** - unstable - primary branch for accepting changes
 * **etl** - stable - for ETL machines
-* **primary** - stable - for the "primary" and "coordinator" ES nodes 
+* **primary** - stable - for the "primary" and "coordinator" ES nodes
+* **codecoverage** - unstable - for Code Coverage ETL development 
 * **pulse-logger** - stable - for the PulseLogger
+* **tc-logger** - stable - for the TaskCluster logger 
 * **push-to-es** - stable - code installed on ES spot instance machines for 
 final indexing. 
 * **beta** - stable - of all branches for testing on the beta machines 
@@ -36,7 +38,7 @@ Requirements
 Installing Fabric 
 -----------------
 
-It is 2016, and Python is still hard on Windows.  It would be [a nice question for Stack Overflow](http://stackoverflow.com/questions/9000380/install-python-fabric-on-windows), but apparently complex installation procedures are
+It is 2016, and Python is still hard on Windows.  It would be [a nice question for Stack Overflow](http://stackoverflow.com/questions/9000380/install-python-fabric-on-windows), but apparently not.
 
 1. [Install Python, and PIP](https://github.com/klahnakoski/pyLibrary#windows-7-install-instructions-for-python)
 2. `pip install fabric` - There will be errors 
