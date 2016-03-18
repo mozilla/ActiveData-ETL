@@ -25,6 +25,7 @@ import time
 import sys
 
 from pyLibrary import strings
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.dot import coalesce, Dict
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, MINUTE, Duration
@@ -732,8 +733,8 @@ class Signal(object):
 
 class ThreadedQueue(Queue):
     """
-    TODO: Check that this queue is not dropping items at shutdown
     DISPATCH TO ANOTHER (SLOWER) queue IN BATCHES OF GIVEN size
+    TODO: Check that this queue is not dropping items at shutdown
     """
 
     def __init__(
@@ -743,7 +744,10 @@ class ThreadedQueue(Queue):
         batch_size=None,  # THE MAX SIZE OF BATCHES SENT TO THE SLOW QUEUE
         max_size=None,  # SET THE MAXIMUM SIZE OF THE QUEUE, WRITERS WILL BLOCK IF QUEUE IS OVER THIS LIMIT
         period=None,  # MAX TIME BETWEEN FLUSHES TO SLOWER QUEUE
-        silent=False  # WRITES WILL COMPLAIN IF THEY ARE WAITING TOO LONG
+        silent=False,  # WRITES WILL COMPLAIN IF THEY ARE WAITING TOO LONG
+        error_target=None  # CALL THIS WITH ERROR **AND THE LIST OF OBJECTS ATTEMPTED**
+                           # BE CAREFUL!  THE THREAD MAKING THE CALL WILL NOT BE YOUR OWN!
+                           # DEFAULT BEHAVIOUR: THIS WILL KEEP RETRYING WITH WARNINGS
     ):
         if not _Log:
             _late_import()
@@ -795,11 +799,22 @@ class ThreadedQueue(Queue):
                         _buffer.append(item)
 
                 except Exception, e:
-                    _Log.warning(
-                        "Unexpected problem",
-                        name=name,
-                        cause=e
-                    )
+                    e = Except.wrap(e)
+                    if error_target:
+                        try:
+                            error_target(e, _buffer)
+                        except Exception, f:
+                            _Log.warning(
+                                "`error_target` should not throw, just deal",
+                                name=name,
+                                cause=f
+                            )
+                    else:
+                        _Log.warning(
+                            "Unexpected problem",
+                            name=name,
+                            cause=e
+                        )
 
                 try:
                     if len(_buffer) >= batch_size or now > next_time:
@@ -813,12 +828,23 @@ class ThreadedQueue(Queue):
                                 next_time = now + bit_more_time
 
                 except Exception, e:
-                    _Log.warning(
-                        "Problem with {{name}} pushing {{num}} items to data sink",
-                        name=name,
-                        num=len(_buffer),
-                        cause=e
-                    )
+                    e = Except.wrap(e)
+                    if error_target:
+                        try:
+                            error_target(e, _buffer)
+                        except Exception, f:
+                            _Log.warning(
+                                "`error_target` should not throw, just deal",
+                                name=name,
+                                cause=f
+                            )
+                    else:
+                        _Log.warning(
+                            "Problem with {{name}} pushing {{num}} items to data sink",
+                            name=name,
+                            num=len(_buffer),
+                            cause=e
+                        )
 
             if _buffer:
                 # ONE LAST PUSH, DO NOT HAVE TIME TO DEAL WITH ERRORS

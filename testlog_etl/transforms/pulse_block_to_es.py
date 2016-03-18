@@ -193,15 +193,18 @@ def transform_buildbot(payload, resources, filename=None):
         try:
             output.repo = resources.hg.get_revision(rev, locale)
         except Exception, e:
-            Log.warning(
-                "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
-                branch=output.build.branch,
-                locale=locale,
-                revision=rev,
-                details=output,
-                cause=e
-            )
-            # resources.hg.find_changeset(output.build.revision)
+            if "release-mozilla-esr" in e:
+                # FOR SOME REASON WE CAN NOT FIND THE REVISIONS FOR ESR
+                pass
+            else:
+                Log.warning(
+                    "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
+                    branch=output.build.branch,
+                    locale=locale,
+                    revision=rev,
+                    details=output,
+                    cause=e
+                )
     else:
         Log.warning("No branch!\n{{output|indent}}", output=output)
 
