@@ -329,7 +329,7 @@ def stats(given_values):
     if given_values == None:
         return None
 
-    rejects = unwraplist([v for v in given_values if Math.is_nan(v)])
+    rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v)])
     clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
 
     z = ZeroMoment.new_instance(clean_values)
