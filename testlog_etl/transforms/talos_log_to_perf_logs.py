@@ -181,7 +181,7 @@ def transform(uid, talos, resources):
                         buildbot
                     )
                     try:
-                        s = stats(sub_results)
+                        s = stats(sub_results, test_name, suite_name)
                         new_record.result.stats = s
                         total.append(s)
                     except Exception, e:
@@ -198,7 +198,7 @@ def transform(uid, talos, resources):
                     buildbot
                 )
                 try:
-                    s = stats(replicates)
+                    s = stats(replicates, test_name, suite_name)
                     new_record.result.stats = s
                     total.append(s)
                 except Exception, e:

@@ -199,7 +199,7 @@ def transform(uid, perfherder, resources):
                             buildbot
                         )
                         try:
-                            s, rejects = stats(sub_replicates)
+                            s, rejects = stats(sub_replicates, subtest.name, suite_name)
                             new_record.result.stats = s
                             new_record.result.rejects = rejects
                             total.append(s)
@@ -220,7 +220,7 @@ def transform(uid, perfherder, resources):
                         buildbot
                     )
                     try:
-                        s, rejects = stats(samples)
+                        s, rejects = stats(samples, subtest.name, suite_name)
                         new_record.result.stats = s
                         new_record.result.rejects = rejects
                         total.append(s)
@@ -244,7 +244,7 @@ def transform(uid, perfherder, resources):
                             buildbot
                         )
                         try:
-                            s, rejects = stats(sub_replicates)
+                            s, rejects = stats(sub_replicates, test_name, suite_name)
                             new_record.result.stats = s
                             new_record.result.rejects = rejects
                             total.append(s)
@@ -262,7 +262,7 @@ def transform(uid, perfherder, resources):
                         buildbot
                     )
                     try:
-                        s, rejects = stats(replicates)
+                        s, rejects = stats(replicates, test_name, suite_name)
                         new_record.result.stats = s
                         new_record.result.rejects = rejects
                         total.append(s)
@@ -320,7 +320,7 @@ def mainthread_transform(r):
     r.mainthread = output.values()
 
 
-def stats(given_values):
+def stats(given_values, test, suite):
     """
     RETURN (agg, rejects) PAIR, WHERE
     agg - LOTS OF AGGREGATES
@@ -347,7 +347,7 @@ def stats(given_values):
         s.std = sqrt(s.variance)
 
     if rejects:
-        Log.warning("Perf has rejects {{samples|json}}", samples=given_values)
+        Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
 
     return s, rejects
 
