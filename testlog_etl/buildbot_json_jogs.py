@@ -26,6 +26,7 @@ from pyLibrary.times.durations import DAY
 
 
 REFERENCE_DATE = Date("1 JAN 2015")
+EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 DEBUG = True
 
@@ -56,7 +57,7 @@ def parse_day(settings, p, force=False):
     day_url = settings.source.url + p
     key0 = unicode(day_num) + ".0"
 
-    if day < REFERENCE_DATE or Date.today() <= day:
+    if day < EARLIEST_CONSIDERATION_DATE or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 

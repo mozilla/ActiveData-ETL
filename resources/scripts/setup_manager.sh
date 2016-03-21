@@ -10,3 +10,10 @@ cd /
 sudo ln -s /home/ec2-user/logs logs
 
 cp ~/TestLog_ETL/resources/settings/monit.conf /etc/monit.conf
+
+
+# CRON JOBS
+chmod u+x /home/ec2-user/TestLog-ETL/resources/scripts/run_buildbot_json_logs.sh
+
+sudo rm /var/spool/cron/ec2-user
+sudo cp /home/ec2-user/TestLog-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user

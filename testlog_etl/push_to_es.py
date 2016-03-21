@@ -53,7 +53,12 @@ def copy2es(es, settings, work_queue, please_stop=None):
 
             more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
-            es.queue.add(message.delete)
+
+            def _delete():
+                Log.note("confirming message for {{id}}", id=payload.key)
+                message.delete()
+
+            es.queue.add(_delete)
         if num_keys > 1:
             Log.note(
                 "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",

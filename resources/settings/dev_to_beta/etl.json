@@ -129,7 +129,7 @@
 //				"$ref": "file://~/private.json#aws_credentials"
 //			},
 //			"transform_type": "bulk",
-//			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+//			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 //			"type": "join"
 //		},
 		{

@@ -19,6 +19,7 @@ import re
 import time
 
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, Null, Dict, set_default, join_field, split_field, unwraplist, listwrap, literal_field
 from pyLibrary.dot.lists import DictList
@@ -305,18 +306,20 @@ class Index(Features):
                         fails.append(i)
             else:
                 Log.error("version not supported {{version}}", version=self.cluster.version)
+
             if fails:
-                item = items[fails[0]]
-                Log.error(
-                    "{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
-                    status=item.index.status,
-                    error=item.index.error,
-                    some=len(fails) - 1,
-                    line=strings.limit(lines[fails[0] * 2 + 1], 500 if not self.debug else 100000),
-                    index=self.settings.index,
-                    all_fails=fails,
-                    id=item.index._id
-                )
+                Log.error("Problems with insert", cause=[
+                    Except(
+                        template="{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                        status=items[i].index.status,
+                        error=items[i].index.error,
+                        some=len(fails) - 1,
+                        line=strings.limit(lines[fails[0] * 2 + 1], 500 if not self.debug else 100000),
+                        index=self.settings.index,
+                        id=items[i].index._id
+                    )
+                    for i in fails
+                ])
 
             if self.debug:
                 Log.note("{{num}} documents added", num=len(items))
@@ -391,13 +394,26 @@ class Index(Features):
             )
 
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
+        def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
+
+            not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f]
+            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f]
+
+            if still_have_hope:
+                Log.warning("Problem with sending to ES", cause=still_have_hope)
+            elif not_possible:
+                # THERE IS NOTHING WE CAN DO
+                Log.warning("Not inserted, will not try again", cause=not_possible)
+                del _buffer[:]
+
         return ThreadedQueue(
             "push to elasticsearch: " + self.settings.index,
             self,
             batch_size=batch_size,
             max_size=max_size,
             period=period,
-            silent=silent
+            silent=silent,
+            error_target=errors
         )
 
     def delete(self):
