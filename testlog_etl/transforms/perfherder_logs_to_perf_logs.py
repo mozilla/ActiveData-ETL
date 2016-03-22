@@ -332,7 +332,7 @@ def stats(given_values, test, suite):
         if Math.is_number(s.variance) and not Math.is_nan(s.variance):
             s.std = sqrt(s.variance)
 
-        if rejects:
+        if rejects and test!="sessionrestore_no_auto_restore":  # TODO: remove when fixed
             Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
 
         return {
