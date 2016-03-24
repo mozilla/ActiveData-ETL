@@ -43,7 +43,7 @@ EXPECTING_RESULTS = {
     "========= Finished 'c:/mozilla-build/python27/python -u ...' exception (results:": False,
     "========= Finished 'c:/mozilla-build/python27/python -u ...' interrupted (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' failed (results:": False,
-    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' warnings (results:": False,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' warnings (results:": None,  # DUE TO SCHEMA VALIDATION PROBLEMS
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' exception (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' interrupted (results:": False,
     "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' failed (results:": False,
@@ -149,13 +149,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         etl_file.duration = timer.duration
 
         if all_perf:
-            if not test_results_expected:
+            if test_results_expected is False:
                 Log.warning("No tests run, but records found while processing {{key}}: {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
             Log.note("Found {{num}} PerfHerder records while processing {{key}}", key=source_key, num=len(all_perf))
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            if test_results_expected:
+            if test_results_expected is True:
                 Log.warning("PerfHerder records expected while processing {{key}}, but not found {{url}}", key=source_key, url=pulse_record.payload.logurl)
 
             _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
