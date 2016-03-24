@@ -6,18 +6,17 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict, set_default, Null
+from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import http
 from pyLibrary.thread.threads import Signal
 from pyLibrary.times.timer import Timer
-from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms import EtlHeadGenerator, verify_blobber_file
+from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
-
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

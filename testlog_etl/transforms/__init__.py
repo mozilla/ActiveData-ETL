@@ -26,6 +26,22 @@ STRUCTURED_LOG_ENDINGS = ["structured_logs.log", "_structured_full.log", '_raw.l
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
 
+class Transform(object):
+
+    def __call__(self, source_key, source, destination, resources, please_stop=None):
+        """
+        :param source_key: THE DOT-DELIMITED PATH FOR THE SOURCE
+        :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
+        :param destination: THE s3 BUCK TO PLACE ALL THE TRANSFORM RESULTS
+        :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
+        :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
+        :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
+        """
+        raise NotImplementedError
+
+
+
+
 def verify_blobber_file(line_number, name, url):
     """
     :param line_number:  for debugging

@@ -204,7 +204,8 @@ class HgMozillaOrg(object):
                                 author=r.user,
                                 description=r.description,
                                 date=Date(r.date),
-                                files=r.files
+                                files=r.files,
+                                backedoutby=r.backedoutby
                             ),
                             parents=unwraplist(r.parents),
                             children=unwraplist(r.children),

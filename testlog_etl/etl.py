@@ -35,7 +35,7 @@ from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-
+from testlog_etl.transforms import Transform
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -84,6 +84,9 @@ class ETL(Thread):
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
+                elif issubclass(w._transformer, Transform):
+                    # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
+                    w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
