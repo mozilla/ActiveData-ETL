@@ -1,6 +1,8 @@
 {
 	"source": {
-		"exchange": "exchange/taskcluster-queue/v1/artifact-created",
+		"name": "Task Cluster",
+		"prefix": "tc",
+		"exchange": "exchange/taskcluster-queue/v1/task-completed",
 		"topic": "#",
 		"durable": true,
 		"timeout":600,

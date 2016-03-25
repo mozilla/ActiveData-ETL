@@ -84,7 +84,7 @@ class ETL(Thread):
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
-                elif issubclass(w._transformer, Transform):
+                elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
                     # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
                     w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)

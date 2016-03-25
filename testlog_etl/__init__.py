@@ -7,10 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
 from collections import Mapping
+
 from pyLibrary import strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
+from pyLibrary.maths import Math
 from pyLibrary.queries import qb
 
 
@@ -65,26 +68,24 @@ def _parse_key(elements):
     Log.error("Do not know how to parse")
 
 
-def etl2key(etl):
-    if etl.source:
-        if etl.source.type:
-            if etl.type == etl.source.type:
-                if etl.type == "join":
-                    return etl2key(etl.source) + "." + unicode(int(etl.id))
-                else:
-                    return unicode(etl.id) + ":" + etl2key(etl.source)
-            else:
-                if etl.type == "join":
-                    return etl2key(etl.source) + "." + unicode(int(etl.id))
-                else:
-                    return unicode(int(etl.id)) + ":(" + etl2key(etl.source) + ")"
+def etl2key(etl, source_name):
+    seq = []
+    while etl:
+        seq.append(unicode(int(etl.id)))
+        if etl.join == "join":
+            seq.append(".")
         else:
-            if etl.type == "join":
-                return etl2key(etl.source) + "." + unicode(int(etl.id))
-            else:
-                return unicode(int(etl.id)) + ":" + etl2key(etl.source)
-    else:
-        return unicode(int(etl.id))
+            seq.append(":")
+        etl = etl.source
+    seq = seq[1:]
+
+
+    # SHOW AGGREGATION IN REVERSE ORDER (ASSUME ONLY ONE)
+    for i in range(1, len(seq), 2):
+        if seq[i] == ":":
+            seq[i - 1], seq[i + 1] = seq[i + 1], seq[i - 1]
+
+    return "".join(reversed(seq))
 
 
 def etl2path(etl):

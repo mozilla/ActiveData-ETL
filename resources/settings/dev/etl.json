@@ -47,7 +47,7 @@
 	},
 	"workers": [
 		{
-			"name": "pulse2es",
+			"name": "Buildbot Pulse to ES",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
@@ -69,110 +69,109 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse2tc",
+			"name": "tc_pulse to TC Normalized",
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger-dev",
-				"key_format": "a:b"
+				"public": true,
+				"key_format": "a.b:c",
+				"$ref": "file://~/private.json#aws_credentials",
 			},
 			"destination": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "task_cluster",
-				"type": "task_cluster_log",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/pulse_logs.json"
-				},
-				"debug": true,
-				"limit_replicas": true
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_tc_logs.process",
-			"type": "join"
-		},
-		{
-			"name": "pulse2perfherder",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
+				"bucket": "active-data-task-cluster-normalized-dev",
 				"public": true,
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perfherder-dev",
-				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "a.b:c",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": {
 			   "name": "active-data-etl-dev",
 			   "$ref": "file://~/private.json#aws_credentials"
 		   	},
-			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-			"name": "bbb2jobs",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-buildbot-dev",
-				"key_format": "a.b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-jobs-dev",
-				"public": true,
-				"key_format": "a.b"
-			},
-			"notify": {
-				"name": "active-data-index-jobs-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-			"name": "perfherder2perf",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perfherder-dev",
-				"key_format": "a:b.c"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perf-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-perf-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
 			"type": "join"
 		},
-		{
-			"name": "pulse2test_result",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-unit-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
-		}
+//		{
+//			"name": "pulse2perfherder",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-dev",
+//				"public": true,
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perfherder-dev",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//			   "name": "active-data-etl-dev",
+//			   "$ref": "file://~/private.json#aws_credentials"
+//		   	},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
+//		{
+//			"name": "bbb2jobs",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-buildbot-dev",
+//				"key_format": "a.b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-jobs-dev",
+//				"public": true,
+//				"key_format": "a.b"
+//			},
+//			"notify": {
+//				"name": "active-data-index-jobs-dev",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
+//		{
+//			"name": "perfherder2perf",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perfherder-dev",
+//				"key_format": "a:b.c"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perf-dev",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index-perf-dev",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
+//			"type": "join"
+//		},
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-dev",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-test-result-dev",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index-unit-dev",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,

@@ -21,6 +21,8 @@ from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.times.dates import Date
 from testlog_etl.transforms import EtlHeadGenerator
+from testlog_etl.transforms.pulse_block_to_task_cluster import get_build_info
+from testlog_etl.transforms.pulse_block_to_task_cluster import get_run_info
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -132,47 +134,3 @@ def get_revision_info(task_definition, resources):
     return repo
 
 
-def get_run_info(task_definition):
-    """
-    Get the run object that contains properties that describe the run of this job
-    :param task_definition: The task definition
-    :return: The run object
-    """
-    run = Dict()
-    run.suite = task_definition.extra.suite
-    run.chunk = task_definition.extra.chunks.current
-    return run
-
-
-def get_build_info(task_definition):
-    """
-    Get a build object that describes the build
-    :param task_definition: The task definition
-    :return: The build object
-    """
-    build = Dict()
-    build.platform = task_definition.extra.treeherder.build.platform
-
-    # head_repo will look like "https://hg.mozilla.org/try/"
-    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
-    branch = head_repo.split("/")[-2]
-    build.branch = branch
-
-    build.revision = task_definition.payload.env.GECKO_HEAD_REV
-    build.revision12 = build.revision[0:12]
-
-    # MOZILLA_BUILD_URL looks like this:
-    # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
-    build.url = task_definition.payload.env.MOZILLA_BUILD_URL
-
-    # get the taskId of the build, then from that get the task definition of the build
-    # note: this is a fragile way to get the taskId of the build
-    build.taskId = build.url.split("/")[5]
-    queue = taskcluster.Queue()
-    build_task_definition = wrap(queue.task(taskId=build.taskId))
-    build.name = build_task_definition.extra.build_name
-    build.product = build_task_definition.extra.build_product
-    build.type = build_task_definition.extra.build_type  #TODO: expand "dbg" to "debug"
-    build.created_timestamp = Date(build_task_definition.created).unix
-
-    return build
