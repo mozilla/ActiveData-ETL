@@ -8,6 +8,14 @@
 #
 from __future__ import unicode_literals
 
+
+import cProfile
+import pstats
+
+cprofiler = cProfile.Profile()
+cprofiler.enable()
+
+
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
@@ -19,7 +27,7 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, write_profile
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
@@ -399,6 +407,7 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
+        write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):
