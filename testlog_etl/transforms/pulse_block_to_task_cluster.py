@@ -71,9 +71,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 except Exception, e:
                     Log.error("Not expected", cause=e)
             else:
-                tc_message._meta=None
-                tc_message.etl=None
-                seen[normalized.task.id]=[tc_message, task, artifacts]
+                tc_message._meta = None
+                tc_message.etl = None
+                seen[normalized.task.id] = [tc_message, task, artifacts]
 
             output.append(normalized)
         except Exception, e:
@@ -139,7 +139,6 @@ def _normalize_run(run):
     return output
 
 
-
 def get_run_info(task):
     """
     Get the run object that contains properties that describe the run of this job
@@ -189,18 +188,3 @@ def _object_to_array(value, key_name, value_name=None):
             return [{key_name: k, value_name: v} for k, v in value.items()]
     except Exception, e:
         Log.error("unexpected", cause=e)
-
-def _scrub(doc):
-    if isinstance(doc, Mapping):
-        for k, v in doc.items():
-            doc[k] = _scrub(v)
-    elif isinstance(doc, list):
-        for i, v in enumerate(doc):
-            doc[i] = _scrub(v)
-    elif isinstance(doc, basestring):
-        try:
-            return Date(doc)
-        except Exception, e:
-            pass
-
-    return doc

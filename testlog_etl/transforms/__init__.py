@@ -107,15 +107,18 @@ def verify_blobber_file(line_number, name, url):
 
         except Exception, e:
             if name.endswith("_raw.log") and "No JSON lines found" not in e:
-                Log.error("Line {{line}}: {{name}} is NOT structured log",
-                    line= line_number,
-                    name= name,
+                Log.error(
+                    "Line {{line}}: {{name}} is NOT structured log",
+                    line=line_number,
+                    name=name,
                     cause=e
                 )
             if DEBUG:
-                Log.note("Line {{line}}: {{name}} is NOT structured log",
-                    line= line_number,
-                    name= name)
+                Log.note(
+                    "Line {{line}}: {{name}} is NOT structured log",
+                    line=line_number,
+                    name=name
+                )
             return None, 0
 
     return logs, count

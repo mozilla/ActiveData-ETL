@@ -41,6 +41,15 @@ def process_unittest_in_s3(source_key, source, destination, resources, please_st
 
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
+    """
+    :param source_key: THE PARENT PATH KEY
+    :param etl_header: THE PARENT ETL STRUCTURE
+    :param buildbot_summary: STRUCTURE TO ANNOTATE WITH TEST RESULTS
+    :param unittest_log: GENERATOR OF LINES WITH STRUCTURED LOG ENTRIES
+    :param destination: S3 BUCKET TO PUT THE RESULTS
+    :param please_stop:CHECK OFTEN TO EXIT FAST
+    :return: KEYS FOR ALL TEST RESULTS
+    """
 
     timer = Timer("Process log {{url}} for {{key}}", {
         "url": etl_header.url,

@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from pyLibrary import strings
+from pyLibrary.aws import s3
 from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
@@ -24,8 +25,7 @@ def key2etl(key):
     S3 NAMING CONVENTION: a.b.c WHERE EACH IS A STEP IN THE ETL PROCESS
     HOW TO DEAL WITH a->b AS AGGREGATION?  b:a.c?   b->c is agg: a.c:b
     """
-    if key.endswith(".json"):
-        key = key[:-5]
+    key = s3.strip_extension(key)
 
     tokens = []
     s = 0
