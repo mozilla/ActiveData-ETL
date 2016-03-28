@@ -112,6 +112,8 @@ class TestBuildbotLogs(FuzzyTestCase):
         #         Log.alert("bad line {{num}}", num=i)
         #
         #     Log.note("{{line}}", line=l)
-
-        data = process_buildbot_log(response.all_lines, "<unknown>")
+        try:
+            data = process_buildbot_log(response.all_lines, "<unknown>")
+        finally:
+            response.close()
         Log.note("{{data}}", data=data)

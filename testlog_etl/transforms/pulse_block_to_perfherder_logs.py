@@ -143,6 +143,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     "url": pulse_record.payload.logurl
                 }, e)
             finally:
+                try:
+                    response.close()
+                except Exception:
+                    pass
                 counter += 1
                 etl_head_gen.next_id = 0
 

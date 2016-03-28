@@ -9,12 +9,12 @@
 from __future__ import unicode_literals
 
 
-import cProfile
-import pstats
-
-cprofiler = cProfile.Profile()
-cprofiler.enable()
-
+# import cProfile
+# import pstats
+#
+# cprofiler = cProfile.Profile()
+# cprofiler.enable()
+#
 
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
@@ -407,7 +407,7 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
-        write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
+        # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):

@@ -11,8 +11,10 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+import requests
+
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, coalesce, Dict, unwraplist
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
@@ -23,9 +25,9 @@ from testlog_etl import etl2key
 DEBUG = True
 MAX_THREADS = 5
 
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
+ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
 
 
@@ -36,7 +38,10 @@ def process(source_key, source, destination, resources, please_stop=None):
     etl_source = None
 
     lines = source.read_lines()
+    session = requests.session()
     for i, line in enumerate(lines):
+        if please_stop:
+            Log.error("Shutdown detected. Stopping early")
         try:
             tc_message = convert.json2value(line)
             taskid = tc_message.status.taskId
@@ -44,25 +49,29 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
             Log.note("{{id}} w {{artifact}} found (#{{num}})", id=taskid, num=i, artifact=tc_message.artifact.name)
 
-            task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY)
+            task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY, session=session)
             normalized = _normalize(tc_message, task)
 
             # get the artifact list for the taskId
             artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": taskid, "path": a.name})
-            normalized.task.artifacts=artifacts
+            normalized.task.artifacts = artifacts
 
             # FIX THE ETL
             etl = tc_message.etl
             etl_source = coalesce(etl_source, etl.source)
             etl.source = etl_source
-            normalized.etl = {
-                "id": i,
-                "source": etl,
-                "type": "join",
-                "timestamp": Date.now()
-            }
+            normalized.etl = set_default(
+                {
+                    "id": i,
+                    "source": etl,
+                    "type": "join",
+                    "timestamp": Date.now()
+                },
+                machine_metadata
+            )
+
 
             tc_message.artifact="." if tc_message.artifact else None
             if normalized.task.id in seen:

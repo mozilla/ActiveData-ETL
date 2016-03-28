@@ -49,7 +49,7 @@ def verify_blobber_file(line_number, name, url):
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
-    if name in ["emulator-5554.log", "qemu.log"] or any(map(name.endswith, [".png", ".html"])):
+    if not name.endswith("_raw.log") or name.endswith("/log_raw.log"):
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):

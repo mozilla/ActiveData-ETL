@@ -568,5 +568,8 @@ if __name__ == "__main__":
     #
     #     Log.note("{{line}}", line=l)
 
-    data = process_buildbot_log(response.all_lines, "<unknown>")
-    Log.note("{{data}}", data=data)
+    try:
+        data = process_buildbot_log(response.all_lines, "<unknown>")
+        Log.note("{{data}}", data=data)
+    finally:
+        response.close()

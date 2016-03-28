@@ -40,7 +40,10 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 bucket=bucket.name
             )
 
-            full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+            if settings.source.prefix:
+                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+            else:
+                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
                 output = [
                     set_default(
