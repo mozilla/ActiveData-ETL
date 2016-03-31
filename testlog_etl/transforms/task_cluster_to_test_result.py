@@ -43,9 +43,6 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         tc = convert.json2value(line)
 
-        # USE THE LIVE LOG TO GRAB THE BUILDBOT PROPERTIES
-
-
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(tc.task.artifacts)):
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
