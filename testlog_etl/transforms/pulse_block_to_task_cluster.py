@@ -13,7 +13,7 @@ import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, coalesce, Dict, unwraplist, unwrap, listwrap
+from pyLibrary.dot import set_default, coalesce, Dict, unwraplist, unwrap, listwrap, wrap
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
@@ -46,6 +46,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY, session=session)
             normalized = _normalize(tc_message, task)
+            if normalized.build.revision:
+                normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
 
             # get the artifact list for the taskId
             artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
@@ -196,7 +198,7 @@ def set_build_info(normalized, task):
             "name": task.extra.build_name,
             "product": coalesce(task.extra.treeherder.productName, task.extra.build_product),
             "revision": task.payload.env.GECKO_HEAD_REV,
-            "type": [{"dbg": "debug"}.get(task.extra.build_type, task.extra.build_type)]
+            "type": listwrap({"dbg": "debug"}.get(task.extra.build_type, task.extra.build_type))
         }}
     )
 
