@@ -17,12 +17,10 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict
+from pyLibrary.dot import wrap, Dict, set_default
 from pyLibrary.env import http
-from pyLibrary.times.dates import Date
 from testlog_etl.transforms import EtlHeadGenerator
-from testlog_etl.transforms.pulse_block_to_task_cluster import get_build_info
-from testlog_etl.transforms.pulse_block_to_task_cluster import get_run_info
+from testlog_etl.transforms.pulse_block_to_task_cluster import set_run_info, set_build_info
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -68,9 +66,10 @@ def process(source_key, source, destination, resources, please_stop=None):
         task_definition = wrap(queue.task(taskId=taskId))
 
         # get additional info
-        repo = get_revision_info(task_definition, resources)
-        run = get_run_info(task_definition)
-        build = get_build_info(task_definition)
+        canonical = Dict()
+        canonical.repo = get_revision_info(task_definition, resources)
+        set_run_info(canonical, task_definition)
+        set_build_info(canonical, task_definition)
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
@@ -91,20 +90,20 @@ def process(source_key, source, destination, resources, please_stop=None):
                 # reusing dest_etl.id, which should be continuous
                 record_key = bucket_key + "." + unicode(dest_etl.id)
 
-                new_line = wrap({
-                    "test": {
-                        "name": test_name,
-                        "url": obj.testUrl
+                new_line = set_default(
+                    {
+                        "test": {
+                            "name": test_name,
+                            "url": obj.testUrl
+                        },
+                        "source": {
+                            "file": obj.sourceFile,
+                            "covered": line
+                        },
+                        "etl": dest_etl
                     },
-                    "source": {
-                        "file": obj.sourceFile,
-                        "covered": line
-                    },
-                    "etl": dest_etl,
-                    "repo": repo,
-                    "run": run,
-                    "build": build
-                })
+                    canonical
+                )
 
                 # file marker
                 if line_index == 0:
