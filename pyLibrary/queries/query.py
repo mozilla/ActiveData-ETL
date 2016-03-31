@@ -24,23 +24,23 @@ from pyLibrary.queries import wrap_from, Schema
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import Domain, is_keyword
-from pyLibrary.queries.expressions import TRUE_FILTER, simplify_esfilter, query_get_all_vars, qb_expression, TrueOp
+from pyLibrary.queries.expressions import TRUE_FILTER, simplify_esfilter, query_get_all_vars, jx_expression, TrueOp
 
 DEFAULT_LIMIT = 10
-MAX_LIMIT = 10000
+MAX_LIMIT = 50000
 
-_qb = None
+_jx = None
 _Column = None
 
 
 def _late_import():
-    global _qb
+    global _jx
     global _Column
 
     from pyLibrary.queries.meta import Column as _Column
-    from pyLibrary.queries import qb as _qb
+    from pyLibrary.queries import jx as _jx
 
-    _ = _qb
+    _ = _jx
     _ = _Column
 
 
@@ -85,7 +85,7 @@ class Query(object):
             self.select = _normalize_select(select, schema=schema)
         else:
             if query.edges or query.groupby:
-                self.select = Dict(name="count", value=".", aggregate="count")
+                self.select = Dict(name="count", value=".", aggregate="count", default=0)
             else:
                 self.select = Dict(name=".", value=".", aggregate="none")
 
@@ -116,11 +116,14 @@ class Query(object):
         # THE from SOURCE IS.
         # TODO: IGNORE REACHING INTO THE NON-NESTED TYPES
         if isinstance(self.frum, list):
-            if not _qb:
+            if not _jx:
                 _late_import()
-            columns = _qb.get_columns(self.frum)
+            columns = _jx.get_columns(self.frum)
         elif isinstance(self.frum, Container):
-            columns = self.frum.get_columns(table=self.frum.name)
+            try:
+                columns = self.frum.get_columns(table_name=self.frum.name)
+            except Exception, e:
+                Log.error("Problem", cause=e)
         else:
             columns = []
 
@@ -155,13 +158,14 @@ class Query(object):
         return output
 
 
-canonical_aggregates = {
-    "min": "minimum",
-    "max": "maximum",
-    "add": "sum",
-    "avg": "average",
-    "mean": "average"
-}
+canonical_aggregates = wrap({
+    "count": {"name": "count", "default": 0},
+    "min": {"name": "minimum"},
+    "max": {"name": "maximum"},
+    "add": {"name": "sum"},
+    "avg": {"name": "average"},
+    "mean": {"name": "average"},
+})
 
 
 def _normalize_selects(selects, schema=None):
@@ -239,8 +243,10 @@ def _normalize_select(select, schema=None):
         if output.name.endswith(".*"):
             output.name = output.name[:-2]
 
-        output.aggregate = coalesce(canonical_aggregates.get(select.aggregate), select.aggregate, "none")
+        output.aggregate = coalesce(canonical_aggregates[select.aggregate].name, select.aggregate, "none")
+        output.default = coalesce(select.default, canonical_aggregates[output.aggregate].default)
         return output
+
 
 
 def _normalize_edges(edges, schema=None):
@@ -351,8 +357,7 @@ def _normalize_domain(domain=None, schema=None):
         domain = domain.copy()
         domain.name = domain.type
 
-    if not isinstance(domain.partitions, list):
-        domain.partitions = list(domain.partitions)
+    domain.partitions = listwrap(domain.partitions)
 
     return Domain(**domain)
 
@@ -382,7 +387,7 @@ def _normalize_range(range):
 def _normalize_where(where, schema=None):
     if where == None:
         return TrueOp()
-    return qb_expression(where)
+    return jx_expression(where)
 
 
 def _map_term_using_schema(master, path, term, schema_edges):

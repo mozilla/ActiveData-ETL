@@ -17,12 +17,14 @@ from pyLibrary.collections import MAX
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import listwrap, Dict, wrap, literal_field, set_default, coalesce, Null, split_field, DictList, unwrap
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb, es09
+from pyLibrary.queries import jx, es09
 from pyLibrary.queries.dimensions import Dimension
 from pyLibrary.queries.domains import PARTITION, SimpleSetDomain, is_keyword, DefaultDomain
 from pyLibrary.queries.es14.util import aggregates1_4, NON_STATISTICAL_AGGS
-from pyLibrary.queries.expressions import simplify_esfilter, split_expression_by_depth, qb_expression, AndOp, Variable, Literal, OrOp, BinaryOp
+from pyLibrary.queries.expressions import simplify_esfilter, split_expression_by_depth, jx_expression, AndOp, Variable, Literal, OrOp, BinaryOp, \
+    InOp, NotOp
 from pyLibrary.queries.query import DEFAULT_LIMIT, MAX_LIMIT
+from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 
@@ -42,18 +44,37 @@ def get_decoders_by_depth(query):
     for e in coalesce(query.edges, query.groupby, []):
         if e.value != None:
             e = e.copy()
-            e.value = qb_expression(e.value)
+            e.value = jx_expression(e.value)
             vars_ = e.value.vars()
 
             for v in vars_:
                 if not schema[v]:
                     Log.error("{{var}} does not exist in schema", var=v)
 
-            e.value = e.value.map({schema[v].name: schema[v].abs_name for v in vars_})
-        else:
+            e.value = e.value.map({schema[v].name: schema[v].es_column for v in vars_})
+        elif e.range:
+            e = e.copy()
+            min_ = jx_expression(e.range.min)
+            max_ = jx_expression(e.range.max)
+            vars_ = min_.vars() | max_.vars()
+
+            for v in vars_:
+                if not schema[v]:
+                    Log.error("{{var}} does not exist in schema", var=v)
+
+            map_ = {schema[v].name: schema[v].es_column for v in vars_}
+            e.range = {
+                "min": min_.map(map_),
+                "max": max_.map(map_)
+            }
+        elif e.domain.dimension:
             vars_ = e.domain.dimension.fields
             e.domain.dimension = e.domain.dimension.copy()
-            e.domain.dimension.fields = [schema[v].abs_name for v in vars_]
+            e.domain.dimension.fields = [schema[v].es_column for v in vars_]
+        elif all(e.domain.partitions.where):
+            vars_ = set()
+            for p in e.domain.partitions:
+                vars_ |= p.where.vars()
 
         depths = set(len(listwrap(schema[v].nested_path)) for v in vars_)
         if len(depths) > 1:
@@ -90,10 +111,10 @@ def es_aggsop(es, frum, query):
                 else:
                     Log.error('Not expecting ES to have a value at "." which {{agg}} can be applied', agg=s.aggregate)
         elif is_keyword(s.value) and s.aggregate=="count":
-            s.value = coalesce(frum[s.value].abs_name, s.value)
+            s.value = coalesce(frum[s.value].es_column, s.value)
             new_select["count_"+literal_field(s.value)] += [s]
         elif is_keyword(s.value):
-            s.value = coalesce(frum[s.value].abs_name, s.value)
+            s.value = coalesce(frum[s.value].es_column, s.value)
             new_select[literal_field(s.value)] += [s]
         else:
             formula.append(s)
@@ -154,6 +175,12 @@ def es_aggsop(es, frum, query):
                     "var": stats_name + ".variance",
                     "median": median_name + ".values.50\.0"
                 }
+            elif s.aggregate == "union":
+                # USE TERMS AGGREGATE TO SIMULATE union
+                stats_name = literal_field(canonical_name)
+                es_query.aggs[stats_name].terms.field = field_name
+                es_query.aggs[stats_name].terms.size = Math.min(s.limit, MAX_LIMIT)
+                s.pull = stats_name + ".buckets.key"
             else:
                 # PULL VALUE OUT OF THE stats AGGREGATE
                 es_query.aggs[literal_field(canonical_name)].extended_stats.field = field_name
@@ -161,7 +188,7 @@ def es_aggsop(es, frum, query):
 
     for i, s in enumerate(formula):
         canonical_name = literal_field(s.name)
-        abs_value = qb_expression(s.value).map({c.name: c.abs_name for c in frum._columns})
+        abs_value = jx_expression(s.value).map({c.name: c.es_column for c in frum._columns})
 
         if s.aggregate == "count":
             es_query.aggs[literal_field(canonical_name)].value_count.script = abs_value.to_ruby()
@@ -208,6 +235,11 @@ def es_aggsop(es, frum, query):
                 "var": stats_name + ".variance",
                 "median": median_name + ".values.50\.0"
             }
+        elif s.aggregate=="union":
+            # USE TERMS AGGREGATE TO SIMULATE union
+            stats_name = literal_field(canonical_name)
+            es_query.aggs[stats_name].terms.script_field = abs_value.to_ruby()
+            s.pull = stats_name + ".buckets.key"
         else:
             # PULL VALUE OUT OF THE stats AGGREGATE
             s.pull = canonical_name + "." + aggregates1_4[s.aggregate]
@@ -218,7 +250,7 @@ def es_aggsop(es, frum, query):
     start = 0
 
     vars_ = query.where.vars()
-    map_ = {v: frum[v].abs_name for v in vars_}
+    map_ = {v: frum[v].es_column for v in vars_}
 
     #<TERRIBLE SECTION> THIS IS WHERE WE WEAVE THE where CLAUSE WITH nested
     split_where = split_expression_by_depth(query.where, schema=frum, map_=map_)
@@ -249,7 +281,7 @@ def es_aggsop(es, frum, query):
             )}
         })
     else:
-        if any(split_where[1:]):
+        if any(split_where[1::]):
             Log.error("Where clause is too deep")
 
     for d in decoders[0]:
@@ -273,18 +305,21 @@ def es_aggsop(es, frum, query):
         result = es09.util.post(es, es_query, query.limit)
 
     try:
-        decoders = [d for ds in decoders for d in ds]
-        result.aggregations.doc_count = coalesce(result.aggregations.doc_count, result.hits.total)  # IT APPEARS THE OLD doc_count IS GONE
+        format_time = Timer("formatting")
+        with format_time:
+            decoders = [d for ds in decoders for d in ds]
+            result.aggregations.doc_count = coalesce(result.aggregations.doc_count, result.hits.total)  # IT APPEARS THE OLD doc_count IS GONE
 
-        formatter, groupby_formatter, aggop_formatter, mime_type = format_dispatch[query.format]
-        if query.edges:
-            output = formatter(decoders, result.aggregations, start, query, select)
-        elif query.groupby:
-            output = groupby_formatter(decoders, result.aggregations, start, query, select)
-        else:
-            output = aggop_formatter(decoders, result.aggregations, start, query, select)
+            formatter, groupby_formatter, aggop_formatter, mime_type = format_dispatch[query.format]
+            if query.edges:
+                output = formatter(decoders, result.aggregations, start, query, select)
+            elif query.groupby:
+                output = groupby_formatter(decoders, result.aggregations, start, query, select)
+            else:
+                output = aggop_formatter(decoders, result.aggregations, start, query, select)
 
-        output.meta.es_response_time = es_duration.duration
+        output.meta.timing.formatting = format_time.duration
+        output.meta.timing.es_search = es_duration.duration
         output.meta.content_type = mime_type
         output.meta.es_query = es_query
         return output
@@ -332,6 +367,8 @@ class AggsDecoder(object):
             return object.__new__(SetDecoder, e)
         if e.value and e.domain.type == "time":
             return object.__new__(TimeDecoder, e)
+        if e.range:
+            return object.__new__(GeneralRangeDecoder, e)
         if e.value and e.domain.type == "duration":
             return object.__new__(DurationDecoder, e)
         elif e.value and e.domain.type == "range":
@@ -344,6 +381,8 @@ class AggsDecoder(object):
                 Log.error("No longer allowed: All objects are expressions")
             else:
                 return object.__new__(DimFieldListDecoder, e)
+        elif not e.value and all(e.domain.partitions.where):
+            return object.__new__(GeneralSetDecoder, e)
         else:
             Log.error("domain type of {{type}} is not supported yet", type=e.domain.type)
 
@@ -386,44 +425,71 @@ class SetDecoder(AggsDecoder):
     def append_query(self, es_query, start):
         self.start = start
         domain = self.domain
-        field_name = unicode(self.edge.value)
+        field = self.edge.value
 
-        include = [p[domain.key] for p in domain.partitions]
-        if self.edge.allowNulls:
+        if isinstance(field, Variable):
+            include = [p[domain.key] for p in domain.partitions]
+            if self.edge.allowNulls:
 
-            return wrap({"aggs": {
-                "_match": set_default({"terms": {
-                    "field": field_name,
-                    "size": 0,
-                    "include": include
-                }}, es_query),
-                "_missing": set_default(
-                    {"filter": {"or": [
-                        {"missing": {"field": field_name}},
-                        {"not": {"terms": {field_name: include}}}
-                    ]}},
-                    es_query
-                ),
-            }})
+                return wrap({"aggs": {
+                    "_match": set_default({"terms": {
+                        "field": field.var,
+                        "size": 0,
+                        "include": include
+                    }}, es_query),
+                    "_missing": set_default(
+                        {"filter": {"or": [
+                            field.missing().to_esfilter(),
+                            {"not": {"terms": {field.var: include}}}
+                        ]}},
+                        es_query
+                    ),
+                }})
+            else:
+                return wrap({"aggs": {
+                    "_match": set_default({"terms": {
+                        "field": field.var,
+                        "size": 0,
+                        "include": include
+                    }}, es_query)
+                }})
         else:
-            return wrap({"aggs": {
-                "_match": set_default({"terms": {
-                    "field": field_name,
-                    "size": 0,
-                    "include": include
-                }}, es_query)
-            }})
+            include = [p[domain.key] for p in domain.partitions]
+            if self.edge.allowNulls:
+
+                return wrap({"aggs": {
+                    "_match": set_default({"terms": {
+                        "script_field": field.to_ruby(),
+                        "size": 0,
+                        "include": include
+                    }}, es_query),
+                    "_missing": set_default(
+                        {"filter": {"or": [
+                            field.missing().to_esfilter(),
+                            NotOp("not", InOp("in", [field, Literal("literal", include)])).to_esfilter()
+                        ]}},
+                        es_query
+                    ),
+                }})
+            else:
+                return wrap({"aggs": {
+                    "_match": set_default({"terms": {
+                        "script_field": field.to_ruby(),
+                        "size": 0,
+                        "include": include
+                    }}, es_query)
+                }})
 
     def get_value(self, index):
         return self.domain.getKeyByIndex(index)
 
     def get_value_from_row(self, row):
-        return row[self.start].key
+        return row[self.start]["key"]
 
     def get_index(self, row):
         try:
             part = row[self.start]
-            return self.domain.getIndexByKey(part.key)
+            return self.domain.getIndexByKey(part["key"])
         except Exception, e:
             Log.error("problem", cause=e)
 
@@ -440,22 +506,15 @@ def _range_composer(edge, domain, es_query, to_float):
     if isinstance(edge.value, Variable):
         calc = {"field": edge.value.var}
     else:
-        calc = {"script": edge.value.to_ruby()}
+        calc = {"script_field": edge.value.to_ruby()}
 
-    if edge.allowNulls:
-        if isinstance(edge.value, Variable):
-            missing_range = {"or": [
-                {"range": {edge.value.var: {"lt": to_float(_min)}}},
-                {"range": {edge.value.var: {"gte": to_float(_max)}}}
-            ]}
-        else:
-            missing_range = {"script": {"script": OrOp("or", [
-                BinaryOp("lt", [edge.value, Literal(None, to_float(_min))]),
-                BinaryOp("gt", [edge.value, Literal(None, to_float(_max))]),
-            ]).to_ruby()}}
+    if edge.allowNulls:    # TODO: Use Expression.missing().esfilter() TO GET OPTIMIZED FILTER
         missing_filter = set_default(
             {"filter": {"or": [
-                missing_range,
+                OrOp("or", [
+                    BinaryOp("lt", [edge.value, Literal(None, to_float(_min))]),
+                    BinaryOp("gte", [edge.value, Literal(None, to_float(_max))]),
+                ]).to_esfilter(),
                 edge.value.missing().to_esfilter()
             ]}},
             es_query
@@ -487,8 +546,8 @@ class TimeDecoder(AggsDecoder):
         if part == None:
             return len(domain.partitions)
 
-        f = coalesce(part["from"], part.key)
-        t = coalesce(part.to, part.key)
+        f = coalesce(part["from"], part["key"])
+        t = coalesce(part["to"], part["key"])
         if f == None or t == None:
             return len(domain.partitions)
         else:
@@ -498,6 +557,103 @@ class TimeDecoder(AggsDecoder):
         sample = part.copy
         sample.buckets = None
         Log.error("Expecting to find {{part}}",  part=sample)
+
+    @property
+    def num_columns(self):
+        return 1
+
+
+class GeneralRangeDecoder(AggsDecoder):
+    """
+    Accept an algebraic domain, and an edge with a `range` attribute
+    This class assumes the `snapshot` version - where we only include
+    partitions that have their `min` value in the range.
+    """
+
+    def __init__(self, edge, query):
+        AggsDecoder.__init__(self, edge, query)
+        if edge.domain.type=="time":
+            self.to_float = lambda x: x.unix
+        elif edge.domain.type=="range":
+            self.to_float = lambda x: x
+        else:
+            Log.error("Unknown domain of type {{type}} for range edge", type=edge.domain.type)
+
+    def append_query(self, es_query, start):
+        self.start = start
+
+        edge = self.edge
+        range = edge.range
+        domain = edge.domain
+
+        aggs = {}
+        for i, p in enumerate(domain.partitions):
+            filter_ = AndOp("and", [
+                BinaryOp("lte", [range.min, Literal("literal", self.to_float(p.min))]),
+                BinaryOp("gt", [range.max, Literal("literal", self.to_float(p.min))])
+            ])
+            aggs["_join_" + unicode(i)] = set_default(
+                {"filter": filter_.to_esfilter()},
+                es_query
+            )
+
+        return wrap({"aggs": aggs})
+
+    def get_value(self, index):
+        return self.edge.domain.getKeyByIndex(index)
+
+    def get_index(self, row):
+        domain = self.edge.domain
+        part = row[self.start]
+        if part == None:
+            return len(domain.partitions)
+        return part["_index"]
+
+    @property
+    def num_columns(self):
+        return 1
+
+
+class GeneralSetDecoder(AggsDecoder):
+    """
+    EXPECTING ALL PARTS IN partitions TO HAVE A where CLAUSE
+    """
+
+    def append_query(self, es_query, start):
+        self.start = start
+
+        parts = self.edge.domain.partitions
+        filters = []
+        notty = []
+
+        for p in parts:
+            filters.append(AndOp("and", [p.where]+notty).to_esfilter())
+            notty.append(NotOp("not", p.where))
+
+        missing_filter = None
+        if self.edge.allowNulls:    # TODO: Use Expression.missing().esfilter() TO GET OPTIMIZED FILTER
+            missing_filter = set_default(
+                {"filter": AndOp("and", notty).to_esfilter()},
+                es_query
+            )
+
+        return wrap({"aggs": {
+            "_match": set_default(
+                {"filters": {"filters": filters}},
+                es_query
+            ),
+            "_missing": missing_filter
+        }})
+
+    def get_value(self, index):
+        return self.edge.domain.getKeyByIndex(index)
+
+    def get_index(self, row):
+        domain = self.edge.domain
+        part = row[self.start]
+        if part == None:
+            return len(domain.partitions)
+        return part["_index"]
 
     @property
     def num_columns(self):
@@ -518,8 +674,8 @@ class DurationDecoder(AggsDecoder):
         if part == None:
             return len(domain.partitions)
 
-        f = coalesce(part["from"], part.key)
-        t = coalesce(part.to, part.key)
+        f = coalesce(part["from"], part["key"])
+        t = coalesce(part["to"], part["key"])
         if f == None or t == None:
             return len(domain.partitions)
         else:
@@ -549,8 +705,8 @@ class RangeDecoder(AggsDecoder):
         if part == None:
             return len(domain.partitions)
 
-        f = coalesce(part["from"], part.key)
-        t = coalesce(part.to, part.key)
+        f = coalesce(part["from"], part["key"])
+        t = coalesce(part["to"], part["key"])
         if f == None or t == None:
             return len(domain.partitions)
         else:
@@ -602,7 +758,7 @@ class DefaultDecoder(SetDecoder):
                 }},
                 es_query
             ),
-            "_missing": set_default({"missing": {"field": self.edge.value}}, es_query)
+            "_missing": set_default({"missing": {"field": self.edge.value}}, es_query)  # TODO: Use Expression.missing().esfilter() TO GET OPTIMIZED FILTER
         }})
         return output
 
@@ -611,11 +767,11 @@ class DefaultDecoder(SetDecoder):
         if part == None:
             self.edge.allowNulls = True  # OK! WE WILL ALLOW NULLS
         else:
-            self.parts.append(part.key)
+            self.parts.append(part["key"])
 
     def done_count(self):
         self.edge.domain = self.domain = SimpleSetDomain(
-            partitions=qb.sort(set(self.parts))
+            partitions=jx.sort(set(self.parts))
         )
         self.parts = None
 
@@ -645,7 +801,7 @@ class DimFieldListDecoder(SetDecoder):
                 }}, es_query)
             }})
             if self.edge.allowNulls:
-                nest.aggs._missing = set_default({"missing": {"field": v}}, es_query)
+                nest.aggs._missing = set_default({"missing": {"field": v}}, es_query)  # TODO: Use Expression.missing().esfilter() TO GET OPTIMIZED FILTER
             es_query = nest
 
         if self.domain.where:
@@ -656,14 +812,14 @@ class DimFieldListDecoder(SetDecoder):
 
     def count(self, row):
         part = row[self.start:self.start + len(self.fields):]
-        value = tuple(p.key for p in part)
+        value = tuple(p["key"] for p in part)
         self.parts.append(value)
 
     def done_count(self):
         columns = map(unicode, range(len(self.fields)))
         parts = wrap([{unicode(i): p for i, p in enumerate(part)} for part in set(self.parts)])
         self.parts = None
-        sorted_parts = qb.sort(parts, columns)
+        sorted_parts = jx.sort(parts, columns)
 
         self.edge.domain = self.domain = SimpleSetDomain(
             key="value",
@@ -671,7 +827,7 @@ class DimFieldListDecoder(SetDecoder):
         )
 
     def get_index(self, row):
-        find = tuple(p.key for p in row[self.start:self.start + self.num_columns:])
+        find = tuple(p["key"] for p in row[self.start:self.start + self.num_columns:])
         return self.domain.getIndexByKey(find)
 
     @property
@@ -684,17 +840,21 @@ EMPTY_LIST = []
 
 
 def drill(agg):
-    deeper = coalesce(agg.get("_filter"), agg.get("_nested"))
+    deeper = agg.get("_filter", agg.get("_nested"))
     while deeper:
         agg = deeper
-        deeper = coalesce(agg.get("_filter"), agg.get("_nested"))
+        deeper = agg.get("_filter", agg.get("_nested"))
     return agg
 
 
-def aggs_iterator(aggs, decoders):
+def aggs_iterator(aggs, decoders, coord=True):
     """
     DIG INTO ES'S RECURSIVE aggs DATA-STRUCTURE:
     RETURN AN ITERATOR OVER THE EFFECTIVE ROWS OF THE RESULTS
+
+    :param aggs: ES AGGREGATE OBJECT
+    :param decoders:
+    :param coord: TURN ON LOCAL COORDINATE LOOKUP
     """
     depth = max(d.start + d.num_columns for d in decoders)
     parts = [None] * depth
@@ -703,41 +863,66 @@ def aggs_iterator(aggs, decoders):
         agg = drill(agg)
 
         if d > 0:
-            for b in agg.get("_match", EMPTY).get("buckets", EMPTY_LIST):
-                parts[d] = wrap(b)
-                for a in _aggs_iterator(b, d - 1):
-                    yield a
-            parts[d] = Null
-            for b in agg.get("_other", EMPTY).get("buckets", EMPTY_LIST):
-                for a in _aggs_iterator(b, d - 1):
-                    yield a
-            b = drill(agg.get("_missing", EMPTY))
-            if b.get("doc_count"):
-                for a in _aggs_iterator(b, d - 1):
-                    yield a
+            for k, v in agg.items():
+                if k == "_match":
+                    for b in v.get("buckets", EMPTY_LIST):
+                        parts[d] = b
+                        for a in _aggs_iterator(b, d - 1):
+                            yield a
+                elif k == "_other":
+                    parts[d] = Null
+                    for b in v.get("buckets", EMPTY_LIST):
+                        for a in _aggs_iterator(b, d - 1):
+                            yield a
+                elif k == "_missing":
+                    parts[d] = Null
+                    b = drill(v)
+                    if b.get("doc_count"):
+                        for a in _aggs_iterator(b, d - 1):
+                            yield a
+                elif k.startswith("_join_"):
+                    v["key"] = int(k[6:])
+                    parts[d] = v
+                    for a in _aggs_iterator(v, d - 1):
+                        yield a
         else:
-            for b in agg.get("_match", EMPTY).get("buckets", EMPTY_LIST):
-                parts[d] = wrap(b)
-                b = drill(b)
-                if b.get("doc_count"):
-                    yield b
-            parts[d] = Null
-            for b in agg.get("_other", EMPTY).get("buckets", EMPTY_LIST):
-                b = drill(b)
-                if b.get("doc_count"):
-                    yield b
-            b = drill(agg.get("_missing", EMPTY))
-            if b.get("doc_count"):
-                yield b
+            for k, v in agg.items():
+                if k == "_match":
+                    for i, b in enumerate(v.get("buckets", EMPTY_LIST)):
+                        parts[d] = b
+                        if b.get("doc_count"):
+                            b = drill(b)
+                            b["_index"] = i
+                            yield b
+                elif k == "_other":
+                    parts[d] = Null
+                    for b in v.get("buckets", EMPTY_LIST):
+                        b = drill(b)
+                        if b.get("doc_count"):
+                            yield b
+                elif k == "_missing":
+                    parts[d] = Null
+                    b = drill(v)
+                    if b.get("doc_count"):
+                        yield b
+                elif k.startswith("_join_"):
+                    v["_index"] = int(k[6:])
+                    parts[d] = v
+                    yield v
 
-    for a in _aggs_iterator(unwrap(aggs), depth - 1):
-        yield parts, wrap(a)
+    if coord:
+        for a in _aggs_iterator(unwrap(aggs), depth - 1):
+            coord = tuple(d.get_index(parts) for d in decoders)
+            yield parts, coord, a
+    else:
+        for a in _aggs_iterator(unwrap(aggs), depth - 1):
+            yield parts, None, a
 
 
 def count_dim(aggs, decoders):
     if any(isinstance(d, (DefaultDecoder, DimFieldListDecoder)) for d in decoders):
         # ENUMERATE THE DOMAINS, IF UNKNOWN AT QUERY TIME
-        for row, agg in aggs_iterator(aggs, decoders):
+        for row, coord, agg in aggs_iterator(aggs, decoders, coord=False):
             for d in decoders:
                 d.count(row)
         for d in decoders:

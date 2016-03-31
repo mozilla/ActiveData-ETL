@@ -22,8 +22,8 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import es14, es09
 from pyLibrary.queries.containers.cube import Cube
 from pyLibrary.queries.domains import is_keyword, ALGEBRAIC
-from pyLibrary.queries.es14.util import qb_sort_to_es_sort
-from pyLibrary.queries.expressions import simplify_esfilter, qb_expression
+from pyLibrary.queries.es14.util import jx_sort_to_es_sort
+from pyLibrary.queries.expressions import simplify_esfilter, jx_expression
 from pyLibrary.queries.query import DEFAULT_LIMIT
 from pyLibrary.times.timer import Timer
 
@@ -56,7 +56,7 @@ def es_setop(es, query):
     es_query, filters = es14.util.es_query_template(query.frum.name)
     set_default(filters[0], simplify_esfilter(query.where.to_esfilter()))
     es_query.size = coalesce(query.limit, queries.query.DEFAULT_LIMIT)
-    es_query.sort = qb_sort_to_es_sort(query.sort)
+    es_query.sort = jx_sort_to_es_sort(query.sort)
     es_query.fields = DictList()
 
     return extract_rows(es, es_query, query)
@@ -67,7 +67,7 @@ def extract_rows(es, es_query, query):
     select = wrap([s.copy() for s in listwrap(query.select)])
     new_select = DictList()
     columns = query.frum.get_columns()
-    leaf_columns = set(c.name for c in columns if c.type not in ["object", "nested"] and (not c.nested_path or c.abs_name == c.nested_path))
+    leaf_columns = set(c.name for c in columns if c.type not in ["object", "nested"] and (not c.nested_path or c.es_column == c.nested_path))
     nested_columns = set(c.name for c in columns if c.nested_path)
 
     i = 0
@@ -157,7 +157,7 @@ def extract_rows(es, es_query, query):
             if es_query.fields is not None:
                 es_query.fields.extend([v for v in s.value])
         else:
-            es_query.script_fields[literal_field(s.name)] = {"script": qb_expression(s.value).to_ruby()}
+            es_query.script_fields[literal_field(s.name)] = {"script": jx_expression(s.value).to_ruby()}
             new_select.append({
                 "name": s.name,
                 "pull": "fields." + literal_field(s.name),
@@ -182,7 +182,7 @@ def extract_rows(es, es_query, query):
         formatter, groupby_formatter, mime_type = format_dispatch[query.format]
 
         output = formatter(T, new_select, query)
-        output.meta.es_response_time = call_timer.duration
+        output.meta.timing.es = call_timer.duration
         output.meta.content_type = mime_type
         output.meta.es_query = es_query
         return output

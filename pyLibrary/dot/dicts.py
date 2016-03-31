@@ -7,15 +7,14 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
 from collections import MutableMapping, Mapping
 from copy import deepcopy
 
-from pyLibrary.dot import split_field, _getdefault, hash_value, literal_field, coalesce, listwrap
-
+from pyLibrary.dot import _getdefault, hash_value, literal_field, coalesce, listwrap
 
 _get = object.__getattribute__
 _set = object.__setattr__
@@ -58,7 +57,10 @@ class Dict(MutableMapping):
 
     def __nonzero__(self):
         d = _get(self, "_dict")
-        return True if d else False
+        if isinstance(d, dict):
+            return True if d else False
+        else:
+            return d != None
 
     def __contains__(self, item):
         if Dict.__getitem__(self, item):
@@ -88,13 +90,12 @@ class Dict(MutableMapping):
         d = _get(self, "_dict")
 
         if key.find(".") >= 0:
-            seq = split_field(key)
+            seq = _split_field(key)
             for n in seq:
                 if isinstance(d, NullType):
                     d = NullType(d, n)  # OH DEAR, Null TREATS n AS PATH, NOT LITERAL
                 else:
                     d = _getdefault(d, n)  # EVERYTHING ELSE TREATS n AS LITERAL
-
 
             return wrap(d)
         else:
@@ -128,7 +129,7 @@ class Dict(MutableMapping):
                     d[key] = value
                 return self
 
-            seq = split_field(key)
+            seq = _split_field(key)
             for k in seq[:-1]:
                 d = _getdefault(d, k)
             if value == None:
@@ -175,6 +176,9 @@ class Dict(MutableMapping):
             return True
 
         d = _get(self, "_dict")
+        if not isinstance(d, dict):
+            return d == other
+
         if not d and other == None:
             return True
 
@@ -249,7 +253,7 @@ class Dict(MutableMapping):
             return
 
         d = _get(self, "_dict")
-        seq = split_field(key)
+        seq = _split_field(key)
         for k in seq[:-1]:
             d = d[k]
         d.pop(seq[-1], None)
@@ -302,6 +306,11 @@ def leaves(value, prefix=None):
 
 
 
+def _split_field(field):
+    """
+    SIMPLE SPLIT, NO CHECKS
+    """
+    return [k.replace("\a", ".") for k in field.replace("\.", "\a").split(".")]
 
 
 class _DictUsingSelf(dict):
@@ -324,7 +333,7 @@ class _DictUsingSelf(dict):
 
         d=self
         if key.find(".") >= 0:
-            seq = split_field(key)
+            seq = _split_field(key)
             for n in seq:
                 d = _getdefault(self, n)
             return wrap(d)
@@ -352,7 +361,7 @@ class _DictUsingSelf(dict):
                     dict.__setitem__(d, key, value)
                 return self
 
-            seq = split_field(key)
+            seq = _split_field(key)
             for k in seq[:-1]:
                 d = _getdefault(d, k)
             if value == None:
@@ -469,7 +478,7 @@ class _DictUsingSelf(dict):
             return
 
         d = self
-        seq = split_field(key)
+        seq = _split_field(key)
         for k in seq[:-1]:
             d = d[k]
         d.pop(seq[-1], None)
