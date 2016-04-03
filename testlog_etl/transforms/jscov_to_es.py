@@ -27,6 +27,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     This transform will turn a pulse message containing info about a jscov artifact on taskcluster
     into a list of records of line coverages. Each record represents a line.
+
     :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
     :param source: The source pulse messages, in a batch of (usually) 100
     :param destination: The destination for the transformed data
@@ -117,6 +118,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 def get_revision_info(task_definition, resources):
     """
     Get the changeset, revision and push info for a given task in TaskCluster
+
     :param task_definition: The task definition
     :param resources: Pass this from the process method
     :return: The repo object containing information about the changeset, revision and push
@@ -135,6 +137,7 @@ def get_revision_info(task_definition, resources):
 def get_run_info(task_definition):
     """
     Get the run object that contains properties that describe the run of this job
+
     :param task_definition: The task definition
     :return: The run object
     """
@@ -147,6 +150,7 @@ def get_run_info(task_definition):
 def get_build_info(task_definition):
     """
     Get a build object that describes the build
+    
     :param task_definition: The task definition
     :return: The build object
     """
