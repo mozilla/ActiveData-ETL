@@ -13,7 +13,7 @@ from copy import copy
 import re
 
 from pyLibrary.meta import use_settings, cache
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
@@ -187,7 +187,7 @@ class HgMozillaOrg(object):
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
 
-                for _, ids in qb.groupby(_push.changesets.node, size=200):
+                for _, ids in jx.groupby(_push.changesets.node, size=200):
                     url_param = "&".join("node=" + c[0:12] for c in ids)
 
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param

@@ -133,7 +133,10 @@ def _normalize(tc_message, task):
     output.task.worker.id = tc_message.workerId
     output.task.worker.type = task.workerType
 
-    output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
+    try:
+        output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
+    except Exception, e:
+        Log.warning("artifact format problem:\n{{artifact|json|indent}}", artifact=task.payload.artifacts, cause=e)
     output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
     output.task.command = " ".join(map(convert.string2quote, map(unicode.strip, task.payload.command)))
 
@@ -362,6 +365,7 @@ KNOWN_BUILD_NAMES = {
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
+    (["rustbuild", None, None): {},
     ("signing-worker-v1", None, "linux32"): {},
     ("signing-worker-v1", None, "osx-10-10"):{},
     ("signing-worker-v1", None, "linux64"):{},

@@ -15,7 +15,7 @@ from pyLibrary.aws import s3
 from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 
 
 def key2etl(key):
@@ -123,7 +123,7 @@ def etl2path(etl):
             while etl.type and etl.type != "join":
                 etl = etl.source
             etl = etl.source
-        return qb.reverse(path)
+        return jx.reverse(path)
     except Exception, e:
         Log.error("Can not get path {{etl}}",  etl= etl, cause=e)
 

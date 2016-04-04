@@ -16,7 +16,7 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import pulse
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.dot import set_default, coalesce
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
@@ -33,7 +33,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
         work_queue = None
 
     try:
-        for i, g in qb.groupby(queue, size=settings.param.size):
+        for i, g in jx.groupby(queue, size=settings.param.size):
             Log.note(
                 "Preparing {{num}} pulse messages to bucket={{bucket}}",
                 num=len(g),

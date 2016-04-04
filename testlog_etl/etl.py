@@ -32,7 +32,7 @@ from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings, DataClass
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
@@ -43,7 +43,7 @@ from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-from testlog_etl.transforms import Transform
+from testlog_etl.transforms import Transform, pulse_block_to_es
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -171,7 +171,7 @@ class ETL(Thread):
                     pass  # ok
                 else:
                     etls = map(key2etl, new_keys)
-                    etls = qb.sort(etls, "id")
+                    etls = jx.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
                             Log.error("expecting keys to be contiguous: {{ids}}", ids=etls.id)

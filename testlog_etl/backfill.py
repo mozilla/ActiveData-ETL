@@ -20,8 +20,8 @@ from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
-from pyLibrary.queries.expressions import qb_expression
+from pyLibrary.queries import jx
+from pyLibrary.queries.expressions import jx_expression
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -100,7 +100,7 @@ def get_all_in_es(es, in_range, es_filter, field):
                     "_match": {
                         "terms": {
                             # "field": field,
-                            "script": qb_expression({"string": field}).to_ruby(),
+                            "script": jx_expression({"string": field}).to_ruby(),
                             "size": 200000
                         }
                     }
@@ -175,7 +175,7 @@ def get_all_s3(in_es, in_range, settings):
         prefix = unicode(int(prefix) - 1)
         prefix_max = int(prefix + ("999999999999"[:extra_digits]))
 
-    in_s3 = qb.reverse(qb.sort(in_s3))[:limit:]
+    in_s3 = jx.reverse(jx.sort(in_s3))[:limit:]
     return in_s3
 
 

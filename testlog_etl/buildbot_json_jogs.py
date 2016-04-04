@@ -21,7 +21,7 @@ from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 
@@ -86,7 +86,7 @@ def parse_day(settings, p, force=False):
     )
     tasks = get_all_tasks(day_url)
     first = None
-    for group_number, ts in qb.groupby(tasks, size=100):
+    for group_number, ts in jx.groupby(tasks, size=100):
         parsed = []
 
         group_etl = Dict(
@@ -141,7 +141,7 @@ def get_all_logs(url):
             filename = strings.between(line, '</td><td><a href=\"', '">')
             if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
                 paths.append(filename)
-            paths = qb.reverse(qb.sort(paths))
+            paths = jx.reverse(jx.sort(paths))
         return paths
     finally:
         response.close()

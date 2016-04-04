@@ -16,7 +16,7 @@ from pyLibrary.dot import Dict, wrap, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
@@ -524,7 +524,7 @@ def fix_times(times, start_time, end_time):
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
-    for t in qb.reverse(times):
+    for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
             t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
