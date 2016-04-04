@@ -80,11 +80,54 @@ def process(source_key, source, destination, resources, please_stop=None):
             if please_stop:
                 Log.error("Shutdown detected. Stopping job ETL.")
 
+            if source_file_index == 0:
+                # this is not a jscov object but an object containing the version metadata
+                # TODO: this metadata should not be here
+                # TODO: this version info is not used right now. Make use of it later.
+                jscov_format_version = obj.version
+                continue
+
             # get the test name. Just use the test file name at the moment
             # TODO: change this when needed
             test_name = obj.testUrl.split("/")[-1]
 
-            for line_index, line in enumerate(obj.covered):
+            # a variable to count the number of lines so far for this source file
+            count = 0
+
+            # iterate through the methods of this source file
+            for method_name, method_lines in obj.ethods.iteritems():
+                # iterate through the covered lines of this method
+                for line_index, line in enumerate(method_lines):
+                    _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+
+                    # reusing dest_etl.id, which should be continuous
+                    record_key = bucket_key + "." + unicode(dest_etl.id)
+
+                    new_line = wrap({
+                        "test": {
+                            "name": test_name,
+                            "url": obj.testUrl
+                        },
+                        "source": {
+                            "file": obj.sourceFile,
+                            "method": method_name,
+                            "covered": line
+                        },
+                        "etl": dest_etl,
+                        "repo": repo,
+                        "run": run,
+                        "build": build
+                    })
+
+                    # file marker
+                    if count == 0:
+                        new_line.source.is_file = "true"
+
+                    records.append({"id": record_key, "value": new_line})
+                    count += 1
+
+            # iterate through the uncovered lines of this method
+            for line_index, line in enumerate(obj.uncovered):
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
 
                 # reusing dest_etl.id, which should be continuous
@@ -97,7 +140,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "source": {
                         "file": obj.sourceFile,
-                        "covered": line
+                        "method": "",
+                        "uncovered": line
                     },
                     "etl": dest_etl,
                     "repo": repo,
@@ -106,10 +150,11 @@ def process(source_key, source, destination, resources, please_stop=None):
                 })
 
                 # file marker
-                if line_index == 0:
+                if count == 0:
                     new_line.source.is_file = "true"
 
                 records.append({"id": record_key, "value": new_line})
+                count += 1
 
     destination.extend(records)
     return keys
@@ -150,7 +195,7 @@ def get_run_info(task_definition):
 def get_build_info(task_definition):
     """
     Get a build object that describes the build
-    
+
     :param task_definition: The task definition
     :return: The build object
     """
