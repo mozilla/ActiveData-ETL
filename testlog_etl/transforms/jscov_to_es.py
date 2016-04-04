@@ -73,9 +73,19 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # fetch the artifact
         response = http.get(full_artifact_path).all_content
+
         # TODO:  Add a timer around this so we see how long it takes
         # transform
-        json_data = wrap(json.loads(response))
+        print(full_artifact_path)
+
+        # response may be a string, or a file depending on the size
+        if isinstance(response, basestring):
+            json_data = wrap(json.loads(response))
+        else:
+            # WARNING: this consumes an unholy amount of memory, and run into MemoryError very often
+            # TODO: fix this
+            json_data = wrap(json.load(response))
+
         for source_file_index, obj in enumerate(json_data):
             if please_stop:
                 Log.error("Shutdown detected. Stopping job ETL.")
@@ -95,7 +105,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             count = 0
 
             # iterate through the methods of this source file
-            for method_name, method_lines in obj.ethods.iteritems():
+            for method_name, method_lines in obj.methods.iteritems():
                 # iterate through the covered lines of this method
                 for line_index, line in enumerate(method_lines):
                     _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
