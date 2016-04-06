@@ -106,42 +106,14 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # iterate through the methods of this source file
             for method_name, method_lines in obj.methods.iteritems():
-                # iterate through the covered lines of this method
-                for line_index, line in enumerate(method_lines):
-                    _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
-
-                    # reusing dest_etl.id, which should be continuous
-                    record_key = bucket_key + "." + unicode(dest_etl.id)
-
-                    new_line = wrap({
-                        "test": {
-                            "name": test_name,
-                            "url": obj.testUrl
-                        },
-                        "source": {
-                            "file": obj.sourceFile,
-                            "method": method_name,
-                            "covered": line
-                        },
-                        "etl": dest_etl,
-                        "repo": repo,
-                        "run": run,
-                        "build": build
-                    })
-
-                    # file marker
-                    if count == 0:
-                        new_line.source.is_file = "true"
-
-                    records.append({"id": record_key, "value": new_line})
-                    count += 1
-
-            # iterate through the uncovered lines of this method
-            for line_index, line in enumerate(obj.uncovered):
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
 
                 # reusing dest_etl.id, which should be continuous
                 record_key = bucket_key + "." + unicode(dest_etl.id)
+
+                all_method_lines_set = set(method_lines)
+                method_covered = all_method_lines_set.intersection(obj.covered)
+                method_uncovered = all_method_lines_set.difference(method_covered)
 
                 new_line = wrap({
                     "test": {
@@ -150,8 +122,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     "source": {
                         "file": obj.sourceFile,
-                        "method": "",
-                        "uncovered": line
+                        "method": method_name,
+                        "covered": method_covered,
+                        "uncovered": method_uncovered
                     },
                     "etl": dest_etl,
                     "repo": repo,
