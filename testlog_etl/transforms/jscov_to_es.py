@@ -135,6 +135,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 # file marker
                 if count == 0:
                     new_line.source.is_file = "true"
+                    new_line.source.total_covered = len(obj.covered)
+                    new_line.source.total_uncovered = len(obj.uncovered)
+                    new_line.source.percentage_covered = len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
 
                 records.append({"id": record_key, "value": new_line})
                 count += 1
