@@ -33,6 +33,7 @@
 		}
 	},
 	"debug": {
+		"trace":true,
 		"log": [
 			{
 				"log_type": "console"
