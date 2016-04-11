@@ -110,7 +110,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 method_covered = all_method_lines_set & file_covered
                 method_uncovered = all_method_lines_set - method_covered
 
-                new_line = wrap({
+                new_record = wrap({
                     "test": {
                         "name": test_name,
                         "url": obj.testUrl
@@ -129,12 +129,12 @@ def process(source_key, source, destination, resources, please_stop=None):
 
                 # file marker
                 if count == 0:
-                    new_line.source.is_file = "true"
-                    new_line.source.total_covered = len(obj.covered)
-                    new_line.source.total_uncovered = len(obj.uncovered)
-                    new_line.source.percentage_covered = len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+                    new_record.source.is_file = "true"
+                    new_record.source.total_covered = len(obj.covered)
+                    new_record.source.total_uncovered = len(obj.uncovered)
+                    new_record.source.percentage_covered = len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
 
-                records.append({"id": record_key, "value": new_line})
+                records.append({"id": record_key, "value": new_record})
                 count += 1
 
     destination.extend(records)
