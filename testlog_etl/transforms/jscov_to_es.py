@@ -109,6 +109,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 all_method_lines_set = set(method_lines)
                 method_covered = all_method_lines_set & file_covered
                 method_uncovered = all_method_lines_set - method_covered
+                method_percentage_covered = len(method_covered) / len(all_method_lines_set)
 
                 new_record = wrap({
                     "test": {
@@ -118,6 +119,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "source": {
                         "file": obj.sourceFile,
                         "method": method_name,
+                        "method_percentage_covered": method_percentage_covered,
                         "covered": method_covered,
                         "uncovered": method_uncovered
                     },
