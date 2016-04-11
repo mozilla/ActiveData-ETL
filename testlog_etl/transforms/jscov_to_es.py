@@ -19,6 +19,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.jsons import stream
 from pyLibrary.times.dates import Date
 from testlog_etl.transforms import EtlHeadGenerator
 
@@ -72,21 +73,11 @@ def process(source_key, source, destination, resources, please_stop=None):
         build = get_build_info(task_definition)
 
         # fetch the artifact
-        response = http.get(full_artifact_path).all_content
+        response_stream = http.get(full_artifact_path).raw
 
         # TODO:  Add a timer around this so we see how long it takes
-        # transform
-        print(full_artifact_path)
-
-        # response may be a string, or a file depending on the size
-        if isinstance(response, basestring):
-            json_data = wrap(json.loads(response))
-        else:
-            # WARNING: this consumes an unholy amount of memory, and run into MemoryError very often
-            # TODO: fix this
-            json_data = wrap(json.load(response))
-
-        for source_file_index, obj in enumerate(json_data):
+        for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+            obj = wrap(obj)
             if please_stop:
                 Log.error("Shutdown detected. Stopping job ETL.")
 
