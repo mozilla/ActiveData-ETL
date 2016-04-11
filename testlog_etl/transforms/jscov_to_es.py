@@ -73,6 +73,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         build = get_build_info(task_definition)
 
         # fetch the artifact
+        print("Processing " + full_artifact_path)
         response_stream = http.get(full_artifact_path).raw
 
         # TODO:  Add a timer around this so we see how long it takes
@@ -95,6 +96,9 @@ def process(source_key, source, destination, resources, please_stop=None):
             # a variable to count the number of lines so far for this source file
             count = 0
 
+            # turn obj.covered (a list) into a set for use later
+            file_covered = set(obj.covered)
+
             # iterate through the methods of this source file
             for method_name, method_lines in obj.methods.iteritems():
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
@@ -103,8 +107,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                 record_key = bucket_key + "." + unicode(dest_etl.id)
 
                 all_method_lines_set = set(method_lines)
-                method_covered = all_method_lines_set.intersection(obj.covered)
-                method_uncovered = all_method_lines_set.difference(method_covered)
+                method_covered = all_method_lines_set & file_covered
+                method_uncovered = all_method_lines_set - method_covered
 
                 new_line = wrap({
                     "test": {
