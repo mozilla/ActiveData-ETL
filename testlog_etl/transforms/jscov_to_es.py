@@ -99,6 +99,16 @@ def process(source_key, source, destination, resources, please_stop=None):
             # turn obj.covered (a list) into a set for use later
             file_covered = set(obj.covered)
 
+            # file-level info
+            file_info = wrap({
+                "name": obj.sourceFile,
+                "covered": obj.covered,
+                "uncovered": obj.uncovered,
+                "total_covered": len(obj.covered),
+                "total_uncovered": len(obj.uncovered),
+                "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+            })
+
             # iterate through the methods of this source file
             for method_name, method_lines in obj.methods.iteritems():
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
@@ -117,11 +127,15 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "url": obj.testUrl
                     },
                     "source": {
-                        "file": obj.sourceFile,
-                        "method": method_name,
-                        "method_percentage_covered": method_percentage_covered,
-                        "covered": method_covered,
-                        "uncovered": method_uncovered
+                        "file": file_info,
+                        "method": {
+                            "name": method_name,
+                            "covered": method_covered,
+                            "uncovered": method_uncovered,
+                            "total_covered": len(method_covered),
+                            "total_uncovered": len(method_uncovered),
+                            "percentage_covered": method_percentage_covered,
+                        }
                     },
                     "etl": dest_etl,
                     "repo": repo,
@@ -132,9 +146,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                 # file marker
                 if count == 0:
                     new_record.source.is_file = "true"
-                    new_record.source.total_covered = len(obj.covered)
-                    new_record.source.total_uncovered = len(obj.uncovered)
-                    new_record.source.percentage_covered = len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
 
                 records.append({"id": record_key, "value": new_record})
                 count += 1
