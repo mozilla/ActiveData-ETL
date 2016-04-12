@@ -109,6 +109,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                 "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
             })
 
+            # orphan lines (i.e. lines without a method), initialized to all lines
+            orphan_covered = set(obj.covered)
+            orphan_uncovered = set(obj.uncovered)
+
             # iterate through the methods of this source file
             for method_name, method_lines in obj.methods.iteritems():
                 _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
@@ -120,6 +124,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 method_covered = all_method_lines_set & file_covered
                 method_uncovered = all_method_lines_set - method_covered
                 method_percentage_covered = len(method_covered) / len(all_method_lines_set)
+
+                orphan_covered = orphan_covered - method_covered
+                orphan_uncovered = orphan_uncovered - method_uncovered
 
                 new_record = wrap({
                     "test": {
@@ -135,6 +142,38 @@ def process(source_key, source, destination, resources, please_stop=None):
                             "total_covered": len(method_covered),
                             "total_uncovered": len(method_uncovered),
                             "percentage_covered": method_percentage_covered,
+                        }
+                    },
+                    "etl": dest_etl,
+                    "repo": repo,
+                    "run": run,
+                    "build": build
+                })
+
+                # file marker
+                if count == 0:
+                    new_record.source.is_file = "true"
+
+                records.append({"id": record_key, "value": new_record})
+                count += 1
+
+            # a record for all the lines that are not in any method
+            if len(orphan_covered) + len(orphan_uncovered) > 0:
+                _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+                record_key = bucket_key + "." + unicode(dest_etl.id)
+                new_record = wrap({
+                    "test": {
+                        "name": test_name,
+                        "url": obj.testUrl
+                    },
+                    "source": {
+                        "file": file_info,
+                        "method": {
+                            "covered": orphan_covered,
+                            "uncovered": orphan_uncovered,
+                            "total_covered": len(orphan_covered),
+                            "total_uncovered": len(orphan_uncovered),
+                            "percentage_covered": len(orphan_covered) / (len(orphan_covered) + len(orphan_uncovered)),
                         }
                     },
                     "etl": dest_etl,
