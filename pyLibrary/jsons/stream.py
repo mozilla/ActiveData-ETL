@@ -33,6 +33,13 @@ json_decoder = json.JSONDecoder().decode
 
 def parse(json, path, expected_vars=NO_VARS):
     """
+    :param json: SOME STREAM, OR FUNCTION, THAT CAN DELIVER BYTES
+    :param path: AN ARRAY OF DOT-SEPARATED STRINGS INDICATING THE NESTED ARRAY BEING ITERATED.
+    :param expected_vars: REQUIRED PROPERTY NAMES, USED TO DETERMINE IF MORE-THAN-ONE PASS IS REQUIRED USE "." TO GRAB EVERYTHING
+    :return: AN ITERATOR OVER ALL OBJECTS FROM NESTED path IN LEAF FORM
+
+    USE parse(stream, [], ["."]) TO PARSE JSON THAT'S A LONG ARRAY OF OBJECTS
+
     INTENDED TO TREAT JSON AS A STREAM; USING MINIMAL MEMORY WHILE IT ITERATES
     THROUGH THE STRUCTURE.  ASSUMING THE JSON IS LARGE, AND HAS A HIGH LEVEL
     ARRAY STRUCTURE, IT WILL yield EACH OBJECT IN THAT ARRAY.  NESTED ARRAYS
@@ -54,7 +61,7 @@ def parse(json, path, expected_vars=NO_VARS):
         # ASSUME IT IS A STREAM
         temp = json
         def get_more():
-            temp.read(MIN_READ_SIZE)
+            return temp.read(MIN_READ_SIZE)
         json = List_usingStream(get_more)
     elif hasattr(json, "__call__"):
         json = List_usingStream(json)
@@ -292,7 +299,7 @@ def listwrap(value):
 def needed(name, required):
     """
     RETURN SUBSET IF name IN REQUIRED
-    """
+     """
     output = []
     for r in required:
         if r==name:
