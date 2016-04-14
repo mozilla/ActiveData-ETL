@@ -7,13 +7,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 import StringIO
 import gzip
-from io import BytesIO
 import zipfile
+from io import BytesIO
+from tempfile import TemporaryFile
 
 import boto
 from boto.s3.connection import Location
@@ -25,7 +27,6 @@ from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLi
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-
 
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -333,7 +334,7 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(key + ".json.gz")
 
-        buff = BytesIO()
+        buff = TemporaryFile()
         archive = gzip.GzipFile(fileobj=buff, mode='w')
         count = 0
         for l in lines:
