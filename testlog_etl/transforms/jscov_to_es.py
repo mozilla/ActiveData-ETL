@@ -19,6 +19,7 @@ from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 from testlog_etl.transforms import EtlHeadGenerator
 
 
@@ -70,125 +71,130 @@ def process(source_key, source, destination, resources, please_stop=None):
         build = get_build_info(task_definition)
 
         # fetch the artifact
-        Log.note("Processing " + full_artifact_path)
         response_stream = http.get(full_artifact_path).raw
 
-        # TODO:  Add a timer around this so we see how long it takes
         records = []
-        for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
-            obj = wrap(obj)
-            if please_stop:
-                Log.error("Shutdown detected. Stopping job ETL.")
+        with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
+            for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+                if please_stop:
+                    Log.error("Shutdown detected. Stopping job ETL.")
 
-            if source_file_index == 0:
-                # this is not a jscov object but an object containing the version metadata
-                # TODO: this metadata should not be here
-                # TODO: this version info is not used right now. Make use of it later.
-                jscov_format_version = obj.version
-                continue
+                if source_file_index == 0:
+                    # this is not a jscov object but an object containing the version metadata
+                    # TODO: this metadata should not be here
+                    # TODO: this version info is not used right now. Make use of it later.
+                    jscov_format_version = obj.get("version")
+                    continue
 
-            # get the test name. Just use the test file name at the moment
-            # TODO: change this when needed
-            test_name = obj.testUrl.split("/")[-1]
+                process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
 
-            # a variable to count the number of lines so far for this source file
-            count = 0
-
-            # turn obj.covered (a list) into a set for use later
-            file_covered = set(obj.covered)
-
-            # file-level info
-            file_info = wrap({
-                "name": obj.sourceFile,
-                "covered": [{"line": c} for c in obj.covered],
-                "uncovered": [{"line": c} for c in obj.uncovered],
-                "total_covered": len(obj.covered),
-                "total_uncovered": len(obj.uncovered),
-                "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
-            })
-
-            # orphan lines (i.e. lines without a method), initialized to all lines
-            orphan_covered = set(obj.covered)
-            orphan_uncovered = set(obj.uncovered)
-
-            # iterate through the methods of this source file
-            for method_name, method_lines in obj.methods.iteritems():
-                _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
-
-                # reusing dest_etl.id, which should be continuous
-                record_key = bucket_key + "." + unicode(dest_etl.id)
-
-                all_method_lines_set = set(method_lines)
-                method_covered = all_method_lines_set & file_covered
-                method_uncovered = all_method_lines_set - method_covered
-                method_percentage_covered = len(method_covered) / len(all_method_lines_set)
-
-                orphan_covered = orphan_covered - method_covered
-                orphan_uncovered = orphan_uncovered - method_uncovered
-
-                new_record = wrap({
-                    "test": {
-                        "name": test_name,
-                        "url": obj.testUrl
-                    },
-                    "source": {
-                        "file": file_info,
-                        "method": {
-                            "name": method_name,
-                            "covered": [{"line": c} for c in method_covered],
-                            "uncovered": [{"line": c} for c in method_uncovered],
-                            "total_covered": len(method_covered),
-                            "total_uncovered": len(method_uncovered),
-                            "percentage_covered": method_percentage_covered,
-                        }
-                    },
-                    "etl": dest_etl,
-                    "repo": repo,
-                    "run": run,
-                    "build": build
-                })
-
-                # file marker
-                if count == 0:
-                    new_record.source.is_file = "true"
-
-                records.append({"id": record_key, "value": new_record})
-                count += 1
-
-            # a record for all the lines that are not in any method
-            if len(orphan_covered) + len(orphan_uncovered) > 0:
-                _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
-                record_key = bucket_key + "." + unicode(dest_etl.id)
-                new_record = wrap({
-                    "test": {
-                        "name": test_name,
-                        "url": obj.testUrl
-                    },
-                    "source": {
-                        "file": file_info,
-                        "method": {
-                            "covered": [{"line": c} for c in orphan_covered],
-                            "uncovered": [{"line": c} for c in orphan_uncovered],
-                            "total_covered": len(orphan_covered),
-                            "total_uncovered": len(orphan_uncovered),
-                            "percentage_covered": len(orphan_covered) / (len(orphan_covered) + len(orphan_uncovered)),
-                        }
-                    },
-                    "etl": dest_etl,
-                    "repo": repo,
-                    "run": run,
-                    "build": build
-                })
-
-                # file marker
-                if count == 0:
-                    new_record.source.is_file = "true"
-
-                records.append({"id": record_key, "value": new_record})
-                count += 1
-
-        destination.extend(records)
+        with Timer("writing records to s3"):
+            destination.extend(records)
     return keys
+
+
+def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records):
+    obj = wrap(obj)
+
+    # get the test name. Just use the test file name at the moment
+    # TODO: change this when needed
+    test_name = obj.testUrl.split("/")[-1]
+
+    # a variable to count the number of lines so far for this source file
+    count = 0
+
+    # turn obj.covered (a list) into a set for use later
+    file_covered = set(obj.covered)
+
+    # file-level info
+    file_info = wrap({
+        "name": obj.sourceFile,
+        "covered": [{"line": c} for c in obj.covered],
+        "uncovered": [{"line": c} for c in obj.uncovered],
+        "total_covered": len(obj.covered),
+        "total_uncovered": len(obj.uncovered),
+        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+    })
+
+    # orphan lines (i.e. lines without a method), initialized to all lines
+    orphan_covered = set(obj.covered)
+    orphan_uncovered = set(obj.uncovered)
+
+    # iterate through the methods of this source file
+    for method_name, method_lines in obj.methods.iteritems():
+        _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+
+        # reusing dest_etl.id, which should be continuous
+        record_key = bucket_key + "." + unicode(dest_etl.id)
+
+        all_method_lines_set = set(method_lines)
+        method_covered = all_method_lines_set & file_covered
+        method_uncovered = all_method_lines_set - method_covered
+        method_percentage_covered = len(method_covered) / len(all_method_lines_set)
+
+        orphan_covered = orphan_covered - method_covered
+        orphan_uncovered = orphan_uncovered - method_uncovered
+
+        new_record = wrap({
+            "test": {
+                "name": test_name,
+                "url": obj.testUrl
+            },
+            "source": {
+                "file": file_info,
+                "method": {
+                    "name": method_name,
+                    "covered": [{"line": c} for c in method_covered],
+                    "uncovered": [{"line": c} for c in method_uncovered],
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
+            },
+            "etl": dest_etl,
+            "repo": repo,
+            "run": run,
+            "build": build
+        })
+
+        # file marker
+        if count == 0:
+            new_record.source.is_file = "true"
+
+        records.append({"id": record_key, "value": new_record})
+        count += 1
+
+    # a record for all the lines that are not in any method
+    # every file gets one because we can use it as canonical representative
+    _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+    record_key = bucket_key + "." + unicode(dest_etl.id)
+    new_record = wrap({
+        "test": {
+            "name": test_name,
+            "url": obj.testUrl
+        },
+        "source": {
+            "file": file_info,
+            "method": {
+                "covered": [{"line": c} for c in orphan_covered],
+                "uncovered": [{"line": c} for c in orphan_uncovered],
+                "total_covered": len(orphan_covered),
+                "total_uncovered": len(orphan_uncovered),
+                "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+            }
+        },
+        "etl": dest_etl,
+        "repo": repo,
+        "run": run,
+        "build": build
+    })
+
+    # file marker
+    if count == 0:
+        new_record.source.is_file = "true"
+
+    records.append({"id": record_key, "value": new_record})
+    count += 1
 
 
 def get_revision_info(task_definition, resources):

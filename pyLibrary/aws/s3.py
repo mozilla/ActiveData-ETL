@@ -334,7 +334,7 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(key + ".json.gz")
 
-        buff = TemporaryFile()
+        buff = BytesIO()  #TemporaryFile()
         archive = gzip.GzipFile(fileobj=buff, mode='w')
         count = 0
         for l in lines:
