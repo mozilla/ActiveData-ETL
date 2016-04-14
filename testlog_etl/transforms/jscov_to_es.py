@@ -9,8 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import json
-
 import taskcluster
 
 from mohg.repos.changesets import Changeset
