@@ -102,8 +102,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             # file-level info
             file_info = wrap({
                 "name": obj.sourceFile,
-                "covered": obj.covered,
-                "uncovered": obj.uncovered,
+                "covered": [{"line": c} for c in obj.covered],
+                "uncovered": [{"line": c} for c in obj.uncovered],
                 "total_covered": len(obj.covered),
                 "total_uncovered": len(obj.uncovered),
                 "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
@@ -137,8 +137,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "file": file_info,
                         "method": {
                             "name": method_name,
-                            "covered": method_covered,
-                            "uncovered": method_uncovered,
+                            "covered": [{"line": c} for c in method_covered],
+                            "uncovered": [{"line": c} for c in method_uncovered],
                             "total_covered": len(method_covered),
                             "total_uncovered": len(method_uncovered),
                             "percentage_covered": method_percentage_covered,
@@ -169,8 +169,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "source": {
                         "file": file_info,
                         "method": {
-                            "covered": orphan_covered,
-                            "uncovered": orphan_uncovered,
+                            "covered": [{"line": c} for c in orphan_covered],
+                            "uncovered": [{"line": c} for c in orphan_uncovered],
                             "total_covered": len(orphan_covered),
                             "total_uncovered": len(orphan_uncovered),
                             "percentage_covered": len(orphan_covered) / (len(orphan_covered) + len(orphan_uncovered)),
