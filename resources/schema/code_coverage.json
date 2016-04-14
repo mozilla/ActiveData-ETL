@@ -55,34 +55,47 @@
 				}
 			],
 			"properties": {
-				"action":{
+				"source": {
 					"type": "object",
 					"dynamic": true,
-					"properties":{
-						"timings":{
-							"type":"nested",
-							"dynamic": true
-						}
-					}
-				},
-				"properties": {
-					"type":"object",
-					"dynamic": true
-				},
-				"other": {
-					"type": "nested",
-					"dynamic": false,
 					"properties": {
-						"name": {
-							"type": "string",
-							"index": "not_analyzed",
-							"doc_values": true
+						"file": {
+							"type": "object",
+							"dynamic": true,
+							"properties": {
+								"covered": {
+									"type": "nested",
+									"dynamic": "false",
+									"properties": {
+										"line": {
+											"index": "not_analyzed",
+											"type": "integer",
+											"doc_values": true
+										}
+									}
+								}
+
+							}
 						},
-						"value": {
-							"type": "string",
-							"index": "not_analyzed",
-							"doc_values": true
+						"method": {
+							"type": "object",
+							"dynamic": true,
+							"properties": {
+								"covered": {
+									"type": "nested",
+									"dynamic": "false",
+									"properties": {
+										"line": {
+											"index": "not_analyzed",
+											"type": "integer",
+											"doc_values": true
+										}
+									}
+								}
+
+							}
 						}
+
 					}
 				},
 				"etl": {

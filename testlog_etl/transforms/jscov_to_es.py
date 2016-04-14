@@ -37,9 +37,8 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    records = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    print "Processing " + source_key
+    Log.note("Processing " + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
@@ -73,10 +72,11 @@ def process(source_key, source, destination, resources, please_stop=None):
         build = get_build_info(task_definition)
 
         # fetch the artifact
-        print("Processing " + full_artifact_path)
+        Log.note("Processing " + full_artifact_path)
         response_stream = http.get(full_artifact_path).raw
 
         # TODO:  Add a timer around this so we see how long it takes
+        records = []
         for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
             obj = wrap(obj)
             if please_stop:
@@ -189,7 +189,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 records.append({"id": record_key, "value": new_record})
                 count += 1
 
-    destination.extend(records)
+        destination.extend(records)
     return keys
 
 
