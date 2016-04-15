@@ -33,6 +33,7 @@
 		}
 	},
 	"debug": {
+		"trace": true,
 		"cprofile": {
 			"enabled": true,
 			"filename": "./results/cprofile.tab"

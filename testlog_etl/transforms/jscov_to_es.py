@@ -88,8 +88,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
                 process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
 
-        with Timer("writing records to s3"):
+        with Timer("writing {{num}} records to s3", {"num": len(records)}):
             destination.extend(records)
+
+        # Log.warning("breaking early")
+        # break
     return keys
 
 

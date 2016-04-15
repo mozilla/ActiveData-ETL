@@ -68,6 +68,8 @@ class MultiDayIndex(object):
         for key in keys:
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    if not line:
+                        continue
                     if rownum == 0:
                         value = convert.json2value(line)
                         if len(line) > 100000:

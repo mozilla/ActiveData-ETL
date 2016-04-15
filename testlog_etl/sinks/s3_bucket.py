@@ -100,7 +100,8 @@ class S3Bucket(object):
             try:
                 content = self.bucket.read_lines(key)
                 old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
-            except Exception, _:
+            except Exception, e:
+                Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
                 old_docs = UniqueIndex(keys="etl.id")
 
