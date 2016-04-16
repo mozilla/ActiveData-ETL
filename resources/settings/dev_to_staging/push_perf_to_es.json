@@ -1,6 +1,7 @@
 {
 	"threads": 1,
-	"batch_size": 5000,
+	"batch_size": 1000,
+	"queue_size": 2000,
 	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://activedata.allizom.org",
