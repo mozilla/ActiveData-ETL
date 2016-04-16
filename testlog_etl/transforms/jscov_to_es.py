@@ -95,8 +95,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         with Timer("writing {{num}} records to s3", {"num": len(records)}):
             destination.extend(records)
 
-        # Log.warning("breaking early")
-        # break
+        Log.warning("breaking early")
+        break
     return keys
 
 
