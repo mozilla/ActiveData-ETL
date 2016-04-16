@@ -256,14 +256,14 @@ class Index(Features):
                     id = random_id()
 
                 if "json" in r:
-                    json = r["json"]
+                    json = r["json"].encode("utf8")
                 elif "value" in r:
-                    json = convert.value2json(r["value"])
+                    json = convert.value2json(r["value"]).encode("utf8")
                 else:
                     json = None
                     Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
-                lines.append('{"index":{"_id": ' + convert.value2json(id) + '}}')
+                lines.append(b'{"index":{"_id": ' + convert.value2json(id).encode("utf8") + b'}}')
                 if self.settings.tjson:
                     lines.append(json2typed(json))
                 else:
@@ -274,8 +274,7 @@ class Index(Features):
                 return
 
             try:
-                data_bytes = "\n".join(lines) + "\n"
-                data_bytes = data_bytes.encode("utf8")
+                data_bytes = b"\n".join(l for l in lines) + b"\n"
             except Exception, e:
                 Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
 

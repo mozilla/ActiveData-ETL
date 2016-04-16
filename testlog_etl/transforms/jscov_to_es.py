@@ -93,10 +93,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                                 test_url=obj.testUrl, source=obj.sourceFile, cause=e)
 
         with Timer("writing {{num}} records to s3", {"num": len(records)}):
-            destination.extend(records)
+            destination.extend(records, overwrite=True)
 
-        Log.warning("breaking early")
-        break
     return keys
 
 

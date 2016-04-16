@@ -17,11 +17,11 @@
 	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-perf",
+		"bucket": "active-data-codecoverage-dev",
 		"key_format": "a:b.c"
 	},
 	"work_queue":{
-		"name": "active-data-index-perf",
+		"name": "active-data-index-codecoverage-dev",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
