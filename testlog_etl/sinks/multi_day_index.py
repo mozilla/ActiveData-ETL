@@ -29,7 +29,7 @@ class MultiDayIndex(object):
 
         self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         self.es.set_refresh_interval(seconds=60 * 60)
-        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=False)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=True)
         # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
