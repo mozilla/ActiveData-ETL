@@ -49,6 +49,8 @@ class TestBuildbotLogs(FuzzyTestCase):
                 result = t.parse(b)
                 results.append(result)
                 if COMPARE_TO_EXPECTED:
+                    if e == None:
+                        Log.error("missing expected output")
                     self.assertEqual(result, e)
             except Exception, e:
                 e = Except.wrap(e)
