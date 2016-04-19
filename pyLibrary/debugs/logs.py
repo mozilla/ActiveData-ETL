@@ -357,7 +357,7 @@ class Log(object):
         params = dict(unwrap(default_params), **more_params)
 
         add_to_trace = False
-        cause = unwraplist([Except.wrap(c, stack_depth=1) for c in listwrap(cause)])
+        cause = wrap(unwraplist([Except.wrap(c, stack_depth=1) for c in listwrap(cause)]))
         trace = exceptions.extract_stack(stack_depth + 1)
 
         if add_to_trace:
@@ -445,20 +445,24 @@ def write_profile(profile_settings, stats):
 
 
 # GET THE MACHINE METADATA
-ec2 = Null
-try:
-    from pyLibrary import aws
-
-    ec2 = aws.get_instance_metadata()
-except Exception:
-    pass
-
 machine_metadata = wrap({
     "python": platform.python_implementation(),
     "os": (platform.system() + platform.release()).strip(),
-    "aws_instance_type": ec2.instance_type,
-    "name": coalesce(ec2.instance_id, platform.node())
+    "name": platform.node()
 })
+
+
+# GET FROM AWS, IF WE CAN
+def _get_metadata_from_from_aws(please_stop):
+    try:
+        from pyLibrary import aws
+
+        ec2 = aws.get_instance_metadata()
+        machine_metadata.aws_instance_type = ec2.instance_type
+        machine_metadata.name = ec2.instance_id
+    except Exception:
+        pass
+Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
 
 
 if not Log.main_log:
