@@ -86,7 +86,11 @@ def process(source_key, source, destination, resources, please_stop=None):
                     jscov_format_version = obj.get("version")
                     continue
 
-                process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
+                try:
+                    process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
+                except Exception, e:
+                    Log.warning("Error processing test {{test_url}} and source file {{source}}",
+                                test_url=obj.testUrl, source=obj.sourceFile, cause=e)
 
         with Timer("writing {{num}} records to s3", {"num": len(records)}):
             destination.extend(records)
