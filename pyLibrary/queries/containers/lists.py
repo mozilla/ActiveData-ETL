@@ -7,18 +7,19 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 from collections import Mapping
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList
-from pyLibrary.queries import jx
+from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.domains import is_keyword
-from pyLibrary.queries.expressions import TRUE_FILTER, jx_expression, Expression, compile_expression
+from pyLibrary.queries.expression_compiler import compile_expression
+from pyLibrary.queries.expressions import TRUE_FILTER, jx_expression, Expression, TrueOp, jx_expression_to_function
 from pyLibrary.queries.lists.aggs import is_aggs, list_aggs
 from pyLibrary.queries.meta import Column
 from pyLibrary.thread.threads import Lock
@@ -28,7 +29,7 @@ from pyLibrary.times.dates import Date
 class ListContainer(Container):
     def __init__(self, name, data, schema=None):
         #TODO: STORE THIS LIKE A CUBE FOR FASTER ACCESS AND TRANSFORMATION
-        data = list(data)
+        data = list(unwrap(data))
         Container.__init__(self, data, schema)
         if schema == None:
             self.schema = get_schema_from_list(data)
@@ -47,13 +48,13 @@ class ListContainer(Container):
         if is_aggs(q):
             frum = list_aggs(frum.data, q)
         else:  # SETOP
-            try:
-                if q.filter != None or q.esfilter != None:
-                    Log.error("use 'where' clause")
-            except AttributeError, e:
-                pass
+            # try:
+            #     if q.filter != None or q.esfilter != None:
+            #         Log.error("use 'where' clause")
+            # except AttributeError, e:
+            #     pass
 
-            if q.where is not TRUE_FILTER:
+            if q.where is not TRUE_FILTER and not isinstance(q.where, TrueOp):
                 frum = frum.filter(q.where)
 
             if q.sort:
@@ -61,9 +62,10 @@ class ListContainer(Container):
 
             if q.select:
                 frum = frum.select(q.select)
+
         #TODO: ADD EXTRA COLUMN DESCRIPTIONS TO RESULTING SCHEMA
-        for param in q.window:
-            frum.window(param)
+        for w in q.window:
+            frum.window(w)
 
         return frum
 
@@ -76,7 +78,7 @@ class ListContainer(Container):
         command = wrap(command)
         command_clear = listwrap(command["clear"])
         command_set = command.set.items()
-        command_where = jx.get(command.where)
+        command_where = jx_expression_to_function(command.where)
 
         for c in self.data:
             if command_where(c):
@@ -93,14 +95,26 @@ class ListContainer(Container):
         if isinstance(where, Mapping):
             exec("def temp(row):\n    return "+jx_expression(where).to_python())
         elif isinstance(where, Expression):
-            exec("def temp(row):\n    return "+where.to_python())
+            temp = compile_expression(where.to_python())
         else:
             temp = where
 
         return ListContainer("from "+self.name, filter(temp, self.data), self.schema)
 
     def sort(self, sort):
+        from pyLibrary.queries import jx
+
         return ListContainer("from "+self.name, jx.sort(self.data, sort), self.schema)
+
+    def get(self, select):
+        """
+        :param select: the variable to extract from list
+        :return:  a simple list of the extraction
+        """
+        if isinstance(select, list):
+            return [(d[s] for s in select) for d in self.data]
+        else:
+            return [d[select] for d in self.data]
 
     def select(self, select):
         selects = listwrap(select)
@@ -111,15 +125,17 @@ class ListContainer(Container):
             if not isinstance(s.value, basestring) or not is_keyword(s.value):
                 Log.error("selecting on structure, or expressions, not supported yet")
 
-        #TODO: DO THIS WITH JUST A SCHEMA TRANSFORM, DO NOT TOUCH DATA
-        #TODO: HANDLE STRUCTURE AND EXPRESSIONS
+        # TODO: DO THIS WITH JUST A SCHEMA TRANSFORM, DO NOT TOUCH DATA
+        # TODO: HANDLE STRUCTURE AND EXPRESSIONS
         new_schema = {s.name: self.schema[s.value] for s in selects}
         new_data = [{s.name: d[s.value] for s in selects} for d in self.data]
         return ListContainer("from "+self.name, data=new_data, schema=new_schema)
 
     def window(self, window):
-        _ = window
+        from pyLibrary.queries import jx
+
         jx.window(self.data, window)
+        self.schema[window.name] = window
         return self
 
     def having(self, having):
@@ -151,7 +167,7 @@ class ListContainer(Container):
             "data": [{k: unwraplist(v) for k, v in row.items()} for row in self.data]
         })
 
-    def get_columns(self, table_name=None):
+    def get_leaves(self, table_name=None):
         return self.schema.values()
 
     def __getitem__(self, item):
@@ -193,9 +209,10 @@ def _get_schema_from_list(frum, columns, prefix, nested_path):
     for n, t in names.items():
         full_name = ".".join(prefix + [n])
         column = Column(
-            table=".",
             name=full_name,
+            table=".",
             es_column=full_name,
+            es_index=".",
             type=t,
             nested_path=nested_path
         )
