@@ -44,7 +44,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         results = []
         failures = []
-        for b, e in itertools.izip_longest(builds, expected):
+        for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
             try:
                 result = t.parse(b)
                 results.append(result)

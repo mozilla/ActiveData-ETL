@@ -286,10 +286,10 @@ class BuildbotTranslator(object):
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
-                Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 if raw_platform not in self.unknown_platforms:
                     self.unknown_platforms += [raw_platform]
-                    Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                    Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
                     return Dict()  # ERROR INGNORED, ALREADY SENT
 
@@ -566,6 +566,7 @@ TEST_PLATFORMS = {
     "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
@@ -698,6 +699,7 @@ KNOWN_PLATFORM = {
     "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
@@ -712,10 +714,12 @@ KNOWN_PLATFORM = {
     "win64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "win64"}},
     "win64-rev2": {"build": {"platform": "win64"}},
     "win7-ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "win7_ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win8": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win8_64": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win10_64": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "xp-ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
+    "xp_ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
 }
