@@ -15,16 +15,17 @@ from collections import Mapping
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap
+from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default
 from pyLibrary.queries import jx
 from pyLibrary.queries.containers import Container
-from pyLibrary.queries.domains import is_keyword
 from pyLibrary.queries.expression_compiler import compile_expression
-from pyLibrary.queries.expressions import TRUE_FILTER, jx_expression, Expression, TrueOp
+from pyLibrary.queries.expressions import TRUE_FILTER, jx_expression, Expression, TrueOp, jx_expression_to_function, Variable
 from pyLibrary.queries.lists.aggs import is_aggs, list_aggs
 from pyLibrary.queries.meta import Column
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
+
+_get = object.__getattribute__
 
 
 class ListContainer(Container):
@@ -102,7 +103,7 @@ class ListContainer(Container):
         return ListContainer("from "+self.name, filter(temp, self.data), self.schema)
 
     def sort(self, sort):
-        return ListContainer("from "+self.name, jx.sort(self.data, sort), self.schema)
+        return ListContainer("from "+self.name, jx.sort(self.data, sort, already_normalized=True), self.schema)
 
     def get(self, select):
         """
@@ -116,17 +117,23 @@ class ListContainer(Container):
 
     def select(self, select):
         selects = listwrap(select)
-        if selects[0].value == "." and selects[0].name == ".":
-            return self
 
-        for s in selects:
-            if not isinstance(s.value, basestring) or not is_keyword(s.value):
-                Log.error("selecting on structure, or expressions, not supported yet")
+        if len(selects) == 1 and isinstance(selects[0].value, Variable) and selects[0].value.var == ".":
+            new_schema = self.schema
+            if selects[0].name == ".":
+                return self
+        else:
+            new_schema = None
 
-        # TODO: DO THIS WITH JUST A SCHEMA TRANSFORM, DO NOT TOUCH DATA
-        # TODO: HANDLE STRUCTURE AND EXPRESSIONS
-        new_schema = {s.name: self.schema[s.value] for s in selects}
-        new_data = [{s.name: d[s.value] for s in selects} for d in self.data]
+        push_and_pull = [(s.name, jx_expression_to_function(s.value)) for s in selects]
+
+        def constructor(d):
+            output = Dict()
+            for n, p in push_and_pull:
+                output[n] = p(d)
+            return _get(d, "_dict")
+
+        new_data = map(constructor, self.data)
         return ListContainer("from "+self.name, data=new_data, schema=new_schema)
 
     def window(self, window):
