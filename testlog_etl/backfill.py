@@ -116,7 +116,6 @@ def get_all_in_es(es, in_range, es_filter, field):
         if in_range.max:
             _filter.append({"range": {field: {"lt": in_range.max}}})
 
-
     result = es.search(es_query)
 
     good_es = []
