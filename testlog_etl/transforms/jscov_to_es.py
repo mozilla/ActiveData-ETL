@@ -37,7 +37,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    Log.note("Processing " + source_key)
+    Log.note("Processing Coverage" + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
@@ -74,6 +74,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         response_stream = http.get(full_artifact_path).raw
 
         records = []
+        Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
         with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
             for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
                 if please_stop:

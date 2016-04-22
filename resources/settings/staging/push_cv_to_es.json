@@ -1,5 +1,6 @@
 {
 	"threads": 1,
+	"batch_size": 1000,
 	"sample_only": [
 	],
 	"elasticsearch": {

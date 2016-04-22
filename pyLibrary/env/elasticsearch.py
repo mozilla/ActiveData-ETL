@@ -395,13 +395,13 @@ class Index(Features):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
 
             not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f or "400 MapperParsingException" in f]
-            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" in f]
+            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" not in f]
 
             if still_have_hope:
                 Log.warning("Problem with sending to ES", cause=still_have_hope)
             elif not_possible:
                 # THERE IS NOTHING WE CAN DO
-                Log.warning("Not inserted, will not try again", cause=not_possible)
+                Log.warning("Not inserted, will not try again", cause=not_possible[0:10:])
                 del _buffer[:]
 
         return ThreadedQueue(
