@@ -104,7 +104,7 @@ class TestBuildbotLogs(FuzzyTestCase):
         self.assertEqual(result, expecting)
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-linux64/1453474887/fx-team_ubuntu64_vm_test-web-platform-tests-3-bm124-tests1-linux64-build7.txt.gz"
+        url = "http://archive.mozilla.org/pub/firefox/try-builds/hiikezoe@mozilla-japan.org-06bb127f838228be6ee0f6917787e5b149af9eb2/try-win32-debug/try_win7-all-debug_test-mochitest-devtools-chrome-1-bm127-tests1-windows-build796.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
         # for i, l in enumerate(response._all_lines(encoding="latin1")):
@@ -115,5 +115,5 @@ class TestBuildbotLogs(FuzzyTestCase):
         #
         #     Log.note("{{line}}", line=l)
 
-        data = process_buildbot_log(response.all_lines, "<unknown>")
+        data = process_buildbot_log(response._all_lines(encoding=None), url)
         Log.note("{{data}}", data=data)

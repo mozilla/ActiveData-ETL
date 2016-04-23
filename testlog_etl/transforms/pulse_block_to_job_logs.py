@@ -306,6 +306,7 @@ def parse_builder_message(message, next_line):
 
     return message, parts
 
+
 def parse_command_line(line):
     """
     space separated, single-quoted strings
@@ -341,7 +342,6 @@ def parse_command_line(line):
         else:
             value += c
     return output
-
 
 
 def process_buildbot_log(all_log_lines, from_url):

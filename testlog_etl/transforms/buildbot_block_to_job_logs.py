@@ -120,7 +120,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                             yield data
                     lines = ibytes2ilines(ibytes())
                 else:
-                    lines = response._all_lines(encoding='latin1')
+                    lines = response._all_lines(encoding=None)
                 all_log_lines = lines
                 action = process_buildbot_log(all_log_lines, url)
                 set_default(data.action, action)

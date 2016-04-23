@@ -166,16 +166,12 @@ class LazyLines(object):
         Log.error("Do not know how to slice this generator")
 
     def __iter__(self):
-        def output(encoding):
+        def output():
             for v in self.source:
-                if not encoding:
-                    self._last = v
-                else:
-                    self._last = v.decode(encoding)
-                self._next += 1
+                self._last = v
                 yield self._last
 
-        return output(self.encoding)
+        return output()
 
     def __getitem__(self, item):
         try:
@@ -205,7 +201,7 @@ class CompressedLines(LazyLines):
         self._iter = self.__iter__()
 
     def __iter__(self):
-        return LazyLines(ibytes2ilines(compressed_bytes2ibytes(self.compressed, MIN_READ_SIZE)), self.encoding).__iter__()
+        return LazyLines(ibytes2ilines(compressed_bytes2ibytes(self.compressed, MIN_READ_SIZE), encoding=self.encoding)).__iter__()
 
     def __getslice__(self, i, j):
         if i == self._next:
@@ -270,10 +266,19 @@ def ibytes2ilines(generator, encoding="utf8", closer=None):
     TO A LINE (CR-DELIMITED) GENERATOR
 
     :param generator:
-    :param encoding:
+    :param encoding: None TO DO NO DECODING
     :param closer: OPTIONAL FUNCTION TO RUN WHEN DONE ITERATING
     :return:
     """
+    if encoding == None:
+        def no_decode(v):
+            return v
+        decode = no_decode
+    else:
+        def do_decode(v):
+            return v.decode(encoding)
+        decode = do_decode
+
     _buffer = generator.next()
     s = 0
     e = _buffer.find(b"\n")
@@ -290,10 +295,10 @@ def ibytes2ilines(generator, encoding="utf8", closer=None):
                 if closer:
                     closer()
                 if _buffer:
-                    yield _buffer.decode(encoding)
+                    yield decode(_buffer)
                 return
 
-        yield _buffer[s:e].decode(encoding)
+        yield decode(_buffer[s:e])
         s = e + 1
         e = _buffer.find(b"\n", s)
 
