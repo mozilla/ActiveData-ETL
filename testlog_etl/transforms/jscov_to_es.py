@@ -18,9 +18,16 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
+from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms import EtlHeadGenerator
+
+
+STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+RETRY = {"times": 3, "sleep": 5}
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -45,56 +52,63 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         pulse_record = convert.json2value(msg_line)
-        artifact_file_name = pulse_record.artifact.name
-
-        # we're only interested in jscov files, at lease at the moment
-        if "jscov" not in artifact_file_name:
-            continue
-
-        # create the key for the file in the bucket, and add it to a list to return later
-        bucket_file_count += 1
-        bucket_key = source_key + "." + unicode(bucket_file_count)
-        keys.append(bucket_key)
-
-        # construct the artifact's full url
         taskId = pulse_record.status.taskId
-        runId = pulse_record.runId
-        full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
-        # get the task definition
-        queue = taskcluster.Queue()
-        task_definition = wrap(queue.task(taskId=taskId))
+        # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
+        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskId}), retry=RETRY)
 
-        # get additional info
-        repo = get_revision_info(task_definition, resources)
-        run = get_run_info(task_definition)
-        build = get_build_info(task_definition)
+        for artifact in artifacts.artifacts:
+            artifact_file_name = artifact.name
 
-        # fetch the artifact
-        response_stream = http.get(full_artifact_path).raw
+            # we're only interested in jscov files, at lease at the moment
+            if "jscov" not in artifact_file_name:
+                continue
 
-        records = []
-        Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
-        with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
-            for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
-                if please_stop:
-                    Log.error("Shutdown detected. Stopping job ETL.")
+            Log.warning("Processing code coverage for key {{key}}", key=source_key)
 
-                if source_file_index == 0:
-                    # this is not a jscov object but an object containing the version metadata
-                    # TODO: this metadata should not be here
-                    # TODO: this version info is not used right now. Make use of it later.
-                    jscov_format_version = obj.get("version")
-                    continue
+            # create the key for the file in the bucket, and add it to a list to return later
+            bucket_file_count += 1
+            bucket_key = source_key + "." + unicode(bucket_file_count)
+            keys.append(bucket_key)
 
-                try:
-                    process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
-                except Exception, e:
-                    Log.warning("Error processing test {{test_url}} and source file {{source}}",
-                                test_url=obj.testUrl, source=obj.sourceFile, cause=e)
+            # construct the artifact's full url
+            runId = pulse_record.runId
+            full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
-        with Timer("writing {{num}} records to s3", {"num": len(records)}):
-            destination.extend(records, overwrite=True)
+            # get the task definition
+            queue = taskcluster.Queue()
+            task_definition = wrap(queue.task(taskId=taskId))
+
+            # get additional info
+            repo = get_revision_info(task_definition, resources)
+            run = get_run_info(task_definition)
+            build = get_build_info(task_definition)
+
+            # fetch the artifact
+            response_stream = http.get(full_artifact_path).raw
+
+            records = []
+            Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
+            with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
+                for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping job ETL.")
+
+                    if source_file_index == 0:
+                        # this is not a jscov object but an object containing the version metadata
+                        # TODO: this metadata should not be here
+                        # TODO: this version info is not used right now. Make use of it later.
+                        jscov_format_version = obj.get("version")
+                        continue
+
+                    try:
+                        process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
+                    except Exception, e:
+                        Log.warning("Error processing test {{test_url}} and source file {{source}}",
+                                    test_url=obj.testUrl, source=obj.sourceFile, cause=e)
+
+            with Timer("writing {{num}} records to s3", {"num": len(records)}):
+                destination.extend(records, overwrite=True)
 
     return keys
 

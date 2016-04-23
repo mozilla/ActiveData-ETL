@@ -270,15 +270,7 @@ def ibytes2ilines(generator, encoding="utf8", closer=None):
     :param closer: OPTIONAL FUNCTION TO RUN WHEN DONE ITERATING
     :return:
     """
-    if encoding == None:
-        def no_decode(v):
-            return v
-        decode = no_decode
-    else:
-        def do_decode(v):
-            return v.decode(encoding)
-        decode = do_decode
-
+    decode = get_decoder(encoding)
     _buffer = generator.next()
     s = 0
     e = _buffer.find(b"\n")
@@ -332,7 +324,7 @@ class ZipfileLines(CompressedLines):
         if len(names) != 1:
             Log.error("*.zip file has {{num}} files, expecting only one.",  num= len(names))
         stream = archive.open(names[0], "r")
-        return LazyLines(sbytes2ilines(stream), encoding=self.encoding).__iter__()
+        return LazyLines(sbytes2ilines(stream, encoding=self.encoding)).__iter__()
 
 
 def icompressed2ibytes(source):
@@ -397,4 +389,20 @@ def sbytes2ilines(stream, encoding="utf8"):
             Log.error("Problem iterating through stream", cause=e)
 
     return ibytes2ilines({"next": read}, encoding=encoding)
+
+
+def get_decoder(encoding):
+    """
+    RETURN FUNCTION TO PERFORM DECODE
+    :param encoding:
+    :return:
+    """
+    if encoding == None:
+        def no_decode(v):
+            return v
+        return no_decode
+    else:
+        def do_decode(v):
+            return v.decode(encoding)
+        return do_decode
 

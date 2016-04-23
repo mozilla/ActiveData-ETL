@@ -107,7 +107,7 @@ class TestBuildbotLogs(FuzzyTestCase):
         url = "http://archive.mozilla.org/pub/firefox/try-builds/hiikezoe@mozilla-japan.org-06bb127f838228be6ee0f6917787e5b149af9eb2/try-win32-debug/try_win7-all-debug_test-mochitest-devtools-chrome-1-bm127-tests1-windows-build796.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-        # for i, l in enumerate(response._all_lines(encoding="latin1")):
+        # for i, l in enumerate(response._all_lines(encoding=None)):
         #     try:
         #         l.decode('latin1').encode('utf8')
         #     except Exception:

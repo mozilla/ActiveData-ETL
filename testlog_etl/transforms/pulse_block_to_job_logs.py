@@ -560,12 +560,7 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 if __name__ == "__main__":
     response = http.get("http://archive.mozilla.org/pub/b2g/tinderbox-builds/mozilla-central-emulator/1453460790/mozilla-central_ubuntu64_vm-b2g-emulator_test-mochitest-8-bm52-tests1-linux64-build4.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-    # for i, l in enumerate(response._all_lines(encoding="latin1")):
-    #     try:
-    #         l.decode('latin1').encode('utf8')
-    #     except Exception:
-    #         Log.alert("bad line {{num}}", num=i)
-    #
+    # for i, l in enumerate(response._all_lines(encoding=None)):
     #     Log.note("{{line}}", line=l)
 
     data = process_buildbot_log(response.all_lines, "<unknown>")
