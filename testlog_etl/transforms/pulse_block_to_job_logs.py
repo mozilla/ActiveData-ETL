@@ -16,7 +16,7 @@ from pyLibrary.dot import Dict, wrap, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
@@ -306,6 +306,7 @@ def parse_builder_message(message, next_line):
 
     return message, parts
 
+
 def parse_command_line(line):
     """
     space separated, single-quoted strings
@@ -341,7 +342,6 @@ def parse_command_line(line):
         else:
             value += c
     return output
-
 
 
 def process_buildbot_log(all_log_lines, from_url):
@@ -524,7 +524,7 @@ def fix_times(times, start_time, end_time):
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
-    for t in qb.reverse(times):
+    for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
             t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
@@ -560,13 +560,11 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 if __name__ == "__main__":
     response = http.get("http://archive.mozilla.org/pub/b2g/tinderbox-builds/mozilla-central-emulator/1453460790/mozilla-central_ubuntu64_vm-b2g-emulator_test-mochitest-8-bm52-tests1-linux64-build4.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-    # for i, l in enumerate(response._all_lines(encoding="latin1")):
-    #     try:
-    #         l.decode('latin1').encode('utf8')
-    #     except Exception:
-    #         Log.alert("bad line {{num}}", num=i)
-    #
+    # for i, l in enumerate(response._all_lines(encoding=None)):
     #     Log.note("{{line}}", line=l)
 
-    data = process_buildbot_log(response.all_lines, "<unknown>")
-    Log.note("{{data}}", data=data)
+    try:
+        data = process_buildbot_log(response.all_lines, "<unknown>")
+        Log.note("{{data}}", data=data)
+    finally:
+        response.close()

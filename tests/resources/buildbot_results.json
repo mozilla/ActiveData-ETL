@@ -10810,9 +10810,7 @@
             "revision": "1bd33f5447d2",
             "revision12": "1bd33f5447d2",
             "tags": [],
-            "type": [
-                "opt"
-            ],
+            "type": ["opt"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-macosx64_gecko/1425168145/en-US/b2g-32.0.en-US.mac64.dmg"
         },
         "other": [
@@ -10910,6 +10908,434 @@
                 "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
                 "url": "https://hg.mozilla.org/build/mozharness"
             }
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1461017314,
+            "job_number": 2875,
+            "reason": "scheduler",
+            "request_time": 1461016032,
+            "requests": [
+                {
+                    "request_id": 106171214,
+                    "timestamp": 1461016032
+                }
+            ],
+            "start_time": 1461016526,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "mozilla-inbound",
+            "locale": "en-US",
+            "name": "Windows XP 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10",
+            "revision": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10",
+            "revision12": "60bd274b9c7c",
+            "tags": [],
+            "type": [],
+            "url": "https://queue.taskcluster.net/v1/task/b0EIvSMRR2qll_34cv5jQA/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builddir": "mozilla-inbound_xp_ix_test-chromez",
+            "builduid": "7437e6d9dc3941bd91227571d774f3e4",
+            "master": "http://buildbot-master119.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-mozilla-inbound-win32-talos",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "chromez_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Inbound-Non-PGO/sha512/e0bfcc62752075c541361f5a61b87f0aa9dd994038b5b31bfd5f4d11dd70252bffef57b72c2e3d54eeb1be3e2ffe9b40fab01443624aab8a83806de26298b92e"
+                },
+                {
+                    "name": "chromez_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Inbound-Non-PGO/sha512/20f0a075a23803431bde2eed5b8808ec18333525a12e8ddaebbab06c385f65451b8112b45779f8d2cfdc797eb5c09a67079e8e492362d78546d966d7e63de257"
+                }
+            ],
+            "key": "Windows XP 32-bit mozilla-inbound talos chromez",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win32/1461012982/mozilla-inbound_xp-ix_test-chromez-bm119-tests1-windows-build2875.txt.gz",
+            "machine": {
+                "name": "t-xp32-ix-097",
+                "os": "winxp",
+                "pool": "t-xp32-ix"
+            },
+            "script": {"revision": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10"},
+            "suite": "chromez"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1461001145,
+            "job_number": 8,
+            "reason": "scheduler",
+            "request_time": 1460999949,
+            "requests": [
+                {
+                    "request_id": 106141461,
+                    "timestamp": 1460999949
+                }
+            ],
+            "start_time": 1461000755,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "Windows XP 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "9a9fe42b023a3cca14c6f2cce900870ea14e767c",
+            "revision": "9a9fe42b023a3cca14c6f2cce900870ea14e767c",
+            "revision12": "9a9fe42b023a",
+            "tags": [],
+            "type": ["pgo"],
+            "url": "https://queue.taskcluster.net/v1/task/G-gIchLdRVy9bbgOJpAnFw/artifacts/public/build/firefox-46.0.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "True"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builddir": "mozilla-beta_xp_ix_test-other-e10s",
+            "builduid": "a9ed390f6fe24391ac218a25a66b1c6c",
+            "master": "http://buildbot-master126.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-mozilla-beta-win32-pgo-talos",
+            "slavebuilddir": "test",
+            "stage_platform": "win32-pgo"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "other-e10s_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Beta/sha512/3769f304f746aa7489afe4b03987a3cd96c2986bfeb8c5d94e3e1ef96681f384a2ef4da218f7c8d65750dfa90755f4586a1b0970cc2247e10bbab54b2a5d16c1"
+                },
+                {
+                    "name": "other-e10s_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Beta/sha512/94471dd13bf05ff4f6df86e4d55f2145e4c31feebda2091d99b6f43e82c4659b22ab2c88315e8126e13bd25f90dff494a99e6425a45e9b4fbf10670c20655522"
+                }
+            ],
+            "key": "Windows XP 32-bit mozilla-beta pgo talos other-e10s",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-pgo/1460987783/mozilla-beta_xp-ix_test-other-e10s-pgo-bm126-tests1-windows-build8.txt.gz",
+            "machine": {
+                "name": "t-xp32-ix-029",
+                "os": "winxp",
+                "pool": "t-xp32-ix"
+            },
+            "script": {"revision": "9a9fe42b023a3cca14c6f2cce900870ea14e767c"},
+            "suite": "other",
+            "type": "e10s"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "failure",
+            "end_time": 1461014477,
+            "job_number": 2,
+            "reason": "Self-serve: Rebuilt by trigger-bot@mozilla.com",
+            "request_time": 1461010228,
+            "requests": [
+                {
+                    "request_id": 106160508,
+                    "timestamp": 1461010228
+                }
+            ],
+            "start_time": 1461010767,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Ubuntu VM large 12.04 x64",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6",
+            "revision": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6",
+            "revision12": "e93ebef962dd",
+            "tags": [],
+            "type": [],
+            "url": "https://queue.taskcluster.net/v1/task/Xnj4Lb_yRTKpfOU6jVkA0A/artifacts/public/build/firefox-48.0a1.en-US.linux-x86_64.tar.bz2"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builddir": "try_ubuntu64_vm_lnx_large_test-g1-e10s",
+            "builduid": "cbe4b206b83f442dbd9ae87390a4ec16",
+            "master": "http://buildbot-master52.bb.releng.use1.mozilla.com:8201/",
+            "scheduler": "tests-try-linux64-talos",
+            "slavebuilddir": "test",
+            "stage_platform": "linux64"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "g1-e10s_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/8a0a167c6f1469a8f671c95eccbba03d661e47d5244ee5bb191ce50f1667a925a91a2c17793e8cb292bd3a6036c499afa630f77f34b9923a3319d19385c15b97"
+                },
+                {
+                    "name": "g1-e10s_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/202984dbe949ba8034b78bc8e56191e908ea12c7d41d171b342fd5557be990b6485b8893f05784c35030de4f2a1ad2aac2f13b22a6be57decd728107611b6da4"
+                }
+            ],
+            "key": "Ubuntu VM large 12.04 x64 try talos g1-e10s",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/jmaher@mozilla.com-e93ebef962ddfc2eca2e98cb7b59651d009bb4c6/try-linux64/try_ubuntu64_vm_lnx_large_test-g1-e10s-bm52-tests1-linux64-build2.txt.gz",
+            "machine": {
+                "name": "tst-emulator64-spot-1288",
+                "os": "ubuntu",
+                "pool": "tst-emulator64-spot",
+                "type": "vm"
+            },
+            "script": {"revision": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6"},
+            "suite": "g1",
+            "type": "e10s"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1461022219,
+            "job_number": 46,
+            "reason": "scheduler",
+            "request_time": 1461021432,
+            "requests": [
+                {
+                    "request_id": 106183061,
+                    "timestamp": 1461021432
+                }
+            ],
+            "start_time": 1461021554,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "fx-team",
+            "locale": "en-US",
+            "name": "Windows 7 32-bit",
+            "platform": "win64",
+            "product": "firefox",
+            "release": "dadd3d52a252edd85975ff73ac404325d28598b2",
+            "revision": "dadd3d52a252edd85975ff73ac404325d28598b2",
+            "revision12": "dadd3d52a252",
+            "tags": [],
+            "type": [],
+            "url": "https://queue.taskcluster.net/v1/task/Lo-JGffqQRuWhtNIUKomqA/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "builddir": "fx-team_win7_ix_test-other",
+            "builduid": "f60096c778d045cfae100ba6381db718",
+            "master": "http://buildbot-master112.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-fx-team-win32-talos",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "other_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team-Non-PGO/sha512/def88e9eac7525e9d7f3a8be05bfebe77836acca0fac7827b56823c05e68f1425591ab38055a7cdb70557f86c4d3e46d125056c980ee93a0ee3244ebd8ce5fe6"
+                },
+                {
+                    "name": "other_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Fx-Team-Non-PGO/sha512/fa5007ba3f55909b19897fdd5bdaf932e078f4e283a36201cc42663151f0e07d8832e26bf7ce7de1deac240d9ff3305644cd446d8f4f7e1e4c910f4e9d2a6dd2"
+                }
+            ],
+            "key": "Windows 7 32-bit fx-team talos other",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-win32/1461014601/fx-team_win7-ix_test-other-bm112-tests1-windows-build46.txt.gz",
+            "machine": {
+                "name": "t-w732-ix-221",
+                "os": "win7",
+                "pool": "t-w732-ix"
+            },
+            "script": {"revision": "dadd3d52a252edd85975ff73ac404325d28598b2"},
+            "suite": "other"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "warnings",
+            "end_time": 1461018972,
+            "job_number": 1,
+            "reason": "Self-serve: Rebuilt by trigger-bot@mozilla.com",
+            "request_time": 1461006790,
+            "requests": [
+                {
+                    "request_id": 106155286,
+                    "timestamp": 1461006790
+                }
+            ],
+            "start_time": 1461015761,
+            "type": "test"
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Windows 7 VM-GFX 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "2af63097a8a5bb362224e3cd05658a6f20d3bf45",
+            "revision": "2af63097a8a5bb362224e3cd05658a6f20d3bf45",
+            "revision12": "2af63097a8a5",
+            "tags": [],
+            "type": ["opt"],
+            "url": "https://queue.taskcluster.net/v1/task/Wpzb3ea_TBS9lfj38OJYnQ/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "builduid": "8d3fd0444c9b4fca8ce7f02791add0b3",
+            "master": "http://buildbot-master128.bb.releng.use1.mozilla.com:8201/",
+            "scheduler": "tests-try-win7_vm_gfx-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "chunk": 1,
+            "files": [
+                {
+                    "name": "ca880c9f-7a79-4142-ac80-02fcfbf1c5d0.dmp",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/25b1c39e5f7d24f16549aa3b4b16dde1450154d7ec6828bcf11a6da9ee8ee97f28e6fbeb172f91cf0aabc3267a1248652362150326e2a665cdf7cb876e8b1a6f"
+                },
+                {
+                    "name": "plain-chunked_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/db5ad7f51b157b437994000b459fc5fe3b59a653a8a84208dc89d072e02abc2fe0138fcf0cd266c73e7449e5655027b1d289dfd3f78229d13452330486c15d3c"
+                },
+                {
+                    "name": "7b64f4f6-8297-43a7-9208-d345b64578b1.dmp",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/d391302ed617c5d79cbf7655a3eae72315f3a214ba598a399643b4faca84581f9b9d8854f7ace4d9bea7d9b4f68298a897b8f20742b3fcf5e26b2e327117c8ce"
+                },
+                {
+                    "name": "plain-chunked_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/2e2a37dd8b8c8d514eb8036a7dc9ac2a0ca0174ebefe810deddca87f82d2895a5281f6699f31e6a83d0ac69b1b648179fcd9d99d1b86486951536f31f50a7a9a"
+                },
+                {
+                    "name": "mozilla-test-fail-screenshot_cljtpp.png",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/d248cc60a0edd996a9566848b8361291a35e559a71970f9a92947c228d3e3cf4e2324beabad54d6901efef44d65378eb5354666544558fa7d851ddb82cddb9ec"
+                },
+                {
+                    "name": "7b64f4f6-8297-43a7-9208-d345b64578b1.extra",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/4b750ceba64b6de855c5cc28fa7b6eb0972582af50370c8242ea150a01650f973d6f5028475c07435fc17380c8c936ff02ffca942a3481a990ac2eca2bf692b7"
+                },
+                {
+                    "name": "ca880c9f-7a79-4142-ac80-02fcfbf1c5d0.extra",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/395b73ae6c287f799e1a05dbf5654cf27df56039162358f37127166ba1e93e194f44a89fbfb18b190d7365f275d7de41cf98679d58b7509f78d103987ee59290"
+                }
+            ],
+            "key": "Windows 7 VM-GFX 32-bit try opt test mochitest-1",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/jmaher@mozilla.com-2af63097a8a5bb362224e3cd05658a6f20d3bf45/try-win32/try_win7_vm_gfx_test-mochitest-1-bm128-tests1-windows-build1.txt.gz",
+            "machine": {
+                "name": "t-w732-spot-013",
+                "os": "win7",
+                "pool": "t-w732-spot"
+            },
+            "script": {"revision": "2af63097a8a5bb362224e3cd05658a6f20d3bf45"},
+            "suite": "mochitest"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1461008610,
+            "job_number": 875,
+            "reason": "scheduler",
+            "request_time": 1461001992,
+            "requests": [
+                {
+                    "request_id": 106147974,
+                    "timestamp": 1461002952
+                },
+                {
+                    "request_id": 106149192,
+                    "timestamp": 1461003197
+                },
+                {
+                    "request_id": 106146534,
+                    "timestamp": 1461001992
+                }
+            ],
+            "start_time": 1461007296,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "mozilla-inbound",
+            "locale": "en-US",
+            "name": "Windows XP 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "a73c2b09380d2c708c5c6aebef59eaa394343477",
+            "revision": "a73c2b09380d2c708c5c6aebef59eaa394343477",
+            "revision12": "a73c2b09380d",
+            "tags": [],
+            "type": [],
+            "url": "https://queue.taskcluster.net/v1/task/U0tkiDGpSMuj6Zq1ujMOqQ/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builddir": "mozilla-inbound_xp_ix_test-dromaeojs-e10s",
+            "builduid": "7064c5f524e24dd99d5d45f37b460379",
+            "master": "http://buildbot-master127.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-mozilla-inbound-win32-talos",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "dromaeojs-e10s_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Inbound-Non-PGO/sha512/c1d42e41ea3a2031cd4c9d61dae476253f8c360e86eb41ca9f4ed0ac950562b9c3d07b7ea943ce2f119f0e483b447653e9a287dbdced26191186063881ad298d"
+                },
+                {
+                    "name": "dromaeojs-e10s_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Mozilla-Inbound-Non-PGO/sha512/58d3a9d45658094dcd29e619b17637d065518a9a7a7f8f91f976dee26083f932b4b299419544bcf727b779786579e0d4ba98ddef29e6310293b60c1221f302a3"
+                }
+            ],
+            "key": "Windows XP 32-bit mozilla-inbound talos dromaeojs-e10s",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win32/1461000225/mozilla-inbound_xp-ix_test-dromaeojs-e10s-bm127-tests1-windows-build875.txt.gz",
+            "machine": {
+                "name": "t-xp32-ix-113",
+                "os": "winxp",
+                "pool": "t-xp32-ix"
+            },
+            "script": {"revision": "a73c2b09380d2c708c5c6aebef59eaa394343477"},
+            "suite": "dromaeojs",
+            "type": "e10s"
         }
     }
 ]

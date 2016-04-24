@@ -133,28 +133,29 @@
 			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-pulse-logger",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "ekyle-test-result",
-//				"public": true,
-//				"key_format": "a:b.c"
-//			},
-//			"notify": {
-//				"name": "active-data-index",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-//			"type": "join"
-//		},
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-pulse-logger",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
+		},
 		{
 			"name": "pulse_taskcluster_codecoverage_2_es",
+			"transform_type": "bulk",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger",
@@ -185,11 +186,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses",
+				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV] Problem in ETL",
-				"$ref": "file://~/private.json#email"
+				"subject": "[ALERT][DEV] Problem in ETL"
 			}
 		]
 	}

@@ -1,0 +1,2 @@
+
+10 0,6,12,18 * * * /home/ec2-user/TestLog-ETL/resources/scripts/run_buildbot_json_logs.sh

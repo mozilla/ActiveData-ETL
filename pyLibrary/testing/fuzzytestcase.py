@@ -122,6 +122,8 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
     """
     Snagged from unittest/case.py, then modified (Aug2014)
     """
+    if expected == None:  # None has no expectations
+        return
     if test == expected:
         # shortcut
         return

@@ -154,6 +154,7 @@
 		},
 		{
 			"name": "pulse_taskcluster_codecoverage_2_es",
+			"transform_type": "bulk",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger",
@@ -180,11 +181,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][STAGING] Problem in ETL",
-				"$ref": "file://~/private.json#email"
+
 			}
 		]
 	}

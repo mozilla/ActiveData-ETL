@@ -8,6 +8,14 @@
 #
 from __future__ import unicode_literals
 
+
+# import cProfile
+# import pstats
+#
+# cprofiler = cProfile.Profile()
+# cprofiler.enable()
+#
+
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
@@ -19,12 +27,12 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, write_profile
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings, DataClass
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
@@ -35,7 +43,7 @@ from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-
+from testlog_etl.transforms import Transform, pulse_block_to_es
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -84,6 +92,9 @@ class ETL(Thread):
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
+                elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
+                    # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
+                    w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -160,7 +171,7 @@ class ETL(Thread):
                     pass  # ok
                 else:
                     etls = map(key2etl, new_keys)
-                    etls = qb.sort(etls, "id")
+                    etls = jx.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
                             Log.error("expecting keys to be contiguous: {{ids}}", ids=etls.id)
@@ -396,6 +407,7 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
+        # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):

@@ -26,7 +26,7 @@ from pyLibrary.dot import wrap, listwrap, unwrap
 
 class MySQL(object):
     """
-    qb to MySQL DATABASE QUERIES
+    jx to MySQL DATABASE QUERIES
     """
 
     @use_settings
@@ -57,11 +57,11 @@ class MySQL(object):
 
     def query(self, query, stacked=False):
         """
-        TRANSLATE qb QUERY ON SINGLE TABLE TO SQL QUERY
+        TRANSLATE JSON QUERY EXPRESSION ON SINGLE TABLE TO SQL QUERY
         """
-        from pyLibrary.queries.query import Query
+        from pyLibrary.queries.query import QueryOp
 
-        query = Query(query)
+        query = QueryOp.wrap(query)
 
         sql, post = self._subquery(query, isolate=False, stacked=stacked)
         query.data = post(sql)

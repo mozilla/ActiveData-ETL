@@ -15,7 +15,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
-from pyLibrary.env.big_data import ibytes2ilines
+from pyLibrary.env.big_data import ibytes2ilines, scompressed2ibytes
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import MONTH
@@ -109,19 +109,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "Text log does not exist"
                     output.append(data)
                     continue
-                if url.endswith(".gz"):
-                    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-                    def ibytes():
-                        while True:
-                            bytes_ = response.raw.read(4096)
-                            if not bytes_:
-                                return
-                            data = decompressor.decompress(bytes_)
-                            yield data
-                    lines = ibytes2ilines(ibytes())
-                else:
-                    lines = response._all_lines(encoding='latin1')
-                all_log_lines = lines
+
+                all_log_lines = response._all_lines(encoding=None)
                 action = process_buildbot_log(all_log_lines, url)
                 set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time

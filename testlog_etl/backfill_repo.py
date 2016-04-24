@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
-from pyLibrary.queries.qb_usingES import FromES
+from pyLibrary.queries.jx_usingES import FromES
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.times.dates import Date

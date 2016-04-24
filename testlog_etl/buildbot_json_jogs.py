@@ -17,15 +17,17 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
+from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 
 
 REFERENCE_DATE = Date("1 JAN 2015")
+EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 DEBUG = True
 
@@ -56,7 +58,7 @@ def parse_day(settings, p, force=False):
     day_url = settings.source.url + p
     key0 = unicode(day_num) + ".0"
 
-    if day < REFERENCE_DATE or Date.today() <= day:
+    if day < EARLIEST_CONSIDERATION_DATE or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
@@ -84,7 +86,7 @@ def parse_day(settings, p, force=False):
     )
     tasks = get_all_tasks(day_url)
     first = None
-    for group_number, ts in qb.groupby(tasks, size=100):
+    for group_number, ts in jx.groupby(tasks, size=100):
         parsed = []
 
         group_etl = Dict(
@@ -133,13 +135,16 @@ def get_all_logs(url):
     # GET LIST OF LOGS
     paths = []
     response = http.get(url)
-    for line in response.all_lines:
-        # <tr><td valign="top"><img src="/icons/compressed.gif" alt="[   ]"></td><td><a href="builds-2015-09-20.js.gz">builds-2015-09-20.js.gz</a></td><td align="right">20-Sep-2015 19:00  </td><td align="right">6.9M</td><td>&nbsp;</td></tr>
-        filename = strings.between(line, '</td><td><a href=\"', '">')
-        if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
-            paths.append(filename)
-        paths = qb.reverse(qb.sort(paths))
-    return paths
+    try:
+        for line in response.all_lines:
+            # <tr><td valign="top"><img src="/icons/compressed.gif" alt="[   ]"></td><td><a href="builds-2015-09-20.js.gz">builds-2015-09-20.js.gz</a></td><td align="right">20-Sep-2015 19:00  </td><td align="right">6.9M</td><td>&nbsp;</td></tr>
+            filename = strings.between(line, '</td><td><a href=\"', '">')
+            if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
+                paths.append(filename)
+            paths = jx.reverse(jx.sort(paths))
+        return paths
+    finally:
+        response.close()
 
 
 def get_all_tasks(url):
@@ -147,24 +152,8 @@ def get_all_tasks(url):
     RETURN ITERATOR OF ALL `builds` IN THE BUILDBOT JSON LOG
     """
     response = http.get(url)
-    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-    def json():
-        last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
-        bytes_count = 0
-        while True:
-            bytes_ = response.raw.read(4096)
-            if not bytes_:
-                return
-            data = decompressor.decompress(bytes_)
-            bytes_count += len(data)
-            if Math.floor(last_bytes_count, 1000000) != Math.floor(bytes_count, 1000000):
-                last_bytes_count = bytes_count
-                if DEBUG:
-                    Log.note("bytes={{bytes}}", bytes=bytes_count)
-            yield data
-
     return stream.parse(
-        json(),
+        scompressed2ibytes(response.raw),
         "builds",
         expected_vars=["builds"]
     )

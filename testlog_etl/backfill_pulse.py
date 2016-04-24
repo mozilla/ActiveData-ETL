@@ -13,7 +13,7 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from testlog_etl.transforms import pulse_block_to_es
 
 
@@ -34,7 +34,7 @@ def backfill(settings):
     # for i in range(20, 97, 1):
     #     all_keys |= source.keys(prefix=unicode(i))
 
-    for k in qb.sort(all_keys):
+    for k in jx.sort(all_keys):
         try:
             pulse_block_to_es.process(k, source.get_key(k), destination)
         except Exception, e:

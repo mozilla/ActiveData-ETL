@@ -20,8 +20,8 @@ from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
-from pyLibrary.queries.expressions import qb_expression
+from pyLibrary.queries import jx
+from pyLibrary.queries.expressions import jx_expression
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -100,7 +100,7 @@ def get_all_in_es(es, in_range, es_filter, field):
                     "_match": {
                         "terms": {
                             # "field": field,
-                            "script": qb_expression({"string": field}).to_ruby(),
+                            "script": jx_expression({"string": field}).to_ruby(),
                             "size": 200000
                         }
                     }
@@ -115,7 +115,6 @@ def get_all_in_es(es, in_range, es_filter, field):
             _filter.append({"range": {field: {"gte": in_range.min}}})
         if in_range.max:
             _filter.append({"range": {field: {"lt": in_range.max}}})
-
 
     result = es.search(es_query)
 
@@ -141,7 +140,7 @@ def get_all_s3(in_es, in_range, settings):
     min_range = coalesce(Math.MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
-    max_allowed = Math.MAX(in_es) - 500
+    max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
     extra_digits = Math.ceiling(log10(limit))
 
     prefix = unicode(max(in_range - in_es))[:-extra_digits]
@@ -175,7 +174,7 @@ def get_all_s3(in_es, in_range, settings):
         prefix = unicode(int(prefix) - 1)
         prefix_max = int(prefix + ("999999999999"[:extra_digits]))
 
-    in_s3 = qb.reverse(qb.sort(in_s3))[:limit:]
+    in_s3 = jx.reverse(jx.sort(in_s3))[:limit:]
     return in_s3
 
 

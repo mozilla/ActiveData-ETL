@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from testlog_etl import key2etl, etl2path
 
 
@@ -29,7 +29,7 @@ class MultiDayIndex(object):
 
         self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         self.es.set_refresh_interval(seconds=60 * 60)
-        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=False)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=True)
         # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
@@ -37,7 +37,7 @@ class MultiDayIndex(object):
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
-        path = qb.reverse(etl2path(key2etl(prefix)))
+        path = jx.reverse(etl2path(key2etl(prefix)))
 
         result = self.es.search({
             "fields": ["_id"],
@@ -68,6 +68,8 @@ class MultiDayIndex(object):
         for key in keys:
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    if not line:
+                        continue
                     if rownum == 0:
                         value = convert.json2value(line)
                         if len(line) > 100000:
@@ -76,7 +78,7 @@ class MultiDayIndex(object):
 
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
-                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
                                 Log.error("Expecting etl.id==0")
