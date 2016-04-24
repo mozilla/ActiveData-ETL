@@ -1,5 +1,6 @@
 {
-	"limit": 100,
+	"limit": 100000,
+	"range":{"min":179000, "max":230000},
 	"no_checks": true,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-index-codecoverage",
