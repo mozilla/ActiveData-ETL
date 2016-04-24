@@ -346,28 +346,26 @@ def get_container(settings):
             sinks.append((settings, output))
             return output
 
-ToDo = DataClass("ToDo", [
-    {
-        # THE KEY(S) TO USE
-        "name": "keys",
-        "required": True,
-        "nulls": False
-    },
-    {
-        # THE SOURCE BUCKET
-        "name": "bucket",
-        "required": True,
-        "nulls": False
-    },
-    {
-        # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
-        "name": "detination",
-        "required": False
-    }
-
-])
-
-
+# ToDo = DataClass("ToDo", [
+#     {
+#         # THE KEY(S) TO USE
+#         "name": "keys",
+#         "required": True,
+#         "nulls": False
+#     },
+#     {
+#         # THE SOURCE BUCKET
+#         "name": "bucket",
+#         "required": True,
+#         "nulls": False
+#     },
+#     {
+#         # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
+#         "name": "detination",
+#         "required": False
+#     }
+#
+# ])
 
 
 def main():
