@@ -122,6 +122,10 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
 
     except Exception, e:
         e = Except.wrap(e)
+
+        if not json_string.strip():
+            Log.error("JSON string is only whitespace")
+
         if "Expecting '" in e and "' delimiter: line" in e:
             line_index = int(strings.between(e.message, " line ", " column ")) - 1
             column = int(strings.between(e.message, " column ", " ")) - 1

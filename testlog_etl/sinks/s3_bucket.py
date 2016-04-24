@@ -72,7 +72,7 @@ class S3Bucket(object):
                     self.bucket.bucket.delete_key(k.name)
             return maxi
 
-    def extend(self, documents):
+    def extend(self, documents, overwrite=False):
         parts = {}
         for d in wrap(documents):
             parent_key = etl2key(key2etl(d.id).source)
@@ -83,14 +83,18 @@ class S3Bucket(object):
             sub.append(d.value)
 
         for k, docs in parts.items():
-            self._extend(k, docs)
+            self._extend(k, docs, overwrite=overwrite)
 
         return set(parts.keys())
 
-    def _extend(self, key, documents):
+    def _extend(self, key, documents, overwrite=False):
         #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
         if self.bucket.name == "ekyle-test-result":
              #TODO: PUT THIS LOGIC ELSEWHERE (LIKE settings) WE DO NOT CARE WHAT'S IN THE BUCKET, OVERWRITE ALL
+            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
+            return
+
+        if overwrite:
             self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
             return
 
@@ -100,7 +104,8 @@ class S3Bucket(object):
             try:
                 content = self.bucket.read_lines(key)
                 old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
-            except Exception, _:
+            except Exception, e:
+                Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
                 old_docs = UniqueIndex(keys="etl.id")
 

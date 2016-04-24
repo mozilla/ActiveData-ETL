@@ -7,33 +7,29 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
-import string
+import re
 from collections import Mapping
 from copy import deepcopy
 from datetime import datetime
-import re
-import time
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, Null, Dict, set_default, join_field, split_field, unwraplist, listwrap, literal_field
-from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap
+from pyLibrary.dot.lists import DictList
 from pyLibrary.env import http
 from pyLibrary.jsons.typed_encoder import json2typed
-from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import utf82unicode
 from pyLibrary.thread.threads import ThreadedQueue, Thread, Lock
-from pyLibrary.times.durations import MINUTE
-
 
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
@@ -267,14 +263,14 @@ class Index(Features):
                     id = random_id()
 
                 if "json" in r:
-                    json = r["json"]
+                    json = r["json"].encode("utf8")
                 elif "value" in r:
-                    json = convert.value2json(r["value"])
+                    json = convert.value2json(r["value"]).encode("utf8")
                 else:
                     json = None
                     Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
-                lines.append('{"index":{"_id": ' + convert.value2json(id) + '}}')
+                lines.append(b'{"index":{"_id": ' + convert.value2json(id).encode("utf8") + b'}}')
                 if self.settings.tjson:
                     lines.append(json2typed(json))
                 else:
@@ -285,11 +281,9 @@ class Index(Features):
                 return
 
             try:
-                data_bytes = "\n".join(lines) + "\n"
-                data_bytes = data_bytes.encode("utf8")
+                data_bytes = b"\n".join(l for l in lines) + b"\n"
             except Exception, e:
                 Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
-
 
             response = self.cluster.post(
                 self.path + "/_bulk",
@@ -401,8 +395,8 @@ class Index(Features):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
 
             if e.cause.cause:
-                not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f]
-                still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f]
+                not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f or "400 MapperParsingException" in f]
+                still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" not in f]
             else:
                 not_possible = [e]
                 still_have_hope = []
@@ -411,7 +405,7 @@ class Index(Features):
                 Log.warning("Problem with sending to ES", cause=still_have_hope)
             elif not_possible:
                 # THERE IS NOTHING WE CAN DO
-                Log.warning("Not inserted, will not try again", cause=not_possible)
+                Log.warning("Not inserted, will not try again", cause=not_possible[0:10:])
                 del _buffer[:]
 
         return ThreadedQueue(
@@ -425,7 +419,7 @@ class Index(Features):
         )
 
     def delete(self):
-        self.cluster.delete_index(index=self.settings.index)
+        self.cluster.delete_index(index_name=self.settings.index)
 
 
 known_clusters = {}

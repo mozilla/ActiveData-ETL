@@ -452,6 +452,19 @@ machine_metadata = wrap({
     "name": platform.node()
 })
 
+# GET FROM AWS, IF WE CAN
+def _get_metadata_from_from_aws(please_stop):
+    try:
+        from pyLibrary import aws
+
+        ec2 = aws.get_instance_metadata()
+        if ec2:
+            machine_metadata.aws_instance_type = ec2.instance_type
+            machine_metadata.name = ec2.instance_id
+    except Exception:
+        pass
+Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
+
 
 # GET FROM AWS, IF WE CAN
 def _get_metadata_from_from_aws(please_stop):

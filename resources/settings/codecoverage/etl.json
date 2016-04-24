@@ -171,9 +171,10 @@
 		},
 		{
 			"name": "pulse_taskcluster_codecoverage_2_es",
+			"transform_type": "bulk",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-pulse-tc-dev",
+				"bucket": "active-data-task-cluster-logger",
 				"key_format": "a:b"
 			},
 			"destination": {

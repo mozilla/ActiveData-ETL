@@ -104,18 +104,16 @@ class TestBuildbotLogs(FuzzyTestCase):
         self.assertEqual(result, expecting)
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-linux64/1453474887/fx-team_ubuntu64_vm_test-web-platform-tests-3-bm124-tests1-linux64-build7.txt.gz"
+        url = "http://archive.mozilla.org/pub/mobile/tinderbox-builds/fx-team-android-api-15-debug/1461301083/fx-team_ubuntu64_vm_armv7_large-debug_test-plain-reftest-12-bm114-tests1-linux64-build15.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-        # for i, l in enumerate(response._all_lines(encoding="latin1")):
+        # for i, l in enumerate(response._all_lines(encoding=None)):
         #     try:
         #         l.decode('latin1').encode('utf8')
         #     except Exception:
         #         Log.alert("bad line {{num}}", num=i)
         #
         #     Log.note("{{line}}", line=l)
-        try:
-            data = process_buildbot_log(response.all_lines, "<unknown>")
-        finally:
-            response.close()
+
+        data = process_buildbot_log(response._all_lines(encoding=None), url)
         Log.note("{{data}}", data=data)
