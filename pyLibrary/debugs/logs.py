@@ -473,7 +473,7 @@ def _get_metadata_from_from_aws(please_stop):
 
         ec2 = aws.get_instance_metadata(timeout=20*SECOND)
         machine_metadata.aws_instance_type = ec2.instance_type
-        machine_metadata.name = ec2.instance_id
+        machine_metadata.name = coalesce(ec2.instance_id, machine_metadata.name)
     except Exception, e:
         pass
 Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
