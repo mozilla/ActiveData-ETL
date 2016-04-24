@@ -1,6 +1,7 @@
 {
 	"threads": 1,
-	"batch_size": 500,
+	"queue_size": 2000,
+	"batch_size": 1000,
 	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
@@ -40,7 +41,7 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push perf to ES",
+				"subject": "[ALERT][Staging]Problem in Push perf to ES",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
