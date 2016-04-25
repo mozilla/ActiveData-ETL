@@ -115,7 +115,7 @@ def main():
 
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-        es = MultiDayIndex(settings.elasticsearch, queue_size=100000, batch_size=unwrap(settings.batch_size))
+        es = MultiDayIndex(settings.elasticsearch, queue_size=coalesce(settings.queue_size, 100000), batch_size=unwrap(settings.batch_size))
 
         threads = []
         please_stop = Signal()

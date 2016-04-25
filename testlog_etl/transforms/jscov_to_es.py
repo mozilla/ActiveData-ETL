@@ -9,8 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import json
-
 import taskcluster
 
 from mohg.repos.changesets import Changeset
@@ -19,14 +17,24 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
+from pyLibrary.jsons import stream
+from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 from testlog_etl.transforms import EtlHeadGenerator
+
+
+STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+RETRY = {"times": 3, "sleep": 5}
 
 
 def process(source_key, source, destination, resources, please_stop=None):
     """
     This transform will turn a pulse message containing info about a jscov artifact on taskcluster
-    into a list of records of line coverages. Each record represents a line.
+    into a list of records of method coverages. Each record represents a method in a source file, given a test.
+
     :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
     :param source: The source pulse messages, in a batch of (usually) 100
     :param destination: The destination for the transformed data
@@ -35,9 +43,8 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    records = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    print "Processing " + source_key
+    Log.note("Processing Coverage" + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
@@ -45,78 +52,175 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         pulse_record = convert.json2value(msg_line)
-        artifact_file_name = pulse_record.artifact.name
-
-        # we're only interested in jscov files, at lease at the moment
-        if "jscov" not in artifact_file_name:
-            continue
-
-        # create the key for the file in the bucket, and add it to a list to return later
-        bucket_file_count += 1
-        bucket_key = source_key + "." + unicode(bucket_file_count)
-        keys.append(bucket_key)
-
-        # construct the artifact's full url
         taskId = pulse_record.status.taskId
-        runId = pulse_record.runId
-        full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
-        # get the task definition
-        queue = taskcluster.Queue()
-        task_definition = wrap(queue.task(taskId=taskId))
+        # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
+        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskId}), retry=RETRY)
 
-        # get additional info
-        repo = get_revision_info(task_definition, resources)
-        run = get_run_info(task_definition)
-        build = get_build_info(task_definition)
+        for artifact in artifacts.artifacts:
+            artifact_file_name = artifact.name
 
-        # fetch the artifact
-        response = http.get(full_artifact_path).all_content
-        # TODO:  Add a timer around this so we see how long it takes
-        # transform
-        json_data = wrap(json.loads(response))
-        for source_file_index, obj in enumerate(json_data):
-            if please_stop:
-                Log.error("Shutdown detected. Stopping job ETL.")
+            # we're only interested in jscov files, at lease at the moment
+            if "jscov" not in artifact_file_name:
+                continue
 
-            # get the test name. Just use the test file name at the moment
-            # TODO: change this when needed
-            test_name = obj.testUrl.split("/")[-1]
+            Log.warning("Processing code coverage for key {{key}}", key=source_key)
 
-            for line_index, line in enumerate(obj.covered):
-                _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+            # create the key for the file in the bucket, and add it to a list to return later
+            bucket_file_count += 1
+            bucket_key = source_key + "." + unicode(bucket_file_count)
+            keys.append(bucket_key)
 
-                # reusing dest_etl.id, which should be continuous
-                record_key = bucket_key + "." + unicode(dest_etl.id)
+            # construct the artifact's full url
+            runId = pulse_record.runId
+            full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
 
-                new_line = wrap({
-                    "test": {
-                        "name": test_name,
-                        "url": obj.testUrl
-                    },
-                    "source": {
-                        "file": obj.sourceFile,
-                        "covered": line
-                    },
-                    "etl": dest_etl,
-                    "repo": repo,
-                    "run": run,
-                    "build": build
-                })
+            # get the task definition
+            queue = taskcluster.Queue()
+            task_definition = wrap(queue.task(taskId=taskId))
 
-                # file marker
-                if line_index == 0:
-                    new_line.source.is_file = "true"
+            # get additional info
+            repo = get_revision_info(task_definition, resources)
+            run = get_run_info(task_definition)
+            build = get_build_info(task_definition)
 
-                records.append({"id": record_key, "value": new_line})
+            # fetch the artifact
+            response_stream = http.get(full_artifact_path).raw
 
-    destination.extend(records)
+            records = []
+            Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
+            with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
+                for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping job ETL.")
+
+                    if source_file_index == 0:
+                        # this is not a jscov object but an object containing the version metadata
+                        # TODO: this metadata should not be here
+                        # TODO: this version info is not used right now. Make use of it later.
+                        jscov_format_version = obj.get("version")
+                        continue
+
+                    try:
+                        process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
+                    except Exception, e:
+                        Log.warning("Error processing test {{test_url}} and source file {{source}}",
+                                    test_url=obj.testUrl, source=obj.sourceFile, cause=e)
+
+            with Timer("writing {{num}} records to s3", {"num": len(records)}):
+                destination.extend(records, overwrite=True)
+
     return keys
+
+
+def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records):
+    obj = wrap(obj)
+
+    # get the test name. Just use the test file name at the moment
+    # TODO: change this when needed
+    test_name = obj.testUrl.split("/")[-1]
+
+    # a variable to count the number of lines so far for this source file
+    count = 0
+
+    # turn obj.covered (a list) into a set for use later
+    file_covered = set(obj.covered)
+
+    # file-level info
+    file_info = wrap({
+        "name": obj.sourceFile,
+        "covered": [{"line": c} for c in obj.covered],
+        "uncovered": [{"line": c} for c in obj.uncovered],
+        "total_covered": len(obj.covered),
+        "total_uncovered": len(obj.uncovered),
+        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+    })
+
+    # orphan lines (i.e. lines without a method), initialized to all lines
+    orphan_covered = set(obj.covered)
+    orphan_uncovered = set(obj.uncovered)
+
+    # iterate through the methods of this source file
+    for method_name, method_lines in obj.methods.iteritems():
+        _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+
+        # reusing dest_etl.id, which should be continuous
+        record_key = bucket_key + "." + unicode(dest_etl.id)
+
+        all_method_lines_set = set(method_lines)
+        method_covered = all_method_lines_set & file_covered
+        method_uncovered = all_method_lines_set - method_covered
+        method_percentage_covered = len(method_covered) / len(all_method_lines_set)
+
+        orphan_covered = orphan_covered - method_covered
+        orphan_uncovered = orphan_uncovered - method_uncovered
+
+        new_record = wrap({
+            "test": {
+                "name": test_name,
+                "url": obj.testUrl
+            },
+            "source": {
+                "file": file_info,
+                "method": {
+                    "name": method_name,
+                    "covered": [{"line": c} for c in method_covered],
+                    "uncovered": [{"line": c} for c in method_uncovered],
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
+            },
+            "etl": dest_etl,
+            "repo": repo,
+            "run": run,
+            "build": build
+        })
+
+        # file marker
+        if count == 0:
+            new_record.source.is_file = "true"
+
+        records.append({"id": record_key, "value": new_record})
+        count += 1
+
+    # a record for all the lines that are not in any method
+    # every file gets one because we can use it as canonical representative
+    _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+    record_key = bucket_key + "." + unicode(dest_etl.id)
+    new_record = wrap({
+        "test": {
+            "name": test_name,
+            "url": obj.testUrl
+        },
+        "source": {
+            "file": file_info,
+            "method": {
+                "covered": [{"line": c} for c in orphan_covered],
+                "uncovered": [{"line": c} for c in orphan_uncovered],
+                "total_covered": len(orphan_covered),
+                "total_uncovered": len(orphan_uncovered),
+                "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+            }
+        },
+        "etl": dest_etl,
+        "repo": repo,
+        "run": run,
+        "build": build
+    })
+
+    # file marker
+    if count == 0:
+        new_record.source.is_file = "true"
+
+    records.append({"id": record_key, "value": new_record})
+    count += 1
 
 
 def get_revision_info(task_definition, resources):
     """
     Get the changeset, revision and push info for a given task in TaskCluster
+
     :param task_definition: The task definition
     :param resources: Pass this from the process method
     :return: The repo object containing information about the changeset, revision and push
@@ -135,6 +239,7 @@ def get_revision_info(task_definition, resources):
 def get_run_info(task_definition):
     """
     Get the run object that contains properties that describe the run of this job
+
     :param task_definition: The task definition
     :return: The run object
     """
@@ -147,6 +252,7 @@ def get_run_info(task_definition):
 def get_build_info(task_definition):
     """
     Get a build object that describes the build
+
     :param task_definition: The task definition
     :return: The build object
     """

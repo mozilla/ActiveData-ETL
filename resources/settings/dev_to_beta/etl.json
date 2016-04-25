@@ -129,7 +129,7 @@
 //				"$ref": "file://~/private.json#aws_credentials"
 //			},
 //			"transform_type": "bulk",
-//			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+//			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 //			"type": "join"
 //		},
 		{
@@ -182,11 +182,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV] Problem in ETL",
-				"$ref": "file://~/private.json#email"
+
 			}
 
 		]

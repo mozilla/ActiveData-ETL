@@ -189,44 +189,36 @@ def transform(uid, perfherder, resources):
                 for i, subtest in enumerate(perfherder.subtests):
                     for g, sub_replicates in qb.groupby(subtest.replicates, size=5):
                         new_record = set_default(
-                            {"result": {
-                                "test": unicode(subtest.name) + "." + unicode(g),
-                                "ordering": i,
-                                "samples": sub_replicates,
-                                "unit": subtest.unit,
-                                "lower_is_better": subtest.lowerIsBetter
-                            }},
+                            {"result": set_default(
+                                stats(sub_replicates, subtest.name, suite_name),
+                                {
+                                    "test": unicode(subtest.name) + "." + unicode(g),
+                                    "ordering": i,
+                                    "unit": subtest.unit,
+                                    "lower_is_better": subtest.lowerIsBetter
+                                }
+                            )},
                             buildbot
                         )
-                        try:
-                            s, rejects = stats(sub_replicates, subtest.name, suite_name)
-                            new_record.result.stats = s
-                            new_record.result.rejects = rejects
-                            total.append(s)
-                        except Exception, e:
-                            Log.warning("can not reduce series to moments", e)
                         new_records.append(new_record)
+                        total.append(new_record.result.stats)
             else:
                 for i, subtest in enumerate(perfherder.subtests):
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
-                        {"result": {
-                            "test": subtest.name,
-                            "ordering": i,
-                            "samples": samples,
-                            "unit": subtest.unit,
-                            "lower_is_better": subtest.lowerIsBetter
-                        }},
+                        {"result": set_default(
+                            stats(samples, subtest.name, suite_name),
+                            {
+                                "test": subtest.name,
+                                "ordering": i,
+                                "unit": subtest.unit,
+                                "lower_is_better": subtest.lowerIsBetter
+                            }
+                        )},
                         buildbot
                     )
-                    try:
-                        s, rejects = stats(samples, subtest.name, suite_name)
-                        new_record.result.stats = s
-                        new_record.result.rejects = rejects
-                        total.append(s)
-                    except Exception, e:
-                        Log.warning("can not reduce series to moments", e)
                     new_records.append(new_record)
+                    total.append(new_record.result.stats)
 
         elif perfherder.results:
             #RECORD TEST RESULTS
@@ -236,39 +228,31 @@ def transform(uid, perfherder, resources):
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     for g, sub_replicates in qb.groupby(replicates, size=5):
                         new_record = set_default(
-                            {"result": {
-                                "test": unicode(test_name) + "." + unicode(g),
-                                "ordering": i,
-                                "samples": sub_replicates
-                            }},
+                            {"result": set_default(
+                                stats(sub_replicates, test_name, suite_name),
+                                {
+                                    "test": unicode(test_name) + "." + unicode(g),
+                                    "ordering": i
+                                }
+                            )},
                             buildbot
                         )
-                        try:
-                            s, rejects = stats(sub_replicates, test_name, suite_name)
-                            new_record.result.stats = s
-                            new_record.result.rejects = rejects
-                            total.append(s)
-                        except Exception, e:
-                            Log.warning("can not reduce series to moments", e)
                         new_records.append(new_record)
+                        total.append(new_record.result.stats)
             else:
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     new_record = set_default(
-                        {"result": {
-                            "test": test_name,
-                            "ordering": i,
-                            "samples": replicates
-                        }},
+                        {"result": set_default(
+                            stats(replicates, test_name, suite_name),
+                            {
+                                "test": test_name,
+                                "ordering": i
+                            }
+                        )},
                         buildbot
                     )
-                    try:
-                        s, rejects = stats(replicates, test_name, suite_name)
-                        new_record.result.stats = s
-                        new_record.result.rejects = rejects
-                        total.append(s)
-                    except Exception, e:
-                        Log.warning("can not reduce series to moments", e)
                     new_records.append(new_record)
+                    total.append(new_record.result.stats)
         else:
             new_records.append(buildbot)
             Log.warning(
@@ -322,34 +306,43 @@ def mainthread_transform(r):
 
 def stats(given_values, test, suite):
     """
-    RETURN (agg, rejects) PAIR, WHERE
-    agg - LOTS OF AGGREGATES
+    RETURN dict WITH
+    stats - LOTS OF AGGREGATES
+    samples - LIST OF VALUES USED IN AGGREGATE
     rejects - LIST OF VALUES NOT USED IN AGGREGATE
     """
-    if given_values == None:
-        return None
+    try:
+        if given_values == None:
+            return None
 
-    rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v)])
-    clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
+        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v)])
+        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
 
-    z = ZeroMoment.new_instance(clean_values)
-    s = Dict()
-    for k, v in z.dict.items():
-        s[k] = v
-    for k, v in ZeroMoment2Stats(z).items():
-        s[k] = v
-    s.max = MAX(clean_values)
-    s.min = MIN(clean_values)
-    s.median = pyLibrary.maths.stats.median(clean_values, simple=False)
-    s.last = clean_values.last()
-    s.first = clean_values[0]
-    if Math.is_number(s.variance) and not Math.is_nan(s.variance):
-        s.std = sqrt(s.variance)
+        z = ZeroMoment.new_instance(clean_values)
+        s = Dict()
+        for k, v in z.dict.items():
+            s[k] = v
+        for k, v in ZeroMoment2Stats(z).items():
+            s[k] = v
+        s.max = MAX(clean_values)
+        s.min = MIN(clean_values)
+        s.median = pyLibrary.maths.stats.median(clean_values, simple=False)
+        s.last = clean_values.last()
+        s.first = clean_values[0]
+        if Math.is_number(s.variance) and not Math.is_nan(s.variance):
+            s.std = sqrt(s.variance)
 
-    if rejects:
-        Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
+        if rejects and test!="sessionrestore_no_auto_restore":  # TODO: remove when fixed
+            Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
 
-    return s, rejects
+        return {
+            "stats": s,
+            "samples": clean_values,
+            "rejects": rejects
+        }
+    except Exception, e:
+        Log.warning("can not reduce series to moments", e)
+        return {}
 
 
 def geo_mean(values):

@@ -109,6 +109,7 @@ def _refresh_indexer():
                 sudo("supervisorctl restart push_perf_to_es")
                 sudo("supervisorctl restart push_unit_to_es")
                 sudo("supervisorctl restart push_jobs_to_es")
+                sudo("supervisorctl restart push_cv_to_es")
 
 
 def _start_supervisor():

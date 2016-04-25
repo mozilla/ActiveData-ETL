@@ -1,30 +1,25 @@
 {
-	"no_checks": false,
-	"git": {
-		"url":"https://github.com/klahnakoski/TestLog-ETL.git",
-		"branch":"etl"
-	},
-	"range": {"min":280000},
+	"no_checks": true,
+	"range": {"min":175000, "max":185000},
 	"limit": 10000,
-	"destination": "active-data-perf",  //EXPLICIT DESTINATION TO FOCUS REPROCESSING ON JUST ONE ETL
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {    //WHERE WE GET DATA FROM
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "active-data-perfherder",
+		"bucket": "active-data-task-cluster-logger",
 		"key_format": "a:b.c"
 	},
 	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
-		"id_field": "etl.source.source.source.id",
+		"id_field": "etl.source.id",
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
-		"index": "perf",
-		"type": "perf_result",
+		"index": "coverage",
+		"type": "code_coverage",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/perf_results.json"
+			"$ref": "//../../schema/code_coverage.json"
 				},
 		"debug": true,
 		"limit_replicas": false

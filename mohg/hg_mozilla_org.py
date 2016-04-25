@@ -256,9 +256,6 @@ class HgMozillaOrg(object):
             path = path[0:4] + ["mozilla-beta"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
 
-
-        d16ad3eccb25
-
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
     @cache(duration=HOUR, lock=True)

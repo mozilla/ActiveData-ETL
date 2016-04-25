@@ -206,10 +206,10 @@ class Index(Features):
 
     def flush(self):
         try:
-            self.cluster.post("/" + self.settings.index + "/_flush", data={"wait_if_ongoing": True, "forced": True})
+            self.cluster.post("/" + self.settings.index + "/_flush", data={"wait_if_ongoing": True, "forced": False})
         except Exception, e:
             if "FlushNotAllowedEngineException" in e:
-                Log.warning("Flush is ignored", cause=e)
+                Log.note("Flush is ignored")
             else:
                 Log.error("Problem flushing", cause=e)
 
@@ -263,14 +263,14 @@ class Index(Features):
                     id = random_id()
 
                 if "json" in r:
-                    json = r["json"]
+                    json = r["json"].encode("utf8")
                 elif "value" in r:
-                    json = convert.value2json(r["value"])
+                    json = convert.value2json(r["value"]).encode("utf8")
                 else:
                     json = None
                     Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
-                lines.append('{"index":{"_id": ' + convert.value2json(id) + '}}')
+                lines.append(b'{"index":{"_id": ' + convert.value2json(id).encode("utf8") + b'}}')
                 if self.settings.tjson:
                     lines.append(json2typed(json))
                 else:
@@ -281,11 +281,9 @@ class Index(Features):
                 return
 
             try:
-                data_bytes = "\n".join(lines) + "\n"
-                data_bytes = data_bytes.encode("utf8")
+                data_bytes = b"\n".join(l for l in lines) + b"\n"
             except Exception, e:
                 Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
-
 
             response = self.cluster.post(
                 self.path + "/_bulk",
@@ -396,14 +394,14 @@ class Index(Features):
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
 
-            not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f]
-            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f]
+            not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f or "400 MapperParsingException" in f]
+            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" not in f]
 
             if still_have_hope:
                 Log.warning("Problem with sending to ES", cause=still_have_hope)
             elif not_possible:
                 # THERE IS NOTHING WE CAN DO
-                Log.warning("Not inserted, will not try again", cause=not_possible)
+                Log.warning("Not inserted, will not try again", cause=not_possible[0:10:])
                 del _buffer[:]
 
         return ThreadedQueue(
@@ -417,7 +415,7 @@ class Index(Features):
         )
 
     def delete(self):
-        self.cluster.delete_index(index=self.settings.index)
+        self.cluster.delete_index(index_name=self.settings.index)
 
 
 known_clusters = {}

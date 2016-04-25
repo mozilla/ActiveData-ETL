@@ -7,13 +7,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 import StringIO
 import gzip
-from io import BytesIO
 import zipfile
+from io import BytesIO
+from tempfile import TemporaryFile
 
 import boto
 from boto.s3.connection import Location
@@ -21,11 +23,10 @@ from boto.s3.connection import Location
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Null, coalesce, unwrap
-from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines
+from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines, ibytes2ilines, scompressed2ibytes
 from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-
 
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -261,19 +262,12 @@ class Bucket(object):
             Log.error("{{key}} does not exist",  key= key)
         if source.size < MAX_STRING_SIZE:
             if source.key.endswith(".gz"):
-                return GzipLines(source.read())
+                return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
             else:
                 return convert.utf82unicode(source.read()).split("\n")
 
         if source.key.endswith(".gz"):
-            bytes = safe_size(source)
-            if isinstance(bytes, str):
-                buff = BytesIO(bytes)
-            else:
-                # SWAP OUT FILE REFERENCE
-                bytes.file, buff = None, bytes.file
-            archive = gzip.GzipFile(fileobj=buff, mode='r')
-            return LazyLines(archive)
+            return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
         else:
             return LazyLines(source)
 
@@ -333,7 +327,7 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(key + ".json.gz")
 
-        buff = BytesIO()
+        buff = TemporaryFile()
         archive = gzip.GzipFile(fileobj=buff, mode='w')
         count = 0
         for l in lines:
@@ -348,9 +342,17 @@ class Bucket(object):
                 count += 1
         archive.close()
         file_length = buff.tell()
-        buff.seek(0)
-        with Timer("Sending {{count}} lines in {{file_length|comma}} bytes", {"file_length": file_length, "count": count}, debug=self.settings.debug):
-            storage.set_contents_from_file(buff)
+
+        retry = 3
+        while retry:
+            try:
+                with Timer("Sending {{count}} lines in {{file_length|comma}} bytes", {"file_length": file_length, "count": count}, debug=self.settings.debug):
+                    buff.seek(0)
+                    storage.set_contents_from_file(buff)
+                break
+            except Exception, e:
+                Log.warning("could not push data to s3", cause=e)
+                retry -= 1
 
         if self.settings.public:
             storage.set_acl('public-read')

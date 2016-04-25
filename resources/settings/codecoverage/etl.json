@@ -146,7 +146,7 @@
 				"name": "active-data-index-perf-dev",
 				"$ref": "file://~/codecoverage.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{
@@ -171,9 +171,10 @@
 		},
 		{
 			"name": "pulse_taskcluster_codecoverage_2_es",
+			"transform_type": "bulk",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-pulse-tc-dev",
+				"bucket": "active-data-task-cluster-logger",
 				"key_format": "a:b"
 			},
 			"destination": {

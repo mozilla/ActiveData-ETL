@@ -72,9 +72,9 @@ class TestBuildbotLogs(FuzzyTestCase):
             perfherder_logs_to_perf_logs.process(source_key, bucket.get_key(source_key), dest_bucket, resources, please_stop=None)
 
     def test_stats(self):
-        s, rejects = stats([float("nan"), 1, 2, 3, 4, 5])
-        self.assertEqual(s.count, 5)
-        self.assertEqual(len(listwrap(rejects)), 1)
+        results = stats([float("nan"), 1, 2, 3, 4, 5])
+        self.assertEqual(results.stats.count, 5)
+        self.assertEqual(len(listwrap(results.stats.rejects)), 1)
 
 
     def test_warning(self):
