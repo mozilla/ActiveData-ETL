@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import elasticsearch
-from pyLibrary.queries.qb_usingES import FromES
+from pyLibrary.queries.jx_usingES import FromES
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, MONTH
 from testlog_etl.imports.treeherder import TreeHerder

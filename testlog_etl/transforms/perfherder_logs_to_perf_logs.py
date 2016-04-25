@@ -23,7 +23,7 @@ from pyLibrary.dot.lists import DictList
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
 from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
@@ -187,7 +187,7 @@ def transform(uid, perfherder, resources):
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
-                    for g, sub_replicates in qb.groupby(subtest.replicates, size=5):
+                    for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
                                 stats(sub_replicates, subtest.name, suite_name),
@@ -226,7 +226,7 @@ def transform(uid, perfherder, resources):
                 #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 #RECORD ALL RESULTS
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
-                    for g, sub_replicates in qb.groupby(replicates, size=5):
+                    for g, sub_replicates in jx.groupby(replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
                                 stats(sub_replicates, test_name, suite_name),

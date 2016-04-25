@@ -324,7 +324,7 @@ class ZipfileLines(CompressedLines):
         if len(names) != 1:
             Log.error("*.zip file has {{num}} files, expecting only one.",  num= len(names))
         stream = archive.open(names[0], "r")
-        return LazyLines(sbytes2ilines(stream, encoding=self.encoding)).__iter__()
+        return LazyLines(sbytes2ilines(stream), encoding=self.encoding).__iter__()
 
 
 def icompressed2ibytes(source):
@@ -405,4 +405,3 @@ def get_decoder(encoding):
         def do_decode(v):
             return v.decode(encoding)
         return do_decode
-

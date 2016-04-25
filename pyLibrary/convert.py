@@ -42,7 +42,7 @@ from pyLibrary.times.dates import Date
 DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
 IN <from_type> "2" <to_type> FORMAT
 """
-def value2json(obj, pretty=False):
+def value2json(obj, pretty=False, sort_keys=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
@@ -145,8 +145,8 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
         base_str = unicode2utf8(strings.limit(json_string, 1000))
         hexx_str = bytes2hex(base_str, " ")
         try:
-            char_str = " " + ("  ".join(c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
-        except Exception:
+            char_str = " " + "  ".join((c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
+        except Exception, e:
             char_str = " "
         Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
 
@@ -160,7 +160,12 @@ def str2datetime(value, format=None):
 
 
 def datetime2string(value, format="%Y-%m-%d %H:%M:%S"):
-    return Date(value).format(format=format)
+    try:
+        return value.strftime(format)
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
+
+        Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
 
 
 def datetime2str(value, format="%Y-%m-%d %H:%M:%S"):
@@ -647,7 +652,7 @@ json_decoder = json.JSONDecoder().decode
 
 
 def json_schema_to_markdown(schema):
-    from pyLibrary.queries import qb
+    from pyLibrary.queries import jx
 
     def _md_code(code):
         return "`"+code+"`"
@@ -679,7 +684,7 @@ def json_schema_to_markdown(schema):
     lines.append(schema.description)
     lines.append("")
 
-    for k, v in qb.sort(schema.properties.items(), 0):
+    for k, v in jx.sort(schema.properties.items(), 0):
         full_name = k
         if v.type in ["object", "array", "nested"]:
             lines.append("##"+_md_code(full_name)+" Property")

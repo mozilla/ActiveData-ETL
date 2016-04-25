@@ -7,33 +7,29 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
-import string
+import re
 from collections import Mapping
 from copy import deepcopy
 from datetime import datetime
-import re
-import time
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, Null, Dict, set_default, join_field, split_field, unwraplist, listwrap, literal_field
-from pyLibrary.dot.lists import DictList
 from pyLibrary.dot import wrap
+from pyLibrary.dot.lists import DictList
 from pyLibrary.env import http
 from pyLibrary.jsons.typed_encoder import json2typed
-from pyLibrary.maths.randoms import Random
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.strings import utf82unicode
 from pyLibrary.thread.threads import ThreadedQueue, Thread, Lock
-from pyLibrary.times.durations import MINUTE
-
 
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
@@ -93,7 +89,7 @@ class Index(Features):
                 with self.cluster.metadata_locker:
                     index_ = self.cluster._metadata.indices[self.settings.index]
                 if not index_:
-                    indices = self.cluster.get_metadata(index=self.settings.index).indices
+                    indices = self.cluster.get_metadata().indices
                     index_ = indices[self.settings.index]
 
                 candidate_types = list(index_.mappings.keys())
@@ -118,8 +114,8 @@ class Index(Features):
 
     def get_schema(self, retry=True):
         if self.settings.explore_metadata:
-            indices = self.cluster.get_metadata().indices
-            index = indices[self.settings.index]
+            metadata = self.cluster.get_metadata()
+            index = metadata.indices[self.settings.index]
 
             if index == None and retry:
                 #TRY AGAIN, JUST IN CASE
@@ -127,12 +123,21 @@ class Index(Features):
                 return self.get_schema(retry=False)
 
             if not index.mappings[self.settings.type]:
-                Log.error("ElasticSearch index ({{index}}) does not have type ({{type}})", self.settings)
+                Log.error(
+                    "ElasticSearch index {{index|quote}} does not have type {{type|quote}} in {{metadata|json}}",
+                    index=self.settings.index,
+                    type=self.settings.type,
+                    metadata=metadata
+                )
             return index.mappings[self.settings.type]
         else:
             mapping = self.cluster.get(self.path + "/_mapping")
             if not mapping[self.settings.type]:
-                Log.error("{{index}} does not have type {{type}}", self.settings)
+                Log.error(
+                    "ElasticSearch index {{index|quote}} does not have type {{type|quote}}",
+                    index=self.settings.index,
+                    type=self.settings.type
+                )
             return wrap({"mappings": mapping[self.settings.type]})
 
     def delete_all_but_self(self):
@@ -150,36 +155,31 @@ class Index(Features):
                 self.cluster.delete_index(a.index)
 
     def add_alias(self, alias=None):
-        if alias:
-            self.cluster_state = None
-            self.cluster.post(
-                "/_aliases",
-                data={
-                    "actions": [
-                        {"add": {"index": self.settings.index, "alias": alias}}
-                    ]
-                },
-                timeout=coalesce(self.settings.timeout, 30)
-            )
-        else:
-            # SET ALIAS ACCORDING TO LIFECYCLE RULES
-            self.cluster_state = None
-            self.cluster.post(
-                "/_aliases",
-                data={
-                    "actions": [
-                        {"add": {"index": self.settings.index, "alias": self.settings.alias}}
-                    ]
-                },
-                timeout=coalesce(self.settings.timeout, 30)
-            )
+        alias = coalesce(alias, self.settings.alias)
+        self.cluster_state = None
+        self.cluster.post(
+            "/_aliases",
+            data={
+                "actions": [
+                    {"add": {"index": self.settings.index, "alias": alias}}
+                ]
+            },
+            timeout=coalesce(self.settings.timeout, 30)
+        )
+
+        # WAIT FOR ALIAS TO APPEAR
+        while True:
+            if alias in self.cluster.get("/_cluster/state").metadata.indices[self.settings.index].aliases:
+                return
+            Log.note("Waiting for alias {{alias}} to appear", alias=alias)
+            Thread.sleep(seconds=1)
 
     def get_index(self, alias):
         """
         RETURN THE INDEX USED BY THIS alias
         """
         alias_list = self.cluster.get_aliases()
-        output = qb.sort(set([
+        output = jx.sort(set([
             a.index
             for a in alias_list
             if a.alias == alias or
@@ -394,8 +394,12 @@ class Index(Features):
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
 
-            not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f or "400 MapperParsingException" in f]
-            still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" not in f]
+            if e.cause.cause:
+                not_possible = [f for f in listwrap(e.cause.cause) if "JsonParseException" in f or "400 MapperParsingException" in f]
+                still_have_hope = [f for f in listwrap(e.cause.cause) if "JsonParseException" not in f and "400 MapperParsingException" not in f]
+            else:
+                not_possible = [e]
+                still_have_hope = []
 
             if still_have_hope:
                 Log.warning("Problem with sending to ES", cause=still_have_hope)
@@ -450,7 +454,6 @@ class Cluster(object):
         self.debug = settings.debug
         self.version = None
         self.path = settings.host + ":" + unicode(settings.port)
-
         self.get_metadata()
 
     @use_settings
@@ -476,17 +479,17 @@ class Cluster(object):
             settings.index = best.index
 
         index = settings.index
-        meta = self.get_metadata(index=index)
+        meta = self.get_metadata()
         columns = parse_properties(index, [], meta.indices[index].mappings.values()[0].properties)
         if len(columns)!=0:
-            settings.tjson = any(c.name.endswith("$value") for c in columns)
+            settings.tjson = tjson or any(c.name.endswith("$value") for c in columns)
 
         return Index(settings)
 
     def _get_best(self, settings):
-        from pyLibrary.queries import qb
+        from pyLibrary.queries import jx
         aliases = self.get_aliases()
-        indexes = qb.sort([
+        indexes = jx.sort([
             a
             for a in aliases
             if (a.alias == settings.index and settings.alias == None) or
@@ -563,9 +566,9 @@ class Cluster(object):
     ):
         if not settings.alias:
             settings.alias = settings.index
-            settings.index = proto_name(settings.alias)
+            index = settings.index = proto_name(settings.alias)
 
-        if settings.alias == settings.index:
+        if settings.alias == index:
             Log.error("Expecting index name to conform to pattern")
 
         if settings.schema_file:
@@ -589,22 +592,38 @@ class Cluster(object):
                 schema.settings.index.number_of_replicas = health.number_of_nodes - 1
 
         self.post(
-            "/" + settings.index,
+            "/" + index,
             data=schema,
             headers={"Content-Type": "application/json"}
         )
+
+        # CONFIRM INDEX EXISTS
         while True:
-            time.sleep(1)
             try:
-                self.head("/" + settings.index)
-                break
-            except Exception:
-                Log.note("{{index}} does not exist yet", index=settings.index)
+                state = self.get("/_cluster/state")
+                if index in state.metadata.indices:
+                    break
+                Log.note("Waiting for index {{index}} to appear", index=index)
+            except Exception, e:
+                Log.warning("Problem while waiting for index {{index}} to appear", index=index, cause=e)
+            Thread.sleep(seconds=1)
+        Log.alert("Made new index {{index|quote}}", index=index)
 
         es = Index(settings=settings)
         return es
 
     def delete_index(self, index_name):
+        if self.debug:
+            Log.note("Deleting index {{index}}", index=index_name)
+
+        # REMOVE ALL ALIASES TOO
+        aliases = [a for a in self.get_aliases() if a.index == index_name and a.alias != None]
+        if aliases:
+            self.post(
+                path="/_aliases",
+                data={"actions": [{"remove": a} for a in aliases]}
+            )
+
         url = self.settings.host + ":" + unicode(self.settings.port) + "/" + index_name
         try:
             response = http.delete(url)
@@ -633,25 +652,27 @@ class Cluster(object):
                     output.append({"index": index, "alias": a})
         return wrap(output)
 
-    def get_metadata(self, index=None, force=False):
-        with self.metadata_locker:
-            if self.settings.explore_metadata:
-                if not self._metadata or (force and index is None):
-                    response = self.get("/_cluster/state")
-                    self._metadata = wrap(response.metadata)
-                    self.cluster_state = wrap(self.get("/"))
-                    self.version = self.cluster_state.version.number
-                elif index:  # UPDATE THE MAPPING FOR ONE INDEX ONLY
-                    response = self.get("/"+index+"/_mapping")
-                    if self.version.startswith("0.90."):
-                        best = qb.sort(response.items(), 0).last()
-                        self._metadata.indices[index].mappings = best[1]
-                    else:
-                        self._metadata.indices[index].mappings = qb.sort(response.items(), 0).last()[1].mappings
-                    return Dict(indices={index: self._metadata.indices[index]})
-            else:
-                Log.error("Metadata exploration has been disabled")
+    def get_metadata(self, force=False):
+        if not self.settings.explore_metadata:
+            Log.error("Metadata exploration has been disabled")
+
+
+        if not self._metadata or force:
+            response = self.get("/_cluster/state")
+            with self.metadata_locker:
+                self._metadata = wrap(response.metadata)
+                # REPLICATE MAPPING OVER ALL ALIASES
+                indices = self._metadata.indices
+                for i, m in jx.sort(indices.items(), {"value": 0, "sort": -1}):
+                    m.index = i
+                    for a in m.aliases:
+                        if not indices[a]:
+                            indices[a] = {"index": i}
+                self.cluster_state = wrap(self.get("/"))
+                self.version = self.cluster_state.version.number
             return self._metadata
+
+        return self._metadata
 
     def post(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -673,7 +694,7 @@ class Cluster(object):
 
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
-                Log.error(response.reason + ": " + response.content)
+                Log.error(response.reason.decode("latin1") + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
             if self.debug:
                 Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
             details = convert.json2value(utf82unicode(response.content))
@@ -694,7 +715,7 @@ class Cluster(object):
                 Log.error(
                     "Problem with call to {{url}}" + suggestion + "\n{{body|left(10000)}}",
                     url=url,
-                    body=kwargs["data"][0:10000] if self.debug else kwargs["data"][0:100],
+                    body=strings.limit(kwargs["data"], 100 if self.debug else 10000),
                     cause=e
                 )
             else:
@@ -842,7 +863,7 @@ class Alias(Features):
             if not self.settings.alias or self.settings.alias==self.settings.index:
                 alias_list = self.cluster.get("/_alias/"+self.settings.index)
                 candidates = [(name, i) for name, i in alias_list.items() if self.settings.index in i.aliases.keys()]
-                full_name = qb.sort(candidates, 0).last()[0]
+                full_name = jx.sort(candidates, 0).last()[0]
                 index = self.cluster.get("/" + full_name + "/_mapping")[full_name]
             else:
                 index = self.cluster.get("/"+self.settings.index+"/_mapping")[self.settings.index]
@@ -877,7 +898,7 @@ class Alias(Features):
 
                 index = "dummy value"
                 schema = wrap({"_routing": {}, "properties": {}})
-                for _, ind in qb.sort(candidates, {"value": 0, "sort": -1}):
+                for _, ind in jx.sort(candidates, {"value": 0, "sort": -1}):
                     mapping = ind.mappings[self.settings.type]
                     set_default(schema._routing, mapping._routing)
                     schema.properties = _merge_mapping(schema.properties, mapping.properties)
@@ -999,8 +1020,9 @@ def parse_properties(parent_index_name, parent_query_path, esProperties):
             columns.extend(self_columns)
             columns.append(Column(
                 table=index_name,
+                es_index=index_name,
                 name=query_path,
-                abs_name=query_path,
+                es_column=query_path,
                 type="nested",
                 nested_path=query_path
             ))
@@ -1012,8 +1034,9 @@ def parse_properties(parent_index_name, parent_query_path, esProperties):
             columns.extend(child_columns)
             columns.append(Column(
                 table=index_name,
+                es_index=index_name,
                 name=query_path,
-                abs_name=query_path,
+                es_column=query_path,
                 type="source" if property.enabled == False else "object"
             ))
 
@@ -1028,15 +1051,17 @@ def parse_properties(parent_index_name, parent_query_path, esProperties):
                     # DEFAULT
                     columns.append(Column(
                         table=index_name,
+                        es_index=index_name,
                         name=query_path,
-                        abs_name=query_path,
+                        es_column=query_path,
                         type=p.type
                     ))
                 else:
                     columns.append(Column(
                         table=index_name,
+                        es_index=index_name,
                         name=query_path + "\\." + n,
-                        abs_name=query_path + "\\." + n,
+                        es_column=query_path + "\\." + n,
                         type=p.type
                     ))
             continue
@@ -1044,22 +1069,25 @@ def parse_properties(parent_index_name, parent_query_path, esProperties):
         if property.type in ["string", "boolean", "integer", "date", "long", "double"]:
             columns.append(Column(
                 table=index_name,
+                es_index=index_name,
                 name=query_path,
-                abs_name=query_path,
+                es_column=query_path,
                 type=property.type
             ))
             if property.index_name and name != property.index_name:
                 columns.append(Column(
                     table=index_name,
-                    abs_name=query_path,
+                    es_index=index_name,
+                    es_column=query_path,
                     name=query_path,
                     type=property.type
                 ))
         elif property.enabled == None or property.enabled == False:
             columns.append(Column(
                 table=index_name,
+                es_index=index_name,
                 name=query_path,
-                abs_name=query_path,
+                es_column=query_path,
                 type="source" if property.enabled==False else "object"
             ))
         else:

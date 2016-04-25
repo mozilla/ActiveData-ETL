@@ -23,7 +23,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms import EtlHeadGenerator
 
-
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"

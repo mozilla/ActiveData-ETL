@@ -18,8 +18,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date, unicode2datetime
-
+from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
@@ -101,7 +100,7 @@ class BuildbotTranslator(object):
 
         # BUILD ID AND DATE
         try:
-            output.build.date = Date(unicode2datetime(props.buildid, "%Y%m%d%H%M%S"))
+            output.build.date = unicode2Date(props.buildid, "%Y%m%d%H%M%S")
             output.build.id = props.buildid
             props.buildid = None
         except Exception, _:

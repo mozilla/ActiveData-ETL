@@ -16,7 +16,7 @@ from pyLibrary.dot import Dict, wrap, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
@@ -344,6 +344,13 @@ def parse_command_line(line):
     return output
 
 
+BAD_HEADERS = [
+    "New python executable in ",
+    "buildid: Error loading mozconfig: ",
+    "Traceback (most recent call last):"
+]
+
+
 def process_buildbot_log(all_log_lines, from_url):
     """
     Buildbot logs:
@@ -404,7 +411,7 @@ def process_buildbot_log(all_log_lines, from_url):
             # builduid: 64d75a07877a458fb9f21220ae4cb5a8
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
-                if curr_line.startswith("buildid: Error loading mozconfig: "):  # COMMON PATTERN
+                if any(curr_line.startswith(h) for h in BAD_HEADERS):  # COMMON PATTERN
                     process_head = False
                     data["mozconfig_load_error"] = True
                     continue
@@ -524,7 +531,7 @@ def fix_times(times, start_time, end_time):
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
-    for t in qb.reverse(times):
+    for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
             t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
@@ -563,5 +570,8 @@ if __name__ == "__main__":
     # for i, l in enumerate(response._all_lines(encoding=None)):
     #     Log.note("{{line}}", line=l)
 
-    data = process_buildbot_log(response.all_lines, "<unknown>")
-    Log.note("{{data}}", data=data)
+    try:
+        data = process_buildbot_log(response.all_lines, "<unknown>")
+        Log.note("{{data}}", data=data)
+    finally:
+        response.close()

@@ -22,8 +22,8 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.queries import es14, es09
 from pyLibrary.queries.containers.cube import Cube
 from pyLibrary.queries.domains import is_keyword, ALGEBRAIC
-from pyLibrary.queries.es14.util import qb_sort_to_es_sort
-from pyLibrary.queries.expressions import simplify_esfilter, qb_expression
+from pyLibrary.queries.es14.util import jx_sort_to_es_sort
+from pyLibrary.queries.expressions import simplify_esfilter, jx_expression, Variable, LeavesOp
 from pyLibrary.queries.query import DEFAULT_LIMIT
 from pyLibrary.times.timer import Timer
 
@@ -56,7 +56,7 @@ def es_setop(es, query):
     es_query, filters = es14.util.es_query_template(query.frum.name)
     set_default(filters[0], simplify_esfilter(query.where.to_esfilter()))
     es_query.size = coalesce(query.limit, queries.query.DEFAULT_LIMIT)
-    es_query.sort = qb_sort_to_es_sort(query.sort)
+    es_query.sort = jx_sort_to_es_sort(query.sort)
     es_query.fields = DictList()
 
     return extract_rows(es, es_query, query)
@@ -67,97 +67,97 @@ def extract_rows(es, es_query, query):
     select = wrap([s.copy() for s in listwrap(query.select)])
     new_select = DictList()
     columns = query.frum.get_columns()
-    leaf_columns = set(c.name for c in columns if c.type not in ["object", "nested"] and (not c.nested_path or c.abs_name == c.nested_path))
+    leaf_columns = set(c.name for c in columns if c.type not in ["object", "nested"] and (not c.nested_path or c.es_column == c.nested_path))
     nested_columns = set(c.name for c in columns if c.nested_path)
 
     i = 0
     source = "fields"
     for s in select:
         # IF THERE IS A *, THEN INSERT THE EXTRA COLUMNS
-        if s.value == "*":
-            es_query.fields = None
-            source = "_source"
+        if isinstance(s.value, LeavesOp):
+            if isinstance(s.value.term, Variable):
+                if s.value.term.var == ".":
+                    es_query.fields = None
+                    source = "_source"
 
-            net_columns = leaf_columns - set(select.name)
-            for n in net_columns:
+                    net_columns = leaf_columns - set(select.name)
+                    for n in net_columns:
+                        new_select.append({
+                            "name": n,
+                            "value": n,
+                            "put": {"name": n, "index": i, "child": "."}
+                        })
+                        i += 1
+                else:
+                    parent = s.value.var + "."
+                    prefix = len(parent)
+                    for c in leaf_columns:
+                        if c.startswith(parent):
+                            if es_query.fields is not None:
+                                es_query.fields.append(c)
+
+                            new_select.append({
+                                "name": s.name + "." + c[prefix:],
+                                "value": c,
+                                "put": {"name": s.name + "." + c[prefix:], "index": i, "child": "."}
+                            })
+                            i += 1
+
+        elif isinstance(s.value, Variable):
+            if s.value.var == ".":
+                es_query.fields = None
+                source = "_source"
+
                 new_select.append({
-                    "name": n,
-                    "value": n,
-                    "put": {"name": n, "index": i, "child": "."}
+                    "name": s.name,
+                    "value": s.value.var,
+                    "put": {"name": s.name, "index": i, "child": "."}
                 })
                 i += 1
-        elif s.value == ".":
-            es_query.fields = None
-            source = "_source"
+            elif s.value.var == "_id":
+                new_select.append({
+                    "name": s.name,
+                    "value": s.value.var,
+                    "pull": "_id",
+                    "put": {"name": s.name, "index": i, "child": "."}
+                })
+                i += 1
+            elif s.value.var in nested_columns:
+                es_query.fields = None
+                source = "_source"
 
-            new_select.append({
-                "name": s.name,
-                "value": s.value,
-                "put": {"name": s.name, "index": i, "child": "."}
-            })
-            i += 1
-        elif s.value == "_id":
-            new_select.append({
-                "name": s.name,
-                "value": s.value,
-                "pull": "_id",
-                "put": {"name": s.name, "index": i, "child": "."}
-            })
-            i += 1
-        elif isinstance(s.value, basestring) and s.value in nested_columns:
-            es_query.fields = None
-            source = "_source"
-
-            new_select.append({
-                "name": s.name,
-                "value": s.value,
-                "put": {"name": s.name, "index": i, "child": "."}
-            })
-            i += 1
-        elif isinstance(s.value, basestring) and s.value.endswith(".*") and is_keyword(s.value[:-2]):
-            parent = s.value[:-1]
-            prefix = len(parent)
-            for c in leaf_columns:
-                if c.startswith(parent):
-                    if es_query.fields is not None:
-                        es_query.fields.append(c)
-
-                    new_select.append({
-                        "name": s.name + "." + c[prefix:],
-                        "value": c,
-                        "put": {"name": s.name + "." + c[prefix:], "index": i, "child": "."}
-                    })
-                    i += 1
-        elif isinstance(s.value, basestring) and is_keyword(s.value):
-            parent = s.value + "."
-            prefix = len(parent)
-            net_columns = [c for c in leaf_columns if c.startswith(parent)]
-            if not net_columns:
-                # LEAF
-                if es_query.fields is not None:
-                    es_query.fields.append(s.value)
                 new_select.append({
                     "name": s.name,
                     "value": s.value,
                     "put": {"name": s.name, "index": i, "child": "."}
                 })
+                i += 1
             else:
-                # LEAVES OF OBJECT
-                for n in net_columns:
+                parent = s.value.var + "."
+                prefix = len(parent)
+                net_columns = [c for c in leaf_columns if c.startswith(parent)]
+                if not net_columns:
+                    # LEAF
                     if es_query.fields is not None:
-                        es_query.fields.append(n)
+                        es_query.fields.append(s.value.var)
                     new_select.append({
                         "name": s.name,
-                        "value": n,
-                        "put": {"name": s.name, "index": i, "child": n[prefix:]}
+                        "value": s.value,
+                        "put": {"name": s.name, "index": i, "child": "."}
                     })
-            i += 1
-        elif isinstance(s.value, list):
-            Log.error("need an example")
-            if es_query.fields is not None:
-                es_query.fields.extend([v for v in s.value])
+                else:
+                    # LEAVES OF OBJECT
+                    for n in net_columns:
+                        if es_query.fields is not None:
+                            es_query.fields.append(n)
+                        new_select.append({
+                            "name": s.name,
+                            "value": n,
+                            "put": {"name": s.name, "index": i, "child": n[prefix:]}
+                        })
+                i += 1
         else:
-            es_query.script_fields[literal_field(s.name)] = {"script": qb_expression(s.value).to_ruby()}
+            es_query.script_fields[literal_field(s.name)] = {"script": s.value.to_ruby()}
             new_select.append({
                 "name": s.name,
                 "pull": "fields." + literal_field(s.name),
@@ -182,7 +182,7 @@ def extract_rows(es, es_query, query):
         formatter, groupby_formatter, mime_type = format_dispatch[query.format]
 
         output = formatter(T, new_select, query)
-        output.meta.es_response_time = call_timer.duration
+        output.meta.timing.es = call_timer.duration
         output.meta.content_type = mime_type
         output.meta.es_query = es_query
         return output
@@ -202,7 +202,7 @@ def format_list(T, select, query=None):
         for row in T:
             r = Dict()
             for s in select:
-                r[s.put.child] = unwraplist(row[s.pull])
+                r[s.put.name][s.put.child] = unwraplist(row[s.pull])
             data.append(r if r else None)
 
     return Dict(

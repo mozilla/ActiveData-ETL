@@ -25,6 +25,7 @@ from pyLibrary.debugs.text_logs import TextLog_usingMulti, TextLog_usingThread, 
 from pyLibrary.dot import coalesce, listwrap, wrap, unwrap, unwraplist, Null, set_default
 from pyLibrary.strings import indent
 from pyLibrary.thread.threads import Thread, Queue
+from pyLibrary.times.durations import SECOND
 
 
 class Log(object):
@@ -357,7 +358,7 @@ class Log(object):
         params = dict(unwrap(default_params), **more_params)
 
         add_to_trace = False
-        cause = unwraplist([Except.wrap(c, stack_depth=1) for c in listwrap(cause)])
+        cause = wrap(unwraplist([Except.wrap(c, stack_depth=1) for c in listwrap(cause)]))
         trace = exceptions.extract_stack(stack_depth + 1)
 
         if add_to_trace:
@@ -461,6 +462,19 @@ def _get_metadata_from_from_aws(please_stop):
             machine_metadata.aws_instance_type = ec2.instance_type
             machine_metadata.name = ec2.instance_id
     except Exception:
+        pass
+Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
+
+
+# GET FROM AWS, IF WE CAN
+def _get_metadata_from_from_aws(please_stop):
+    try:
+        from pyLibrary import aws
+
+        ec2 = aws.get_instance_metadata(timeout=20*SECOND)
+        machine_metadata.aws_instance_type = ec2.instance_type
+        machine_metadata.name = coalesce(ec2.instance_id, machine_metadata.name)
+    except Exception, e:
         pass
 Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
 
