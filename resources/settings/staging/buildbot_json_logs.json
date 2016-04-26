@@ -27,18 +27,17 @@
 			},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/buildbot_json_logs.log",
+				"filename" : "/logs/buildbot_json_logs.log",
 				"maxBytes" : 10000000,
-				"backupCount" : 100,
+				"backupCount" : 10,
 				"encoding" : "utf8"
 			},
-
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Staging] Problem in Buildbot Scan",
-
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}
