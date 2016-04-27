@@ -41,7 +41,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             )
 
             if settings.source.prefix:
-                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             else:
                 full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
@@ -73,7 +73,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 ]
                 bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
                 synch.advance()
-                synch.source_key = MAX(g.select("_meta.count")) + 1
+                synch.source_key = MAX(g.get("_meta.count")) + 1
 
                 now = Date.now()
                 if work_queue != None:

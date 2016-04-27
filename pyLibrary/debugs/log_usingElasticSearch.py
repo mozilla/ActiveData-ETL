@@ -110,7 +110,13 @@ SCHEMA = {
         "properties": {
             "params": {"type": "object", "dynamic": False, "index": "no"},
             "template": {"type": "object", "dynamic": False, "index": "no"},
-            "context": {"type": "object", "dynamic": False, "index": "no"},
+            "context": {
+                "type": "object",
+                "dynamic": False,
+                "properties": {
+                    "$value": {"type": "string"}
+                }
+            },
             "$object": {"type": "string"},
             "machine": {
                 "dynamic": True,

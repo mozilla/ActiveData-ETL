@@ -53,6 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": taskid, "path": a.name})
+                a.expires = Date(a.expires)
                 if a.name.endswith("/live.log"):
                     read_buildbot_properties(normalized, a.url)
             normalized.task.artifacts = artifacts
@@ -61,17 +62,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = tc_message.etl
             etl_source = coalesce(etl_source, etl.source)
             etl.source = etl_source
-            normalized.etl = set_default(
-                {
-                    "id": i,
-                    "source": etl,
-                    "type": "join",
-                    "timestamp": Date.now()
-                },
-                machine_metadata
-            )
+            normalized.etl = {
+                "id": i,
+                "source": etl,
+                "type": "join",
+                "timestamp": Date.now(),
+                "machine": machine_metadata
+            }
 
-            tc_message.artifact="." if tc_message.artifact else None
+            tc_message.artifact = "." if tc_message.artifact else None
             if normalized.task.id in seen:
                 try:
                     assertAlmostEqual([tc_message, task, artifacts], seen[normalized.task.id], places=11)
@@ -80,6 +79,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             else:
                 tc_message._meta = None
                 tc_message.etl = None
+                tc_message.artifact = None
                 seen[normalized.task.id] = [tc_message, task, artifacts]
 
             output.append(normalized)
@@ -115,7 +115,7 @@ def _normalize(tc_message, task):
         output.task.image = {"path": task.payload.image}
 
     output.task.priority = task.priority
-    output.task.privisioner.id = task.provisionerId
+    output.task.provisioner.id = task.provisionerId
     output.task.retries.remaining = task.retriesLeft
     output.task.retries.total = task.retries
     output.task.routes = task.routes
@@ -144,7 +144,7 @@ def _normalize(tc_message, task):
 
     set_build_info(output, task)
     set_run_info(output, task)
-    output.build.type = set(listwrap(output.build.type))
+    output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
     return output
 
@@ -245,6 +245,11 @@ KNOWN_TAGS = {
     "description",
     "chunks.current",
     "chunks.total",
+    "crater.crateName",
+    "crater.toolchain.customSha",
+    "crater.crateVers",
+    "crater.taskType",
+
     "createdForUser",
     "extra.build_product",  # error?
     "funsize.partials",
@@ -266,6 +271,8 @@ KNOWN_TAGS = {
     "locations.symbols",
     "locations.tests",
     "name",
+    "npmCache.url",
+    "npmCache.expires",
     "owner",
     "signing.signature",
     "source",
@@ -292,6 +299,7 @@ KNOWN_TAGS = {
 KNOWN_BUILD_NAMES = {
     ("android-api-15", "android-api-15-b2gdroid", "b2gdroid-4-0-armv7-api15"): {},
     ("android-api-15", "android-api-15-gradle-dependencies", "android-4-0-armv7-api15"): {},
+    ("android-api-15", "android-checkstyle", "android-4-0-armv7-api15"): {},
     ("android-api-15", "android-lint", "android-4-0-armv7-api15"): {"build": {"platform": "lint"}},
     ("android-api-15", "android-api-15-partner-sample1", "android-4-0-armv7-api15-partner1"): {"run": {"machine": {"os": "android"}}},
     ("android-api-15", "android", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
@@ -314,11 +322,10 @@ KNOWN_BUILD_NAMES = {
     ("dbg-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug"]}},
     ("dbg-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
 
-
     ("desktop-test", None, "linux64"): {"build": {"platform": "linux64"}},
     ("desktop-test-xlarge", None, "linux64"): {"build": {"platform": "linux64"}},
+    ("desktop-test-xlarge", "marionette-harness-pytest", "linux64"): {"build": {"platform": "linux64"}},
     ("dolphin", "dolphin-eng", "b2g-device-image"): {},
-
 
     ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
@@ -365,7 +372,6 @@ KNOWN_BUILD_NAMES = {
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
-    (["rustbuild", None, None): {},
     ("signing-worker-v1", None, "linux32"): {},
     ("signing-worker-v1", None, "osx-10-10"):{},
     ("signing-worker-v1", None, "linux64"):{},
