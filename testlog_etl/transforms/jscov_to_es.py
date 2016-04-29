@@ -43,7 +43,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    Log.note("Processing Coverage" + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):

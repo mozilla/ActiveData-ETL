@@ -200,7 +200,7 @@ class ETL(Thread):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys= old_keys,
                         source_key= source_key)
                     continue
@@ -222,7 +222,7 @@ class ETL(Thread):
                         for k in delete_me:
                             action._destination.delete_key(k)
                     else:
-                        Log.note("delete keys?\n{{list}}",  list= sorted(delete_me))
+                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
                         # for k in delete_me:
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET

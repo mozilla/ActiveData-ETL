@@ -9,9 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from copy import copy
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import listwrap, set_default
+from pyLibrary.dot import listwrap, set_default, wrap
 from testlog_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 
@@ -41,15 +43,17 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 
-        tc = convert.json2value(line)
+        task_cluster_summary = convert.json2value(line)
+        short_summary = copy(task_cluster_summary)
+        short_summary.task = {"id": task_cluster_summary.task.id}
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
-        for j, a in enumerate(listwrap(tc.task.artifacts)):
+        for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
             if lines:
-                dest_key, dest_etl = etl_header_gen.next(tc.etl, a.name)
-                set_default(dest_etl, machine_metadata)
-                process_unittest(dest_key, dest_etl, tc, lines, destination, please_stop=please_stop)
+                dest_key, dest_etl = etl_header_gen.next(task_cluster_summary.etl, a.name)
+                dest_etl.machine=machine_metadata
+                process_unittest(dest_key, dest_etl, short_summary, lines, destination, please_stop=please_stop)
                 file_num += 1
                 output.append(dest_key)
 
