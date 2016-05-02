@@ -152,11 +152,11 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
 
 
 def string2datetime(value, format=None):
-    return Date(value, format).value
+    return unix2datetime(Date(value, format).unix)
 
 
 def str2datetime(value, format=None):
-    return string2datetime(value, format)
+    return unix2datetime(Date(value, format).unix)
 
 
 def datetime2string(value, format="%Y-%m-%d %H:%M:%S"):

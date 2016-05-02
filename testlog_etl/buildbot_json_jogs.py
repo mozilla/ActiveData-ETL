@@ -17,7 +17,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes
+from pyLibrary.env.big_data import scompressed2ibytes, icompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
@@ -87,6 +87,8 @@ def parse_day(settings, p, force=False):
     tasks = get_all_tasks(day_url)
     first = None
     for group_number, ts in jx.groupby(tasks, size=100):
+        if DEBUG:
+            Log.note("Processing block {{num}}", num=group_number)
         parsed = []
 
         group_etl = Dict(
@@ -141,7 +143,7 @@ def get_all_logs(url):
             filename = strings.between(line, '</td><td><a href=\"', '">')
             if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
                 paths.append(filename)
-            paths = jx.reverse(jx.sort(paths))
+        paths = jx.reverse(jx.sort(paths))
         return paths
     finally:
         response.close()

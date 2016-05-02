@@ -1,5 +1,38 @@
 #!/usr/bin/env bash
 
+
+
+
+sudo yum -y install git
+
+# INSTALL PYTHON
+sudo yum -y install python27
+sudo easy_install pip
+
+# BUILDBOT PROCESSING REQUIRES THE FOLLOWING POLICY
+#{
+#    "Version": "2012-10-17",
+#    "Statement": [
+#        {
+#            "Effect": "Allow",
+#            "Action": [
+#                "sqs:*",
+#                "s3:*"
+#            ],
+#            "Resource": [
+#                "*"
+#            ]
+#        }
+#    ]
+#}
+# INSTALL BUILDBOT IMPORT
+cd  /home/ec2-user
+git clone https://github.com/klahnakoski/TestLog-ETL.git
+cd /home/ec2-user/TestLog-ETL/
+git checkout manager
+
+sudo /usr/local/bin/pip install -r requirements.txt
+
 # SPOT MANAGER REQUIRES THE FOLLOWING POLICY
 #{
 #    "Version": "2012-10-17",
@@ -10,6 +43,7 @@
 #                "ec2:*",
 #                "ses:*",
 #                "sqs:*",
+#                "s3:*",
 #                "iam:PassRole"
 #            ],
 #            "Resource": [
@@ -18,22 +52,6 @@
 #        }
 #    ]
 #}
-
-
-sudo yum -y install git
-
-# INSTALL PYTHON
-sudo yum -y install python27
-sudo easy_install pip
-
-# INSTALL BUILDBOT IMPORT
-cd  /home/ec2-user
-git clone https://github.com/klahnakoski/TestLog-ETL.git
-cd /home/ec2-user/TestLog-ETL/
-git checkout manager
-
-sudo /usr/local/bin/pip install -r requirements.txt
-
 # INSTALL SpotManager
 cd  /home/ec2-user
 git clone https://github.com/klahnakoski/SpotManager.git
