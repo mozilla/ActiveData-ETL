@@ -8,6 +8,8 @@
 #
 from __future__ import unicode_literals
 
+from copy import copy
+
 from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants
@@ -88,6 +90,11 @@ def _get_branches_from_hg(settings):
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
         # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
+
+    for b in list(branches):
+        if b.name.startswith("mozilla-esr"):
+            branches.add(set_default({"name": "release-" + b.name}, b))  # THIS IS THE l10n "name"
+            b.url = "https://hg.mozilla.org/releases/" + b.name
 
     #CHECKS
     for b in branches:
