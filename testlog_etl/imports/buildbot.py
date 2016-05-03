@@ -9,15 +9,16 @@
 
 from __future__ import unicode_literals
 from __future__ import division
+import ast
 
 import re
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
+from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date, unicode2datetime
-
+from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
@@ -38,7 +39,18 @@ class BuildbotTranslator(object):
 
         props = data.properties
         if not props or not props.buildername:
-            output.other = props
+            output.properties, output.other = normalize_other(props)
+            return output
+
+        # TASK CLUSTER ID
+        output.task.id = props.taskId
+
+        if props.taskId and data.reason.startswith("Created by BBB for task "):
+            output.properties, output.other = normalize_other(props)
+            return output
+
+        if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
+            output.properties, output.other = normalize_other(props)
             return output
 
         output.action.job_number = props.buildnumber
@@ -62,20 +74,34 @@ class BuildbotTranslator(object):
 
         # REVISIONS
         output.build.revision = coalesce(props.revision, props.gecko_revision)
-        output.build.revision12 = props.revision[0:12]
+        output.build.revision12 = output.build.revision[0:12]
         if props.gecko_revision:
             if props.gecko_revision[0:12] != output.build.revision12:
-                Log.error("expecting revision to be the gecko revision")
+                Log.error("expecting revision to be the gecko revision\n{{data}}", data=data)
             output.build.gecko_revision = output.build.revision
             output.build.gecko_revision12 = output.build.revision[0:12]
             output.build.gaia_revision = props.gaia_revision
             output.build.gaia_revision12 = props.gaia_revision[0:12]
 
+        # TODO: LOOKS LIKE A "release" LOOKUP CAN FILL IN THE REVISION
+        #     if builddata['tree'].startswith('release-') and builddata['revision'] in [None, 'None']:
+        #         try:
+        #             url = 'https://hg.mozilla.org/releases/{tree}/json-rev/{release_tag}'.format(
+        #                 tree=builddata['tree'].split('release-')[1],
+        #                 release_tag=builddata['release']
+        #             )
+        #             response = requests.get(url)
+        #             builddata['revision'] = response.json()['node']
+        #         except Exception:
+        #             # We cannot raise an exception due to a broken release rev for repacks
+        #             # https://bugzilla.mozilla.org/show_bug.cgi?id=1219432#c1
+        #             pass
+
         output.version = props.version
 
         # BUILD ID AND DATE
         try:
-            output.build.date = Date(unicode2datetime(props.buildid, "%Y%m%d%H%M%S"))
+            output.build.date = unicode2Date(props.buildid, "%Y%m%d%H%M%S")
             output.build.id = props.buildid
             props.buildid = None
         except Exception, _:
@@ -161,8 +187,8 @@ class BuildbotTranslator(object):
             if key == expected:
                 output.build.name = props.buildername
                 scrub_known_properties(props)
-                output.other = props
-                output.action.build = True
+                output.properties, output.other = normalize_other(props)
+                output.action.type = coalesce(output.action.type, "build")
                 verify(output, data)
                 return output
 
@@ -189,10 +215,28 @@ class BuildbotTranslator(object):
 
             if branch_name == "addon-sdk":
                 output.build.branch = match.groups()[0]
+        elif key.startswith("b2g_" + branch_name + "_") and endswith(key, ["nightly", "periodic", "dep", "build", "nonunified"]):
+            output.build.trigger = trigger = endswith(key, ["nightly", "periodic", "dep", "build", "nonunified"])
+            output.build.name = raw_platform = key[5 + len(branch_name):-(len(trigger) + 1)]
+            output.action.type = "build"
+            if raw_platform not in KNOWN_PLATFORM:
+                if raw_platform not in self.unknown_platforms:
+                    self.unknown_platforms += [raw_platform]
+                    Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                else:
+                    return Dict()  # ERROR INGNORED, ALREADY SENT
+            set_default(output, KNOWN_PLATFORM[raw_platform])
         elif key.endswith("nightly"):
+            output.build.trigger = "nightly"
             try:
+                temp = key.split(" " + branch_name + " ")
+                if len(temp) == 1:
+                    raw_platform = temp[0]
+                    build = ""
+                else:
+                    raw_platform, build = temp[0:2]
+
                 output.build.name = props.buildername
-                raw_platform, build = key.split(" " + branch_name + " ")
                 set_default(output, TEST_PLATFORMS[raw_platform])
 
                 for t in BUILD_TYPES:
@@ -203,7 +247,13 @@ class BuildbotTranslator(object):
 
         elif key.endswith("build"):
             try:
-                raw_platform, build = key.split(" " + branch_name + " ")
+                temp = key.split(" " + branch_name + " ")
+                if len(temp) == 1:
+                    raw_platform = temp[0]
+                    build = ""
+                else:
+                    raw_platform, build = temp[0:2]
+
                 output.build.name = raw_platform
                 if raw_platform not in TEST_PLATFORMS:
                     if raw_platform not in self.unknown_platforms:
@@ -212,16 +262,17 @@ class BuildbotTranslator(object):
                     else:
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
-                output.action.build = True
+                output.action.type = "build"
             except Exception, e:
-                raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data)
+                raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=key, data=data, cause=e)
 
-            for t in BUILD_FEATURES:
-                if t in build:
-                    output.tags += [t]
             for t in BUILD_TYPES:
                 if t in build:
                     output.build.type += [t]
+        elif key.endswith("non-unified"):
+            output.build.name = props.buildername
+            raw_platform, build = key.split(" " + branch_name + " ")
+            set_default(output, TEST_PLATFORMS[raw_platform])
         elif key.endswith("valgrind"):
             output.build.name = props.buildername
             raw_platform, build = key.split(" " + branch_name + " ")
@@ -231,14 +282,14 @@ class BuildbotTranslator(object):
             try:
                 raw_platform, test = key.split(" " + branch_name + " ")
             except Exception:
-                Log.error("Not recognized: {{key}}\n{{data}}", key=key, data=data)
+                Log.error("No recognized branch name: {{key}}\n{{data}}", key=key, data=data)
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
-                Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 if raw_platform not in self.unknown_platforms:
                     self.unknown_platforms += [raw_platform]
-                    Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                    Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
                     return Dict()  # ERROR INGNORED, ALREADY SENT
 
@@ -248,8 +299,8 @@ class BuildbotTranslator(object):
             if not parsed:
                 Log.error("Test mode not recognized: {{key}}\n{{data|json}}", key=key, data=data)
 
-        output.other = props
         verify(output, data)
+        output.properties, output.other = normalize_other(props)
         return output
 
 
@@ -259,7 +310,7 @@ def verify(output, data):
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)
         Log.error("Bad OS {{os}}\n{{data|json}}", os=output.run.machine.os, data=data)
-    if output.action.test and output.build.platform not in ALLOWED_PLATFORMS:
+    if "test" in output.action.type and output.build.platform not in ALLOWED_PLATFORMS:
         ALLOWED_PLATFORMS.append(output.build.platform)
         Log.error("Bad Platform {{platform}}\n{{data|json}}", platform=output.build.platform, data=data)
     if output.build.product not in ALLOWED_PRODUCTS:
@@ -321,27 +372,85 @@ def scrub_known_properties(props):
     props.script_repo_url = None
     props.slavename = None
     props.version = None
+    props.uploadFiles = unquote(props.uploadFiles)
+    props.partialInfo = unquote(props.partialInfo)
 
+
+def unquote(value):
+    try:
+        return ast.literal_eval(value)
+    except Exception:
+        pass
+
+    try:
+        return convert.json2value(value)
+    except Exception:
+        pass
+
+    return value
+
+
+
+
+
+def normalize_other(other):
+    """
+    the buildbot properties are unlimited in thie number of keys
+    """
+    known = {}
+    unknown = []
+    for k, v in other.items():
+        v = elasticsearch.scrub(v)
+        if not v:
+            continue
+
+        if k in known_properties:
+            known[k] = v
+            continue
+
+        if k not in unknown_properties:
+            Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
+        unknown_properties[k] += 1
+        unknown.append({"name": unicode(k), "value": unicode(v)})
+
+    return known, unknown
+
+
+known_properties = {
+    "appVersion",
+    "aws_ami_id",
+    "base_bundle_urls",
+    "builddir",
+    "comments",
+    "got_revision",
+    "master",
+    "scheduler",
+    "slavebuilddir",
+    "stage_platform",
+    "appName",
+    "basedir",
+    "builduid",
+    "packageFilename",
+    "sourcestamp",
+    "symbolsUrl",
+    "testsUrl",
+    "testPackagesUrl",
+    "uploadFiles"
+}
+
+unknown_properties=Dict()
 
 
 test_modes = {
-    "debug test": {"build": {"type": ["debug"]}, "action": {"test": True}},
-    "opt test": {"build": {"type": ["opt"]}, "action": {"test": True}},
-    "pgo test": {"build": {"type": ["pgo"]}, "action": {"test": True}},
-    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"test": True, "talos": True}},
-    "talos": {"action": {"test": True, "talos": True}}
+    "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
+    "opt test": {"build": {"type": ["opt"]}, "action": {"type": "test"}},
+    "pgo test": {"build": {"type": ["pgo"]}, "action": {"type": "test"}},
+    "pgo talos": {"build": {"type": ["pgo"]}, "action": {"type": ["test", "talos"]}},
+    "talos": {"action": {"type": ["test", "talos"]}}
 }
 
 BUILDER_NAMES = [
-    'b2g_{{branch}}_{{platform}} build',
-    'b2g_{{branch}}_{{platform}}-debug_periodic',
-    'b2g_{{branch}}_{{platform}}_dep',
-    'b2g_{{branch}}_{{platform}}_nightly',
-    'b2g_{{branch}}_{{platform}} nightly',
-    'b2g_{{branch}}_{{platform}}_periodic',
-    'b2g_{{branch}}_emulator-debug_dep',
-    'b2g_{{branch}}_emulator_dep',
-    'b2g_{{branch}}_{{product}}_eng_periodic', # {"build":{"product":"{{product}}"}}
+
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -359,6 +468,7 @@ BUILDER_NAMES = [
     '{{branch}}-{{product}}_esr_updates',
     '{{branch}}-{{product}}_push_to_mirrors',
     '{{branch}}-{{product}}_postrelease',
+    '{{branch}}-{{product}}_ready_for_release',
     '{{branch}}-{{product}}_ready_for_releasetest_testing',
     '{{branch}}-{{product}}_reset_schedulers',
     '{{branch}}-{{product}}_release_ready_for_release-cdntest_testing',
@@ -370,6 +480,7 @@ BUILDER_NAMES = [
     '{{branch}}-{{product}}_tag_source',
     '{{branch}}-{{product}}_updates',
 
+    '{{branch}}_{{platform}}',
     '{{branch}}-{{platform}}_build',
     '{{branch}}-{{platform}}_update_verify_{{step}}',
     '{{branch}}-{{platform}}_update_verify_beta_{{step}}',
@@ -392,6 +503,7 @@ BUILDER_NAMES = [
     '{{platform}}_{{branch}}_dep',
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
+    'linux64-br-haz_{{branch}}_dep',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
@@ -402,50 +514,47 @@ BUILD_TYPES = [
     "mulet",  # COMMON FRAMEWORK FOR b2g and Firefox
     "opt",    # OPTIMIZED
     "pgo",    # PROFILE GUIDED OPTIMIZATIONS
-    "tsan"    # THREAD SANITIZER
-]
-
-BUILD_FEATURES = [
+    "tsan",   # THREAD SANITIZER
+    "l10n",   # INTERNATIONALIZATION
     "leak test",
     "static analysis"
+
 ]
 
 TEST_PLATFORMS = {
     "Android 2.3": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
+    "Android 2.3 Armv6": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 2.3 Armv6 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator armv6"}}, "build": {"platform": "android"}},
     "Android 2.3 Emulator": {"run": {"machine": {"os": "android 2.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android 2.3 Debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "andriod"}},
+    "Android 4.0 armv7 API 10+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.0 armv7 API 11+": {"run": {"machine": {"os": "android 4.0", "type": "arm7"}}, "build": {"platform": "android"}},
     "Android 4.0 Panda": {"run": {"machine": {"os": "android 4.0", "type": "panda"}}, "build": {"platform": "android"}},
     "Android 4.2 x86": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.2 x86 Emulator": {"run": {"machine": {"os": "android 4.2", "type": "emulator x86"}}, "build": {"platform": "android"}},
     "Android 4.3 armv7 API 11+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
-    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.3 armv7 API 15+": {"run": {"machine": {"os": "android 4.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android 4.3 Emulator": {"run": {"machine": {"os": "android 4.3", "type": "emulator"}}, "build": {"platform": "android"}},
     "Android armv7 API 9": {"run": {"machine": {"os": "android 2.3", "type": "arm7"}}, "build": {"platform": "android"}},
-    "b2g_b2g-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g", "product": "b2g"}},
-    "b2g_emulator-kk_vm":{"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame", "product": "b2g"}},
-    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "product": "b2g"}},
-    "b2g_emulator_vm_large": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_emulator-jb_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_macosx64": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-central_emulator_nightly": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-central_flame-kk_nightly": {"run": {"machine": {"os": "b2g", "type": "flame"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-inbound_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_mozilla-inbound_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "b2g_try_emulator_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "b2g_try_emulator-debug_dep": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
+    "Android armv7 API 10+": {"run": {"machine": {"os": "android 2.3.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 11+": {"run": {"machine": {"os": "android 3.0", "type": "arm7"}}, "build": {"platform": "android"}},
+    "Android armv7 API 15+": {"run": {"machine": {"os": "android 4.0.3", "type": "arm7"}}, "build": {"platform": "android"}},
+    "b2g_emulator-kk_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "flame"}},
+    "b2g_emulator_vm": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "b2g_ubuntu32_vm": {"run": {"machine": {"os": "b2g", "type": "emulator32"}}, "build": {"platform": "b2g"}},
+    "b2g_ubuntu64_vm": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g"}},
+    "b2g_macosx64": {"run": {"machine": {"os": "b2g", "type": "emulator64"}}, "build": {"platform": "b2g"}},
     "Linux": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Linux x86-64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Linux x86-64 Mulet": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "OS X 10.7": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "OS X 10.7 64-bit": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "OS X Mulet": {"run": {"machine": {"os": "macosx"}}, "build": {"platform": "macosx", "type": ["mulet"]}},
+    "Rev4 MacOSX Snow Leopard 10.6": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
+    "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.8"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Yosemite 10.10": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
-    "Rev4 MacOSX Snow Leopard 10.6": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
-    "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.10"}}, "build": {"platform": "macosx64"}},
+    "Rev7 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu TSAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
@@ -457,6 +566,8 @@ TEST_PLATFORMS = {
     "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
@@ -498,6 +609,7 @@ ALLOWED_OS = [
     "android 4.0",
     "android 4.2",
     "android 4.3",
+    "android 4.0.3",
     "b2g",
     "lion 10.7",
     "macosx",
@@ -508,7 +620,7 @@ ALLOWED_OS = [
     "win7",
     "win8",
     "win10",
-    "yosemite 10.10",
+    "yosemite 10.10"
 ]
 
 KNOWN_PLATFORM = {
@@ -517,24 +629,26 @@ KNOWN_PLATFORM = {
     "android-debug": {"build": {"platform": "android", "type": ["debug"]}},
     "android-api-9": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android"}},
     "android-api-9-debug": {"run": {"machine": {"os": "android 2.3"}}, "build": {"platform": "android", "type": ["debug"]}},
-    "android-api-11": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android"}},
-    "android-api-11-debug": {"run": {"machine": {"os": "android 4.3"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-11": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android"}},
+    "android-api-11-debug": {"run": {"machine": {"os": "android 3.0"}}, "build": {"platform": "android", "type": ["debug"]}},
+    "android-api-15": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android"}},
+    "android-api-15-debug": {"run": {"machine": {"os": "android 4.0.3"}}, "build": {"platform": "android", "type": ["debug"]}},
     "android-x86": {"run": {"type": "emulator"}, "build": {"platform": "android"}},
     "panda_android": {"run": {"type": "panda"}, "build": {"platform": "android"}},
     "b2g": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "b2g"}},
-    "dolphin":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
-    "dolphin_eng":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
-    "dolphin-512":{"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
-    "dolphin-512_eng":{"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
+    "dolphin": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
+    "dolphin_eng": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "dolphin"}},
+    "dolphin-512": {"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
+    "dolphin-512_eng": {"run": {"machine": {"os": "b2g", "memory": 512}}, "build": {"platform": "dolphin"}},
     "emulator": {"run": {"machine": {"type": "emulator"}}},
     "emulator-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     "emulator-jb": {"run": {"machine": {"type": "emulator"}}, "build": {}},
-    "emulator-jb-debug":{"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    "emulator-kk":{"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame"}},
+    "emulator-jb-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
+    "emulator-kk": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame"}},
     "emulator-kk-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"platform": "flame", "type": ["debug"]}},
     "emulator-l": {"run": {"machine": {"type": "emulator"}}},
     "emulator-l-debug": {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    "flame":{"build": {"platform": "flame"}},
+    "flame": {"build": {"platform": "flame"}},
     "flame_eng": {"build": {"platform": "flame"}},
     "flame-kk": {"build": {"platform": "flame"}},
     "flame-kk_eng": {"build": {"platform": "flame"}},
@@ -542,17 +656,17 @@ KNOWN_PLATFORM = {
     "hamachi": {"build": {"platform": "hamachi"}},
     "hamachi_eng": {"build": {"platform": "hamachi"}},
     "helix": {"build": {"platform": "helix"}},
-    "l10n": {},
+    "l10n": {"action": {"type": "l10n"}},
     "linux": {"build": {"platform": "linux32"}},
     "linux-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
-    "linux32_gecko": {"build": {"platform": "linux32", "type": ["debug"]}},
+    "linux32_gecko": {"build": {"platform": "linux32"}},
     "linux32_gecko-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
     "linux32_gecko_localizer": {},
     "linux64": {"build": {"platform": "linux64"}},
     "linux64-asan": {"build": {"platform": "linux64", "type": ["asan"]}},
     "linux64-asan-debug": {"build": {"platform": "linux64", "type": ["asan", "debug"]}},
-    "linux64-b2g-haz": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "linux64-br-haz": {"build": {"platform": "linux64"}},
+    "linux64-b2g-haz": {"action": {"type": "hazard build"}, "run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
+    "linux64-br-haz": {"action": {"type": "hazard build"}, "build": {"platform": "linux64"}},
     "linux64-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
     "linux64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "linux64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
@@ -562,11 +676,11 @@ KNOWN_PLATFORM = {
     "linux64-tsan": {"build": {"platform": "linux64", "type": ["tsan"]}},
     "linux64-mulet": {"build": {"platform": "linux64", "type": ["mulet"]}},
     "linux64-st-an-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
-    "linux64-sh-haz": {"build": {"platform": "linux64", "type": ["debug"]}},
+    "linux64-sh-haz": {"action": {"type": "hazard build"}, "build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx64-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
-    "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": "debug"}},
+    "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "macosx64_gecko_localizer": {},
     "macosx64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "macosx64"}},
     "macosx64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "macosx64"}},
@@ -579,32 +693,38 @@ KNOWN_PLATFORM = {
     "nexus-4_eng": {"build": {"platform": "nexus4"}},
     "nexus-5-l": {"build": {"platform": "nexus5"}},
     "nexus-5-l_eng": {"build": {"platform": "nexus5"}},
+    "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
-
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
-    "ubuntu64-asan_vm":{"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
+    "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
-    "wasabi":{"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
+    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
     "win32-mulet": {"build": {"platform": "win32", "type": ["mulet"]}},
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
-    "win32_gecko_localizer":{},
+    "win32_gecko_localizer": {},
+    "win32-st-an-debug":{"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},
     "win64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "win64"}},
     "win64-rev2": {"build": {"platform": "win64"}},
     "win7-ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "win7_ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win8": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win8_64": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win10_64": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "xp-ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
-    "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
+    "xp_ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
+    "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
 }
+
 
 ALLOWED_PLATFORMS = [
     "android",
@@ -622,6 +742,7 @@ ALLOWED_PLATFORMS = [
 
 
 ALLOWED_PRODUCTS = [
+    None,
     "b2g",
     "fennec",
     "firefox",
@@ -632,3 +753,10 @@ ALLOWED_PRODUCTS = [
     "thunderbird",
     "xulrunner"
 ]
+
+
+
+def endswith(key, options):
+    for o in options:
+        if key.endswith(o):
+            return o

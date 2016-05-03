@@ -11,12 +11,16 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"hg": {
-		"url": "https://hg.mozilla.org",
+		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
 		"branches": {
 			"host": "http://192.168.2.98",
 			"port": 9200,
@@ -67,84 +71,105 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-beta",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-            "name": "bbb2jobs",
+            "name": "pulse_to_task_cluster",
             "source": {
                 "$ref": "file://~/private.json#aws_credentials",
-                "bucket": "active-data-buildbot-beta",
-                "key_format": "a.b"
+                "bucket": "active-data-task-cluster-logger-beta",
+                "key_format": "a:b"
             },
-            "destination": {
-                "$ref": "file://~/private.json#aws_credentials",
-                "bucket": "active-data-jobs-beta",
-                "public": true,
-                "key_format": "a.b"
-            },
-            "notify": {
-                "name": "active-data-index-jobs-beta",
-                "$ref": "file://~/private.json#aws_credentials"
-            },
-            "transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
-            "type": "join",
-            "transform_type": "bulk"
-        },
-		{
-			"name": "talos2perf",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-talos-beta",
-				"key_format": "a:b.c"
-			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perf-beta",
+				"bucket": "active-data-task-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "a:b"
 			},
-			"notify":{
-				"name": "active-data-index-perf-beta",
+			"notify": {
+				"name": "active-data-index-task-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transform_type": "bulk",
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
-			"type": "join"
-		},
+			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
+            "type": "join"
+        },
+//		{
+//			"name": "bbb2jobs",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-buildbot-beta",
+//				"key_format": "a.b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-jobs-beta",
+//				"public": true,
+//				"key_format": "a.b"
+//			},
+//			"notify": {
+//				"name": "active-data-index-jobs-beta",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
+//		{
+//			"name": "talos2perf",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-talos-beta",
+//				"key_format": "a:b.c"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perf-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify":{
+//				"name": "active-data-index-perf-beta",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transform_type": "bulk",
+//			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
+//			"type": "join"
+//		},
 		{
-			"name": "pulse2test_result",
+			"name": "pulse2perfherder",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-beta",
+				"public": true,
 				"key_format": "a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result-beta",
+				"bucket": "active-data-perfherder-beta",
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"notify": {
-				"name": "active-data-index-beta",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
+			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
 		}
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-beta",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-test-result-beta",
+//				"public": true,
+//				"key_format": "a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index-beta",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,
@@ -157,11 +182,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV] Problem in ETL",
-				"$ref": "file://~/private.json#email"
+
 			}
 
 		]

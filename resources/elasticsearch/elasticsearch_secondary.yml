@@ -14,7 +14,7 @@ cluster.routing.allocation.cluster_concurrent_rebalance: 1
 cluster.routing.allocation.node_concurrent_recoveries: 1
 
 bootstrap.mlockall: true
-path.data: /data1, /data2, /data3
+path.data: /data1, /data2, /data3, /data4, /data5
 path.logs: /data1/logs
 cloud:
     aws:

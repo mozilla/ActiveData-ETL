@@ -17,7 +17,7 @@
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-jobs",
-		"key_format": "a:b.c"
+		"key_format": "a.b"
 	},
 	"work_queue": {
 		"name": "active-data-index-jobs",
@@ -26,7 +26,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		}
 	},
 	"debug": {
@@ -36,11 +37,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV]Problem in Push jobs to ES",
-				"$ref": "file://~/private.json#email"
+
 
 			}
 		]

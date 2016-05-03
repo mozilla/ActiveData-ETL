@@ -9,11 +9,13 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from collections import Mapping
+
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce
+from pyLibrary.dot import coalesce, unwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
@@ -27,14 +29,18 @@ def copy2es(es, settings, work_queue, please_stop=None):
     # EVERYTHING FROM ELASTICSEARCH
     bucket = s3.Bucket(settings.source)
 
-    for key in iter(work_queue.pop, ""):
+    for pair in iter(work_queue.pop_message, ""):
         if please_stop:
             es.queue.add(Thread.STOP)
             return
-        if key == None:
+        if pair == None:
             continue
 
-        key = unicode(key)
+        message, payload = pair
+        if isinstance(payload, Mapping):
+            key = payload["key"]
+        else:
+            key = unicode(payload)
         extend_time = Timer("insert", silent=True)
         Log.note("Indexing {{key}}", key=key)
         with extend_time:
@@ -48,6 +54,11 @@ def copy2es(es, settings, work_queue, please_stop=None):
             more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
+            def _delete():
+                Log.note("confirming message for {{id}}", id=payload.key)
+                message.delete()
+
+            es.queue.add(_delete)
         if num_keys > 1:
             Log.note(
                 "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",
@@ -56,8 +67,6 @@ def copy2es(es, settings, work_queue, please_stop=None):
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
             )
-
-        work_queue.commit()
 
 
 def main():
@@ -87,14 +96,14 @@ def main():
         }
 
         if settings.args.reset:
-            c = elasticsearch.Cluster(settings.elasticsearch)
+            cluster = elasticsearch.Cluster(settings.elasticsearch)
             alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
-            index = c.get_prototype(alias)[0]
+            index = cluster.get_prototype(alias)[0]
             if index:
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                c.create_index(settings=settings.elasticsearch)
+                cluster.create_index(settings=settings.elasticsearch)
                 Log.alert("Done.  Exiting.")
                 return
 
@@ -106,7 +115,7 @@ def main():
 
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-        es = MultiDayIndex(settings.elasticsearch, queue_size=100000)
+        es = MultiDayIndex(settings.elasticsearch, queue_size=coalesce(settings.queue_size, 100000), batch_size=unwrap(settings.batch_size))
 
         threads = []
         please_stop = Signal()

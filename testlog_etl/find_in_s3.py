@@ -13,7 +13,7 @@ from pyLibrary import convert
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
 
     source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
-    for k in qb.sort(source.keys()):
+    for k in jx.sort(source.keys()):
         try:
             data = source.read_bytes(k)
             if convert.ascii2unicode(data).find("2e2834fa7ecd8d3bb1ad49ec981fdb89eb4df95e18") >= 0:

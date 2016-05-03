@@ -14,22 +14,30 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		}
 	},
 	"debug": {
 		"trace": true,
-		"cprofile": false,
+		"cprofile": true,
 		"log": [
 			{
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "/logs/buildbot_json_logs.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 10,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Staging] Problem in Buildbot Scan",
-				"$ref": "file://~/private.json#email"
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

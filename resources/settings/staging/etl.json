@@ -10,13 +10,17 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg": {
 		"use_cache": true,
+		"hg":{
+			"url": "https://hg.mozilla.org"
+		},
 		"branches": {
 			"host": "http://activedata.allizom.org",
 			"port": 9200,
@@ -65,23 +69,28 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
-		{
-			"name": "pulse2talos",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
-				"public": true,
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_talos_logs.process",
-			"type": "join"
-		},
+        {
+            "name": "pulse2perfherder",
+            "source": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "ekyle-pulse-logger",
+                "public": true,
+                "key_format": "a:b"
+            },
+            "destination": {
+                "$ref": "file://~/private.json#aws_credentials",
+                "bucket": "active-data-perfherder",
+                "public": true,
+                "key_format": "a:b.c"
+            },
+			"notify": {
+			   "name": "active-data-etl",
+			   "$ref": "file://~/private.json#aws_credentials"
+		   	},
+            "transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+            "type": "join",
+            "transform_type": "bulk"
+        },
 		{
             "name": "bbb2jobs",
             "source": {
@@ -104,10 +113,10 @@
             "transform_type": "bulk"
         },
 		{
-			"name": "talos2perf",
+			"name": "perfherder2perf",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-talos",
+				"bucket": "active-data-perfherder",
 				"key_format": "a:b.c"
 			},
 			"destination": {
@@ -120,8 +129,7 @@
 				"name": "active-data-index-perf",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transform_type": "bulk",
-			"transformer": "testlog_etl.transforms.talos_log_to_perf_logs.process",
+			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{
@@ -143,6 +151,27 @@
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
+		},
+		{
+			"name": "tc_pulse to codecoverage",
+			"transform_type": "bulk",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-logger",
+				"key_format": "a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage",
+				"public": true,
+				"key_format": "a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index-codecoverage",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.jscov_to_es.process",
+			"type": "join"
 		}
 	],
 	"debug": {
@@ -152,11 +181,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses",
+				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][STAGING] Problem in ETL",
-				"$ref": "file://~/private.json#email"
+				"subject": "[ALERT][STAGING] Problem in ETL"
 			}
 		]
 	}

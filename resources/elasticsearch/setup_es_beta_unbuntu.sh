@@ -22,8 +22,11 @@ sudo mkdir -p /usr/local/elasticsearch
 sudo cp -R elasticsearch-1.5.2/* /usr/local/elasticsearch/
 cd /usr/local/elasticsearch/
 
-ES HEAD IS WONDERFUL!
-#http://54.69.134.49:9200/_plugin/head/
+# ES HEAD IS WONDERFUL!
+# http://54.69.134.49:9200/_plugin/head/
+# BE SURE YOUR elasticsearch.yml FILE IS HAS
+#     http.cors.enabled: true
+#     http.cors.allow-origin: "*"
 sudo bin/plugin -install mobz/elasticsearch-head
 
 #INSTALL BIGDESK

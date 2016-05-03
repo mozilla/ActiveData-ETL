@@ -1,14 +1,11 @@
-Module `pyLibrary`
-==================
-
 
 Module `convert`
 ---------------
 
 General conversion library with functions in the form `<from_type> "2" <to_type>`.
 Most of these functions are simple wrappers around common Python functions;
-often dealing with `None` values gracefully.  Many functions are generally
-useful.  A few are esoteric.
+often dealing with `None` values gracefully. Many functions are generally
+useful. A few are esoteric.
 
 
 Module `meta`
@@ -23,7 +20,7 @@ Module `meta`
 
 **Example**
 
-We decorate the `login()` function with `@use_settings`.  In this case, `username` is a required parameter, and `password` will default to `None`.  The settings parameter should always default to `None` so that it's not required.   
+We decorate the `login()` function with `@use_settings`. In this case, `username` is a required parameter, and `password` will default to `None`. The settings parameter should always default to `None` so that it's not required.   
 
 ```python
 		@use_settings
@@ -66,7 +63,7 @@ You may continue to use `**kwargs`; which provides a way to overlay one paramete
 
 **Motivation** - Extensive use of dependency injection, plus managing the configuration 
 for each of the components being injected, can result in some spectacularly 
-complex system configuration.  One way to reduce the complexity is to use 
+complex system configuration. One way to reduce the complexity is to use 
 configuration templates that contain useful defaults, and simply overwrite 
 the properties that need to be changed for the new configuration.  
 `@use_settings` has been created to provide this templating system for Python 
@@ -76,8 +73,8 @@ function calls (primarily class constructors).
 Module `strings`
 ----------------
 
-Contains several more string functions.  None of them are intended for direct 
-use in a python program, rather for use in the `expand_template` function.
+Contains several more string functions. None of them are intended for direct 
+use in a Python program, rather for use in the `expand_template` function.
 
 
 ###Function `expand_template()`###
@@ -92,8 +89,8 @@ A simple function that replaces variables in `template` with the properties
 found in `value`. Variables are indicated by the double moustaches;
 `{{example}}` is a variable.
 
-Properties are converted to `unicode()` before replacing variables.  In the case
-of complex properties; converted to JSON.  Further string formatting can be
+Properties are converted to `unicode()` before replacing variables. In the case
+of complex properties; converted to JSON. Further string formatting can be
 performed by feeding properties to functions using the pipe (`|`) symbol:
 
 ```python
@@ -112,7 +109,7 @@ performed by feeding properties to functions using the pipe (`|`) symbol:
             [10, 11, 14, 80]
 ```
 
-Look into the [`pyLibrary.strings.py`](https://github.com/klahnakoski/pyLibrary/blob/master/pyLibrary/strings.py) to see a full list of transformation
+Look into the [`pyLibrary.strings.py`](https://github.com/klahnakoski/pyLibrary/blob/dev/pyLibrary/strings.py) to see a full list of transformation
 functions.
 
 Variables are not limited to simple names: You may use dot (`.`) to specify
@@ -124,7 +121,9 @@ paths into the properties
     Kyle Lahnakoski is 40 years old
 ```
 
+**Nested Objects and Template Expansion**
+
 Templates are not limited to strings, but can also be queries to expand lists
 found in property paths:
 
-<incomplete>
+<incomplete, add more docs here>

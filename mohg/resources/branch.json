@@ -1,0 +1,50 @@
+{
+	"settings": {
+		"index.number_of_replicas": 1,
+		"index.number_of_shards": 1
+	},
+	"mappings": {
+		"branch": {
+			"_source": {
+				"compress": false
+			},
+			"_all": {
+				"enabled": false
+			},
+			"dynamic_templates": [
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match": "id"
+					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string"
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				}
+			],
+			"properties": {
+				"name": {
+					"index": "not_analyzed",
+					"type": "string",
+					"store": true
+				},
+				"description": {
+					"index": "analyzed",
+					"type": "string",
+					"store": true
+				}
+			}
+		}
+	}
+
+}

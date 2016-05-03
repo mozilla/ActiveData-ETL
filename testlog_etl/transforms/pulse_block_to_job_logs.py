@@ -12,18 +12,18 @@ import re
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, unwraplist, Null, DictList
+from pyLibrary.dot import Dict, wrap, Null, DictList
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
 from testlog_etl.imports import buildbot
 from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from testlog_etl.transforms.pulse_block_to_unittest_logs import EtlHeadGenerator
+from testlog_etl.transforms import EtlHeadGenerator
 
 _ = convert
 DEBUG = False
@@ -85,9 +85,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response._all_lines(encoding=None)
                 data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
-                verify_equal(data, "build.revision", "action.revision")
-                verify_equal(data, "build.id", "action.buildid")
-                verify_equal(data, "run.machine.name", "action.slave")
+                verify_equal(data, "build.revision", "action.revision", from_url=pulse_record.payload.logurl)
+                verify_equal(data, "build.id", "action.buildid", from_url=pulse_record.payload.logurl)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=pulse_record.payload.logurl)
 
                 output.append(data)
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
@@ -196,7 +196,7 @@ class BuilderLines(object):
         else:
             self.last_elapse_time_age += 1
 
-        if self.last_elapse_time_age > 3:
+        if self.last_elapse_time_age > 5:
             # TOO LONG AGO, EXPECTING THIS NEAR THE Finish LINE
             last_elapse_time = None
 
@@ -205,6 +205,8 @@ class BuilderLines(object):
 
         try:
             parts = map(unicode.strip, line[10:-10].split("("))
+            if parts[0].startswith("master_lag:"):
+                return None
             if parts[0] == "Skipped":
                 # NOT THE REGULAR PATTERN
                 message, status, parts, timestamp, done = "", "skipped", None, Null, True
@@ -288,33 +290,46 @@ def parse_builder_message(message, next_line):
             return message, None
         new_message = parse_command_line(next_line)[2].split("/")[-1]
         return parse_builder_message(new_message, "")
-    elif message == "'bash -c ..'":
+    elif message == "'bash -c ...'":
         if not next_line:
             return message, None
         new_message = " ".join(parse_command_line(next_line)[2:])
         return parse_builder_message(new_message, "")
+    elif message.startswith("wget "):
+        temp = message.split(" ")
+        url = wrap([t for t in temp[1:] if not t.startswith("-")])[0]
+        file = url.split("/")[-1]
+        message = temp[0] + " " + file
+        parts = temp[1:]
     else:
         parts = None
 
     return message, parts
+
 
 def parse_command_line(line):
     """
     space separated, single-quoted strings
     """
     output = []
+    value = ""
     i = 0
     while i < len(line):
         c = line[i]
         i += 1
-        if c == "'":
-            value = c
+        if c == " ":
+            if value:
+                output.append(value)
+            value = ""
+        elif c == "'":
+            value += c
             c = line[i]
             i += 1
             while True:
                 if c == "'":
                     value += c
                     output.append(convert.quote2string(value))
+                    value = ""
                     break
                 elif c == "\\":
                     value += c + line[i]
@@ -324,8 +339,16 @@ def parse_command_line(line):
 
                 c = line[i]
                 i += 1
+        else:
+            value += c
     return output
 
+
+BAD_HEADERS = [
+    "New python executable in ",
+    "buildid: Error loading mozconfig: ",
+    "Traceback (most recent call last):"
+]
 
 
 def process_buildbot_log(all_log_lines, from_url):
@@ -357,7 +380,10 @@ def process_buildbot_log(all_log_lines, from_url):
     curr_line = ""
     next_line = ""
 
+    total_bytes = 0
+
     for log_ascii in all_log_lines:
+        total_bytes += len(log_ascii)+1
 
         if not log_ascii.strip():
             continue
@@ -385,6 +411,11 @@ def process_buildbot_log(all_log_lines, from_url):
             # builduid: 64d75a07877a458fb9f21220ae4cb5a8
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
+                if any(curr_line.startswith(h) for h in BAD_HEADERS):  # COMMON PATTERN
+                    process_head = False
+                    data["mozconfig_load_error"] = True
+                    continue
+
                 key, value = curr_line.split(": ")
                 if key == "starttime":
                     data["start_time"] = start_time = end_time = Date(float(value))
@@ -398,7 +429,7 @@ def process_buildbot_log(all_log_lines, from_url):
             except Exception, e:
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
-                    Log.warning("Log header {{log_line}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
+                    Log.warning("Log header {{log_line|quote}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
                     continue
         else:
             builder_says = builder_line.match(start_time, curr_line, next_line)
@@ -473,13 +504,15 @@ def process_buildbot_log(all_log_lines, from_url):
         data.timings = new_build_times
 
     except Exception, e:
-        Log.error("Problem with calculating durations", cause=e)
+        Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     data.end_time = end_time
     data.duration = end_time - start_time
     data.builder_time_zone = builder_line.time_zone
     data.harness_time_zone = mozharness_line.time_zone
     data.harness_time_skew = mozharness_line.time_skew
+
+    data.etl.total_bytes = total_bytes
     return data
 
 
@@ -498,10 +531,10 @@ def fix_times(times, start_time, end_time):
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
-    for t in qb.reverse(times):
+    for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
-            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time)
+            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
         t.duration = Math.max(time, t.end_time) - t.start_time
         if t.duration==None or t.duration < 0:
             Log.error("logic error")
@@ -514,7 +547,15 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
-    elif data[duplicate] in data[expected]:
+    elif data[expected] == None:
+        data[expected] = data[duplicate]
+        data[duplicate] = None
+    elif data[expected] and data[duplicate] and data[duplicate] in data[expected]:
+        data[duplicate] = None
+    elif data[expected] and data[duplicate] and data[expected] in data[duplicate]:
+        data[expected] = data[duplicate]
+        data[duplicate] = None
+    elif data[expected] and not data[duplicate]:
         data[duplicate] = None
     else:
         if warning:
@@ -524,15 +565,13 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
 
 
 if __name__ == "__main__":
-    response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-win32/1444241174/mozilla-central-win32-bm82-build1-build333.txt.gz")
+    response = http.get("http://archive.mozilla.org/pub/b2g/tinderbox-builds/mozilla-central-emulator/1453460790/mozilla-central_ubuntu64_vm-b2g-emulator_test-mochitest-8-bm52-tests1-linux64-build4.txt.gz")
     # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-    # for i, l in enumerate(response._all_lines(encoding="latin1")):
-    #     try:
-    #         l.decode('latin1').encode('utf8')
-    #     except Exception:
-    #         Log.alert("bad line {{num}}", num=i)
-    #
+    # for i, l in enumerate(response._all_lines(encoding=None)):
     #     Log.note("{{line}}", line=l)
 
-    data = process_buildbot_log(response.all_lines, "<unknown>")
-    Log.note("{{data}}", data=data)
+    try:
+        data = process_buildbot_log(response.all_lines, "<unknown>")
+        Log.note("{{data}}", data=data)
+    finally:
+        response.close()

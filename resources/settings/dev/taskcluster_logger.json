@@ -1,0 +1,51 @@
+{
+	"source": {
+		"name": "Task Cluster",
+		"prefix": "tc",
+		"exchange": "exchange/taskcluster-queue/v1/task-completed",
+		"topic": "#",
+		"durable": true,
+		"timeout":600,
+		"queue": "active-data-task-cluster-log-dev",
+		"$ref": "file://~/private.json#pulse_user",
+		"debug": false
+	},
+	"destination": {
+		"bucket": "active-data-task-cluster-logger-dev",
+		"public": true,    // default = false
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"work_queue": {
+		"name": "active-data-etl-dev",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"param": {
+		"queue_file": "results/taskcluster-logger.json",
+		"debug": false,     // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
+		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
+	},
+	"debug":{
+        "cprofile":{
+	        "enabled": false,
+	        "filename": "./results/cprofile.tab"
+        },
+		"log":[
+			{"log_type":"console"},
+			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/taskcluster_logger_dev.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 100,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type":"ses",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in Pulse Logger",
+				"$ref":"file://~/private.json#aws_credentials"
+
+			}
+		]
+	}
+}

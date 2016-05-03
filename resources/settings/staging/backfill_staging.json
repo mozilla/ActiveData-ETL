@@ -24,11 +24,11 @@
 				"type": "unittest_etl"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][STAGING] Problem in Backfill",
-				"$ref": "file://~/private.json#email"
+
 
 			}
 		]

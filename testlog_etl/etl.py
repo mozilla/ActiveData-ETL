@@ -8,6 +8,14 @@
 #
 from __future__ import unicode_literals
 
+
+# import cProfile
+# import pstats
+#
+# cprofiler = cProfile.Profile()
+# cprofiler.enable()
+#
+
 # NEED TO BE NOTIFIED OF ID TO REPROCESS
 # NEED TO BE NOTIFIED OF RANGE TO REPROCESS
 # MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
@@ -19,23 +27,23 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, write_profile
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings, DataClass
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from testlog_etl import key2etl
-from testlog_etl.imports.hg_mozilla_org import HgMozillaOrg
+from mohg.hg_mozilla_org import HgMozillaOrg
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-
+from testlog_etl.transforms import Transform, pulse_block_to_es
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -84,6 +92,9 @@ class ETL(Thread):
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
+                elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
+                    # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
+                    w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 settings.workers.append(w)
@@ -155,23 +166,29 @@ class ETL(Thread):
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
-                #VERIFY KEYS
+                # VERIFY KEYS
                 if len(new_keys) == 1 and list(new_keys)[0] == source_key:
                     pass  # ok
                 else:
                     etls = map(key2etl, new_keys)
-                    etls = qb.sort(etls, "id")
+                    etls = jx.sort(etls, "id")
                     for i, e in enumerate(etls):
                         if i != e.id:
-                            Log.error("expecting keys to have dense order: {{ids}}", ids=etls.id)
-                    #VERIFY KEYS EXIST
+                            Log.error("expecting keys to be contiguous: {{ids}}", ids=etls.id)
+                    # VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
                             action._destination.get_key(k)
 
                 for n in action._notify:
                     for k in new_keys:
-                        n.add(k)
+                        now = Date.now()
+                        n.add({
+                            "bucket": action._destination.bucket.name,
+                            "key": k,
+                            "timestamp": now.unix,
+                            "date/time": now.format()
+                        })
 
                 if action.transform_type == "bulk":
                     continue
@@ -183,7 +200,7 @@ class ETL(Thread):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys= old_keys,
                         source_key= source_key)
                     continue
@@ -195,17 +212,13 @@ class ETL(Thread):
                     )
                     continue
 
-                for k in new_keys:
-                    if len(k.split(".")) == 3 and action.destination.type!="test_result":
-                        Log.error("two dots have not been needed yet, this is a consitency check")
-
                 delete_me = old_keys - new_keys
                 if delete_me:
                     if action.destination.bucket == "ekyle-test-result":
                         for k in delete_me:
                             action._destination.delete_key(k)
                     else:
-                        Log.note("delete keys?\n{{list}}",  list= sorted(delete_me))
+                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
                         # for k in delete_me:
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -223,7 +236,7 @@ class ETL(Thread):
                     if source_block.bucket=="ekyle-test-result":
                         for k in action._source.list(prefix=key_prefix(source_key)):
                             action._source.delete_key(strip_extension(k.key))
-                elif "expecting keys to have dense order" in e:
+                elif "expecting keys to be contiguous" in e:
                     err = Log.warning
                     if source_block.bucket=="ekyle-test-result":
                         # WE KNOW OF THIS ETL MISTAKE, REPROCESS
@@ -256,6 +269,9 @@ class ETL(Thread):
                             todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
                         else:
                             todo = self.work_queue.pop()
+                    if not todo:
+                        break  # please_stop MUST HAVE BEEN TRIGGERED
+
                 else:
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
@@ -264,6 +280,10 @@ class ETL(Thread):
                     if todo == None:
                         please_stop.go()
                         return
+
+                if todo == None:
+                    Log.warning("Should never happen")
+                    continue
 
                 if isinstance(todo, unicode):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
@@ -322,28 +342,26 @@ def get_container(settings):
             sinks.append((settings, output))
             return output
 
-ToDo = DataClass("ToDo", [
-    {
-        # THE KEY(S) TO USE
-        "name": "keys",
-        "required": True,
-        "nulls": False
-    },
-    {
-        # THE SOURCE BUCKET
-        "name": "bucket",
-        "required": True,
-        "nulls": False
-    },
-    {
-        # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
-        "name": "detination",
-        "required": False
-    }
-
-])
-
-
+# ToDo = DataClass("ToDo", [
+#     {
+#         # THE KEY(S) TO USE
+#         "name": "keys",
+#         "required": True,
+#         "nulls": False
+#     },
+#     {
+#         # THE SOURCE BUCKET
+#         "name": "bucket",
+#         "required": True,
+#         "nulls": False
+#     },
+#     {
+#         # OPTIONAL DESTINATION, TO LIMIT THE ACTIONS TAKEN (USUALLY USED FOR BACK FILLING SPECIFIC DATA)
+#         "name": "detination",
+#         "required": False
+#     }
+#
+# ])
 
 
 def main():
@@ -351,7 +369,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id(s) to process.  Use \"..\" for a range.",
                 "type": str,
                 "dest": "id",
@@ -383,6 +401,7 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
+        # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):

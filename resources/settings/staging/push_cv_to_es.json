@@ -1,0 +1,49 @@
+{
+	"threads": 1,
+	"queue_size": 2000,
+	"batch_size": 1000,
+	"sample_only": [],
+	"elasticsearch": {
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "coverage",
+		"type": "code_coverage",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/code_coverage.json"
+		},
+		"debug": false,
+		"limit_replicas": false
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-codecoverage",
+		"key_format": "a:b.c"
+	},
+	"work_queue":{
+		"name": "active-data-index-codecoverage",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
+		}
+	},
+	"debug": {
+		"trace":true,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "ses",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Staging]Problem in Push perf to ES",
+				"$ref": "file://~/private.json#aws_credentials"
+			}
+		]
+	}
+}

@@ -2,6 +2,7 @@
 /*.json
 /*.iml
 /pyLibrary/.svn
+/mohg/.svn
 /pyLibrary/*.pyc
 /vendor
 /results
@@ -18,3 +19,4 @@ log.txt
 /mozillapulse/.svn
 /resources/settings/raptor_settings.json
 /testlog_etl/raptor.py
+/mohg/.svn

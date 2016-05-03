@@ -1,5 +1,7 @@
 {
 	"source": {
+		"name": "Buildbot",
+		"prefix": "bb",
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,

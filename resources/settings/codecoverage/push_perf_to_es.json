@@ -1,0 +1,51 @@
+{
+	"threads": 1,
+	"sample_only": [],
+	"elasticsearch": {
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "perf",
+		"type": "perf_result",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/perf_results.json"
+		},
+		"debug": false,
+		"limit_replicas": true
+	},
+	"source": {
+		"$ref": "file://~/codecoverage.json#aws_credentials",
+		"bucket": "active-data-perf-dev",
+		"key_format": "a:b.c"
+	},
+	"work_queue":{
+		"name": "active-data-index-perf-dev",
+		"debug": true,
+		"timeout": "10second",
+		"$ref": "file://~/codecoverage.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+		}
+	},
+	"debug": {
+		"cprofile": {
+			"enabled": true,
+			"filename": "./results/cprofile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "email",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in Push perf to ES",
+				"$ref": "file://~/codecoverage.json#email"
+
+			}
+		]
+	}
+}

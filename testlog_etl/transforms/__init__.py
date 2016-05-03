@@ -7,13 +7,148 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+from __future__ import division
 
-# GET THE GIT REVISION NUMBER
+from pyLibrary import convert
+from pyLibrary import strings
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import wrap
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
+
+DEBUG = False
+DEBUG_SHOW_LINE = True
+DEBUG_SHOW_NO_LOG = False
+STRUCTURED_LOG_ENDINGS = ["structured_logs.log", "_structured_full.log", '_raw.log']
+
+next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
+
+
+class Transform(object):
+
+    def __call__(self, source_key, source, destination, resources, please_stop=None):
+        """
+        :param source_key: THE DOT-DELIMITED PATH FOR THE SOURCE
+        :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
+        :param destination: THE s3 BUCK TO PLACE ALL THE TRANSFORM RESULTS
+        :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
+        :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
+        :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
+        """
+        raise NotImplementedError
 
 
 
-class Transformer(object):
 
-    def transform(self, *args, **kwargs):
-        Log.error("Not implemented")
+def verify_blobber_file(line_number, name, url):
+    """
+    :param line_number:  for debugging
+    :param name:  for debugging
+    :param url:  TO BE READ
+    :return:  RETURNS BYTES **NOT** UNICODE
+    """
+    if not name.endswith("_raw.log") or name.endswith("/log_raw.log"):
+        return None, 0
+
+    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
+        response = http.get(url)
+        try:
+            logs = response.all_lines
+        except Exception, e:
+            if name.endswith("_raw.log"):
+                Log.error(
+                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
+                    line=line_number,
+                    name=name,
+                    url=url,
+                    cause=e
+                )
+            if DEBUG:
+                Log.note(
+                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
+                    line=line_number,
+                    name=name,
+                    url=url
+                )
+            return None, 0
+
+    if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):
+        # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
+        return logs, "unknown"
+
+    # DETECT IF THIS IS A STRUCTURED LOG
+    with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG):
+        try:
+            total = 0  # ENSURE WE HAVE A SIDE EFFECT
+            count = 0
+            bad = 0
+            for blobber_line in logs:
+                blobber_line = strings.strip(blobber_line)
+                if not blobber_line:
+                    continue
+
+                try:
+                    total += len(convert.json2value(blobber_line))
+                    count += 1
+                except Exception, e:
+                    if DEBUG:
+                        Log.note("Not JSON: {{line}}",
+                            name= name,
+                            line= blobber_line)
+                    bad += 1
+                    if bad > 4:
+                        Log.error("Too many bad lines")
+
+            if count == 0:
+                # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
+                Log.error("No JSON lines found")
+
+        except Exception, e:
+            if name.endswith("_raw.log") and "No JSON lines found" not in e:
+                Log.error(
+                    "Line {{line}}: {{name}} is NOT structured log",
+                    line=line_number,
+                    name=name,
+                    cause=e
+                )
+            if DEBUG:
+                Log.note(
+                    "Line {{line}}: {{name}} is NOT structured log",
+                    line=line_number,
+                    name=name
+                )
+            return None, 0
+
+    return logs, count
+
+
+class EtlHeadGenerator(object):
+    """
+    WILL RETURN A UNIQUE ETL STRUCTURE, GIVEN A SOURCE AND A DESTINATION NAME
+    """
+
+    def __init__(self, source_key):
+        self.source_key = source_key
+        self.next_id = 0
+
+    def next(
+        self,
+        source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
+        name  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
+    ):
+        num = self.next_id
+        self.next_id = num + 1
+        dest_key = self.source_key + "." + unicode(num)
+
+        dest_etl = wrap({
+            "id": num,
+            "name": name,
+            "source": source_etl,
+            "type": "join",
+            "revision": get_git_revision(),
+            "timestamp": Date.now().unix
+        })
+
+        return dest_key, dest_etl

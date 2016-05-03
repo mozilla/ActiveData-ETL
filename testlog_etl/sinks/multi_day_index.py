@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from testlog_etl import key2etl, etl2path
 
 
@@ -22,14 +22,14 @@ class MultiDayIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    def __init__(self, settings, queue_size=10000):
+    def __init__(self, settings, queue_size=10000, batch_size=5000):
         self.settings = settings
         self.queue_size = queue_size
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
 
         self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
         self.es.set_refresh_interval(seconds=60 * 60)
-        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=5000, silent=False)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=True)
         # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
     def __getattr__(self, item):
@@ -37,7 +37,7 @@ class MultiDayIndex(object):
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
-        path = qb.reverse(etl2path(key2etl(prefix)))
+        path = jx.reverse(etl2path(key2etl(prefix)))
 
         result = self.es.search({
             "fields": ["_id"],
@@ -68,15 +68,17 @@ class MultiDayIndex(object):
         for key in keys:
             try:
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
-                    value = convert.json2value(line)
+                    if not line:
+                        continue
                     if rownum == 0:
+                        value = convert.json2value(line)
                         if len(line) > 100000:
                             value.result.subtests = [s for s in value.result.subtests if s.ok is False]
                             value.result.missing_subtests = True
 
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
-                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
                                 Log.error("Expecting etl.id==0")
@@ -108,6 +110,5 @@ def _fix(value):
         value.build.revision12 = value.build.revision[0:12]
 
     _id = value._id
-    value._id = None
 
     return _id, value

@@ -1,0 +1,19 @@
+{
+	"filter": {
+		"prefix": {
+			"key": ""
+		}
+	},
+	"source": {
+		"bucket": "active-data-codecoverage-dev",
+		"$ref": "file://~/codecoverage.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

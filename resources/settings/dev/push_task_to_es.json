@@ -1,0 +1,51 @@
+{
+	"threads": 1,
+	"elasticsearch": {
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "task_cluster",
+		"type": "task",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/task_cluster.json"
+		},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"source": {
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-task-dev",
+		"key_format": "a:b"
+	},
+	"work_queue":{
+		"name": "active-data-index-task-dev",
+		"debug": true,
+		"timeout": "10second",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
+		}
+	},
+	"debug": {
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/cprofile.tab"
+		},
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in Push Tasks to ES",
+
+
+			}
+		]
+	}
+}

@@ -124,7 +124,7 @@ json_encoder_module.FLOAT_REPR = float_repr
 
 
 class cPythonJSONEncoder(object):
-    def __init__(self):
+    def __init__(self, sort_keys=False):
         object.__init__(self)
 
         self.encoder = json.JSONEncoder(
@@ -136,7 +136,7 @@ class cPythonJSONEncoder(object):
             separators=None,
             encoding='utf-8',
             default=None,
-            sort_keys=False
+            sort_keys=sort_keys
         )
 
     def encode(self, value, pretty=False):
@@ -147,7 +147,8 @@ class cPythonJSONEncoder(object):
             scrubbed = scrub(value)
             return unicode(self.encoder.encode(scrubbed))
         except Exception, e:
-            from pyLibrary.debugs.logs import Log, Except
+            from pyLibrary.debugs.exceptions import Except
+            from pyLibrary.debugs.logs import Log
 
             e = Except.wrap(e)
             Log.warning("problem serializing {{type}}", type=_repr(value), cause=e)
@@ -218,7 +219,7 @@ def _value2json(value, _buffer):
     except Exception, e:
         from pyLibrary.debugs.logs import Log
 
-        Log.error(_repr(value) + " is not JSON serializable", e)
+        Log.error(_repr(value) + " is not JSON serializable", cause=e)
 
 
 def _list2json(value, _buffer):
@@ -244,18 +245,22 @@ def _iter2json(value, _buffer):
 
 
 def _dict2json(value, _buffer):
-    prefix = u"{\""
-    for k, v in value.iteritems():
-        append(_buffer, prefix)
-        prefix = u", \""
-        if isinstance(k, str):
-            k = utf82unicode(k)
-        for c in k:
-            append(_buffer, ESCAPE_DCT.get(c, c))
-        append(_buffer, u"\": ")
-        _value2json(v, _buffer)
-    append(_buffer, u"}")
+    try:
+        prefix = u"{\""
+        for k, v in value.iteritems():
+            append(_buffer, prefix)
+            prefix = u", \""
+            if isinstance(k, str):
+                k = utf82unicode(k)
+            for c in k:
+                append(_buffer, ESCAPE_DCT.get(c, c))
+            append(_buffer, u"\": ")
+            _value2json(v, _buffer)
+        append(_buffer, u"}")
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
 
+        Log.error(_repr(value) + " is not JSON serializable", cause=e)
 
 ARRAY_ROW_LENGTH = 80
 ARRAY_ITEM_MAX_LENGTH = 30
@@ -285,13 +290,17 @@ def pretty_json(value):
                 from pyLibrary.collections import OR
 
                 if OR(not isinstance(k, basestring) for k in value.keys()):
-                    Log.error("JSON must have string keys: {{keys}}:", {
-                        "keys": [k for k in value.keys()]
-                    }, e)
+                    Log.error(
+                        "JSON must have string keys: {{keys}}:",
+                        keys=[k for k in value.keys()],
+                        cause=e
+                    )
 
-                Log.error("problem making dict pretty: keys={{keys}}:", {
-                    "keys": [k for k in value.keys()]
-                }, e)
+                Log.error(
+                    "problem making dict pretty: keys={{keys}}:",
+                    keys=[k for k in value.keys()],
+                    cause=e
+                )
         elif value in (None, Null):
             return "null"
         elif isinstance(value, basestring):
@@ -385,13 +394,13 @@ def pretty_json(value):
             try:
                 if int(value) == value:
                     return str(int(value))
-            except Exception, e:
+            except Exception:
                 pass
 
             try:
                 if float(value) == value:
                     return str(float(value))
-            except Exception, e:
+            except Exception:
                 pass
 
             return pypy_json_encode(value)
@@ -417,9 +426,11 @@ def problem_serializing(value, e=None):
         rep = None
 
     if rep == None:
-        Log.error("Problem turning value of type {{type}} to json", {
-            "type": typename
-        }, e)
+        Log.error(
+            "Problem turning value of type {{type}} to json",
+            type=typename,
+            cause=e
+        )
     else:
         Log.error(
             "Problem turning value ({{value}}) of type {{type}} to json",

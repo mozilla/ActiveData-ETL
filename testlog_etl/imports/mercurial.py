@@ -24,7 +24,7 @@ from pyLibrary.maths.randoms import Random
 from pyLibrary.sql.mysql import MySQL
 from pyLibrary.env.files import File
 from pyLibrary.debugs.logs import Log
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.strings import between
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.thread.multithread import Multithread
@@ -232,7 +232,7 @@ def update_repo(repo, settings):
             ])
 
             for r in ranges:
-                for g, docs in qb.groupby(get_changesets(date_range=r, repo=repo), size=100):
+                for g, docs in jx.groupby(get_changesets(date_range=r, repo=repo), size=100):
                     for doc in docs:
                         doc.file_changes = None
                         doc.file_adds = None
@@ -244,7 +244,7 @@ def update_repo(repo, settings):
 
             missing_revisions = find_holes(db, "changesets", "revision",  {"min": 0, "max": existing_range.max_rev + 1}, {"term": {"repos": repo.name}})
             for _range in missing_revisions:
-                for g, docs in qb.groupby(get_changesets(revision_range=_range, repo=repo), size=100):
+                for g, docs in jx.groupby(get_changesets(revision_range=_range, repo=repo), size=100):
                     for doc in docs:
                         doc.file_changes = None
                         doc.file_adds = None

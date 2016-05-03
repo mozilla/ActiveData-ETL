@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 5
+		"index.number_of_shards": 50
 	},
 	"mappings": {
 		"perf_result": {
@@ -15,7 +15,17 @@
 							"index": "not_analyzed",
 							"type": "string"
 						},
-						"match": "results_xperf.*"
+						"path_match": "results_xperf.*"
+					}
+				},
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"path_match": "*source.id"
 					}
 				},
 				{

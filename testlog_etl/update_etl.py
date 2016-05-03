@@ -76,6 +76,9 @@ def get_cpu(conn, i):
         dimensions={'InstanceId': [i.id]},
         unit='Percent'
     ))
+    if len(stats) == 0:
+        return 100  # OPTIMISTIC
+
     cpu_percent = stats[-1]['Average']
     return cpu_percent
 

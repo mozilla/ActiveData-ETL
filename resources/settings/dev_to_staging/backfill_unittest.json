@@ -1,13 +1,15 @@
 {
-	"limit": 100,
-	//"range": {"min": 140000},
-	"id_field": "etl.source.source.id",
+	"limit": 1000,
+	"range": {"min": 140000},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "ekyle-test-result",
 		"key_format": "a:b.c"
 	},
-	"destination": {
+	"elasticsearch": {
+		// ES USED TO DETERMINE WHAT IS MISSING
+		"id_field": "etl.source.source.id",
+
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
 		"index": "unittest",
@@ -26,7 +28,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		}
 	},
 	"debug": {
@@ -35,11 +38,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push to ES",
-				"$ref": "file://~/private.json#email"
+				"subject": "[ALERT][DEV]Problem in Backfill unittest",
+
 
 			}
 		]

@@ -1,19 +1,22 @@
 {
-	"limit": 1000,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
+	"limit": 30,  // ABSOLUTE LIMIT ON NUMBER OF NEW ITEMS TO PUSH TO QUEUE
 	"no_checks": true,
-	"range": {"min": 90000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
+	"range": {
+		// RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
+		"min":200
+	},
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
-	"git":{
-		"url":"https://github.com/klahnakoski/TestLog-ETL.git",
-		"branch":"etl"
+	"git": {
+		"url": "https://github.com/klahnakoski/TestLog-ETL.git",
+		"branch": "etl"
 	},
 	"source": {
 		//THE BUCKET WITH WHAT SHOULD BE IN ES
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "ekyle-pulse-logger",
-		"key_format": "a:b.c"
+		"bucket": "active-data-jobs",
+		"key_format": "a.b"
 	},
-	"elasticsearch":{
+	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.source.id",
 		"host": "http://activedata.allizom.org",
@@ -27,15 +30,16 @@
 		"debug": true,
 		"limit_replicas": true
 	},
-	"work_queue":{
+	"work_queue": {
 		// THE QUEUE TO FILL WITH REQUESTS
-		"name": "active-data-etl",
+		"name": "active-data-index-jobs",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"From": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "testlog-etl"
 		}
 	},
 	"debug": {
@@ -44,11 +48,10 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in backfil jobs",
-				"$ref": "file://~/private.json#email"
+				"subject": "[ALERT][DEV]Problem in backfill jobs",
 
 			}
 		]
