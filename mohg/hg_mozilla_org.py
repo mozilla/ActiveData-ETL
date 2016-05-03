@@ -204,7 +204,8 @@ class HgMozillaOrg(object):
                                 author=r.user,
                                 description=r.description,
                                 date=Date(r.date),
-                                files=r.files
+                                files=r.files,
+                                backedoutby=r.backedoutby
                             ),
                             parents=unwraplist(r.parents),
                             children=unwraplist(r.children),
@@ -254,6 +255,11 @@ class HgMozillaOrg(object):
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-beta"] + path[7:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 7 and path[5] == "mozilla-release":
+            # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            path = path[0:4] + ["mozilla-release"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
