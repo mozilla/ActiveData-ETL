@@ -195,19 +195,19 @@
 		{
 			"name": "tc_pulse to codecoverage",
 			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger-dev",
 				"key_format": "t.a:b"
 			},
 			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-codecoverage-dev",
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
 				"name": "active-data-index-codecoverage-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.jscov_to_es.process",
 			"type": "join"
@@ -233,8 +233,7 @@
 				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV] Problem in ETL",
-
+				"subject": "[ALERT][DEV] Problem in ETL"
 			}
 		]
 	}
