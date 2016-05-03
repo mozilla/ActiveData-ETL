@@ -8526,7 +8526,7 @@
             "basedir": "/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000",
             "master": "http://buildbot-master84.bb.releng.scl3.mozilla.com:8001/"
         },
-        "task_id": "pLDT2YFzQimhkb-c0nLc-Q"
+        "task":{"id": "pLDT2YFzQimhkb-c0nLc-Q"}
     },
     {
         "action": {
@@ -10417,7 +10417,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
         },
-        "task_id": "T3UOeJ1HRsq2EKWD7QDi2Q"
+        "task":{"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
     },
     {
         "action": {
@@ -10505,7 +10505,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
         },
-        "task_id": "BczAgDHfQdueE5rocPgjnQ"
+        "task":{"id": "BczAgDHfQdueE5rocPgjnQ"}
     },
     {
         "action": {

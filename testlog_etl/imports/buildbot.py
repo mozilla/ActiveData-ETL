@@ -42,13 +42,14 @@ class BuildbotTranslator(object):
             output.properties, output.other = normalize_other(props)
             return output
 
+        # TASK CLUSTER ID
+        output.task.id = props.taskId
+
         if props.taskId and data.reason.startswith("Created by BBB for task "):
-            output.task_id = props.taskId
             output.properties, output.other = normalize_other(props)
             return output
 
         if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
-            output.task_id = props.taskId
             output.properties, output.other = normalize_other(props)
             return output
 
@@ -226,7 +227,7 @@ class BuildbotTranslator(object):
                     return Dict()  # ERROR INGNORED, ALREADY SENT
             set_default(output, KNOWN_PLATFORM[raw_platform])
         elif key.endswith("nightly"):
-            output.build.trigger="nightly"
+            output.build.trigger = "nightly"
             try:
                 temp = key.split(" " + branch_name + " ")
                 if len(temp) == 1:

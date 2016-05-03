@@ -39,7 +39,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
         es.flush()
         return found_branches
 
-    #TRY ES
+    # TRY ES
     try:
         es = elasticsearch.Cluster(settings=branches).get_index(settings=branches)
         query = {
