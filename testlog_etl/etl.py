@@ -212,10 +212,6 @@ class ETL(Thread):
                     )
                     continue
 
-                for k in new_keys:
-                    if len(k.split(".")) == 3 and action.destination.type!="test_result":
-                        Log.error("two dots have not been needed yet, this is a consitency check")
-
                 delete_me = old_keys - new_keys
                 if delete_me:
                     if action.destination.bucket == "ekyle-test-result":

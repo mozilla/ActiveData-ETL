@@ -46,28 +46,28 @@
 		}
 	},
 	"workers": [
-//		{
-//			"name": "Buildbot Pulse to ES",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-pulse-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"host": "http://localhost",
-//				"port": 9200,
-//				"index": "pulse",
-//				"type": "pulse_log",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../../schema/pulse_logs.json"
-//				},
-//				"debug": true,
-//				"limit_replicas": true
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
-//			"type": "join"
-//		},
+		{
+			"name": "Buildbot Pulse to ES",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse-dev",
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/pulse_logs.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
+			"type": "join"
+		},
 		{
 			"name": "tc_pulse to TC Normalized",
 			"source": {
@@ -109,41 +109,19 @@
 			"transformer": "testlog_etl.transforms.task_cluster_to_test_result.process",
 			"type": "join"
 		},
-//		{
-//			"name": "pulse2es",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-pulse-dev",
-//				"key_format": "a:b"
-//			},
-//			"destination": {
-//				"host": "http://localhost",
-//				"port": 9200,
-//				"index": "pulse",
-//				"type": "pulse_log",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../../schema/pulse_logs.json"
-//				},
-//				"debug": false,
-//				"limit_replicas": true
-//			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
-//			"type": "join"
-//		},
 		{
 			"name": "pulse2perfherder",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
 				"public": true,
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perfherder-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
 			   "name": "active-data-etl-dev",
@@ -164,7 +142,7 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-jobs-dev",
 				"public": true,
-				"key_format": "a.b"
+				"key_format": "t.a.b"
 			},
 			"notify": {
 				"name": "active-data-index-jobs-dev",
@@ -185,7 +163,7 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perf-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
 				"name": "active-data-index-perf-dev",
@@ -199,13 +177,13 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
 				"name": "active-data-index-unit-dev",

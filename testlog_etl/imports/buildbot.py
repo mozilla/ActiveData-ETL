@@ -565,6 +565,7 @@ TEST_PLATFORMS = {
     "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
