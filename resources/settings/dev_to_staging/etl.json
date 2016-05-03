@@ -52,7 +52,7 @@
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-logger",
+				"bucket": "active-data-pulse",
 				"key_format": "t.a:b"
 			},
 			"destination": {
@@ -115,7 +115,7 @@
 			"name": "pulse2perfherder",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
+				"bucket": "active-data-pulse",
 				"public": true,
 				"key_format": "t.a:b"
 			},
@@ -178,7 +178,7 @@
 			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
+				"bucket": "active-data-pulse",
 				"key_format": "t.a:b"
 			},
 			"destination": {

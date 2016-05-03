@@ -238,12 +238,6 @@ class ETL(Thread):
                             action._source.delete_key(strip_extension(k.key))
                 elif "expecting keys to be contiguous" in e:
                     err = Log.warning
-                    if source_block.bucket=="ekyle-test-result":
-                        # WE KNOW OF THIS ETL MISTAKE, REPROCESS
-                        self.work_queue.add({
-                            "key": unicode(key_prefix(source_key)),
-                            "bucket": "ekyle-pulse-logger"
-                        })
                 elif "Expecting a pure key" in e:
                     err = Log.warning
                 else:
