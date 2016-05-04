@@ -59,7 +59,7 @@ class TextLog_usingElasticSearch(TextLog):
                     #     m.value.params = leafer(m.value.params)
                     #     m.value.error = leafer(m.value.error)
                     for g, mm in jx.groupby(messages, size=self.batch_size):
-                        self.es.extend(mm)
+                        self.es.extend(mm, retry={"times": 3, "sleep": MINUTE})
                     bad_count = 0
             except Exception, e:
                 Log.warning("Problem inserting logs into ES", cause=e)

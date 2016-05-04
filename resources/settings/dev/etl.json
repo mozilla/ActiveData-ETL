@@ -83,7 +83,7 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": {
-			   "name": "active-data-etl-dev",
+			   "name": "active-data-index-dev",
 			   "$ref": "file://~/private.json#aws_credentials"
 		   	},
 			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
@@ -103,7 +103,7 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-unit-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.task_cluster_to_test_result.process",
@@ -145,7 +145,7 @@
 				"key_format": "t.a.b"
 			},
 			"notify": {
-				"name": "active-data-index-jobs-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
@@ -166,7 +166,7 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-perf-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
@@ -186,7 +186,7 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-unit-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
@@ -206,7 +206,7 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-codecoverage-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.jscov_to_es.process",

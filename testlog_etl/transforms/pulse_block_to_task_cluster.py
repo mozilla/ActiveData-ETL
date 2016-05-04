@@ -255,6 +255,17 @@ def set_build_info(normalized, task):
 def get_tags(task):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
     for t in tags:
+        # ENSURE THE VALUES ARE UNICODE
+        v = t["value"]
+        if isinstance(v, list):
+            if len(v) == 1:
+                v = v[0]
+            else:
+                v = convert.value2json(v)
+        elif not isinstance(v, unicode):
+            v = convert.value2json(v)
+        t["value"] = v
+
         if t["name"] not in KNOWN_TAGS:
             Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
             KNOWN_TAGS.add(t["name"])
@@ -358,11 +369,14 @@ KNOWN_BUILD_NAMES = {
     ("b2gtest", "marionette-harness-pytest", "linux64"): {},
     ("b2gtest-emulator", None, "b2g-emu-x86-kk"): {"run": {"machine": {"type": "emulator"}}},
 
+
     ("buildbot", None, None): {},
     ("buildbot-try", None, None): {},
     ("buildbot-bridge", None, None): {},
+    ("buildbot-bridge", None, "all"): {},
     ("cratertest", None, None): {},
 
+    ("dbg-linux64", "browser-haz", "linux64"):{"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug", "hazard"]}},
     ("dbg-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"type": ["debug"]}},
     ("dbg-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug"]}},
     ("dbg-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
@@ -413,24 +427,35 @@ KNOWN_BUILD_NAMES = {
     ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
     ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
     ("opt-linux64", None, None): {"build": {"platform": "linux64", "type": ["opt"]}},
+    ("opt-linux64", None, "linux32"): {},
+    ("opt-linux64", None, "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
+    ("opt-linux64", None, "osx-10-10"): {},
+    ("opt-linux64", None, "windowsxp"): {},
+    ("opt-linux64", None, "windows8-64"): {},
     ("opt-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"platform": "linux64", "type": ["opt"]}},
-    ("opt-linux64", "linux64-artifact", "linux64"): {},
+    ("opt-linux64", "linux64-artifact", "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
+
     ("opt-linux64", "linux64-gcc", "linux64"): {"build": {"platform": "linux64", "type": ["opt"], "compiler": "gcc"}},
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
+
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
     ("signing-worker-v1", None, "linux32"): {},
-    ("signing-worker-v1", None, "osx-10-10"):{},
-    ("signing-worker-v1", None, "linux64"):{},
+    ("signing-worker-v1", None, "osx-10-10"): {},
+    ("signing-worker-v1", None, "linux64"): {},
     ("signing-worker-v1", None, "windowsxp"): {},
     ("signing-worker-v1", None, "windows8-64"): {},
-    ("spidermonkey", "sm-plaindebug", "linux64"): {"build": {"product": "spidermonkey", "type": ["debug"], "platform": "linux64"}},
-    ("spidermonkey", "sm-warnaserr", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64"}},
+    ("spidermonkey", "sm-plain", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64"}},
+    ("spidermonkey", "sm-plaindebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
+    ("spidermonkey", "sm-warnaserr", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
+    ("spidermonkey", "sm-warnaserrdebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
     ("symbol-upload", None, "linux64"): {},
     ("symbol-upload", None, "android-4-0-armv7-api15"): {},
     ("taskcluster-images", None, "taskcluster-images"):{},
     ("tcvcs-cache-device", None, None): {},
     ("tutorial", None, None): {},
     ("worker-ci-test", None, None): {}
+
 }
+
 

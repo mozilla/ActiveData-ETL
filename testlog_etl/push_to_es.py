@@ -15,7 +15,7 @@ from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, unwrap
+from pyLibrary.dot import coalesce, unwrap, Dict
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
@@ -23,26 +23,33 @@ from pyLibrary.times.timer import Timer
 from testlog_etl.etl import parse_id_argument
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 
+split = {}
 
-# COPY FROM S3 BUCKET TO ELASTICSEARCH
-def copy2es(es, settings, work_queue, please_stop=None):
-    # EVERYTHING FROM ELASTICSEARCH
-    bucket = s3.Bucket(settings.source)
 
+def splitter(work_queue, please_stop):
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
-            es.queue.add(Thread.STOP)
+            for k,v in split.items():
+                v.add(Thread.STOP)
             return
         if pair == None:
             continue
 
         message, payload = pair
-        if isinstance(payload, Mapping):
-            key = payload["key"]
-        else:
-            key = unicode(payload)
+        if not isinstance(payload, Mapping):
+            Log.error("not expected")
+
+        key = payload.key
+        try:
+            params = split[payload.bucket]
+        except Exception:
+            Log.error("do not know what to do with bucket {{bucket}}", bucket=payload.bucket)
+        es = params.es
+        bucket = params.bucket
+        settings = params.settings
+
         extend_time = Timer("insert", silent=True)
-        Log.note("Indexing {{key}}", key=key)
+        Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
         with extend_time:
             if settings.sample_only:
                 sample_filter = {"terms": {"build.branch": settings.sample_only}}
@@ -59,11 +66,13 @@ def copy2es(es, settings, work_queue, please_stop=None):
                 message.delete()
 
             es.queue.add(_delete)
+
         if num_keys > 1:
             Log.note(
-                "Added {{num}} keys from {{key}} block in {{duration}} ({{rate|round(places=3)}} keys/second)",
+                "Added {{num}} keys from {{key}} block to {{bucket}} in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
+                bucket=bucket.name,
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
             )
@@ -96,6 +105,7 @@ def main():
         }
 
         if settings.args.reset:
+            Log.error("not working, multiple indexes involved")
             cluster = elasticsearch.Cluster(settings.elasticsearch)
             alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
             index = cluster.get_prototype(alias)[0]
@@ -108,24 +118,25 @@ def main():
                 return
 
         if settings.args.id:
-            work_queue = Queue("local work queue")
-            work_queue.extend(parse_id_argument(settings.args.id))
+            main_work_queue = Queue("local work queue")
+            main_work_queue.extend(parse_id_argument(settings.args.id))
         else:
-            work_queue = aws.Queue(settings=settings.work_queue)
-
+            main_work_queue = aws.Queue(settings=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
 
-        es = MultiDayIndex(settings.elasticsearch, queue_size=coalesce(settings.queue_size, 100000), batch_size=unwrap(settings.batch_size))
+        for w in settings.workers:
+            split[w.source.bucket] = Dict(
+                es=MultiDayIndex(w.elasticsearch, queue_size=coalesce(w.queue_size, 1000), batch_size=unwrap(w.batch_size)),
+                bucket=s3.Bucket(w.source),
+                settings=settings
+            )
 
-        threads = []
-        please_stop = Signal()
-        for _ in range(settings.threads):
-            p = Thread.run("copy to es", copy2es, es, settings, work_queue, please_stop=please_stop)
-            threads.append(p)
+        please_stop=Signal()
+        Thread.run("splitter", splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}", num=len(work_queue))
+                Log.note("Remaining: {{num}}", num=len(main_work_queue))
                 Thread.sleep(seconds=10)
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
