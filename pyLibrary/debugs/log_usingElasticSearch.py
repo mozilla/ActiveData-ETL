@@ -14,12 +14,12 @@ from __future__ import unicode_literals
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.text_logs import TextLog
-from pyLibrary.dot import wrap, unwrap, coalesce
+from pyLibrary.dot import wrap, unwrap, coalesce, set_default
 from pyLibrary.env.elasticsearch import Cluster
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread, Queue
-from pyLibrary.times.durations import MINUTE
+from pyLibrary.times.durations import MINUTE, Duration
 
 
 class TextLog_usingElasticSearch(TextLog):
@@ -37,6 +37,8 @@ class TextLog_usingElasticSearch(TextLog):
         self.batch_size = batch_size
         self.es.add_alias(coalesce(settings.alias, settings.index))
         self.queue = Queue("debug logs to es", max=max_size, silent=True)
+        self.es.settings.retry.times = coalesce(self.es.settings.retry.times, 3)
+        self.es.settings.retry.sleep = Duration(coalesce(self.es.settings.retry.sleep, MINUTE))
         Thread.run("add debug logs to es", self._insert_loop)
 
     def write(self, template, params):
@@ -59,7 +61,7 @@ class TextLog_usingElasticSearch(TextLog):
                     #     m.value.params = leafer(m.value.params)
                     #     m.value.error = leafer(m.value.error)
                     for g, mm in jx.groupby(messages, size=self.batch_size):
-                        self.es.extend(mm, retry={"times": 3, "sleep": MINUTE})
+                        self.es.extend(mm)
                     bad_count = 0
             except Exception, e:
                 Log.warning("Problem inserting logs into ES", cause=e)

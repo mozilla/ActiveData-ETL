@@ -289,7 +289,8 @@ class Index(Features):
                 self.path + "/_bulk",
                 data=data_bytes,
                 headers={"Content-Type": "text"},
-                timeout=self.settings.timeout
+                timeout=self.settings.timeout,
+                retry=self.settings.retry
             )
             items = response["items"]
 

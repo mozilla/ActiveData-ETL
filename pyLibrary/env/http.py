@@ -107,7 +107,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
     _to_ascii_dict(kwargs)
     timeout = kwargs[b'timeout'] = coalesce(kwargs.get(b'timeout'), default_timeout)
 
-    if retry is None:
+    if retry == None:
         retry = Dict(times=1, sleep=0)
     elif isinstance(retry, Number):
         retry = Dict(times=retry, sleep=SECOND)
