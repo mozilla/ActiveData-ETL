@@ -1,18 +1,17 @@
-
 {
 	"work_queue": {
 		"name": "active-data-index",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
-	"workers":[
+	"workers": [
 		{
 			"name": "unit",
 			"batch_size": 5000,
 			"sample_only": [
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://localhost",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
@@ -30,12 +29,12 @@
 			}
 		},
 		{
-			"name":"perf",
+			"name": "perf",
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://localhost",
 				"port": 9200,
 				"index": "perf",
 				"type": "perf_result",
@@ -53,11 +52,11 @@
 			}
 		},
 		{
-			"name":"jobs",
+			"name": "jobs",
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://localhost",
 				"port": 9200,
 				"index": "jobs",
 				"type": "job",
@@ -75,12 +74,12 @@
 			}
 		},
 		{
-			"name":"code coverage",
+			"name": "code coverage",
 			"queue_size": 2000,
 			"batch_size": 1000,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://localhost",
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
@@ -103,7 +102,7 @@
 			"batch_size": 1000,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://localhost",
 				"port": 9200,
 				"index": "task",
 				"type": "task",
@@ -128,7 +127,7 @@
 		}
 	},
 	"debug": {
-		"trace":true,
+		"trace": true,
 		"log": [
 			{
 				"log_type": "console"
@@ -137,10 +136,9 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push unit to ES",
+				"subject": "[ALERT][Staging]Problem in Push to ES",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}
 }
-

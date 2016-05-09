@@ -122,7 +122,7 @@ def main():
             main_work_queue.extend(parse_id_argument(settings.args.id))
         else:
             main_work_queue = aws.Queue(settings=settings.work_queue)
-        Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.source.bucket)
+        Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
             split[w.source.bucket] = Dict(
