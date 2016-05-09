@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, coalesce
 from pyLibrary.env import http
@@ -101,9 +102,7 @@ def _scrub(doc):
         for i, v in enumerate(doc):
             doc[i] = _scrub(v)
     elif isinstance(doc, basestring):
-        try:
+        with suppress_exception:
             return Date(doc).unix
-        except Exception, e:
-            pass
 
     return doc

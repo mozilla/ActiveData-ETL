@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
@@ -120,7 +121,7 @@ def _get_single_branch_from_hg(settings, description, dir):
             continue  # IGNORE HEADER
         columns = b("td")
 
-        try:
+        with suppress_exception:
             path = columns[0].a.get('href')
             if path == "/":
                 continue
@@ -172,8 +173,6 @@ def _get_single_branch_from_hg(settings, description, dir):
 
             Log.note("Branch {{name}} {{locale}}", name=detail.name, locale=detail.locale)
             output.append(detail)
-        except Exception, _:
-            pass
 
     return output
 

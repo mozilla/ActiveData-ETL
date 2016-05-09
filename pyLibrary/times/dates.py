@@ -17,13 +17,13 @@ from decimal import Decimal
 import math
 import platform
 import re
+
 from pyLibrary.maths import Math
 
 try:
     import pytz
-except Exception, _:
+except Exception:
     pass
-
 
 from pyLibrary.dot import Null
 from pyLibrary.times.durations import Duration, MILLI_VALUES
@@ -403,10 +403,8 @@ def unicode2datetime(value, format=None):
     try:
         local_value = parse_date(value)  #eg 2014-07-16 10:57 +0200
         return (local_value - local_value.utcoffset()).replace(tzinfo=None)
-    except Exception, e:
+    except Exception:
         pass
-
-
 
     formats = [
         #"%Y-%m-%d %H:%M %z",  # "%z" NOT SUPPORTED IN 2.7
@@ -416,6 +414,7 @@ def unicode2datetime(value, format=None):
             return unicode2datetime(value, format=f)
         except Exception:
             pass
+
 
     deformats = [
         "%Y-%m",# eg 2014-07-16 10:57 +0200
@@ -437,10 +436,9 @@ def unicode2datetime(value, format=None):
     ]
     value = deformat(value)
     for f in deformats:
-        try:
+        with suppress_exception:
             return unicode2datetime(value, format=f)
-        except Exception:
-            pass
+
     else:
         from pyLibrary.debugs.logs import Log
         Log.error("Can not interpret {{value}} as a datetime",  value= value)

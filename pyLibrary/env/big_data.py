@@ -16,6 +16,7 @@ from tempfile import TemporaryFile
 import zipfile
 import zlib
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 
@@ -360,10 +361,8 @@ def scompressed2ibytes(stream):
         except Exception, e:
             Log.error("Problem iterating through stream", cause=e)
         finally:
-            try:
+            with suppress_exception:
                 stream.close()
-            except Exception:
-                pass
 
     return icompressed2ibytes(more())
 

@@ -19,6 +19,7 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
@@ -122,7 +123,7 @@ class ETL(Thread):
 
         if not work_actions:
             Log.note(
-                "No worker defined for records from {{source_bucket}} to {{destination}}, {{action}}.\n{{message|indent}}",
+                "No worker defined for records from {{source_bucket|quote}} to {{destination|quote}}, {{action}}.\n{{message|indent}}",
                 source_bucket=source_block.bucket,
                 destination=source_block.destination,
                 message=source_block,
@@ -311,22 +312,19 @@ def get_container(settings):
         # ASSUME BUCKET NAME
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception, _:
-                    pass
             output =  S3Bucket(settings)
             sinks.append((settings, output))
             return output
     else:
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception:
-                    pass
+
 
             es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)

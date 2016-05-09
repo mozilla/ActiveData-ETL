@@ -14,6 +14,7 @@ import ast
 import re
 
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
 from pyLibrary.env import elasticsearch
@@ -377,15 +378,11 @@ def scrub_known_properties(props):
 
 
 def unquote(value):
-    try:
+    with suppress_exception:
         return ast.literal_eval(value)
-    except Exception:
-        pass
 
-    try:
+    with suppress_exception:
         return convert.json2value(value)
-    except Exception:
-        pass
 
     return value
 
@@ -708,7 +705,7 @@ KNOWN_PLATFORM = {
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "win32_gecko_localizer": {},
-    "win32-st-an-debug":{"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
+    "win32-st-an-debug": {"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},

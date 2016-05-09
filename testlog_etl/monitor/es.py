@@ -14,15 +14,14 @@ from fabric.operations import local
 
 from pyLibrary import convert
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 
-try:
+with suppress_exception:
     # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP
     from Crypto.pct_warnings import PowmInsecureWarning
     import warnings
     warnings.simplefilter("ignore", PowmInsecureWarning)
-except Exception:
-    pass
 
 
 def main():

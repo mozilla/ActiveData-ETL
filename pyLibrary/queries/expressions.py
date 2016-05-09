@@ -16,6 +16,7 @@ import itertools
 
 from pyLibrary import convert
 from pyLibrary.collections import OR, MAX, UNION
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.dot import coalesce, wrap, set_default, literal_field, listwrap, Null, Dict
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
@@ -1599,14 +1600,12 @@ def _normalize(esfilter):
             for (i0, t0), (i1, t1) in itertools.product(enumerate(terms), enumerate(terms)):
                 if i0 >= i1:
                     continue  # SAME, IGNORE
-                try:
+                with suppress_exception:
                     f0, tt0 = t0.range.items()[0]
                     f1, tt1 = t1.range.items()[0]
                     if f0 == f1:
                         set_default(terms[i0].range[literal_field(f1)], tt1)
                         terms[i1] = True
-                except Exception, e:
-                    pass
 
             output = []
             for a in terms:
