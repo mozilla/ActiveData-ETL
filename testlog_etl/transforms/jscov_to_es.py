@@ -141,6 +141,7 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
     # iterate through the methods of this source file
     for method_name, method_lines in obj.methods.iteritems():
         _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+        add_tc_prefix(dest_etl)
 
         # reusing dest_etl.id, which should be continuous
         record_key = bucket_key + "." + unicode(dest_etl.id)
@@ -185,6 +186,7 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
     _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+    add_tc_prefix(dest_etl)
     record_key = bucket_key + "." + unicode(dest_etl.id)
     new_record = wrap({
         "test": {
@@ -280,3 +282,10 @@ def get_build_info(task_definition):
     build.created_timestamp = Date(build_task_definition.created).unix
 
     return build
+
+
+def add_tc_prefix(dest_etl):
+    # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+    if not dest_etl.source.source:
+        dest_etl.source.type = "join"
+        dest_etl.source.source = {"id": "tc"}

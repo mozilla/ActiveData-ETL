@@ -63,6 +63,9 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = tc_message.etl
             etl_source = coalesce(etl_source, etl.source)
             etl.source = etl_source
+            if not etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+                etl.source.type = "join"
+                etl.source.source = {"id": "tc"}
             normalized.etl = {
                 "id": i,
                 "source": etl,

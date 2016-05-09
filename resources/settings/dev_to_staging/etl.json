@@ -75,7 +75,7 @@
 			"source": {
 				"bucket": "active-data-task-cluster-logger",
 				"public": true,
-				"key_format": "t.a:b",
+				"key_format": "a:b",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"destination": {
@@ -199,7 +199,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger",
-				"key_format": "t.a:b"
+				"key_format": "a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",

@@ -168,7 +168,7 @@ class ETL(Thread):
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
                 # VERIFY KEYS
-                if len(new_keys) == 1 and list(new_keys)[0] == source_key:
+                if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
                 else:
                     etls = map(key2etl, new_keys)
