@@ -278,6 +278,7 @@ def get_tags(task):
 
 def _object_to_array(value, key_name, value_name=None):
     try:
+        value = unwraplist(value)
         if value_name==None:
             return [set_default(v, {key_name: k}) for k, v in value.items()]
         else:
