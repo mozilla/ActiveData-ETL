@@ -78,6 +78,13 @@ def splitter(work_queue, please_stop):
             )
 
 
+def safe_splitter(work_queue, please_stop):
+    try:
+        splitter(work_queue, please_stop)
+    finally:
+        please_stop.go()
+
+
 def main():
     try:
         settings = startup.read_settings(defs=[
@@ -132,7 +139,7 @@ def main():
             )
 
         please_stop=Signal()
-        Thread.run("splitter", splitter, main_work_queue, please_stop=please_stop)
+        Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
             while not please_stop:

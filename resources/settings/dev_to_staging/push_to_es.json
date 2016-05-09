@@ -7,6 +7,30 @@
 	},
 	"workers":[
 		{
+			"name": "old unit",
+			"batch_size": 5000,
+			"sample_only": [
+			],
+			"elasticsearch": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "unittest",
+				"type": "test_result",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/test_results.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "ekyle-test-result",
+				"key_format": "a:b.c"
+			}
+		},
+
+		{
 			"name": "unit",
 			"batch_size": 5000,
 			"sample_only": [
