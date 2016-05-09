@@ -101,23 +101,13 @@ def _es_up():
 
 def _refresh_indexer():
     with cd("/home/ec2-user/TestLog-ETL/"):
-        with fabric_settings(warn_only=True):
-            sudo("supervisorctl stop push_perf_to_es")
-            sudo("supervisorctl stop push_unit_to_es")
-            sudo("supervisorctl stop push_jobs_to_es")
-            sudo("supervisorctl stop push_cv_to_es")
-
-
-
-        # result = run("git pull origin push-to-es")
-        # if result.find("Already up-to-date.") != -1:
-        #     Log.note("No change required")
-        # else:
-        #     with fabric_settings(warn_only=True):
-        #         sudo("supervisorctl restart push_perf_to_es")
-        #         sudo("supervisorctl restart push_unit_to_es")
-        #         sudo("supervisorctl restart push_jobs_to_es")
-        #         sudo("supervisorctl restart push_cv_to_es")
+        result = run("git pull origin push-to-es")
+        if result.find("Already up-to-date.") != -1:
+            Log.note("No change required")
+        else:
+            _start_supervisor()
+            with fabric_settings(warn_only=True):
+                sudo("supervisorctl restart push_to_es")
 
 
 def _start_supervisor():
