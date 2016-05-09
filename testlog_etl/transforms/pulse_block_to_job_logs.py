@@ -109,7 +109,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
 
 #17:54:20     INFO - ##### Finished clobber step (success)
-MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
+MOZLOG_SUMMARY = [
+    re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:"),
+    re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### Finished (.*) step \(.*\)")
+]
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
 
@@ -143,12 +146,16 @@ class HarnessLines(object):
             _time, mode, message = match.group(1, 2, 3)
             mode = mode.strip().lower()
         else:
-            match = MOZLOG_SUMMARY.match(curr_line)
-            if not match:
+            for p in MOZLOG_SUMMARY:
+                match = p.match(curr_line)
+                if match:
+                    break
+            else:
                 Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
                 return None
-            _time, message = match.group(1, 2)
-            mode = "summary"
+
+            # SOME MOZHARNESS STEPS HAVE A SUMMARY, IGNORE THEM
+            return None
 
         timestamp = Date((last_timestamp - 12 * HOUR).format("%Y-%m-%d") + " " + _time, "%Y-%m-%d %H:%M:%S")
         if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
