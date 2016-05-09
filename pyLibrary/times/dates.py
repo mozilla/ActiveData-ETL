@@ -17,7 +17,6 @@ import re
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.maths import Math
 
 try:
@@ -336,16 +335,21 @@ def unicode2Date(value, format=None):
 
             Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
 
-    with suppress_exception:
+    try:
         local_value = parse_date(value)  #eg 2014-07-16 10:57 +0200
         return unix2Date(datetime2unix((local_value - local_value.utcoffset()).replace(tzinfo=None)))
+    except Exception:
+        pass
 
     formats = [
         #"%Y-%m-%d %H:%M %z",  # "%z" NOT SUPPORTED IN 2.7
     ]
     for f in formats:
-        with suppress_exception:
+        try:
             return unicode2Date(value, format=f)
+        except Exception:
+            pass
+
 
 
     deformats = [
@@ -368,8 +372,11 @@ def unicode2Date(value, format=None):
     ]
     value = deformat(value)
     for f in deformats:
-        with suppress_exception:
+        try:
             return unicode2Date(value, format=f)
+        except Exception:
+            pass
+
     else:
         from pyLibrary.debugs.logs import Log
         Log.error("Can not interpret {{value}} as a datetime",  value= value)
