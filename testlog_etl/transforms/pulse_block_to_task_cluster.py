@@ -446,6 +446,7 @@ KNOWN_BUILD_NAMES = {
 
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
+    ("rustbuild", None, None): {},
     ("signing-worker-v1", None, "linux32"): {},
     ("signing-worker-v1", None, "osx-10-10"): {},
     ("signing-worker-v1", None, "linux64"): {},
@@ -468,24 +469,3 @@ KNOWN_BUILD_NAMES = {
     ("worker-ci-test", None, None): {}
 
 }
-
-# =======
-# def _object_to_array(value, key_name, value_name=None):
-#     if value_name==None:
-#         return [set_default(v, {key_name: k}) for k, v in value.items()]
-#     else:
-#         return [{key_name: k, value_name: v} for k, v in value.items()]
-#
-#
-# def _scrub(doc):
-#     if isinstance(doc, Mapping):
-#         for k, v in doc.items():
-#             doc[k] = _scrub(v)
-#     elif isinstance(doc, list):
-#         for i, v in enumerate(doc):
-#             doc[i] = _scrub(v)
-#     elif isinstance(doc, basestring):
-#         with suppress_exception:
-#             return Date(doc).unix
-# >>>>>>> exceptions
-#
