@@ -12,6 +12,7 @@ from __future__ import division
 from copy import copy
 import re
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
@@ -229,16 +230,13 @@ class HgMozillaOrg(object):
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
-        try:
+        with suppress_exception:
             return _get_url(url, branch, **kwargs)
-        except Exception, e:
-            pass
 
-        try:
+        with suppress_exception:
             Thread.sleep(seconds=5)
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-        except Exception, f:
-            pass
+
 
         path = url.split("/")
         if path[3] == "l10n-central":

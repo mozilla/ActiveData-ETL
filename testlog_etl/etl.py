@@ -27,11 +27,12 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log, write_profile
+from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import use_settings, DataClass
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
@@ -43,7 +44,7 @@ from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-from testlog_etl.transforms import Transform, pulse_block_to_es
+from testlog_etl.transforms import Transform
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -133,7 +134,7 @@ class ETL(Thread):
 
         if not work_actions:
             Log.note(
-                "No worker defined for records from {{source_bucket}} to {{destination}}, {{action}}.\n{{message|indent}}",
+                "No worker defined for records from {{source_bucket|quote}} to {{destination|quote}}, {{action}}.\n{{message|indent}}",
                 source_bucket=source_block.bucket,
                 destination=source_block.destination,
                 message=source_block,
@@ -312,22 +313,19 @@ def get_container(settings):
         # ASSUME BUCKET NAME
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception, _:
-                    pass
             output =  S3Bucket(settings)
             sinks.append((settings, output))
             return output
     else:
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception:
-                    pass
+
 
             es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)

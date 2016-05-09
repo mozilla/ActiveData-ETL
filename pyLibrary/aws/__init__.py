@@ -136,7 +136,6 @@ def capture_termination_signal(please_stop):
                     please_stop.go()
                     return
             except Exception, e:
-                pass  # BE QUIET
                 Thread.sleep(seconds=61, please_stop=please_stop)
             Thread.sleep(seconds=11, please_stop=please_stop)
 

@@ -13,7 +13,7 @@ import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, coalesce, Dict, unwraplist, unwrap, listwrap, wrap
+from pyLibrary.dot import set_default, coalesce, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
@@ -458,4 +458,23 @@ KNOWN_BUILD_NAMES = {
 
 }
 
-
+# =======
+# def _object_to_array(value, key_name, value_name=None):
+#     if value_name==None:
+#         return [set_default(v, {key_name: k}) for k, v in value.items()]
+#     else:
+#         return [{key_name: k, value_name: v} for k, v in value.items()]
+#
+#
+# def _scrub(doc):
+#     if isinstance(doc, Mapping):
+#         for k, v in doc.items():
+#             doc[k] = _scrub(v)
+#     elif isinstance(doc, list):
+#         for i, v in enumerate(doc):
+#             doc[i] = _scrub(v)
+#     elif isinstance(doc, basestring):
+#         with suppress_exception:
+#             return Date(doc).unix
+# >>>>>>> exceptions
+#

@@ -14,6 +14,7 @@ from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
@@ -68,10 +69,8 @@ def parse_day(settings, p, force=False):
     notify = Queue(settings=settings.notify)
 
     if force:
-        try:
+        with suppress_exception:
             destination.delete_key(key0)
-        except Exception:
-            pass
     else:
         # CHECK TO SEE IF THIS DAY WAS DONE
         if destination.get_meta(key0):

@@ -12,6 +12,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.text_logs import TextLog
 from pyLibrary.dot import wrap, unwrap, coalesce, set_default
@@ -79,15 +80,12 @@ class TextLog_usingElasticSearch(TextLog):
                 Log.warning("Should not happen", cause=e)
 
     def stop(self):
-        try:
+        with suppress_exception:
             self.queue.add(Thread.STOP)  # BE PATIENT, LET REST OF MESSAGE BE SENT
-        except Exception, e:
-            pass
 
-        try:
+        with suppress_exception:
             self.queue.close()
-        except Exception, f:
-            pass
+
 
 
 def leafer(param):
