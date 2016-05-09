@@ -383,6 +383,7 @@ KNOWN_BUILD_NAMES = {
     ("dbg-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"type": ["debug"]}},
     ("dbg-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug"]}},
     ("dbg-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
+    ("dbg-linux64", "shell-haz", "linux64"): {},
 
     ("desktop-test", None, "linux64"): {"build": {"platform": "linux64"}},
     ("desktop-test-xlarge", None, "linux64"): {"build": {"platform": "linux64"}},
@@ -427,6 +428,7 @@ KNOWN_BUILD_NAMES = {
     ("gecko-decision", None, None): {},
     ("github-worker", None, None): {},
     ("human-decision", None, None): {},
+
     ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
     ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
     ("opt-linux64", None, None): {"build": {"platform": "linux64", "type": ["opt"]}},
@@ -448,10 +450,15 @@ KNOWN_BUILD_NAMES = {
     ("signing-worker-v1", None, "linux64"): {},
     ("signing-worker-v1", None, "windowsxp"): {},
     ("signing-worker-v1", None, "windows8-64"): {},
+    ("spidermonkey", "sm-arm-sim", "linux64"): {},
+    ("spidermonkey", "sm-compacting", "linux64"):{},
+    ("spidermonkey", "sm-rootanalysis", "linux64"): {},
     ("spidermonkey", "sm-plain", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64"}},
     ("spidermonkey", "sm-plaindebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
+    ("spidermonkey", "sm-generational", "linux64"): {},
     ("spidermonkey", "sm-warnaserr", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
     ("spidermonkey", "sm-warnaserrdebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
+
     ("symbol-upload", None, "linux64"): {},
     ("symbol-upload", None, "android-4-0-armv7-api15"): {},
     ("taskcluster-images", None, "taskcluster-images"):{},
