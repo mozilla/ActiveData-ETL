@@ -27,11 +27,12 @@ from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log, write_profile
+from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import use_settings, DataClass
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
@@ -43,7 +44,7 @@ from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.sinks.split import Split
-from testlog_etl.transforms import Transform, pulse_block_to_es
+from testlog_etl.transforms import Transform
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -133,7 +134,7 @@ class ETL(Thread):
 
         if not work_actions:
             Log.note(
-                "No worker defined for records from {{source_bucket}} to {{destination}}, {{action}}.\n{{message|indent}}",
+                "No worker defined for records from {{source_bucket|quote}} to {{destination|quote}}, {{action}}.\n{{message|indent}}",
                 source_bucket=source_block.bucket,
                 destination=source_block.destination,
                 message=source_block,
@@ -167,7 +168,7 @@ class ETL(Thread):
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
                 # VERIFY KEYS
-                if len(new_keys) == 1 and list(new_keys)[0] == source_key:
+                if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
                 else:
                     etls = map(key2etl, new_keys)
@@ -200,7 +201,7 @@ class ETL(Thread):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.alert("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys= old_keys,
                         source_key= source_key)
                     continue
@@ -212,17 +213,13 @@ class ETL(Thread):
                     )
                     continue
 
-                for k in new_keys:
-                    if len(k.split(".")) == 3 and action.destination.type!="test_result":
-                        Log.error("two dots have not been needed yet, this is a consitency check")
-
                 delete_me = old_keys - new_keys
                 if delete_me:
                     if action.destination.bucket == "ekyle-test-result":
                         for k in delete_me:
                             action._destination.delete_key(k)
                     else:
-                        Log.note("delete keys?\n{{list}}",  list= sorted(delete_me))
+                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
                         # for k in delete_me:
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -242,12 +239,6 @@ class ETL(Thread):
                             action._source.delete_key(strip_extension(k.key))
                 elif "expecting keys to be contiguous" in e:
                     err = Log.warning
-                    if source_block.bucket=="ekyle-test-result":
-                        # WE KNOW OF THIS ETL MISTAKE, REPROCESS
-                        self.work_queue.add({
-                            "key": unicode(key_prefix(source_key)),
-                            "bucket": "ekyle-pulse-logger"
-                        })
                 elif "Expecting a pure key" in e:
                     err = Log.warning
                 else:
@@ -322,22 +313,19 @@ def get_container(settings):
         # ASSUME BUCKET NAME
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception, _:
-                    pass
             output =  S3Bucket(settings)
             sinks.append((settings, output))
             return output
     else:
         with sinks_locker:
             for e in sinks:
-                try:
+                with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-                except Exception:
-                    pass
+
 
             es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)

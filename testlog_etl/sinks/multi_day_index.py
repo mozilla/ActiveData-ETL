@@ -70,6 +70,21 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if not line:
                         continue
+
+                    # ES SCHEMA IS STRICTLY TYPED, USE "code" FOR TEXT IDS
+                    line = line.replace('{"id": "bb"}', '{"code": "bb"}').replace('{"id": "tc"}', '{"code": "tc"}')
+
+                    # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
+                    if source.name.startswith("active-data-test-result"):
+                        # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
+                        found = strings.between(line, '"suite": {', '}')
+                        if found:
+                            suite_json = '{' + found + "}"
+                            if suite_json:
+                                suite = convert.json2value(suite_json)
+                                suite = convert.value2json(suite.name)
+                                line = line.replace(suite_json, suite)
+
                     if rownum == 0:
                         value = convert.json2value(line)
                         if len(line) > 100000:
@@ -92,7 +107,7 @@ class MultiDayIndex(object):
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
                     else:
-                        #FAST
+                        # FAST
                         _id = strings.between(line, "\"_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
                     num_keys += 1

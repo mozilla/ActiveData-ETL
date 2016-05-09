@@ -16,6 +16,7 @@ from tempfile import TemporaryFile
 import zipfile
 import zlib
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 
@@ -360,15 +361,13 @@ def scompressed2ibytes(stream):
         except Exception, e:
             Log.error("Problem iterating through stream", cause=e)
         finally:
-            try:
+            with suppress_exception:
                 stream.close()
-            except Exception:
-                pass
 
     return icompressed2ibytes(more())
 
 
-def sbytes2ilines(stream, encoding="utf8"):
+def sbytes2ilines(stream, encoding="utf8", closer=None):
     """
     CONVERT A STREAM (with read() method) OF (ARBITRARY-SIZED) byte BLOCKS
     TO A LINE (CR-DELIMITED) GENERATOR
@@ -378,17 +377,23 @@ def sbytes2ilines(stream, encoding="utf8"):
             while True:
                 bytes_ = stream.read(4096)
                 if not bytes_:
-                    stream.close()
                     return
                 yield bytes_
         except Exception, e:
+            Log.error("Problem iterating through stream", cause=e)
+        finally:
             try:
                 stream.close()
             except Exception:
                 pass
-            Log.error("Problem iterating through stream", cause=e)
 
-    return ibytes2ilines({"next": read}, encoding=encoding)
+            if closer:
+                try:
+                    closer()
+                except Exception:
+                    pass
+
+    return ibytes2ilines(read(), encoding=encoding)
 
 
 def get_decoder(encoding):

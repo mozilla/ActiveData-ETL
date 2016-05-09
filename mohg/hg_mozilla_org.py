@@ -12,6 +12,7 @@ from __future__ import division
 from copy import copy
 import re
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
@@ -229,16 +230,13 @@ class HgMozillaOrg(object):
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
-        try:
+        with suppress_exception:
             return _get_url(url, branch, **kwargs)
-        except Exception, e:
-            pass
 
-        try:
+        with suppress_exception:
             Thread.sleep(seconds=5)
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-        except Exception, f:
-            pass
+
 
         path = url.split("/")
         if path[3] == "l10n-central":
@@ -255,6 +253,11 @@ class HgMozillaOrg(object):
             # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-beta"] + path[7:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 7 and path[5] == "mozilla-release":
+            # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            path = path[0:4] + ["mozilla-release"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])

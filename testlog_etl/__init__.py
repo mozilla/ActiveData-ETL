@@ -14,7 +14,7 @@ from pyLibrary import strings
 from pyLibrary.aws import s3
 from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, coalesce
 from pyLibrary.queries import jx
 
 
@@ -91,7 +91,7 @@ def etl2key(etl):
     source = etl
     seq = []
     while source:
-        seq.append(unicode(format_id(source.id)))
+        seq.append(unicode(format_id(coalesce(source.id, source.code))))
         if source.type == "join":
             seq.append(".")
         else:
@@ -119,15 +119,17 @@ def etl2path(etl):
     try:
         path = []
         while etl:
-            path.append(etl.id)
+            path.append(coalesce(etl.id, etl.code))
             while etl.type and etl.type != "join":
                 etl = etl.source
             etl = etl.source
         return jx.reverse(path)
     except Exception, e:
-        Log.error("Can not get path {{etl}}",  etl= etl, cause=e)
+        Log.error("Can not get path {{etl}}", etl=etl, cause=e)
+
 
 def key2path(key):
     return etl2path(key2etl(key))
+
 
 from . import transforms

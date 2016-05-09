@@ -43,7 +43,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    Log.note("Processing Coverage" + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
@@ -51,10 +50,10 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         pulse_record = convert.json2value(msg_line)
-        taskId = pulse_record.status.taskId
+        task_id = pulse_record.status.taskId
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskId}), retry=RETRY)
+        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
 
         for artifact in artifacts.artifacts:
             artifact_file_name = artifact.name
@@ -72,11 +71,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # construct the artifact's full url
             runId = pulse_record.runId
-            full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
+            full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
 
             # get the task definition
             queue = taskcluster.Queue()
-            task_definition = wrap(queue.task(taskId=taskId))
+            task_definition = wrap(queue.task(taskId=task_id))
 
             # get additional info
             repo = get_revision_info(task_definition, resources)
@@ -142,6 +141,7 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
     # iterate through the methods of this source file
     for method_name, method_lines in obj.methods.iteritems():
         _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+        add_tc_prefix(dest_etl)
 
         # reusing dest_etl.id, which should be continuous
         record_key = bucket_key + "." + unicode(dest_etl.id)
@@ -186,6 +186,7 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
     _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
+    add_tc_prefix(dest_etl)
     record_key = bucket_key + "." + unicode(dest_etl.id)
     new_record = wrap({
         "test": {
@@ -281,3 +282,10 @@ def get_build_info(task_definition):
     build.created_timestamp = Date(build_task_definition.created).unix
 
     return build
+
+
+def add_tc_prefix(dest_etl):
+    # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+    if not dest_etl.source.source:
+        dest_etl.source.type = "join"
+        dest_etl.source.source = {"id": "tc"}

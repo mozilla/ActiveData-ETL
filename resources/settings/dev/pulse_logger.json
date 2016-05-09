@@ -1,5 +1,7 @@
 {
 	"source": {
+		"name": "Buildbot",
+		"prefix": "bb",
 		"exchange": "exchange/build/normalized",
 		"topic": "#",
 		"durable": true,
@@ -37,11 +39,11 @@
 				"encoding" : "utf8"
 			},
 			{
-				"log_type":"email",
+				"log_type":"ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV]Problem in Pulse Logger",
-				"$ref":"file://~/private.json#email"
+				"$ref":"file://~/private.json#aws_credentials"
 
 			}
 		]

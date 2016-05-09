@@ -15,6 +15,7 @@ NOTES_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id=
 JOB_BUG_MAP = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 
+
 class TreeHerder(object):
     @use_settings
     def __init__(self, repo=None, branches=None, timeout=None, use_cache=True, settings=None):

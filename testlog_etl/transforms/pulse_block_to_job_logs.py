@@ -344,6 +344,13 @@ def parse_command_line(line):
     return output
 
 
+BAD_HEADERS = [
+    "New python executable in ",
+    "buildid: Error loading mozconfig: ",
+    "Traceback (most recent call last):"
+]
+
+
 def process_buildbot_log(all_log_lines, from_url):
     """
     Buildbot logs:
@@ -404,7 +411,7 @@ def process_buildbot_log(all_log_lines, from_url):
             # builduid: 64d75a07877a458fb9f21220ae4cb5a8
             # revision: e23e76de2669b437c2f2576614c9936c713906f4
             try:
-                if curr_line.startswith("buildid: Error loading mozconfig: "):  # COMMON PATTERN
+                if any(curr_line.startswith(h) for h in BAD_HEADERS):  # COMMON PATTERN
                     process_head = False
                     data["mozconfig_load_error"] = True
                     continue

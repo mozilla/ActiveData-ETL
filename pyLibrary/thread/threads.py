@@ -26,7 +26,7 @@ from copy import copy
 from datetime import datetime, timedelta
 
 from pyLibrary import strings
-from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict
 from pyLibrary.times.dates import Date
@@ -219,10 +219,8 @@ class Queue(object):
                             self.keep_running = False
                         return value
 
-                    try:
+                    with suppress_exception:
                         self.lock.wait()
-                    except Exception, e:
-                        pass
             else:
                 while self.keep_running:
                     if self.queue:
@@ -233,10 +231,9 @@ class Queue(object):
                     elif Date.now() > till:
                         break
 
-                    try:
+                    with suppress_exception:
                         self.lock.wait(till=till)
-                    except Exception, e:
-                        pass
+
                 if self.keep_running:
                     return None
 
@@ -341,10 +338,8 @@ class MainThread(object):
         self.children.append(child)
 
     def remove_child(self, child):
-        try:
+        with suppress_exception:
             self.children.remove(child)
-        except Exception, _:
-            pass
 
     def stop(self):
         """
@@ -477,16 +472,12 @@ class Thread(object):
                 try:
                     children = copy(self.children)
                     for c in children:
-                        try:
+                        with suppress_exception:
                             c.stop()
-                        except Exception:
-                            pass
 
                     for c in children:
-                        try:
+                        with suppress_exception:
                             c.join()
-                        except Exception, _:
-                            pass
 
                     self.stopped.go()
                     del self.target, self.args, self.kwargs
@@ -906,11 +897,8 @@ def _wait_for_interrupt(please_stop):
     while not please_stop:
         if DEBUG:
             _Log.note("inside wait-for-shutdown loop")
-        try:
+        with suppress_exception:
             Thread.sleep(please_stop=please_stop)
-        except Exception, _:
-            pass
-
 
 
 class Till(Signal):

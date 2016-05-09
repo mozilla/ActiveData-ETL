@@ -120,10 +120,9 @@ def get_all_in_es(es, in_range, es_filter, field):
 
     good_es = []
     for k in result.aggregations._filter._match.buckets.key:
-        try:
+        with suppress_exception:
             good_es.append(int(k))
-        except Exception, e:
-            pass
+
 
     Log.note(
         "got {{num}} from {{index}}",

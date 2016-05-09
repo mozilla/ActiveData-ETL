@@ -14,6 +14,7 @@ import ast
 import re
 
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
 from pyLibrary.env import elasticsearch
@@ -42,13 +43,14 @@ class BuildbotTranslator(object):
             output.properties, output.other = normalize_other(props)
             return output
 
+        # TASK CLUSTER ID
+        output.task.id = props.taskId
+
         if props.taskId and data.reason.startswith("Created by BBB for task "):
-            output.task_id = props.taskId
             output.properties, output.other = normalize_other(props)
             return output
 
         if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
-            output.task_id = props.taskId
             output.properties, output.other = normalize_other(props)
             return output
 
@@ -226,7 +228,7 @@ class BuildbotTranslator(object):
                     return Dict()  # ERROR INGNORED, ALREADY SENT
             set_default(output, KNOWN_PLATFORM[raw_platform])
         elif key.endswith("nightly"):
-            output.build.trigger="nightly"
+            output.build.trigger = "nightly"
             try:
                 temp = key.split(" " + branch_name + " ")
                 if len(temp) == 1:
@@ -376,15 +378,11 @@ def scrub_known_properties(props):
 
 
 def unquote(value):
-    try:
+    with suppress_exception:
         return ast.literal_eval(value)
-    except Exception:
-        pass
 
-    try:
+    with suppress_exception:
         return convert.json2value(value)
-    except Exception:
-        pass
 
     return value
 
@@ -565,6 +563,7 @@ TEST_PLATFORMS = {
     "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
@@ -706,7 +705,7 @@ KNOWN_PLATFORM = {
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "win32_gecko_localizer": {},
-    "win32-st-an-debug":{"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
+    "win32-st-an-debug": {"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
     "win64": {"build": {"platform": "win64"}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},

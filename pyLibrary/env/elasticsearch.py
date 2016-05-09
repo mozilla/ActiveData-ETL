@@ -263,18 +263,18 @@ class Index(Features):
                     id = random_id()
 
                 if "json" in r:
-                    json = r["json"].encode("utf8")
+                    json_bytes = r["json"].encode("utf8")
                 elif "value" in r:
-                    json = convert.value2json(r["value"]).encode("utf8")
+                    json_bytes = convert.value2json(r["value"]).encode("utf8")
                 else:
-                    json = None
+                    json_bytes = None
                     Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
                 lines.append(b'{"index":{"_id": ' + convert.value2json(id).encode("utf8") + b'}}')
                 if self.settings.tjson:
-                    lines.append(json2typed(json))
+                    lines.append(json2typed(json_bytes.decode('utf8')).encode('utf8'))
                 else:
-                    lines.append(json)
+                    lines.append(json_bytes)
             del records
 
             if not lines:
@@ -289,7 +289,8 @@ class Index(Features):
                 self.path + "/_bulk",
                 data=data_bytes,
                 headers={"Content-Type": "text"},
-                timeout=self.settings.timeout
+                timeout=self.settings.timeout,
+                retry=self.settings.retry
             )
             items = response["items"]
 

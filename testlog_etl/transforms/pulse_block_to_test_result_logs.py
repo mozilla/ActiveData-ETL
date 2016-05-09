@@ -88,7 +88,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
-                    set_default(dest_etl, machine_metadata)
+                    dest_etl.machine = machine_metadata
+                    dest_etl.url = url
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
 
                     file_num += 1

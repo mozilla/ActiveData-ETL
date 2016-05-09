@@ -136,18 +136,17 @@ def capture_termination_signal(please_stop):
                     please_stop.go()
                     return
             except Exception, e:
-                pass  # BE QUIET
                 Thread.sleep(seconds=61, please_stop=please_stop)
             Thread.sleep(seconds=11, please_stop=please_stop)
 
     Thread.run("listen for termination", worker)
 
 
-def get_instance_metadata(timeout):
+def get_instance_metadata(timeout=None):
     if not isinstance(timeout, (int, float)):
         timeout = Duration(timeout).seconds
 
-    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata(timeout=timeout).items()})
+    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata(timeout=5, num_retries=2).items()})
     return output
 
 

@@ -8526,7 +8526,7 @@
             "basedir": "/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000",
             "master": "http://buildbot-master84.bb.releng.scl3.mozilla.com:8001/"
         },
-        "task_id": "pLDT2YFzQimhkb-c0nLc-Q"
+        "task":{"id": "pLDT2YFzQimhkb-c0nLc-Q"}
     },
     {
         "action": {
@@ -9895,7 +9895,7 @@
         },
         "build": {
             "branch": "mozilla-b2g34_v2_1",
-            "date": 1422749533,
+            "date": 1422749533.0,
             "gaia_revision": "63f291df9b9ad8498fb8fc7fb8bf070524406a5c",
             "gaia_revision12": "63f291df9b9a",
             "gecko_revision": "70b8982a523d",
@@ -10417,7 +10417,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
         },
-        "task_id": "T3UOeJ1HRsq2EKWD7QDi2Q"
+        "task":{"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
     },
     {
         "action": {
@@ -10505,7 +10505,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
         },
-        "task_id": "BczAgDHfQdueE5rocPgjnQ"
+        "task":{"id": "BczAgDHfQdueE5rocPgjnQ"}
     },
     {
         "action": {
@@ -11336,6 +11336,72 @@
             "script": {"revision": "a73c2b09380d2c708c5c6aebef59eaa394343477"},
             "suite": "dromaeojs",
             "type": "e10s"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1462220267,
+            "job_number": 0,
+            "reason": "scheduler",
+            "request_time": 1462217377,
+            "requests": [
+                {
+                    "request_id": 108003826,
+                    "timestamp": 1462217377
+                }
+            ],
+            "start_time": 1462218553,
+            "type": "test"
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Windows 7 VM 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "9017f4ff4b11f9105462b03f82763479588026e0",
+            "revision": "9017f4ff4b11f9105462b03f82763479588026e0",
+            "revision12": "9017f4ff4b11",
+            "tags": [],
+            "type": ["opt"],
+            "url": "https://queue.taskcluster.net/v1/task/M4GI_F46RxK6bhDLIw_ZiQ/artifacts/public/build/firefox-49.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "builduid": "cda09e5464374b22a0608de139e90306",
+            "master": "http://buildbot-master128.bb.releng.use1.mozilla.com:8201/",
+            "scheduler": "tests-try-win7_vm-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "chunk": 2,
+            "files": [
+                {
+                    "name": "mochitest-devtools-chrome-chunked_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/026359550af6a15ee4703e5635fbe4e45f74a6c2a9ba48927c4c7d69b49bc0f10534a97dfec536979f71745e4236a37bf0cbdd2d50c5e45a24f7b8476b0212e8"
+                },
+                {
+                    "name": "mochitest-devtools-chrome-chunked_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/95c2835567ea2f8ff63188c03ce9b9087186786915e3f035e901bbd903ff7f6b410cf4c41573b0669dbfa1d4578920b3046f2ecacbbf022ce9089e2b62970273"
+                }
+            ],
+            "key": "Windows 7 VM 32-bit try opt test mochitest-devtools-chrome-2",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/jmaher@mozilla.com-9017f4ff4b11f9105462b03f82763479588026e0/try-win32/try_win7_vm_test-mochitest-devtools-chrome-2-bm128-tests1-windows-build0.txt.gz",
+            "machine": {
+                "name": "t-w732-spot-029",
+                "os": "win7",
+                "pool": "t-w732-spot"
+            },
+            "script": {"revision": "9017f4ff4b11f9105462b03f82763479588026e0"},
+            "suite": "mochitest-devtools-chrome"
         }
     }
 ]
