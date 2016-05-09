@@ -46,7 +46,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.note("{{id}} found (line #{{num}})", id=taskid, num=i, artifact=tc_message.artifact.name)
 
             task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY, session=session)
-            normalized = _normalize(tc_message, task)
+            normalized = _normalize(source_key, tc_message, task)
             if normalized.build.revision:
                 normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
 
@@ -104,7 +104,7 @@ def read_buildbot_properties(normalized, url):
 
 
 
-def _normalize(tc_message, task):
+def _normalize(source_key, tc_message, task):
     output = Dict()
     set_default(task, tc_message.status)
 
@@ -140,7 +140,7 @@ def _normalize(tc_message, task):
     try:
         output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
     except Exception, e:
-        Log.warning("artifact format problem:\n{{artifact|json|indent}}", artifact=task.payload.artifacts, cause=e)
+        Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
     try:
         command = [cc for c in task.payload.command for cc in listwrap(c)]   # SOMETIMES A LIST OF LISTS
@@ -309,6 +309,7 @@ KNOWN_TAGS = {
     "description",
     "extra.build_product",  # error?
     "funsize.partials",
+    "github.branches",
     "github.events",
     "github.env",
     "github.headBranch",
@@ -321,6 +322,8 @@ KNOWN_TAGS = {
     "github.baseUser",
     "githubPullRequest",
 
+    "index.data.hello",
+    "index.expires",
     "index.rank",
     "locations.mozharness",
     "locations.test_packages",
@@ -332,6 +335,7 @@ KNOWN_TAGS = {
     "name",
     "npmCache.url",
     "npmCache.expires",
+    "objective",
     "owner",
     "signing.signature",
     "source",
@@ -341,6 +345,7 @@ KNOWN_TAGS = {
     "treeherder.build.platform",
     "treeherder.collection.debug",
     "treeherder.collection.opt",
+    "treeherder.collection.pgo",
     "treeherder.groupSymbol",
     "treeherder.groupName",
     "treeherder.machine.platform",
@@ -390,7 +395,7 @@ KNOWN_BUILD_NAMES = {
     ("desktop-test-xlarge", None, "linux64"): {"build": {"platform": "linux64"}},
     ("desktop-test-xlarge", "marionette-harness-pytest", "linux64"): {"build": {"platform": "linux64"}},
     ("dolphin", "dolphin-eng", "b2g-device-image"): {},
-
+    ("dummy-type", None, None): {},
     ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     ("emulator-jb", "emulator-jb", "b2g-emu-jb"): {"run": {"machine": {"type": "emulator"}}},

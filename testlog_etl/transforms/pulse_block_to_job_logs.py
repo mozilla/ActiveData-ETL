@@ -107,6 +107,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
 
 MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
+
+#17:54:20     INFO - ##### Finished clobber step (success)
 MOZLOG_SUMMARY = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:")
 MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
@@ -118,7 +120,7 @@ class HarnessLines(object):
         self.time_zone = None
         self.time_skew = None
 
-    def match(self, last_timestamp, prev_line, curr_line, next_line):
+    def match(self, source, last_timestamp, prev_line, curr_line, next_line):
         """
         log_date - IN %Y-%m-%d FORMAT FOR APPENDING TO THE TIME-OF-DAY STAMPS
         FOUND IN LOG LINES
@@ -143,7 +145,7 @@ class HarnessLines(object):
         else:
             match = MOZLOG_SUMMARY.match(curr_line)
             if not match:
-                Log.warning("unexpected log line\n{{line}}", line=curr_line)
+                Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
                 return None
             _time, message = match.group(1, 2)
             mode = "summary"
@@ -467,7 +469,7 @@ def process_buildbot_log(all_log_lines, from_url):
                 data.timings.append({"builder": builder_step})
             continue
 
-        mozharness_says = mozharness_line.match(end_time, prev_line, curr_line, next_line)
+        mozharness_says = mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
             end_time = Math.max(end_time, timestamp)
