@@ -372,6 +372,7 @@ KNOWN_BUILD_NAMES = {
     ("b2gtest", "marionette-harness-pytest", "linux64"): {},
     ("b2gtest-emulator", None, "b2g-emu-x86-kk"): {"run": {"machine": {"type": "emulator"}}},
 
+    ("b2gbuild", None, "mulet-linux64"): {},
 
     ("buildbot", None, None): {},
     ("buildbot-try", None, None): {},
