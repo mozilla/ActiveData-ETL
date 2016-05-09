@@ -23,7 +23,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl.transforms import EtlHeadGenerator
 
-
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
@@ -44,7 +43,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    Log.note("Processing Coverage" + source_key)
     bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
@@ -52,10 +50,10 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         pulse_record = convert.json2value(msg_line)
-        taskId = pulse_record.status.taskId
+        task_id = pulse_record.status.taskId
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskId}), retry=RETRY)
+        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
 
         for artifact in artifacts.artifacts:
             artifact_file_name = artifact.name
@@ -73,11 +71,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # construct the artifact's full url
             runId = pulse_record.runId
-            full_artifact_path = "https://public-artifacts.taskcluster.net/" + taskId + "/" + unicode(runId) + "/" + artifact_file_name
+            full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
 
             # get the task definition
             queue = taskcluster.Queue()
-            task_definition = wrap(queue.task(taskId=taskId))
+            task_definition = wrap(queue.task(taskId=task_id))
 
             # get additional info
             repo = get_revision_info(task_definition, resources)

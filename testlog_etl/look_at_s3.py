@@ -18,7 +18,7 @@ from pyLibrary.aws.s3 import Bucket
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.timer import Timer
 
 
@@ -31,7 +31,7 @@ def list_s3(settings, filter):
         prefix = filter.prefix.key  # WE MAY BE LUCKY AND THIS IS THE ONLY FILTER
         metas = bucket.metas(prefix=prefix)
 
-    filtered = qb.run({
+    filtered = jx.run({
         "from": metas,
         "where": filter,
         "sort": "last_modified"

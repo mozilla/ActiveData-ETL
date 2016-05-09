@@ -1,8 +1,8 @@
 {
 	"threads": 1,
+	"queue_size": 2000,
 	"batch_size": 1000,
-	"sample_only": [
-	],
+	"sample_only": [],
 	"elasticsearch": {
 		"host": "http://localhost",
 		"port": 9200,
@@ -38,12 +38,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push perf to ES",
-
-
+				"subject": "[ALERT][Staging]Problem in Push perf to ES",
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

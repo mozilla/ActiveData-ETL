@@ -23,7 +23,7 @@ from pyLibrary.dot import wrap, unwrap
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.thread.threads import Thread
-from pyLibrary.times.durations import SECOND
+from pyLibrary.times.durations import SECOND, Duration
 
 
 class Queue(object):
@@ -136,15 +136,17 @@ def capture_termination_signal(please_stop):
                     please_stop.go()
                     return
             except Exception, e:
-                pass  # BE QUIET
                 Thread.sleep(seconds=61, please_stop=please_stop)
             Thread.sleep(seconds=11, please_stop=please_stop)
 
     Thread.run("listen for termination", worker)
 
-@cache
-def get_instance_metadata():
-    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata().items()})
+
+def get_instance_metadata(timeout=None):
+    if not isinstance(timeout, (int, float)):
+        timeout = Duration(timeout).seconds
+
+    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata(timeout=5, num_retries=2).items()})
     return output
 
 

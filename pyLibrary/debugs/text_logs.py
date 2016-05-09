@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import sys
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.strings import expand_template
 
@@ -22,18 +23,21 @@ DEBUG_LOGGING = False
 
 _Log = None
 _Except = None
+_Queue = None
 
 
 def _delayed_imports():
     global _Log
     global _Except
+    global _Queue
 
     from pyLibrary.debugs.logs import Log as _Log
     from pyLibrary.debugs.exceptions import Except as _Except
+    from pyLibrary.thread.threads import Queue as _Queue
 
     _ = _Log
     _ = _Except
-
+    _ = _Queue
 
 class TextLog(object):
     def write(self, template, params):
@@ -64,10 +68,10 @@ class TextLog_usingFile(TextLog):
 class TextLog_usingThread(TextLog):
 
     def __init__(self, logger):
-        # DELAYED LOAD FOR THREADS MODULE
-        from pyLibrary.thread.threads import Queue
+        if not _Log:
+            _delayed_imports()
 
-        self.queue = Queue("logs", max=10000, silent=True)
+        self.queue = _Queue("logs", max=10000, silent=True)
         self.logger = logger
 
         def worker(please_stop):
@@ -131,11 +135,9 @@ class TextLog_usingMulti(TextLog):
                     _delayed_imports()
 
                 _Log.warning("Logger failed!  It will be removed: {{type}}", type=m.__class__.__name__, cause=e)
-        try:
+        with suppress_exception:
             for b in bad:
                 self.many.remove(b)
-        except Exception:
-            pass
 
         return self
 
@@ -152,10 +154,9 @@ class TextLog_usingMulti(TextLog):
 
     def stop(self):
         for m in self.many:
-            try:
+            with suppress_exception:
                 m.stop()
-            except Exception, e:
-                pass
+
 
 
 class TextLog_usingStream(TextLog):

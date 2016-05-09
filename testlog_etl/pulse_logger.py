@@ -16,13 +16,14 @@ from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import pulse
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.dot import set_default, coalesce
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 # ONLY DEPLOY OFF THE pulse-logger branch
+
 
 def log_loop(settings, synch, queue, bucket, please_stop):
     queue_name = coalesce(settings.work_queue, settings.notify)
@@ -32,14 +33,17 @@ def log_loop(settings, synch, queue, bucket, please_stop):
         work_queue = None
 
     try:
-        for i, g in qb.groupby(queue, size=settings.param.size):
+        for i, g in jx.groupby(queue, size=settings.param.size):
             Log.note(
                 "Preparing {{num}} pulse messages to bucket={{bucket}}",
                 num=len(g),
                 bucket=bucket.name
             )
 
-            full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+            if settings.source.prefix:
+                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+            else:
+                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
                 output = [
                     set_default(
@@ -50,11 +54,16 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "timestamp": Date.now().unix,
                             "id": synch.next_key,
                             "source": {
-                                "name": "pulse.mozilla.org",
+                                "name": settings.source.name,
+                                "exchange": settings.source.exchange,
                                 "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,
                                 "sent": Date(d._meta.sent),
+                                "source": {
+                                    "id": settings.source.prefix
+                                },
+                                "type": "join"
                             },
                             "type": "aggregation"
                         }}
@@ -64,7 +73,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 ]
                 bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
                 synch.advance()
-                synch.source_key = MAX(g.select("_meta.count")) + 1
+                synch.source_key = MAX(g.get("_meta.count")) + 1
 
                 now = Date.now()
                 if work_queue != None:

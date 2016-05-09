@@ -13,7 +13,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from testlog_etl import key2etl, etl2path
 
 
@@ -37,7 +37,7 @@ class MultiDayIndex(object):
 
     # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
     def keys(self, prefix=None):
-        path = qb.reverse(etl2path(key2etl(prefix)))
+        path = jx.reverse(etl2path(key2etl(prefix)))
 
         result = self.es.search({
             "fields": ["_id"],
@@ -70,6 +70,21 @@ class MultiDayIndex(object):
                 for rownum, line in enumerate(source.read_lines(strip_extension(key))):
                     if not line:
                         continue
+
+                    # ES SCHEMA IS STRICTLY TYPED, USE "code" FOR TEXT IDS
+                    line = line.replace('{"id": "bb"}', '{"code": "bb"}').replace('{"id": "tc"}', '{"code": "tc"}')
+
+                    # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
+                    if source.name.startswith("active-data-test-result"):
+                        # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
+                        found = strings.between(line, '"suite": {', '}')
+                        if found:
+                            suite_json = '{' + found + "}"
+                            if suite_json:
+                                suite = convert.json2value(suite_json)
+                                suite = convert.value2json(suite.name)
+                                line = line.replace(suite_json, suite)
+
                     if rownum == 0:
                         value = convert.json2value(line)
                         if len(line) > 100000:
@@ -78,7 +93,7 @@ class MultiDayIndex(object):
 
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
-                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and qb.filter([value], sample_only_filter):
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
                             # INDEX etl.id==0, BUT NO MORE
                             if value.etl.id != 0:
                                 Log.error("Expecting etl.id==0")
@@ -92,7 +107,7 @@ class MultiDayIndex(object):
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
                     else:
-                        #FAST
+                        # FAST
                         _id = strings.between(line, "\"_id\": \"", "\"")  # AVOID DECODING JSON
                         row = {"id": _id, "json": line}
                     num_keys += 1

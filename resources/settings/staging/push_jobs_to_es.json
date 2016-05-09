@@ -37,11 +37,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Staging]Problem in Push jobs to ES",
-
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

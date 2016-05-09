@@ -14,7 +14,7 @@ from pyLibrary.aws.s3 import Connection, key_prefix
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env.files import File
-from pyLibrary.queries import qb
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 from testlog_etl import key2etl, etl2path
@@ -90,7 +90,7 @@ def main():
                 all_keys = [(k, Version(k)) for k in all_keys if k.find("None") == -1]
                 all_keys = [(k, p) for k, p in all_keys if start <= p < end]
             with Timer("sorting {{num}} keys", {"num": len(all_keys)}):
-                all_keys = qb.sort(all_keys, 1)
+                all_keys = jx.sort(all_keys, 1)
             for k, p in all_keys:
                 Log.note("Adding {{key}}",  key= k)
                 now = Date.now()

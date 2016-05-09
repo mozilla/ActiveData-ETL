@@ -11,25 +11,26 @@
 # THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
 # FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
 
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
+import sys
+import thread
+import threading
+import time
 
 import types
 from collections import deque
 from copy import copy
 from datetime import datetime, timedelta
-import thread
-import threading
-import time
-import sys
 
 from pyLibrary import strings
-from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.exceptions import Except, suppress_exception
+from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, MINUTE, Duration
-
+from pyLibrary.times.durations import SECOND, Duration
 
 _Log = None
 _Except = None
@@ -218,10 +219,8 @@ class Queue(object):
                             self.keep_running = False
                         return value
 
-                    try:
+                    with suppress_exception:
                         self.lock.wait()
-                    except Exception, e:
-                        pass
             else:
                 while self.keep_running:
                     if self.queue:
@@ -232,10 +231,9 @@ class Queue(object):
                     elif Date.now() > till:
                         break
 
-                    try:
+                    with suppress_exception:
                         self.lock.wait(till=till)
-                    except Exception, e:
-                        pass
+
                 if self.keep_running:
                     return None
 
@@ -340,10 +338,8 @@ class MainThread(object):
         self.children.append(child)
 
     def remove_child(self, child):
-        try:
+        with suppress_exception:
             self.children.remove(child)
-        except Exception, _:
-            pass
 
     def stop(self):
         """
@@ -440,7 +436,7 @@ class Thread(object):
         self.please_stop.go()
 
         if DEBUG:
-            _Log.note("Thread {{name|quote}} now stopped", name=self.name)
+            _Log.note("Thread {{name|quote}} got request to stop", name=self.name)
 
     def add_child(self, child):
         self.children.append(child)
@@ -453,63 +449,47 @@ class Thread(object):
             pass
 
     def _run(self):
-        if _Log.cprofiler:
-            import cProfile
-            _Log.note("starting cprofile for thread {{thread}}", thread=self.name)
+        with CProfiler():
 
-            self.cprofiler = cProfile.Profile()
-            self.cprofiler.enable()
+            self.id = thread.get_ident()
+            with ALL_LOCK:
+                ALL[self.id] = self
 
-        self.id = thread.get_ident()
-        with ALL_LOCK:
-            ALL[self.id] = self
-
-        try:
-            if self.target is not None:
-                a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
-                response = self.target(*a, **k)
-                with self.synch_lock:
-                    self.end_of_thread = Dict(response=response)
-        except Exception, e:
-            with self.synch_lock:
-                self.end_of_thread = Dict(exception=_Except.wrap(e))
             try:
-                _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
-            except Exception, f:
-                sys.stderr.write(b"ERROR in thread: " + str(self.name) + b" " + str(e) + b"\n")
-        finally:
-            try:
-                children = copy(self.children)
-                for c in children:
-                    try:
-                        c.stop()
-                    except Exception:
-                        pass
-
-                for c in children:
-                    try:
-                        c.join()
-                    except Exception, _:
-                        pass
-
-                self.stopped.go()
-                del self.target, self.args, self.kwargs
-                with ALL_LOCK:
-                    del ALL[self.id]
-
-                if self.cprofiler:
-                    _Log.note("accumulate thread's cprofile statistics")
-                    import pstats
-
-                    self.cprofiler.disable()
-                    _Log.cprofiler_stats.add(pstats.Stats(self.cprofiler))
-                    del self.cprofiler
+                if self.target is not None:
+                    a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
+                    response = self.target(*a, **k)
+                    with self.synch_lock:
+                        self.end_of_thread = Dict(response=response)
             except Exception, e:
-                if DEBUG:
-                    _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
+                with self.synch_lock:
+                    self.end_of_thread = Dict(exception=_Except.wrap(e))
+                try:
+                    _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
+                except Exception:
+                    sys.stderr.write(b"ERROR in thread: " + str(self.name) + b" " + str(e) + b"\n")
             finally:
-                if DEBUG:
-                    _Log.note("thread {{name|quote}} is done", name=self.name)
+                try:
+                    children = copy(self.children)
+                    for c in children:
+                        with suppress_exception:
+                            c.stop()
+
+                    for c in children:
+                        with suppress_exception:
+                            c.join()
+
+                    self.stopped.go()
+                    del self.target, self.args, self.kwargs
+                    with ALL_LOCK:
+                        del ALL[self.id]
+
+                except Exception, e:
+                    if DEBUG:
+                        _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
+                finally:
+                    if DEBUG:
+                        _Log.note("thread {{name|quote}} is done", name=self.name)
 
     def is_alive(self):
         return not self.stopped
@@ -541,7 +521,7 @@ class Thread(object):
                         self.synch_lock.wait(0.5)
 
                 if DEBUG:
-                    _Log.note("Waiting on thread {{thread|json}}", thread=self.name)
+                    _Log.note("{{parent|quote}} waiting on thread {{child|quote}}", parent=Thread.current().name, child=self.name)
         else:
             self.stopped.wait_for_go(till=till)
             if self.stopped:
@@ -917,11 +897,8 @@ def _wait_for_interrupt(please_stop):
     while not please_stop:
         if DEBUG:
             _Log.note("inside wait-for-shutdown loop")
-        try:
+        with suppress_exception:
             Thread.sleep(please_stop=please_stop)
-        except Exception, _:
-            pass
-
 
 
 class Till(Signal):

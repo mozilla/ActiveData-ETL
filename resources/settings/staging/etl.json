@@ -6,7 +6,7 @@
 	"param": {
 		"threads": 4,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": true
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -51,8 +51,8 @@
 			"name": "pulse2es",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
-				"key_format": "a:b"
+				"bucket": "active-data-pulse",
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"host": "http://activedata.allizom.org",
@@ -70,18 +70,59 @@
 			"type": "join"
 		},
         {
+			"name": "tc_pulse to TC Normalized",
+			"source": {
+				"bucket": "active-data-task-cluster-logger",
+				"public": true,
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-task-cluster-normalized",
+				"public": true,
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": {
+				"name": "active-data-etl",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
+			"type": "join"
+		},
+		{
+			"name": "taskcluster to test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result",
+				"public": true,
+				"key_format": "t.a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "testlog_etl.transforms.task_cluster_to_test_result.process",
+			"type": "join"
+		},
+		{
             "name": "pulse2perfherder",
             "source": {
                 "$ref": "file://~/private.json#aws_credentials",
-                "bucket": "ekyle-pulse-logger",
+				"bucket": "active-data-pulse",
                 "public": true,
-                "key_format": "a:b"
+                "key_format": "t.a:b"
             },
             "destination": {
                 "$ref": "file://~/private.json#aws_credentials",
                 "bucket": "active-data-perfherder",
                 "public": true,
-                "key_format": "a:b.c"
+                "key_format": "t.a:b.c"
             },
 			"notify": {
 			   "name": "active-data-etl",
@@ -96,16 +137,16 @@
             "source": {
                 "$ref": "file://~/private.json#aws_credentials",
                 "bucket": "active-data-buildbot",
-                "key_format": "a.b"
+				"key_format": "a.b"
             },
             "destination": {
                 "$ref": "file://~/private.json#aws_credentials",
                 "bucket": "active-data-jobs",
                 "public": true,
-                "key_format": "a.b"
+				"key_format": "a.b"
             },
             "notify": {
-                "name": "active-data-index-jobs",
+				"name": "active-data-index",
                 "$ref": "file://~/private.json#aws_credentials"
             },
             "transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
@@ -117,16 +158,16 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perfherder",
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perf",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify":{
-				"name": "active-data-index-perf",
+				"name": "active-data-index",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
@@ -136,14 +177,14 @@
 			"name": "pulse2test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-pulse-logger",
-				"key_format": "a:b"
+				"bucket": "active-data-pulse",
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result",
+				"bucket": "active-data-test-result",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
 				"name": "active-data-index",
@@ -153,21 +194,20 @@
 			"type": "join"
 		},
 		{
-			"name": "pulse_taskcluster_codecoverage_2_es",
-			"transform_type": "bulk",
+			"name": "tc_pulse to codecoverage",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger",
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-codecoverage",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-codecoverage",
+				"name": "active-data-index",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "testlog_etl.transforms.jscov_to_es.process",
@@ -181,11 +221,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
+				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][STAGING] Problem in ETL",
-
+				"subject": "[ALERT][STAGING] Problem in ETL"
 			}
 		]
 	}
