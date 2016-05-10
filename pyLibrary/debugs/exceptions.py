@@ -207,10 +207,10 @@ class Suppress(object):
 suppress_exception = Suppress(Exception)
 
 
-class Explain(object):
+class Explanation(object):
     """
     EXPLAIN THE ACTION BEING TAKEN
-    IF THERE IS AN EXCEPTION WRAP IT WITH THE EXPLAINATION
+    IF THERE IS AN EXCEPTION WRAP IT WITH THE EXPLANATION
     CHAIN EXCEPTION AND RE-RAISE
     """
 
@@ -230,7 +230,7 @@ class Explain(object):
             from pyLibrary.debugs.logs import Log
 
             Log.error(
-                template=self.template,
+                template="Failure in " + self.template,
                 default_params=self.more_params,
                 cause=exc_val,
                 stack_depth=1

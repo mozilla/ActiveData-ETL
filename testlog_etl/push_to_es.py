@@ -6,14 +6,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from collections import Mapping
 
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import Explanation
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, unwrap, Dict
 from pyLibrary.env import elasticsearch
@@ -37,13 +38,12 @@ def splitter(work_queue, please_stop):
 
         message, payload = pair
         if not isinstance(payload, Mapping):
-            Log.error("not expected")
+            Log.error("Not expecting a non-Mapping payload")
 
         key = payload.key
-        try:
+        with Explanation("Indexing records from {{bucket}}", bucket=payload.bucket):
             params = split[payload.bucket]
-        except Exception:
-            Log.error("do not know what to do with bucket {{bucket}}", bucket=payload.bucket)
+
         es = params.es
         bucket = params.bucket
         settings = params.settings
@@ -79,10 +79,9 @@ def splitter(work_queue, please_stop):
 
 
 def safe_splitter(work_queue, please_stop):
-    try:
-        splitter(work_queue, please_stop)
-    finally:
-        please_stop.go()
+    while not please_stop:
+        with Explanation("Indexing records"):
+            splitter(work_queue, please_stop)
 
 
 def main():
