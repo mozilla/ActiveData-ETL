@@ -361,13 +361,14 @@ KNOWN_TAGS = {
 # MAP TRIPLE (workerType, extra.build_name, extra.treeherder.build.platform)
 # TO PROPERTIES
 KNOWN_BUILD_NAMES = {
+    ("android-api-15", "android", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
     ("android-api-15", "android-api-15-b2gdroid", "b2gdroid-4-0-armv7-api15"): {},
     ("android-api-15", "android-api-15-gradle-dependencies", "android-4-0-armv7-api15"): {},
+    ("android-api-15", "android-api-15-partner-sample1", "android-4-0-armv7-api15-partner1"): {"run": {"machine": {"os": "android"}}},
+    ("android-api-15", "android-api-15-frontend", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
     ("android-api-15", "android-checkstyle", "android-4-0-armv7-api15"): {},
     ("android-api-15", "android-lint", "android-4-0-armv7-api15"): {"build": {"platform": "lint"}},
-    ("android-api-15", "android-api-15-partner-sample1", "android-4-0-armv7-api15-partner1"): {"run": {"machine": {"os": "android"}}},
-    ("android-api-15", "android", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
-    ("android-api-15", "android-api-15-frontend", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
+    ("android-api-15", "android-test", "android-4-0-armv7-api15"): {},
     ("b2gtest", "mozharness-tox", "lint"): {},
     # ("b2gtest", "marionette-harness-pytest", "linux64"): {},
     ("b2gtest", None, None): {},
@@ -439,7 +440,9 @@ KNOWN_BUILD_NAMES = {
     ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
     ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
     ("opt-linux64", None, None): {"build": {"platform": "linux64", "type": ["opt"]}},
+    ("opt-linux64", None, "all"): {},
     ("opt-linux64", None, "linux32"): {},
+
     ("opt-linux64", None, "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
     ("opt-linux64", None, "osx-10-10"): {},
     ("opt-linux64", None, "windowsxp"): {},
@@ -449,7 +452,6 @@ KNOWN_BUILD_NAMES = {
 
     ("opt-linux64", "linux64-gcc", "linux64"): {"build": {"platform": "linux64", "type": ["opt"], "compiler": "gcc"}},
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
-
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
     ("rustbuild", None, None): {},
