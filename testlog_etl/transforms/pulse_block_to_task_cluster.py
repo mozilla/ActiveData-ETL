@@ -398,6 +398,7 @@ KNOWN_BUILD_NAMES = {
     ("dummy-type", None, None): {},
     ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
+    ("emulator-jb", None, None): {},
     ("emulator-jb", "emulator-jb", "b2g-emu-jb"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-jb-debug", "emulator-jb", "b2g-emu-jb"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
     ("emulator-kk", "emulator-kk", "b2g-emu-kk"): {"run": {"machine": {"type": "emulator"}}},
@@ -466,9 +467,11 @@ KNOWN_BUILD_NAMES = {
     ("spidermonkey", "sm-warnaserr", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
     ("spidermonkey", "sm-warnaserrdebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
 
+    ("symbol-upload", None, None): {},
     ("symbol-upload", None, "linux64"): {},
     ("symbol-upload", None, "android-4-0-armv7-api15"): {},
-    ("taskcluster-images", None, "taskcluster-images"):{},
+    ("taskcluster-images", None, "all"): {},
+    ("taskcluster-images", None, "taskcluster-images"): {},
     ("tcvcs-cache-device", None, None): {},
     ("tutorial", None, None): {},
     ("worker-ci-test", None, None): {}
