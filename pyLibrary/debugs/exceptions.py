@@ -239,3 +239,34 @@ class Explanation(object):
             return True
 
 
+class WarnOnException(object):
+    """
+    EXPLAIN THE ACTION BEING TAKEN
+    IF THERE IS AN EXCEPTION WRAP ISSUE A WARNING
+    """
+
+    def __init__(
+        self,
+        template,  # human readable template
+        **more_params
+    ):
+        self.template = template,
+        self.more_params = more_params
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if isinstance(exc_val, Exception):
+            from pyLibrary.debugs.logs import Log
+
+            Log.warning(
+                template="Ignored failure in " + self.template,
+                default_params=self.more_params,
+                cause=exc_val,
+                stack_depth=1
+            )
+
+            return True
+
+

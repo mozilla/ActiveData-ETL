@@ -14,7 +14,7 @@ from collections import Mapping
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation
+from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, unwrap, Dict
 from pyLibrary.env import elasticsearch
@@ -80,7 +80,7 @@ def splitter(work_queue, please_stop):
 
 def safe_splitter(work_queue, please_stop):
     while not please_stop:
-        with Explanation("Indexing records"):
+        with WarnOnException("Indexing records"):
             splitter(work_queue, please_stop)
 
 
