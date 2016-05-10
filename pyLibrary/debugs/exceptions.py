@@ -261,7 +261,7 @@ class WarnOnException(object):
             from pyLibrary.debugs.logs import Log
 
             Log.warning(
-                template="Ignored failure in " + self.template,
+                template="Ignored failure while " + self.template,
                 default_params=self.more_params,
                 cause=exc_val,
                 stack_depth=1
@@ -270,3 +270,27 @@ class WarnOnException(object):
             return True
 
 
+class AssertNoException(object):
+    """
+    EXPECT NO EXCEPTION IN THIS BLOCK
+    """
+
+    def __init__(self):
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if isinstance(exc_val, Exception):
+            from pyLibrary.debugs.logs import Log
+
+            Log.error(
+                template="Not expected to fail",
+                cause=exc_val,
+                stack_depth=1
+            )
+
+            return True
+
+assert_no_exception = AssertNoException()

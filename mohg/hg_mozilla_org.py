@@ -12,7 +12,7 @@ from __future__ import division
 from copy import copy
 import re
 
-from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.exceptions import suppress_exception, Explanation, assert_no_exception
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
@@ -180,7 +180,7 @@ class HgMozillaOrg(object):
             url=url
         )
 
-        try:
+        with Explanation("Pulling pushlog from {{url}}", url=url):
             data = self._get_and_retry(url, found_revision.branch)
 
             revs = []
@@ -221,9 +221,6 @@ class HgMozillaOrg(object):
                         revs.append({"id": _id, "value": rev})
             self.es.extend(revs)
             return output
-        except Exception, e:
-            Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
-
 
     def _get_and_retry(self, url, branch, **kwargs):
         """
@@ -290,10 +287,8 @@ class HgMozillaOrg(object):
             threads.append(Thread.run("find changeset " + unicode(i), _find, please_stop=please_stop))
 
         for t in threads:
-            try:
+            with assert_no_exception:
                 t.join()
-            except Exception, e:
-                Log.error("Not expected", cause=e)
 
         if problems:
             Log.error("Could not scan for {{revision}}", revision=revision, cause=problems[0])
@@ -316,14 +311,10 @@ def _trim(url):
 
 
 def _get_url(url, branch, **kwargs):
-    try:
+    with Explanation("get push from {{url}}", url=url):
         response = http.get(url, **kwargs)
         data = convert.json2value(response.content.decode("utf8"))
         if isinstance(data, basestring) and data.startswith("unknown revision"):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
         return data
-    except Exception, e:
-        Log.error("Can not get push from {{url}}", url=url, cause=e)
-
-
