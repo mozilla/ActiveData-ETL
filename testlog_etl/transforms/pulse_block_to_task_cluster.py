@@ -440,7 +440,7 @@ KNOWN_BUILD_NAMES = {
     ("gecko-decision", null, null): {},
     ("github-worker", null, null): {},
     ("human-decision", null, null): {},
-
+    ("mulet-debug", "mulet", "mulet-linux64"): {},
     ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
     ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
     ("opt-linux64", null, null): {"build": {"platform": "linux64", "type": ["opt"]}},
