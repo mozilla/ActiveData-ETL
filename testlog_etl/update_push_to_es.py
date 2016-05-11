@@ -105,7 +105,7 @@ def _refresh_indexer():
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
-            _start_supervisor()
+            # _start_supervisor()
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_to_es")
 

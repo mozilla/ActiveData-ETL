@@ -83,10 +83,16 @@
 				"key_format": "t.a:b",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"notify": {
-				"name": "active-data-etl",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-etl",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
 			"type": "join"
 		},
