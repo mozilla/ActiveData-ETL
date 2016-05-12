@@ -458,6 +458,9 @@ KNOWN_BUILD_NAMES = {
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
+
+    ("packet-talos-v1", null, "linux64"): {},
+
     ("rustbuild", null, null): {},
     ("signing-worker-v1", null, "linux32"): {},
     ("signing-worker-v1", null, "osx-10-10"): {},
@@ -478,7 +481,6 @@ KNOWN_BUILD_NAMES = {
     ("symbol-upload", null, "android-4-0-armv7-api15"): {},
     ("taskcluster-images", null, "all"): {},
     ("taskcluster-images", null, "taskcluster-images"): {},
-
     ("tcvcs-cache", null, null): {},
     ("tcvcs-cache-device", null, null): {},
     ("tutorial", null, null): {},
