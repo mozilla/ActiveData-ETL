@@ -733,7 +733,7 @@ class ThreadedQueue(Queue):
         if not _Log:
             _late_import()
 
-        batch_size = coalesce(batch_size, int(coalesce(max_size, 0) / 2), 900)
+        batch_size = coalesce(batch_size, int(max_size / 2) if max_size else None, 900)
         max_size = coalesce(max_size, batch_size * 2)  # REASONABLE DEFAULT
         period = coalesce(period, SECOND)
         bit_more_time = 5 * SECOND
@@ -772,6 +772,7 @@ class ThreadedQueue(Queue):
                         elif item is not None:
                             _buffer.append(item)
 
+                        # DO NOT START AGAIN TOO SOON
                         if next_time < now + period:
                             next_time = now + period
                         continue
