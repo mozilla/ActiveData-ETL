@@ -138,7 +138,13 @@ def _normalize(source_key, tc_message, task):
     output.task.worker.type = task.workerType
 
     try:
-        output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
+        if isinstance(task.payload.artifacts, list):
+            for a in task.payload.artifacts:
+                if not a.name:
+                    Log.error("expecting name of artifact in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
+            output.task.artifacts = task.payload.artifacts
+        else:
+            output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
     except Exception, e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
