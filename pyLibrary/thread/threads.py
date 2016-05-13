@@ -29,6 +29,7 @@ from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict
+from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration
 
@@ -732,7 +733,7 @@ class ThreadedQueue(Queue):
         if not _Log:
             _late_import()
 
-        batch_size = coalesce(batch_size, int(coalesce(max_size, 0) / 2), 900)
+        batch_size = coalesce(batch_size, int(max_size / 2) if max_size else None, 900)
         max_size = coalesce(max_size, batch_size * 2)  # REASONABLE DEFAULT
         period = coalesce(period, SECOND)
         bit_more_time = 5 * SECOND
@@ -746,7 +747,15 @@ class ThreadedQueue(Queue):
             please_stop.on_go(stopper)
 
             _buffer = []
+            _post_push_functions = []
             next_time = Date.now() + period  # THE TIME WE SHOULD DO A PUSH
+
+            def push_to_queue():
+                queue.extend(_buffer)
+                del _buffer[:]
+                for f in _post_push_functions:
+                    f()
+                del _post_push_functions[:]
 
             while not please_stop:
                 try:
@@ -755,26 +764,28 @@ class ThreadedQueue(Queue):
                         now = Date.now()
 
                         if item is Thread.STOP:
-                            queue.extend(_buffer)
+                            push_to_queue()
                             please_stop.go()
                             break
                         elif isinstance(item, types.FunctionType):
-                            item()
+                            _post_push_functions.append(item)
                         elif item is not None:
                             _buffer.append(item)
 
-                        next_time = now + period  # NO NEED TO SEND TOO EARLY
+                        # DO NOT START AGAIN TOO SOON
+                        if next_time < now + period:
+                            next_time = now + period
                         continue
 
                     item = self.pop(till=next_time)
                     now = Date.now()
 
                     if item is Thread.STOP:
-                        queue.extend(_buffer)
+                        push_to_queue()
                         please_stop.go()
                         break
                     elif isinstance(item, types.FunctionType):
-                        item()
+                        _post_push_functions.append(item)
                     elif item is not None:
                         _buffer.append(item)
 
@@ -800,8 +811,7 @@ class ThreadedQueue(Queue):
                     if len(_buffer) >= batch_size or now > next_time:
                         next_time = now + period
                         if _buffer:
-                            queue.extend(_buffer)
-                            _buffer = []
+                            push_to_queue()
                             # A LITTLE MORE TIME TO FILL THE NEXT BUFFER
                             now = Date.now()
                             if now > next_time:
@@ -828,7 +838,7 @@ class ThreadedQueue(Queue):
 
             if _buffer:
                 # ONE LAST PUSH, DO NOT HAVE TIME TO DEAL WITH ERRORS
-                queue.extend(_buffer)
+                push_to_queue()
 
         self.thread = Thread.run("threaded queue for " + name, worker_bee, parent_thread=self)
 
