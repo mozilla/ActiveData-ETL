@@ -61,11 +61,7 @@ def splitter(work_queue, please_stop):
             more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
-            def _delete():
-                Log.note("confirming message for {{id}}", id=payload.key)
-                message.delete()
-
-            es.queue.add(_delete)
+            add_message_to_queue(es.queue, payload.key, message)
 
         if num_keys > 1:
             Log.note(
@@ -82,6 +78,14 @@ def safe_splitter(work_queue, please_stop):
     while not please_stop:
         with WarnOnException("Indexing records"):
             splitter(work_queue, please_stop)
+
+
+def add_message_to_queue(queue, payload_key, message):
+    def _delete():
+        Log.note("confirming message for {{id}}", id=payload_key)
+        message.delete()
+
+    queue.add(_delete)
 
 
 def main():
