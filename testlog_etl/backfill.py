@@ -38,7 +38,6 @@ def diff(settings, please_stop=None):
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    # EVERYTHING FROM ELASTICSEARCH
     es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), settings=settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
@@ -48,6 +47,7 @@ def diff(settings, please_stop=None):
     else:
         es_filter = {"match_all": {}}
 
+    # EVERYTHING FROM ELASTICSEARCH
     in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
@@ -71,8 +71,9 @@ def diff(settings, please_stop=None):
         queue=work_queue.name
     )
 
+    source_prefix = coalesce(settings.source.prefix, "")
     for i, p in enumerate(remaining_in_s3):
-        all_keys = source_bucket.keys(unicode(p))
+        all_keys = source_bucket.keys(source_prefix + unicode(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
         work_queue.extend([
             {
@@ -142,15 +143,21 @@ def get_all_s3(in_es, in_range, settings):
     max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
     extra_digits = Math.ceiling(log10(limit))
 
+    source_prefix = coalesce(settings.source.prefix, "")
+
     prefix = unicode(max(in_range - in_es))[:-extra_digits]
     prefix_max = int(prefix + ("999999999999"[:extra_digits]))
     while prefix != "0" and len(in_s3) < limit and min_range <= prefix_max:
         # EVERYTHING FROM S3
         with Timer(
             "Scanning S3 bucket {{bucket}} with prefix {{prefix|quote}}",
-            {"bucket": bucket.name, "prefix": prefix}
+            {"bucket": bucket.name, "prefix": source_prefix+prefix}
         ):
-            prefixes = list(set(p.name.split(":")[0].split(".")[0] for p in bucket.list(prefix=prefix, delimiter=":")))
+            prefixes = set()
+            for p in bucket.list(prefix=source_prefix+prefix, delimiter=":"):
+                pp = p.name.split(":")[0].split(".")[1]
+                prefixes.add(pp)
+            prefixes = list(prefixes)
 
         for i, q in enumerate(prefixes):
             if i % 1000 == 0:

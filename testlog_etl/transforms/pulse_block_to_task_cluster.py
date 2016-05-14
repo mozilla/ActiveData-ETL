@@ -138,7 +138,13 @@ def _normalize(source_key, tc_message, task):
     output.task.worker.type = task.workerType
 
     try:
-        output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
+        if isinstance(task.payload.artifacts, list):
+            for a in task.payload.artifacts:
+                if not a.name:
+                    Log.error("expecting name of artifact in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
+            output.task.artifacts = task.payload.artifacts
+        else:
+            output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
     except Exception, e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
@@ -400,6 +406,7 @@ KNOWN_BUILD_NAMES = {
     ("desktop-test-xlarge", "marionette-harness-pytest", "linux64"): {"build": {"platform": "linux64"}},
     ("dolphin", "dolphin-eng", "b2g-device-image"): {},
     ("dummy-test-worker-type", null, null): {},
+    ("dummy-test-type", null, "osx-10-7"): {},
     ("dummy-type", null, null): {},
     ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
@@ -458,6 +465,9 @@ KNOWN_BUILD_NAMES = {
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
+
+    ("packet-talos-v1", null, "linux64"): {},
+
     ("rustbuild", null, null): {},
     ("signing-worker-v1", null, "linux32"): {},
     ("signing-worker-v1", null, "osx-10-10"): {},
