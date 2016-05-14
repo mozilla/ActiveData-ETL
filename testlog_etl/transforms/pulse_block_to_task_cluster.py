@@ -406,6 +406,7 @@ KNOWN_BUILD_NAMES = {
     ("desktop-test-xlarge", "marionette-harness-pytest", "linux64"): {"build": {"platform": "linux64"}},
     ("dolphin", "dolphin-eng", "b2g-device-image"): {},
     ("dummy-test-worker-type", null, null): {},
+    ("dummy-test-type", null, "osx-10-7"): {},
     ("dummy-type", null, null): {},
     ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
     ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
