@@ -11,7 +11,9 @@ from __future__ import division
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
+from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_git_revision
+from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
@@ -206,6 +208,11 @@ class LogSummary(Dict):
         if log.subtest:
             ok = True if log.expected == None or log.expected == log.status else False
             if not ok:
+                if test.subtests:
+                    last = test.subtests.last()
+                    if last.name == log.subtest:
+                        last.repeat += 1
+
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
                 test.subtests += [{
                     "name": log.subtest,
@@ -214,7 +221,7 @@ class LogSummary(Dict):
                     "status": log.status.lower(),
                     "expected": log.expected.lower(),
                     "timestamp": log.time,
-                    "message": log.message,
+                    "message": scrub(log.message),
                     "ordering": len(test.subtests)
                 }]
 
