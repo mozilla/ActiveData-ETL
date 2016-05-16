@@ -33,7 +33,7 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.9,
+			"skip": 0.5,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
