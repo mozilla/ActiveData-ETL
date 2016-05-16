@@ -65,10 +65,11 @@ def splitter(work_queue, please_stop):
 
         if num_keys > 1:
             Log.note(
-                "Added {{num}} keys from {{key}} block to {{bucket}} in {{duration}} ({{rate|round(places=3)}} keys/second)",
+                "Added {{num}} keys from {{key}} in {{bucket}} to {{es}} in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
                 bucket=bucket.name,
+                es=es.settings.index,
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
             )
@@ -138,10 +139,10 @@ def main():
             split[w.source.bucket] = Dict(
                 es=MultiDayIndex(w.elasticsearch, queue_size=coalesce(w.queue_size, 1000), batch_size=unwrap(w.batch_size)),
                 bucket=s3.Bucket(w.source),
-                settings=settings
+                settings=w
             )
 
-        please_stop=Signal()
+        please_stop = Signal()
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
