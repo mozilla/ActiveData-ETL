@@ -16,7 +16,7 @@ from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, unwrap, Dict
+from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
@@ -55,6 +55,7 @@ def splitter(work_queue, please_stop):
             if settings.skip and Random.float() < settings.skip:
                 Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
                 work_queue.add(payload)
+                message.delete()
                 continue
 
             if settings.sample_only:
@@ -108,8 +109,8 @@ def main():
             },
             {
                 "name": ["--new", "--reset"],
-                "help": "to make a new index (exit immediately)",
-                "action": 'store_true',
+                "help": "to make a new index (then exit immediately)",
+                "type": str,
                 "dest": "reset",
                 "required": False
             }
@@ -123,15 +124,22 @@ def main():
         }
 
         if settings.args.reset:
-            Log.error("not working, multiple indexes involved")
-            cluster = elasticsearch.Cluster(settings.elasticsearch)
-            alias = coalesce(settings.elasticsearch.alias, settings.elasticsearch.index)
+            es_settings = wrap([w.elasticsearch for w in settings.workers if w.name == settings.args.reset])
+            if not es_settings:
+                Log.error("Can not find worker going by name {{name|quote}}", name=settings.args.reset)
+            elif len(es_settings) > 1:
+                Log.error("More than one worker going by name {{name|quote}}", name=settings.args.reset)
+            else:
+                es_settings = es_settings.last()
+
+            cluster = elasticsearch.Cluster(es_settings)
+            alias = coalesce(es_settings.alias, es_settings.index)
             index = cluster.get_prototype(alias)[0]
             if index:
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                cluster.create_index(settings=settings.elasticsearch)
+                cluster.create_index(settings=es_settings)
                 Log.alert("Done.  Exiting.")
                 return
 
