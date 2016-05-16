@@ -19,6 +19,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, unwrap, Dict
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
 from testlog_etl.etl import parse_id_argument
@@ -49,8 +50,13 @@ def splitter(work_queue, please_stop):
         settings = params.settings
 
         extend_time = Timer("insert", silent=True)
-        Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
+
         with extend_time:
+            if settings.skip and Random.float() < settings.skip:
+                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
+                work_queue.add(payload)
+                continue
+
             if settings.sample_only:
                 sample_filter = {"terms": {"build.branch": settings.sample_only}}
             elif settings.sample_size:
@@ -58,6 +64,7 @@ def splitter(work_queue, please_stop):
             else:
                 sample_filter = None
 
+            Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
             more_keys = bucket.keys(prefix=key)
             num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 

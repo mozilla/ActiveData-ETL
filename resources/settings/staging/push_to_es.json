@@ -32,8 +32,8 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"sample_only": [
-			],
+			"skip": 0.9,
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
