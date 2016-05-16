@@ -212,6 +212,7 @@ class LogSummary(Dict):
                     last = test.subtests.last()
                     if last.name == log.subtest:
                         last.repeat += 1
+                        return
 
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
                 test.subtests += [{

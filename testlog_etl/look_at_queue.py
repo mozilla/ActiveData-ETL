@@ -21,7 +21,7 @@ def list_queue(settings, num):
     queue = aws.Queue(settings)
     for i in range(num):
         content = queue.pop()
-        Log.note("{{content}}", content=content)
+        Log.note("\n{{content|json}}", content=content)
     queue.rollback()
 
 

@@ -105,8 +105,7 @@ class Queue(object):
 
     def rollback(self):
         if self.pending:
-            pending = self.pending
-            self.pending = []
+            pending, self.pending = self.pending, []
 
             for p in pending:
                 m = Message()
