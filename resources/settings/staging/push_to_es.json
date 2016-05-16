@@ -32,7 +32,7 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.5,
+			"skip": 0.9,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
