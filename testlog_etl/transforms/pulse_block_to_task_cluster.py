@@ -9,16 +9,18 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from collections import Mapping
+
 import requests
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, coalesce, Dict, unwraplist, listwrap, wrap
+from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key, key2etl
+from testlog_etl import etl2key
 
 DEBUG = True
 MAX_THREADS = 5
@@ -98,7 +100,6 @@ def read_buildbot_properties(normalized, url):
     #     pass
 
 
-
 def _normalize(source_key, tc_message, task):
     output = Dict()
     set_default(task, tc_message.status)
@@ -163,9 +164,9 @@ def _normalize_run(run):
     output.reason_created = run.reasonCreated
     output.id = run.runId
     output.scheduled = Date(run.scheduled)
-    output.started = Date(run.started)
+    output.start_time = output.timestamp = Date(run.started)
+    output.end_time = Date(run.takenUntil)
     output.state = run.state
-    output.deadline = Date(run.takenUntil)
     output.worker.group = run.workerGroup
     output.worker.id = run.workerId
     return output
@@ -258,23 +259,35 @@ def set_build_info(normalized, task):
 
 def get_tags(task):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
+    more_tags = []
     for t in tags:
         # ENSURE THE VALUES ARE UNICODE
         v = t["value"]
         if isinstance(v, list):
             if len(v) == 1:
                 v = v[0]
+                if isinstance(v, Mapping):
+                    for tt in get_tags(Dict(tags=v)):
+                        tt['name'] = t['name'] + "." + tt['name']
+                        more_tags.append(tt)
+                        verify_tag(tt)
+                        continue
+                elif not isinstance(v, unicode):
+                    v = convert.value2json(v)
             else:
                 v = convert.value2json(v)
         elif not isinstance(v, unicode):
             v = convert.value2json(v)
         t["value"] = v
+        verify_tag(t)
 
-        if t["name"] not in KNOWN_TAGS:
-            Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
-            KNOWN_TAGS.add(t["name"])
+    return unwraplist(tags + more_tags)
 
-    return unwraplist(tags)
+
+def verify_tag(t):
+    if t["name"] not in KNOWN_TAGS:
+        Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
+        KNOWN_TAGS.add(t["name"])
 
 
 def _object_to_array(value, key_name, value_name=None):
