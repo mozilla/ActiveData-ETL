@@ -29,7 +29,7 @@ from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, listwrap, Dict, Null
+from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.meta import use_settings
@@ -168,14 +168,16 @@ class ETL(Thread):
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
 
                 # VERIFY KEYS
+                etls = map(key2etl, new_keys)
+                etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
+                elif len(etl_ids)==1 and key2etl(source_key).id==etl_ids[0]:
+                    pass  # ok
                 else:
-                    etls = map(key2etl, new_keys)
-                    etls = jx.sort(etls, "id")
-                    for i, e in enumerate(etls):
-                        if i != e.id:
-                            Log.error("expecting keys to be contiguous: {{ids}}", ids=etls.id)
+                    for i, eid in enumerate(etl_ids):
+                        if i != eid:
+                            Log.error("expecting keys to be contiguous: {{ids}}", ids=etl_ids)
                     # VERIFY KEYS EXIST
                     if hasattr(action._destination, "get_key"):
                         for k in new_keys:
