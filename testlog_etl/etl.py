@@ -24,7 +24,7 @@ from copy import deepcopy
 import sys
 
 from pyLibrary import aws, dot, strings
-from pyLibrary.aws.s3 import strip_extension, key_prefix
+from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
@@ -240,6 +240,8 @@ class ETL(Thread):
                 elif "expecting keys to be contiguous" in e:
                     err = Log.warning
                 elif "Expecting a pure key" in e:
+                    err = Log.warning
+                elif KEY_IS_WRONG_FORMAT in e:
                     err = Log.warning
                 else:
                     err = Log.error

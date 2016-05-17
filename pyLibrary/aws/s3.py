@@ -31,7 +31,7 @@ from pyLibrary.times.timer import Timer
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
 VALID_KEY = r"\d+([.:]\d+)*"
-
+KEY_IS_WRONG_FORMAT = "key {{key}} in bucket {{bucket}} is of the wrong format"
 
 class File(object):
     def __init__(self, bucket, key):
@@ -380,7 +380,7 @@ class Bucket(object):
 
         if self.key_format != _scrub_key(key):
             Log.error(
-                "key {{key}} in bucket {{bucket}} is of the wrong format",
+                KEY_IS_WRONG_FORMAT,
                 key=key,
                 bucket=self.bucket.name
             )
