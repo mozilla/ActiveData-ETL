@@ -257,20 +257,20 @@ def set_build_info(normalized, task):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
 
-def get_tags(task):
+def get_tags(task, parent=None):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
     more_tags = []
     for t in tags:
         # ENSURE THE VALUES ARE UNICODE
+        if parent:
+            t['name'] = parent + "." + t['name']
         v = t["value"]
         if isinstance(v, list):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(Dict(tags=v)):
-                        tt['name'] = t['name'] + "." + tt['name']
+                    for tt in get_tags(Dict(tags=v), parent=t['name']):
                         more_tags.append(tt)
-                        verify_tag(tt)
                         continue
                 elif not isinstance(v, unicode):
                     v = convert.value2json(v)
