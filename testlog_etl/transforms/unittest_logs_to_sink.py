@@ -139,11 +139,11 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception, e:
-            Log.warning("bad line in {{url}}:\n{{line}}", line=line, url=url, cause=e)
+            Log.warning("bad line in key={{key}} url={{url|quote}}:\n{{line}}", line=line, url=url, cause=e)
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url}} for key {{key}}",
+    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url|quote}} for key {{key}}",
         key=source_key,
         num_bytes=output.stats.bytes,
         num_lines=output.stats.lines,
