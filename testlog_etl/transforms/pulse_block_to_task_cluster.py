@@ -323,6 +323,13 @@ KNOWN_TAGS = {
     "description",
     "extra.build_product",  # error?
     "funsize.partials",
+    "funsize.partials.branch",
+    "funsize.partials.from_mar",
+    "funsize.partials.locale",
+    "funsize.partials.platform",
+    "funsize.partials.to_mar",
+    "funsize.partials.update_number",
+
     "github.branches",
     "github.events",
     "github.env",
