@@ -18,7 +18,7 @@ from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
+from testlog_etl import etl2key, key2etl
 
 DEBUG = True
 MAX_THREADS = 5
@@ -31,7 +31,6 @@ seen = {}
 
 def process(source_key, source, destination, resources, please_stop=None):
     output = []
-    etl_source = None
 
     lines = source.read_lines()
     session = requests.session()
@@ -41,8 +40,6 @@ def process(source_key, source, destination, resources, please_stop=None):
         try:
             tc_message = convert.json2value(line)
             taskid = tc_message.status.taskId
-            if tc_message.artifact:
-                continue
             Log.note("{{id}} found (line #{{num}})", id=taskid, num=i, artifact=tc_message.artifact.name)
 
             task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY, session=session)
@@ -59,10 +56,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     read_buildbot_properties(normalized, a.url)
             normalized.task.artifacts = artifacts
 
-             # FIX THE ETL
+            # FIX THE ETL
             etl = tc_message.etl
-            etl_source = coalesce(etl_source, etl.source)
-            etl.source = etl_source
             if not etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
                 etl.source.type = "join"
                 etl.source.source = {"id": "tc"}
