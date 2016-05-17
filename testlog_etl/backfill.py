@@ -15,6 +15,7 @@ from math import log10
 from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
@@ -155,7 +156,10 @@ def get_all_s3(in_es, in_range, settings):
         ):
             prefixes = set()
             for p in bucket.list(prefix=source_prefix+prefix, delimiter=":"):
-                pp = p.name.split(":")[0].split(".")[1]
+                if p.name.startswith("bb.") or p.name.startswith("tc."):
+                    pp = p.name.split(":")[0].split(".")[1]
+                else:
+                    pp = p.name.split(":")[0].split(".")[0]
                 prefixes.add(pp)
             prefixes = list(prefixes)
 

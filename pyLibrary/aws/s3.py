@@ -51,6 +51,9 @@ class File(object):
     def meta(self):
         return self.bucket.meta(self.key)
 
+    def delete(self):
+        return self.bucket.delete_key(self.key)
+
 
 class Connection(object):
     @use_settings
@@ -194,6 +197,11 @@ class Bucket(object):
             Log.error(READ_ERROR+" can not read {{key}} from {{bucket}}", key=key, bucket=self.bucket.name, cause=e)
 
     def keys(self, prefix=None, delimiter=None):
+        """
+        :param prefix:  NOT A STRING PREFIX, RATHER PATH ID PREFIX (MUST MATCH TO NEXT "." OR ":")
+        :param delimiter:  TO GET Prefix OBJECTS, RATHER THAN WHOLE KEYS
+        :return: SET OF KEYS IN BUCKET, OR
+        """
         if delimiter:
             # WE REALLY DO NOT GET KEYS, BUT RATHER Prefix OBJECTS
             # AT LEAST THEY ARE UNIQUE
@@ -201,7 +209,10 @@ class Bucket(object):
         else:
             candidates = [strip_extension(k.key) for k in self.bucket.list(prefix=prefix)]
 
-        return set(k for k in candidates if k == prefix or k.startswith(prefix + ".") or k.startswith(prefix + ":"))
+        if prefix == None:
+            return set(c for c in candidates if c != "0.json")
+        else:
+            return set(k for k in candidates if k == prefix or k.startswith(prefix + ".") or k.startswith(prefix + ":"))
 
     def metas(self, prefix=None, limit=None, delimiter=None):
         """
@@ -295,6 +306,7 @@ class Bucket(object):
 
             if len(value) > 20 * 1000 and not disable_zip:
                 self.bucket.delete_key(key + ".json")
+                self.bucket.delete_key(key + ".json.gz")
                 if isinstance(value, str):
                     value = convert.bytes2zip(value)
                     key += ".json.gz"

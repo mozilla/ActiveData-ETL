@@ -1,6 +1,6 @@
 {
 	"no_checks": true,
-	"range": {"min":175000, "max":185000},
+	"range": {"min":227173},
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
@@ -9,17 +9,17 @@
 	"source": {    //WHERE WE GET DATA FROM
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-task-cluster-logger",
-		"key_format": "a:b.c"
+		"key_format": "a:b"
 	},
 	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
 		"id_field": "etl.source.id",
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
-		"index": "coverage",
-		"type": "code_coverage",
+		"index": "task",
+		"type": "task",
 		"timeout": 300,
 		"schema": {
-			"$ref": "//../../schema/code_coverage.json"
+			"$ref": "//../../schema/task_cluster.json"
 				},
 		"debug": true,
 		"limit_replicas": false
