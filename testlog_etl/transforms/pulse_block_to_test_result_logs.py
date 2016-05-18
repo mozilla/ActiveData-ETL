@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import Dict, set_default, Null
 from pyLibrary.env import http
@@ -41,7 +42,8 @@ def process(source_key, source, destination, resources, please_stop=None):
     for e in existing_keys:
         destination.delete_key(e)
 
-    for i, line in enumerate(source.read_lines()):
+    all_lines = list(enumerate(convert.utf82unicode(source.read()).split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
+    for i, line in all_lines:
         if fast_forward:
             continue
         if please_stop:
