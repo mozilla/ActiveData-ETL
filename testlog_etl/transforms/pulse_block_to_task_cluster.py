@@ -85,7 +85,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             output.append(normalized)
         except Exception, e:
-            Log.warning("problem", cause=e)
+            Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
