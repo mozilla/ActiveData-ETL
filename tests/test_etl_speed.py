@@ -22,7 +22,7 @@ from testlog_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
 class TestEtlSpeed(FuzzyTestCase):
     """
-    TEMPORARY TEST TO IDENTIFYETL SPEED ISSUES
+    TEMPORARY TEST TO IDENTIFY ETL SPEED ISSUES
     """
 
     def test_51586(self):

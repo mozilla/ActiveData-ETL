@@ -20,7 +20,7 @@ from pyLibrary.thread.threads import Queue, Thread
 known_tasks = set()
 queue = Queue("packer")
 
-START = 227400
+START = 225835
 RANDOM = Random.int(1000)
 
 def compact(file):
@@ -56,6 +56,17 @@ def writer(bucket, please_stop):
             acc = []
             files = []
             g += 1
+    key_num = START - g
+    key = unicode(key_num) + ":" + unicode(int(key_num / 10) * 1000 + RANDOM)
+    Log.note("Write new file {{file}}", file=key)
+    bucket.write_lines(key, acc)
+    for f in files:
+        if f.key != key:
+            f.delete()
+
+
+
+
 
 def loop_all(bucket, please_stop):
     try:

@@ -318,6 +318,8 @@ KNOWN_TAGS = {
     "crater.toolchain.customSha",
     "crater.crateVers",
     "crater.taskType",
+    "crater.toolchainGitRepo",
+    "crater.toolchainGitSha",
 
     "createdForUser",
     "description",
@@ -400,6 +402,7 @@ KNOWN_BUILD_NAMES = {
     ("b2gtest", "", "lint"): {"build": {"platform": "lint"}},
     ("b2gtest", "eslint-gecko", "lint"): {"build": {"platform": "lint"}},
     ("b2gtest", "marionette-harness-pytest", "linux64"): {},
+    ("b2gtest-emulator", null, "b2g-emu-kk"): {},
     ("b2gtest-emulator", null, "b2g-emu-x86-kk"): {"run": {"machine": {"type": "emulator"}}},
 
     ("b2gbuild", null, "mulet-linux64"): {},
@@ -463,6 +466,7 @@ KNOWN_BUILD_NAMES = {
     ("github-worker", null, null): {},
     ("human-decision", null, null): {},
     ("mulet-debug", "mulet", "mulet-linux64"): {},
+    ("mulet-debug", "mulet-haz", "mulet-linux64"): {},
     ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
     ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
     ("opt-linux64", null, null): {"build": {"platform": "linux64", "type": ["opt"]}},
@@ -476,11 +480,11 @@ KNOWN_BUILD_NAMES = {
     ("opt-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"platform": "linux64", "type": ["opt"]}},
     ("opt-linux64", "linux64-artifact", "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
 
+    ("opt-linux64", "linux64-clang", "linux64"): {},
     ("opt-linux64", "linux64-gcc", "linux64"): {"build": {"platform": "linux64", "type": ["opt"], "compiler": "gcc"}},
     ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
     ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
     ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
-
     ("packet-talos-v1", null, "linux64"): {},
 
     ("rustbuild", null, null): {},

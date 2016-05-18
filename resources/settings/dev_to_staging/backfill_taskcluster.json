@@ -1,6 +1,6 @@
 {
 	"no_checks": true,
-	"range": {"min":227173},
+	"range": {"min":200000},
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
