@@ -49,7 +49,14 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
-        pulse_record = convert.json2value(msg_line)
+        try:
+            pulse_record = convert.json2value(msg_line)
+        except Exception, e:
+            if "JSON string is only whitespace" in e:
+                continue
+            else:
+                Log.error("unexpected JSON decoding problem", cause=e)
+                
         task_id = pulse_record.status.taskId
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS

@@ -43,7 +43,8 @@ cd /usr/local/elasticsearch/
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
 sudo bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
 
-# ES HEAD IS WONDERFUL!# BE SURE YOUR elasticsearch.yml FILE IS HAS
+# ES HEAD IS WONDERFUL!
+# BE SURE YOUR elasticsearch.yml FILE IS HAS
 #     http.cors.enabled: true
 #     http.cors.allow-origin: "*"
 sudo bin/plugin install mobz/elasticsearch-head
@@ -93,6 +94,7 @@ sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
+# MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
 sudo sysctl -p
 

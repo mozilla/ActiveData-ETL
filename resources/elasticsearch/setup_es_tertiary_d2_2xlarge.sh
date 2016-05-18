@@ -97,11 +97,11 @@ sudo sed -i '$ a\/dev/xvdg   /data6       ext4    defaults,nofail  0   2' /etc/f
 
 # TEST IT IS WORKING
 sudo mount -a
-
 sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
+# MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
 sudo sysctl -p
 

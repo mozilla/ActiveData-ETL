@@ -70,6 +70,11 @@ sudo mkfs -t ext4 /dev/xvde
 sudo mkfs -t ext4 /dev/xvdf
 sudo mkfs -t ext4 /dev/xvdg
 
+
+#MOUNT (NO FORMAT)
+#sudo mount /dev/xvdb /data1
+
+
 sudo mkdir /data1
 sudo mkdir /data2
 sudo mkdir /data3
@@ -147,10 +152,6 @@ cd /usr/bin
 sudo ln -s /usr/local/bin/supervisorctl supervisorctl
 
 sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
-
-
-#COPY
-
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
