@@ -16,23 +16,27 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Queue, Thread
+from testlog_etl import key2etl
 
 known_tasks = set()
-queue = Queue("packer")
+queue = Queue("packer", max=20)
 
-START = 225835
+START = 228400
 RANDOM = Random.int(1000)
+
 
 def compact(file):
     output = []
     lines = list(file.read_lines())
     for l in lines:
+        if l.strip() == "":
+            continue
         data = convert.json2value(l)
         taskid = data.status.taskId
         if taskid in known_tasks:
             continue
         known_tasks.add(taskid)
-        output.append(l)
+        output.append(data)
 
     queue.add((output, file))
     Log.note("{{key}} file reduced from {{frum}} lines {{to}}", key=file.key, frum=len(lines), to=len(output))
@@ -46,26 +50,26 @@ def writer(bucket, please_stop):
         acc.extend(output)
         files.append(file)
         if len(acc) >= 1000:
-            key_num = START - g
-            key = unicode(key_num) + ":" + unicode(int(key_num / 10) * 1000 + RANDOM)
-            Log.note("Write new file {{file}}", file=key)
-            bucket.write_lines(key, acc)
-            for f in files:
-                if f.key != key:
-                    f.delete()
-            acc = []
-            files = []
+            write_file(acc, bucket, files, g)
+            acc = acc[1000::]
+            files = [files[-1]]
             g += 1
+    write_file(acc, bucket, files, g)
+    files[-1].delete()
+
+
+def write_file(acc, bucket, files, g):
     key_num = START - g
     key = unicode(key_num) + ":" + unicode(int(key_num / 10) * 1000 + RANDOM)
     Log.note("Write new file {{file}}", file=key)
-    bucket.write_lines(key, acc)
-    for f in files:
+    etl = key2etl(key)
+    for a in acc:
+        a.etl.id = etl.id
+        a.etl.source.id = etl.source.id
+    bucket.write_lines(key, map(convert.value2json, acc[:1000:]))
+    for f in files[:-1:]:
         if f.key != key:
             f.delete()
-
-
-
 
 
 def loop_all(bucket, please_stop):

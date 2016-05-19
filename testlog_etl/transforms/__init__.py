@@ -21,7 +21,37 @@ from pyLibrary.times.timer import Timer
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
-STRUCTURED_LOG_ENDINGS = ["structured_logs.log", "_structured_full.log", '_raw.log']
+STRUCTURED_LOG_ENDINGS = [
+    "structured_logs.log",
+    "_structured_full.log",
+    '_raw.log',
+    '.jsonl'
+]
+NOT_STRUCTURED_LOGS = [
+    "/log_raw.log",
+    "/talos_raw.log",
+    "/buildprops.json",
+    ".mozinfo.json",
+    ".exe",
+    "/log_critical.log",
+    "/log_error.log",
+    "/log_fatal.log",
+    "/log_info.log",
+    "/log_warning.log",
+    "/mar.exe",
+    "/mbsdiff.exe",
+    "/mozharness.zip",
+    "/localconfig.json",
+    "/talos_critical.log",
+    "/talos_error.log",
+    "/talos_fatal.log",
+    "/talos_info.log",
+    "/talos_warning.log",
+    "/live.log",
+    "/live_backing.log"
+    ]
+
+
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -40,8 +70,6 @@ class Transform(object):
         raise NotImplementedError
 
 
-
-
 def verify_blobber_file(line_number, name, url):
     """
     :param line_number:  for debugging
@@ -49,7 +77,7 @@ def verify_blobber_file(line_number, name, url):
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
-    if not name.endswith(".jsonl") and (not name.endswith("_raw.log") or name.endswith("/log_raw.log" or name == "talos_raw.log")):
+    if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
@@ -79,7 +107,7 @@ def verify_blobber_file(line_number, name, url):
         return logs, "unknown"
 
     # DETECT IF THIS IS A STRUCTURED LOG
-    with Timer("Structured log detection {{name}}:", {"name": name}, debug=DEBUG):
+    with Timer("Structured log detection {{name}}:", {"name": name}):
         try:
             total = 0  # ENSURE WE HAVE A SIDE EFFECT
             count = 0

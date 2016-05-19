@@ -158,6 +158,9 @@ class Bucket(object):
             self.get_meta(key, conforming=False)
             raise e
 
+    def delete_keys(self, keys):
+        self.bucket.delete_keys(keys)
+
     def get_meta(self, key, conforming=True):
         try:
             # key_prefix("2")

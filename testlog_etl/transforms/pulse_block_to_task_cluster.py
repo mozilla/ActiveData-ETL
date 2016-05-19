@@ -20,7 +20,7 @@ from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
+from testlog_etl import etl2key, key2etl
 
 DEBUG = True
 MAX_THREADS = 5
@@ -33,10 +33,11 @@ seen = {}
 
 def process(source_key, source, destination, resources, please_stop=None):
     output = []
+    source_etl = None
 
-    lines = source.read_lines()
+    lines = list(enumerate(source.read_lines()))
     session = requests.session()
-    for i, line in enumerate(lines):
+    for i, line in lines:
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
@@ -45,9 +46,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.note("{{id}} found (line #{{num}})", id=taskid, num=i, artifact=tc_message.artifact.name)
 
             task = http.get_json(expand_template(STATUS_URL, {"task_id": taskid}), retry=RETRY, session=session)
-            normalized = _normalize(source_key, tc_message, task)
-            if normalized.build.revision:
-                normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
+            normalized = _normalize(source_key, tc_message, task, resources)
 
             # get the artifact list for the taskId
             artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
@@ -59,13 +58,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized.task.artifacts = artifacts
 
             # FIX THE ETL
-            etl = tc_message.etl
-            if not etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
-                etl.source.type = "join"
-                etl.source.source = {"id": "tc"}
+            if not source_etl:
+                # USE ONE SOURCE ETL, OTHERWISE WE MAKE TOO MANY KEYS
+                source_etl = tc_message.etl
+                if not source_etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+                    source_etl.source.type = "join"
+                    source_etl.source.source = {"id": "tc"}
             normalized.etl = {
                 "id": i,
-                "source": etl,
+                "source": source_etl,
                 "type": "join",
                 "timestamp": Date.now(),
                 "machine": machine_metadata
@@ -100,7 +101,7 @@ def read_buildbot_properties(normalized, url):
     #     pass
 
 
-def _normalize(source_key, tc_message, task):
+def _normalize(source_key, tc_message, task, resources):
     output = Dict()
     set_default(task, tc_message.status)
 
@@ -137,7 +138,7 @@ def _normalize(source_key, tc_message, task):
         if isinstance(task.payload.artifacts, list):
             for a in task.payload.artifacts:
                 if not a.name:
-                    Log.error("expecting name of artifact in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
+                    Log.error("expecting name of artifact in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts)
             output.task.artifacts = task.payload.artifacts
         else:
             output.task.artifacts = unwraplist(_object_to_array(task.payload.artifacts, "name"))
@@ -152,7 +153,7 @@ def _normalize(source_key, tc_message, task):
 
     output.task.tags = get_tags(task)
 
-    set_build_info(output, task)
+    set_build_info(output, task, resources)
     set_run_info(output, task)
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
@@ -164,7 +165,7 @@ def _normalize_run(run):
     output.reason_created = run.reasonCreated
     output.id = run.runId
     output.scheduled = Date(run.scheduled)
-    output.start_time = output.timestamp = Date(run.started)
+    output.start_time = Date(run.started)
     output.end_time = Date(run.takenUntil)
     output.state = run.state
     output.worker.group = run.workerGroup
@@ -183,7 +184,8 @@ def set_run_info(normalized, task):
         {"run": {
             "machine": task.extra.treeherder.machine,
             "suite": task.extra.suite,
-            "chunk": task.extra.chunks.current
+            "chunk": task.extra.chunks.current,
+            "timestamp": task.run.start_time
         }}
     )
 
@@ -202,7 +204,7 @@ def coalesce_w_conflict_detection(*args):
     return output
 
 
-def set_build_info(normalized, task):
+def set_build_info(normalized, task, resources):
     """
     Get a build object that describes the build
     :param task: The task definition
@@ -211,13 +213,6 @@ def set_build_info(normalized, task):
 
     if task.workerType.startswith("dummy-type"):
         task.workerType = "dummy-type"
-
-    triple = (task.workerType, task.extra.build_name, task.extra.treeherder.build.platform)
-    try:
-        set_default(normalized, KNOWN_BUILD_NAMES[triple])
-    except Exception:
-        KNOWN_BUILD_NAMES[triple] = {}
-        Log.warning("Can not find {{triple|json}}", triple=triple)
 
     set_default(
         normalized,
@@ -237,9 +232,13 @@ def set_build_info(normalized, task):
                 task.payload.env.GECKO_HEAD_REV
             ),
             "type": listwrap({"dbg": "debug"}.get(task.extra.build_type, task.extra.build_type)),
-            "version":task.tags.build_props.version
+            "version": task.tags.build_props.version
         }}
     )
+
+    if normalized.build.revision:
+        normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
+        normalized.build.date = normalized.repo.push.date
 
     if task.extra.treeherder.collection.opt:
         normalized.build.type += ["opt"]
@@ -329,7 +328,11 @@ KNOWN_TAGS = {
     "funsize.partials.from_mar",
     "funsize.partials.locale",
     "funsize.partials.platform",
+    "funsize.partials.previousBuildNumber",
+    "funsize.partials.previousVersion",
     "funsize.partials.to_mar",
+    "funsize.partials.toBuildNumber",
+    "funsize.partials.toVersion",
     "funsize.partials.update_number",
 
     "github.branches",
@@ -348,10 +351,13 @@ KNOWN_TAGS = {
     "index.data.hello",
     "index.expires",
     "index.rank",
+    "l10n_changesets",
+
     "locations.mozharness",
     "locations.test_packages",
     "locations.build",
     "locations.img",
+    "locations.mar",
     "locations.sources",
     "locations.symbols",
     "locations.tests",
@@ -364,6 +370,7 @@ KNOWN_TAGS = {
     "source",
     "suite.flavor",
     "suite.name",
+
     "treeherderEnv",
     "treeherder.build.platform",
     "treeherder.collection.debug",
@@ -377,139 +384,8 @@ KNOWN_TAGS = {
     "treeherder.revision_hash",
     "treeherder.symbol",
     "treeherder.tier",
+
     "url.busybox",
     "useCloudMirror"
 }
 
-# MAP TRIPLE (workerType, extra.build_name, extra.treeherder.build.platform)
-# TO PROPERTIES
-null = None
-
-KNOWN_BUILD_NAMES = {
-
-    ("android-api-15", "android", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
-    ("android-api-15", "android-api-15-b2gdroid", "b2gdroid-4-0-armv7-api15"): {},
-    ("android-api-15", "android-api-15-gradle-dependencies", "android-4-0-armv7-api15"): {},
-    ("android-api-15", "android-api-15-partner-sample1", "android-4-0-armv7-api15-partner1"): {"run": {"machine": {"os": "android"}}},
-    ("android-api-15", "android-api-15-frontend", "android-4-0-armv7-api15"): {"run": {"machine": {"os": "android"}}},
-    ("android-api-15", "android-checkstyle", "android-4-0-armv7-api15"): {},
-    ("android-api-15", "android-lint", "android-4-0-armv7-api15"): {"build": {"platform": "lint"}},
-    ("android-api-15", "android-test", "android-4-0-armv7-api15"): {},
-    ("b2gtest", "mozharness-tox", "lint"): {},
-    # ("b2gtest", "marionette-harness-pytest", "linux64"): {},
-    ("b2gtest", null, null): {},
-    ("b2gtest", null, "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet"]}},
-    ("b2gtest", "", "lint"): {"build": {"platform": "lint"}},
-    ("b2gtest", "eslint-gecko", "lint"): {"build": {"platform": "lint"}},
-    ("b2gtest", "marionette-harness-pytest", "linux64"): {},
-    ("b2gtest-emulator", null, "b2g-emu-kk"): {},
-    ("b2gtest-emulator", null, "b2g-emu-x86-kk"): {"run": {"machine": {"type": "emulator"}}},
-
-    ("b2gbuild", null, "mulet-linux64"): {},
-
-    ("buildbot", null, null): {},
-    ("buildbot-try", null, null): {},
-    ("buildbot-bridge", null, null): {},
-    ("buildbot-bridge", null, "all"): {},
-    ("cratertest", null, null): {},
-
-    ("dbg-linux64", "browser-haz", "linux64"):{"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug", "hazard"]}},
-    ("dbg-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"type": ["debug"]}},
-    ("dbg-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["debug"]}},
-    ("dbg-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64"}},
-    ("dbg-linux64", "shell-haz", "linux64"): {},
-
-    ("desktop-test", null, "linux64"): {"build": {"platform": "linux64"}},
-    ("desktop-test-xlarge", null, "linux64"): {"build": {"platform": "linux64"}},
-    ("desktop-test-xlarge", "marionette-harness-pytest", "linux64"): {"build": {"platform": "linux64"}},
-    ("dolphin", "dolphin-eng", "b2g-device-image"): {},
-    ("dummy-test-worker-type", null, null): {},
-    ("dummy-test-type", null, "osx-10-7"): {},
-    ("dummy-type", null, null): {},
-    ("emulator-ics", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}},
-    ("emulator-ics-debug", "emulator-ics", "b2g-emu-ics"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    ("emulator-jb", null, null): {},
-    ("emulator-jb", "emulator-jb", "b2g-emu-jb"): {"run": {"machine": {"type": "emulator"}}},
-    ("emulator-jb-debug", "emulator-jb", "b2g-emu-jb"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    ("emulator-kk", "emulator-kk", "b2g-emu-kk"): {"run": {"machine": {"type": "emulator"}}},
-    ("emulator-kk-debug", "emulator-kk", "b2g-emu-kk"): {"run": {"machine": {"type": "emulator"}}},
-    ("emulator-l", "emulator-l", "b2g-emu-l"): {"run": {"machine": {"type": "emulator"}}},
-    ("emulator-l-debug", "emulator-l", "b2g-emu-l"): {"run": {"machine": {"type": "emulator"}}, "build": {"type": ["debug"]}},
-    ("emulator-x86-kk", "emulator-x86-kk", "b2g-emu-x86-kk"): {"run": {"machine": {"type": "emulator"}}},
-
-    ("flame-kk", "aries", "b2g-device-image"): {"run": {"machine": {"type": "aries"}}},
-    ("flame-kk", "aries-eng", "b2g-device-image"): {"run": {"machine": {"type": "aries"}}},
-    ("flame-kk", "aries-noril", "b2g-device-image"): {"run": {"machine": {"type": "aries"}}},
-    ("flame-kk", "flame-kk", "b2g-device-image"): {"run": {"machine": {"type": "flame"}}},
-    ("flame-kk", "flame-kk-eng", "b2g-device-image"): {"run": {"machine": {"type": "flame"}}},
-    ("flame-kk", "flame-kk-spark-eng", "b2g-device-image"): {"run": {"machine": {"type": "flame"}}},
-    ("flame-kk", "nexus-5-user", "b2g-device-image"):{"run": {"machine": {"type": "nexus"}}},
-
-    ("flame-kk", "nexus-4-eng", "b2g-device-image"): {"run": {"machine": {"type": "nexus4"}}},
-    ("flame-kk", "nexus-4-kk-eng", "b2g-device-image"): {"run": {"machine": {"type": "nexus4"}}},
-    ("flame-kk", "nexus-4-kk-user", "b2g-device-image"): {"run": {"machine": {"type": "nexus4"}}},
-    ("flame-kk", "nexus-4-user", "b2g-device-image"): {"run": {"machine": {"type": "nexus4"}}},
-    ("flame-kk", "nexus-5-l-eng", "b2g-device-image"): {"run": {"machine": {"type": "nexus5"}}},
-
-    ("funsize-mar-generator", null, "osx-10-10"): {},
-    ("funsize-mar-generator", null, "linux64"): {},
-    ("funsize-mar-generator", null, "linux32"): {},
-    ("funsize-mar-generator", null, "windowsxp"): {},
-    ("funsize-mar-generator", null, "windows8-64"): {},
-    ("funsize-balrog", null, "osx-10-10"): {},
-    ("funsize-balrog", null, "linux32"): {},
-    ("funsize-balrog", null, "linux64"): {},
-    ("funsize-balrog", null, "windowsxp"):{},
-    ("funsize-balrog", null, "windows8-64"):{},
-    ("gaia", null, null): {},
-    ("gecko-decision", null, null): {},
-    ("github-worker", null, null): {},
-    ("human-decision", null, null): {},
-    ("mulet-debug", "mulet", "mulet-linux64"): {},
-    ("mulet-debug", "mulet-haz", "mulet-linux64"): {},
-    ("mulet-opt", "mulet", "mulet-linux64"): {"build": {"platform": "linux64", "type": ["mulet", "opt"]}},
-    ("opt-linux32", "linux32", "linux32"): {"run": {"machine": {"os": "linux32"}}, "build": {"platform": "linux32", "type": ["opt"]}},
-    ("opt-linux64", null, null): {"build": {"platform": "linux64", "type": ["opt"]}},
-    ("opt-linux64", null, "all"): {},
-    ("opt-linux64", null, "linux32"): {},
-
-    ("opt-linux64", null, "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
-    ("opt-linux64", null, "osx-10-10"): {},
-    ("opt-linux64", null, "windowsxp"): {},
-    ("opt-linux64", null, "windows8-64"): {},
-    ("opt-linux64", "linux64", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"platform": "linux64", "type": ["opt"]}},
-    ("opt-linux64", "linux64-artifact", "linux64"): {"build": {"platform": "linux64", "type": ["opt"]}},
-
-    ("opt-linux64", "linux64-clang", "linux64"): {},
-    ("opt-linux64", "linux64-gcc", "linux64"): {"build": {"platform": "linux64", "type": ["opt"], "compiler": "gcc"}},
-    ("opt-linux64", "linux64-st-an", "linux64"): {"run": {"machine": {"os": "linux64"}}, "build": {"type": ["static analysis", "opt"]}},
-    ("opt-macosx64", "macosx64", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt"]}},
-    ("opt-macosx64", "macosx64-st-an", "osx-10-7"): {"build": {"os": "macosx64", "type": ["opt", "static analysis"]}},
-    ("packet-talos-v1", null, "linux64"): {},
-
-    ("rustbuild", null, null): {},
-    ("signing-worker-v1", null, "linux32"): {},
-    ("signing-worker-v1", null, "osx-10-10"): {},
-    ("signing-worker-v1", null, "linux64"): {},
-    ("signing-worker-v1", null, "windowsxp"): {},
-    ("signing-worker-v1", null, "windows8-64"): {},
-    ("spidermonkey", "sm-arm-sim", "linux64"): {},
-    ("spidermonkey", "sm-compacting", "linux64"):{},
-    ("spidermonkey", "sm-rootanalysis", "linux64"): {},
-    ("spidermonkey", "sm-plain", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64"}},
-    ("spidermonkey", "sm-plaindebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
-    ("spidermonkey", "sm-generational", "linux64"): {},
-    ("spidermonkey", "sm-warnaserr", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
-    ("spidermonkey", "sm-warnaserrdebug", "linux64"): {"build": {"product": "spidermonkey", "platform": "linux64", "type": ["debug"]}},
-
-    ("symbol-upload", null, null): {},
-    ("symbol-upload", null, "linux64"): {},
-    ("symbol-upload", null, "android-4-0-armv7-api15"): {},
-    ("taskcluster-images", null, "all"): {},
-    ("taskcluster-images", null, "taskcluster-images"): {},
-    ("tcvcs-cache", null, null): {},
-    ("tcvcs-cache-device", null, null): {},
-    ("tutorial", null, null): {},
-    ("worker-ci-test", null, null): {}
-
-}

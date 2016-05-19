@@ -32,6 +32,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
 from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
