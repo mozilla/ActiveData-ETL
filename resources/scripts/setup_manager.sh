@@ -91,6 +91,7 @@ chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
 
+# CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
 sudo rm /var/spool/cron/ec2-user
 sudo cp /home/ec2-user/TestLog-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user
 

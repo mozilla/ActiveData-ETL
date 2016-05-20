@@ -1,6 +1,7 @@
 {
 	"no_checks": true,
-	"range": {"min":200000},
+	"range": {"min": 228800},
+	"revision": "7c0b201f3a15",
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
@@ -21,7 +22,7 @@
 		"schema": {
 			"$ref": "//../../schema/task_cluster.json"
 				},
-		"debug": true,
+		"debug": false,
 		"limit_replicas": false
 	},
 	"debug": {

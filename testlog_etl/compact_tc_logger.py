@@ -21,7 +21,7 @@ from testlog_etl import key2etl
 known_tasks = set()
 queue = Queue("packer", max=20)
 
-START = 228400
+START = 228400   # should start at 228800
 RANDOM = Random.int(1000)
 
 
