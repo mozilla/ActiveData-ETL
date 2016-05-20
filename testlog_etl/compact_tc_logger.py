@@ -36,7 +36,7 @@ def compact(file):
         if taskid in known_tasks:
             continue
         known_tasks.add(taskid)
-        output.append(data)
+        output.append(l)
 
     queue.add((output, file))
     Log.note("{{key}} file reduced from {{frum}} lines {{to}}", key=file.key, frum=len(lines), to=len(output))

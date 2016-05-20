@@ -247,6 +247,10 @@ def set_build_info(normalized, task, resources):
         normalized.build.type += ["opt"]
     elif task.extra.treeherder.collection.debug:
         normalized.build.type += ["debug"]
+    elif task.extra.treeherder.collection.asan:
+        normalized.build.type += ["asan"]
+    elif task.extra.treeherder.collection.pgo:
+        normalized.build.type += ["pgo"]
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
@@ -273,7 +277,7 @@ def get_tags(task, parent=None):
                 if isinstance(v, Mapping):
                     for tt in get_tags(Dict(tags=v), parent=t['name']):
                         more_tags.append(tt)
-                        continue
+                    continue
                 elif not isinstance(v, unicode):
                     v = convert.value2json(v)
             else:
@@ -287,6 +291,8 @@ def get_tags(task, parent=None):
 
 
 def verify_tag(t):
+    if not isinstance(t["value"], unicode):
+        Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
         Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
         KNOWN_TAGS.add(t["name"])
@@ -320,6 +326,8 @@ KNOWN_TAGS = {
     "crater.toolchain.customSha",
     "crater.crateVers",
     "crater.taskType",
+    "crater.toolchain.archiveDate",
+    "crater.toolchain.channel",
     "crater.toolchainGitRepo",
     "crater.toolchainGitSha",
 
@@ -379,8 +387,10 @@ KNOWN_TAGS = {
     "treeherder.collection.debug",
     "treeherder.collection.opt",
     "treeherder.collection.pgo",
+    "treeherder.collection.asan",
     "treeherder.groupSymbol",
     "treeherder.groupName",
+    "treeherder.labels",
     "treeherder.machine.platform",
     "treeherder.productName",
     "treeherder.revision",
