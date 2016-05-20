@@ -12,7 +12,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary import strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap
+from pyLibrary.dot import wrap, Dict, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -21,6 +21,8 @@ from pyLibrary.times.timer import Timer
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
+TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON LINES
+
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
     "_structured_full.log",
@@ -48,10 +50,19 @@ NOT_STRUCTURED_LOGS = [
     "/talos_info.log",
     "/talos_warning.log",
     "/live.log",
-    "/live_backing.log"
+    "/live_backing.log",
+    "/master.tar.gz",
+    ".tests.zip",
+    ".checksums.asc",
+    ".checksums",
+    ".langpack.xpi",
+    "/.tar.gz",
+    ".test_packages.json",
+    "/xvfb.log",
+    "/xsession-errors.log",
+    "/resource-usage.json"
     ]
-
-
+TOO_MANY_NON_JSON_LINES = Dict()
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -106,7 +117,11 @@ def verify_blobber_file(line_number, name, url):
         # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
         return logs, "unknown"
 
+    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
+        return None, 0
+
     # DETECT IF THIS IS A STRUCTURED LOG
+
     with Timer("Structured log detection {{name}}:", {"name": name}):
         try:
             total = 0  # ENSURE WE HAVE A SIDE EFFECT
@@ -127,10 +142,12 @@ def verify_blobber_file(line_number, name, url):
                             line= blobber_line)
                     bad += 1
                     if bad > 4:
+                        TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
                         Log.error("Too many bad lines")
 
             if count == 0:
                 # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
+                TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
                 Log.error("No JSON lines found")
 
         except Exception, e:

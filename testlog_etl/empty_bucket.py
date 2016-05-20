@@ -19,7 +19,7 @@ from testlog_etl import key2etl, etl2path
 
 def main():
     """
-    This script will delete everything in the active-data-codecoverage-dev bucket
+    This script will delete everything in an s3 bucket
     """
     try:
         settings = startup.read_settings()
@@ -35,10 +35,12 @@ def main():
 
         min_ = etl2path(key2etl(settings.range.min))
         max_ = etl2path(key2etl(settings.range.max))
+        common_prefix = "".join(ma for ma, mi in zip(settings.range.max, settings.range.min) if ma == mi)
 
         bucket = s3.Bucket(settings.source)
         delete_me = []
-        for k in bucket.bucket.list():
+        Log.note("Scanning...")
+        for k in bucket.bucket.list(prefix=common_prefix):
             k = k.key
             if k == "0.json":
                 continue
@@ -46,12 +48,10 @@ def main():
             if gte(min_, etl) and gte(etl, max_):
                 Log.note("will remove {{key}}", key=k)
                 delete_me.append(k)
-            else:
-                pass
 
-        for g, kk in jx.groupby(delete_me, 100):
-            pass
-            # bucket.delete_key(kk)
+        for g, kk in jx.groupby(delete_me, size=1000):
+            Log.note("delete {{num}} keys", num=len(kk))
+            bucket.delete_keys(kk)
 
     except Exception, e:
         Log.error("Problem with compaction", e)
