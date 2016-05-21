@@ -181,7 +181,8 @@ class EtlHeadGenerator(object):
     def next(
         self,
         source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
-        name  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
+        name=None,  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
+        url=None  # URL FOR THE DATA
     ):
         num = self.next_id
         self.next_id = num + 1
@@ -190,6 +191,7 @@ class EtlHeadGenerator(object):
         dest_etl = wrap({
             "id": num,
             "name": name,
+            "url": url,
             "source": source_etl,
             "type": "join",
             "revision": get_git_revision(),

@@ -14,13 +14,14 @@ import taskcluster
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import wrap, Dict
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
+from testlog_etl import etl2key
 from testlog_etl.transforms import EtlHeadGenerator
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -43,7 +44,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    bucket_file_count = -1
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -56,11 +56,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
-                
+
         task_id = pulse_record.status.taskId
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
         artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
+        ccov_artifact_count = 0
 
         for artifact in artifacts.artifacts:
             artifact_file_name = artifact.name
@@ -69,16 +70,19 @@ def process(source_key, source, destination, resources, please_stop=None):
             if "jscov" not in artifact_file_name:
                 continue
 
-            Log.warning("Processing code coverage for key {{key}}", key=source_key)
-
-            # create the key for the file in the bucket, and add it to a list to return later
-            bucket_file_count += 1
-            bucket_key = source_key + "." + unicode(bucket_file_count)
-            keys.append(bucket_key)
-
             # construct the artifact's full url
             runId = pulse_record.runId
             full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
+
+            if ccov_artifact_count == 0:
+                # TEMP, WHILE WE MONITOR
+                Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
+
+            # create the key for the file in the bucket, and add it to a list to return later
+            _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)
+            add_tc_prefix(dest_etl)
+            ccov_artifact_count += 1
+            keys.append(etl2key(dest_etl))
 
             # get the task definition
             queue = taskcluster.Queue()
@@ -93,7 +97,6 @@ def process(source_key, source, destination, resources, please_stop=None):
             response_stream = http.get(full_artifact_path).raw
 
             records = []
-            Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
             with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
                 for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
                     if please_stop:
@@ -107,7 +110,14 @@ def process(source_key, source, destination, resources, please_stop=None):
                         continue
 
                     try:
-                        process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records)
+                        process_source_file(
+                            dest_etl,
+                            obj,
+                            repo,
+                            run,
+                            build,
+                            records
+                        )
                     except Exception, e:
                         Log.warning("Error processing test {{test_url}} and source file {{source}}",
                                     test_url=obj.testUrl, source=obj.sourceFile, cause=e)
@@ -118,15 +128,12 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bucket_key, repo, run, build, records):
+def process_source_file(dest_etl, obj, repo, run, build, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
     # TODO: change this when needed
     test_name = obj.testUrl.split("/")[-1]
-
-    # a variable to count the number of lines so far for this source file
-    count = 0
 
     # turn obj.covered (a list) into a set for use later
     file_covered = set(obj.covered)
@@ -146,13 +153,8 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
     orphan_uncovered = set(obj.uncovered)
 
     # iterate through the methods of this source file
-    for method_name, method_lines in obj.methods.iteritems():
-        _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
-        add_tc_prefix(dest_etl)
-
-        # reusing dest_etl.id, which should be continuous
-        record_key = bucket_key + "." + unicode(dest_etl.id)
-
+    # a variable to count the number of lines so far for this source file
+    for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
         all_method_lines_set = set(method_lines)
         method_covered = all_method_lines_set & file_covered
         method_uncovered = all_method_lines_set - method_covered
@@ -177,30 +179,28 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
                     "percentage_covered": method_percentage_covered,
                 }
             },
-            "etl": dest_etl,
+            "etl": {
+                "id": count+1,
+                "source": dest_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            },
             "repo": repo,
             "run": run,
             "build": build
         })
-
-        # file marker
-        if count == 0:
-            new_record.source.is_file = "true"
-
-        records.append({"id": record_key, "value": new_record})
-        count += 1
+        records.append({"id": etl2key(new_record.etl), "value": new_record})
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
-    _, dest_etl = etl_header_gen.next(pulse_record.etl, source_file_index)
-    add_tc_prefix(dest_etl)
-    record_key = bucket_key + "." + unicode(dest_etl.id)
     new_record = wrap({
         "test": {
             "name": test_name,
             "url": obj.testUrl
         },
         "source": {
+            "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
             "file": file_info,
             "method": {
                 "covered": [{"line": c} for c in orphan_covered],
@@ -210,18 +210,18 @@ def process_source_file(source_file_index, obj, pulse_record, etl_header_gen, bu
                 "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
             }
         },
-        "etl": dest_etl,
+        "etl": {
+            "id": 0,
+            "source": dest_etl,
+            "type": "join",
+            "machine": machine_metadata,
+            "timestamp": Date.now()
+        },
         "repo": repo,
         "run": run,
         "build": build
     })
-
-    # file marker
-    if count == 0:
-        new_record.source.is_file = "true"
-
-    records.append({"id": record_key, "value": new_record})
-    count += 1
+    records.append({"id": etl2key(new_record.etl), "value": new_record})
 
 
 def get_revision_info(task_definition, resources):
@@ -293,6 +293,6 @@ def get_build_info(task_definition):
 
 def add_tc_prefix(dest_etl):
     # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
-    if not dest_etl.source.source:
-        dest_etl.source.type = "join"
-        dest_etl.source.source = {"id": "tc"}
+    if not dest_etl.source.source.source:
+        dest_etl.source.source.type = "join"
+        dest_etl.source.source.source = {"id": "tc"}
