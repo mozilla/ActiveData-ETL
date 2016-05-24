@@ -44,7 +44,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    dest_etl = None
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -63,8 +62,6 @@ def process(source_key, source, destination, resources, please_stop=None):
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
         artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
         ccov_artifact_count = 0
-        counter = Dict(value=0)
-        records = []
 
         for artifact in artifacts.artifacts:
             artifact_file_name = artifact.name
@@ -78,14 +75,14 @@ def process(source_key, source, destination, resources, please_stop=None):
             full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
 
             if ccov_artifact_count == 0:
-                # create the key for the file in the bucket, and add it to a list to return later
-                _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)
-                add_tc_prefix(dest_etl)
-                keys.append(etl2key(dest_etl))
-
                 # TEMP, WHILE WE MONITOR
                 Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
+
+            # create the key for the file in the bucket, and add it to a list to return later
+            _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)
+            add_tc_prefix(dest_etl)
             ccov_artifact_count += 1
+            keys.append(etl2key(dest_etl))
 
             # get the task definition
             queue = taskcluster.Queue()
@@ -99,6 +96,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             # fetch the artifact
             response_stream = http.get(full_artifact_path).raw
 
+            records = []
             with Timer("Processing {{ccov_file}}", param={"ccov_file": full_artifact_path}):
                 for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
                     if please_stop:
@@ -115,27 +113,22 @@ def process(source_key, source, destination, resources, please_stop=None):
                         process_source_file(
                             dest_etl,
                             obj,
-                            counter,
                             repo,
                             run,
                             build,
                             records
                         )
                     except Exception, e:
-                        Log.warning(
-                            "Error processing test {{test_url}} and source file {{source}}",
-                            test_url=obj.testUrl,
-                            source=obj.sourceFile,
-                            cause=e
-                        )
-        if records:
+                        Log.warning("Error processing test {{test_url}} and source file {{source}}",
+                                    test_url=obj.testUrl, source=obj.sourceFile, cause=e)
+
             with Timer("writing {{num}} records to s3", {"num": len(records)}):
                 destination.extend(records, overwrite=True)
 
     return keys
 
 
-def process_source_file(dest_etl, obj, counter, repo, run, build, records):
+def process_source_file(dest_etl, obj, repo, run, build, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -161,7 +154,7 @@ def process_source_file(dest_etl, obj, counter, repo, run, build, records):
 
     # iterate through the methods of this source file
     # a variable to count the number of lines so far for this source file
-    for method_name, method_lines in obj.methods.iteritems():
+    for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
         all_method_lines_set = set(method_lines)
         method_covered = all_method_lines_set & file_covered
         method_uncovered = all_method_lines_set - method_covered
@@ -187,7 +180,7 @@ def process_source_file(dest_etl, obj, counter, repo, run, build, records):
                 }
             },
             "etl": {
-                "id": counter.value,
+                "id": count+1,
                 "source": dest_etl,
                 "type": "join",
                 "machine": machine_metadata,
@@ -197,7 +190,6 @@ def process_source_file(dest_etl, obj, counter, repo, run, build, records):
             "run": run,
             "build": build
         })
-        counter.value += 1
         records.append({"id": etl2key(new_record.etl), "value": new_record})
 
     # a record for all the lines that are not in any method
@@ -219,7 +211,7 @@ def process_source_file(dest_etl, obj, counter, repo, run, build, records):
             }
         },
         "etl": {
-            "id": counter.value,
+            "id": 0,
             "source": dest_etl,
             "type": "join",
             "machine": machine_metadata,
@@ -229,7 +221,6 @@ def process_source_file(dest_etl, obj, counter, repo, run, build, records):
         "run": run,
         "build": build
     })
-    counter.value += 1
     records.append({"id": etl2key(new_record.etl), "value": new_record})
 
 
