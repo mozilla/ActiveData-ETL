@@ -9,13 +9,10 @@
 #
 from __future__ import unicode_literals
 
-import zlib
-
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
-from pyLibrary.env.big_data import ibytes2ilines, scompressed2ibytes
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import MONTH
@@ -27,6 +24,7 @@ from testlog_etl.transforms.pulse_block_to_job_logs import verify_equal, process
 _ = convert
 DEBUG = False
 TOO_OLD = (Date.today()-MONTH).unix
+
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     bb = BuildbotTranslator()
@@ -115,10 +113,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time
 
-                verify_equal(data, "build.revision", "action.revision", url)
-                verify_equal(data, "build.id", "action.buildid", url)
-                verify_equal(data, "run.key", "action.builder", warning=False, from_url=url)
-                verify_equal(data, "run.machine.name", "action.slave", from_url=url)
+                verify_equal(data, "build.revision", "action.revision", url, from_key=source_key)
+                verify_equal(data, "build.id", "action.buildid", url, from_key=source_key)
+                verify_equal(data, "run.key", "action.builder", warning=False, from_url=url, from_key=source_key)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=url, from_key=source_key)
 
                 output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))

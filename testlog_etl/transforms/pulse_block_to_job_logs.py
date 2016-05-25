@@ -12,7 +12,7 @@ import re
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, Null, DictList
+from pyLibrary.dot import Dict, wrap, Null, DictList, coalesce
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
@@ -85,9 +85,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 all_log_lines = response._all_lines(encoding=None)
                 data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
-                verify_equal(data, "build.revision", "action.revision", from_url=pulse_record.payload.logurl)
-                verify_equal(data, "build.id", "action.buildid", from_url=pulse_record.payload.logurl)
-                verify_equal(data, "run.machine.name", "action.slave", from_url=pulse_record.payload.logurl)
+                verify_equal(data, "build.revision", "action.revision", from_url=pulse_record.payload.logurl, from_key=source_key)
+                verify_equal(data, "build.id", "action.buildid", from_url=pulse_record.payload.logurl, from_key=source_key)
+                verify_equal(data, "run.machine.name", "action.slave", from_url=pulse_record.payload.logurl, from_key=source_key)
 
                 output.append(data)
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
@@ -550,13 +550,13 @@ def fix_times(times, start_time, end_time):
         time = t.start_time
 
 
-def verify_equal(data, expected, duplicate, warning=True, from_url=None):
+def verify_equal(data, expected, duplicate, warning=True, from_url=None, from_key=None):
     """
     WILL REMOVE duplicate IF THE SAME
     """
     if data[expected] == data[duplicate]:
         data[duplicate] = None
-    elif data[expected] == None:
+    elif data[expected] == None or data[expected] == "None":
         data[expected] = data[duplicate]
         data[duplicate] = None
     elif data[expected] and data[duplicate] and data[duplicate] in data[expected]:
@@ -568,9 +568,8 @@ def verify_equal(data, expected, duplicate, warning=True, from_url=None):
         data[duplicate] = None
     else:
         if warning:
-            if not from_url:
-                from_url = "<unknown>"
-            Log.warning("{{a}} != {{b}} ({{av}}!={{bv}}) in {{url}}", a=expected, b=duplicate, av=data[expected], bv=data[duplicate], url=from_url)
+            frum = coalesce(from_url, from_key, "<unknown>")
+            Log.warning("{{a}} != {{b}} ({{av|json}}!={{bv|json}}) in {{url}}", a=expected, b=duplicate, av=data[expected], bv=data[duplicate], url=frum)
 
 
 if __name__ == "__main__":
