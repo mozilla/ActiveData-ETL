@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from collections import Mapping
+from copy import copy
 
 import requests
 
@@ -265,7 +266,7 @@ def set_build_info(normalized, task, resources):
 
 def get_tags(task, parent=None):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
-    more_tags = []
+    clean_tags = []
     for t in tags:
         # ENSURE THE VALUES ARE UNICODE
         if parent:
@@ -276,7 +277,7 @@ def get_tags(task, parent=None):
                 v = v[0]
                 if isinstance(v, Mapping):
                     for tt in get_tags(Dict(tags=v), parent=t['name']):
-                        more_tags.append(tt)
+                        clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):
                     v = convert.value2json(v)
@@ -286,8 +287,9 @@ def get_tags(task, parent=None):
             v = convert.value2json(v)
         t["value"] = v
         verify_tag(t)
+        clean_tags.append(t)
 
-    return unwraplist(tags + more_tags)
+    return clean_tags
 
 
 def verify_tag(t):
@@ -373,6 +375,13 @@ KNOWN_TAGS = {
     "locations.symbols",
     "locations.tests",
     "name",
+
+    "notification.task-defined.smtp.body",
+    "notification.task-defined.smtp.recipients",
+    "notification.task-defined.smtp.subject",
+    "notification.task-defined.sns.message",
+    "notification.task-defined.sns.arn",
+
     "npmCache.url",
     "npmCache.expires",
     "objective",
