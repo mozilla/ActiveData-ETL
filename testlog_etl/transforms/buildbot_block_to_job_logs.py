@@ -123,6 +123,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             except Exception, e:
                 if "Problem with calculating durations" in e:
                     Log.error("Prioritized error", cause=e)
+                elif "Connection reset by peer" in e:
+                    Log.error("Connectivity problem", cause=e)
 
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
                 data.etl.error = "Text log unreadable"
