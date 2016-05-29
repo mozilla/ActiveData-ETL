@@ -227,13 +227,16 @@ class HgMozillaOrg(object):
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
-        with suppress_exception:
+        try:
             return _get_url(url, branch, **kwargs)
+        except Exception, e:
+            pass
 
-        with suppress_exception:
+        try:
             Thread.sleep(seconds=5)
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-
+        except Exception, f:
+            pass
 
         path = url.split("/")
         if path[3] == "l10n-central":
