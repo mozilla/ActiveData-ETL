@@ -52,6 +52,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):
             if Date(a.expires) < Date.now():
+                Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
                 continue  # ARTIFACT IS GONE
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
             if lines:
