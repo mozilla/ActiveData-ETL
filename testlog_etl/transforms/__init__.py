@@ -60,7 +60,11 @@ NOT_STRUCTURED_LOGS = [
     ".test_packages.json",
     "/xvfb.log",
     "/xsession-errors.log",
-    "/resource-usage.json"
+    "/resource-usage.json",
+    ".pom.sha1",
+    ".pom",
+    ".xml.sha1",
+    ".xml"
     ]
 TOO_MANY_NON_JSON_LINES = Dict()
 
