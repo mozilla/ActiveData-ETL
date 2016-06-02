@@ -14,6 +14,7 @@ from copy import copy
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import listwrap, set_default, wrap
+from pyLibrary.times.dates import Date
 from testlog_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from testlog_etl.transforms.unittest_logs_to_sink import process_unittest
 
@@ -50,6 +51,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):
+            if Date(a.expiry) < Date.now():
+                continue  # ARTIFACT IS GONE
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
             if lines:
                 dest_key, dest_etl = etl_header_gen.next(task_cluster_summary.etl, a.name)
