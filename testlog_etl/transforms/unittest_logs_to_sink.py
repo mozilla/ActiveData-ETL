@@ -139,6 +139,8 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception, e:
+            if line.startswith('<?xml version="1.0"'):
+                Log.error("Log is not ready. key={{key}} url={{url|quote}}\n\t{{line|quote}}", key=source_key, line=line, url=url)
             Log.warning("bad line in key={{key}} url={{url|quote}}:\n{{line}}", key=source_key, line=line, url=url, cause=e)
             accumulator.stats.bad_lines += 1
 
