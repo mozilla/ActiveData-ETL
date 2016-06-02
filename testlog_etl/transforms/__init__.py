@@ -92,7 +92,14 @@ def verify_blobber_file(line_number, name, url):
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
-        response = http.get(url)
+        try:
+            response = http.get(url)
+        except Exception, e:
+            if "No address associated with hostname" in e and url.endswith("command_000000.log.live"):
+                # THIS ARTIFACT OFTEN HAS PROBLEMS
+                return None, 0
+            Log.error("Can not GET {{url}}", url=url, cause=e)
+
         try:
             logs = response.all_lines
         except Exception, e:
