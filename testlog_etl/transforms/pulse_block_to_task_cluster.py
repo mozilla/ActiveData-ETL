@@ -376,6 +376,12 @@ KNOWN_TAGS = {
     "locations.tests",
     "name",
 
+    "notification.task-defined.irc.notify_nicks",
+    "notification.task-defined.irc.message",
+    "notification.task-defined.log_collect",
+    "notification.task-defined.ses.body",
+    "notification.task-defined.ses.recipients",
+    "notification.task-defined.ses.subject",
     "notification.task-defined.smtp.body",
     "notification.task-defined.smtp.recipients",
     "notification.task-defined.smtp.subject",

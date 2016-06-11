@@ -125,6 +125,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     Log.error("Prioritized error", cause=e)
                 elif "Connection reset by peer" in e:
                     Log.error("Connectivity problem", cause=e)
+                elif "incorrect header check" in e:
+                    Log.error("problem reading", cause=e)
 
                 Log.warning("Problem processing {{url}}", url=url, cause=e)
                 data.etl.error = "Text log unreadable"

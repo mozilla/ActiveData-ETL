@@ -259,6 +259,11 @@ class HgMozillaOrg(object):
             # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             path = path[0:4] + ["mozilla-release"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 5 and path[4] == "autoland":
+            # FROM https://hg.mozilla.org/build/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            # TO  https://hg.mozilla.org/integration/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            path = path[0:3] + ["try"] + path[5:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
