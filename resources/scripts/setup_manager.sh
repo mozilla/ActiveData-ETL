@@ -57,7 +57,6 @@ cd  /home/ec2-user
 git clone https://github.com/klahnakoski/SpotManager.git
 cd /home/ec2-user/SpotManager/
 git checkout manager
-
 sudo /usr/local/bin/pip install -r requirements.txt
 
 # INSTALL ActiveData
@@ -65,9 +64,13 @@ cd  /home/ec2-user
 git clone https://github.com/klahnakoski/ActiveData.git
 cd /home/ec2-user/ActiveData/
 git checkout manager
-
 sudo /usr/local/bin/pip install -r requirements.txt
 
+# INSTALL TestFailures
+cd  /home/ec2-user
+git clone https://github.com/klahnakoski/TestFailures.git
+cd /home/ec2-user/TestFailures/
+git checkout manager
 
 
 # SIMPLE PLACE FOR LOGS
@@ -90,6 +93,7 @@ chmod u+x /home/ec2-user/TestLog-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
+chmod a+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
 sudo rm /var/spool/cron/ec2-user
 sudo cp /home/ec2-user/TestLog-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user
