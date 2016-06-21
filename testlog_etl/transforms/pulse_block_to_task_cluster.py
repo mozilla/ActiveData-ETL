@@ -10,7 +10,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from collections import Mapping
-from copy import copy
 
 import requests
 
@@ -21,7 +20,7 @@ from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key, key2etl
+from testlog_etl import etl2key
 
 DEBUG = True
 MAX_THREADS = 5
@@ -406,6 +405,7 @@ KNOWN_TAGS = {
     "treeherder.collection.asan",
     "treeherder.groupSymbol",
     "treeherder.groupName",
+    "treeherder.jobKind",
     "treeherder.labels",
     "treeherder.machine.platform",
     "treeherder.productName",
