@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
-from pyLibrary.dot import coalesce, Dict
+from pyLibrary.dot import coalesce, Dict, unwraplist
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration
@@ -346,17 +346,30 @@ class MainThread(object):
         """
         BLOCKS UNTIL ALL THREADS HAVE STOPPED
         """
+        join_errors = []
+
         children = copy(self.children)
         for c in reversed(children):
             if c.name and DEBUG:
                 _Log.note("Stopping thread {{name|quote}}", name=c.name)
-            c.stop()
+            try:
+                c.stop()
+            except Exception, e:
+                join_errors.append(e)
+
         for c in children:
             if DEBUG and c.name:
                 _Log.note("Joining on thread {{name|quote}}", name=c.name)
-            c.join()
+            try:
+                c.join()
+            except Exception, e:
+                join_errors.append(e)
+
             if DEBUG and c.name:
                 _Log.note("Done join on thread {{name|quote}}", name=c.name)
+
+        if join_errors:
+            _Log.error("Problem while stopping {{name|quote}}", name=self.name, cause=unwraplist(join_errors))
 
         if DEBUG:
             _Log.note("Thread {{name|quote}} now stopped", name=self.name)
@@ -465,10 +478,12 @@ class Thread(object):
             except Exception, e:
                 with self.synch_lock:
                     self.end_of_thread = Dict(exception=_Except.wrap(e))
-                try:
-                    _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
-                except Exception:
-                    sys.stderr.write(b"ERROR in thread: " + str(self.name) + b" " + str(e) + b"\n")
+                if self not in self.parent.children:
+                    # THREAD FAILURES ARE A PROBLEM ONLY IF NO ONE WILL BE JOINING WITH IT
+                    try:
+                        _Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
+                    except Exception:
+                        sys.stderr.write(b"ERROR in thread: " + str(self.name) + b" " + str(e) + b"\n")
             finally:
                 try:
                     children = copy(self.children)
@@ -518,7 +533,8 @@ class Thread(object):
                             if not self.end_of_thread.exception:
                                 return self.end_of_thread.response
                             else:
-                                _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
+                                # IF JOINING WITH A THREAD, YOU ARE EXPECTED TO HANDLE ITS EXCEPTION
+                                _Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
                         self.synch_lock.wait(0.5)
 
                 if DEBUG:
@@ -530,7 +546,7 @@ class Thread(object):
                 if not self.end_of_thread.exception:
                     return self.end_of_thread.response
                 else:
-                    _Log.error("Thread did not end well", cause=self.end_of_thread.exception)
+                    _Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
             else:
                 from pyLibrary.debugs.exceptions import Except
 
@@ -607,12 +623,21 @@ class Thread(object):
         if not isinstance(please_stop, Signal):
             please_stop = Signal()
 
-        please_stop.on_go(lambda: thread.start_new_thread(lambda: MAIN_THREAD.stop(), ()))
+        def stopper():
+            try:
+                MAIN_THREAD.stop()
+            except Exception, e:
+                e = Except.wrap(e)
+                _Log.warning("Problem with threads", cause=e)
+            sys.exit(0)
+
+        please_stop.on_go(lambda: thread.start_new_thread(stopper, ()))
 
         if Thread.current() != MAIN_THREAD:
             if not _Log:
                 _late_import()
             _Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
+
 
         try:
             if allow_exit:
