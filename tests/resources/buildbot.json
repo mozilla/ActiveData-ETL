@@ -7863,7 +7863,47 @@
 	    "result": 0,
 	    "slave_id": 12128,
 	    "starttime": 1462218553
+	},
+	{
+	    "builder_id": 662711,
+	    "buildnumber": 0,
+	    "endtime": 1466021746,
+	    "id": 98438447,
+	    "master_id": 177,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"resource-usage.json\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/49b9499ec4be6d81f87060f27ce212d67788626b48ea282b73cf526d27a4b224a6dd37ade1c8db8311e337cd6f6420911cd5621c09186b2b1c4e2f73ab8a51cf\"}",
+	        "branch": "try",
+	        "build_url": "https://queue.taskcluster.net/v1/task/J_CHXpmtTbOG_9zBwgjXMA/artifacts/public/build/firefox-50.0a1.en-US.linux-x86_64-tsan.tar.bz2",
+	        "buildername": "Ubuntu TSAN VM large 12.04 x64 try opt test gtest",
+	        "buildnumber": 0,
+	        "builduid": "e0314ce59f5240948103de63bc630270",
+	        "log_url": "http://archive.mozilla.org/pub/firefox/try-builds/mh@glandium.org-26946835ce5ec4c8b4db0195ddd2139ed503df9e/try-linux64-tsan/try_ubuntu64_vm_large_tsan_test-gtest-bm53-tests1-linux64-build0.txt.gz",
+	        "master": "http://buildbot-master53.bb.releng.usw2.mozilla.com:8201/",
+	        "moz_repo_path": "",
+	        "pgo_build": "False",
+	        "platform": "linux64-tsan",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "try",
+	        "repository": "",
+	        "request_ids": [113592675],
+	        "request_times": {"113592675": 1466020694},
+	        "revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
+	        "scheduler": "tests-try-ubuntu64_vm_large_tsan-opt-unittest",
+	        "script_repo_revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
+	        "slavebuilddir": "test",
+	        "slavename": "tst-emulator64-spot-1098",
+	        "stage_platform": "linux64-tsan"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [113592675],
+	    "requesttime": 1466020694,
+	    "result": 2,
+	    "slave_id": 11359,
+	    "starttime": 1466020701
 	}
+
 
 
 
