@@ -15,7 +15,7 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Dict
+from pyLibrary.dot import wrap, Dict, unwraplist
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.strings import expand_template
@@ -119,8 +119,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                             records
                         )
                     except Exception, e:
-                        Log.warning("Error processing test {{test_url}} and source file {{source}}",
-                                    test_url=obj.testUrl, source=obj.sourceFile, cause=e)
+                        Log.warning(
+                            "Error processing test {{test_url}} and source file {{source}}",
+                            test_url=obj.get("testUrl"),
+                            source=obj.get("sourceFile"),
+                            cause=e
+                        )
 
             with Timer("writing {{num}} records to s3", {"num": len(records)}):
                 destination.extend(records, overwrite=True)
@@ -133,7 +137,10 @@ def process_source_file(dest_etl, obj, repo, run, build, records):
 
     # get the test name. Just use the test file name at the moment
     # TODO: change this when needed
-    test_name = obj.testUrl.split("/")[-1]
+    try:
+        test_name = unwraplist(obj.testUrl).split("/")[-1]
+    except Exception, e:
+        Log.error("can not get testUrl from coverage object", cause=e)
 
     # turn obj.covered (a list) into a set for use later
     file_covered = set(obj.covered)
