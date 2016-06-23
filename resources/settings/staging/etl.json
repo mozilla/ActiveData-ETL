@@ -38,7 +38,7 @@
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
-			"timeout": 300,
+			"timeout": 600,
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},

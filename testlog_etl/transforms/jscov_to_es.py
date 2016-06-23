@@ -76,7 +76,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             if ccov_artifact_count == 0:
                 # TEMP, WHILE WE MONITOR
-                Log.warning("Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
+                Log.warning("Notification: Processing {{ccov_file}} for key {{key}}", ccov_file=full_artifact_path, key=source_key)
 
             # create the key for the file in the bucket, and add it to a list to return later
             _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)

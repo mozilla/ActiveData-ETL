@@ -149,7 +149,7 @@ class HgMozillaOrg(object):
 
             return docs[0]._source
         except Exception, e:
-            Log.warning("Bad ES call", e)
+            Log.warning("Bad ES call, fall back to hg", e)
             return None
 
     def _load_all_in_push(self, revision, locale=None):
