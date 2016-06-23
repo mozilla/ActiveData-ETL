@@ -394,15 +394,15 @@ class Index(Features):
 
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
-            BAD_NEWS = [
+            HOPELESS = [
+                "Document contains at least one immense term",
                 "400 MapperParsingException",
                 "400 RoutingMissingException",
-                "JsonParseException"
-            ]
+                "JsonParseException"            ]
 
             if e.cause.cause:
-                not_possible = [f for f in listwrap(e.cause.cause) if any(b in f for b in BAD_NEWS)]
-                still_have_hope = [f for f in listwrap(e.cause.cause) if all(b not in f for b in BAD_NEWS)]
+                not_possible = [f for f in listwrap(e.cause.cause) if any(h in f for h in HOPELESS)]
+                still_have_hope = [f for f in listwrap(e.cause.cause) if all(h not in f for h in HOPELESS)]
             else:
                 not_possible = [e]
                 still_have_hope = []
