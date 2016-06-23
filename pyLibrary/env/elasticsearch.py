@@ -398,7 +398,8 @@ class Index(Features):
                 "Document contains at least one immense term",
                 "400 MapperParsingException",
                 "400 RoutingMissingException",
-                "JsonParseException"            ]
+                "JsonParseException"
+            ]
 
             if e.cause.cause:
                 not_possible = [f for f in listwrap(e.cause.cause) if any(h in f for h in HOPELESS)]
