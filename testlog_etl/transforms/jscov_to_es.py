@@ -90,6 +90,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # get additional info
             repo = get_revision_info(task_definition, resources)
+            task = {"id": task_id}
             run = get_run_info(task_definition)
             build = get_build_info(task_definition)
 
@@ -114,6 +115,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             dest_etl,
                             obj,
                             repo,
+                            task,
                             run,
                             build,
                             records
@@ -132,7 +134,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_source_file(dest_etl, obj, repo, run, build, records):
+def process_source_file(dest_etl, obj, repo, task, run, build, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -194,6 +196,7 @@ def process_source_file(dest_etl, obj, repo, run, build, records):
                 "timestamp": Date.now()
             },
             "repo": repo,
+            "task": task,
             "run": run,
             "build": build
         })
@@ -226,7 +229,8 @@ def process_source_file(dest_etl, obj, repo, run, build, records):
         },
         "repo": repo,
         "run": run,
-        "build": build
+        "build": build,
+        "is_file": True
     })
     records.append({"id": etl2key(new_record.etl), "value": new_record})
 

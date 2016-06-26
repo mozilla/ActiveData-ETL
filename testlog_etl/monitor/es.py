@@ -40,7 +40,7 @@ def main():
         Log.note("Search ES...")
         result = requests.post(
             "http://localhost:9200/unittest/_search",
-            data='{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'
+            data='{"fields":["etl.id"],"query": {"match_all": {}},"from": 0,"size": 1}'
         )
         data = convert.json2value(convert.utf82unicode(result.content))
 
