@@ -243,6 +243,10 @@ def set_build_info(normalized, task, resources):
         normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
         normalized.build.date = normalized.repo.push.date
 
+    if task.extra.treeherder:
+        for l, v in task.extra.treeherder.leaves():
+            task.treeherder[l] = v
+
     if task.extra.treeherder.collection.opt:
         normalized.build.type += ["opt"]
     elif task.extra.treeherder.collection.debug:
