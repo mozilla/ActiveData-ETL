@@ -86,7 +86,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    buildbot_summary = transform_buildbot(pulse_record.payload, resources, filename=name)
+                    buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources, filename=name)
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)

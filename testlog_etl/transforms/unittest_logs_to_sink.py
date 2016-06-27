@@ -35,7 +35,7 @@ def process_unittest_in_s3(source_key, source, destination, resources, please_st
             e.id = int(e.id.split(":")[0])
         e = e.source
 
-    bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources)
+    bb_summary = transform_buildbot(source_key, convert.json2value(lines[1]), resources=resources)
     unittest_log = lines[2:]
     return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
 

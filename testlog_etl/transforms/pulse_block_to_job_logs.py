@@ -65,7 +65,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             counter += 1
             continue
 
-        data = transform_buildbot(pulse_record.payload, resources)
+        data = transform_buildbot(source_key, pulse_record.payload, resources)
         data.etl = etl
         with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, debug=DEBUG) as timer:
             try:
