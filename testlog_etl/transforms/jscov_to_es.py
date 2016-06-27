@@ -44,6 +44,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
+    ccov_artifact_count = 0
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -61,7 +62,6 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
         artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
-        ccov_artifact_count = 0
 
         for artifact in artifacts.artifacts:
             artifact_file_name = artifact.name
@@ -77,11 +77,11 @@ def process(source_key, source, destination, resources, please_stop=None):
             if ccov_artifact_count == 0:
                 # TEMP, WHILE WE MONITOR
                 Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=full_artifact_path, key=source_key)
+            ccov_artifact_count += 1
 
             # create the key for the file in the bucket, and add it to a list to return later
             _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)
             add_tc_prefix(dest_etl)
-            ccov_artifact_count += 1
             keys.append(etl2key(dest_etl))
 
             # get the task definition
