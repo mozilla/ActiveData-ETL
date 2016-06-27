@@ -200,26 +200,26 @@
 			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
-		{
-			"name": "tc_pulse to codecoverage",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-task-cluster-logger",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage",
-				"public": true,
-				"key_format": "t.a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "testlog_etl.transforms.jscov_to_es.process",
-			"type": "join"
-		}
+//		{
+//			"name": "tc_pulse to codecoverage",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-task-cluster-logger",
+//				"key_format": "a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-codecoverage",
+//				"public": true,
+//				"key_format": "t.a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "testlog_etl.transforms.jscov_to_es.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,

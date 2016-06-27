@@ -206,6 +206,17 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                     details=output,
                     cause=e
                 )
+
+        try:
+            job = resources.treeherder.get_job_results(output.build.branch, output.build.revision12)
+            output.treeherder=job
+        except Exception, e:
+            Log.warning(
+                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
+                key=source_key,
+                revision=output.build.revision12,
+                cause=e
+            )
     else:
         Log.warning("No branch!\n{{output|indent}}", output=output)
 
