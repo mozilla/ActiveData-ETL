@@ -75,7 +75,10 @@ class HgMozillaOrg(object):
 
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
-        self.es.set_refresh_interval(seconds=1)
+        try:
+            self.es.set_refresh_interval(seconds=1)
+        except Exception:
+            pass
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 

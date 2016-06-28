@@ -160,6 +160,20 @@ def _normalize(source_key, tc_message, task, resources):
     set_run_info(output, task)
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
+    try:
+        job = resources.treeherder.get_markup(output)
+        output.treeherder=job
+    except Exception, e:
+        Log.error(
+            "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
+            key=source_key,
+            revision=output.build.revision12,
+            cause=e
+        )
+
+
+
+
     return output
 
 
@@ -245,7 +259,7 @@ def set_build_info(normalized, task, resources):
 
     if task.extra.treeherder:
         for l, v in task.extra.treeherder.leaves():
-            task.treeherder[l] = v
+            normalized.treeherder[l] = v
 
     if task.extra.treeherder.collection.opt:
         normalized.build.type += ["opt"]

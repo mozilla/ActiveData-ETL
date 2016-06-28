@@ -47,7 +47,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
 
             with Profiler("transform_buildbot"):
-                record = transform_buildbot(source_key, source_key, pulse_record.payload, resources=resources)
+                record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
                 record.etl = {
                     "id": i,
                     "source": pulse_record.etl,
@@ -208,8 +208,9 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 )
 
         try:
-            job = resources.treeherder.get_job_results(output.build.branch, output.build.revision12)
-            output.treeherder=job
+            job = resources.treeherder.get_markup(output)
+            if job:
+                output.treeherder=job
         except Exception, e:
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
