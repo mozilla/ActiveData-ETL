@@ -380,7 +380,7 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
+        hg = HgMozillaOrg(use_cache=coalesce(settings.hg.use_cache, True), settings=settings.hg)
         resources = Dict(hg=dictwrap(hg))
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
