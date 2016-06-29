@@ -156,7 +156,7 @@ def _get_single_branch_from_hg(settings, description, dir):
                 "/releases/gaia-l10n/v1_3/en-US/",  # use default branch
                 "/releases/gaia-l10n/v1_4/en-US/",  # use default branch
                 "/releases/gaia-l10n/v2_0/en-US/",  # use default branch
-                "/releases/gaia-l10n/v2_1/en-US/"   # use default branch
+                "/releases/gaia-l10n/v2_1/en-US/",  # use default branch
                 "/build/autoland/"
             ]:
                 continue
