@@ -124,9 +124,9 @@ def process(source_key, source, destination, resources, please_stop=None):
     return [source_key]
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(uid, perfherder, resources):
+def transform(source_key, perfherder, resources):
     try:
-        buildbot = transform_buildbot(perfherder.pulse, resources, uid)
+        buildbot = transform_buildbot(perfherder.pulse, resources, source_key=source_key)
 
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
 
@@ -136,7 +136,7 @@ def transform(uid, perfherder, resources):
                     buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                        uid=uid,
+                        uid=source_key,
                         buildbot=buildbot,
                         name=suite_name,
                         perfherder=perfherder,
@@ -158,7 +158,7 @@ def transform(uid, perfherder, resources):
         else:
             Log.warning(
                 "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                uid=uid,
+                uid=source_key,
                 buildbot=buildbot,
                 name=suite_name,
                 perfherder=perfherder
@@ -257,7 +257,7 @@ def transform(uid, perfherder, resources):
             new_records.append(buildbot)
             Log.warning(
                 "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
-                uid=uid,
+                uid=source_key,
                 name=suite_name
             )
 
@@ -265,13 +265,13 @@ def transform(uid, perfherder, resources):
         buildbot.run.stats = geo_mean(total)
         Log.note(
             "Done {{uid}}, processed {{name}}, transformed {{num}} records",
-            uid=uid,
+            uid=source_key,
             name=suite_name,
             num=len(new_records)
         )
         return new_records
     except Exception, e:
-        Log.error("Transformation failure on id={{uid}}", {"uid": uid}, e)
+        Log.error("Transformation failure on id={{uid}}", {"uid": source_key}, e)
 
 
 
