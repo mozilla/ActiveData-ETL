@@ -249,12 +249,14 @@ def set_build_info(normalized, task, resources):
 
     if task.extra.treeherder.collection.opt:
         normalized.build.type += ["opt"]
-    elif task.extra.treeherder.collection.debug:
+    if task.extra.treeherder.collection.debug:
         normalized.build.type += ["debug"]
-    elif task.extra.treeherder.collection.asan:
+    if task.extra.treeherder.collection.asan:
         normalized.build.type += ["asan"]
-    elif task.extra.treeherder.collection.pgo:
+    if task.extra.treeherder.collection.pgo:
         normalized.build.type += ["pgo"]
+    if task.extra.treeherder.collection.lsan:
+        normalized.build.type += ["lsan"]
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
