@@ -247,16 +247,9 @@ def set_build_info(normalized, task, resources):
         for l, v in task.extra.treeherder.leaves():
             task.treeherder[l] = v
 
-    if task.extra.treeherder.collection.opt:
-        normalized.build.type += ["opt"]
-    if task.extra.treeherder.collection.debug:
-        normalized.build.type += ["debug"]
-    if task.extra.treeherder.collection.asan:
-        normalized.build.type += ["asan"]
-    if task.extra.treeherder.collection.pgo:
-        normalized.build.type += ["pgo"]
-    if task.extra.treeherder.collection.lsan:
-        normalized.build.type += ["lsan"]
+    for k in ["opt", "debug", "asan", "pgo", "lsan"]:
+        if task.extra.treeherder.collection[k]:
+            normalized.build.type += [k]
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
@@ -409,6 +402,7 @@ KNOWN_TAGS = {
     "treeherder.collection.opt",
     "treeherder.collection.pgo",
     "treeherder.collection.asan",
+    "treeherder.collection.lsan",
     "treeherder.groupSymbol",
     "treeherder.groupName",
     "treeherder.jobKind",
