@@ -7,26 +7,26 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-from copy import copy
-import re
+from __future__ import unicode_literals
 
-from pyLibrary.debugs.exceptions import suppress_exception, Explanation, assert_no_exception
-from pyLibrary.meta import use_settings, cache
-from pyLibrary.queries import jx
-from pyLibrary.testing import elasticsearch
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, unwraplist
-from pyLibrary.env import http
-from pyLibrary.thread.threads import Thread, Lock, Queue
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR, DAY
+import re
+from copy import copy
+
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
-
+from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Explanation, assert_no_exception
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, Null, coalesce, unwraplist
+from pyLibrary.env import http
+from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries import jx
+from pyLibrary.testing import elasticsearch
+from pyLibrary.thread.threads import Thread, Lock, Queue
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -77,8 +77,8 @@ class HgMozillaOrg(object):
         self.es.add_alias()
         try:
             self.es.set_refresh_interval(seconds=1)
-        except Exception:
-            pass
+        except Exception, e:
+            Log.warning("Ignore refresh problem", cause=e)
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 
