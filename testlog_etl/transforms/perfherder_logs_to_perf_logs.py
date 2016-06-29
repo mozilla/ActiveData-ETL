@@ -126,7 +126,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(uid, perfherder, resources):
     try:
-        buildbot = transform_buildbot(perfherder.pulse, resources, uid)
+        buildbot = transform_buildbot(uid, perfherder.pulse, resources, uid)
 
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
 

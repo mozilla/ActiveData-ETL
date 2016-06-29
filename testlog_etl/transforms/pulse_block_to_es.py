@@ -47,7 +47,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
 
             with Profiler("transform_buildbot"):
-                record = transform_buildbot(pulse_record.payload, resources=resources)
+                record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
                 record.etl = {
                     "id": i,
                     "source": pulse_record.etl,
@@ -106,7 +106,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload, resources, filename=None):
+def transform_buildbot(source_key, payload, resources, filename=None):
     output = Dict()
 
     if payload.what == "This is a heartbeat":
@@ -198,13 +198,26 @@ def transform_buildbot(payload, resources, filename=None):
                 pass
             else:
                 Log.warning(
-                    "Can not get revision for branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
+                    "Can not get revision for key=={{key}}, branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
+                    key=source_key,
                     branch=output.build.branch,
                     locale=locale,
                     revision=rev,
                     details=output,
                     cause=e
                 )
+
+        try:
+            job = resources.treeherder.get_markup(output)
+            if job:
+                output.treeherder=job
+        except Exception, e:
+            Log.warning(
+                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
+                key=source_key,
+                revision=output.build.revision12,
+                cause=e
+            )
     else:
         Log.warning("No branch!\n{{output|indent}}", output=output)
 

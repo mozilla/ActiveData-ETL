@@ -41,6 +41,7 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from testlog_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
+from testlog_etl.imports.treeherder import TreeHerder
 from testlog_etl.sinks.dummy_sink import DummySink
 from testlog_etl.sinks.multi_day_index import MultiDayIndex
 from testlog_etl.sinks.s3_bucket import S3Bucket
@@ -381,7 +382,11 @@ def main():
             return
 
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
-        resources = Dict(hg=dictwrap(hg))
+        resources = Dict(
+            hg=hg,
+            treeherder=TreeHerder(hg=hg)
+        )
+
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
             ETL(
@@ -431,7 +436,11 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
+    hg = HgMozillaOrg(settings=settings.hg),
+    resources = Dict(
+        hg=hg,
+        treeherder=TreeHerder(hg=hg)
+    )
 
     stopper = Signal()
     ETL(
