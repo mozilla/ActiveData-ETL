@@ -24,8 +24,11 @@ from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, coalesce, Dict, set_default
 from pyLibrary.meta import use_settings
-from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.threads import Thread, Lock
 from mozillapulse.consumers import GenericConsumer
+
+count_locker=Lock()
+count=0
 
 
 class Consumer(Thread):
@@ -50,6 +53,9 @@ class Consumer(Thread):
         broker_timezone='GMT',
         settings=None
     ):
+        global count
+        count = coalesce(start, 0)
+
         self.target_queue = target_queue
         self.pulse_target = target
         if (target_queue == None and target == None) or (target_queue != None and target != None):
@@ -63,13 +69,16 @@ class Consumer(Thread):
         settings.topic = topic
 
         self.pulse = ModifiedGenericConsumer(settings, connect=True, **settings)
-        self.count = coalesce(start, 0)
         self.start()
 
     def _got_result(self, data, message):
+        global count
+
         data = wrap(data)
-        data._meta.count = self.count
-        self.count += 1
+        with count_locker:
+            Log.note("{{count}} from {{exchange}}", count=count, exchange=self.pulse.exchange)
+            data._meta.count = count
+            count += 1
 
         if self.settings.debug:
             Log.note("{{data}}",  data= data)
