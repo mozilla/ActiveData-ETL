@@ -218,7 +218,7 @@ class ModifiedGenericConsumer(GenericConsumer):
             try:
                 self.connection.drain_events(timeout=self.timeout)
             except socket_timeout, e:
-                Log.warning("timeout! Restarting pulse consumer.", cause=e)
+                Log.warning("timeout! Restarting {{name}} pulse consumer.", name=self.exchange, cause=e)
                 try:
                     self.disconnect()
                 except Exception, f:
