@@ -11,13 +11,15 @@ from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, listwrap
+from pyLibrary.dot import Null, listwrap, Dict
+from pyLibrary.env import http
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from testlog_etl.sinks.s3_bucket import S3Bucket
 from testlog_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs
 from testlog_etl.transforms.perfherder_logs_to_perf_logs import stats
+from testlog_etl.transforms.pulse_block_to_perfherder_logs import extract_perfherder
 
 false = False
 true = True
@@ -27,6 +29,16 @@ class TestBuildbotLogs(FuzzyTestCase):
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
         self.settings = ref.get("file://~/private.json");
+
+    def test_url(self):
+        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win64/1469025080/mozilla-inbound_win8_64_test-svgr-e10s-bm127-tests1-windows-build1138.txt.gz"
+
+        def dummy(a, b):
+            return Null, Null
+        expecting, all_perf = extract_perfherder(http.get(url).all_lines, Null, Dict(next=dummy), Null, Null)
+        self.assertTrue(expecting)
+        Log.note("{{output}}", output=all_perf)
+
 
     def test_capture(self):
         source_key = u'213657:13240348'
