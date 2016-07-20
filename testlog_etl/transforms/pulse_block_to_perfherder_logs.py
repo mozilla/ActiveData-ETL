@@ -35,6 +35,8 @@ PERFHERDER_PREFIXES = [
 EXPECTING_RESULTS = {
     "INFO - ##### Running run-tests step.": True,
     "INFO - #### Running talos suites": True,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' (results: ": True,
+
     "========= Finished run_script failed (results:": False,
     "========= Finished run_script warnings (results:": False,
     "========= Finished run_script exception (results:": False,
