@@ -170,7 +170,8 @@ class Index(Features):
 
         # WAIT FOR ALIAS TO APPEAR
         while True:
-            if alias in self.cluster.get("/_cluster/state").metadata.indices[self.settings.index].aliases:
+            response = self.cluster.get("/_cluster/state/metadata", retry={"times": 5}, timeout=coalesce(self.settings.timeout / 10, 10))
+            if alias in response.metadata.indices[self.settings.index].aliases:
                 return
             Log.note("Waiting for alias {{alias}} to appear", alias=alias)
             Thread.sleep(seconds=1)
@@ -607,7 +608,7 @@ class Cluster(object):
         # CONFIRM INDEX EXISTS
         while True:
             try:
-                state = self.get("/_cluster/state")
+                state = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=coalesce(self.settings.timeout / 10, 10))
                 if index in state.metadata.indices:
                     break
                 Log.note("Waiting for index {{index}} to appear", index=index)
@@ -649,7 +650,7 @@ class Cluster(object):
         RETURN LIST OF {"alias":a, "index":i} PAIRS
         ALL INDEXES INCLUDED, EVEN IF NO ALIAS {"alias":Null}
         """
-        data = self.get("/_cluster/state")
+        data = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=coalesce(self.settings.timeout / 10, 10))
         output = []
         for index, desc in data.metadata.indices.items():
             if not desc["aliases"]:
@@ -665,7 +666,7 @@ class Cluster(object):
 
 
         if not self._metadata or force:
-            response = self.get("/_cluster/state")
+            response = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=coalesce(self.settings.timeout / 10, 10))
             with self.metadata_locker:
                 self._metadata = wrap(response.metadata)
                 # REPLICATE MAPPING OVER ALL ALIASES
@@ -735,7 +736,7 @@ class Cluster(object):
         try:
             response = http.get(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason+": "+response.all_content)
+                Log.error(response.reason + ": " + response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
             details = wrap(convert.json2value(utf82unicode(response.all_content)))
