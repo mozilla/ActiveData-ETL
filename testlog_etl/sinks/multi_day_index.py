@@ -28,7 +28,10 @@ class MultiDayIndex(object):
         self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
 
         self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
-        self.es.set_refresh_interval(seconds=60 * 60)
+        try:
+            self.es.set_refresh_interval(seconds=60 * 60, timeout=10)
+        except Exception, e:
+            Log.warning("could not set refresh interal", cause=e)
         self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=True)
         # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
 
