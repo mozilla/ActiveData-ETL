@@ -644,7 +644,6 @@ class Cluster(object):
         except Exception, e:
             Log.error("Problem with call to {{url}}", url=url, cause=e)
 
-
     def get_aliases(self):
         """
         RETURN LIST OF {"alias":a, "index":i} PAIRS
@@ -663,7 +662,6 @@ class Cluster(object):
     def get_metadata(self, force=False):
         if not self.settings.explore_metadata:
             Log.error("Metadata exploration has been disabled")
-
 
         if not self._metadata or force:
             response = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=3)
@@ -700,6 +698,8 @@ class Cluster(object):
                 sample = kwargs.get(b'data', "")[:300]
                 Log.note("{{url}}:\n{{data|indent}}", url=url, data=sample)
 
+            if self.debug:
+                Log.note("POST to: {{url}}", url=url)
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
                 Log.error(response.reason.decode("latin1") + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
@@ -729,11 +729,11 @@ class Cluster(object):
             else:
                 Log.error("Problem with call to {{url}}" + suggestion, url=url, cause=e)
 
-
-
     def get(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
         try:
+            if self.debug:
+                Log.note("GET to: {{url}}", url=url)
             response = http.get(url, **kwargs)
             if response.status_code not in [200]:
                 Log.error(response.reason + ": " + response.all_content)
