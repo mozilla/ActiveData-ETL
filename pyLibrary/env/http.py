@@ -113,7 +113,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
         retry = Dict(times=retry, sleep=SECOND)
     else:
         retry = wrap(retry)
-        set_default(retry.sleep, {"times": 1, "sleep": 0})
+        set_default(retry, {"times": 1, "sleep": 0})
 
     if b'json' in kwargs:
         kwargs[b'data'] = convert.value2json(kwargs[b'json']).encode("utf8")

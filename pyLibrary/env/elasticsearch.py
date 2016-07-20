@@ -337,8 +337,12 @@ class Index(Features):
             Log.error("add() has changed to only accept one record, no lists")
         self.extend([record])
 
-    # -1 FOR NO REFRESH
-    def set_refresh_interval(self, seconds):
+    def set_refresh_interval(self, seconds, **kwargs):
+        """
+        :param seconds:  -1 FOR NO REFRESH
+        :param kwargs: ANY OTHER REQUEST PARAMETERS
+        :return: None
+        """
         if seconds <= 0:
             interval = -1
         else:
@@ -347,7 +351,8 @@ class Index(Features):
         if self.cluster.version.startswith("0.90."):
             response = self.cluster.put(
                 "/" + self.settings.index + "/_settings",
-                data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'
+                data='{"index":{"refresh_interval":' + convert.value2json(interval) + '}}',
+                **kwargs
             )
 
             result = convert.json2value(utf82unicode(response.all_content))
@@ -358,7 +363,8 @@ class Index(Features):
         elif any(map(self.cluster.version.startswith, ["1.4.", "1.5.", "1.6.", "1.7."])):
             response = self.cluster.put(
                 "/" + self.settings.index + "/_settings",
-                data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}')
+                data=convert.unicode2utf8('{"index":{"refresh_interval":' + convert.value2json(interval) + '}}'),
+                **kwargs
             )
 
             result = convert.json2value(utf82unicode(response.all_content))
