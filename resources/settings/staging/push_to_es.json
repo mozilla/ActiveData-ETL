@@ -19,7 +19,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -42,7 +42,7 @@
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -64,7 +64,7 @@
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -87,7 +87,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -110,7 +110,7 @@
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
