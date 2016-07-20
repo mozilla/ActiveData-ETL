@@ -106,14 +106,21 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
 
 
-MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
+OLD_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
+NEW_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] (Running|Skipping) (.*) step.")
 
 #17:54:20     INFO - ##### Finished clobber step (success)
-MOZLOG_SUMMARY = [
+OLD_MOZLOG_SUMMARY = [
     re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:"),
     re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### Finished (.*) step \(.*\)")
 ]
-MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
+NEW_MOZLOG_SUMMARY = [
+    re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] (.*) summary:"),
+    re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] Finished (.*) step \(.*\)")  # example: [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
+]
+
+
+OLD_MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
 BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
 
 
@@ -135,18 +142,23 @@ class HarnessLines(object):
         05:20:05     INFO - #####
         05:20:05     INFO - ##### Running download-and-extract step.
         05:20:05     INFO - #####
+
+
+        NEW VERSION
+        [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
+
         """
 
         if len(next_line) != 25 or len(prev_line) != 25:
             return None
-        if not MOZLOG_PREFIX.match(next_line) or not MOZLOG_PREFIX.match(prev_line) or not MOZLOG_PREFIX.match(curr_line):
+        if not OLD_MOZLOG_PREFIX.match(next_line) or not OLD_MOZLOG_PREFIX.match(prev_line) or not OLD_MOZLOG_PREFIX.match(curr_line):
             return None
-        match = MOZLOG_STEP.match(curr_line)
+        match = OLD_MOZLOG_STEP.match(curr_line)
         if match:
             _time, mode, message = match.group(1, 2, 3)
             mode = mode.strip().lower()
         else:
-            for p in MOZLOG_SUMMARY:
+            for p in OLD_MOZLOG_SUMMARY:
                 match = p.match(curr_line)
                 if match:
                     break
