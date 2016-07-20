@@ -156,6 +156,8 @@ def main():
                 bucket=s3.Bucket(w.source),
                 settings=w
             )
+            Log.note("Bucket {{bucket}} using {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.es.url)
+
 
         please_stop = Signal()
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
