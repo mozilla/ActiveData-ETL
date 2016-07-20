@@ -17,7 +17,7 @@ from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date
+from pyLibrary.times.dates import Date, unicode2Date
 from pyLibrary.times.durations import DAY, HOUR, SECOND, MINUTE
 from pyLibrary.times.timer import Timer
 from testlog_etl import etl2key, key2etl
@@ -105,26 +105,83 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     return {source_key + ".0"}
 
 
+BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
+
+
+NEW_MOZLOG_STEP = re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] .*")
+NEW_MOZLOG_START_STEP = re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] (Running|Skipping) (.*) step.")
+NEW_MOZLOG_END_STEP = [
+    re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] (.*) ()summary:"),
+    re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Finished (.*) step \((.*)\)")  # example: [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
+]
+
+
+class NewHarnessLines(object):
+
+    def __init__(self):
+        self.time_zone = None
+        self.time_skew = None
+
+    def match(self, source, last_timestamp, prev_line, curr_line, next_line):
+        """
+        :param source:  For debugging
+        :param last_timestamp: To ensure the timestamps are in order
+        :param prev_line: not used
+        :param curr_line: A log line
+        :param next_line: not used
+        :return: (timestamp, mode, message) if found else None
+
+        EXAMPLE
+        012345678901234567890123456789012345678901234567890123456789
+        [mozharness: 2016-07-11 21:35:08.2927233Z] Finished run-tests step (success)
+
+        """
+
+        if not NEW_MOZLOG_STEP.match(curr_line):
+            return None
+
+        match = NEW_MOZLOG_START_STEP.match(curr_line)
+        if match:
+            _utc_time, mode, message = match.group(1, 2, 3)
+            mode = mode.strip().lower()
+        else:
+            for p in NEW_MOZLOG_END_STEP:
+                match = p.match(curr_line)
+                if match:
+                    _utc_time, message, mode = match.group(1, 2, 3)
+                    break
+            else:
+                Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
+                return None
+
+            # SOME MOZHARNESS STEPS HAVE A SUMMARY, IGNORE THEM
+            return None
+
+        timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
+        if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+            Log.error("not expected")
+        if self.time_zone is None:
+            self.time_skew = last_timestamp - timestamp
+            self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+            if DEBUG:
+                Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
+        timestamp += self.time_zone
+
+        if DEBUG:
+            Log.note("{{line}}", line=curr_line)
+        return timestamp, mode, message
+
 
 OLD_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
-NEW_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] (Running|Skipping) (.*) step.")
-
-#17:54:20     INFO - ##### Finished clobber step (success)
+# 17:54:20     INFO - ##### Finished clobber step (success)
 OLD_MOZLOG_SUMMARY = [
     re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (.*) summary:"),
     re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### Finished (.*) step \(.*\)")
 ]
-NEW_MOZLOG_SUMMARY = [
-    re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] (.*) summary:"),
-    re.compile(r"(\d\d:\d\d:\d\d)     INFO - \[mozharness\: (.*)Z\] Finished (.*) step \(.*\)")  # example: [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
-]
-
-
 OLD_MOZLOG_PREFIX = re.compile(r"\d\d:\d\d:\d\d     INFO - #####")
-BUILDER_ELAPSE = re.compile(r"elapsedTime=(\d+\.\d*)")  # EXAMPLE: elapsedTime=2.545
 
 
-class HarnessLines(object):
+class OldHarnessLines(object):
 
     def __init__(self):
         self.time_zone = None
@@ -135,18 +192,13 @@ class HarnessLines(object):
         log_date - IN %Y-%m-%d FORMAT FOR APPENDING TO THE TIME-OF-DAY STAMPS
         FOUND IN LOG LINES
 
-        RETURN (timestamp, mode, message) PAIR IF FOUND
+        RETURN (timestamp, mode, message) TRIPLE IF FOUND
 
         EXAMPLE
         012345678901234567890123456789012345678901234567890123456789
         05:20:05     INFO - #####
         05:20:05     INFO - ##### Running download-and-extract step.
         05:20:05     INFO - #####
-
-
-        NEW VERSION
-        [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
-
         """
 
         if len(next_line) != 25 or len(prev_line) != 25:
@@ -395,7 +447,8 @@ def process_buildbot_log(all_log_lines, from_url):
     end_time = None
     builder_raw_step_name = None
     builder_line = BuilderLines()
-    mozharness_line = HarnessLines()
+    old_mozharness_line = OldHarnessLines()
+    new_mozharness_line = NewHarnessLines()
 
     prev_line = ""
     curr_line = ""
@@ -488,7 +541,19 @@ def process_buildbot_log(all_log_lines, from_url):
                 data.timings.append({"builder": builder_step})
             continue
 
-        mozharness_says = mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
+
+        mozharness_says = new_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
+        if mozharness_says:
+            timestamp, mode, harness_step = mozharness_says
+            end_time = Math.max(end_time, timestamp)
+
+            builder_step.children += [{
+                "step": harness_step,
+                "mode": mode,
+                "start_time": timestamp
+            }]
+
+        mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
             end_time = Math.max(end_time, timestamp)
@@ -530,8 +595,8 @@ def process_buildbot_log(all_log_lines, from_url):
     data.end_time = end_time
     data.duration = end_time - start_time
     data.builder_time_zone = builder_line.time_zone
-    data.harness_time_zone = mozharness_line.time_zone
-    data.harness_time_skew = mozharness_line.time_skew
+    data.harness_time_zone = coalesce(new_mozharness_line.time_zone, old_mozharness_line.time_zone)
+    data.harness_time_skew = coalesce(new_mozharness_line.time_skew, old_mozharness_line.time_skew)
 
     data.etl.total_bytes = total_bytes
     return data
