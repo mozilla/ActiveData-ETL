@@ -8128,13 +8128,53 @@
 	    "result": 0,
 	    "slave_id": 1912,
 	    "starttime": 1467294199
+	},
+	{
+	    "builder_id": 673867,
+	    "buildnumber": 6,
+	    "endtime": 1467737036,
+	    "id": 99995989,
+	    "master_id": 184,
+	    "properties": {
+	        "MozReview-Commit-ID": "8QELFxqM6Av",
+	        "appName": "Firefox",
+	        "appVersion": "48.0",
+	        "basedir": "/c/builds/moz2_slave/m-beta-w32-add-on-devel-000000",
+	        "branch": "mozilla-beta",
+	        "buildername": "WINNT 5.2 add-on-devel mozilla-beta build",
+	        "buildnumber": 6,
+	        "builduid": "63293650764c4d18860755eb5f87d551",
+	        "comments": "Bug 1279224 - remove all Sync promotions from doorhangers (beta version). r=adw, a=gchang",
+	        "commit_titles": ["Bug 1279224 - remove all Sync promotions from doorhangers (beta version). r=adw, a=gchang"],
+	        "got_revision": "274a291aa2c8",
+	        "jsshellUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/jsshell-win32-add-on-devel.zip",
+	        "log_url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/mozilla-beta-win32-add-on-devel-bm72-build1-build6.txt.gz",
+	        "master": "http://buildbot-master72.bb.releng.usw2.mozilla.com:8001/",
+	        "packageFilename": "firefox-48.0.en-US.win32-add-on-devel.zip",
+	        "packageUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.zip",
+	        "platform": "win32-add-on-devel",
+	        "product": "firefox",
+	        "project": "",
+	        "repo_path": "releases/mozilla-beta",
+	        "repository": "",
+	        "request_ids": [115563594],
+	        "request_times": {"115563594": 1467731364},
+	        "revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+	        "scheduler": "mozilla-beta-firefox",
+	        "script_repo_revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+	        "slavename": "b-2008-spot-177",
+	        "sourcestamp": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+	        "stage_platform": "win32-add-on-devel",
+	        "symbolsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.crashreporter-symbols.zip",
+	        "testPackagesUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.test_packages.json",
+	        "testsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.gtest.tests.zip",
+	        "uploadFiles": "[u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\install\\\\sea\\\\firefox-48.0.en-US.win32-add-on-devel.installer.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\win32-add-on-devel\\\\xpi\\\\firefox-48.0.en-US.langpack.xpi', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\mozharness.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.common.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.cppunittest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.xpcshell.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.mochitest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.talos.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.reftest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.web-platform.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.gtest.tests.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.crashreporter-symbols.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.json', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel_info.txt', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.mozinfo.json', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.test_packages.json', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\jsshell-win32-add-on-devel.zip', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mar.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\host\\\\bin\\\\mbsdiff.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\install\\\\sea\\\\firefox-48.0.en-US.win32-add-on-devel.installer-stub.exe', u'c:\\\\builds\\\\moz2_slave\\\\m-beta-w32-add-on-devel-000000\\\\build\\\\src\\\\obj-firefox\\\\dist\\\\firefox-48.0.en-US.win32-add-on-devel.checksums']"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [115563594],
+	    "requesttime": 1467731364,
+	    "result": 0,
+	    "slave_id": 11805,
+	    "starttime": 1467731493
 	}
-
-
-
-
-
-
-
-
 ]
