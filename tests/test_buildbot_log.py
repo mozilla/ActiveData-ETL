@@ -17,7 +17,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl.buildbot_json_jogs import parse_day
+from testlog_etl.buildbot_json_logs import parse_day
 from testlog_etl.imports import buildbot
 from testlog_etl.imports.buildbot import BuildbotTranslator
 from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log

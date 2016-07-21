@@ -53,7 +53,7 @@ def diff(settings, please_stop=None):
     if settings.range:
         max_in_es = Math.MAX(in_es)
         _min = coalesce(settings.range.min, 0)
-        _max = coalesce(settings.range.max, max_in_es + 1, _min + 1000000)
+        _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
         in_range = set(range(_min, _max))
         in_es &= in_range
 
@@ -140,7 +140,7 @@ def get_all_s3(in_es, in_range, settings):
     min_range = coalesce(Math.MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
-    max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
+    # max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
     extra_digits = Math.ceiling(log10(limit))
 
     prefix = unicode(max(in_range - in_es))[:-extra_digits]
@@ -162,8 +162,8 @@ def get_all_s3(in_es, in_range, settings):
                     continue
                 if p in in_es:
                     continue
-                if p >= max_allowed:
-                    continue
+                # if p >= max_allowed:
+                #     continue
 
                 in_s3.append(p)
             except Exception, e:
