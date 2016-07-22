@@ -43,7 +43,10 @@ def splitter(work_queue, please_stop):
 
         key = payload.key
         with Explanation("Indexing records from {{bucket}}", bucket=payload.bucket):
-            params = split[payload.bucket]
+            params = split.get(payload.bucket)
+            if not params:
+                message.delete()
+                continue
 
         es = params.es
         bucket = params.bucket
@@ -67,7 +70,10 @@ def splitter(work_queue, please_stop):
 
             Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
             more_keys = bucket.keys(prefix=key)
-            num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
+            if not more_keys:
+                Log.warning("No keys found {{message|json}}", message=payload)
+            else:
+                num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
 
             add_message_to_queue(es.queue, payload.key, message)
 
@@ -85,8 +91,11 @@ def splitter(work_queue, please_stop):
 
 def safe_splitter(work_queue, please_stop):
     while not please_stop:
-        with WarnOnException("Indexing records"):
-            splitter(work_queue, please_stop)
+        try:
+            with WarnOnException("Indexing records"):
+                splitter(work_queue, please_stop)
+        except Exception, e:
+            Log.warning("problem", cause=e)
 
 
 def add_message_to_queue(queue, payload_key, message):
@@ -157,7 +166,6 @@ def main():
                 settings=w
             )
             Log.note("Bucket {{bucket}} using {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.es.url)
-
 
         please_stop = Signal()
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
