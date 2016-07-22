@@ -436,7 +436,7 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(settings=settings.hg),
+    hg = HgMozillaOrg(settings=settings.hg)
     resources = Dict(
         hg=hg,
         treeherder=TreeHerder(hg=hg)
