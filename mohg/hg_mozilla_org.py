@@ -7,26 +7,26 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-from copy import copy
-import re
+from __future__ import unicode_literals
 
-from pyLibrary.debugs.exceptions import suppress_exception, Explanation, assert_no_exception
-from pyLibrary.meta import use_settings, cache
-from pyLibrary.queries import jx
-from pyLibrary.testing import elasticsearch
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, unwraplist
-from pyLibrary.env import http
-from pyLibrary.thread.threads import Thread, Lock, Queue
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR, DAY
+import re
+from copy import copy
+
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
-
+from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Explanation, assert_no_exception
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, Null, coalesce, unwraplist
+from pyLibrary.env import http
+from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries import jx
+from pyLibrary.testing import elasticsearch
+from pyLibrary.thread.threads import Thread, Lock, Queue
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -75,7 +75,10 @@ class HgMozillaOrg(object):
 
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
-        self.es.set_refresh_interval(seconds=1)
+        try:
+            self.es.set_refresh_interval(seconds=1)
+        except Exception, e:
+            Log.warning("Ignore refresh problem", cause=e)
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 
@@ -149,7 +152,7 @@ class HgMozillaOrg(object):
 
             return docs[0]._source
         except Exception, e:
-            Log.warning("Bad ES call", e)
+            Log.warning("Bad ES call, fall back to hg", e)
             return None
 
     def _load_all_in_push(self, revision, locale=None):
@@ -227,13 +230,16 @@ class HgMozillaOrg(object):
         requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
-        with suppress_exception:
+        try:
             return _get_url(url, branch, **kwargs)
+        except Exception, e:
+            pass
 
-        with suppress_exception:
+        try:
             Thread.sleep(seconds=5)
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-
+        except Exception, f:
+            pass
 
         path = url.split("/")
         if path[3] == "l10n-central":
@@ -255,6 +261,11 @@ class HgMozillaOrg(object):
             # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             path = path[0:4] + ["mozilla-release"] + path[7:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 5 and path[4] == "autoland":
+            # FROM https://hg.mozilla.org/build/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            # TO  https://hg.mozilla.org/integration/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            path = path[0:3] + ["try"] + path[5:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])

@@ -1,0 +1,132 @@
+# encoding: utf-8
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+from __future__ import unicode_literals
+from pyLibrary import convert, strings
+from pyLibrary.aws.s3 import strip_extension
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import coalesce
+from pyLibrary.env import elasticsearch
+from pyLibrary.maths.randoms import Random
+from pyLibrary.queries import jx
+from activedata_etl import key2etl, etl2path
+
+
+class MultiDayIndex(object):
+    """
+    MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
+    AND THREADED QUEUE AND SPLIT DATA BY
+    """
+    def __init__(self, settings, queue_size=10000, batch_size=5000):
+        self.settings = settings
+        self.queue_size = queue_size
+        self.indicies = {}  # MAP DATE (AS UNIX TIMESTAMP) TO INDEX
+
+        self.es = elasticsearch.Cluster(self.settings).get_or_create_index(settings=self.settings)
+        try:
+            self.es.set_refresh_interval(seconds=60 * 60, timeout=10)
+        except Exception, e:
+            Log.warning("could not set refresh interal", cause=e)
+        self.queue = self.es.threaded_queue(max_size=self.queue_size, batch_size=batch_size, silent=True)
+        # self.es = elasticsearch.Alias(alias=settings.index, settings=settings)
+
+    def __getattr__(self, item):
+        return getattr(self.es, item)
+
+    # ADD keys() SO ETL LOOP CAN FIND WHAT'S GETTING REPLACED
+    def keys(self, prefix=None):
+        path = jx.reverse(etl2path(key2etl(prefix)))
+
+        result = self.es.search({
+            "fields": ["_id"],
+            "query": {
+                "filtered": {
+                    "query": {"match_all": {}},
+                    "filter": {"and": [{"term": {"etl" + (".source" * i) + ".id": v}} for i, v in enumerate(path)]}
+                }
+            }
+        })
+
+        if result.hits.hits:
+            return set(result.hits.hits._id)
+        else:
+            return set()
+
+    def extend(self, documents):
+        self.queue.extend(documents)
+
+    def add(self, doc):
+        self.queue.add(doc)
+
+    def delete(self, filter):
+        self.es.delete(filter)
+
+    def copy(self, keys, source, sample_only_filter=None, sample_size=None):
+        num_keys = 0
+        for key in keys:
+            try:
+                for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    if not line:
+                        continue
+
+                    # ES SCHEMA IS STRICTLY TYPED, USE "code" FOR TEXT IDS
+                    line = line.replace('{"id": "bb"}', '{"code": "bb"}').replace('{"id": "tc"}', '{"code": "tc"}')
+
+                    # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
+                    if source.name.startswith("active-data-test-result"):
+                        # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
+                        found = strings.between(line, '"suite": {', '}')
+                        if found:
+                            suite_json = '{' + found + "}"
+                            if suite_json:
+                                suite = convert.json2value(suite_json)
+                                suite = convert.value2json(suite.name)
+                                line = line.replace(suite_json, suite)
+
+                    if rownum == 0:
+                        value = convert.json2value(line)
+                        if len(line) > 100000:
+                            value.result.subtests = [s for s in value.result.subtests if s.ok is False]
+                            value.result.missing_subtests = True
+
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
+                        if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
+                            # INDEX etl.id==0, BUT NO MORE
+                            if value.etl.id != 0:
+                                Log.error("Expecting etl.id==0")
+                            num_keys += 1
+                            self.queue.add(row)
+                            break
+                    elif len(line) > 100000:
+                        value = convert.json2value(line)
+                        value.result.subtests = [s for s in value.result.subtests if s.ok is False]
+                        value.result.missing_subtests = True
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
+                    else:
+                        # FAST
+                        _id = strings.between(line, "\"_id\": \"", "\"")  # AVOID DECODING JSON
+                        row = {"id": _id, "json": line}
+                    num_keys += 1
+                    self.queue.add(row)
+            except Exception, e:
+                Log.warning("Could not process {{key}}", key=key, cause=e)
+
+        return num_keys
+
+
+def _fix(value):
+    if value.repo._source:
+        value.repo = value.repo._source
+    if not value.build.revision12:
+        value.build.revision12 = value.build.revision[0:12]
+
+    _id = value._id
+
+    return _id, value

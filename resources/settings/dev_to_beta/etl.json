@@ -12,7 +12,7 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "testlog-etl"
+			"User-Agent": "ActiveData-ETL"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
@@ -67,7 +67,7 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
 		{
@@ -87,7 +87,7 @@
 				"name": "active-data-index-task-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
             "type": "join"
         },
 //		{
@@ -107,7 +107,7 @@
 //				"name": "active-data-index-jobs-beta",
 //				"$ref": "file://~/private.json#aws_credentials"
 //			},
-//			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+//			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
 //			"type": "join",
 //			"transform_type": "bulk"
 //		},
@@ -129,7 +129,7 @@
 //				"$ref": "file://~/private.json#aws_credentials"
 //			},
 //			"transform_type": "bulk",
-//			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
+//			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
 //			"type": "join"
 //		},
 		{
@@ -146,7 +146,7 @@
 				"public": true,
 				"key_format": "a:b.c"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		}
@@ -167,7 +167,7 @@
 //				"name": "active-data-index-beta",
 //				"$ref": "file://~/private.json#aws_credentials"
 //			},
-//			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 //			"type": "join"
 //		}
 	],
