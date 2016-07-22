@@ -115,7 +115,7 @@ class BugRemovedMessage(GenericBugMessage):
         return tmp
 
 class BugChangedMessage(GenericBugMessage):
-    
+
     def __init__(self, what):
         super(BugChangedMessage, self).__init__()
         self.routing_parts.append('changed')

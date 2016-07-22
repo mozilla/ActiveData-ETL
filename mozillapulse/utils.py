@@ -9,7 +9,7 @@ from rfc3339 import rfc3339
 # Takes a string and attempts to extract bug ids in it
 # TODO: Make this better
 def extract_bug_ids(msg):
-    m = re.search(r'([0-9]{5,})', msg, re.I)     
+    m = re.search(r'([0-9]{5,})', msg, re.I)
     if m and m.groups():
         return m.groups()
     else:
