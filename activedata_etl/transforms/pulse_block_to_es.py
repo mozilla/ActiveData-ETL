@@ -16,8 +16,8 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
-from testlog_etl.imports import buildbot
+from activedata_etl import etl2key
+from activedata_etl.imports import buildbot
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
@@ -47,7 +47,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
 
             with Profiler("transform_buildbot"):
-                record = transform_buildbot(pulse_record.payload, resources=resources, source_key=source_key)
+                record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
                 record.etl = {
                     "id": i,
                     "source": pulse_record.etl,
@@ -106,7 +106,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 
-def transform_buildbot(payload, resources, filename=None, source_key="unknown"):
+def transform_buildbot(source_key, payload, resources, filename=None):
     output = Dict()
 
     if payload.what == "This is a heartbeat":
@@ -206,6 +206,18 @@ def transform_buildbot(payload, resources, filename=None, source_key="unknown"):
                     details=output,
                     cause=e
                 )
+
+        try:
+            job = resources.treeherder.get_markup(output)
+            if job:
+                output.treeherder=job
+        except Exception, e:
+            Log.warning(
+                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
+                key=source_key,
+                revision=output.build.revision12,
+                cause=e
+            )
     else:
         Log.warning("No branch!\n{{output|indent}}", output=output)
 

@@ -17,9 +17,9 @@ cd  /home/ubuntu
 sudo apt-get -y install git-core
 
 
-git clone https://github.com/klahnakoski/TestLog-ETL.git
+git clone https://github.com/klahnakoski/ActiveData-ETL.git
 
-cd /home/ubuntu/TestLog-ETL/
+cd /home/ubuntu/ActiveData-ETL/
 git checkout etl
 sudo pip install -r requirements.txt
 

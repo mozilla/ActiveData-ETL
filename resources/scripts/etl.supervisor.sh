@@ -1,11 +1,11 @@
-cd /home/ubuntu/TestLog-ETL/
+cd /home/ubuntu/ActiveData-ETL/
 git checkout etl
 git stash clear
 git stash
 git pull origin etl
 git stash apply
 
-sudo cp /home/ubuntu/TestLog-ETL/resources/supervisor/etl.conf /etc/supervisor/conf.d/
+sudo cp /home/ubuntu/ActiveData-ETL/resources/supervisor/etl.conf /etc/supervisor/conf.d/
 
 sudo supervisorctl reread
 sudo supervisorctl update

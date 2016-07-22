@@ -39,13 +39,14 @@ from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
-from testlog_etl import key2etl
+from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
-from testlog_etl.sinks.dummy_sink import DummySink
-from testlog_etl.sinks.multi_day_index import MultiDayIndex
-from testlog_etl.sinks.s3_bucket import S3Bucket
-from testlog_etl.sinks.split import Split
-from testlog_etl.transforms import Transform
+from activedata_etl.imports.treeherder import TreeHerder
+from activedata_etl.sinks.dummy_sink import DummySink
+from activedata_etl.sinks.multi_day_index import MultiDayIndex
+from activedata_etl.sinks.s3_bucket import S3Bucket
+from activedata_etl.sinks.split import Split
+from activedata_etl.transforms import Transform
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -380,8 +381,12 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=coalesce(settings.hg.use_cache, True), settings=settings.hg)
-        resources = Dict(hg=dictwrap(hg))
+        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
+        resources = Dict(
+            hg=hg,
+            treeherder=TreeHerder(hg=hg)
+        )
+
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
             ETL(
@@ -431,7 +436,11 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    resources = Dict(hg=HgMozillaOrg(settings=settings.hg))
+    hg = HgMozillaOrg(settings=settings.hg),
+    resources = Dict(
+        hg=hg,
+        treeherder=TreeHerder(hg=hg)
+    )
 
     stopper = Signal()
     ETL(

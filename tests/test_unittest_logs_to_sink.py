@@ -15,9 +15,9 @@ from pyLibrary.dot import Null, listwrap
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl.sinks.s3_bucket import S3Bucket
-from testlog_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs
-from testlog_etl.transforms.perfherder_logs_to_perf_logs import stats
+from activedata_etl.sinks.s3_bucket import S3Bucket
+from activedata_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs
+from activedata_etl.transforms.perfherder_logs_to_perf_logs import stats
 
 false = False
 true = True

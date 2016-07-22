@@ -33,7 +33,7 @@ def main():
 
         Log.note("Check for ETL updates")
         _config_fabric(settings.fabric)
-        with cd("~/TestLog-ETL/"):
+        with cd("~/ActiveData-ETL/"):
             result = run("git pull origin etl")
             if result.find("Already up-to-date.") != -1:
                 Log.note("No change required")

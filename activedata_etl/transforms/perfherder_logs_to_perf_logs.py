@@ -26,7 +26,7 @@ from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
-from testlog_etl.transforms.pulse_block_to_es import transform_buildbot
+from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000
@@ -126,8 +126,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, resources):
     try:
-        buildbot = transform_buildbot(perfherder.pulse, resources, source_key=source_key)
-
+        buildbot = transform_buildbot(source_key, perfherder.pulse, resources, uid)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
 
         for option in KNOWN_PERFHERDER_OPTIONS:
