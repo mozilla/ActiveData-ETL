@@ -382,7 +382,7 @@ def main():
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(
             hg=hg,
-            treeherder=TreeHerder(hg=hg)
+            treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
         )
 
         stopper = Signal()
