@@ -162,7 +162,7 @@ def _normalize(source_key, tc_message, task, resources):
 
     try:
         job = resources.treeherder.get_markup(output)
-        output.treeherder=job
+        output.treeherder = job
     except Exception, e:
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
@@ -170,9 +170,6 @@ def _normalize(source_key, tc_message, task, resources):
             revision=output.build.revision12,
             cause=e
         )
-
-
-
 
     return output
 
