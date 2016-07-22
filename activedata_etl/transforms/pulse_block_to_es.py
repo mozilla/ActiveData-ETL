@@ -16,8 +16,8 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.dot import Dict, wrap, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
-from testlog_etl.imports import buildbot
+from activedata_etl import etl2key
+from activedata_etl.imports import buildbot
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision

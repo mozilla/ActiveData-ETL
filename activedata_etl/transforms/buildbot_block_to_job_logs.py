@@ -17,9 +17,9 @@ from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import MONTH
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
-from testlog_etl.imports.buildbot import BuildbotTranslator
-from testlog_etl.transforms.pulse_block_to_job_logs import verify_equal, process_buildbot_log
+from activedata_etl import etl2key
+from activedata_etl.imports.buildbot import BuildbotTranslator
+from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_buildbot_log
 
 _ = convert
 DEBUG = False

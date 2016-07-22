@@ -27,8 +27,8 @@ sudo easy_install pip
 #}
 # INSTALL BUILDBOT IMPORT
 cd  /home/ec2-user
-git clone https://github.com/klahnakoski/TestLog-ETL.git
-cd /home/ec2-user/TestLog-ETL/
+git clone https://github.com/klahnakoski/ActiveData-ETL.git
+cd /home/ec2-user/ActiveData-ETL/
 git checkout manager
 
 sudo /usr/local/bin/pip install -r requirements.txt
@@ -89,7 +89,7 @@ chmod 600 ~/private.json
 chmod 600 ~/.ssh/aws-pulse-logger.pem
 
 # CRON JOBS
-chmod u+x /home/ec2-user/TestLog-ETL/resources/scripts/run_buildbot_json_logs.sh
+chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
@@ -97,7 +97,7 @@ chmod a+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
 sudo rm /var/spool/cron/ec2-user
-sudo cp /home/ec2-user/TestLog-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user
+sudo cp /home/ec2-user/ActiveData-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user
 
 
 

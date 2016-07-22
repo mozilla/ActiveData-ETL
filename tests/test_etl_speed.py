@@ -16,8 +16,8 @@ from pyLibrary.env.big_data import GzipLines
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.times.timer import Timer
-from testlog_etl.transforms import verify_blobber_file
-from testlog_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
+from activedata_etl.transforms import verify_blobber_file
+from activedata_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
 
 class TestEtlSpeed(FuzzyTestCase):

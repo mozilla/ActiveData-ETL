@@ -14,7 +14,7 @@ from pyLibrary.dot import coalesce
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
-from testlog_etl import key2etl, etl2path
+from activedata_etl import key2etl, etl2path
 
 
 class MultiDayIndex(object):

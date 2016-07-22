@@ -21,8 +21,8 @@ from pyLibrary.jsons import stream
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
-from testlog_etl.transforms import EtlHeadGenerator
+from activedata_etl import etl2key
+from activedata_etl.transforms import EtlHeadGenerator
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"

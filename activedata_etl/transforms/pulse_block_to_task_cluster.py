@@ -20,7 +20,7 @@ from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
-from testlog_etl import etl2key
+from activedata_etl import etl2key
 
 DEBUG = True
 MAX_THREADS = 5

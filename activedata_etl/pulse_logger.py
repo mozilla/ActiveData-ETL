@@ -20,7 +20,7 @@ from pyLibrary.queries import jx
 from pyLibrary.dot import set_default, coalesce
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from testlog_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 
 # ONLY DEPLOY OFF THE pulse-logger branch
 

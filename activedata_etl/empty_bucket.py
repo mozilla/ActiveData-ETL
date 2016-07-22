@@ -14,7 +14,7 @@ from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import unwrap
 from pyLibrary.queries import jx
-from testlog_etl import key2etl, etl2path
+from activedata_etl import key2etl, etl2path
 
 
 def main():

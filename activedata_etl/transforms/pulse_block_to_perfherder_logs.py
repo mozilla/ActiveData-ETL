@@ -15,9 +15,9 @@ from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-from testlog_etl import etl2key
-from testlog_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from testlog_etl.transforms import EtlHeadGenerator
+from activedata_etl import etl2key
+from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from activedata_etl.transforms import EtlHeadGenerator
 
 DEBUG = False
 

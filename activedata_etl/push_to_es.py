@@ -21,8 +21,8 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
-from testlog_etl.etl import parse_id_argument
-from testlog_etl.sinks.multi_day_index import MultiDayIndex
+from activedata_etl.etl import parse_id_argument
+from activedata_etl.sinks.multi_day_index import MultiDayIndex
 
 split = {}
 
