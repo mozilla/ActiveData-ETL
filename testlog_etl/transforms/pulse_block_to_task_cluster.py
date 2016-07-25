@@ -332,7 +332,10 @@ KNOWN_TAGS = {
     "crater.toolchainGitSha",
 
     "createdForUser",
+    "data.head.sha",
+    "data.head.user.email",
     "description",
+
     "extra.build_product",  # error?
     "funsize.partials",
     "funsize.partials.branch",
