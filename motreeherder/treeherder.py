@@ -25,6 +25,7 @@ from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import HOUR, DAY
+from pyLibrary.times.timer import Timer
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
@@ -33,50 +34,55 @@ JOBS_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=20
 
 DETAILS_URL = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}"
 NOTES_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}"
-JOB_BUG_MAP = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id__in={{job_id}}"
+JOB_BUG_MAP = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}"
 
 
 class TreeHerder(object):
     @use_settings
-    def __init__(self, hg, use_cache=True, settings=None):
+    def __init__(self, hg, use_cache=True, cache=None, settings=None):
         self.settings = settings
         self.failure_classification = {c.id: c.name for c in http.get_json(FAILURE_CLASSIFICATION_URL)}
         self.repo = {c.id: c.name for c in http.get_json(REPO_URL)}
         self.hg = hg
-        self.cache = elasticsearch.Cluster(settings.elasticsearch).get_or_create_index(settings.elasticsearch)
+        self.cache = elasticsearch.Cluster(cache).get_or_create_index(cache)
 
     def _get_job_results_from_th(self, branch, revision):
         results = http.get_json(expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})).results
 
         output = []
         for g, repo_ids in jx.groupby(results.id, size=10):
-            jobs = http.get_json(expand_template(JOBS_URL, {"branch": branch, "result_set_id": ",".join(map(unicode, repo_ids))})).results
+            with Timer("get {{num}} jobs", {"num":len(repo_ids)}):
+                jobs = http.get_json(expand_template(JOBS_URL, {"branch": branch, "result_set_id": ",".join(map(unicode, repo_ids))})).results
 
-            details = []
-            for _, ids in jx.groupby(jobs.id, size=40):
-                details.extend(http.get_json(
-                    url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
-                    retry={"times": 3}
-                ).results)
-            details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
+            with Timer("Get (up to {{num}}) details from TH", num=len(jobs)):
+                details = []
+                for _, ids in jx.groupby(jobs.id, size=40):
+                    details.extend(http.get_json(
+                        url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
+                        retry={"times": 3}
+                    ).results)
+                details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-            stars = []
-            for _, ids in jx.groupby(jobs.id, size=40):
-                response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": ",".join(map(unicode, ids))}))
-                stars.extend(response),
-            stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
+            with Timer("Get (up to {{num}})  stars from TH"):
+                stars = []
+                for _, ids in jx.groupby(jobs.id, size=40):
+                    response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
+                    stars.extend(response),
+                stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
-            notes = []
-            for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
-                response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
-                notes.extend(response),
-            notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
+            with Timer("Get notes from TH"):
+                notes = []
+                for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
+                    response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
+                    notes.extend(response),
+                notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
 
             for j in jobs:
                 output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
         if output:
-            self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
-            self.cache.flush()
+            with Timer("Write to ES cache"):
+                self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
+                self.cache.flush()
         return output
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
@@ -149,7 +155,7 @@ class TreeHerder(object):
         if job.keys():
             Log.error("{{names|json}} are not used", names=job.keys())
 
-        # ATTACH DETAILS (AND SCRUB OUT REDUNDANT VALUES
+        # ATTACH DETAILS (AND SCRUB OUT REDUNDANT VALUES)
         output.details = details.get(output.job.guid, Null)
         for d in output.details:
             d.job_guid = None
@@ -166,7 +172,7 @@ class TreeHerder(object):
                 if fix:
                     rev = self.hg.get_revision(Dict(
                         changeset={"id": fix[0]},
-                        branch={"name": job.build.branch}
+                        branch={"name": branch}
                     ))
                     n.revision = rev.changeset.id
                     n.bug_id = self.hg._extract_bug_id(rev.changeset.description)
@@ -196,7 +202,7 @@ class TreeHerder(object):
         return output
 
     @cache(duration=HOUR)
-    def get_markup(self, branch, revision, task_id=None, buildername=None):
+    def get_markup(self, branch, revision, task_id=None, buildername=None, timestamp=None):
         # TRY CACHE
         if not branch or not revision:
             Log.error("expecting branch and revision")
@@ -228,10 +234,11 @@ class TreeHerder(object):
                     convert.value2json(query)
                     pass
                 elif len(docs) == 1:
-                    Log.note("Used ES cache to get details on {{value}}", value=coalesce(task_id, buildername))
+                    Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
                     return docs[0]._source
                 else:
-                    Log.warning("expecting no more than one document")
+                    best_index = jx.sort([(i, abs(e - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
+                    return docs[best_index]._source
             except Exception, e:
                 Log.warning("Bad ES call, fall back to TH", e)
 
@@ -250,6 +257,18 @@ class TreeHerder(object):
                 Log.error("Expecting only one match!")
 
             detail = job_result
+
+        if not detail:
+            # MAKE A FILLER RECORD FOR THE MISSING DATA
+            detail = Dict()
+            detail.ref_data_name = buildername
+            detail.repo.branch = branch
+            detail.repo.revision = revision
+            detail.task.id = task_id
+            detail.job.timing.last_modified = Date.now()
+            detail.etl.timestamp = Date.now()
+
+            self.cache.add({"value": detail})
 
         return detail
 

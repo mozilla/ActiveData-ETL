@@ -437,7 +437,7 @@ def etl_one(settings):
     hg = HgMozillaOrg(settings=settings.hg)
     resources = Dict(
         hg=hg,
-        treeherder=TreeHerder(hg=hg)
+        treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
     )
 
     stopper = Signal()

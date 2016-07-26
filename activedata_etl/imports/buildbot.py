@@ -23,6 +23,7 @@ from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
+
 class BuildbotTranslator(object):
 
     def __init__(self):
@@ -302,6 +303,7 @@ class BuildbotTranslator(object):
 
         verify(output, data)
         output.properties, output.other = normalize_other(props)
+
         return output
 
 

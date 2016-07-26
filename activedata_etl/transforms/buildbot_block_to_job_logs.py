@@ -28,10 +28,9 @@ TOO_OLD = (Date.today()-MONTH).unix
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     bb = BuildbotTranslator()
-
     output = []
 
-    for buildbot_line in source.read_lines():
+    for buildbot_line in list(source.read_lines()):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
@@ -42,6 +41,24 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.error(
                 "Can not parse\n{{details|json|indent}}",
                 details=buildbot_data,
+                cause=e
+            )
+
+        try:
+            job = resources.treeherder.get_markup(
+                data.build.branch,
+                data.build.revision,
+                None,
+                data.run.key,
+                data.action.end_time
+            )
+            if job:
+                data.treeherder=job
+        except Exception, e:
+            Log.warning(
+                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
+                key=source_key,
+                revision=data.build.revision12,
                 cause=e
             )
 
