@@ -54,7 +54,7 @@ class TreeHerder(object):
             with Timer("get {{num}} jobs", {"num":len(repo_ids)}):
                 jobs = http.get_json(expand_template(JOBS_URL, {"branch": branch, "result_set_id": ",".join(map(unicode, repo_ids))})).results
 
-            with Timer("Get (up to {{num}}) details from TH", num=len(jobs)):
+            with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
                 details = []
                 for _, ids in jx.groupby(jobs.id, size=40):
                     details.extend(http.get_json(
@@ -63,7 +63,7 @@ class TreeHerder(object):
                     ).results)
                 details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-            with Timer("Get (up to {{num}})  stars from TH"):
+            with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
                 stars = []
                 for _, ids in jx.groupby(jobs.id, size=40):
                     response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
@@ -253,10 +253,13 @@ class TreeHerder(object):
             if job_result.build_system_type == "taskcluster" and task_id != job_result.task.id:
                 continue
 
-            if detail is not None:
-                Log.error("Expecting only one match!")
-
-            detail = job_result
+            if detail is None:
+                detail = job_result
+            else:
+                if abs(detail.job.timing.end - timestamp) < abs(job_result.job.timing.end - timestamp):
+                    pass
+                else:
+                    detail = job_result
 
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA
