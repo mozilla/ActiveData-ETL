@@ -664,7 +664,7 @@ class Cluster(object):
                 self._metadata = wrap(response.metadata)
                 # REPLICATE MAPPING OVER ALL ALIASES
                 indices = self._metadata.indices
-                for i, m in jx.sort(indices.items(), {"value": 0, "sort": -1}):
+                for i, m in jx.sort(indices.items(), {"value": {"offset": 0}, "sort": -1}):
                     m.index = i
                     for a in m.aliases:
                         if not indices[a]:

@@ -1,16 +1,16 @@
-cd /home/ec2-user/TestLog-ETL/
+cd /home/ec2-user/ActiveData-ETL/
 
 git pull origin tc-logger
 export PYTHONPATH=.
 
-python27 testlog_etl/pulse_logger.py --settings=resources/settings/staging/taskcluster_logger.json
+python27 activedata_etl/pulse_logger.py --settings=resources/settings/staging/taskcluster_logger.json
 
 
-tail -f  ~/TestLog-ETL/results/logs/pulse_logger.log
+tail -f  ~/ActiveData-ETL/results/logs/pulse_logger.log
 
 # DO NOT HANG ONTO PROCESS (nohup)
 export PYTHONPATH=.
-nohup python27 testlog_etl/pulse_logger.py --settings=resources/settings/staging/taskcluster_logger.json &
+nohup python27 activedata_etl/pulse_logger.py --settings=resources/settings/staging/taskcluster_logger.json &
 disown -h
-tail -f  ~/TestLog-ETL/results/logs/taskcluster_logger.log
+tail -f  ~/ActiveData-ETL/results/logs/taskcluster_logger.log
 

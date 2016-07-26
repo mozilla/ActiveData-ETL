@@ -16,11 +16,10 @@
 # }}
 
 
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
-import types
 from copy import copy
 from mmap import mmap
 from numbers import Number
@@ -32,13 +31,13 @@ from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, coalesce, wrap, set_default, unwrap
-from pyLibrary.env.big_data import safe_size, CompressedLines, ZipfileLines, GzipLines, scompressed2ibytes, ibytes2ilines, sbytes2ilines, icompressed2ibytes
+from pyLibrary.env.big_data import safe_size, ibytes2ilines, icompressed2ibytes
 from pyLibrary.maths import Math
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread, Lock
-from pyLibrary.times.durations import SECOND
+from pyLibrary.times.durations import Duration
 
-
+DEBUG = False
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
 MIN_READ_SIZE = 8 * 1024
 ZIP_REQUEST = False
@@ -110,9 +109,11 @@ def request(method, url, zip=None, retry=None, **kwargs):
     if retry == None:
         retry = Dict(times=1, sleep=0)
     elif isinstance(retry, Number):
-        retry = Dict(times=retry, sleep=SECOND)
+        retry = Dict(times=retry, sleep=1)
     else:
         retry = wrap(retry)
+        if isinstance(retry.sleep, Duration):
+            retry.sleep = retry.sleep.seconds
         set_default(retry.sleep, {"times": 1, "sleep": 0})
 
     if b'json' in kwargs:
@@ -140,6 +141,8 @@ def request(method, url, zip=None, retry=None, **kwargs):
             Thread.sleep(retry.sleep)
 
         try:
+            if DEBUG:
+                Log.note("http request to {{url}}", url=url)
             return session.request(method=method, url=url, **kwargs)
         except Exception, e:
             errors.append(Except.wrap(e))

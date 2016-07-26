@@ -12,15 +12,16 @@ from __future__ import unicode_literals
 import itertools
 
 from pyLibrary import convert, jsons
+from pyLibrary.aws import s3
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl.buildbot_json_jogs import parse_day
-from testlog_etl.imports import buildbot
-from testlog_etl.imports.buildbot import BuildbotTranslator
-from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
+from activedata_etl.buildbot_json_jogs import parse_day
+from activedata_etl.imports import buildbot
+from activedata_etl.imports.buildbot import BuildbotTranslator
+from activedata_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
 
 false = False
 true = True
@@ -31,10 +32,20 @@ class TestBuildbotLogs(FuzzyTestCase):
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
 
+    # def test_one_s3_file(self):
+    #     key = "550.108"
+    #     settings = jsons.ref.get("resources/settings/dev_to_staging/etl.json")
+    #     bucket_settings = [w for w in settings.workers if w.name=="bbb2jobs"][0].source
+    #     source = s3.Bucket(bucket_settings).get_key(key)
+    #
+    #     buildbot_block_to_job_logs(key, source, Null, resources, Null)
+
+
+
     def test_past_problems(self):
         COMPARE_TO_EXPECTED = True
 
-        t = BuildbotTranslator()
+        translator = BuildbotTranslator()
 
         builds = convert.json2value(File("tests/resources/buildbot.json").read())
         if COMPARE_TO_EXPECTED:
@@ -46,7 +57,7 @@ class TestBuildbotLogs(FuzzyTestCase):
         failures = []
         for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
             try:
-                result = t.parse(b)
+                result = translator.parse(b)
                 results.append(result)
                 if COMPARE_TO_EXPECTED:
                     if e == None:
@@ -62,8 +73,6 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         if not COMPARE_TO_EXPECTED:
             File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
-
-
 
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"
@@ -85,7 +94,7 @@ class TestBuildbotLogs(FuzzyTestCase):
             "constants": {
                 "pyLibrary.env.http.default_headers": {
                     "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-                    "User-Agent": "testlog-etl"
+                    "User-Agent": "ActiveData-ETL"
                 }
             }
         }, "file:///")

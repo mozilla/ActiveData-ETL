@@ -1,0 +1,118 @@
+{
+	"settings": {
+		"index.number_of_replicas": 1,
+		"index.number_of_shards": 30
+	},
+	"mappings": {
+		"job": {
+			"_source": {
+				"compress": true
+			},
+			"_id" : {
+				"index": "not_analyzed",
+				"type": "string",
+				"store": true
+	        },
+			"_all": {
+				"enabled": false
+			},
+			"dynamic_templates": [
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match": "id"
+					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				},
+				{
+					"default_doubles": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "double",
+							"doc_values": true
+						},
+						"match_mapping_type": "double",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long|integer",
+						"match_pattern": "regex",
+						"path_match": ".*"
+					}
+				}
+			],
+			"properties": {
+				"notes": {
+					"type": "nested"
+				},
+				"stars": {
+					"type": "nested"
+				},
+				"details": {
+					"type": "nested"
+				},
+				"etl":{
+					"type":"object",
+					"properties":{
+						"id":{
+							"type":"integer",
+							"doc_values": true
+						},
+						"source":{
+							"type":"object",
+							"properties":{
+								"id":{
+									"type":"integer",
+									"doc_values": true
+								},
+								"source":{
+									"type":"object",
+									"properties":{
+										"id":{
+											"type":"integer",
+											"doc_values": true
+										},
+										"source":{
+											"type":"object",
+											"properties":{
+												"id":{
+													"type":"integer",
+													"doc_values": true
+												}
+											}
+										}
+									}
+								}
+
+							}
+						}
+
+					}
+
+				}
+			}
+		}
+	}
+
+}

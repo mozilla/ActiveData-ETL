@@ -9,15 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.aws import s3
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, listwrap
-from pyLibrary.jsons import ref
-from pyLibrary.maths.randoms import Random
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl.sinks.s3_bucket import S3Bucket
-from testlog_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs
-from testlog_etl.transforms.perfherder_logs_to_perf_logs import stats
 
 false = False
 true = True

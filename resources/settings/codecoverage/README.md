@@ -11,7 +11,7 @@ AWS Policies are powerful, but the details evade documentation.  Here is the pol
 
 1. Resources must end with stars, they do not match exactly
 2. Stars are only allowed as a suffix, prefix does not match
-3. Resources have the form `arn:aws:A:B:C:D`.  You may need a star (`*`) in each of the `B` and `C` positions, depending on the resource family.  For example, `arn:aws:sqs` requires stars, `arn:aws:s3` does not.   
+3. Resources have the form `arn:aws:A:B:C:D`.  You may need a star (`*`) in each of the `B` and `C` positions, depending on the resource family.  For example, `arn:aws:sqs` requires stars, `arn:aws:s3` does not.
 
 
 <pre>
