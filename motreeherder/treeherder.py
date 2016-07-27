@@ -82,7 +82,10 @@ class TreeHerder(object):
         if output:
             with Timer("Write to ES cache"):
                 self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
-                self.cache.flush()
+                try:
+                    self.cache.flush()
+                except Exception, e:
+                    Log.warning("problem flushing. nevermind.", cause=e)
         return output
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
