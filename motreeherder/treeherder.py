@@ -239,21 +239,23 @@ class TreeHerder(object):
                         ]}
                     ]}
                 }},
-                "size": 10000,
+                "size": 10000
             }
+
             try:
                 docs = self.cache.search(query, timeout=120).hits.hits
-                if not docs:
-                    convert.value2json(query)
-                    pass
-                elif len(docs) == 1:
-                    Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
-                    return docs[0]._source
-                else:
-                    best_index = jx.sort([(i, abs(e - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
-                    return docs[best_index]._source
             except Exception, e:
+                docs=None
                 Log.warning("Bad ES call, fall back to TH", cause=e)
+
+            if not docs:
+                pass
+            elif len(docs) == 1:
+                Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
+                return docs[0]._source
+            else:
+                best_index = jx.sort([(i, abs(e - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
+                return docs[best_index]._source
 
         detail = None
         job_results = self._get_job_results_from_th(branch, revision)
