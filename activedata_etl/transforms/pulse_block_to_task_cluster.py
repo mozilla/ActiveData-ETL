@@ -166,6 +166,7 @@ def _normalize(source_key, tc_message, task, resources):
                 output.build.branch,
                 output.build.revision,
                 output.task.id,
+                None,
                 output.task.run.end_time
             )
             output.treeherder = job
