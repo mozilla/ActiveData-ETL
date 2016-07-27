@@ -348,6 +348,10 @@ KNOWN_TAGS = {
     "crater.toolchainGitRepo",
     "crater.toolchainGitSha",
 
+
+
+
+
     "createdForUser",
     "data.head.sha",
     "data.head.user.email",
@@ -405,6 +409,10 @@ KNOWN_TAGS = {
     "notification.task-defined.smtp.subject",
     "notification.task-defined.sns.message",
     "notification.task-defined.sns.arn",
+
+    "notifications.task-completed.message",
+    "notifications.task-completed.ids",
+    "notifications.task-completed.subject",
 
     "npmCache.url",
     "npmCache.expires",

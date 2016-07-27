@@ -245,7 +245,7 @@ class TreeHerder(object):
             try:
                 docs = self.cache.search(query, timeout=120).hits.hits
             except Exception, e:
-                docs=None
+                docs = None
                 Log.warning("Bad ES call, fall back to TH", cause=e)
 
             if not docs:
@@ -254,7 +254,9 @@ class TreeHerder(object):
                 Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
                 return docs[0]._source
             else:
-                best_index = jx.sort([(i, abs(e - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
+                # MISSING docs._source.job.timing.end WHEN A PLACEHOLDER WAS ADDED
+                # TODO: SHOULD DELETE OVERAPPING PLACEHOLDER RECORDS
+                best_index = jx.sort([(i, abs(coalesce(e, 0) - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
                 return docs[best_index]._source
 
         detail = None
