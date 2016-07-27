@@ -17,7 +17,7 @@ from copy import copy
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null
+from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.meta import cache, use_settings
@@ -30,7 +30,7 @@ from pyLibrary.times.timer import Timer
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 REPO_URL = "https://treeherder.mozilla.org:443/api/repository/"
-JOBS_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&result_set_id__in={{result_set_id}}"
+JOBS_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&result_set_id__in={{result_set_id}}"
 
 DETAILS_URL = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}"
 NOTES_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}"
@@ -51,8 +51,13 @@ class TreeHerder(object):
 
         output = []
         for g, repo_ids in jx.groupby(results.id, size=10):
-            with Timer("get {{num}} jobs", {"num":len(repo_ids)}):
-                jobs = http.get_json(expand_template(JOBS_URL, {"branch": branch, "result_set_id": ",".join(map(unicode, repo_ids))})).results
+            jobs = DictList()
+            with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
+                while True:
+                    response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
+                    jobs.extend(response.results)
+                    if len(response.results) != 2000:
+                        break
 
             with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
                 details = []
@@ -248,7 +253,7 @@ class TreeHerder(object):
                     best_index = jx.sort([(i, abs(e - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
                     return docs[best_index]._source
             except Exception, e:
-                Log.warning("Bad ES call, fall back to TH", e)
+                Log.warning("Bad ES call, fall back to TH", cause=e)
 
         detail = None
         job_results = self._get_job_results_from_th(branch, revision)
