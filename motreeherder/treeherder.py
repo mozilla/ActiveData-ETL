@@ -86,120 +86,125 @@ class TreeHerder(object):
         return output
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
-        job = wrap(copy(job))
         output = Dict()
+        try:
+            job = wrap(copy(job))
 
-        # ORGANIZE PROPERTIES
-        output.build.architecture = _scrub(job, "build_architecture")
-        output.build.os = _scrub(job, "build_os")
-        output.build.platform = _scrub(job, "build_platform")
-        output.build.type = _scrub(job, "platform_option")
+            # ORGANIZE PROPERTIES
+            output.build.architecture = _scrub(job, "build_architecture")
+            output.build.os = _scrub(job, "build_os")
+            output.build.platform = _scrub(job, "build_platform")
+            output.build.type = _scrub(job, "platform_option")
 
-        output.build_system_type = _scrub(job, "build_system_type")
+            output.build_system_type = _scrub(job, "build_system_type")
 
-        output.job.id = _scrub(job, "id")
-        output.job.guid = _scrub(job, "job_guid")
-        if job.job_group_symbol != "?":
-            output.job.group.name = _scrub(job, "job_group_name")
-            output.job.group.description = _scrub(job, "job_group_description")
-            output.job.group.symbol = _scrub(job, "job_group_symbol")
-        else:
-            job.job_group_name = None
-            job.job_group_description = None
-            job.job_group_symbol = None
-        output.job.type.description = _scrub(job, "job_type_description")
-        output.job.type.name = _scrub(job, "job_type_name")
-        output.job.type.symbol = _scrub(job, "job_type_symbol")
-
-        output.ref_data_name = _scrub(job, "ref_data_name")
-
-        output.machine.name = _scrub(job, "machine_name")
-        if Math.is_integer(output.machine.name.split("-")[-1]):
-            output.machine.pool = "-".join(output.machine.name.split("-")[:-1])
-        output.machine.platform = _scrub(job, "machine_platform_architecture")
-        output.machine.os = _scrub(job, "machine_platform_os")
-
-        output.job.reason = _scrub(job, "reason")
-        output.job.state = _scrub(job, "state")
-        output.job.tier = _scrub(job, "tier")
-        output.job.who = _scrub(job, "who")
-        output.job.result = _scrub(job, "result")
-
-        output.job.failure_classification = self.failure_classification[_scrub(job, "failure_classification_id")]
-
-        if job.result_set:
-            output.repo.push_date = job.result_set.push_timestamp
-            output.repo.branch = self.repo[job.result_set.repository_id]
-            output.repo.revision = job.result_set.revision
-        else:
-            output.repo.branch = branch
-            output.repo.revision = revision
-            output.repo.revision12=revision[:12]
-        output.job.timing.submit = Date(_scrub(job, "submit_timestamp"))
-        output.job.timing.start = Date(_scrub(job, "start_timestamp"))
-        output.job.timing.end = Date(_scrub(job, "end_timestamp"))
-        output.job.timing.last_modified = Date(_scrub(job, "last_modified"))
-
-        # IGNORED
-        job.job_group_id = None
-        job.job_type_id = None
-        job.result_set = None
-        job.build_platform_id = None
-        job.job_coalesced_to_guid = None
-        job.option_collection_hash = None
-        job.platform = None
-        job.result_set_id = None
-        job.running_eta = None
-        job.signature = None
-
-        if job.keys():
-            Log.error("{{names|json}} are not used", names=job.keys())
-
-        # ATTACH DETAILS (AND SCRUB OUT REDUNDANT VALUES)
-        output.details = details.get(output.job.guid, Null)
-        for d in output.details:
-            d.job_guid = None
-            d.job_id = None
-
-        output.task.id = coalesce(*map(_extract_task_id, output.details.url))
-
-        # ATTACH NOTES (RESOLVED BY BUG...)
-        for n in notes.get(output.job.id, Null):
-            note = coalesce(n.note.strip(), n.text.strip())
-            if note:
-                # LOOK UP REVISION IN REPO
-                fix = re.findall(r'[0-9A-Fa-f]{12}', note)
-                if fix:
-                    rev = self.hg.get_revision(Dict(
-                        changeset={"id": fix[0]},
-                        branch={"name": branch}
-                    ))
-                    n.revision = rev.changeset.id
-                    n.bug_id = self.hg._extract_bug_id(rev.changeset.description)
+            output.job.id = _scrub(job, "id")
+            output.job.guid = _scrub(job, "job_guid")
+            if job.job_group_symbol != "?":
+                output.job.group.name = _scrub(job, "job_group_name")
+                output.job.group.description = _scrub(job, "job_group_description")
+                output.job.group.symbol = _scrub(job, "job_group_symbol")
             else:
-                note = None
+                job.job_group_name = None
+                job.job_group_description = None
+                job.job_group_symbol = None
+            output.job.type.description = _scrub(job, "job_type_description")
+            output.job.type.name = _scrub(job, "job_type_name")
+            output.job.type.symbol = _scrub(job, "job_type_symbol")
 
-            output.notes += [{
-                "note": note,
-                "status": coalesce(n.active_status, n.status),
-                "revision": n.revision,
-                "bug_id": n.bug_id,
-                "who": n.who,
-                "failure_classification": self.failure_classification[n.failure_classification_id],
-                "timestamp": Date(coalesce(n.note_timestamp, n.timestamp, n.created))
-            }]
+            output.ref_data_name = _scrub(job, "ref_data_name")
 
-        # ATTACH STAR INFO
-        for s in stars.get(output.job.id, Null):
-            # LOOKUP BUG DETAILS
-            output.stars += [{
-                "bug_id": s.bug_id,
-                "who": s.who,
-                "timestamp": s.submit_timestamp
-            }]
+            output.machine.name = _scrub(job, "machine_name")
+            if Math.is_integer(output.machine.name.split("-")[-1]):
+                output.machine.pool = "-".join(output.machine.name.split("-")[:-1])
+            output.machine.platform = _scrub(job, "machine_platform_architecture")
+            output.machine.os = _scrub(job, "machine_platform_os")
 
-        output.etl = {"timestamp": Date.now()}
-        return output
+            output.job.reason = _scrub(job, "reason")
+            output.job.state = _scrub(job, "state")
+            output.job.tier = _scrub(job, "tier")
+            output.job.who = _scrub(job, "who")
+            output.job.result = _scrub(job, "result")
+
+            fcid = _scrub(job, "failure_classification_id")
+            if fcid not in [0, 1]:  # 0 is unknown, and 1 is "not classified"
+                output.job.failure_classification = self.failure_classification.get(fcid)
+
+            if job.result_set:
+                output.repo.push_date = job.result_set.push_timestamp
+                output.repo.branch = self.repo[job.result_set.repository_id]
+                output.repo.revision = job.result_set.revision
+            else:
+                output.repo.branch = branch
+                output.repo.revision = revision
+                output.repo.revision12=revision[:12]
+            output.job.timing.submit = Date(_scrub(job, "submit_timestamp"))
+            output.job.timing.start = Date(_scrub(job, "start_timestamp"))
+            output.job.timing.end = Date(_scrub(job, "end_timestamp"))
+            output.job.timing.last_modified = Date(_scrub(job, "last_modified"))
+
+            # IGNORED
+            job.job_group_id = None
+            job.job_type_id = None
+            job.result_set = None
+            job.build_platform_id = None
+            job.job_coalesced_to_guid = None
+            job.option_collection_hash = None
+            job.platform = None
+            job.result_set_id = None
+            job.running_eta = None
+            job.signature = None
+
+            if job.keys():
+                Log.error("{{names|json}} are not used", names=job.keys())
+
+            # ATTACH DETAILS (AND SCRUB OUT REDUNDANT VALUES)
+            output.details = details.get(output.job.guid, Null)
+            for d in output.details:
+                d.job_guid = None
+                d.job_id = None
+
+            output.task.id = coalesce(*map(_extract_task_id, output.details.url))
+
+            # ATTACH NOTES (RESOLVED BY BUG...)
+            for n in notes.get(output.job.id, Null):
+                note = coalesce(n.note.strip(), n.text.strip())
+                if note:
+                    # LOOK UP REVISION IN REPO
+                    fix = re.findall(r'[0-9A-Fa-f]{12}', note)
+                    if fix:
+                        rev = self.hg.get_revision(Dict(
+                            changeset={"id": fix[0]},
+                            branch={"name": branch}
+                        ))
+                        n.revision = rev.changeset.id
+                        n.bug_id = self.hg._extract_bug_id(rev.changeset.description)
+                else:
+                    note = None
+
+                output.notes += [{
+                    "note": note,
+                    "status": coalesce(n.active_status, n.status),
+                    "revision": n.revision,
+                    "bug_id": n.bug_id,
+                    "who": n.who,
+                    "failure_classification": self.failure_classification[n.failure_classification_id],
+                    "timestamp": Date(coalesce(n.note_timestamp, n.timestamp, n.created))
+                }]
+
+            # ATTACH STAR INFO
+            for s in stars.get(output.job.id, Null):
+                # LOOKUP BUG DETAILS
+                output.stars += [{
+                    "bug_id": s.bug_id,
+                    "who": s.who,
+                    "timestamp": s.submit_timestamp
+                }]
+
+            output.etl = {"timestamp": Date.now()}
+            return output
+        except Exception, e:
+            Log.error("Problem with normalization of job {{job_id}}", job_id=coalesce(output.job.id, job.id), cause=e)
 
     @cache(duration=HOUR)
     def get_markup(self, branch, revision, task_id=None, buildername=None, timestamp=None):

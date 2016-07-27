@@ -37,6 +37,7 @@ KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s"]
 KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
+    "basic_compositor_video",
     "cart",
     "chromez",
     "damp",
