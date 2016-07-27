@@ -166,7 +166,7 @@ def _normalize(source_key, tc_message, task, resources):
                 output.build.branch,
                 output.build.revision,
                 output.task.id,
-                output.run.timestamp
+                output.task.run.end_time
             )
             output.treeherder = job
     except Exception, e:
@@ -329,13 +329,15 @@ KNOWN_TAGS = {
     "build_name",
     "build_type",
     "build_product",
-    "build_props.product",
-    "build_props.build_number",
-    "build_props.platform",
-    "build_props.version",
     "build_props.branch",
+    "build_props.build_number",
     "build_props.locales",
+    "build_props.mozharness_changeset",
+    "build_props.partials",
+    "build_props.platform",
+    "build_props.product",
     "build_props.revision",
+    "build_props.version",
 
     "chunks.current",
     "chunks.total",
@@ -413,6 +415,12 @@ KNOWN_TAGS = {
     "notifications.task-completed.message",
     "notifications.task-completed.ids",
     "notifications.task-completed.subject",
+    "notifications.task-failed.message",
+    "notifications.task-failed.ids",
+    "notifications.task-failed.subject",
+    "notifications.task-exception.message",
+    "notifications.task-exception.ids",
+    "notifications.task-exception.subject",
 
     "npmCache.url",
     "npmCache.expires",
