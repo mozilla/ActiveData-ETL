@@ -255,11 +255,14 @@ class TreeHerder(object):
 
             if detail is None:
                 detail = job_result
-            else:
-                if abs(detail.job.timing.end - timestamp) < abs(job_result.job.timing.end - timestamp):
+            elif timestamp:
+                timestamp = Date(timestamp).unix
+                if abs(Date(detail.job.timing.end).unix - timestamp) < abs(Date(job_result.job.timing.end).unix - timestamp):
                     pass
                 else:
                     detail = job_result
+            else:
+                Log.error("Not expecting more then one detail with no timestamp to help match")
 
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA

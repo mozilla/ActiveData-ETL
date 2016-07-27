@@ -161,12 +161,13 @@ def _normalize(source_key, tc_message, task, resources):
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
     try:
-        job = resources.treeherder.get_markup(
-            output.build.branch,
-            output.build.revision,
-            output.task.id
-        )
-        output.treeherder = job
+        if output.build.revision:
+            job = resources.treeherder.get_markup(
+                output.build.branch,
+                output.build.revision,
+                output.task.id
+            )
+            output.treeherder = job
     except Exception, e:
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",

@@ -45,15 +45,18 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             )
 
         try:
-            job = resources.treeherder.get_markup(
-                data.build.branch,
-                data.build.revision,
-                None,
-                data.run.key,
-                data.action.end_time
-            )
+            if data.build.product in ["fuzzing"] and not data.build.revision:
+                pass
+            else:
+                job = resources.treeherder.get_markup(
+                    data.build.branch,
+                    data.build.revision,
+                    None,
+                    data.run.key,
+                    data.action.end_time
+                )
             if job:
-                data.treeherder=job
+                data.treeherder = job
         except Exception, e:
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
