@@ -165,7 +165,8 @@ def _normalize(source_key, tc_message, task, resources):
             job = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
-                output.task.id
+                output.task.id,
+                output.run.timestamp
             )
             output.treeherder = job
     except Exception, e:
