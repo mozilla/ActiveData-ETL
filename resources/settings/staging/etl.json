@@ -18,15 +18,31 @@
 	},
 	"treeherder": {
 		"use_cache": true,
+		"rate_limiter": {
+			"host": "http://activedata.allizom.org",
+			"port": 9200,
+			"index": "treeherder_requests",
+			"type": "request",
+			"timeout": 3,
+			"schema": {
+				"mappings": {
+					"my_type": {
+						"_ttl": {
+							"enabled": true,
+							"default": "5m"
+						}
+					}
+				}
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
 		"cache": {
 			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "treeherder",
 			"type": "job",
 			"timeout": 300,
-			"schema": {
-				"$ref": "//../../schema/treeherder.json"
-			},
 			"debug": false,
 			"limit_replicas": false
 		}

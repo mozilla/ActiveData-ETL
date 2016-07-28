@@ -281,31 +281,11 @@ class TreeHerder(object):
                 if markup:
                     return markup
 
-                response = requests.get(
-                    url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
-                    timeout=3
-                )
-
-                # DETERMINE WHEN THE LAST CALL TO TH WAS MADE
-                if response.status_code == 404:
+                if self._is_it_safe_to_make_more_requests(branch, revision):
                     break
-                if response.status_code != 200:
-                    Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
-                last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
-
-                if last_th_request.end:
-                    expired = last_th_request.end + 2 * MINUTE.seconds
-                    now = Date.now().unix
-                    if expired < now:
-                        break
-                    else:
-                        Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
-                        Thread.sleep(seconds=10)
-                else:
-                    if DEBUG:
-                        Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
-                    Thread.sleep(seconds=10)
-
+                if DEBUG:
+                    Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
+                Thread.sleep(seconds=10)
         except Exception, e:
             Log.warning("can not connect to th request logger", cause=e)
 
@@ -346,6 +326,29 @@ class TreeHerder(object):
             self.cache.add({"value": detail})
 
         return detail
+
+    def _is_it_safe_to_make_more_requests(self, branch, revision):
+        get_more_data = False
+        response = requests.get(
+            url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
+            timeout=3
+        )
+        if response.status_code == 404:
+            get_more_data = True
+        if response.status_code != 200:
+            Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
+        last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
+        if last_th_request.end:
+            expired = last_th_request.end + 2 * MINUTE.seconds
+            now = Date.now().unix
+            if expired < now:
+                get_more_data = True
+        else:
+            expired = last_th_request.start + 5 * MINUTE.seconds
+            now = Date.now().unix
+            if expired < now:
+                get_more_data = True
+        return get_more_data
 
     def _register_call(self, branch, revision, start, end=None):
         try:
