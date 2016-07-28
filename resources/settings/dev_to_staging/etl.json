@@ -5,7 +5,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 1,
+		"threads": 3,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true
 	},
@@ -14,20 +14,37 @@
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		},
+		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"treeherder": {
 		"use_cache": true,
+		"rate_limiter": {
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "treeherder_requests",
+			"type": "request",
+			"timeout": 3,
+			"schema": {
+				"mappings": {
+					"my_type": {
+						"_ttl": {
+							"enabled": true,
+							"default": "5m"
+						}
+					}
+				}
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
 		"cache": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "treeherder",
 			"type": "job",
 			"timeout": 300,
-			"schema": {
-				"$ref": "//../../schema/treeherder.json"
-			},
 			"debug": false,
 			"limit_replicas": false
 		}

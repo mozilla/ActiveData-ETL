@@ -142,7 +142,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
 
         try:
             if DEBUG:
-                Log.note("http request to {{url}}", url=url)
+                Log.note("http {{method}} to {{url}}", method=method, url=url)
             return session.request(method=method, url=url, **kwargs)
         except Exception, e:
             errors.append(Except.wrap(e))

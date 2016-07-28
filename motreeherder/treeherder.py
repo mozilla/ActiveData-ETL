@@ -15,6 +15,8 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
+import requests
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
@@ -23,8 +25,9 @@ from pyLibrary.maths import Math
 from pyLibrary.meta import cache, use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
+from pyLibrary.thread.threads import Thread, DEBUG
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import HOUR, DAY
+from pyLibrary.times.durations import HOUR, DAY, MINUTE
 from pyLibrary.times.timer import Timer
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
@@ -39,59 +42,69 @@ JOB_BUG_MAP = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map
 
 class TreeHerder(object):
     @use_settings
-    def __init__(self, hg, use_cache=True, cache=None, settings=None):
+    def __init__(self, hg, use_cache=True, cache=None, rate_limiter=None, settings=None):
+        cache.schema = SCHEMA
+        rate_limiter.schema = RATE_LIMITER_SCHEMA
+
         self.settings = settings
         self.failure_classification = {c.id: c.name for c in http.get_json(FAILURE_CLASSIFICATION_URL)}
         self.repo = {c.id: c.name for c in http.get_json(REPO_URL)}
         self.hg = hg
         self.cache = elasticsearch.Cluster(cache).get_or_create_index(cache)
+        self.rate_limiter = elasticsearch.Cluster(cache).get_or_create_index(rate_limiter)
+        self.rate_limiter.set_refresh_interval(seconds=1)
 
     def _get_job_results_from_th(self, branch, revision):
-        results = http.get_json(expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})).results
+        start = Date.now().unix
+        self._register_call(branch, revision, start)
+        try:
+            results = http.get_json(expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})).results
 
-        output = []
-        for g, repo_ids in jx.groupby(results.id, size=10):
-            jobs = DictList()
-            with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
-                while True:
-                    response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
-                    jobs.extend(response.results)
-                    if len(response.results) != 2000:
-                        break
+            output = []
+            for g, repo_ids in jx.groupby(results.id, size=10):
+                jobs = DictList()
+                with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
+                    while True:
+                        response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
+                        jobs.extend(response.results)
+                        if len(response.results) != 2000:
+                            break
 
-            with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
-                details = []
-                for _, ids in jx.groupby(jobs.id, size=40):
-                    details.extend(http.get_json(
-                        url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
-                        retry={"times": 3}
-                    ).results)
-                details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
+                with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
+                    details = []
+                    for _, ids in jx.groupby(jobs.id, size=40):
+                        details.extend(http.get_json(
+                            url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
+                            retry={"times": 3}
+                        ).results)
+                    details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-            with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
-                stars = []
-                for _, ids in jx.groupby(jobs.id, size=40):
-                    response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
-                    stars.extend(response),
-                stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
+                with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
+                    stars = []
+                    for _, ids in jx.groupby(jobs.id, size=40):
+                        response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
+                        stars.extend(response),
+                    stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
-            with Timer("Get notes from TH"):
-                notes = []
-                for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
-                    response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
-                    notes.extend(response),
-                notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
+                with Timer("Get notes from TH"):
+                    notes = []
+                    for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
+                        response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
+                        notes.extend(response),
+                    notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
 
-            for j in jobs:
-                output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
-        if output:
-            with Timer("Write to ES cache"):
-                self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
-                try:
-                    self.cache.flush()
-                except Exception, e:
-                    Log.warning("problem flushing. nevermind.", cause=e)
-        return output
+                for j in jobs:
+                    output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
+            if output:
+                with Timer("Write to ES cache"):
+                    self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
+                    try:
+                        self.cache.flush()
+                    except Exception, e:
+                        Log.warning("problem flushing. nevermind.", cause=e)
+            return output
+        finally:
+            self._register_call(branch, revision, start, Date.now().unix)
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
         output = Dict()
@@ -145,7 +158,7 @@ class TreeHerder(object):
             else:
                 output.repo.branch = branch
                 output.repo.revision = revision
-                output.repo.revision12=revision[:12]
+                output.repo.revision12 = revision[:12]
             output.job.timing.submit = Date(_scrub(job, "submit_timestamp"))
             output.job.timing.start = Date(_scrub(job, "start_timestamp"))
             output.job.timing.end = Date(_scrub(job, "end_timestamp"))
@@ -214,56 +227,92 @@ class TreeHerder(object):
         except Exception, e:
             Log.error("Problem with normalization of job {{job_id}}", job_id=coalesce(output.job.id, job.id), cause=e)
 
+    def _get_markup_from_es(self, branch, revision, task_id=None, buildername=None, timestamp=None):
+        if task_id:
+            _filter = {"term": {"task.id": task_id}}
+        else:
+            _filter = {"term": {"ref_data_name": buildername}}
+
+        query = {
+            "query": {"filtered": {
+                "query": {"match_all": {}},
+                "filter": {"and": [
+                    _filter,
+                    {"term": {"repo.branch": branch}},
+                    {"prefix": {"repo.revision": revision}},
+                    {"or": [
+                        {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
+                        {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
+                    ]}
+                ]}
+            }},
+            "size": 10000
+        }
+
+        try:
+            docs = self.cache.search(query, timeout=120).hits.hits
+        except Exception, e:
+            docs = None
+            Log.warning("Bad ES call, fall back to TH", cause=e)
+
+        if not docs:
+            return None
+        elif len(docs) == 1:
+            Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
+            return docs[0]._source
+        elif timestamp == None:
+            Log.error("timestamp required to find best match")
+        else:
+            # MISSING docs._source.job.timing.end WHEN A PLACEHOLDER WAS ADDED
+            # TODO: SHOULD DELETE OVERAPPING PLACEHOLDER RECORDS
+            timestamp = Date(timestamp).unix
+            best_index = jx.sort([(i, abs(coalesce(e, 0) - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
+            return docs[best_index]._source
+
     @cache(duration=HOUR)
     def get_markup(self, branch, revision, task_id=None, buildername=None, timestamp=None):
         # TRY CACHE
         if not branch or not revision:
             Log.error("expecting branch and revision")
 
-        if self.settings.use_cache:
-            if task_id:
-                _filter = {"term": {"task.id": task_id}}
-            else:
-                _filter = {"term": {"ref_data_name": buildername}}
+        try:
+            while self.settings.use_cache:
+                markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
+                if markup:
+                    return markup
 
-            query = {
-                "query": {"filtered": {
-                    "query": {"match_all": {}},
-                    "filter": {"and": [
-                        _filter,
-                        {"term": {"repo.branch": branch}},
-                        {"prefix": {"repo.revision": revision}},
-                        {"or": [
-                            {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
-                            {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
-                        ]}
-                    ]}
-                }},
-                "size": 10000
-            }
+                response = requests.get(
+                    url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
+                    timeout=3
+                )
 
-            try:
-                docs = self.cache.search(query, timeout=120).hits.hits
-            except Exception, e:
-                docs = None
-                Log.warning("Bad ES call, fall back to TH", cause=e)
+                # DETERMINE WHEN THE LAST CALL TO TH WAS MADE
+                if response.status_code == 404:
+                    break
+                if response.status_code != 200:
+                    Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
+                last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
 
-            if not docs:
-                pass
-            elif len(docs) == 1:
-                Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
-                return docs[0]._source
-            elif timestamp == None:
-                Log.error("timestamp required to find best match")
-            else:
-                # MISSING docs._source.job.timing.end WHEN A PLACEHOLDER WAS ADDED
-                # TODO: SHOULD DELETE OVERAPPING PLACEHOLDER RECORDS
-                timestamp = Date(timestamp).unix
-                best_index = jx.sort([(i, abs(coalesce(e, 0) - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
-                return docs[best_index]._source
+                if last_th_request.end:
+                    expired = last_th_request.end + 2 * MINUTE.seconds
+                    now = Date.now().unix
+                    if expired < now:
+                        break
+                    else:
+                        Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
+                        Thread.sleep(seconds=10)
+                else:
+                    if DEBUG:
+                        Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
+                    Thread.sleep(seconds=10)
+
+        except Exception, e:
+            Log.warning("can not connect to th request logger", cause=e)
+
+        # REGISTER OUR TREEHERDER CALL
+        job_results = self._get_job_results_from_th(branch, revision)
 
         detail = None
-        job_results = self._get_job_results_from_th(branch, revision)
         for job_result in job_results:
             # MATCH TEST RUN BY UID DOES NOT EXIST, SO WE USE THE ARCANE BUILDER NAME
             # PLUS THE MATCHING START/END TIMES
@@ -298,6 +347,19 @@ class TreeHerder(object):
 
         return detail
 
+    def _register_call(self, branch, revision, start, end=None):
+        try:
+            _id = "-".join([branch, revision])
+            response = http.put(
+                url=self.rate_limiter.url + "/" + _id,
+                timeout=3,
+                data=b'{"start":' + str(start) + ', "end":' + (b'null' if end is None else str(end)) + b'}'
+            )
+            if unicode(response.status_code)[0] != '2':
+                Log.error("Could not register call")
+        except Exception, e:
+            Log.warning("can not connect to th request logger", cause=e)
+
 
 def _scrub(record, name):
     value = record[name]
@@ -309,7 +371,6 @@ def _scrub(record, name):
 
 
 def _extract_task_id(url):
-
     if "taskcluster.net" not in url:
         return None
 
@@ -320,3 +381,111 @@ def _extract_task_id(url):
         return None
 
 
+SCHEMA = {
+    "settings": {
+        "index.number_of_replicas": 1,
+        "index.number_of_shards": 30
+    },
+    "mappings": {
+        "job": {
+            "_source": {
+                "compress": True
+            },
+            "_id": {
+                "index": "not_analyzed",
+                "type": "string",
+                "store": True
+            },
+            "_all": {
+                "enabled": False
+            },
+            "dynamic_templates": [
+                {
+                    "default_ids": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "string",
+                            "doc_values": True
+                        },
+                        "match": "id"
+                    }
+                },
+                {
+                    "default_strings": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "string",
+                            "doc_values": True
+                        },
+                        "match_mapping_type": "string",
+                        "match": "*"
+                    }
+                },
+                {
+                    "default_doubles": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "double",
+                            "doc_values": True
+                        },
+                        "match_mapping_type": "double",
+                        "match": "*"
+                    }
+                },
+                {
+                    "default_longs": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "long",
+                            "doc_values": True
+                        },
+                        "match_mapping_type": "long|integer",
+                        "match_pattern": "regex",
+                        "path_match": ".*"
+                    }
+                }
+            ],
+            "properties": {
+                "notes": {
+                    "type": "nested"
+                },
+                "stars": {
+                    "type": "nested"
+                },
+                "details": {
+                    "type": "nested"
+                }
+            }
+        },
+        "etl": {
+            "properties": {
+                "timestamp": {
+                    "index": "not_analyzed",
+                    "type": "long",
+                    "doc_values": True
+                }
+            }
+        }
+    }
+
+}
+
+RATE_LIMITER_SCHEMA = {
+    "settings": {
+        "index.number_of_replicas": 1,
+        "index.number_of_shards": 1
+    },
+    "mappings": {
+        "request": {
+            "_ttl": {
+                "enabled": True,
+                "default": "2h"
+            },
+            "_id": {
+                "index": "not_analyzed",
+                "type": "string",
+                "store": True
+            }
+        }
+    }
+}
