@@ -334,7 +334,7 @@ class TreeHerder(object):
             timeout=3
         )
         if response.status_code == 404:
-            get_more_data = True
+            return True
         if response.status_code != 200:
             Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
         last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
