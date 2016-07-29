@@ -34,7 +34,7 @@ NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "basic_compositor_video",
@@ -50,6 +50,10 @@ KNOWN_PERFHERDER_TESTS = [
     "glterrain",
     "kraken",
     "media_tests",
+    "mochitest.mochitest-devtools-chrome.1.run-tests",
+    "mochitest.mochitest-devtools-chrome.1.stage-files",
+    "mochitest.mochitest-devtools-chrome.1.install",
+    "mochitest.mochitest-devtools-chrome.1.overall",
     "other_nol64",
     "other_l64",
     "other",
@@ -89,17 +93,9 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     lines = source.read_lines()
 
-    etl_header = convert.json2value(lines[0])
-    if etl_header.etl:
-        start = 0
-    elif etl_header.locale or etl_header._meta:
-        start = 0
-    else:
-        start = 1
-
     records = []
     i = 0
-    for line in lines[start:]:
+    for line in lines:
         perfherder_record=None
         try:
             perfherder_record = convert.json2value(line)
@@ -107,28 +103,40 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
             etl_source = perfherder_record.etl
 
-            perf_records = transform(source_key, perfherder_record, resources)
-            for p in perf_records:
-                p["etl"] = {
-                    "id": i,
-                    "source": etl_source,
-                    "type": "join",
-                    "revision": get_git_revision(),
-                    "timestamp": Date.now()
-                }
-                key = source_key + "." + unicode(i)
-                records.append({"id": key, "value": p})
-                i += 1
+            if perfherder_record.framework.name == "job_resource_usage":
+                suites = perfherder_record.suites
+            elif perfherder_record.suites:
+                Log.warning("unknown framework {{framework|json}}", framework=perfherder_record.framework)
+                suites = perfherder_record.suites
+            else:
+                suites = [perfherder_record]
+
+            for suite in suites:
+                perf_records = transform(source_key, suite, resources)
+                for p in perf_records:
+                    p["etl"] = {
+                        "id": i,
+                        "source": etl_source,
+                        "type": "join",
+                        "revision": get_git_revision(),
+                        "timestamp": Date.now()
+                    }
+                    key = source_key + "." + unicode(i)
+                    records.append({"id": key, "value": p})
+                    i += 1
         except Exception, e:
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
     destination.extend(records)
     return [source_key]
+
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, resources):
     try:
         buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
+        if not suite_name:
+            Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
@@ -143,6 +151,7 @@ def transform(source_key, perfherder, resources):
                         option=option
                     )
                 suite_name = suite_name.replace("-" + option, "")
+        buildbot.run.type += listwrap(perfherder.extraOptions)
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:

@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, listwrap, Dict
+from pyLibrary.dot import Null, listwrap, Dict, wrap
 from pyLibrary.env import http
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
@@ -69,7 +69,10 @@ class TestBuildbotLogs(FuzzyTestCase):
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
-
+    def test_perfherder_job_resource_usage(self):
+        data = '{"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]}'
+        # data = wrap({"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]})
+        perfherder_logs_to_perf_logs.process("dummy", wrap_as_bucket([data]), Null, Null, Null)
 
     def test_many_perfherder_transform(self):
         bucket = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws)
@@ -92,3 +95,9 @@ class TestBuildbotLogs(FuzzyTestCase):
     def test_warning(self):
         values=[float("nan"), 42]
         Log.warning("problem {{values|json}}", values=values)
+
+
+def wrap_as_bucket(data):
+    def read_lines():
+        return data
+    return Dict(read_lines=read_lines)
