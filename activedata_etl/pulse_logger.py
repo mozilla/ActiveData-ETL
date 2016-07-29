@@ -6,24 +6,23 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from copy import deepcopy
-
+from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+from pyLibrary import aws
 from pyLibrary import convert
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
-from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, coalesce, listwrap
 from pyLibrary.env import pulse
 from pyLibrary.queries import jx
-from pyLibrary.dot import set_default, coalesce, listwrap
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+
 
 # ONLY DEPLOY OFF THE pulse-logger branch
 
@@ -57,8 +56,8 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "timestamp": Date.now().unix,
                             "id": synch.next_key,
                             "source": {
-                                "name": coalesce(settings.source.name),
-                                "exchange": coalesce(settings.source.exchange),
+                                "name": coalesce(*settings.source.name),
+                                "exchange": coalesce(*settings.source.exchange),
                                 "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,

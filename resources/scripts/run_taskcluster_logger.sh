@@ -12,5 +12,5 @@ tail -f  ~/ActiveData-ETL/results/logs/taskcluster_logger.log
 export PYTHONPATH=.
 nohup python27 activedata_etl/pulse_logger.py --settings=resources/settings/staging/taskcluster_logger.json &
 disown -h
-tail -f  ~/ActiveData-ETL/results/logs/taskcluster_logger.log
+tail -f  ~/Testlog-ETL/results/logs/taskcluster_logger.log
 
