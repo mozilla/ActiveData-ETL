@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 300
+		"index.number_of_shards": 100
 	},
 	"mappings": {
 		"test_result": {
@@ -15,10 +15,6 @@
 	        },
 			"_all": {
 				"enabled": false
-			},
-			"_routing": {
-				"required": true,
-				"path":"build.revision12"
 			},
 			"dynamic_templates": [
 				{
@@ -107,10 +103,6 @@
 						}
 					}
 				},
-
-
-
-
 				"etl":{
 					"type":"object",
 					"properties":{

@@ -100,12 +100,13 @@ def _es_up():
 
 
 def _refresh_indexer():
-    with cd("/home/ec2-user/ActiveData-ETL/"):
+    with cd("/home/ec2-user/TestLog-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
+            with fabric_settings(warn_only=True):
+                sudo("supervisorctl start push_to_es")
         else:
-            # _start_supervisor()
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_to_es")
 
