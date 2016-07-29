@@ -20,7 +20,7 @@ from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import pulse
 from pyLibrary.queries import jx
-from pyLibrary.dot import set_default, coalesce
+from pyLibrary.dot import set_default, coalesce, listwrap
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
@@ -43,8 +43,8 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 bucket=bucket.name
             )
 
-            if settings.source.prefix:
-                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+            if settings.destination.key_prefix:
+                full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             else:
                 full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
@@ -64,7 +64,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                                 "message_id": d._meta.message_id,
                                 "sent": Date(d._meta.sent),
                                 "source": {
-                                    "id": settings.source.prefix
+                                    "id": settings.destination.key_prefix
                                 },
                                 "type": "join"
                             },

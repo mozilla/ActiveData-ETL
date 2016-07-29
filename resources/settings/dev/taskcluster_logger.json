@@ -29,6 +29,7 @@
 		}
 	],
 	"destination": {
+		"key_prefix": "tc",
 		"bucket": "active-data-task-cluster-logger-dev",
 		"public": true,
 		// default = false
