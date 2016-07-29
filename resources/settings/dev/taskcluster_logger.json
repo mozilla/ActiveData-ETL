@@ -3,7 +3,7 @@
 		{
 			"exchange": "exchange/taskcluster-queue/v1/task-completed",
 			"topic": "#",
-			"durable": true,
+			"durable": false,
 			"timeout": 600,
 			"queue": "active-data-task-cluster-log-completed-dev",
 			"$ref": "file://~/private.json#pulse_user",
@@ -12,7 +12,7 @@
 		{
 			"exchange": "exchange/taskcluster-queue/v1/task-exception",
 			"topic": "#",
-			"durable": true,
+			"durable": false,
 			"timeout": 600,
 			"queue": "active-data-task-cluster-log-exception-dev",
 			"$ref": "file://~/private.json#pulse_user",
@@ -21,7 +21,7 @@
 		{
 			"exchange": "exchange/taskcluster-queue/v1/task-failed",
 			"topic": "#",
-			"durable": true,
+			"durable": false,
 			"timeout": 600,
 			"queue": "active-data-task-cluster-log-failed-dev",
 			"$ref": "file://~/private.json#pulse_user",
@@ -40,7 +40,7 @@
 	},
 	"param": {
 		"queue_file": "results/taskcluster-logger-queue.json",
-		"debug": false,    // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
+		"debug": true,    // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
 		"size": 100  	   // NUMBER OF MESSAGES PER S3 KEY
 	},
 	"debug": {

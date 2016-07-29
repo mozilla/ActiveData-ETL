@@ -57,8 +57,8 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "timestamp": Date.now().unix,
                             "id": synch.next_key,
                             "source": {
-                                "name": settings.source.name,
-                                "exchange": settings.source.exchange,
+                                "name": coalesce(settings.source.name),
+                                "exchange": coalesce(settings.source.exchange),
                                 "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,
@@ -116,14 +116,15 @@ def main():
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws.s3.Bucket(settings.destination) as bucket:
+                settings.source=listwrap(settings.source)
 
                 if settings.param.debug:
-                    if settings.source.durable:
+                    if any(settings.source.durable):
                         Log.error("Can not run in debug mode with a durable queue")
                     synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
                 else:
                     synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
-                    if settings.source.durable:
+                    if any(settings.source.durable):
                         synch.startup()
 
                 queue = PersistentQueue(settings.param.queue_file)
@@ -133,7 +134,7 @@ def main():
 
                 context = [
                     pulse.Consumer(settings=s, target=None, target_queue=queue, start=synch.source_key)
-                    for s in listwrap(settings.source)
+                    for s in settings.source
                 ]
 
                 with ExitStack(*context):
