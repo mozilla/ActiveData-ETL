@@ -7,25 +7,26 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-from copy import copy
-import re
+from __future__ import unicode_literals
 
-from pyLibrary.meta import use_settings, cache
-from pyLibrary.queries import qb
-from pyLibrary.testing import elasticsearch
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, unwraplist
-from pyLibrary.env import http
-from pyLibrary.thread.threads import Thread, Lock, Queue
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR, DAY
+import re
+from copy import copy
+
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
-
+from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Explanation, assert_no_exception
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, Null, coalesce, unwraplist
+from pyLibrary.env import http
+from pyLibrary.meta import use_settings, cache
+from pyLibrary.queries import jx
+from pyLibrary.testing import elasticsearch
+from pyLibrary.thread.threads import Thread, Lock, Queue
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -74,7 +75,10 @@ class HgMozillaOrg(object):
 
         self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
         self.es.add_alias()
-        self.es.set_refresh_interval(seconds=1)
+        try:
+            self.es.set_refresh_interval(seconds=1)
+        except Exception, e:
+            Log.warning("Ignore refresh problem", cause=e)
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 
@@ -148,7 +152,7 @@ class HgMozillaOrg(object):
 
             return docs[0]._source
         except Exception, e:
-            Log.warning("Bad ES call", e)
+            Log.warning("Bad ES call, fall back to hg", e)
             return None
 
     def _load_all_in_push(self, revision, locale=None):
@@ -179,7 +183,7 @@ class HgMozillaOrg(object):
             url=url
         )
 
-        try:
+        with Explanation("Pulling pushlog from {{url}}", url=url):
             data = self._get_and_retry(url, found_revision.branch)
 
             revs = []
@@ -187,7 +191,7 @@ class HgMozillaOrg(object):
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
 
-                for _, ids in qb.groupby(_push.changesets.node, size=200):
+                for _, ids in jx.groupby(_push.changesets.node, size=200):
                     url_param = "&".join("node=" + c[0:12] for c in ids)
 
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
@@ -204,7 +208,8 @@ class HgMozillaOrg(object):
                                 author=r.user,
                                 description=r.description,
                                 date=Date(r.date),
-                                files=r.files
+                                files=r.files,
+                                backedoutby=r.backedoutby
                             ),
                             parents=unwraplist(r.parents),
                             children=unwraplist(r.children),
@@ -219,9 +224,6 @@ class HgMozillaOrg(object):
                         revs.append({"id": _id, "value": rev})
             self.es.extend(revs)
             return output
-        except Exception, e:
-            Log.error("Problem pulling pushlog from {{url}}", url=url, cause=e)
-
 
     def _get_and_retry(self, url, branch, **kwargs):
         """
@@ -255,6 +257,16 @@ class HgMozillaOrg(object):
             # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
             path = path[0:4] + ["mozilla-beta"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 7 and path[5] == "mozilla-release":
+            # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            path = path[0:4] + ["mozilla-release"] + path[7:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
+        elif len(path) > 5 and path[4] == "autoland":
+            # FROM https://hg.mozilla.org/build/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            # TO  https://hg.mozilla.org/integration/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+            path = path[0:3] + ["try"] + path[5:]
+            return self._get_and_retry("/".join(path), branch, **kwargs)
 
         Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
 
@@ -286,10 +298,8 @@ class HgMozillaOrg(object):
             threads.append(Thread.run("find changeset " + unicode(i), _find, please_stop=please_stop))
 
         for t in threads:
-            try:
+            with assert_no_exception:
                 t.join()
-            except Exception, e:
-                Log.error("Not expected", cause=e)
 
         if problems:
             Log.error("Could not scan for {{revision}}", revision=revision, cause=problems[0])
@@ -300,9 +310,11 @@ class HgMozillaOrg(object):
         """
         LOOK INTO description to FIND bug_id
         """
-        match = re.match(r'[Bb](ug)?\s*([0-9]{5,7})\s+', description)
+        if description == None:
+            return None
+        match = re.findall(r'[Bb](?:ug)?\s*([0-9]{5,7})', description)
         if match:
-            return int(match.group(2))
+            return int(match[0])
         return None
 
 
@@ -312,14 +324,10 @@ def _trim(url):
 
 
 def _get_url(url, branch, **kwargs):
-    try:
+    with Explanation("get push from {{url}}", url=url):
         response = http.get(url, **kwargs)
         data = convert.json2value(response.content.decode("utf8"))
         if isinstance(data, basestring) and data.startswith("unknown revision"):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
         return data
-    except Exception, e:
-        Log.error("Can not get push from {{url}}", url=url, cause=e)
-
-

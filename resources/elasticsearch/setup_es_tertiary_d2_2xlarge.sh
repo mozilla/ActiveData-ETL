@@ -97,11 +97,11 @@ sudo sed -i '$ a\/dev/xvdg   /data6       ext4    defaults,nofail  0   2' /etc/f
 
 # TEST IT IS WORKING
 sudo mount -a
-
 sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
 
 # INCREASE THE FILE HANDLE LIMITS
+# MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
 sudo sysctl -p
 
@@ -120,17 +120,17 @@ sudo yum install -y git-core
 
 #CLONE THE primary BRANCH
 cd ~
-rm -fr ~/TestLog-ETL
-git clone https://github.com/klahnakoski/TestLog-ETL.git
-cd ~/TestLog-ETL
+rm -fr ~/ActiveData-ETL
+git clone https://github.com/klahnakoski/ActiveData-ETL.git
+cd ~/ActiveData-ETL
 git checkout primary
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch_tertiary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_tertiary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
-sudo cp ~/TestLog-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
 
 
 #INSTALL PYTHON27
@@ -158,7 +158,7 @@ sudo pip install supervisor-plus-cron
 cd /usr/bin
 sudo ln -s /usr/local/bin/supervisorctl supervisorctl
 
-sudo cp ~/TestLog-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf

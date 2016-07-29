@@ -1,0 +1,35 @@
+{
+	"limit": 100000,
+	"range":{"min":179000, "max":230000},
+	"no_checks": true,
+	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
+		"name": "active-data-index-codecoverage",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"source": {    //WHERE WE GET DATA FROM
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-codecoverage",
+		"key_format": "a:b.c"
+	},
+	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
+		"id_field": "etl.source.id",
+		"host": "http://localhost",
+		"port": 9200,
+		"index": "coverage",
+		"type": "code_coverage",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/code_coverage.json"
+		},
+		"debug": true,
+		"limit_replicas": true
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

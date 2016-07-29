@@ -1,0 +1,36 @@
+{
+	"no_checks": true,
+	"range": {"min": 228800},
+	"revision": "7c0b201f3a15",
+	"limit": 10000,
+	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
+		"name": "active-data-etl",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"source": {    //WHERE WE GET DATA FROM
+		"$ref": "file://~/private.json#aws_credentials",
+		"bucket": "active-data-task-cluster-logger",
+		"key_format": "a:b"
+	},
+	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
+		"id_field": "etl.source.id",
+		"host": "http://activedata.allizom.org",
+		"port": 9200,
+		"index": "task",
+		"type": "task",
+		"timeout": 300,
+		"schema": {
+			"$ref": "//../../schema/task_cluster.json"
+				},
+		"debug": false,
+		"limit_replicas": false
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

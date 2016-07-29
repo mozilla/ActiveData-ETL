@@ -26,8 +26,8 @@ cd  /home/ubuntu
 sudo apt-get -y install git-core
 
 cd  /home/ubuntu
-git clone https://github.com/klahnakoski/TestLog-ETL.git
-cd /home/ubuntu/TestLog-ETL/
+git clone https://github.com/klahnakoski/ActiveData-ETL.git
+cd /home/ubuntu/ActiveData-ETL/
 git checkout etl
 sudo /home/ubuntu/temp/pypy-2.4.0-linux64/bin/pip install -r requirements.txt
 
