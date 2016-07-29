@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import Dict, wrap, coalesce
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -100,12 +100,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                             "id": etl2key(dest_etl),
                             "value": {
                                 "etl": dest_etl,
-                                "pulse": pulse_record.payload
+                                "pulse": pulse_record.payload,
+                                "is_empty": True
                             }
                         }])
 
                     continue
-                test_results_expected, all_perf = extract_perfherder(response.all_lines, etl_file, etl_head_gen, please_stop, pulse_record)
+                seen, test_results_expected, all_perf = extract_perfherder(response.all_lines, etl_file, etl_head_gen, please_stop, pulse_record)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {
                     "url": pulse_record.payload.logurl
@@ -135,7 +136,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 "id": etl2key(dest_etl),
                 "value": {
                     "etl": dest_etl,
-                    "pulse": pulse_record.payload
+                    "pulse": pulse_record.payload,
+                    "is_empty": True
                 }
             }])
 
@@ -144,6 +146,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
 def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse_record):
     test_results_expected = False
+    perfherder_exists = False
     all_perf = []
 
     for log_line in all_log_lines:
@@ -160,6 +163,7 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
         for prefix in PERFHERDER_PREFIXES:
             s = log_line.find(prefix)
             if s >= 0:
+                perfherder_exists=True
                 break
         else:
             continue
@@ -169,7 +173,7 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
 
         if "TALOS" in prefix:
             for t in perf:
-                _, dest_etl = etl_head_gen.next(etl_file, "Talos")
+                _, dest_etl = etl_head_gen.next(etl_file, "talos")
                 t.etl = dest_etl
                 t.pulse = pulse_record.payload
             all_perf.extend(perf)
@@ -180,4 +184,4 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
                 t.etl = dest_etl
                 t.pulse = pulse_record.payload
             all_perf.extend(perf.suites)
-    return test_results_expected, all_perf
+    return perfherder_exists, test_results_expected, all_perf

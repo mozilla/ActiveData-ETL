@@ -96,36 +96,34 @@ def process(source_key, source, destination, resources, please_stop=None):
     records = []
     i = 0
     for line in lines:
-        perfherder_record=None
+        perfherder_record = None
         try:
             perfherder_record = convert.json2value(line)
             if not perfherder_record:
                 continue
             etl_source = perfherder_record.etl
 
-            if perfherder_record.framework.name == "job_resource_usage":
-                suites = perfherder_record.suites
-            elif perfherder_record.suites:
-                Log.warning("unknown framework {{framework|json}}", framework=perfherder_record.framework)
-                suites = perfherder_record.suites
-            else:
-                suites = [perfherder_record]
+            if perfherder_record.suites:
+                Log.error("Should not happen, perfherder storage iterates through the suites")
 
-            for suite in suites:
-                perf_records = transform(source_key, suite, resources)
-                for p in perf_records:
-                    p["etl"] = {
-                        "id": i,
-                        "source": etl_source,
-                        "type": "join",
-                        "revision": get_git_revision(),
-                        "timestamp": Date.now()
-                    }
-                    key = source_key + "." + unicode(i)
-                    records.append({"id": key, "value": p})
-                    i += 1
+            perf_records = transform(source_key, perfherder_record, resources)
+            for p in perf_records:
+                p["etl"] = {
+                    "id": i,
+                    "source": etl_source,
+                    "type": "join",
+                    "revision": get_git_revision(),
+                    "timestamp": Date.now()
+                }
+                key = source_key + "." + unicode(i)
+                records.append({"id": key, "value": p})
+                i += 1
         except Exception, e:
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
+
+    # if not records:
+    #     Log.warning("No perfherder records are found in {{key}}", key=source_key)
+
     destination.extend(records)
     return [source_key]
 
@@ -176,6 +174,7 @@ def transform(source_key, perfherder, resources):
         # UPDATE buildbot PROPERTIES TO BETTER VALUES
         buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp)
         buildbot.run.suite = suite_name
+        buildbot.run.framework = perfherder.framework
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -262,6 +261,9 @@ def transform(source_key, perfherder, resources):
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
+        elif perfherder.is_empty:
+            new_records.append(buildbot)
+            pass
         else:
             new_records.append(buildbot)
             Log.warning(

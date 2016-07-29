@@ -5,7 +5,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 3,
+		"threads": 1,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true
 	},
@@ -21,7 +21,7 @@
 	"treeherder": {
 		"use_cache": true,
 		"rate_limiter": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "treeherder_requests",
 			"type": "request",
@@ -40,7 +40,7 @@
 			"limit_replicas": false
 		},
 		"cache": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "treeherder",
 			"type": "job",

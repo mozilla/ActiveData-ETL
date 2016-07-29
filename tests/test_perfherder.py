@@ -35,7 +35,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         def dummy(a, b):
             return Null, Null
-        expecting, all_perf = extract_perfherder(http.get(url).all_lines, Null, Dict(next=dummy), Null, Null)
+        seen, expecting, all_perf = extract_perfherder(http.get(url).all_lines, Null, Dict(next=dummy), Null, Null)
         self.assertTrue(expecting)
         Log.note("{{output}}", output=all_perf)
 
