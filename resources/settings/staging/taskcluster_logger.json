@@ -1,5 +1,7 @@
 {
 	"source": {
+		"name": "Task Cluster",
+		"prefix": "tc",
 		"exchange": "exchange/taskcluster-queue/v1/task-completed",
 		"topic": "#",
 		"durable": true,

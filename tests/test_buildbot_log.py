@@ -12,15 +12,16 @@ from __future__ import unicode_literals
 import itertools
 
 from pyLibrary import convert, jsons
+from pyLibrary.aws import s3
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl.buildbot_json_jogs import parse_day
-from testlog_etl.imports import buildbot
-from testlog_etl.imports.buildbot import BuildbotTranslator
-from testlog_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
+from activedata_etl.buildbot_json_jogs import parse_day
+from activedata_etl.imports import buildbot
+from activedata_etl.imports.buildbot import BuildbotTranslator
+from activedata_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
 
 false = False
 true = True
@@ -31,10 +32,20 @@ class TestBuildbotLogs(FuzzyTestCase):
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
 
+    # def test_one_s3_file(self):
+    #     key = "550.108"
+    #     settings = jsons.ref.get("resources/settings/dev_to_staging/etl.json")
+    #     bucket_settings = [w for w in settings.workers if w.name=="bbb2jobs"][0].source
+    #     source = s3.Bucket(bucket_settings).get_key(key)
+    #
+    #     buildbot_block_to_job_logs(key, source, Null, resources, Null)
+
+
+
     def test_past_problems(self):
         COMPARE_TO_EXPECTED = True
 
-        t = BuildbotTranslator()
+        translator = BuildbotTranslator()
 
         builds = convert.json2value(File("tests/resources/buildbot.json").read())
         if COMPARE_TO_EXPECTED:
@@ -44,11 +55,13 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         results = []
         failures = []
-        for b, e in itertools.izip_longest(builds, expected):
+        for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
             try:
-                result = t.parse(b)
+                result = translator.parse(b)
                 results.append(result)
                 if COMPARE_TO_EXPECTED:
+                    if e == None:
+                        Log.error("missing expected output")
                     self.assertEqual(result, e)
             except Exception, e:
                 e = Except.wrap(e)
@@ -60,8 +73,6 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         if not COMPARE_TO_EXPECTED:
             File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
-
-
 
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"
@@ -83,7 +94,7 @@ class TestBuildbotLogs(FuzzyTestCase):
             "constants": {
                 "pyLibrary.env.http.default_headers": {
                     "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-                    "User-Agent": "testlog-etl"
+                    "User-Agent": "ActiveData-ETL"
                 }
             }
         }, "file:///")
@@ -102,10 +113,11 @@ class TestBuildbotLogs(FuzzyTestCase):
         self.assertEqual(result, expecting)
 
     def test_specific_url(self):
-        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/fx-team-linux64/1453474887/fx-team_ubuntu64_vm_test-web-platform-tests-3-bm124-tests1-linux64-build7.txt.gz"
+        # url = "http://archive.mozilla.org/pub/mobile/tinderbox-builds/fx-team-android-api-15-debug/1461301083/fx-team_ubuntu64_vm_armv7_large-debug_test-plain-reftest-12-bm114-tests1-linux64-build15.txt.gz"
+        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win64-pgo/1462512703/mozilla-inbound_win8_64_test_pgo-web-platform-tests-5-bm126-tests1-windows-build22.txt.gz"
         response = http.get(url)
         # response = http.get("http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win32/1444321537/mozilla-inbound_xp-ix_test-g2-e10s-bm119-tests1-windows-build710.txt.gz")
-        # for i, l in enumerate(response._all_lines(encoding="latin1")):
+        # for i, l in enumerate(response._all_lines(encoding=None)):
         #     try:
         #         l.decode('latin1').encode('utf8')
         #     except Exception:
@@ -113,5 +125,5 @@ class TestBuildbotLogs(FuzzyTestCase):
         #
         #     Log.note("{{line}}", line=l)
 
-        data = process_buildbot_log(response.all_lines, "<unknown>")
+        data = process_buildbot_log(response._all_lines(encoding=None), url)
         Log.note("{{data}}", data=data)

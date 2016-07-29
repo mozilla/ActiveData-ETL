@@ -14,6 +14,7 @@ from collections import Mapping
 
 from datetime import datetime
 import re
+
 from pyLibrary import convert
 from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
@@ -168,9 +169,9 @@ class _MVEL(object):
         if len(split_field(self.fromData.name)) == 1 and fields:
             if isinstance(fields, Mapping):
                 # CONVERT UNORDERED FIELD DEFS
-                qb_fields, es_fields = zip(*[(k, fields[k]) for k in sorted(fields.keys())])
+                jx_fields, es_fields = zip(*[(k, fields[k]) for k in sorted(fields.keys())])
             else:
-                qb_fields, es_fields = zip(*[(i, e) for i, e in enumerate(fields)])
+                jx_fields, es_fields = zip(*[(i, e) for i, e in enumerate(fields)])
 
             # NO LOOPS BECAUSE QUERY IS SHALLOW
             # DOMAIN IS FROM A DIMENSION, USE IT'S FIELD DEFS TO PULL
@@ -186,7 +187,7 @@ class _MVEL(object):
                 def fromTerm(term):
                     terms = [convert.pipe2value(t) for t in convert.pipe2value(term).split("|")]
 
-                    candidate = dict(zip(qb_fields, terms))
+                    candidate = dict(zip(jx_fields, terms))
                     for p in domain.partitions:
                         for k, t in candidate.items():
                             if p.value[k] != t:
@@ -276,7 +277,7 @@ class _MVEL(object):
         expression = setValues(expression, constants)
 
         fromPath = self.fromData.name           # FIRST NAME IS THE INDEX
-        indexName = split_field(fromPath)[0]
+        indexName = join_field(split_field(fromPath)[:1:])
 
         context = self.getFrameVariables(expression)
         if context == "":

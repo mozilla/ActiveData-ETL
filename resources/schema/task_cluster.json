@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 5
+		"index.number_of_shards": 30
 	},
 	"mappings": {
 		"task": {
@@ -63,14 +63,14 @@
 				}
 			],
 			"properties": {
-				"artifacts": {
-					"type": "nested"
-				},
-				"payload":{
+				"task":{
 					"type": "object",
 					"dynamic": true,
 					"properties": {
 						"artifacts": {
+							"type": "nested"
+						},
+						"tags": {
 							"type": "nested"
 						},
 						"cache": {
@@ -82,21 +82,6 @@
 							"properties": {
 								"cache": {
 									"type": "nested"
-								}
-							}
-						}
-					}
-				},
-				"extra":{
-					"type":"object",
-					"dynamic": true,
-					"properties": {
-						"treeherder":{
-							"type":"object",
-							"dynamic": true,
-							"properties": {
-								"symbol":{
-									"type":"string"
 								}
 							}
 						}

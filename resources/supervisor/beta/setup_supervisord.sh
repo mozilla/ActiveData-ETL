@@ -13,8 +13,8 @@ sudo pip install supervisor-plus-cron
 sudo pip install BeautifulSoup
 
 cd ~
-mkdir -p ~/TestLog-ETL/results/logs
-sudo cp ~/TestLog-ETL/resources/supervisor/beta/supervisord.conf /etc
+mkdir -p ~/ActiveData-ETL/results/logs
+sudo cp ~/ActiveData-ETL/resources/supervisor/beta/supervisord.conf /etc
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo supervisord -c /etc/supervisord.conf
@@ -23,6 +23,6 @@ sudo supervisorctl reread
 sudo supervisorctl update
 
 
-tail -f /home/klahnakoski/TestLog-ETL/results/logs/supervisord.log
+tail -f /home/klahnakoski/ActiveData-ETL/results/logs/supervisord.log
 
 sudo supervisorctl

@@ -1,5 +1,9 @@
 {
 	"no_checks": false,
+	"git": {
+		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+		"branch":"etl"
+	},
 	"range": {"min":280000},
 	"limit": 10000,
 	"destination": "active-data-perf",  //EXPLICIT DESTINATION TO FOCUS REPROCESSING ON JUST ONE ETL

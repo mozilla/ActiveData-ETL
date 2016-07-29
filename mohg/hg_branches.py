@@ -8,9 +8,12 @@
 #
 from __future__ import unicode_literals
 
+from copy import copy
+
 from BeautifulSoup import BeautifulSoup
 
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
@@ -37,7 +40,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
         es.flush()
         return found_branches
 
-    #TRY ES
+    # TRY ES
     try:
         es = elasticsearch.Cluster(settings=branches).get_index(settings=branches)
         query = {
@@ -89,6 +92,11 @@ def _get_branches_from_hg(settings):
         branches.add(set_default({"name": "comm-aurora"}, b))
         # b.url = "https://hg.mozilla.org/releases/mozilla-aurora"
 
+    for b in list(branches):
+        if b.name.startswith("mozilla-esr"):
+            branches.add(set_default({"name": "release-" + b.name}, b))  # THIS IS THE l10n "name"
+            b.url = "https://hg.mozilla.org/releases/" + b.name
+
     #CHECKS
     for b in branches:
         if b.name != b.name.lower():
@@ -120,7 +128,7 @@ def _get_single_branch_from_hg(settings, description, dir):
             continue  # IGNORE HEADER
         columns = b("td")
 
-        try:
+        with suppress_exception:
             path = columns[0].a.get('href')
             if path == "/":
                 continue
@@ -148,7 +156,8 @@ def _get_single_branch_from_hg(settings, description, dir):
                 "/releases/gaia-l10n/v1_3/en-US/",  # use default branch
                 "/releases/gaia-l10n/v1_4/en-US/",  # use default branch
                 "/releases/gaia-l10n/v2_0/en-US/",  # use default branch
-                "/releases/gaia-l10n/v2_1/en-US/"   # use default branch
+                "/releases/gaia-l10n/v2_1/en-US/",  # use default branch
+                "/build/autoland/"
             ]:
                 continue
 
@@ -172,8 +181,6 @@ def _get_single_branch_from_hg(settings, description, dir):
 
             Log.note("Branch {{name}} {{locale}}", name=detail.name, locale=detail.locale)
             output.append(detail)
-        except Exception, _:
-            pass
 
     return output
 
