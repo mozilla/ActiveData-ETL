@@ -6,34 +6,10 @@
 	},
 	"workers": [
 		{
-			"name": "old unit",
-			"batch_size": 5000,
-			"sample_only": [
-			],
-			"elasticsearch": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "unittest",
-				"type": "test_result",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/test_results.json"
-				},
-				"debug": true,
-				"limit_replicas": false
-			},
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "ekyle-test-result",
-				"key_format": "a:b.c"
-			}
-		},
-
-		{
 			"name": "unit",
 			"batch_size": 5000,
-			"sample_only": [
-			],
+			"skip": 0.9,
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
@@ -66,7 +42,7 @@
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -88,7 +64,7 @@
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -97,29 +73,29 @@
 				"key_format": "a.b"
 			}
 		},
-		{
-			"name": "code coverage",
-			"queue_size": 2000,
-			"batch_size": 1000,
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "coverage",
-				"type": "code_coverage",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/code_coverage.json"
-				},
-				"debug": false,
-				"limit_replicas": false
-			},
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage",
-				"key_format": "t.a:b.c"
-			}
-		},
+//		{
+//			"name": "code coverage",
+//			"queue_size": 2000,
+//			"batch_size": 1000,
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://localhost",
+//				"port": 9200,
+//				"index": "coverage",
+//				"type": "code_coverage",
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../../schema/code_coverage.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-codecoverage",
+//				"key_format": "t.a:b.c"
+//			}
+//		},
 		{
 			"name": "task",
 			"queue_size": 2000,
@@ -134,13 +110,13 @@
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b.c"
+				"key_format": "t.a:b"
 			}
 		}
 	],

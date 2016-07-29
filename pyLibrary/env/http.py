@@ -114,7 +114,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
         retry = wrap(retry)
         if isinstance(retry.sleep, Duration):
             retry.sleep = retry.sleep.seconds
-        set_default(retry.sleep, {"times": 1, "sleep": 0})
+        set_default(retry, {"times": 1, "sleep": 0})
 
     if b'json' in kwargs:
         kwargs[b'data'] = convert.value2json(kwargs[b'json']).encode("utf8")
