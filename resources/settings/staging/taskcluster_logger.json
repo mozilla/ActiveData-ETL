@@ -1,16 +1,35 @@
 {
-	"source": {
-		"name": "Task Cluster",
-		"prefix": "tc",
-		"exchange": "exchange/taskcluster-queue/v1/task-completed",
-		"topic": "#",
-		"durable": true,
-		"timeout":600,
-		"queue": "active-data-taskcluster-log",
-		"$ref": "file://~/private.json#pulse_user",
-		"debug": false
-	},
+	"source": [
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-completed",
+			"topic": "#",
+			"durable": true,
+			"timeout":600,
+			"queue": "active-data-task-cluster-log-completed",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-exception",
+			"topic": "#",
+			"durable": true,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-exception",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-failed",
+			"topic": "#",
+			"durable": true,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-failed",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		}
+	],
 	"destination": {
+		"key_prefix": "tc",
 		"bucket": "active-data-task-cluster-logger",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
@@ -30,7 +49,9 @@
 	        "filename": "./results/cprofile.tab"
         },
 		"log":[
-			{"log_type":"console"},
+			{
+				"log_type":"console"
+			},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",
 				"filename" : "./results/logs/taskcluster_logger.log",
@@ -39,12 +60,11 @@
 				"encoding" : "utf8"
 			},
 			{
-				"log_type":"email",
-				"from_address": "chin.bimbo@gmail.com",
-				"to_address": "chin.bimbo@gmail.com",
-				"subject": "[ALERT][Staging]Problem in TaskCluster Logger",
-				"$ref":"file://~/private.json#email"
-
+				"log_type":"ses",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in Pulse Logger",
+				"$ref":"file://~/private.json#aws_credentials"
 			}
 		]
 	}
