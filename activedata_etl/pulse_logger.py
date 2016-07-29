@@ -57,7 +57,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "id": synch.next_key,
                             "source": {
                                 "name": coalesce(*settings.source.name),
-                                "exchange": coalesce(*settings.source.exchange),
+                                "exchange": d._meta.exchange,
                                 "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,

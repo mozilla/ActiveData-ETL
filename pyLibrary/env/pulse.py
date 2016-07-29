@@ -78,6 +78,7 @@ class Consumer(Thread):
         with count_locker:
             Log.note("{{count}} from {{exchange}}", count=count, exchange=self.pulse.exchange)
             data._meta.count = count
+            data._meta.exchange = self.pulse.exchange
             count += 1
 
         if self.settings.debug:

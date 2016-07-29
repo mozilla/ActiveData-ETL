@@ -45,6 +45,7 @@
 		"size": 100  	   // NUMBER OF MESSAGES PER S3 KEY
 	},
 	"debug": {
+		"trace": true,
 		"cprofile": {
 			"enabled": false,
 			"filename": "./results/cprofile.tab"
