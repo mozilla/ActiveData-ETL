@@ -161,8 +161,15 @@ def _normalize(source_key, tc_message, task, resources):
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
     try:
-        job = resources.treeherder.get_markup(output)
-        output.treeherder=job
+        if output.build.revision:
+            job = resources.treeherder.get_markup(
+                output.build.branch,
+                output.build.revision,
+                output.task.id,
+                None,
+                output.task.run.end_time
+            )
+            output.treeherder = job
     except Exception, e:
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
@@ -170,9 +177,6 @@ def _normalize(source_key, tc_message, task, resources):
             revision=output.build.revision12,
             cause=e
         )
-
-
-
 
     return output
 
@@ -261,14 +265,9 @@ def set_build_info(normalized, task, resources):
         for l, v in task.extra.treeherder.leaves():
             normalized.treeherder[l] = v
 
-    if task.extra.treeherder.collection.opt:
-        normalized.build.type += ["opt"]
-    elif task.extra.treeherder.collection.debug:
-        normalized.build.type += ["debug"]
-    elif task.extra.treeherder.collection.asan:
-        normalized.build.type += ["asan"]
-    elif task.extra.treeherder.collection.pgo:
-        normalized.build.type += ["pgo"]
+    for k in ["opt", "debug", "asan", "pgo", "lsan"]:
+        if task.extra.treeherder.collection[k]:
+            normalized.build.type += [k]
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
@@ -331,13 +330,15 @@ KNOWN_TAGS = {
     "build_name",
     "build_type",
     "build_product",
-    "build_props.product",
-    "build_props.build_number",
-    "build_props.platform",
-    "build_props.version",
     "build_props.branch",
+    "build_props.build_number",
     "build_props.locales",
+    "build_props.mozharness_changeset",
+    "build_props.partials",
+    "build_props.platform",
+    "build_props.product",
     "build_props.revision",
+    "build_props.version",
 
     "chunks.current",
     "chunks.total",
@@ -350,8 +351,15 @@ KNOWN_TAGS = {
     "crater.toolchainGitRepo",
     "crater.toolchainGitSha",
 
+
+
+
+
     "createdForUser",
+    "data.head.sha",
+    "data.head.user.email",
     "description",
+
     "extra.build_product",  # error?
     "funsize.partials",
     "funsize.partials.branch",
@@ -405,6 +413,16 @@ KNOWN_TAGS = {
     "notification.task-defined.sns.message",
     "notification.task-defined.sns.arn",
 
+    "notifications.task-completed.message",
+    "notifications.task-completed.ids",
+    "notifications.task-completed.subject",
+    "notifications.task-failed.message",
+    "notifications.task-failed.ids",
+    "notifications.task-failed.subject",
+    "notifications.task-exception.message",
+    "notifications.task-exception.ids",
+    "notifications.task-exception.subject",
+
     "npmCache.url",
     "npmCache.expires",
     "objective",
@@ -421,6 +439,7 @@ KNOWN_TAGS = {
     "treeherder.collection.opt",
     "treeherder.collection.pgo",
     "treeherder.collection.asan",
+    "treeherder.collection.lsan",
     "treeherder.groupSymbol",
     "treeherder.groupName",
     "treeherder.jobKind",

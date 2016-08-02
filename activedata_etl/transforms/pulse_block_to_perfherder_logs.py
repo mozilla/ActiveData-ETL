@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap
+from pyLibrary.dot import Dict, wrap, coalesce
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -35,6 +35,11 @@ PERFHERDER_PREFIXES = [
 EXPECTING_RESULTS = {
     "INFO - ##### Running run-tests step.": True,
     "INFO - #### Running talos suites": True,
+    "========= Finished run_script (results:": True,
+    "========= Finished 'c:/mozilla-build/python27/python -u ...' (results:": True,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/talos_script.py ...' (results:": True,
+    "========= Finished '/tools/buildbot/bin/python scripts/scripts/android_panda_talos.py ...' (results:": True,
+
     "========= Finished run_script failed (results:": False,
     "========= Finished run_script warnings (results:": False,
     "========= Finished run_script exception (results:": False,
@@ -70,8 +75,6 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record.payload.talos:
             continue
 
-        test_results_expected = False
-        all_perf = []
         etl_file = wrap({
             "id": counter,
             "file": pulse_record.payload.logurl,
@@ -97,47 +100,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                             "id": etl2key(dest_etl),
                             "value": {
                                 "etl": dest_etl,
-                                "pulse": pulse_record.payload
+                                "pulse": pulse_record.payload,
+                                "is_empty": True
                             }
                         }])
 
                     continue
-                all_log_lines = response.all_lines
-
-                for log_line in all_log_lines:
-                    if please_stop:
-                        Log.error("Shutdown detected. Stopping early")
-
-                    # SOME LINES GIVE US A HINT IF THERE ARE GOING TO BE TEST RESULTS
-                    for pattern, result_expected in EXPECTING_RESULTS.items():
-                        if pattern in log_line:
-                            test_results_expected = result_expected
-                            break
-
-                    prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
-                    for prefix in PERFHERDER_PREFIXES:
-                        s = log_line.find(prefix)
-                        if s >= 0:
-                            break
-                    else:
-                        continue
-
-                    log_line = strings.strip(log_line[s + len(prefix):])
-                    perf = convert.json2value(convert.utf82unicode(log_line))
-
-                    if "TALOS" in prefix:
-                        for t in perf:
-                            _, dest_etl = etl_head_gen.next(etl_file, "Talos")
-                            t.etl = dest_etl
-                            t.pulse = pulse_record.payload
-                        all_perf.extend(perf)
-                    else: # PERFHERDER
-                        for t in perf.suites:
-                            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
-                            t.framework = perf.framework
-                            t.etl = dest_etl
-                            t.pulse = pulse_record.payload
-                        all_perf.extend(perf.suites)
+                seen, test_results_expected, all_perf = extract_perfherder(response.all_lines, etl_file, etl_head_gen, please_stop, pulse_record)
             except Exception, e:
                 Log.error("Problem processing {{url}}", {
                     "url": pulse_record.payload.logurl
@@ -167,8 +136,52 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 "id": etl2key(dest_etl),
                 "value": {
                     "etl": dest_etl,
-                    "pulse": pulse_record.payload
+                    "pulse": pulse_record.payload,
+                    "is_empty": True
                 }
             }])
 
     return output
+
+
+def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse_record):
+    test_results_expected = False
+    perfherder_exists = False
+    all_perf = []
+
+    for log_line in all_log_lines:
+        if please_stop:
+            Log.error("Shutdown detected. Stopping early")
+
+        # SOME LINES GIVE US A HINT IF THERE ARE GOING TO BE TEST RESULTS
+        for pattern, result_expected in EXPECTING_RESULTS.items():
+            if pattern in log_line:
+                test_results_expected = result_expected
+                break
+
+        prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
+        for prefix in PERFHERDER_PREFIXES:
+            s = log_line.find(prefix)
+            if s >= 0:
+                perfherder_exists=True
+                break
+        else:
+            continue
+
+        log_line = strings.strip(log_line[s + len(prefix):])
+        perf = convert.json2value(convert.utf82unicode(log_line))
+
+        if "TALOS" in prefix:
+            for t in perf:
+                _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                t.etl = dest_etl
+                t.pulse = pulse_record.payload
+            all_perf.extend(perf)
+        else:  # PERFHERDER
+            for t in perf.suites:
+                _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                t.framework = perf.framework
+                t.etl = dest_etl
+                t.pulse = pulse_record.payload
+            all_perf.extend(perf.suites)
+    return perfherder_exists, test_results_expected, all_perf

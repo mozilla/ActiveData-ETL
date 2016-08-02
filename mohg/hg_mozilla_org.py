@@ -310,9 +310,11 @@ class HgMozillaOrg(object):
         """
         LOOK INTO description to FIND bug_id
         """
-        match = re.match(r'[Bb](ug)?\s*([0-9]{5,7})\s+', description)
+        if description == None:
+            return None
+        match = re.findall(r'[Bb](?:ug)?\s*([0-9]{5,7})', description)
         if match:
-            return int(match.group(2))
+            return int(match[0])
         return None
 
 

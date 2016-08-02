@@ -30,6 +30,7 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
+    "arm.apk",
     "/log_raw.log",
     "/talos_raw.log",
     "/buildprops.json",

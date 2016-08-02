@@ -23,6 +23,7 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
+from motreeherder.treeherder import TreeHerder
 from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
@@ -30,9 +31,7 @@ from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
-from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
@@ -41,7 +40,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
-from activedata_etl.imports.treeherder import TreeHerder
 from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.multi_day_index import MultiDayIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
@@ -384,7 +382,7 @@ def main():
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(
             hg=hg,
-            treeherder=TreeHerder(hg=hg)
+            treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
         )
 
         stopper = Signal()
@@ -436,10 +434,10 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(settings=settings.hg),
+    hg = HgMozillaOrg(settings=settings.hg)
     resources = Dict(
         hg=hg,
-        treeherder=TreeHerder(hg=hg)
+        treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
     )
 
     stopper = Signal()

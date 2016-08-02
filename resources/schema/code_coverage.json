@@ -75,15 +75,9 @@
 									}
 								},
 								"uncovered": {
-									"type": "nested",
-									"dynamic": "false",
-									"properties": {
-										"line": {
-											"index": "not_analyzed",
-											"type": "integer",
-											"doc_values": true
-										}
-									}
+									"index": "not_analyzed",
+									"type": "integer",
+									"doc_values": true
 								}
 							}
 						},
@@ -103,15 +97,9 @@
 									}
 								},
 								"uncovered": {
-									"type": "nested",
-									"dynamic": "false",
-									"properties": {
-										"line": {
-											"index": "not_analyzed",
-											"type": "integer",
-											"doc_values": true
-										}
-									}
+									"index": "not_analyzed",
+									"type": "integer",
+									"doc_values": true
 								}
 							}
 						}

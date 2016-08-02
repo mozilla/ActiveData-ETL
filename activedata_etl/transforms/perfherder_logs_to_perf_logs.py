@@ -34,9 +34,10 @@ NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
+    "basic_compositor_video",
     "cart",
     "chromez",
     "damp",
@@ -49,6 +50,10 @@ KNOWN_PERFHERDER_TESTS = [
     "glterrain",
     "kraken",
     "media_tests",
+    "mochitest.mochitest-devtools-chrome.1.run-tests",
+    "mochitest.mochitest-devtools-chrome.1.stage-files",
+    "mochitest.mochitest-devtools-chrome.1.install",
+    "mochitest.mochitest-devtools-chrome.1.overall",
     "other_nol64",
     "other_l64",
     "other",
@@ -88,23 +93,18 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     lines = source.read_lines()
 
-    etl_header = convert.json2value(lines[0])
-    if etl_header.etl:
-        start = 0
-    elif etl_header.locale or etl_header._meta:
-        start = 0
-    else:
-        start = 1
-
     records = []
     i = 0
-    for line in lines[start:]:
-        perfherder_record=None
+    for line in lines:
+        perfherder_record = None
         try:
             perfherder_record = convert.json2value(line)
             if not perfherder_record:
                 continue
             etl_source = perfherder_record.etl
+
+            if perfherder_record.suites:
+                Log.error("Should not happen, perfherder storage iterates through the suites")
 
             perf_records = transform(source_key, perfherder_record, resources)
             for p in perf_records:
@@ -120,15 +120,21 @@ def process(source_key, source, destination, resources, please_stop=None):
                 i += 1
         except Exception, e:
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
+
+    # if not records:
+    #     Log.warning("No perfherder records are found in {{key}}", key=source_key)
+
     destination.extend(records)
     return [source_key]
 
-# CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(uid, perfherder, resources):
-    try:
-        buildbot = transform_buildbot(uid, perfherder.pulse, resources, uid)
 
+# CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
+def transform(source_key, perfherder, resources):
+    try:
+        buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
+        if not suite_name:
+            Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
@@ -136,13 +142,14 @@ def transform(uid, perfherder, resources):
                     buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                        uid=uid,
+                        uid=source_key,
                         buildbot=buildbot,
                         name=suite_name,
                         perfherder=perfherder,
                         option=option
                     )
                 suite_name = suite_name.replace("-" + option, "")
+        buildbot.run.type += listwrap(perfherder.extraOptions)
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
@@ -158,7 +165,7 @@ def transform(uid, perfherder, resources):
         else:
             Log.warning(
                 "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                uid=uid,
+                uid=source_key,
                 buildbot=buildbot,
                 name=suite_name,
                 perfherder=perfherder
@@ -167,6 +174,7 @@ def transform(uid, perfherder, resources):
         # UPDATE buildbot PROPERTIES TO BETTER VALUES
         buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp)
         buildbot.run.suite = suite_name
+        buildbot.run.framework = perfherder.framework
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -253,11 +261,14 @@ def transform(uid, perfherder, resources):
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
+        elif perfherder.is_empty:
+            new_records.append(buildbot)
+            pass
         else:
             new_records.append(buildbot)
             Log.warning(
                 "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
-                uid=uid,
+                uid=source_key,
                 name=suite_name
             )
 
@@ -265,13 +276,13 @@ def transform(uid, perfherder, resources):
         buildbot.run.stats = geo_mean(total)
         Log.note(
             "Done {{uid}}, processed {{name}}, transformed {{num}} records",
-            uid=uid,
+            uid=source_key,
             name=suite_name,
             num=len(new_records)
         )
         return new_records
     except Exception, e:
-        Log.error("Transformation failure on id={{uid}}", {"uid": uid}, e)
+        Log.error("Transformation failure on id={{uid}}", {"uid": source_key}, e)
 
 
 
@@ -357,3 +368,5 @@ def geo_mean(values):
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
 
+# TODO: deal with this
+# 07:25:50     INFO - PERFHERDER_DATA: {"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]}

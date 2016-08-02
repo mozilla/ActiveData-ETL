@@ -111,7 +111,10 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
             # LOOKUP REFERENCES
             json_string = expand_template(json_string, params)
 
-        value = wrap(json_decoder(unicode(json_string)))
+        try:
+            value = wrap(json_decoder(unicode(json_string)))
+        except Exception, e:
+            Log.error("can not decode\n{{content}}", content=json_string, cause=e)
 
         if leaves:
             value = wrap_leaves(value)

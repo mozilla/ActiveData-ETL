@@ -198,7 +198,7 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 pass
             else:
                 Log.warning(
-                    "Can not get revision for key=={{key}}, branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
+                    "Can not get revision for key={{key}}, branch={{branch}}, locale={{locale}}, revision={{revision}}\n{{details|json|indent}}",
                     key=source_key,
                     branch=output.build.branch,
                     locale=locale,
@@ -208,7 +208,13 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 )
 
         try:
-            job = resources.treeherder.get_markup(output)
+            job = resources.treeherder.get_markup(
+                output.build.branch,
+                output.build.revision,
+                None,
+                output.build.name,
+                output.run.timestamp
+            )
             if job:
                 output.treeherder=job
         except Exception, e:

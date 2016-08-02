@@ -23,6 +23,7 @@ from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
+
 class BuildbotTranslator(object):
 
     def __init__(self):
@@ -259,7 +260,7 @@ class BuildbotTranslator(object):
                 if raw_platform not in TEST_PLATFORMS:
                     if raw_platform not in self.unknown_platforms:
                         self.unknown_platforms += [raw_platform]
-                        Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
+                        Log.error("Test platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                     else:
                         return Dict()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
@@ -302,6 +303,7 @@ class BuildbotTranslator(object):
 
         verify(output, data)
         output.properties, output.other = normalize_other(props)
+
         return output
 
 
@@ -544,8 +546,10 @@ TEST_PLATFORMS = {
     "Linux": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Linux x86-64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Linux x86-64 Mulet": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
+    "Linux x86-64 add-on-devel": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["add-on"]}},
     "OS X 10.7": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
     "OS X 10.7 64-bit": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64"}},
+    "OS X 10.7  add-on-devel": {"run": {"machine": {"os": "lion 10.7"}}, "build": {"platform": "macosx64", "type": ["add-on"]}},
     "OS X Mulet": {"run": {"machine": {"os": "macosx"}}, "build": {"platform": "macosx", "type": ["mulet"]}},
     "Rev4 MacOSX Snow Leopard 10.6": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Mountain Lion 10.8": {"run": {"machine": {"os": "mountain lion 10.8"}}, "build": {"platform": "macosx64"}},
@@ -569,7 +573,9 @@ TEST_PLATFORMS = {
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
+    "WINNT 5.2 add-on-devel": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64", "type": ["add-on"]}},
     "WINNT 6.1 x86-64": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "WINNT 6.1 x86-64 add-on-devel": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64", "type": ["add-on"]}},
     "WINNT 6.2": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Win32 Mulet": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32", "type": ["mulet"]}},
 }
@@ -661,6 +667,7 @@ KNOWN_PLATFORM = {
     "linux32_gecko-debug": {"build": {"platform": "linux32", "type": ["debug"]}},
     "linux32_gecko_localizer": {},
     "linux64": {"build": {"platform": "linux64"}},
+    "linux64-add-on-devel": {"build": {"platform": "linux64", "type": ["add-on"]}},
     "linux64-asan": {"build": {"platform": "linux64", "type": ["asan"]}},
     "linux64-asan-debug": {"build": {"platform": "linux64", "type": ["asan", "debug"]}},
     "linux64-b2g-haz": {"action": {"type": "hazard build"}, "run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
@@ -676,6 +683,7 @@ KNOWN_PLATFORM = {
     "linux64-st-an-debug": {"build": {"platform": "linux64", "type": ["debug"]}},
     "linux64-sh-haz": {"action": {"type": "hazard build"}, "build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx64-add-on-devel": {"build": {"platform": "macosx64", "type": ["add-on"]}},
     "macosx64-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
@@ -691,6 +699,7 @@ KNOWN_PLATFORM = {
     "nexus-4_eng": {"build": {"platform": "nexus4"}},
     "nexus-5-l": {"build": {"platform": "nexus5"}},
     "nexus-5-l_eng": {"build": {"platform": "nexus5"}},
+    "OS X 10.7  add-on-devel": {"build": {"platform": "macosx64", "type": ["add-on"]}},
     "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
@@ -701,6 +710,7 @@ KNOWN_PLATFORM = {
     "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
+    "win32-add-on-devel": {"build": {"platform": "win32", "type": ["add-on"]}},
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
     "win32-mulet": {"build": {"platform": "win32", "type": ["mulet"]}},
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
@@ -708,6 +718,7 @@ KNOWN_PLATFORM = {
     "win32_gecko_localizer": {},
     "win32-st-an-debug": {"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
     "win64": {"build": {"platform": "win64"}},
+    "win64-add-on-devel": {"build": {"platform": "win64", "type": ["add-on"]}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
     "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},
     "win64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "win64"}},
