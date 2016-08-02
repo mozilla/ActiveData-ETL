@@ -142,7 +142,7 @@ def get_all_s3(in_es, in_range, settings):
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
     max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
-    extra_digits = Math.ceiling(log10(limit))
+    extra_digits = Math.ceiling(log10(Math.MIN([max_allowed-settings.range.min, limit])))
 
     source_prefix = coalesce(settings.source.prefix, "")
 
