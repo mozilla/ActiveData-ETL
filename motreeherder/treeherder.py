@@ -243,7 +243,7 @@ class TreeHerder(object):
                     _filter,
                     {"term": {"repo.branch": branch}},
                     {"prefix": {"repo.revision": revision}},
-                    {"not":{"eq":{"job.state":"pending"}}},  # IGNORE ALL PENDING STATE
+                    {"not": {"term": {"job.state": "pending"}}},  # IGNORE ALL PENDING STATE
                     {"or": [
                         {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
                         {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
