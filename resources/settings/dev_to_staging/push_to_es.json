@@ -98,29 +98,29 @@
 				"key_format": "a.b"
 			}
 		},
-//		{
-//			"name":"code coverage",
-//			"queue_size": 2000,
-//			"batch_size": 1000,
-//			"sample_only": [],
-//			"elasticsearch": {
-//				"host": "http://activedata.allizom.org",
-//				"port": 9200,
-//				"index": "coverage",
-//				"type": "code_coverage",
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../../schema/code_coverage.json"
-//				},
-//				"debug": true,
-//				"limit_replicas": false
-//			},
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-codecoverage",
-//				"key_format": "t.a:b.c"
-//			}
-//		},
+		{
+			"name":"code coverage",
+			"queue_size": 2000,
+			"batch_size": 1000,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "coverage",
+				"type": "code_coverage",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/code_coverage.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage",
+				"key_format": "t.a:b.c"
+			}
+		},
 		{
 			"name": "task",
 			"queue_size": 2000,
