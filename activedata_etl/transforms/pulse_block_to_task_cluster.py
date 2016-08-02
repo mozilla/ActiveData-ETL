@@ -13,6 +13,7 @@ from collections import Mapping
 
 import requests
 
+from motreeherder.treeherder import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
@@ -162,15 +163,17 @@ def _normalize(source_key, tc_message, task, resources):
 
     try:
         if output.build.revision:
-            job = resources.treeherder.get_markup(
+            output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
                 output.task.id,
                 None,
                 output.task.run.end_time
             )
-            output.treeherder = job
     except Exception, e:
+        if TRY_AGAIN_LATER in e:
+            Log.error("Aborting processing of {{key}}", key=source_key)
+
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
             key=source_key,

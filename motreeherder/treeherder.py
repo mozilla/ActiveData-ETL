@@ -30,6 +30,9 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import HOUR, DAY, MINUTE
 from pyLibrary.times.timer import Timer
 
+
+TRY_AGAIN_LATER = "Treeherder is not done ingesting, try again later"
+
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 REPO_URL = "https://treeherder.mozilla.org:443/api/repository/"
@@ -240,6 +243,7 @@ class TreeHerder(object):
                     _filter,
                     {"term": {"repo.branch": branch}},
                     {"prefix": {"repo.revision": revision}},
+                    {"not":{"eq":{"job.state":"pending"}}},  # IGNORE ALL PENDING STATE
                     {"or": [
                         {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
                         {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
@@ -313,6 +317,8 @@ class TreeHerder(object):
             else:
                 Log.error("Not expecting more then one detail with no timestamp to help match")
 
+        if detail and detail.job.status=="pending":
+            Log.error(TRY_AGAIN_LATER)
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA
             detail = Dict()

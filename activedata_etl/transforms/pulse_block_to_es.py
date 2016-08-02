@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from motreeherder.treeherder import TRY_AGAIN_LATER
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
@@ -208,16 +209,17 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 )
 
         try:
-            job = resources.treeherder.get_markup(
+            output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
                 None,
                 output.build.name,
                 output.run.timestamp
             )
-            if job:
-                output.treeherder=job
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                Log.error("Aborting processing of {{key}}", key=source_key)
+
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
                 key=source_key,
