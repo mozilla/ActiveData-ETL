@@ -1,7 +1,7 @@
 {
 	"no_checks": true,
-	"range": {"min": 228800},
-	"revision": "7c0b201f3a15",
+	"range": {"min": 286510},
+//	"revision": "7c0b201f3a15",
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
@@ -10,7 +10,8 @@
 	"source": {    //WHERE WE GET DATA FROM
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-task-cluster-logger",
-		"key_format": "a:b"
+		"prefix": "tc.",
+		"key_format": "t.a:b"
 	},
 	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
 		"id_field": "etl.source.id",
