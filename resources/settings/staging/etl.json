@@ -29,7 +29,7 @@
 					"my_type": {
 						"_ttl": {
 							"enabled": true,
-							"default": "5m"
+							"default": "10m"
 						}
 					}
 				}
@@ -105,7 +105,7 @@
 			"source": {
 				"bucket": "active-data-task-cluster-logger",
 				"public": true,
-				"key_format": "a:b",
+				"key_format": "t.a:b",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"destination": {
