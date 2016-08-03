@@ -23,6 +23,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import cache, use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
@@ -74,6 +75,7 @@ class TreeHerder(object):
 
             output = []
             for g, repo_ids in jx.groupby(results.id, size=10):
+                repo_ids=wrap(list(repo_ids))
                 jobs = DictList()
                 with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
                     while True:
@@ -111,9 +113,9 @@ class TreeHerder(object):
                 with Timer("Write to ES cache"):
                     self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
                     try:
-                        self.cache.flush()
+                        self.cache.refresh()
                     except Exception, e:
-                        Log.warning("problem flushing. nevermind.", cause=e)
+                        Log.warning("problem refreshing. nevermind.", cause=e)
             return output
         finally:
             self._register_call(branch, revision, start, Date.now().unix)
@@ -262,16 +264,23 @@ class TreeHerder(object):
             "size": 10000
         }
 
-        try:
-            docs = self.cache.search(query, timeout=120).hits.hits
-        except Exception, e:
-            docs = None
-            Log.warning("Bad ES call, fall back to TH", cause=e)
+        for attempt in range(3):
+            try:
+                docs = self.cache.search(query, timeout=120).hits.hits
+                break
+            except Exception, e:
+                if "EsRejectedExecutionException[rejected execution (queue capacity" not in e:
+                    Log.warning("Bad ES call, fall back to TH", cause=e)
+                    return None
+                Thread.sleep(seconds=Random.int(30))
 
         if not docs:
+            if DEBUG:
+                Log.note("No cached for {{value|quote}}", value=coalesce(task_id, buildername))
             return None
         elif len(docs) == 1:
-            Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
+            if DEBUG:
+                Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
             return docs[0]._source
         elif timestamp == None:
             Log.error("timestamp required to find best match")
@@ -340,9 +349,9 @@ class TreeHerder(object):
 
             self.cache.add({"value": detail})
             try:
-                self.cache.flush()
+                self.cache.refresh()
             except Exception, e:
-                Log.warning("problem flushing. nevermind.", cause=e)
+                Log.warning("problem refreshing. nevermind.", cause=e)
 
         return detail
 

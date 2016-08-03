@@ -215,6 +215,9 @@ class Index(Features):
             else:
                 Log.error("Problem flushing", cause=e)
 
+    def refresh(self):
+        self.cluster.post("/" + self.settings.index + "/_refresh")
+
     def delete_record(self, filter):
         if self.settings.read_only:
             Log.error("Index opened in read only mode, no changes allowed")
