@@ -256,6 +256,7 @@ class TreeHerder(object):
                     {"prefix": {"repo.revision": revision}},
                     {"not": {"term": {"job.state": "pending"}}},  # IGNORE ALL PENDING STATE
                     {"or": [
+                        {"missing": {"field": "job.id"}},
                         {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
                         {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
                     ]}
