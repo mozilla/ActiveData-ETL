@@ -296,7 +296,7 @@ class TreeHerder(object):
         # REGISTER OUR TREEHERDER CALL
         job_results = self._get_job_results_from_th(branch, revision)
 
-        detail = None
+        detail = Null
         for job_result in job_results:
             # MATCH TEST RUN BY UID DOES NOT EXIST, SO WE USE THE ARCANE BUILDER NAME
             # PLUS THE MATCHING START/END TIMES
@@ -306,7 +306,7 @@ class TreeHerder(object):
             if job_result.build_system_type == "taskcluster" and task_id != job_result.task.id:
                 continue
 
-            if detail is None:
+            if detail == None:
                 detail = job_result
             elif timestamp:
                 timestamp = Date(timestamp).unix
@@ -317,7 +317,7 @@ class TreeHerder(object):
             else:
                 Log.error("Not expecting more then one detail with no timestamp to help match")
 
-        if detail and detail.job.status=="pending":
+        if detail.job.state == "pending":
             Log.error(TRY_AGAIN_LATER)
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA
@@ -330,6 +330,10 @@ class TreeHerder(object):
             detail.etl.timestamp = Date.now()
 
             self.cache.add({"value": detail})
+            try:
+                self.cache.flush()
+            except Exception, e:
+                Log.warning("problem flushing. nevermind.", cause=e)
 
         return detail
 
