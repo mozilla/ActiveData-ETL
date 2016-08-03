@@ -1,16 +1,36 @@
 {
-	"source": {
-		"name": "Task Cluster",
-		"prefix": "tc",
-		"exchange": "exchange/taskcluster-queue/v1/task-completed",
-		"topic": "#",
-		"durable": true,
-		"timeout":600,
-		"queue": "active-data-task-cluster-log-dev",
-		"$ref": "file://~/private.json#pulse_user",
-		"debug": false
-	},
+	"source": [
+		{
+			"name": "Task Cluster",
+			"exchange": "exchange/taskcluster-queue/v1/task-completed",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-completed-dev",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-exception",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-exception-dev",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-failed",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-failed-dev",
+			"$ref": "file://~/private.json#pulse_user",
+			"debug": false
+		}
+	],
 	"destination": {
+		"key_prefix": "tc",
 		"bucket": "active-data-task-cluster-logger-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"
@@ -20,23 +40,19 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"queue_file": "results/taskcluster-logger.json",
-		"debug": false,     // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
-		"size": 100        // NUMBER OF MESSAGES PER S3 KEY
+		"queue_file": "results/taskcluster-logger-queue.json",
+		"debug": true,    // true==DO NOT BOTHER CHECKING THE SYNCHRONIZATION KEY
+		"size": 100  	   // NUMBER OF MESSAGES PER S3 KEY
 	},
-	"debug":{
-        "cprofile":{
-	        "enabled": false,
-	        "filename": "./results/cprofile.tab"
-        },
-		"log":[
-			{"log_type":"console"},
+	"debug": {
+		"trace": true,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/cprofile.tab"
+		},
+		"log": [
 			{
-				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "./results/logs/taskcluster_logger_dev.log",
-				"maxBytes" : 10000000,
-				"backupCount" : 100,
-				"encoding" : "utf8"
+				"log_type": "console"
 			},
 			{
 				"log_type":"ses",
@@ -44,7 +60,6 @@
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV]Problem in Pulse Logger",
 				"$ref":"file://~/private.json#aws_credentials"
-
 			}
 		]
 	}

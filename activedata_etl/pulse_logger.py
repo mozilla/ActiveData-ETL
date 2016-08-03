@@ -6,21 +6,23 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+from pyLibrary import aws
 from pyLibrary import convert
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
-from pyLibrary import aws
 from pyLibrary.debugs import startup, constants
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import set_default, coalesce, listwrap
 from pyLibrary.env import pulse
 from pyLibrary.queries import jx
-from pyLibrary.dot import set_default, coalesce
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
-from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+
 
 # ONLY DEPLOY OFF THE pulse-logger branch
 
@@ -40,8 +42,8 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                 bucket=bucket.name
             )
 
-            if settings.source.prefix:
-                full_key = settings.source.prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+            if settings.destination.key_prefix:
+                full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             else:
                 full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
             try:
@@ -54,14 +56,14 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                             "timestamp": Date.now().unix,
                             "id": synch.next_key,
                             "source": {
-                                "name": settings.source.name,
-                                "exchange": settings.source.exchange,
+                                "name": coalesce(*settings.source.name),
+                                "exchange": d._meta.exchange,
                                 "id": d._meta.count,
                                 "count": d._meta.count,
                                 "message_id": d._meta.message_id,
                                 "sent": Date(d._meta.sent),
                                 "source": {
-                                    "id": settings.source.prefix
+                                    "id": settings.destination.key_prefix
                                 },
                                 "type": "join"
                             },
@@ -113,14 +115,15 @@ def main():
 
         with startup.SingleInstance(flavor_id=settings.args.filename):
             with aws.s3.Bucket(settings.destination) as bucket:
+                settings.source=listwrap(settings.source)
 
                 if settings.param.debug:
-                    if settings.source.durable:
+                    if any(settings.source.durable):
                         Log.error("Can not run in debug mode with a durable queue")
                     synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
                 else:
                     synch = SynchState(bucket.get_key(SYNCHRONIZATION_KEY, must_exist=False))
-                    if settings.source.durable:
+                    if any(settings.source.durable):
                         synch.startup()
 
                 queue = PersistentQueue(settings.param.queue_file)
@@ -128,7 +131,12 @@ def main():
                     last_item = queue[len(queue) - 1]
                     synch.source_key = last_item._meta.count + 1
 
-                with pulse.Consumer(settings=settings.source, target=None, target_queue=queue, start=synch.source_key):
+                context = [
+                    pulse.Consumer(settings=s, target=None, target_queue=queue, start=synch.source_key)
+                    for s in settings.source
+                ]
+
+                with ExitStack(*context):
                     Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
                     Thread.wait_for_shutdown_signal(allow_exit=True)
                     Log.warning("starting shutdown")
@@ -143,5 +151,35 @@ def main():
         Log.stop()
 
 
+class ExitStack(object):
+
+    def __init__(self, *context):
+        self.context=context
+
+    def __enter__(self):
+        for i, c in enumerate(self.context):
+            try:
+                c.__enter__()
+            except Exception, e:
+                e = Except.wrap(e)
+                for ii in range(i):
+                    try:
+                        self.context[ii].__exit__(Except, e, None)
+                    except Exception:
+                        pass
+                Log.error("problem entering context", cause=e)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for c in self.context:
+            try:
+                c.__exit__(exc_type, exc_val, exc_tb)
+            except Exception:
+                pass
+
+
+
+
 if __name__ == "__main__":
     main()
+
+

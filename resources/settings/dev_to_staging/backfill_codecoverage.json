@@ -1,12 +1,13 @@
 {
 	"limit": 100000,
-	"range":{"min":179000, "max":230000},
+	"range":{"min":280695, "max":280696},
 	"no_checks": true,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
-		"name": "active-data-index-codecoverage",
+		"name": "active-data-index",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {    //WHERE WE GET DATA FROM
+		"prefix":"tc.",
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-codecoverage",
 		"key_format": "a:b.c"
