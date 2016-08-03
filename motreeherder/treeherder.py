@@ -18,6 +18,7 @@ from copy import copy
 import requests
 
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
 from pyLibrary.env import http, elasticsearch
@@ -61,7 +62,15 @@ class TreeHerder(object):
         start = Date.now().unix
         self._register_call(branch, revision, start)
         try:
-            results = http.get_json(expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})).results
+            url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
+            for attempt in range(3):
+                try:
+                    results = http.get_json(url=url).results
+                    break
+                except Exception, e:
+                    e = Except.wrap(e)
+                    if "No JSON object could be decoded" not in e:
+                        Log.error("Could not get good response from {{url}}", url=url, cause=e)
 
             output = []
             for g, repo_ids in jx.groupby(results.id, size=10):
@@ -373,6 +382,14 @@ class TreeHerder(object):
         except Exception, e:
             Log.warning("can not connect to th request logger", cause=e)
 
+    def replicate(self):
+        # FIND HOLES IN JOBS
+        # LOAD THEM FROM TREEHERDER
+        pass
+
+
+
+
 
 def _scrub(record, name):
     value = record[name]
@@ -392,6 +409,7 @@ def _extract_task_id(url):
         return task_id
     except Exception:
         return None
+
 
 
 SCHEMA = {
