@@ -115,7 +115,7 @@ class TreeHerder(object):
                     try:
                         self.cache.refresh()
                     except Exception, e:
-                        Log.warning("problem refreshing. nevermind.", cause=e)
+                        Log.warning("problem refreshing. nevermind.")
             return output
         finally:
             self._register_call(branch, revision, start, Date.now().unix)
@@ -311,6 +311,8 @@ class TreeHerder(object):
                     Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
                 Thread.sleep(seconds=10)
         except Exception, e:
+            if "timestamp required to find best match" in e:
+                Log.error("Logic error", cause=e)
             Log.warning("can not connect to th request logger", cause=e)
 
         # REGISTER OUR TREEHERDER CALL
@@ -353,7 +355,7 @@ class TreeHerder(object):
             try:
                 self.cache.refresh()
             except Exception, e:
-                Log.warning("problem refreshing. nevermind.", cause=e)
+                Log.warning("problem refreshing. nevermind.")
 
         return detail
 
