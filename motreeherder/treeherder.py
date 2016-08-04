@@ -268,7 +268,7 @@ class TreeHerder(object):
         docs = None
         for attempt in range(3):
             try:
-                docs = self.cache.search(query, timeout=120).hits.hits
+                docs = self.cache.search(query, timeout=600).hits.hits
                 break
             except Exception, e:
                 if "EsRejectedExecutionException[rejected execution (queue capacity" not in e:

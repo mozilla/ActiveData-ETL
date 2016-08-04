@@ -47,6 +47,7 @@ KNOWN_PERFHERDER_TESTS = [
     "g1",
     "g2",
     "g3",
+    "g4",
     "glterrain",
     "kraken",
     "media_tests",
