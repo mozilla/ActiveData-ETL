@@ -69,7 +69,7 @@ class TreeHerder(object):
                 try:
                     response = http.get(url=url)
                     if str(response.status_code)[0] == b'2':
-                        results = convert.value2json(convert.utf82unicode(response.content)).results
+                        results = convert.json2value(convert.utf82unicode(response.content)).results
                         break
                     elif response.status_code == 404:
                         if branch not in ["hg.mozilla.org"]:
@@ -126,8 +126,8 @@ class TreeHerder(object):
                     self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
                     try:
                         self.cache.refresh()
-                    except Exception, e:
-                        Log.warning("problem refreshing. nevermind.")
+                    except Exception:
+                        pass
             return output
         finally:
             self._register_call(branch, revision, start, Date.now().unix)
@@ -366,8 +366,8 @@ class TreeHerder(object):
             self.cache.add({"value": detail})
             try:
                 self.cache.refresh()
-            except Exception, e:
-                Log.warning("problem refreshing. nevermind.")
+            except Exception:
+                pass
 
         return detail
 
