@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 
+from motreeherder.treeherder import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
@@ -53,9 +54,10 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.run.key,
                     data.action.end_time
                 )
-
-
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                Log.error("Aborting processing of {{key}}", key=source_key)
+
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
                 key=source_key,

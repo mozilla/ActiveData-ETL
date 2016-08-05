@@ -98,7 +98,9 @@ def main():
         cw = cloudwatch.connect_to_region(**aws_args)
 
         instances = _get_managed_instances(ec2_conn, settings.name)
-
+        if not instances:
+            Log.alert("No instances found. DONE.")
+            return
         for i in instances:
             try:
                 _refresh_etl(i, settings, cw)

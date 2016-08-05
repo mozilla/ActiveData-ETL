@@ -18,10 +18,12 @@ from copy import copy
 import requests
 
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.maths import Math
+from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import cache, use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
@@ -29,6 +31,9 @@ from pyLibrary.thread.threads import Thread, DEBUG
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import HOUR, DAY, MINUTE
 from pyLibrary.times.timer import Timer
+
+
+TRY_AGAIN_LATER = "Treeherder is not done ingesting, try again later"
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
@@ -58,10 +63,31 @@ class TreeHerder(object):
         start = Date.now().unix
         self._register_call(branch, revision, start)
         try:
-            results = http.get_json(expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})).results
+            url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
+            results = None
+            for attempt in range(3):
+                try:
+                    response = http.get(url=url)
+                    if str(response.status_code)[0] == b'2':
+                        results = convert.json2value(convert.utf82unicode(response.content)).results
+                        break
+                    elif response.status_code == 404:
+                        if branch not in ["hg.mozilla.org"]:
+                            Log.warning("{{branch}} rev {{revision}} returns 404 NOT FOUND", branch=branch, revision=revision)
+                        return Null
+                    else:
+                        Log.warning("Do not know how to deal with {{code}}", code=response.status_code)
+                except Exception, e:
+                    e = Except.wrap(e)
+                    if "No JSON object could be decoded" not in e:
+                        Log.error("Could not get good response from {{url}}", url=url, cause=e)
+
+            if results is None:
+                Log.error("Could not get good response from {{url}}", url=url, cause=e)
 
             output = []
             for g, repo_ids in jx.groupby(results.id, size=10):
+                repo_ids=wrap(list(repo_ids))
                 jobs = DictList()
                 with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
                     while True:
@@ -99,9 +125,9 @@ class TreeHerder(object):
                 with Timer("Write to ES cache"):
                     self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
                     try:
-                        self.cache.flush()
-                    except Exception, e:
-                        Log.warning("problem flushing. nevermind.", cause=e)
+                        self.cache.refresh()
+                    except Exception:
+                        pass
             return output
         finally:
             self._register_call(branch, revision, start, Date.now().unix)
@@ -240,7 +266,9 @@ class TreeHerder(object):
                     _filter,
                     {"term": {"repo.branch": branch}},
                     {"prefix": {"repo.revision": revision}},
+                    {"not": {"term": {"job.state": "pending"}}},  # IGNORE ALL PENDING STATE
                     {"or": [
+                        {"missing": {"field": "job.id"}},
                         {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
                         {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
                     ]}
@@ -249,16 +277,24 @@ class TreeHerder(object):
             "size": 10000
         }
 
-        try:
-            docs = self.cache.search(query, timeout=120).hits.hits
-        except Exception, e:
-            docs = None
-            Log.warning("Bad ES call, fall back to TH", cause=e)
+        docs = None
+        for attempt in range(3):
+            try:
+                docs = self.cache.search(query, timeout=600).hits.hits
+                break
+            except Exception, e:
+                if "EsRejectedExecutionException[rejected execution (queue capacity" not in e:
+                    Log.warning("Bad ES call, fall back to TH", cause=e)
+                    return None
+                Thread.sleep(seconds=Random.int(30))
 
         if not docs:
+            if DEBUG:
+                Log.note("No cached for {{value|quote}} rev {{revision}}", value=coalesce(task_id, buildername), revision=revision)
             return None
         elif len(docs) == 1:
-            Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
+            if DEBUG:
+                Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
             return docs[0]._source
         elif timestamp == None:
             Log.error("timestamp required to find best match")
@@ -287,12 +323,14 @@ class TreeHerder(object):
                     Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
                 Thread.sleep(seconds=10)
         except Exception, e:
+            if "timestamp required to find best match" in e:
+                Log.error("Logic error", cause=e)
             Log.warning("can not connect to th request logger", cause=e)
 
         # REGISTER OUR TREEHERDER CALL
         job_results = self._get_job_results_from_th(branch, revision)
 
-        detail = None
+        detail = Null
         for job_result in job_results:
             # MATCH TEST RUN BY UID DOES NOT EXIST, SO WE USE THE ARCANE BUILDER NAME
             # PLUS THE MATCHING START/END TIMES
@@ -302,7 +340,7 @@ class TreeHerder(object):
             if job_result.build_system_type == "taskcluster" and task_id != job_result.task.id:
                 continue
 
-            if detail is None:
+            if detail == None:
                 detail = job_result
             elif timestamp:
                 timestamp = Date(timestamp).unix
@@ -313,6 +351,8 @@ class TreeHerder(object):
             else:
                 Log.error("Not expecting more then one detail with no timestamp to help match")
 
+        if detail.job.state == "pending":
+            Log.error(TRY_AGAIN_LATER)
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA
             detail = Dict()
@@ -324,6 +364,10 @@ class TreeHerder(object):
             detail.etl.timestamp = Date.now()
 
             self.cache.add({"value": detail})
+            try:
+                self.cache.refresh()
+            except Exception:
+                pass
 
         return detail
 
@@ -363,6 +407,14 @@ class TreeHerder(object):
         except Exception, e:
             Log.warning("can not connect to th request logger", cause=e)
 
+    def replicate(self):
+        # FIND HOLES IN JOBS
+        # LOAD THEM FROM TREEHERDER
+        pass
+
+
+
+
 
 def _scrub(record, name):
     value = record[name]
@@ -382,6 +434,7 @@ def _extract_task_id(url):
         return task_id
     except Exception:
         return None
+
 
 
 SCHEMA = {

@@ -9,11 +9,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from motreeherder.treeherder import TRY_AGAIN_LATER
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null
+from pyLibrary.dot import Dict, wrap, Null, listwrap
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from activedata_etl import etl2key
@@ -116,9 +117,9 @@ def transform_buildbot(source_key, payload, resources, filename=None):
     output.build.date = payload.builddate
     output.build.name = payload.buildername
     output.build.id = payload.buildid
-    output.build.type = payload.buildtype
+    output.build.type = listwrap(payload.buildtype)
     if "e10s" in payload.key.lower():
-        output.run.type = "e10s"
+        output.run.type += ["e10s"]
 
     output.build.url = payload.buildurl
     output.run.job_number = payload.job_number
@@ -208,16 +209,17 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 )
 
         try:
-            job = resources.treeherder.get_markup(
+            output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
                 None,
                 output.build.name,
                 output.run.timestamp
             )
-            if job:
-                output.treeherder=job
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                Log.error("Looks like TH is not done processing.  Aborting processing of {{key}}", key=source_key)
+
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
                 key=source_key,
