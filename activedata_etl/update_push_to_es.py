@@ -100,7 +100,7 @@ def _es_up():
 
 
 def _refresh_indexer():
-    with cd("/home/ec2-user/TestLog-ETL/"):
+    with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
@@ -114,7 +114,7 @@ def _refresh_indexer():
 def _start_supervisor():
     put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
 
-    #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
+    # START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
     with fabric_settings(warn_only=True):
         sudo("supervisord -c /etc/supervisord.conf")
 
