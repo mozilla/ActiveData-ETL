@@ -218,7 +218,7 @@ def transform_buildbot(source_key, payload, resources, filename=None):
             )
         except Exception, e:
             if TRY_AGAIN_LATER in e:
-                Log.error("Aborting processing of {{key}}", key=source_key)
+                Log.error("Looks like TH is not done processing.  Aborting processing of {{key}}", key=source_key)
 
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",

@@ -64,14 +64,26 @@ class TreeHerder(object):
         self._register_call(branch, revision, start)
         try:
             url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
+            results = None
             for attempt in range(3):
                 try:
-                    results = http.get_json(url=url).results
-                    break
+                    response = http.get(url=url)
+                    if str(response.status_code)[0] == b'2':
+                        results = convert.value2json(convert.utf82unicode(response.content)).results
+                        break
+                    elif response.status_code == 404:
+                        if branch not in ["hg.mozilla.org"]:
+                            Log.warning("{{branch}} rev {{revision}} returns 404 NOT FOUND", branch=branch, revision=revision)
+                        return Null
+                    else:
+                        Log.warning("Do not know how to deal with {{code}}", code=response.status_code)
                 except Exception, e:
                     e = Except.wrap(e)
                     if "No JSON object could be decoded" not in e:
                         Log.error("Could not get good response from {{url}}", url=url, cause=e)
+
+            if results is None:
+                Log.error("Could not get good response from {{url}}", url=url, cause=e)
 
             output = []
             for g, repo_ids in jx.groupby(results.id, size=10):
@@ -278,7 +290,7 @@ class TreeHerder(object):
 
         if not docs:
             if DEBUG:
-                Log.note("No cached for {{value|quote}}", value=coalesce(task_id, buildername))
+                Log.note("No cached for {{value|quote}} rev {{revision}}", value=coalesce(task_id, buildername), revision=revision)
             return None
         elif len(docs) == 1:
             if DEBUG:
