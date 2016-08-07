@@ -6,21 +6,19 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env import elasticsearch
+from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
-from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
-from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-
 
 DEBUG = True
 

@@ -305,7 +305,7 @@ class TreeHerder(object):
             best_index = jx.sort([(i, abs(coalesce(e, 0) - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
             return docs[best_index]._source
 
-    @cache(duration=HOUR, lock=True, cache_exceptions=False)
+    @cache(duration=HOUR, lock=True)
     def get_markup(self, branch, revision, task_id=None, buildername=None, timestamp=None):
         """
         THROW ERROR IF PROBLEM, OR IF THE RETURNED TH DETAIL IS STILL PENDING

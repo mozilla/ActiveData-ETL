@@ -35,6 +35,7 @@ NOT_STRUCTURED_LOGS = [
     "/talos_raw.log",
     "/buildprops.json",
     ".mozinfo.json",
+    "_errorsummary.log",
     ".exe",
     "/log_critical.log",
     "/log_error.log",
@@ -65,7 +66,7 @@ NOT_STRUCTURED_LOGS = [
     ".pom.sha1",
     ".pom",
     ".xml.sha1",
-    ".xml"
+    ".xml",
     ]
 TOO_MANY_NON_JSON_LINES = Dict()
 
