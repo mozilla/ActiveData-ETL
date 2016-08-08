@@ -209,16 +209,17 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 )
 
         try:
-            output.treeherder = resources.treeherder.get_markup(
-                output.build.branch,
-                output.build.revision,
-                None,
-                output.build.name,
-                output.run.timestamp
-            )
+            if output.build.branch and output.build.revision:
+                output.treeherder = resources.treeherder.get_markup(
+                    output.build.branch,
+                    output.build.revision,
+                    None,
+                    output.build.name,
+                    output.run.timestamp
+                )
         except Exception, e:
             if TRY_AGAIN_LATER in e:
-                Log.error("Looks like TH is not done processing.  Aborting processing of {{key}}", key=source_key)
+                Log.error("Looks like TH is not done processing.  Aborting processing of {{key}}", key=source_key, cause=e)
 
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",

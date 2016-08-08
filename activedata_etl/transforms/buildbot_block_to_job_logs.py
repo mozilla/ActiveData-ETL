@@ -56,7 +56,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 )
         except Exception, e:
             if TRY_AGAIN_LATER in e:
-                Log.error("Aborting processing of {{key}}", key=source_key)
+                Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 
             Log.warning(
                 "Could not lookup Treeherder data for {{key}} and revision={{revision}}",

@@ -77,8 +77,8 @@ class HgMozillaOrg(object):
         self.es.add_alias()
         try:
             self.es.set_refresh_interval(seconds=1)
-        except Exception, e:
-            Log.warning("Ignore refresh problem", cause=e)
+        except Exception:
+            pass
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 
