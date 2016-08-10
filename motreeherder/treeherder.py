@@ -82,9 +82,8 @@ class TreeHerder(object):
                         return Null
                     elif response.status_code == 403:
                         Log.error(TRY_AGAIN_LATER, reason="HTTP 403 ERROR")
-
                     else:
-                        Log.warning("Do not know how to deal with {{code}}", code=response.status_code)
+                        Log.warning("Do not know how to deal with TH error {{code}}", code=response.status_code)
                 except Exception, e:
                     e = Except.wrap(e)
                     if "No JSON object could be decoded" not in e:
