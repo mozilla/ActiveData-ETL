@@ -33,7 +33,7 @@ from pyLibrary.times.durations import HOUR, DAY, MINUTE
 from pyLibrary.times.timer import Timer
 
 
-TRY_AGAIN_LATER = "Treeherder is not done ingesting, try again later"
+TRY_AGAIN_LATER = "{{reason}}, try again later"
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
@@ -60,6 +60,11 @@ class TreeHerder(object):
         self.rate_limiter.set_refresh_interval(seconds=1)
 
     def _get_job_results_from_th(self, branch, revision):
+        """
+        :param branch:
+        :param revision:
+        :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
+        """
         start = Date.now().unix
         self._register_call(branch, revision, start)
         try:
@@ -75,6 +80,9 @@ class TreeHerder(object):
                         if branch not in ["hg.mozilla.org"]:
                             Log.warning("{{branch}} rev {{revision}} returns 404 NOT FOUND", branch=branch, revision=revision)
                         return Null
+                    elif response.status_code == 403:
+                        Log.error(TRY_AGAIN_LATER, reason="HTTP 403 ERROR")
+
                     else:
                         Log.warning("Do not know how to deal with {{code}}", code=response.status_code)
                 except Exception, e:
@@ -362,7 +370,7 @@ class TreeHerder(object):
                 Log.error("Not expecting more then one detail with no timestamp to help match")
 
         if detail.job.state == "pending":
-            Log.error(TRY_AGAIN_LATER)
+            Log.error(TRY_AGAIN_LATER, reason="Treeherder not done ingesting")
         if not detail:
             # MAKE A FILLER RECORD FOR THE MISSING DATA
             detail = Dict()
