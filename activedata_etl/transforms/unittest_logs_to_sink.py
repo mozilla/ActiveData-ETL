@@ -59,7 +59,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
-        Log.error("Problem processing {{key}}", key=source_key, cause=e)
+        Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
         summary = None
 
     buildbot_summary.etl = {
@@ -145,7 +145,8 @@ def accumulate_logs(source_key, url, lines, please_stop):
             accumulator.stats.bad_lines += 1
 
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url|quote}} for key {{key}}",
+    Log.note(
+        "{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url|quote}} for key {{key}}",
         key=source_key,
         num_bytes=output.stats.bytes,
         num_lines=output.stats.lines,
