@@ -3,7 +3,7 @@
 	"no_checks": true,
 	"range": {
 		// RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
-		"min":200
+		"min":500
 	},
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"git": {
@@ -32,7 +32,7 @@
 	},
 	"work_queue": {
 		// THE QUEUE TO FILL WITH REQUESTS
-		"name": "active-data-index-jobs",
+		"name": "active-data-index",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
