@@ -6,9 +6,8 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-import zlib
+from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
@@ -18,14 +17,12 @@ from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes, icompressed2ibytes
+from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
-from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
-
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
@@ -166,7 +163,9 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        parse_to_s3(settings)
+        # parse_to_s3(settings)
+
+        parse_day(settings, "builds-2016-08-04.js.gz", True)
         # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)
