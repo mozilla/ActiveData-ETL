@@ -345,7 +345,7 @@ class TreeHerder(object):
                 Log.warning("Problem using TH request logger", cause=e)
                 continue
 
-            Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision, try something else")
+            Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision")
 
         # REGISTER OUR TREEHERDER CALL
         job_results = self._get_job_results_from_th(branch, revision)

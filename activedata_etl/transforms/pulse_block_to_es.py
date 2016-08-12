@@ -54,7 +54,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             records.append({"id": key, "value": record})
         except Exception, e:
             if TRY_AGAIN_LATER:
-                Log.error("Do not finish processing {{key}}", key=source_key)
+                Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
     destination.extend(records)
     return keys

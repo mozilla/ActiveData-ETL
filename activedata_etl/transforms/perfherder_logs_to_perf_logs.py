@@ -122,7 +122,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 i += 1
         except Exception, e:
             if TRY_AGAIN_LATER:
-                Log.error("Do not finish processing {{key}}", key=source_key)
+                Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
 
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
 
