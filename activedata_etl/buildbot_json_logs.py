@@ -156,12 +156,15 @@ def get_all_tasks(url):
     with Timer("copy json log to local file"):
         response = http.get(url)
         _stream = response.raw
+        size = 0
         while True:
             chunk = _stream.read(http.MIN_READ_SIZE)
             if not chunk:
                 break
+            size += len(chunk)
             _file.write(chunk)
         _file.seek(0)
+    Log.note("File is {{num}} bytes", num=size)
 
     return stream.parse(
         scompressed2ibytes(_file),
@@ -175,9 +178,9 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        # parse_to_s3(settings)
+        parse_to_s3(settings)
 
-        parse_day(settings, "builds-2016-08-04.js.gz", True)
+        # parse_day(settings, "builds-2016-08-04.js.gz", True)
         # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)
