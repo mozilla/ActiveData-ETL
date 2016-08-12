@@ -124,6 +124,9 @@ class Queue(object):
 
 
     def add(self, value, timeout=None):
+        if not self.keep_running:
+            _Log.error("Do not add to closed queue")
+
         with self.lock:
             self._wait_for_queue_space(timeout=None)
             if self.keep_running:
@@ -138,6 +141,9 @@ class Queue(object):
         """
         SNEAK value TO FRONT OF THE QUEUE
         """
+        if not self.keep_running:
+            _Log.error("Do not push to closed queue")
+
         with self.lock:
             self._wait_for_queue_space()
             if self.keep_running:
@@ -145,6 +151,9 @@ class Queue(object):
         return self
 
     def extend(self, values):
+        if not self.keep_running:
+            _Log.error("Do not push to closed queue")
+
         with self.lock:
             # ONCE THE queue IS BELOW LIMIT, ALLOW ADDING MORE
             self._wait_for_queue_space()

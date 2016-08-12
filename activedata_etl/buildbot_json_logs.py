@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from tempfile import TemporaryFile
+
 from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
@@ -23,6 +25,7 @@ from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
+from pyLibrary.times.timer import Timer
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
@@ -149,13 +152,22 @@ def get_all_tasks(url):
     """
     RETURN ITERATOR OF ALL `builds` IN THE BUILDBOT JSON LOG
     """
-    response = http.get(url)
+    _file = TemporaryFile()
+    with Timer("copy json log to local file"):
+        response = http.get(url)
+        _stream = response.raw
+        while True:
+            chunk = _stream.read(http.MIN_READ_SIZE)
+            if not chunk:
+                break
+            _file.write(chunk)
+        _file.seek(0)
+
     return stream.parse(
-        scompressed2ibytes(response.raw),
+        scompressed2ibytes(_file),
         "builds",
         expected_vars=["builds"]
     )
-
 
 def main():
     try:

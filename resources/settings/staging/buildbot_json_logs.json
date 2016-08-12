@@ -1,5 +1,5 @@
 {
-	"force": false,
+	"force": true,
 	"source": {
 		"url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 	},
@@ -20,7 +20,7 @@
 	},
 	"debug": {
 		"trace": true,
-		"cprofile": true,
+		"cprofile": false,
 		"log": [
 			{
 				"log_type": "console"
