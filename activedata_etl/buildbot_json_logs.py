@@ -6,9 +6,10 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-import zlib
+from __future__ import unicode_literals
+
+from tempfile import TemporaryFile
 
 from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
@@ -18,14 +19,13 @@ from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes, icompressed2ibytes
+from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
-from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
-
+from pyLibrary.times.timer import Timer
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
@@ -152,13 +152,25 @@ def get_all_tasks(url):
     """
     RETURN ITERATOR OF ALL `builds` IN THE BUILDBOT JSON LOG
     """
-    response = http.get(url)
+    _file = TemporaryFile()
+    with Timer("copy json log to local file"):
+        response = http.get(url)
+        _stream = response.raw
+        size = 0
+        while True:
+            chunk = _stream.read(http.MIN_READ_SIZE)
+            if not chunk:
+                break
+            size += len(chunk)
+            _file.write(chunk)
+        _file.seek(0)
+    Log.note("File is {{num}} bytes", num=size)
+
     return stream.parse(
-        scompressed2ibytes(response.raw),
+        scompressed2ibytes(_file),
         "builds",
         expected_vars=["builds"]
     )
-
 
 def main():
     try:
@@ -167,6 +179,8 @@ def main():
         Log.start(settings.debug)
 
         parse_to_s3(settings)
+
+        # parse_day(settings, "builds-2016-08-04.js.gz", True)
         # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)

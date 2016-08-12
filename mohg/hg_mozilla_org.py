@@ -143,7 +143,7 @@ class HgMozillaOrg(object):
             "size": 2000,
         }
         try:
-            docs = self.es.search(query, timeout=120).hits.hits
+            docs = self.es.search(query).hits.hits
             if len(docs) > 1:
                 for d in docs:
                     if d._id.endswith(d._source.branch.locale):

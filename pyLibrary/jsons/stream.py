@@ -335,7 +335,6 @@ class List_usingStream(object):
                 self.buffer += self.get_more()
                 self.buffer_length = len(self.buffer)
 
-
         return self.buffer[offset]
 
     def slice(self, start, stop):

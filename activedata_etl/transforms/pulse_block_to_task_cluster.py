@@ -155,7 +155,7 @@ def _normalize(source_key, tc_message, task, resources):
     except Exception, e:
         Log.error("problem", cause=e)
 
-    output.task.tags = get_tags(task)
+    output.task.tags = get_tags(source_key, task)
 
     set_build_info(output, task, resources)
     set_run_info(output, task)
@@ -268,9 +268,9 @@ def set_build_info(normalized, task, resources):
         for l, v in task.extra.treeherder.leaves():
             normalized.treeherder[l] = v
 
-    for k in ["opt", "debug", "asan", "pgo", "lsan"]:
+    for k, v in BUILD_TYPES.items():
         if task.extra.treeherder.collection[k]:
-            normalized.build.type += [k]
+            normalized.build.type += v
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
@@ -283,7 +283,7 @@ def set_build_info(normalized, task, resources):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
 
-def get_tags(task, parent=None):
+def get_tags(source_key, task, parent=None):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
     clean_tags = []
     for t in tags:
@@ -295,7 +295,7 @@ def get_tags(task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(Dict(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, Dict(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):
@@ -305,17 +305,17 @@ def get_tags(task, parent=None):
         elif not isinstance(v, unicode):
             v = convert.value2json(v)
         t["value"] = v
-        verify_tag(t)
+        verify_tag(source_key, t)
         clean_tags.append(t)
 
     return clean_tags
 
 
-def verify_tag(t):
+def verify_tag(source_key, t):
     if not isinstance(t["value"], unicode):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
-        Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
+        Log.warning("unknown task tag {{tag|quote}} while processing {{key}}", key=source_key, tag=t["name"])
         KNOWN_TAGS.add(t["name"])
 
 
@@ -327,6 +327,17 @@ def _object_to_array(value, key_name, value_name=None):
             return [{key_name: k, value_name: v} for k, v in value.items()]
     except Exception, e:
         Log.error("unexpected", cause=e)
+
+BUILD_TYPES = {
+    "opt": ["opt"],
+    "debug": ["debug"],
+    "asan": ["asan"],
+    "pgo": ["pgo"],
+    "lsan": ["lsan"],
+    "memleak": ["memleak"],
+    "arm-debug": ["debug", "arm"],
+    "arm-opt": ["opt", "arm"]
+}
 
 
 KNOWN_TAGS = {
@@ -443,6 +454,8 @@ KNOWN_TAGS = {
     "treeherder.collection.pgo",
     "treeherder.collection.asan",
     "treeherder.collection.lsan",
+    "treeherder.collection.arm-debug",
+    "treeherder.collection.arm-opt",
     "treeherder.groupSymbol",
     "treeherder.groupName",
     "treeherder.jobKind",
@@ -453,6 +466,8 @@ KNOWN_TAGS = {
     "treeherder.revision_hash",
     "treeherder.symbol",
     "treeherder.tier",
+
+
 
     "url.busybox",
     "useCloudMirror"

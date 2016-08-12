@@ -421,16 +421,13 @@ class TreeHerder(object):
             )
             if unicode(response.status_code)[0] != '2':
                 Log.error("Could not register call")
-        except Exception, e:
-            Log.warning("can not connect to th request logger", cause=e)
+        except Exception:
+            pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
 
     def replicate(self):
         # FIND HOLES IN JOBS
         # LOAD THEM FROM TREEHERDER
         pass
-
-
-
 
 
 def _scrub(record, name):
