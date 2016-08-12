@@ -22,7 +22,7 @@ from json import encoder as json_encoder_module
 from math import floor
 from repr import Repr
 
-from pyLibrary.dot import Dict, DictList, NullType, Null
+from pyLibrary.dot import Dict, DictList, NullType, Null, unwrap
 from pyLibrary.jsons import quote, ESCAPE_DCT, scrub
 from pyLibrary.strings import utf82unicode
 from pyLibrary.times.dates import Date
@@ -30,6 +30,7 @@ from pyLibrary.times.durations import Duration
 
 
 json_decoder = json.JSONDecoder().decode
+_get = object.__getattribute__
 
 
 # THIS FILE EXISTS TO SERVE AS A FAST REPLACEMENT FOR JSON ENCODING
@@ -79,7 +80,7 @@ def pypy_json_encode(value, pretty=False):
         return pretty_json(value)
 
     try:
-        _buffer = UnicodeBuilder(1024)
+        _buffer = UnicodeBuilder(2048)
         _value2json(value, _buffer)
         output = _buffer.build()
         return output
@@ -157,6 +158,7 @@ class cPythonJSONEncoder(object):
 
 def _value2json(value, _buffer):
     try:
+        _class = value.__class__
         if value is None:
             append(_buffer, u"null")
             return
@@ -165,12 +167,6 @@ def _value2json(value, _buffer):
             return
         elif value is False:
             append(_buffer, u"false")
-            return
-        elif isinstance(value, Mapping):
-            if value:
-                _dict2json(value, _buffer)
-            else:
-                append(_buffer, u"{}")
             return
 
         type = value.__class__
@@ -189,6 +185,13 @@ def _value2json(value, _buffer):
             for c in value:
                 append(_buffer, ESCAPE_DCT.get(c, c))
             append(_buffer, u"\"")
+        elif type is dict:
+            _dict2json(value, _buffer)
+            return
+        elif type is Dict:
+            d = _get(value, "_dict")
+            _value2json(d, _buffer)
+            return
         elif type in (int, long, Decimal):
             append(_buffer, unicode(value))
         elif type is float:
@@ -229,7 +232,7 @@ def _list2json(value, _buffer):
         sep = u"["
         for v in value:
             append(_buffer, sep)
-            sep = u", "
+            sep = u","
             _value2json(v, _buffer)
         append(_buffer, u"]")
 
