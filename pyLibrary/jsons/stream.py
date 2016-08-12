@@ -332,7 +332,8 @@ class List_usingStream(object):
                 self.buffer_length = len(self.buffer)
         else:
             while self.buffer_length <= offset:
-                self.buffer += self.get_more()
+                more = self.get_more()
+                self.buffer += more
                 self.buffer_length = len(self.buffer)
 
         return self.buffer[offset]

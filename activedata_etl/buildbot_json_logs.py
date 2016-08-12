@@ -39,7 +39,10 @@ def parse_to_s3(settings):
         try:
             parse_day(settings, path, settings.force)
         except Exception, e:
-            Log.warning("problem with {{path}}", path=path, cause=e)
+            day = Date(string2datetime(path[7:17], format="%Y-%m-%d"))
+            day_num = int((day - REFERENCE_DATE) / DAY)
+
+            Log.warning("Problem with #{{num}}: {{path}}", path=path, num=day_num, cause=e)
 
 
 def random(settings):
@@ -63,7 +66,7 @@ def parse_day(settings, p, force=False):
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
-    Log.note("Consider {{url}}", url=day_url)
+    Log.note("Consider #{{num}: {{url}}", url=day_url, num=day_num)
 
     destination = s3.Bucket(settings.destination)
     notify = Queue(settings=settings.notify)
@@ -178,9 +181,9 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        parse_to_s3(settings)
+        # parse_to_s3(settings)
 
-        # parse_day(settings, "builds-2016-08-04.js.gz", True)
+        parse_day(settings, "builds-2016-08-11.js.gz", True)
         # random(settings)
     except Exception, e:
         Log.error("Problem with etl", e)
