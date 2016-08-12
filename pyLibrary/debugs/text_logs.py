@@ -71,7 +71,7 @@ class TextLog_usingThread(TextLog):
         if not _Log:
             _delayed_imports()
 
-        self.queue = _Queue("logs", max=10000, silent=True)
+        self.queue = _Queue("logs", max=10000, silent=True, allow_add_after_close=True)
         self.logger = logger
 
         def worker(please_stop):
