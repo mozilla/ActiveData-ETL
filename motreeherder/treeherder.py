@@ -328,25 +328,25 @@ class TreeHerder(object):
         if not branch or not revision:
             Log.error("expecting branch and revision")
 
-            while self.settings.use_cache:
-                try:
-                    markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
-                    if markup:
-                        return markup
-                except Exception, e:
-                    if "timestamp required to find best match" in e:
-                        Log.error("Logic error", cause=e)
+        while self.settings.use_cache:
+            try:
+                markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
+                if markup:
+                    return markup
+            except Exception, e:
+                if "timestamp required to find best match" in e:
+                    Log.error("Logic error", cause=e)
 
-                    Log.warning("can not get markup from es, check TH request logger next", cause=e)
+                Log.warning("can not get markup from es, check TH request logger next", cause=e)
 
-                try:
-                    if self._is_it_safe_to_make_more_requests(branch, revision):
-                        break
-                except Exception, e:
-                    Log.warning("Problem using TH request logger", cause=e)
-                    continue
+            try:
+                if self._is_it_safe_to_make_more_requests(branch, revision):
+                    break
+            except Exception, e:
+                Log.warning("Problem using TH request logger", cause=e)
+                continue
 
-                Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision, try something else")
+            Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision, try something else")
 
         # REGISTER OUR TREEHERDER CALL
         job_results = self._get_job_results_from_th(branch, revision)
