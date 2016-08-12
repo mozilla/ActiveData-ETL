@@ -87,6 +87,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             output.append(normalized)
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                raise e
             Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
@@ -172,7 +174,7 @@ def _normalize(source_key, tc_message, task, resources):
             )
     except Exception, e:
         if TRY_AGAIN_LATER in e:
-            Log.error("Aborting processing of {{key}}", key=source_key)
+            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
