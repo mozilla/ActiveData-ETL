@@ -17,6 +17,7 @@ from copy import copy
 
 import requests
 
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
@@ -32,8 +33,6 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import HOUR, DAY, MINUTE
 from pyLibrary.times.timer import Timer
 
-
-TRY_AGAIN_LATER = "{{reason}}, try again later"
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"

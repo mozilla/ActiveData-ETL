@@ -15,6 +15,7 @@ from copy import copy
 from math import sqrt
 
 import pyLibrary
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
 from pyLibrary.debugs.logs import Log
@@ -120,6 +121,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 records.append({"id": key, "value": p})
                 i += 1
         except Exception, e:
+            if TRY_AGAIN_LATER:
+                Log.error("Do not finish processing {{key}}", key=source_key)
+
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
 
     # if not records:
