@@ -9,8 +9,8 @@ sudo ln -s /usr/local/bin/pip /usr/bin/pip
 
 cd  /home/ec2-user
 sudo yum -y install git
-git clone https://github.com/klahnakoski/Activedata-ETL.git
-cd /home/ec2-user/Activedata-ETL/
+git clone https://github.com/klahnakoski/ActiveData-ETL.git
+cd /home/ec2-user/ActiveData-ETL/
 git checkout push-to-es
 sudo pip install -r requirements.txt
 
