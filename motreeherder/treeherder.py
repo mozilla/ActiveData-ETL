@@ -328,21 +328,25 @@ class TreeHerder(object):
         if not branch or not revision:
             Log.error("expecting branch and revision")
 
-        try:
             while self.settings.use_cache:
-                markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
-                if markup:
-                    return markup
+                try:
+                    markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
+                    if markup:
+                        return markup
+                except Exception, e:
+                    if "timestamp required to find best match" in e:
+                        Log.error("Logic error", cause=e)
 
-                if self._is_it_safe_to_make_more_requests(branch, revision):
-                    break
-                if DEBUG:
-                    Log.note("waiting for TH extract for {{branch}}/{{revision}}", branch=branch, revision=revision)
-                Thread.sleep(seconds=10)
-        except Exception, e:
-            if "timestamp required to find best match" in e:
-                Log.error("Logic error", cause=e)
-            Log.warning("can not connect to th request logger", cause=e)
+                    Log.warning("can not get markup from es, check TH request logger next", cause=e)
+
+                try:
+                    if self._is_it_safe_to_make_more_requests(branch, revision):
+                        break
+                except Exception, e:
+                    Log.warning("Problem using TH request logger", cause=e)
+                    continue
+
+                Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision, try something else")
 
         # REGISTER OUR TREEHERDER CALL
         job_results = self._get_job_results_from_th(branch, revision)
@@ -389,7 +393,6 @@ class TreeHerder(object):
         return detail
 
     def _is_it_safe_to_make_more_requests(self, branch, revision):
-        get_more_data = False
         response = requests.get(
             url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
             timeout=3
@@ -403,13 +406,14 @@ class TreeHerder(object):
             expired = last_th_request.end + 2 * MINUTE.seconds
             now = Date.now().unix
             if expired < now:
-                get_more_data = True
+                return True
         else:
             expired = last_th_request.start + 5 * MINUTE.seconds
             now = Date.now().unix
             if expired < now:
-                get_more_data = True
-        return get_more_data
+                return True
+
+        return False
 
     def _register_call(self, branch, revision, start, end=None):
         try:
