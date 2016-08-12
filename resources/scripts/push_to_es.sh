@@ -1,4 +1,4 @@
-cd /home/ec2-user/ActiveData-ETL/
+cd /home/ec2-user/Activedata-ETL/
 
 
 git pull origin push-to-es

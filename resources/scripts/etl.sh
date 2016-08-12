@@ -1,4 +1,4 @@
-cd /home/ubuntu/ActiveData-ETL/
+cd /home/ubuntu/Activedata-ETL/
 export PYTHONPATH=.
 git checkout etl
 git pull origin etl
