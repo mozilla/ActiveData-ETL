@@ -26,7 +26,7 @@ requests. For example, by moving logging off the main thread, we can get
 up to 15% increase in overall speed because we no longer have the main thread
 waiting for disk writes or remote logging posts. Please note, this level of
 speed improvement can only be realized if there is no serialization happening
-at the multi-threaded queue.
+at the multi-threaded queue.  
 
 ###Asynch vs. Actors###
 
@@ -51,7 +51,7 @@ There are three major aspects of a synchronization primitive:
 
 The last, *irreversibility* is very useful, but ignored in many threading
 libraries. The irreversibility allows us to model progression; and
-we can allow threads to poll for progress, or be notified of progress.
+we can allow threads to poll for progress, or be notified of progress. 
 
 These three aspects can be combined to give us 8 synchronization primitives:
 

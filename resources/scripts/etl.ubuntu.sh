@@ -1,4 +1,4 @@
-cd /home/ubuntu/ActiveData-ETL/
+cd /home/ubuntu/Activedata-ETL/
 git checkout etl
 git stash
 git pull origin etl

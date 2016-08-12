@@ -32,6 +32,7 @@ from pyLibrary.strings import utf82unicode
 from pyLibrary.thread.threads import ThreadedQueue, Thread, Lock
 from pyLibrary.times.timer import Timer
 
+ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
 
@@ -66,6 +67,7 @@ class Index(Features):
         tjson=False,  # STORED AS TYPED JSON
         timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
         debug=False,  # DO NOT SHOW THE DEBUG STATEMENTS
+        cluster=None,
         settings=None
     ):
         if index==None:
@@ -76,7 +78,10 @@ class Index(Features):
         self.cluster_state = None
         self.debug = debug
         self.settings = settings
-        self.cluster = Cluster(settings)
+        if cluster:
+            self.cluster = cluster
+        else:
+            self.cluster = Cluster(settings)
 
         try:
             full_index = self.get_index(index)
@@ -228,7 +233,7 @@ class Index(Features):
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.cluster_state.version.number.startswith("1.0"):
+        elif self.cluster.cluster_state.version.number.startswith("1."):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
@@ -242,7 +247,7 @@ class Index(Features):
         result = self.cluster.delete(
             self.path + "/_query",
             data=convert.value2json(query),
-            timeout=60
+            timeout=600
         )
 
         for name, status in result._indices.items():
@@ -339,6 +344,9 @@ class Index(Features):
         if isinstance(record, list):
             Log.error("add() has changed to only accept one record, no lists")
         self.extend([record])
+
+    def refresh(self):
+        self.cluster.post("/" + self.settings.index + "/_refresh")
 
     def set_refresh_interval(self, seconds, **kwargs):
         """
@@ -630,6 +638,9 @@ class Cluster(object):
         return es
 
     def delete_index(self, index_name):
+        if not isinstance(index_name, unicode):
+            Log.error("expecting an index name")
+
         if self.debug:
             Log.note("Deleting index {{index}}", index=index_name)
 
@@ -737,6 +748,21 @@ class Cluster(object):
                 )
             else:
                 Log.error("Problem with call to {{url}}" + suggestion, url=url, cause=e)
+
+    def delete(self, path, **kwargs):
+        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        try:
+            response = http.delete(url, **kwargs)
+            if response.status_code not in [200]:
+                Log.error(response.reason+": "+response.all_content)
+            if self.debug:
+                Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
+            details = wrap(convert.json2value(utf82unicode(response.all_content)))
+            if details.error:
+                Log.error(details.error)
+            return details
+        except Exception, e:
+            Log.error("Problem with call to {{url}}", url=url, cause=e)
 
     def get(self, path, **kwargs):
         url = self.settings.host + ":" + unicode(self.settings.port) + path
@@ -964,7 +990,7 @@ class Alias(Features):
             raise NotImplementedError
 
         if self.debug:
-            Log.note("Delete bugs:\n{{query}}",  query= query)
+            Log.note("Delete documents:\n{{query}}", query=query)
 
         keep_trying = True
         while keep_trying:
@@ -1130,7 +1156,7 @@ def _merge_mapping(a, b):
         if a_details:
             a_details.type = _merge_type[a_details.type][b_details.type]
 
-            if b_details.type in ["object", "nested"]:
+            if b_details.type in ES_STRUCT:
                 _merge_mapping(a_details.properties, b_details.properties)
         else:
             a[literal_field(name)] = deepcopy(b_details)
