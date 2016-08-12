@@ -1,0 +1,144 @@
+{
+	"work_queue": {
+		"name": "active-data-index",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"workers": [
+		{
+			"name": "unit",
+			"batch_size": 5000,
+			"skip": 0.7,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "unittest",
+				"type": "test_result",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/test_results.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result",
+				"key_format": "t.a:b.c"
+			}
+		},
+		{
+			"name": "perf",
+			"batch_size": 1000,
+			"queue_size": 2000,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "perf",
+				"type": "perf_result",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/perf_results.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perf",
+				"key_format": "t.a:b.c"
+			}
+		},
+		{
+			"name": "jobs",
+			"batch_size": 500,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "jobs",
+				"type": "job",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/jobs.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs",
+				"key_format": "a.b"
+			}
+		},
+		{
+			"name": "code coverage",
+			"queue_size": 2000,
+			"batch_size": 1000,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "coverage",
+				"type": "code_coverage",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/code_coverage.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage",
+				"key_format": "t.a:b.c"
+			}
+		},
+		{
+			"name": "task",
+			"queue_size": 2000,
+			"batch_size": 1000,
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "task",
+				"type": "task",
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/task_cluster.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b"
+			}
+		}
+	],
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
+		}
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			},
+			{
+				"log_type": "ses",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][Staging]Problem in Push to ES",
+				"$ref": "file://~/private.json#aws_credentials"
+			}
+		]
+	}
+}

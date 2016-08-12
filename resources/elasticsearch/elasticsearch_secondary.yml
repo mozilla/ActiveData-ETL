@@ -1,5 +1,5 @@
 cluster.name: active-data
-node.zone: secondary
+node.zone: primary
 node.name: secondary
 node.master: false
 node.data: true

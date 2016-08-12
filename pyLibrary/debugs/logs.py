@@ -20,12 +20,11 @@ from collections import Mapping
 from datetime import datetime
 
 from pyLibrary.debugs import constants, exceptions
-from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.text_logs import TextLog_usingMulti, TextLog_usingThread, TextLog_usingStream, TextLog_usingFile
-from pyLibrary.dot import coalesce, listwrap, wrap, unwrap, unwraplist, Null, set_default
+from pyLibrary.dot import coalesce, listwrap, wrap, unwrap, unwraplist, set_default
 from pyLibrary.strings import indent
 from pyLibrary.thread.threads import Thread, Queue
-from pyLibrary.times.durations import SECOND
 
 
 class Log(object):
@@ -123,12 +122,11 @@ class Log(object):
 
                 return TextLog_usingLogger(settings)
             else:
-                try:
+                with suppress_exception:
                     from .log_usingLogger import make_log_from_settings
 
                     return make_log_from_settings(settings)
-                except Exception, e:
-                    pass  # OH WELL :(
+                  # OH WELL :(
 
         if settings.log_type == "file" or settings.file:
             return TextLog_usingFile(settings.file)
@@ -401,7 +399,7 @@ class Log(object):
         str_e = unicode(e)
 
         error_mode = cls.error_mode
-        try:
+        with suppress_exception:
             if not error_mode:
                 cls.error_mode = True
                 Log.note(
@@ -410,8 +408,6 @@ class Log(object):
                     log_context=set_default({"context": exceptions.FATAL}, log_context),
                     stack_depth=stack_depth + 1
                 )
-        except Exception:
-            pass
         cls.error_mode = error_mode
 
         sys.stderr.write(str_e.encode('utf8'))
@@ -452,32 +448,18 @@ machine_metadata = wrap({
     "name": platform.node()
 })
 
+
 # GET FROM AWS, IF WE CAN
 def _get_metadata_from_from_aws(please_stop):
-    try:
+    with suppress_exception:
         from pyLibrary import aws
 
         ec2 = aws.get_instance_metadata()
         if ec2:
             machine_metadata.aws_instance_type = ec2.instance_type
             machine_metadata.name = ec2.instance_id
-    except Exception:
-        pass
+
 Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
-
-
-# GET FROM AWS, IF WE CAN
-def _get_metadata_from_from_aws(please_stop):
-    try:
-        from pyLibrary import aws
-
-        ec2 = aws.get_instance_metadata(timeout=20*SECOND)
-        machine_metadata.aws_instance_type = ec2.instance_type
-        machine_metadata.name = coalesce(ec2.instance_id, machine_metadata.name)
-    except Exception, e:
-        pass
-Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
-
 
 if not Log.main_log:
     Log.main_log = TextLog_usingStream(sys.stdout)

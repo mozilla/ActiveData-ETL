@@ -29,7 +29,7 @@ from tempfile import TemporaryFile
 
 from pyLibrary import strings
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, wrap_leaves, unwrap, unwraplist, split_field, join_field
 from pyLibrary.env.big_data import FileString, safe_size
@@ -51,11 +51,9 @@ def value2json(obj, pretty=False, sort_keys=False):
         return json
     except Exception, e:
         e = Except.wrap(e)
-        try:
+        with suppress_exception:
             json = pypy_json_encode(obj)
             return json
-        except Exception:
-            pass
 
         Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
@@ -113,7 +111,10 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
             # LOOKUP REFERENCES
             json_string = expand_template(json_string, params)
 
-        value = wrap(json_decoder(unicode(json_string)))
+        try:
+            value = wrap(json_decoder(unicode(json_string)))
+        except Exception, e:
+            Log.error("can not decode\n{{content}}", content=json_string, cause=e)
 
         if leaves:
             value = wrap_leaves(value)
@@ -423,10 +424,9 @@ def unicode2latin1(value):
 
 
 def quote2string(value):
-    try:
+    with suppress_exception:
         return ast.literal_eval(value)
-    except Exception:
-        pass
+
 
 # RETURN PYTHON CODE FOR THE SAME
 

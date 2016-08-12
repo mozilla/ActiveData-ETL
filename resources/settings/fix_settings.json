@@ -4,7 +4,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"stage": {
-		"bucket":"ekyle-pulse-logger",
+		"bucket":"active-data-pulse",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param":{

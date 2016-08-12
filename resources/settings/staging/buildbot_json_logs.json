@@ -1,5 +1,5 @@
 {
-	"force": false,
+	"force": true,
 	"source": {
 		"url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 	},
@@ -15,12 +15,12 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "testlog-etl"
+			"User-Agent": "ActiveData-ETL"
 		}
 	},
 	"debug": {
 		"trace": true,
-		"cprofile": true,
+		"cprofile": false,
 		"log": [
 			{
 				"log_type": "console"

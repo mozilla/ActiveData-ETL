@@ -10,7 +10,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from testlog_etl import key2etl, etl2key
+from activedata_etl import key2etl, etl2key
 
 
 class TestETLKeys(FuzzyTestCase):

@@ -18,5 +18,5 @@ log.txt
 /resources/aws/prices.json
 /mozillapulse/.svn
 /resources/settings/raptor_settings.json
-/testlog_etl/raptor.py
+/activedata_etl/raptor.py
 /mohg/.svn

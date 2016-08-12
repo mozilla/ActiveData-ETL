@@ -11,9 +11,9 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "testlog-etl"
+			"User-Agent": "ActiveData-ETL"
 		},
-		"testlog_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
+		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"hg": {
 		"use_cache": true,
@@ -51,7 +51,7 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"host": "http://localhost",
@@ -65,7 +65,7 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_es.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
 		{
@@ -83,10 +83,10 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": {
-			   "name": "active-data-etl-dev",
+			   "name": "active-data-index-dev",
 			   "$ref": "file://~/private.json#aws_credentials"
 		   	},
-			"transformer": "testlog_etl.transforms.pulse_block_to_task_cluster.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
 			"type": "join"
 		},
 		{
@@ -103,10 +103,10 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-unit-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.task_cluster_to_test_result.process",
+			"transformer": "activedata_etl.transforms.task_cluster_to_test_result.process",
 			"type": "join"
 		},
 		{
@@ -115,19 +115,19 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
 				"public": true,
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perfherder-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
 			   "name": "active-data-etl-dev",
 			   "$ref": "file://~/private.json#aws_credentials"
 		   	},
-			"transformer": "testlog_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_perfherder_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -142,13 +142,13 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-jobs-dev",
 				"public": true,
-				"key_format": "a.b"
+				"key_format": "t.a.b"
 			},
 			"notify": {
-				"name": "active-data-index-jobs-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.buildbot_block_to_job_logs.process",
+			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},
@@ -157,19 +157,19 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perfherder-dev",
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perf-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-perf-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.perfherder_logs_to_perf_logs.process",
+			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
 		{
@@ -177,39 +177,39 @@
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-unit-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.pulse_block_to_test_result_logs.process",
+			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
 		{
 			"name": "tc_pulse to codecoverage",
 			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger-dev",
 				"key_format": "t.a:b"
 			},
 			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
+				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-codecoverage-dev",
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-codecoverage-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
+				"name": "active-data-index-dev",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"transformer": "testlog_etl.transforms.jscov_to_es.process",
+			"transformer": "activedata_etl.transforms.jscov_to_es.process",
 			"type": "join"
 		}
 	],
@@ -227,14 +227,15 @@
 				"log_type": "elasticsearch",
 				"host": "http://localhost",
 				"index": "debug",
-				"type": "etl"
+				"type": "etl",
+				"retry": {"times": 3, "sleep": "minute"}
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV] Problem in ETL",
-
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

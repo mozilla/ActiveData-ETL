@@ -1,0 +1,16 @@
+{
+	"range":{"min":"tc.0", "max":"tc.228400"},
+	"source": {
+		"bucket": "active-data-task-cluster-normalized",
+		"public": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

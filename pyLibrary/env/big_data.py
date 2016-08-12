@@ -16,6 +16,7 @@ from tempfile import TemporaryFile
 import zipfile
 import zlib
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.maths import Math
 
@@ -161,6 +162,14 @@ class LazyLines(object):
         self._next = 0
 
     def __getslice__(self, i, j):
+        if i == self._next - 1:
+            def output():
+                yield self._last
+                for v in self._iter:
+                    self._next += 1
+                    yield v
+
+            return output()
         if i == self._next:
             return self._iter
         Log.error("Do not know how to slice this generator")
@@ -176,6 +185,7 @@ class LazyLines(object):
     def __getitem__(self, item):
         try:
             if item == self._next:
+                self._next += 1
                 return self._iter.next()
             elif item == self._next - 1:
                 return self._last
@@ -360,10 +370,8 @@ def scompressed2ibytes(stream):
         except Exception, e:
             Log.error("Problem iterating through stream", cause=e)
         finally:
-            try:
+            with suppress_exception:
                 stream.close()
-            except Exception:
-                pass
 
     return icompressed2ibytes(more())
 

@@ -7,7 +7,7 @@
 	},
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"git": {
-		"url": "https://github.com/klahnakoski/TestLog-ETL.git",
+		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
 		"branch": "etl"
 	},
 	"source": {
@@ -39,7 +39,7 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "testlog-etl"
+			"User-Agent": "ActiveData-ETL"
 		}
 	},
 	"debug": {

@@ -8526,7 +8526,7 @@
             "basedir": "/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000",
             "master": "http://buildbot-master84.bb.releng.scl3.mozilla.com:8001/"
         },
-        "task_id": "pLDT2YFzQimhkb-c0nLc-Q"
+        "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"}
     },
     {
         "action": {
@@ -9895,7 +9895,7 @@
         },
         "build": {
             "branch": "mozilla-b2g34_v2_1",
-            "date": 1422749533,
+            "date": 1422749533.0,
             "gaia_revision": "63f291df9b9ad8498fb8fc7fb8bf070524406a5c",
             "gaia_revision12": "63f291df9b9a",
             "gecko_revision": "70b8982a523d",
@@ -10417,7 +10417,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
         },
-        "task_id": "T3UOeJ1HRsq2EKWD7QDi2Q"
+        "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
     },
     {
         "action": {
@@ -10505,7 +10505,7 @@
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
         },
-        "task_id": "BczAgDHfQdueE5rocPgjnQ"
+        "task": {"id": "BczAgDHfQdueE5rocPgjnQ"}
     },
     {
         "action": {
@@ -11336,6 +11336,586 @@
             "script": {"revision": "a73c2b09380d2c708c5c6aebef59eaa394343477"},
             "suite": "dromaeojs",
             "type": "e10s"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1462220267,
+            "job_number": 0,
+            "reason": "scheduler",
+            "request_time": 1462217377,
+            "requests": [
+                {
+                    "request_id": 108003826,
+                    "timestamp": 1462217377
+                }
+            ],
+            "start_time": 1462218553,
+            "type": "test"
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Windows 7 VM 32-bit",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "9017f4ff4b11f9105462b03f82763479588026e0",
+            "revision": "9017f4ff4b11f9105462b03f82763479588026e0",
+            "revision12": "9017f4ff4b11",
+            "tags": [],
+            "type": ["opt"],
+            "url": "https://queue.taskcluster.net/v1/task/M4GI_F46RxK6bhDLIw_ZiQ/artifacts/public/build/firefox-49.0a1.en-US.win32.zip"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "builduid": "cda09e5464374b22a0608de139e90306",
+            "master": "http://buildbot-master128.bb.releng.use1.mozilla.com:8201/",
+            "scheduler": "tests-try-win7_vm-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "win32"
+        },
+        "run": {
+            "chunk": 2,
+            "files": [
+                {
+                    "name": "mochitest-devtools-chrome-chunked_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/026359550af6a15ee4703e5635fbe4e45f74a6c2a9ba48927c4c7d69b49bc0f10534a97dfec536979f71745e4236a37bf0cbdd2d50c5e45a24f7b8476b0212e8"
+                },
+                {
+                    "name": "mochitest-devtools-chrome-chunked_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/95c2835567ea2f8ff63188c03ce9b9087186786915e3f035e901bbd903ff7f6b410cf4c41573b0669dbfa1d4578920b3046f2ecacbbf022ce9089e2b62970273"
+                }
+            ],
+            "key": "Windows 7 VM 32-bit try opt test mochitest-devtools-chrome-2",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/jmaher@mozilla.com-9017f4ff4b11f9105462b03f82763479588026e0/try-win32/try_win7_vm_test-mochitest-devtools-chrome-2-bm128-tests1-windows-build0.txt.gz",
+            "machine": {
+                "name": "t-w732-spot-029",
+                "os": "win7",
+                "pool": "t-w732-spot"
+            },
+            "script": {"revision": "9017f4ff4b11f9105462b03f82763479588026e0"},
+            "suite": "mochitest-devtools-chrome"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "failure",
+            "end_time": 1466021746,
+            "job_number": 0,
+            "reason": "scheduler",
+            "request_time": 1466020694,
+            "requests": [
+                {
+                    "request_id": 113592675,
+                    "timestamp": 1466020694
+                }
+            ],
+            "start_time": 1466020701,
+            "type": "test"
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Ubuntu TSAN VM large 12.04 x64",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
+            "revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
+            "revision12": "26946835ce5e",
+            "tags": [],
+            "type": ["opt", "tsan"],
+            "url": "https://queue.taskcluster.net/v1/task/J_CHXpmtTbOG_9zBwgjXMA/artifacts/public/build/firefox-50.0a1.en-US.linux-x86_64-tsan.tar.bz2"
+        },
+        "other": [
+            {
+                "name": "pgo_build",
+                "value": "False"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builduid": "e0314ce59f5240948103de63bc630270",
+            "master": "http://buildbot-master53.bb.releng.usw2.mozilla.com:8201/",
+            "scheduler": "tests-try-ubuntu64_vm_large_tsan-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "linux64-tsan"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "resource-usage.json",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/49b9499ec4be6d81f87060f27ce212d67788626b48ea282b73cf526d27a4b224a6dd37ade1c8db8311e337cd6f6420911cd5621c09186b2b1c4e2f73ab8a51cf"
+                }
+            ],
+            "key": "Ubuntu TSAN VM large 12.04 x64 try opt test gtest",
+            "logurl": "http://archive.mozilla.org/pub/firefox/try-builds/mh@glandium.org-26946835ce5ec4c8b4db0195ddd2139ed503df9e/try-linux64-tsan/try_ubuntu64_vm_large_tsan_test-gtest-bm53-tests1-linux64-build0.txt.gz",
+            "machine": {
+                "name": "tst-emulator64-spot-1098",
+                "os": "ubuntu",
+                "pool": "tst-emulator64-spot",
+                "type": "vm"
+            },
+            "script": {"revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e"},
+            "suite": "gtest"
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1468215402,
+            "job_number": 17,
+            "reason": "scheduler",
+            "request_time": 1468209386,
+            "requests": [
+                {
+                    "request_id": 116233034,
+                    "timestamp": 1468209386
+                }
+            ],
+            "start_time": 1468210080,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "Linux x86-64 add-on-devel",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "d9400e38d2d11b4faa0c085491dbf815540ef86f",
+            "revision": "d9400e38d2d11b4faa0c085491dbf815540ef86f",
+            "revision12": "d9400e38d2d1",
+            "tags": [],
+            "type": ["add-on"],
+            "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/firefox-48.0.en-US.linux-x86_64-add-on-devel.tar.bz2"
+        },
+        "other": [
+            {
+                "name": "MozReview-Commit-ID",
+                "value": "7kmAJlscG9a"
+            },
+            {
+                "name": "jsshellUrl",
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/jsshell-linux-x86_64-add-on-devel.zip"
+            }
+        ],
+        "properties": {
+            "appName": "Firefox",
+            "appVersion": "48.0",
+            "basedir": "/builds/slave/m-beta-l64-add-on-devel-000000",
+            "builduid": "88fdeb2565a04d66a2d547e230d471a7",
+            "comments": "Bug 1285318: turn of WebRTC TCP packet filtering. r=mjf a=lizzard",
+            "got_revision": "d9400e38d2d1",
+            "master": "http://buildbot-master74.bb.releng.usw2.mozilla.com:8001/",
+            "packageFilename": "firefox-48.0.en-US.linux-x86_64-add-on-devel.tar.bz2",
+            "scheduler": "mozilla-beta-firefox",
+            "sourcestamp": "d9400e38d2d11b4faa0c085491dbf815540ef86f",
+            "stage_platform": "linux64-add-on-devel",
+            "symbolsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/firefox-48.0.en-US.linux-x86_64-add-on-devel.crashreporter-symbols.zip",
+            "testPackagesUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/firefox-48.0.en-US.linux-x86_64-add-on-devel.test_packages.json",
+            "testsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/firefox-48.0.en-US.linux-x86_64-add-on-devel.gtest.tests.zip",
+            "uploadFiles": [
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.checksums",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.common.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.cppunittest.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.crashreporter-symbols.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.gtest.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.json",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.mochitest.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.mozinfo.json",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.reftest.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.talos.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.tar.bz2",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.test_packages.json",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.txt",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.web-platform.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel.xpcshell.tests.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/firefox-48.0.en-US.linux-x86_64-add-on-devel_info.txt",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/host/bin/mar",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/host/bin/mbsdiff",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/jsshell-linux-x86_64-add-on-devel.zip",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/linux-x86_64-add-on-devel/xpi/firefox-48.0.en-US.langpack.xpi",
+                "/builds/slave/m-beta-l64-add-on-devel-000000/build/src/obj-firefox/dist/mozharness.zip"
+            ]
+        },
+        "run": {
+            "key": "Linux x86-64 add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/mozilla-beta-linux64-add-on-devel-bm74-build1-build17.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-1058",
+                "os": "ubuntu",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "d9400e38d2d11b4faa0c085491dbf815540ef86f"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "failure",
+            "end_time": 1467386041,
+            "job_number": 1,
+            "reason": "scheduler",
+            "request_time": 1467381031,
+            "requests": [
+                {
+                    "request_id": 115255268,
+                    "timestamp": 1467381031
+                }
+            ],
+            "start_time": 1467381057,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "Linux x86-64 add-on-devel",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "5e6976a28642d4d159071e14fd3251d76b9c46fa",
+            "revision": "5e6976a28642d4d159071e14fd3251d76b9c46fa",
+            "revision12": "5e6976a28642",
+            "tags": [],
+            "type": ["add-on"]
+        },
+        "other": [],
+        "properties": {
+            "basedir": "/builds/slave/m-beta-l64-add-on-devel-000000",
+            "builduid": "c767f5fb4f57427c8722dbadfbf73505",
+            "comments": "Bug 1281874 P2 Verify that terminating a worker running web crypto works correctly. r=khuey a=abillings",
+            "got_revision": "5e6976a28642",
+            "master": "http://buildbot-master94.bb.releng.use1.mozilla.com:8001/",
+            "scheduler": "mozilla-beta-firefox",
+            "stage_platform": "linux64-add-on-devel"
+        },
+        "run": {
+            "key": "Linux x86-64 add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1467381031/mozilla-beta-linux64-add-on-devel-bm94-build1-build1.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-038",
+                "os": "ubuntu",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "5e6976a28642d4d159071e14fd3251d76b9c46fa"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1468838862,
+            "job_number": 7,
+            "reason": "scheduler",
+            "request_time": 1468833235,
+            "requests": [
+                {
+                    "request_id": 117098584,
+                    "timestamp": 1468833235
+                }
+            ],
+            "start_time": 1468833352,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "WINNT 6.1 x86-64 add-on-devel",
+            "platform": "win64",
+            "product": "firefox",
+            "release": "e29236a2cb1019532749ae35f37266cbbba0c04c",
+            "revision": "e29236a2cb1019532749ae35f37266cbbba0c04c",
+            "revision12": "e29236a2cb10",
+            "tags": [],
+            "type": ["add-on"],
+            "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/firefox-48.0.en-US.win64-add-on-devel.zip"
+        },
+        "other": [
+            {
+                "name": "jsshellUrl",
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/jsshell-win64-add-on-devel.zip"
+            }
+        ],
+        "properties": {
+            "appName": "Firefox",
+            "appVersion": "48.0",
+            "basedir": "/c/builds/moz2_slave/m-beta-w64-add-on-devel-000000",
+            "builduid": "a63e499af40648b1a871e9f1fa903410",
+            "comments": "Bug 1286644 - cherry-pick AEC fix from Chromium Issue 576624 r=pkerr, a=sylvestre",
+            "got_revision": "e29236a2cb10",
+            "master": "http://buildbot-master77.bb.releng.use1.mozilla.com:8001/",
+            "packageFilename": "firefox-48.0.en-US.win64-add-on-devel.zip",
+            "scheduler": "mozilla-beta-firefox",
+            "sourcestamp": "e29236a2cb1019532749ae35f37266cbbba0c04c",
+            "stage_platform": "win64-add-on-devel",
+            "symbolsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/firefox-48.0.en-US.win64-add-on-devel.crashreporter-symbols.zip",
+            "testPackagesUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/firefox-48.0.en-US.win64-add-on-devel.test_packages.json",
+            "testsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/firefox-48.0.en-US.win64-add-on-devel.gtest.tests.zip",
+            "uploadFiles": [
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.checksums",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.common.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.cppunittest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.crashreporter-symbols.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.gtest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.json",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.mochitest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.mozinfo.json",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.reftest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.talos.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.test_packages.json",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.txt",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.web-platform.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.xpcshell.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win64-add-on-devel_info.txt",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\host\\bin\\mar.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\host\\bin\\mbsdiff.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\install\\sea\\firefox-48.0.en-US.win64-add-on-devel.installer.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\jsshell-win64-add-on-devel.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\mozharness.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w64-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\win64-add-on-devel\\xpi\\firefox-48.0.en-US.langpack.xpi"
+            ]
+        },
+        "run": {
+            "key": "WINNT 6.1 x86-64 add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/mozilla-beta-win64-add-on-devel-bm77-build1-build7.txt.gz",
+            "machine": {
+                "name": "b-2008-spot-054",
+                "os": "win7",
+                "pool": "b-2008-spot"
+            },
+            "script": {"revision": "e29236a2cb1019532749ae35f37266cbbba0c04c"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "failure",
+            "end_time": 1467361426,
+            "job_number": 4,
+            "reason": "scheduler",
+            "request_time": 1467356003,
+            "requests": [
+                {
+                    "request_id": 115193654,
+                    "timestamp": 1467356003
+                }
+            ],
+            "start_time": 1467356645,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "Linux x86-64 add-on-devel",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7",
+            "revision": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7",
+            "revision12": "020a2ed1718d",
+            "tags": [],
+            "type": ["add-on"]
+        },
+        "other": [],
+        "properties": {
+            "basedir": "/builds/slave/m-beta-l64-add-on-devel-000000",
+            "builduid": "9ff9c3f64b5c4ca08f7a8618effbfffd",
+            "comments": "Backed out changeset 771ddc92f65c (bug 1281874) for bustage",
+            "got_revision": "020a2ed1718d",
+            "master": "http://buildbot-master74.bb.releng.usw2.mozilla.com:8001/",
+            "scheduler": "mozilla-beta-firefox",
+            "stage_platform": "linux64-add-on-devel"
+        },
+        "run": {
+            "key": "Linux x86-64 add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1467356003/mozilla-beta-linux64-add-on-devel-bm74-build1-build4.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-1058",
+                "os": "ubuntu",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1467298670,
+            "job_number": 0,
+            "reason": "The web-page 'force build' button was pressed by '': \n",
+            "request_time": 1467294196,
+            "requests": [
+                {
+                    "request_id": 115108397,
+                    "timestamp": 1467294196
+                }
+            ],
+            "start_time": 1467294199,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "OS X 10.7  add-on-devel",
+            "platform": "macosx64",
+            "product": "firefox",
+            "release": "ee43fafecf41",
+            "revision": "ee43fafecf41",
+            "revision12": "ee43fafecf41",
+            "tags": [],
+            "type": ["add-on"],
+            "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/firefox-48.0.en-US.mac64-add-on-devel.dmg"
+        },
+        "other": [
+            {
+                "name": "jsshellUrl",
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/jsshell-mac64-add-on-devel.zip"
+            },
+            {
+                "name": "toolsdir",
+                "value": "/tools/checkouts/build-tools"
+            }
+        ],
+        "properties": {
+            "appName": "Firefox",
+            "appVersion": "48.0",
+            "basedir": "/builds/slave/m-beta-m64-add-on-devel-000000",
+            "builduid": "fb5370e14ad54767ab6c26ebcaa2b152",
+            "got_revision": "ee43fafecf41",
+            "master": "http://buildbot-master85.bb.releng.scl3.mozilla.com:8001/",
+            "packageFilename": "firefox-48.0.en-US.mac64-add-on-devel.dmg",
+            "sourcestamp": "ee43fafecf41bc2048b100e1fe2e272144884d19",
+            "stage_platform": "macosx64-add-on-devel",
+            "symbolsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/firefox-48.0.en-US.mac64-add-on-devel.crashreporter-symbols.zip",
+            "testPackagesUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/firefox-48.0.en-US.mac64-add-on-devel.test_packages.json",
+            "testsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/firefox-48.0.en-US.mac64-add-on-devel.gtest.tests.zip",
+            "uploadFiles": [
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.checksums",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.checksums.asc",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.common.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.cppunittest.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.crashreporter-symbols.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.dmg",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.gtest.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.json",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.mochitest.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.mozinfo.json",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.reftest.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.talos.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.test_packages.json",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.txt",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.web-platform.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel.xpcshell.tests.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/firefox-48.0.en-US.mac64-add-on-devel_info.txt",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/host/bin/mar",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/host/bin/mbsdiff",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/jsshell-mac64-add-on-devel.zip",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/mac64-add-on-devel/xpi/firefox-48.0.en-US.langpack.xpi",
+                "/builds/slave/m-beta-m64-add-on-devel-000000/build/src/obj-add-on-devel/dist/mozharness.zip"
+            ]
+        },
+        "run": {
+            "key": "OS X 10.7  add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/mozilla-beta-macosx64-add-on-devel-bm85-build1-build0.txt.gz",
+            "machine": {
+                "name": "bld-lion-r5-073",
+                "os": "lion 10.7",
+                "pool": "bld-lion-r5"
+            },
+            "script": {"revision": "ee43fafecf41"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1467737036,
+            "job_number": 6,
+            "reason": "scheduler",
+            "request_time": 1467731364,
+            "requests": [
+                {
+                    "request_id": 115563594,
+                    "timestamp": 1467731364
+                }
+            ],
+            "start_time": 1467731493,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "WINNT 5.2 add-on-devel",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+            "revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+            "revision12": "274a291aa2c8",
+            "tags": [],
+            "type": ["add-on"],
+            "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.zip"
+        },
+        "other": [
+            {
+                "name": "MozReview-Commit-ID",
+                "value": "8QELFxqM6Av"
+            },
+            {
+                "name": "jsshellUrl",
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/jsshell-win32-add-on-devel.zip"
+            }
+        ],
+        "properties": {
+            "appName": "Firefox",
+            "appVersion": "48.0",
+            "basedir": "/c/builds/moz2_slave/m-beta-w32-add-on-devel-000000",
+            "builduid": "63293650764c4d18860755eb5f87d551",
+            "comments": "Bug 1279224 - remove all Sync promotions from doorhangers (beta version). r=adw, a=gchang",
+            "got_revision": "274a291aa2c8",
+            "master": "http://buildbot-master72.bb.releng.usw2.mozilla.com:8001/",
+            "packageFilename": "firefox-48.0.en-US.win32-add-on-devel.zip",
+            "scheduler": "mozilla-beta-firefox",
+            "sourcestamp": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
+            "stage_platform": "win32-add-on-devel",
+            "symbolsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.crashreporter-symbols.zip",
+            "testPackagesUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.test_packages.json",
+            "testsUrl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.gtest.tests.zip",
+            "uploadFiles": [
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.checksums",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.common.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.cppunittest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.crashreporter-symbols.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.gtest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.json",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.mochitest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.mozinfo.json",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.reftest.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.talos.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.test_packages.json",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.txt",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.web-platform.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.xpcshell.tests.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\firefox-48.0.en-US.win32-add-on-devel_info.txt",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\host\\bin\\mar.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\host\\bin\\mbsdiff.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\install\\sea\\firefox-48.0.en-US.win32-add-on-devel.installer-stub.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\install\\sea\\firefox-48.0.en-US.win32-add-on-devel.installer.exe",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\jsshell-win32-add-on-devel.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\mozharness.zip",
+                "c:\\builds\\moz2_slave\\m-beta-w32-add-on-devel-000000\\build\\src\\obj-firefox\\dist\\win32-add-on-devel\\xpi\\firefox-48.0.en-US.langpack.xpi"
+            ]
+        },
+        "run": {
+            "key": "WINNT 5.2 add-on-devel mozilla-beta build",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/mozilla-beta-win32-add-on-devel-bm72-build1-build6.txt.gz",
+            "machine": {
+                "name": "b-2008-spot-177",
+                "os": "winxp",
+                "pool": "b-2008-spot"
+            },
+            "script": {"revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8"}
         }
     }
 ]

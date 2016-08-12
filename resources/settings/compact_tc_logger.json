@@ -1,0 +1,15 @@
+{
+	"source": {
+		"bucket": "active-data-task-cluster-logger",
+		"public": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}
