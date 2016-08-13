@@ -8,7 +8,7 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.7,
+			"skip": 0.5,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",

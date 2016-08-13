@@ -23,6 +23,8 @@ DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON LINES
 
+TRY_AGAIN_LATER = "{{reason}}, try again later"
+
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
     "_structured_full.log",

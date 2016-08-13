@@ -13,7 +13,7 @@ from collections import Mapping
 
 import requests
 
-from motreeherder.treeherder import TRY_AGAIN_LATER
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
@@ -87,6 +87,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             output.append(normalized)
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                raise e
             Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
@@ -162,7 +164,7 @@ def _normalize(source_key, tc_message, task, resources):
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
     try:
-        if output.build.revision:
+        if output.build.revision :
             output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
@@ -171,8 +173,12 @@ def _normalize(source_key, tc_message, task, resources):
                 output.task.run.end_time
             )
     except Exception, e:
+        if task.state == "exception":
+            Log.note("Exception in {{task_id}}", task_id=output.task.id)
+            return output
+
         if TRY_AGAIN_LATER in e:
-            Log.error("Aborting processing of {{key}}", key=source_key)
+            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",

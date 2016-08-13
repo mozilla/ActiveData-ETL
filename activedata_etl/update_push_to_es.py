@@ -100,7 +100,7 @@ def _es_up():
 
 
 def _refresh_indexer():
-    with cd("/home/ec2-user/Activedata-ETL/"):
+    with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")

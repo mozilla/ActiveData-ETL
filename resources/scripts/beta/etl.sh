@@ -1,12 +1,12 @@
 
 
 
-cd ~/Activedata-ETL/
+cd ~/ActiveData-ETL/
 git checkout beta
 sudo pip install -r requirements.txt
 
 
-cd ~/Activedata-ETL/
+cd ~/ActiveData-ETL/
 git pull origin beta
 export PYTHONPATH=.
 

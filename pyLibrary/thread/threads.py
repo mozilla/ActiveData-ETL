@@ -96,7 +96,7 @@ class Queue(object):
      IS DIFFICULT TO USE JUST BETWEEN THREADS (SERIALIZATION REQUIRED)
     """
 
-    def __init__(self, name, max=None, silent=False, unique=False):
+    def __init__(self, name, max=None, silent=False, unique=False, allow_add_after_close=False):
         """
         max - LIMIT THE NUMBER IN THE QUEUE, IF TOO MANY add() AND extend() WILL BLOCK
         silent - COMPLAIN IF THE READERS ARE TOO SLOW
@@ -105,6 +105,7 @@ class Queue(object):
         self.name = name
         self.max = coalesce(max, 2 ** 10)
         self.silent = silent
+        self.allow_add_after_close=allow_add_after_close
         self.unique = unique
         self.keep_running = True
         self.lock = Lock("lock for queue " + name)
@@ -124,7 +125,7 @@ class Queue(object):
 
 
     def add(self, value, timeout=None):
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not add to closed queue")
 
         with self.lock:
@@ -141,7 +142,7 @@ class Queue(object):
         """
         SNEAK value TO FRONT OF THE QUEUE
         """
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not push to closed queue")
 
         with self.lock:
@@ -151,7 +152,7 @@ class Queue(object):
         return self
 
     def extend(self, values):
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not push to closed queue")
 
         with self.lock:
@@ -504,6 +505,7 @@ class Thread(object):
                         with suppress_exception:
                             c.join()
 
+                    _Log.note("thread {{name|quote}} is done", name=self.name)
                     self.stopped.go()
                     del self.target, self.args, self.kwargs
                     with ALL_LOCK:
@@ -512,9 +514,6 @@ class Thread(object):
                 except Exception, e:
                     if DEBUG:
                         _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
-                finally:
-                    if DEBUG:
-                        _Log.note("thread {{name|quote}} is done", name=self.name)
 
     def is_alive(self):
         return not self.stopped
