@@ -164,7 +164,7 @@ def _normalize(source_key, tc_message, task, resources):
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
     try:
-        if output.build.revision:
+        if output.build.revision :
             output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
@@ -173,6 +173,9 @@ def _normalize(source_key, tc_message, task, resources):
                 output.task.run.end_time
             )
     except Exception, e:
+        if task.state == "exception":
+            return output
+
         if TRY_AGAIN_LATER in e:
             Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 

@@ -296,10 +296,23 @@ class ETL(Thread):
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-                    self.work_queue.rollback()
-                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
-                    if "Shutdown detected." not in e:
-                        Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                    previous_attempts = coalesce(todo.previous_attempts, 0)
+                    try:
+                        # TRY TO MARKUP THE MESSAGE
+                        todo.previous_attempts = previous_attempts + 1
+                        self.work_queue.add(todo)
+                        self.work.queue.commit()
+                    except Exception, f:
+                        # UNEXPECTED PROBLEM!!!
+                        self.work_queue.rollback()
+                        Log.warning("Could not annotated todo", cause=f)
+
+                    if previous_attempts == 0:
+                        pass
+                    else:
+                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
+                        if "Shutdown detected." not in e:
+                            Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

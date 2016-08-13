@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, set_default
 from pyLibrary.env import elasticsearch, http
@@ -141,6 +142,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
             except Exception, e:
+                e = Except.wrap(e)  # SO `in` OPERATOR WORKS
                 if "Problem with calculating durations" in e:
                     Log.error("Prioritized error", cause=e)
                 elif "Connection reset by peer" in e:
@@ -148,7 +150,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 elif "incorrect header check" in e:
                     Log.error("problem reading", cause=e)
 
-                Log.warning("Problem processing {{url}}", url=url, cause=e)
+                Log.warning("Problem processing {{key}}: {{url}}", key=source_key, url=url, cause=e)
                 data.etl.error = "Text log unreadable"
                 output.append(data)
 
