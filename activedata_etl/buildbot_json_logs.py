@@ -177,16 +177,13 @@ def get_all_tasks(url):
 
 def main():
     try:
-        settings = startup.read_settings()
-        constants.set(settings.constants)
-        Log.start(settings.debug)
+        with Explanation("ETL"):
+            settings = startup.read_settings()
+            constants.set(settings.constants)
+            Log.start(settings.debug)
 
-        # parse_to_s3(settings)
+            parse_to_s3(settings)
 
-        parse_day(settings, "builds-2016-08-11.js.gz", True)
-        # random(settings)
-    except Exception, e:
-        Log.error("Problem with etl", e)
     finally:
         Log.stop()
 
