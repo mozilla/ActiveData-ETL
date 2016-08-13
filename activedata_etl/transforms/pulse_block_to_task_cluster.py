@@ -174,6 +174,7 @@ def _normalize(source_key, tc_message, task, resources):
             )
     except Exception, e:
         if task.state == "exception":
+            Log.note("Exception in {{task_id}}", task_id=output.task.id)
             return output
 
         if TRY_AGAIN_LATER in e:

@@ -296,23 +296,25 @@ class ETL(Thread):
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-                    previous_attempts = coalesce(todo.previous_attempts, 0)
-                    try:
-                        # TRY TO MARKUP THE MESSAGE
-                        todo.previous_attempts = previous_attempts + 1
-                        self.work_queue.add(todo)
-                        self.work.queue.commit()
-                    except Exception, f:
-                        # UNEXPECTED PROBLEM!!!
-                        self.work_queue.rollback()
-                        Log.warning("Could not annotated todo", cause=f)
+                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
+                    if "Shutdown detected." not in e:
+                        previous_attempts = coalesce(todo.previous_attempts, 0)
+                        try:
+                            # TRY TO MARKUP THE MESSAGE
+                            todo.previous_attempts = previous_attempts + 1
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
 
-                    if previous_attempts == 0:
-                        pass
-                    else:
-                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
-                        if "Shutdown detected." not in e:
-                            Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                        if previous_attempts == 0:
+                            # TODO: REMOVE THIS warning WHEN WE FEEL TH ANNOTATION IS WORKING
+                            Log.warning("could not process {{key}}.  Incremented attempts, and returned back to work queue.", key=todo.key, cause=e)
+                            pass
+                        else:
+                            Log.warning("could not process {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
