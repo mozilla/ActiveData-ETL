@@ -315,7 +315,7 @@ class ETL(Thread):
                             Log.warning(
                                 "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
                                 tries=todo.previous_attempts,
-                                todo.key,
+                                key=todo.key,
                                 cause=e
                             )
 
