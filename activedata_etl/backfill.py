@@ -76,15 +76,16 @@ def diff(settings, please_stop=None):
     for i, p in enumerate(remaining_in_s3):
         all_keys = source_bucket.keys(source_prefix + unicode(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
-        work_queue.extend([
-            {
-                "key": k,
-                "bucket": source_bucket.name,
-                "destination": settings.destination,
-                "timestamp": Date.now()
-            }
-            for k in all_keys
-        ])
+        with Timer("insert into sms"):
+            work_queue.extend([
+                {
+                    "key": k,
+                    "bucket": source_bucket.name,
+                    "destination": settings.destination,
+                    "timestamp": Date.now()
+                }
+                for k in all_keys
+            ])
 
 
 def get_all_in_es(es, in_range, es_filter, field):
@@ -142,7 +143,7 @@ def get_all_s3(in_es, in_range, settings):
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
     max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es) - 500])
-    extra_digits = Math.ceiling(log10(Math.MIN([max_allowed-settings.range.min, limit])))
+    extra_digits = Math.ceiling(Math.log10(Math.MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
     prefix = unicode(max(in_range - in_es))[:-extra_digits]

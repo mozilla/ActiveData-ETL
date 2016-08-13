@@ -96,7 +96,7 @@ class Queue(object):
      IS DIFFICULT TO USE JUST BETWEEN THREADS (SERIALIZATION REQUIRED)
     """
 
-    def __init__(self, name, max=None, silent=False, unique=False):
+    def __init__(self, name, max=None, silent=False, unique=False, allow_add_after_close=False):
         """
         max - LIMIT THE NUMBER IN THE QUEUE, IF TOO MANY add() AND extend() WILL BLOCK
         silent - COMPLAIN IF THE READERS ARE TOO SLOW
@@ -105,6 +105,7 @@ class Queue(object):
         self.name = name
         self.max = coalesce(max, 2 ** 10)
         self.silent = silent
+        self.allow_add_after_close=allow_add_after_close
         self.unique = unique
         self.keep_running = True
         self.lock = Lock("lock for queue " + name)
@@ -124,7 +125,7 @@ class Queue(object):
 
 
     def add(self, value, timeout=None):
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not add to closed queue")
 
         with self.lock:
@@ -141,7 +142,7 @@ class Queue(object):
         """
         SNEAK value TO FRONT OF THE QUEUE
         """
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not push to closed queue")
 
         with self.lock:
@@ -151,7 +152,7 @@ class Queue(object):
         return self
 
     def extend(self, values):
-        if not self.keep_running:
+        if not self.keep_running and not self.allow_add_after_close:
             _Log.error("Do not push to closed queue")
 
         with self.lock:
@@ -417,7 +418,7 @@ class Thread(object):
         self.please_stop = self.kwargs["please_stop"]
 
         self.thread = None
-        self.stopped = Signal()
+        self.stopped = Signal(name+" has stopped")
         self.cprofiler = None
         self.children = []
 
@@ -504,6 +505,7 @@ class Thread(object):
                         with suppress_exception:
                             c.join()
 
+                    _Log.note("thread {{name|quote}} is done", name=self.name)
                     self.stopped.go()
                     del self.target, self.args, self.kwargs
                     with ALL_LOCK:
@@ -512,9 +514,6 @@ class Thread(object):
                 except Exception, e:
                     if DEBUG:
                         _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
-                finally:
-                    if DEBUG:
-                        _Log.note("thread {{name|quote}} is done", name=self.name)
 
     def is_alive(self):
         return not self.stopped
@@ -679,7 +678,8 @@ class Signal(object):
     on_go() - METHOD FOR OTHER THREAD TO RUN WHEN ACTIVATING SIGNAL
     """
 
-    def __init__(self):
+    def __init__(self, name=None):
+        self._name = name
         self.lock = Lock()
         self._go = False
         self.job_queue = []
@@ -694,7 +694,6 @@ class Signal(object):
     def __nonzero__(self):
         with self.lock:
             return self._go
-
 
     def wait_for_go(self, timeout=None, till=None):
         """
@@ -714,6 +713,10 @@ class Signal(object):
             if self._go:
                 return
 
+            if DEBUG:
+                if not _Log:
+                    _late_import()
+                _Log.note("Thread {{thread|quote}} signaled {{name|quote}}", thread=Thread.current().name, name=self.name)
             self._go = True
             jobs = self.job_queue
             self.job_queue = []
@@ -741,9 +744,27 @@ class Signal(object):
 
         with self.lock:
             if self._go:
+                if DEBUG:
+                    if not _Log:
+                        _late_import()
+                    _Log.note("Signal {{name|quote}} already triggered, running job immediately", name=self.name)
                 target()
             else:
+                if DEBUG:
+                    if not _Log:
+                        _late_import()
+                    _Log.note("Adding job to signal {{name|quote}}", name=self.name)
                 self.job_queue.append(target)
+
+    @property
+    def name(self):
+        if not self._name:
+            return "anonymous signal"
+        else:
+            return self._name
+
+    def __str__(self):
+        return self.name.decode(unicode)
 
 
 class ThreadedQueue(Queue):

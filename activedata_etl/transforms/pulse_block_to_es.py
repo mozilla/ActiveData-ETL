@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from motreeherder.treeherder import TRY_AGAIN_LATER
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
@@ -29,18 +29,12 @@ DEBUG = True
 def process(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
 
-    etl_header = convert.json2value(lines[0])
-    if etl_header.etl:
-        start = 0
-    elif etl_header.locale or etl_header._meta:
-        start = 0
-    else:
-        start = 1
-
     keys = []
     records = []
     stats = Dict()
-    for i, line in enumerate(lines[start:]):
+    for i, line in enumerate(lines):
+        if please_stop:
+            Log.error("Unexpected request to stop")
         pulse_record = Null
         try:
             pulse_record = scrub_pulse_record(source_key, i, line, stats)
@@ -59,6 +53,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             keys.append(key)
             records.append({"id": key, "value": record})
         except Exception, e:
+            if TRY_AGAIN_LATER:
+                Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
     destination.extend(records)
     return keys

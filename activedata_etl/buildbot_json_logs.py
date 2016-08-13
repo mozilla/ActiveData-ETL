@@ -39,7 +39,10 @@ def parse_to_s3(settings):
         try:
             parse_day(settings, path, settings.force)
         except Exception, e:
-            Log.warning("problem with {{path}}", path=path, cause=e)
+            day = Date(string2datetime(path[7:17], format="%Y-%m-%d"))
+            day_num = int((day - REFERENCE_DATE) / DAY)
+
+            Log.warning("Problem with #{{num}}: {{path}}", path=path, num=day_num, cause=e)
 
 
 def random(settings):
