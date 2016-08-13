@@ -310,11 +310,14 @@ class ETL(Thread):
                             Log.warning("Could not annotate todo", cause=[f, e])
 
                         if previous_attempts == 0:
-                            # TODO: REMOVE THIS warning WHEN WE FEEL TH ANNOTATION IS WORKING
-                            Log.warning("could not process {{key}}.  Incremented attempts, and returned back to work queue.", key=todo.key, cause=e)
                             pass
                         else:
-                            Log.warning("could not process {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                                tries=todo.previous_attempts,
+                                todo.key,
+                                cause=e
+                            )
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
