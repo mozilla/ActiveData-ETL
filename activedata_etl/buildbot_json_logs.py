@@ -15,7 +15,7 @@ from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.exceptions import suppress_exception, Explanation
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
@@ -63,7 +63,7 @@ def parse_day(settings, p, force=False):
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
-    Log.note("Consider {{url}}", url=day_url)
+    Log.note("Consider #{{num}}: {{url}}", url=day_url, num=day_num)
 
     destination = s3.Bucket(settings.destination)
     notify = Queue(settings=settings.notify)
@@ -87,7 +87,7 @@ def parse_day(settings, p, force=False):
     first = None
     for group_number, ts in jx.groupby(tasks, size=100):
         if DEBUG:
-            Log.note("Processing block {{num}}", num=group_number)
+            Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
         parsed = []
 
         group_etl = Dict(
@@ -142,7 +142,7 @@ def get_all_logs(url):
             filename = strings.between(line, '</td><td><a href=\"', '">')
             if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
                 paths.append(filename)
-        paths = jx.reverse(jx.sort(paths))
+        paths = jx.reverse(jx.sort(paths).not_right(1))  # DO NOT INCLUDE TODAY (INCOMPLETE)
         return paths
     finally:
         response.close()
@@ -172,18 +172,45 @@ def get_all_tasks(url):
         expected_vars=["builds"]
     )
 
+
 def main():
     try:
-        settings = startup.read_settings()
-        constants.set(settings.constants)
-        Log.start(settings.debug)
+        with Explanation("ETL"):
+            settings = startup.read_settings()
+            constants.set(settings.constants)
+            Log.start(settings.debug)
 
-        parse_to_s3(settings)
+            parse_to_s3(settings)
 
-        # parse_day(settings, "builds-2016-08-04.js.gz", True)
-        # random(settings)
-    except Exception, e:
-        Log.error("Problem with etl", e)
+            # parse_day(settings, "builds-2016-05-17.js.gz", True)
+            # parse_day(settings, "builds-2016-05-18.js.gz", True)
+            # parse_day(settings, "builds-2016-05-25.js.gz", True)
+            # parse_day(settings, "builds-2016-06-21.js.gz", True)
+            # parse_day(settings, "builds-2016-06-27.js.gz", True)
+            # parse_day(settings, "builds-2016-07-05.js.gz", True)
+            # parse_day(settings, "builds-2016-07-06.js.gz", True)
+            # parse_day(settings, "builds-2016-07-14.js.gz", True)
+            # parse_day(settings, "builds-2016-07-15.js.gz", True)
+            # parse_day(settings, "builds-2016-07-18.js.gz", True)
+            # parse_day(settings, "builds-2016-07-20.js.gz", True)
+            # parse_day(settings, "builds-2016-07-21.js.gz", True)
+            # parse_day(settings, "builds-2016-07-22.js.gz", True)
+            # parse_day(settings, "builds-2016-07-25.js.gz", True)
+            # parse_day(settings, "builds-2016-07-26.js.gz", True)
+            # parse_day(settings, "builds-2016-07-27.js.gz", True)
+            # parse_day(settings, "builds-2016-07-28.js.gz", True)
+            # parse_day(settings, "builds-2016-07-29.js.gz", True)
+            # parse_day(settings, "builds-2016-07-30.js.gz", True)
+            # parse_day(settings, "builds-2016-08-01.js.gz", True)
+            # parse_day(settings, "builds-2016-08-02.js.gz", True)
+            # parse_day(settings, "builds-2016-08-03.js.gz", True)
+            # parse_day(settings, "builds-2016-08-04.js.gz", True)
+            # parse_day(settings, "builds-2016-08-05.js.gz", True)
+            # parse_day(settings, "builds-2016-08-08.js.gz", True)
+            # parse_day(settings, "builds-2016-08-09.js.gz", True)
+            # parse_day(settings, "builds-2016-08-10.js.gz", True)
+            # parse_day(settings, "builds-2016-08-11.js.gz", True)
+            # parse_day(settings, "builds-2016-08-12.js.gz", True)
     finally:
         Log.stop()
 
