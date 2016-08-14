@@ -12,7 +12,6 @@ from __future__ import unicode_literals
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.env.git import get_git_revision
@@ -114,6 +113,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 def accumulate_logs(source_key, url, lines, please_stop):
     accumulator = LogSummary(url)
+    last_line_was_json = True
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -124,7 +124,9 @@ def accumulate_logs(source_key, url, lines, please_stop):
             continue
         try:
             accumulator.stats.lines += 1
+            last_line_was_json = False
             log = convert.json2value(line)
+            last_line_was_json = True
             log.time = log.time / 1000
             accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
             accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
@@ -141,14 +143,14 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception, e:
-            e = Except.wrap(e)
             if line.startswith('<?xml version="1.0"'):
                 Log.error("Log is not ready. key={{key}} url={{url|quote}}\n\t{{line|quote}}", key=source_key, line=line, url=url)
-            elif "Unterminated string starting at" in e:
-                # HAPPENS WHEN FILE IS NOT FULLY UPLOADED
-                Log.error(TRY_AGAIN_LATER, reason="incomplete json", cause=e)
             Log.warning("bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}", key=source_key, line_number=accumulator.stats.lines, line=line, url=url, cause=e)
             accumulator.stats.bad_lines += 1
+
+    if not last_line_was_json:
+        # HAPPENS WHEN FILE IS DOWNLOADED TOO SOON, AND IS INCOMPLETE
+        Log.error(TRY_AGAIN_LATER, reason="Incomplete file")
 
     output = accumulator.summary()
     Log.note(
