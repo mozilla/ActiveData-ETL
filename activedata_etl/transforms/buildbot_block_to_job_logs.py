@@ -55,7 +55,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.resource_usage = normalize_resource_usage(content)
                     break
         except Exception, e:
-            Log.warning("Could not process resource-usage.json", cause=e)
+            Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
 
         #TREEHERDER MARKUP
         try:
