@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 
+from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
@@ -46,6 +47,17 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 cause=e
             )
 
+        # RESOURCE USAGE
+        try:
+            for a in data.run.files:
+                if a.name == "resource-usage.json":
+                    content = http.get_json(a.url)
+                    data.resource_usage = normalize_resource_usage(content)
+                    break
+        except Exception, e:
+            Log.warning("Could not process resource-usage.json", cause=e)
+
+        #TREEHERDER MARKUP
         try:
             if data.build.revision:
                 data.treeherder = resources.treeherder.get_markup(
