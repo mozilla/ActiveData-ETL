@@ -26,7 +26,7 @@ from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, proc
 
 _ = convert
 DEBUG = False
-TOO_OLD = (Date.today()-MONTH).unix
+TOO_OLD = (Date.today()-3*MONTH).unix
 
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
