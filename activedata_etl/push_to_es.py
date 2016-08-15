@@ -100,7 +100,7 @@ def safe_splitter(work_queue, please_stop):
 
 def add_message_to_queue(queue, payload_key, message):
     def _delete():
-        Log.note("confirming message for {{id}}", id=payload_key)
+        # Log.note("confirming message for {{id}}", id=payload_key)
         message.delete()
 
     queue.add(_delete)

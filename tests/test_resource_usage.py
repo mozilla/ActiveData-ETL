@@ -21,6 +21,5 @@ class TestResourceUsage(FuzzyTestCase):
     def test_transform(self):
         url = "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/02967f2823389e355b90efacd27953fb02953741c79f01648ba369674ec1e6ff888d9bf435654c2826dde51a91dd5313b73f61a2d32a68b1a7f7ad6d285720df"
 
-        data = convert.json2value(convert.utf82unicode(requests.get(url).content))
-        normalize_resource_usage(data)
+        normalize_resource_usage(url)
 

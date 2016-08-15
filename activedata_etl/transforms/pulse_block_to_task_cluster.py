@@ -60,8 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     read_buildbot_properties(normalized, a.url)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
-                        content = http.get_json(a.url)
-                        normalized.resource_usage = normalize_resource_usage(content)
+                        normalized.resource_usage = normalize_resource_usage(a.url)
 
             # FIX THE ETL
             if not source_etl:

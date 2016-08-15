@@ -51,13 +51,12 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         try:
             for a in data.run.files:
                 if a.name == "resource-usage.json":
-                    content = http.get_json(a.url)
-                    data.resource_usage = normalize_resource_usage(content)
+                    data.resource_usage = normalize_resource_usage(a.url)
                     break
         except Exception, e:
             Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
 
-        #TREEHERDER MARKUP
+        # TREEHERDER MARKUP
         try:
             if data.build.revision:
                 data.treeherder = resources.treeherder.get_markup(

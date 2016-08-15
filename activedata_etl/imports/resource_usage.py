@@ -10,14 +10,21 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, join_field, wrap
+from pyLibrary.env import http
 
 
-def normalize_resource_usage(usage):
+def normalize_resource_usage(url):
     """
-    :param usage: RESOURCE USAGE IN IN ITS NATIVE FORMAT
-    :return: NORMALIZED VERSION OF THE SAME
+    :param url: POOINT TO RESOURCE USAGE FILE
+    :return: NORMALIZED RESOURCE USAGE
     """
+
+    return None
+
+    usage = http.get_json(url)
+
     output = Dict()
     output.meta.version = usage.version
     output.timing.start = usage.start
@@ -39,6 +46,8 @@ def normalize_resource_usage(usage):
 
     def normalize(samples):
         output = tuple([] for _ in measures)
+        if len(samples) > 1000:
+            Log.warning("Found {{num}} resource-usage samples", num=len(samples))
         for s in samples:
             timing = {"start": s.start, "end": s.end, "duration": s.duration}
             for column_number, _, _, access_sequence in measures:
@@ -48,13 +57,14 @@ def normalize_resource_usage(usage):
                 output[column_number].append({"timing": timing, "value": value})
         return output
 
-    n = normalize(usage.samples)
-    output.samples = []
-    for column_number, f, c, _ in measures:
-        output.samples.append({
-            "measure": join_field([f, c]),
-            "samples": n[column_number]
-        })
+    # RUNNING OUT OF MEMORY DURING SERIALIZAITON OF THIS RESULT
+    # n = normalize(usage.samples)
+    # output.samples = []
+    # for column_number, f, c, _ in measures:
+    #     output.samples.append({
+    #         "measure": join_field([f, c]),
+    #         "samples": n[column_number]
+    #     })
 
     usage.phases.append(usage.overall)
     usage.overall.name = "overall"
