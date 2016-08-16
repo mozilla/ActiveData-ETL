@@ -137,12 +137,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 if response.status_code == 404:
                     Log.note("Text log does not exist {{url}}", url=url)
                     data.etl.error = "Text log does not exist"
-                    output.append(data)
-                    continue
+                else:
+                    all_log_lines = response._all_lines(encoding=None)
+                    action = process_buildbot_log(all_log_lines, url)
+                    set_default(data.action, action)
 
-                all_log_lines = response._all_lines(encoding=None)
-                action = process_buildbot_log(all_log_lines, url)
-                set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time
 
                 verify_equal(data, "build.revision", "action.revision", url, from_key=source_key)
