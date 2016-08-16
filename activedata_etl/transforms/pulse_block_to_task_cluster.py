@@ -13,8 +13,10 @@ from collections import Mapping
 
 import requests
 
+from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
@@ -50,13 +52,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized = _normalize(source_key, tc_message, task, resources)
 
             # get the artifact list for the taskId
-            artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
+            artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": taskid, "path": a.name})
                 a.expires = Date(a.expires)
                 if a.name.endswith("/live.log"):
                     read_buildbot_properties(normalized, a.url)
-            normalized.task.artifacts = artifacts
+                elif a.name.endswith("/resource-usage.json"):
+                    with suppress_exception:
+                        normalized.resource_usage = normalize_resource_usage(a.url)
 
             # FIX THE ETL
             if not source_etl:
@@ -163,8 +167,9 @@ def _normalize(source_key, tc_message, task, resources):
     set_run_info(output, task)
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
+    # ASSIGN TREEHERDER
     try:
-        if output.build.revision :
+        if output.build.revision and task.state != "exception":
             output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
@@ -173,10 +178,6 @@ def _normalize(source_key, tc_message, task, resources):
                 output.task.run.end_time
             )
     except Exception, e:
-        if task.state == "exception":
-            Log.note("Exception in {{task_id}}", task_id=output.task.id)
-            return output
-
         if TRY_AGAIN_LATER in e:
             Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 
@@ -316,7 +317,6 @@ def get_tags(source_key, task, parent=None):
 
     return clean_tags
 
-
 def verify_tag(source_key, t):
     if not isinstance(t["value"], unicode):
         Log.error("Expecting unicode")
@@ -324,6 +324,14 @@ def verify_tag(source_key, t):
         Log.warning("unknown task tag {{tag|quote}} while processing {{key}}", key=source_key, tag=t["name"])
         KNOWN_TAGS.add(t["name"])
 
+
+def _scrub(record, name):
+    value = record[name]
+    record[name] = None
+    if value == "-" or value == "":
+        return None
+    else:
+        return unwraplist(value)
 
 def _object_to_array(value, key_name, value_name=None):
     try:

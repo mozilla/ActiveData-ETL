@@ -331,6 +331,10 @@ class TreeHerder(object):
             try:
                 markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
                 if markup:
+                    # WE DO NOT NEED THESE DETAILS WHEN MARKING OTHER DOCUMENTS
+                    markup.details = None
+                    markup.stars = None
+                    markup.notes = None
                     return markup
             except Exception, e:
                 if "timestamp required to find best match" in e:
@@ -389,6 +393,10 @@ class TreeHerder(object):
             except Exception:
                 pass
 
+        # WE DO NOT NEED THESE DETAILS WHEN MARKING OTHER DOCUMENTS
+        detail.details = None
+        detail.stars = None
+        detail.notes = None
         return detail
 
     def _is_it_safe_to_make_more_requests(self, branch, revision):

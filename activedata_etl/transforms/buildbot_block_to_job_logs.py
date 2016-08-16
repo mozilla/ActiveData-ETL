@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 
+from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
@@ -25,7 +26,7 @@ from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, proc
 
 _ = convert
 DEBUG = False
-TOO_OLD = (Date.today()-MONTH).unix
+TOO_OLD = (Date.today() - 3 * MONTH).unix
 
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
@@ -46,6 +47,16 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 cause=e
             )
 
+        # RESOURCE USAGE
+        try:
+            for a in data.run.files:
+                if a.name == "resource-usage.json":
+                    data.resource_usage = normalize_resource_usage(a.url)
+                    break
+        except Exception, e:
+            Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
+
+        # TREEHERDER MARKUP
         try:
             if data.build.revision:
                 data.treeherder = resources.treeherder.get_markup(
@@ -126,12 +137,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 if response.status_code == 404:
                     Log.note("Text log does not exist {{url}}", url=url)
                     data.etl.error = "Text log does not exist"
-                    output.append(data)
-                    continue
+                else:
+                    all_log_lines = response.get_all_lines(encoding=None)
+                    action = process_buildbot_log(all_log_lines, url)
+                    set_default(data.action, action)
 
-                all_log_lines = response._all_lines(encoding=None)
-                action = process_buildbot_log(all_log_lines, url)
-                set_default(data.action, action)
                 data.action.duration = data.action.end_time - data.action.start_time
 
                 verify_equal(data, "build.revision", "action.revision", url, from_key=source_key)

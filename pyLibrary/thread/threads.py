@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
-from pyLibrary.dot import coalesce, Dict, unwraplist
+from pyLibrary.dot import coalesce, Dict, unwraplist, Null
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration
@@ -150,6 +150,12 @@ class Queue(object):
             if self.keep_running:
                 self.queue.appendleft(value)
         return self
+
+    def pop_message(self, wait=SECOND, till=None):
+        """
+        RETURN TUPLE (message, payload) CALLER IS RESPONSIBLE FOR CALLING message.delete() WHEN DONE
+        """
+        return Null, self.pop(timeout=wait, till=till)
 
     def extend(self, values):
         if not self.keep_running and not self.allow_add_after_close:

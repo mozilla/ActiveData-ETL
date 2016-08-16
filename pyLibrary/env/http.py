@@ -272,9 +272,9 @@ class HttpResponse(Response):
 
     @property
     def all_lines(self):
-        return self._all_lines()
+        return self.get_all_lines()
 
-    def _all_lines(self, encoding="utf8"):
+    def get_all_lines(self, encoding="utf8"):
         try:
             iterator = self.raw.stream(4096, decode_content=False)
 
