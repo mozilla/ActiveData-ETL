@@ -96,7 +96,7 @@
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": true
 			},
 			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
