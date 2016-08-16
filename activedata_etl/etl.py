@@ -45,7 +45,6 @@ from activedata_etl.sinks.multi_day_index import MultiDayIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
-
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -113,7 +112,6 @@ class ETL(Thread):
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
-
 
     def _dispatch_work(self, source_block):
         """

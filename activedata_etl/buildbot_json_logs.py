@@ -15,7 +15,7 @@ from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.exceptions import suppress_exception, Explanation
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
@@ -23,6 +23,7 @@ from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
+from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
@@ -56,6 +57,10 @@ def random(settings):
 
 
 def parse_day(settings, p, force=False):
+    locker=Lock("uploads")
+    threads = set()
+
+
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - REFERENCE_DATE) / DAY)
@@ -66,7 +71,7 @@ def parse_day(settings, p, force=False):
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
-    Log.note("Consider #{{num}: {{url}}", url=day_url, num=day_num)
+    Log.note("Consider #{{num}}: {{url}}", url=day_url, num=day_num)
 
     destination = s3.Bucket(settings.destination)
     notify = Queue(settings=settings.notify)
@@ -119,8 +124,22 @@ def parse_day(settings, p, force=False):
             continue
 
         key = unicode(day_num) + "." + unicode(group_number)
-        destination.write_lines(key=key, lines=parsed)
-        notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+
+        def upload(key, lines, please_stop):
+            destination.write_lines(key=key, lines=lines)
+            notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+            with locker:
+                threads.remove(Thread.current())
+
+        while True:
+            with locker:
+                if len(threads) <= 20:
+                    break
+            Thread.sleep(seconds=0.1)
+
+        thread = Thread.run("upload " + key, upload, key, parsed)
+        with locker:
+            threads.add(thread)
 
     if first == None:
         Log.error("How did this happen?")
@@ -175,6 +194,7 @@ def get_all_tasks(url):
         expected_vars=["builds"]
     )
 
+
 def main():
     try:
         with Explanation("ETL"):
@@ -183,7 +203,6 @@ def main():
             Log.start(settings.debug)
 
             parse_to_s3(settings)
-
     finally:
         Log.stop()
 
