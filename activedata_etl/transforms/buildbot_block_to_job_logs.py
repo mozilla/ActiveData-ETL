@@ -138,7 +138,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     Log.note("Text log does not exist {{url}}", url=url)
                     data.etl.error = "Text log does not exist"
                 else:
-                    all_log_lines = response._all_lines(encoding=None)
+                    all_log_lines = response.get_all_lines(encoding=None)
                     action = process_buildbot_log(all_log_lines, url)
                     set_default(data.action, action)
 
