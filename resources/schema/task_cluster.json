@@ -87,6 +87,20 @@
 						}
 					}
 				},
+				"resource_usage":{
+					"type": "object",
+					"dynamic": true,
+					"properties":{
+						"samples":{
+							"type":"nested",
+							"dynamic":"true"
+						},
+						"summary":{
+							"type":"nested",
+							"dynamic":"true"
+						}
+					}
+				},
 				"etl":{
 					"type":"object",
 					"properties":{

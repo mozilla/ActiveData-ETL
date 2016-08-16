@@ -45,7 +45,6 @@ from activedata_etl.sinks.multi_day_index import MultiDayIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
-
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -113,7 +112,6 @@ class ETL(Thread):
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
-
 
     def _dispatch_work(self, source_block):
         """
@@ -310,11 +308,14 @@ class ETL(Thread):
                             Log.warning("Could not annotate todo", cause=[f, e])
 
                         if previous_attempts == 0:
-                            # TODO: REMOVE THIS warning WHEN WE FEEL TH ANNOTATION IS WORKING
-                            Log.warning("could not process {{key}}.  Incremented attempts, and returned back to work queue.", key=todo.key, cause=e)
                             pass
                         else:
-                            Log.warning("could not process {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                                tries=todo.previous_attempts,
+                                key=todo.key,
+                                cause=e
+                            )
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS

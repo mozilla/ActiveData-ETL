@@ -23,6 +23,7 @@ from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
+from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
@@ -56,6 +57,10 @@ def random(settings):
 
 
 def parse_day(settings, p, force=False):
+    locker=Lock("uploads")
+    threads = set()
+
+
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - REFERENCE_DATE) / DAY)
@@ -119,8 +124,22 @@ def parse_day(settings, p, force=False):
             continue
 
         key = unicode(day_num) + "." + unicode(group_number)
-        destination.write_lines(key=key, lines=parsed)
-        notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+
+        def upload(key, lines, please_stop):
+            destination.write_lines(key=key, lines=lines)
+            notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+            with locker:
+                threads.remove(Thread.current())
+
+        while True:
+            with locker:
+                if len(threads) <= 20:
+                    break
+            Thread.sleep(seconds=0.1)
+
+        thread = Thread.run("upload " + key, upload, key, parsed)
+        with locker:
+            threads.add(thread)
 
     if first == None:
         Log.error("How did this happen?")
@@ -184,36 +203,6 @@ def main():
             Log.start(settings.debug)
 
             parse_to_s3(settings)
-
-            # parse_day(settings, "builds-2016-05-17.js.gz", True)
-            # parse_day(settings, "builds-2016-05-18.js.gz", True)
-            # parse_day(settings, "builds-2016-05-25.js.gz", True)
-            # parse_day(settings, "builds-2016-06-21.js.gz", True)
-            # parse_day(settings, "builds-2016-06-27.js.gz", True)
-            # parse_day(settings, "builds-2016-07-05.js.gz", True)
-            # parse_day(settings, "builds-2016-07-06.js.gz", True)
-            # parse_day(settings, "builds-2016-07-14.js.gz", True)
-            # parse_day(settings, "builds-2016-07-15.js.gz", True)
-            # parse_day(settings, "builds-2016-07-18.js.gz", True)
-            # parse_day(settings, "builds-2016-07-20.js.gz", True)
-            # parse_day(settings, "builds-2016-07-21.js.gz", True)
-            # parse_day(settings, "builds-2016-07-22.js.gz", True)
-            # parse_day(settings, "builds-2016-07-25.js.gz", True)
-            # parse_day(settings, "builds-2016-07-26.js.gz", True)
-            # parse_day(settings, "builds-2016-07-27.js.gz", True)
-            # parse_day(settings, "builds-2016-07-28.js.gz", True)
-            # parse_day(settings, "builds-2016-07-29.js.gz", True)
-            # parse_day(settings, "builds-2016-07-30.js.gz", True)
-            # parse_day(settings, "builds-2016-08-01.js.gz", True)
-            # parse_day(settings, "builds-2016-08-02.js.gz", True)
-            # parse_day(settings, "builds-2016-08-03.js.gz", True)
-            # parse_day(settings, "builds-2016-08-04.js.gz", True)
-            # parse_day(settings, "builds-2016-08-05.js.gz", True)
-            # parse_day(settings, "builds-2016-08-08.js.gz", True)
-            # parse_day(settings, "builds-2016-08-09.js.gz", True)
-            # parse_day(settings, "builds-2016-08-10.js.gz", True)
-            # parse_day(settings, "builds-2016-08-11.js.gz", True)
-            # parse_day(settings, "builds-2016-08-12.js.gz", True)
     finally:
         Log.stop()
 

@@ -21,9 +21,10 @@ true = True
 class TestJobs(FuzzyTestCase):
 
     def test_new_format(self):
-        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/autoland-linux64-pgo/1468999988/autoland_ubuntu64_hw_test-g4-pgo-bm103-tests1-linux-build42.txt.gz"
+        url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/autoland-win32-pgo/1470036602/autoland_win7_ix_test_pgo-mochitest-clipboard-bm126-tests1-windows-build42.txt.gz"
+        # url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/autoland-linux64-pgo/1468999988/autoland_ubuntu64_hw_test-g4-pgo-bm103-tests1-linux-build42.txt.gz"
         response = http.get(url)
-        output = process_buildbot_log(response.all_lines, url)
+        output = process_buildbot_log(response.get_all_lines(encoding=None), url)
         Log.note("{{output|json}}", output=output)
 
     def test_old_format(self):

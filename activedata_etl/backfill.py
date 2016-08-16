@@ -76,7 +76,7 @@ def diff(settings, please_stop=None):
     for i, p in enumerate(remaining_in_s3):
         all_keys = source_bucket.keys(source_prefix + unicode(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
-        with Timer("insert into sms"):
+        with Timer("insert into aws sqs", silent=len(all_keys) == 1):
             work_queue.extend([
                 {
                     "key": k,
