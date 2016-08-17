@@ -95,7 +95,7 @@ def parse_day(settings, p, force=False):
     first = None
     for group_number, ts in jx.groupby(tasks, size=100):
         if DEBUG:
-            Log.note("Processing block {{num}}", num=group_number)
+            Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
         parsed = []
 
         group_etl = Dict(
@@ -164,7 +164,7 @@ def get_all_logs(url):
             filename = strings.between(line, '</td><td><a href=\"', '">')
             if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
                 paths.append(filename)
-        paths = jx.reverse(jx.sort(paths))
+        paths = jx.reverse(jx.sort(paths).not_right(1))  # DO NOT INCLUDE TODAY (INCOMPLETE)
         return paths
     finally:
         response.close()
