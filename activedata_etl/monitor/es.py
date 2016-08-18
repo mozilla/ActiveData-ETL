@@ -14,7 +14,7 @@ import requests
 from pyLibrary import convert, aws
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import Dict
 
 
@@ -24,18 +24,11 @@ with suppress_exception:
     import warnings
     warnings.simplefilter("ignore", PowmInsecureWarning)
 
-machine = Dict()
-
 def main():
     try:
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
-
-        with suppress_exception:
-            ec2 = aws.get_instance_metadata()
-            if ec2:
-                machine.name=ec2.instance_id
 
         Log.note("Search ES...")
         result = requests.post(
@@ -50,7 +43,7 @@ def main():
         else:
             Log.note("Good response")
     except Exception, e:
-        Log.warning("Problem with call to ES at {{machine}}.  NO ACTION TAKEN", machine=machine.name, cause=e)
+        Log.warning("Problem with call to ES at {{machine}}.  NO ACTION TAKEN", machine=machine_metadata, cause=e)
     finally:
         Log.stop()
 

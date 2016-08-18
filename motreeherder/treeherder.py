@@ -65,6 +65,31 @@ class TreeHerder(object):
         :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
         """
         start = Date.now().unix
+        num_requests = 0
+
+        def _register_call():
+            try:
+                _id = "-".join([branch, revision])
+                response = http.put(
+                    url=self.rate_limiter.url + "/" + _id,
+                    timeout=3,
+                    data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) +
+                         b', "start":' + str(start) +
+                         b', "end":' + str(Date.now().unix) +
+                         b'}'
+                )
+                if unicode(response.status_code)[0] != '2':
+                    Log.error("Could not register call")
+            except Exception:
+                pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
+
+
+
+
+
+
+
+
         self._register_call(branch, revision, start)
         try:
             url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
@@ -299,7 +324,7 @@ class TreeHerder(object):
                 break
             except Exception, e:
                 e = Except.wrap(e)
-                if "NodeNotConnectedException" in e:
+                if "NodeNotConnectedException" in e or "NodeDisconnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
                     Thread.sleep(seconds=Random.int(5 * 60))
                     continue
@@ -442,19 +467,6 @@ class TreeHerder(object):
                 return True
 
         return False
-
-    def _register_call(self, branch, revision, start, end=None):
-        try:
-            _id = "-".join([branch, revision])
-            response = http.put(
-                url=self.rate_limiter.url + "/" + _id,
-                timeout=3,
-                data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) + b'"start":' + str(start) + ', "end":' + (b'null' if end is None else str(end)) + b'}'
-            )
-            if unicode(response.status_code)[0] != '2':
-                Log.error("Could not register call")
-        except Exception:
-            pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
 
     def replicate(self):
         # FIND HOLES IN JOBS

@@ -145,7 +145,15 @@ def accumulate_logs(source_key, url, lines, please_stop):
         except Exception, e:
             if line.startswith('<?xml version="1.0"'):
                 Log.error("Log is not ready. key={{key}} url={{url|quote}}\n\t{{line|quote}}", key=source_key, line=line, url=url)
-            Log.warning("bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}", key=source_key, line_number=accumulator.stats.lines, line=line, url=url, cause=e)
+            prefix = strings.limit(line, 500)
+            Log.warning(
+                "bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}",
+                key=source_key,
+                line_number=accumulator.stats.lines,
+                line=prefix,
+                url=url,
+                cause=e
+            )
             accumulator.stats.bad_lines += 1
 
     if not last_line_was_json:

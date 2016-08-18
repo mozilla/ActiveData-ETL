@@ -285,7 +285,8 @@ def set_build_info(normalized, task, resources):
 
     normalized.build.branch = coalesce_w_conflict_detection(
         branch,
-        task.tags.build_props.branch
+        task.tags.build_props.branch,
+        task.payload.env.MH_BRANCH
     )
     normalized.build.revision12 = normalized.build.revision[0:12]
 
