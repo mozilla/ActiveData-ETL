@@ -20,7 +20,7 @@ import requests
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import coalesce, wrap, Dict, unwraplist, Null, DictList
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.maths import Math
@@ -114,6 +114,8 @@ class TreeHerder(object):
                         ).results)
                     details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
+                self._register_call(branch, revision, start, Date.now().unix)
+
                 with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
                     stars = []
                     for _, ids in jx.groupby(jobs.id, size=40):
@@ -121,12 +123,16 @@ class TreeHerder(object):
                         stars.extend(response),
                     stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
+                self._register_call(branch, revision, start, Date.now().unix)
+
                 with Timer("Get notes from TH"):
                     notes = []
                     for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
                         response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
                         notes.extend(response),
                     notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
+
+                self._register_call(branch, revision, start, Date.now().unix)
 
                 for j in jobs:
                     output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
@@ -421,7 +427,10 @@ class TreeHerder(object):
         if response.status_code != 200:
             Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
         last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
-        if last_th_request.end:
+        if last_th_request.machine == machine_metadata.name:
+            Log.warning("would have tripped over self-access to TH")
+            return True
+        elif last_th_request.end:
             expired = last_th_request.end + 2 * MINUTE.seconds
             now = Date.now().unix
             if expired < now:
@@ -440,7 +449,7 @@ class TreeHerder(object):
             response = http.put(
                 url=self.rate_limiter.url + "/" + _id,
                 timeout=3,
-                data=b'{"start":' + str(start) + ', "end":' + (b'null' if end is None else str(end)) + b'}'
+                data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) + b'"start":' + str(start) + ', "end":' + (b'null' if end is None else str(end)) + b'}'
             )
             if unicode(response.status_code)[0] != '2':
                 Log.error("Could not register call")
