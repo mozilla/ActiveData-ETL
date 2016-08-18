@@ -64,11 +64,12 @@ class TreeHerder(object):
         :param revision:
         :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
         """
-        start = Date.now().unix
-        num_requests = 0
+        start = None
+        request = Dict()
 
         def _register_call():
             try:
+                request.count +=1
                 _id = "-".join([branch, revision])
                 response = http.put(
                     url=self.rate_limiter.url + "/" + _id,
@@ -76,6 +77,7 @@ class TreeHerder(object):
                     data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) +
                          b', "start":' + str(start) +
                          b', "end":' + str(Date.now().unix) +
+                         b', "count":' + str(request.count) +
                          b'}'
                 )
                 if unicode(response.status_code)[0] != '2':
@@ -83,14 +85,9 @@ class TreeHerder(object):
             except Exception:
                 pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
 
+        _register_call()
+        start = Date.now().unix
 
-
-
-
-
-
-
-        self._register_call(branch, revision, start)
         try:
             url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
             results = None
@@ -139,7 +136,7 @@ class TreeHerder(object):
                         ).results)
                     details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-                self._register_call(branch, revision, start, Date.now().unix)
+                _register_call()
 
                 with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
                     stars = []
@@ -148,7 +145,7 @@ class TreeHerder(object):
                         stars.extend(response),
                     stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
-                self._register_call(branch, revision, start, Date.now().unix)
+                _register_call()
 
                 with Timer("Get notes from TH"):
                     notes = []
@@ -157,7 +154,7 @@ class TreeHerder(object):
                         notes.extend(response),
                     notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
 
-                self._register_call(branch, revision, start, Date.now().unix)
+                _register_call()
 
                 for j in jobs:
                     output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
@@ -170,7 +167,7 @@ class TreeHerder(object):
                         pass
             return output
         finally:
-            self._register_call(branch, revision, start, Date.now().unix)
+            _register_call()
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
         output = Dict()
@@ -455,16 +452,10 @@ class TreeHerder(object):
         if last_th_request.machine == machine_metadata.name:
             Log.warning("would have tripped over self-access to TH")
             return True
-        elif last_th_request.end:
-            expired = last_th_request.end + 2 * MINUTE.seconds
-            now = Date.now().unix
-            if expired < now:
-                return True
-        else:
-            expired = last_th_request.start + 5 * MINUTE.seconds
-            now = Date.now().unix
-            if expired < now:
-                return True
+        expired = coalesce(last_th_request.end + 2 * MINUTE.seconds, last_th_request.start + 5 * MINUTE.seconds)
+        now = Date.now().unix
+        if expired < now:
+            return True
 
         return False
 
