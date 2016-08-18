@@ -933,12 +933,13 @@ class ThreadedQueue(Queue):
         self.thread.join()
 
 
-
 def _wait_for_exit(please_stop):
     """
     /dev/null SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
     """
     cr_count = 0  # COUNT NUMBER OF BLANK LINES
+
+    please_stop.on_go(lambda: thread.interrupt_main())
 
     while not please_stop:
         # if DEBUG:
@@ -948,6 +949,7 @@ def _wait_for_exit(please_stop):
         try:
             line = sys.stdin.readline()
         except Exception, e:
+            Except.wrap(e)
             if "Bad file descriptor" in e:
                 _wait_for_interrupt(please_stop)
                 break

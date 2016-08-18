@@ -96,7 +96,7 @@ class TreeHerder(object):
 
             output = []
             for g, repo_ids in jx.groupby(results.id, size=10):
-                repo_ids=wrap(list(repo_ids))
+                repo_ids = wrap(list(repo_ids))
                 jobs = DictList()
                 with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
                     while True:
