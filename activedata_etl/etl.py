@@ -456,7 +456,7 @@ def etl_one(settings):
         treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
     )
 
-    stopper = Signal()
+    stopper = Signal("main stop signal")
     ETL(
         name="ETL Loop Test",
         work_queue=queue,

@@ -307,6 +307,8 @@ class TreeHerder(object):
         else:
             # MISSING docs._source.job.timing.end WHEN A PLACEHOLDER WAS ADDED
             # TODO: SHOULD DELETE OVERAPPING PLACEHOLDER RECORDS
+            if DEBUG:
+                Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
             timestamp = Date(timestamp).unix
             best_index = jx.sort([(i, abs(coalesce(e, 0) - timestamp)) for i, e in enumerate(docs._source.job.timing.end)], 1)[0][0]
             return docs[best_index]._source
