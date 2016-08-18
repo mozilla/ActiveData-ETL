@@ -74,11 +74,12 @@ class TreeHerder(object):
                 response = http.put(
                     url=self.rate_limiter.url + "/" + _id,
                     timeout=3,
-                    data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) +
-                         b', "start":' + str(start) if start else "null" +
-                         b', "end":' + str(Date.now().unix) +
-                         b', "count":' + str(request.count) +
-                         b'}'
+                    data=convert.unicode2utf8(convert.value2json(Dict(
+                        machine=machine_metadata.name,
+                        start=start,
+                        end=Date.now(),
+                        count=request.count
+                    )))
                 )
                 if unicode(response.status_code)[0] != '2':
                     Log.error("Could not register call")
