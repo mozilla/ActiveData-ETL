@@ -75,14 +75,14 @@ class TreeHerder(object):
                     url=self.rate_limiter.url + "/" + _id,
                     timeout=3,
                     data=b'{"machine":' + convert.unicode2utf8(convert.string2quote(machine_metadata.name)) +
-                         b', "start":' + str(start) +
+                         b', "start":' + str(start) if start else "null" +
                          b', "end":' + str(Date.now().unix) +
                          b', "count":' + str(request.count) +
                          b'}'
                 )
                 if unicode(response.status_code)[0] != '2':
                     Log.error("Could not register call")
-            except Exception:
+            except Exception, e:
                 pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
 
         _register_call()
