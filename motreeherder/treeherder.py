@@ -75,6 +75,9 @@ class TreeHerder(object):
                     if str(response.status_code)[0] == b'2':
                         results = convert.json2value(convert.utf82unicode(response.content)).results
                         break
+                    elif str(response.status_code)[0] == b'5':
+                        # WE MAY HAVE CRUSHED TH
+                        Log.error(TRY_AGAIN_LATER, reason="HTTP " + unicode(response.status) + " ERROR")
                     elif response.status_code == 404:
                         if branch not in ["hg.mozilla.org"]:
                             Log.warning("{{branch}} rev {{revision}} returns 404 NOT FOUND", branch=branch, revision=revision)
@@ -289,10 +292,17 @@ class TreeHerder(object):
                 docs = self.cache.search(query, timeout=600).hits.hits
                 break
             except Exception, e:
-                if "EsRejectedExecutionException[rejected execution (queue capacity" not in e:
+                e = Except.wrap(e)
+                if "NodeNotConnectedException" in e:
+                    # WE LOST A NODE, THIS MAY TAKE A WHILE
+                    Thread.sleep(seconds=Random.int(5 * 60))
+                    continue
+                elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
+                    Thread.sleep(seconds=Random.int(30))
+                    continue
+                else:
                     Log.warning("Bad ES call, fall back to TH", cause=e)
                     return None
-                Thread.sleep(seconds=Random.int(30))
 
         if not docs:
             if DEBUG:
