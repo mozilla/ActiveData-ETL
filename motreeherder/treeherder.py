@@ -30,9 +30,8 @@ from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
 from pyLibrary.thread.threads import Thread, DEBUG
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import HOUR, DAY, MINUTE
+from pyLibrary.times.durations import HOUR, DAY, MINUTE, SECOND
 from pyLibrary.times.timer import Timer
-
 
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
@@ -51,8 +50,14 @@ class TreeHerder(object):
         rate_limiter.schema = RATE_LIMITER_SCHEMA
 
         self.settings = settings
-        self.failure_classification = {c.id: c.name for c in http.get_json(FAILURE_CLASSIFICATION_URL)}
-        self.repo = {c.id: c.name for c in http.get_json(REPO_URL)}
+        try:
+            self.failure_classification = {c.id: c.name for c in http.get_json(FAILURE_CLASSIFICATION_URL)}
+            self.repo = {c.id: c.name for c in http.get_json(REPO_URL)}
+            self.disabled = False
+        except Exception, e:
+            Log.warning("Can not use Treeherder", cause=e)
+            self.disabled = True
+
         self.hg = hg
         self.cache = elasticsearch.Cluster(cache).get_or_create_index(cache)
         self.rate_limiter = elasticsearch.Cluster(cache).get_or_create_index(rate_limiter)
@@ -65,26 +70,33 @@ class TreeHerder(object):
         :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
         """
         start = None
-        request = Dict()
+        request = Dict(last=Date.now(), count=0)
 
-        def _register_call():
+        def _register_call(end=None):
             try:
-                request.count +=1
+                request.count += 1
                 _id = "-".join([branch, revision])
-                response = http.put(
-                    url=self.rate_limiter.url + "/" + _id,
-                    timeout=3,
-                    data=convert.unicode2utf8(convert.value2json(Dict(
-                        machine=machine_metadata.name,
-                        start=start,
-                        end=Date.now(),
-                        count=request.count
-                    )))
-                )
-                if unicode(response.status_code)[0] != '2':
-                    Log.error("Could not register call")
+                if not start or end or request.last < Date.now() - 5 * SECOND:
+                    request.last = Date.now()
+                    response = http.put(
+                        url=self.rate_limiter.url + "/" + _id,
+                        timeout=3,
+                        data=convert.unicode2utf8(convert.value2json(Dict(
+                            machine=machine_metadata.name,
+                            start=start,
+                            last_seen=request.last,
+                            end=end,
+                            count=request.count
+                        )))
+                    )
+                    if unicode(response.status_code)[0] != '2':
+                        Log.error("Could not register call")
             except Exception, e:
-                pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
+                e = Except.wrap(e)
+                if "Read timed out." in e or "Caused by ConnectTimeoutError" in e:
+                    pass  # IT HAPPENS BECAUSE OF SHORT TIMEOUT, NO NEED TO FREAK OUT, OTHER CALLS WILL FAIL AND INFORM US OF PROBLEMS
+                else:
+                    Log.warning("Problem registering call", cause=e)
 
         _register_call()
         start = Date.now().unix
@@ -94,6 +106,7 @@ class TreeHerder(object):
             results = None
             for attempt in range(3):
                 try:
+                    _register_call()
                     response = http.get(url=url)
                     if str(response.status_code)[0] == b'2':
                         results = convert.json2value(convert.utf82unicode(response.content)).results
@@ -123,6 +136,7 @@ class TreeHerder(object):
                 jobs = DictList()
                 with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
                     while True:
+                        _register_call()
                         response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
                         jobs.extend(response.results)
                         if len(response.results) != 2000:
@@ -131,31 +145,28 @@ class TreeHerder(object):
                 with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
                     details = []
                     for _, ids in jx.groupby(jobs.id, size=40):
+                        _register_call()
                         details.extend(http.get_json(
                             url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
                             retry={"times": 3}
                         ).results)
                     details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-                _register_call()
-
                 with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
                     stars = []
                     for _, ids in jx.groupby(jobs.id, size=40):
+                        _register_call()
                         response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
                         stars.extend(response),
                     stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
-                _register_call()
-
                 with Timer("Get notes from TH"):
                     notes = []
                     for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
+                        _register_call()
                         response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
                         notes.extend(response),
                     notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
-
-                _register_call()
 
                 for j in jobs:
                     output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
@@ -168,7 +179,7 @@ class TreeHerder(object):
                         pass
             return output
         finally:
-            _register_call()
+            _register_call(Date.now())
 
     def _normalize_job_result(self, branch, revision, job, details, notes, stars):
         output = Dict()
@@ -384,6 +395,9 @@ class TreeHerder(object):
                 Log.warning("can not get markup from es, check TH request logger next", cause=e)
 
             try:
+                if self.disabled:
+                    return None
+
                 if self._is_it_safe_to_make_more_requests(branch, revision):
                     break
             except Exception, e:
@@ -441,9 +455,30 @@ class TreeHerder(object):
         return detail
 
     def _is_it_safe_to_make_more_requests(self, branch, revision):
+        response = requests.post(
+            url=self.rate_limiter.url + "/_search",
+            timeout=self.rate_limiter.settings.timeout,
+            data=convert.unicode2utf8(convert.value2json({
+                "aggs": {"recent": {
+                    "filter": {"range": {"start": {"gt": Date.now() - 5 * MINUTE}}},
+                    "aggs": {
+                        "requests": {"stats": {"field": "count"}},
+                        "durations": {"stats": {"script_field": "doc[\"end\"].value-doc[\"start\"]"}}
+                    }
+                }},
+                "size": 0
+            }))
+        )
+        if response.status_code != 200:
+            Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
+        summary = convert.json2value(convert.utf82unicode(response.content))
+        request_count = summary.aggregations.recent.requests.sum
+        if request_count > 4000:
+            return False
+
         response = requests.get(
-            url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
-            timeout=3
+           url=self.rate_limiter.url + "/" + "-".join([branch, revision]),
+           timeout=3
         )
         if response.status_code == 404:
             return True
@@ -451,9 +486,13 @@ class TreeHerder(object):
             Log.error("bad return code {{code}}:\n{{data}}", code=response.status_code, data=response.content)
         last_th_request = convert.json2value(convert.utf82unicode(response.content))._source
         if last_th_request.machine == machine_metadata.name:
-            Log.warning("would have tripped over self-access to TH")
+            # CATCH CASE WHEN TH LOOKUP COLLIDES WITH SELF (THE 2 MINUTE DELAY CAN CAUSE CONFUSION)
             return True
-        expired = coalesce(last_th_request.end + 2 * MINUTE.seconds, last_th_request.start + 5 * MINUTE.seconds)
+        expired = coalesce(
+            last_th_request.last_seen + 2 * MINUTE.seconds,
+            last_th_request.end + 10,
+            last_th_request.start + 5 * MINUTE.seconds
+        )
         now = Date.now().unix
         if expired < now:
             return True

@@ -220,7 +220,7 @@ def post_json(url, **kwargs):
     except Exception, e:
         Log.error("Unexpected return value {{content}}", content=c, cause=e)
 
-    if response.status_code != 200:
+    if response.status_code not in [200, 201]:
         Log.error("Bad response", cause=Except.wrap(details))
 
     return details
