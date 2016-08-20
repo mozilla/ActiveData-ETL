@@ -331,8 +331,8 @@ def stats(given_values, test, suite):
         if given_values == None:
             return None
 
-        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v)])
-        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
+        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v) or not Math.is_finite(v)])
+        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)])
 
         z = ZeroMoment.new_instance(clean_values)
         s = Dict()
@@ -348,7 +348,7 @@ def stats(given_values, test, suite):
         if Math.is_number(s.variance) and not Math.is_nan(s.variance):
             s.std = sqrt(s.variance)
 
-        if rejects and test!="sessionrestore_no_auto_restore":  # TODO: remove when fixed
+        if rejects:
             Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
 
         return {

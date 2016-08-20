@@ -12,8 +12,8 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "ActiveData-ETL"
-//			"User-Agent": "kyle's dev machine"
+//			"User-Agent": "ActiveData-ETL"
+			"User-Agent": "kyle's dev machine debugging ActievData-ETL"
 		},
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,

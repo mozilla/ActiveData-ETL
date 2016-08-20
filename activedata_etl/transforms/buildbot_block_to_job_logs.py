@@ -156,9 +156,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 if "Problem with calculating durations" in e:
                     Log.error("Prioritized error", cause=e)
                 elif "Connection reset by peer" in e:
-                    Log.error("Connectivity problem", cause=e)
+                    Log.error(TRY_AGAIN_LATER, reason="connection problem", cause=e)
                 elif "incorrect header check" in e:
-                    Log.error("problem reading", cause=e)
+                    Log.error(TRY_AGAIN_LATER, reason="connection problem", cause=e)
+                elif "An existing connection was forcibly closed by the remote host" in e:
+                    Log.error(TRY_AGAIN_LATER, reason="connection problem", cause=e)
 
                 Log.warning("Problem processing {{key}}: {{url}}", key=source_key, url=url, cause=e)
                 data.etl.error = "Text log unreadable"

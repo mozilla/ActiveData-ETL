@@ -54,8 +54,8 @@ class TreeHerder(object):
             self.failure_classification = {c.id: c.name for c in http.get_json(FAILURE_CLASSIFICATION_URL)}
             self.repo = {c.id: c.name for c in http.get_json(REPO_URL)}
             self.disabled = False
-        except Exception, e:
-            Log.warning("Can not use Treeherder", cause=e)
+            Log.warning("Treeherder ingestion is enabled!")
+        except Exception:
             self.disabled = True
 
         self.hg = hg
