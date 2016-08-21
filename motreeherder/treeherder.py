@@ -303,6 +303,18 @@ class TreeHerder(object):
             Log.error("Problem with normalization of job {{job_id}}", job_id=coalesce(output.job.id, job.id), cause=e)
 
     def _get_markup_from_es(self, branch, revision, task_id=None, buildername=None, timestamp=None):
+        """
+        :param branch:
+        :param revision:
+        :param task_id:
+        :param buildername:
+        :param timestamp:
+        :return:
+            Exception - Some logic problem
+            None - Can not be found
+            TH document - was found
+            TODO:  A FOURTH STATE THAT INDICATES THE JOB NUMBER, SO WE CAN FOCUS ON LOOKING UP JUST THAT ONE JOB
+        """
         if task_id:
             _filter = {"term": {"task.id": task_id}}
         else:

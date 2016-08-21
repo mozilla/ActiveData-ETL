@@ -203,7 +203,7 @@ def transform(source_key, perfherder, resources):
                     for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
-                                stats(sub_replicates, subtest.name, suite_name),
+                                stats(source_key, sub_replicates, subtest.name, suite_name),
                                 {
                                     "test": unicode(subtest.name) + "." + unicode(g),
                                     "ordering": i,
@@ -220,7 +220,7 @@ def transform(source_key, perfherder, resources):
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
                         {"result": set_default(
-                            stats(samples, subtest.name, suite_name),
+                            stats(source_key, samples, subtest.name, suite_name),
                             {
                                 "test": subtest.name,
                                 "ordering": i,
@@ -242,7 +242,7 @@ def transform(source_key, perfherder, resources):
                     for g, sub_replicates in jx.groupby(replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
-                                stats(sub_replicates, test_name, suite_name),
+                                stats(source_key, sub_replicates, test_name, suite_name),
                                 {
                                     "test": unicode(test_name) + "." + unicode(g),
                                     "ordering": i
@@ -256,7 +256,7 @@ def transform(source_key, perfherder, resources):
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     new_record = set_default(
                         {"result": set_default(
-                            stats(replicates, test_name, suite_name),
+                            stats(source_key, replicates, test_name, suite_name),
                             {
                                 "test": test_name,
                                 "ordering": i
@@ -290,7 +290,6 @@ def transform(source_key, perfherder, resources):
         Log.error("Transformation failure on id={{uid}}", {"uid": source_key}, e)
 
 
-
 def mainthread_transform(r):
     if r == None:
         return None
@@ -320,9 +319,10 @@ def mainthread_transform(r):
     r.mainthread = output.values()
 
 
-def stats(given_values, test, suite):
+def stats(source_key, given_values, test, suite):
     """
     RETURN dict WITH
+    source_key - NAME OF THE SOURCE (FOR LOGGING ERRORS)
     stats - LOTS OF AGGREGATES
     samples - LIST OF VALUES USED IN AGGREGATE
     rejects - LIST OF VALUES NOT USED IN AGGREGATE
@@ -349,7 +349,7 @@ def stats(given_values, test, suite):
             s.std = sqrt(s.variance)
 
         if rejects:
-            Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
+            Log.warning("{{test}} in suite {{suite}} in {{key}} has rejects {{samples|json}}", test=test, suite=suite, key=source_key, samples=given_values)
 
         return {
             "stats": s,
