@@ -348,7 +348,13 @@ def stats(source_key, given_values, test, suite):
         if Math.is_number(s.variance) and not Math.is_nan(s.variance):
             s.std = sqrt(s.variance)
 
-        if rejects:
+        good_excuse = [
+            not rejects,
+            suite in ["basic_compositor_video has rejects"],
+            test in ["sessionrestore_no_auto_restor"]
+        ]
+
+        if not any(good_excuse):
             Log.warning("{{test}} in suite {{suite}} in {{key}} has rejects {{samples|json}}", test=test, suite=suite, key=source_key, samples=given_values)
 
         return {
