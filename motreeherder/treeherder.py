@@ -28,11 +28,12 @@ from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import cache, use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import expand_template
-from pyLibrary.thread.threads import Thread, DEBUG
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import HOUR, DAY, MINUTE, SECOND
 from pyLibrary.times.timer import Timer
 
+DEBUG = True
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 REPO_URL = "https://treeherder.mozilla.org:443/api/repository/"
@@ -78,6 +79,8 @@ class TreeHerder(object):
                 _id = "-".join([branch, revision])
                 if not start or end or request.last < Date.now() - 5 * SECOND:
                     request.last = Date.now()
+                    if DEBUG:
+                        Log.note("Call TH")
                     response = http.put(
                         url=self.rate_limiter.url + "/" + _id,
                         timeout=3,
@@ -134,7 +137,7 @@ class TreeHerder(object):
             for g, repo_ids in jx.groupby(results.id, size=10):
                 repo_ids = wrap(list(repo_ids))
                 jobs = DictList()
-                with Timer("Get {{num}} jobs", {"num": len(repo_ids)}):
+                with Timer("Get {{num}} jobs", {"num": len(repo_ids)}, debug=DEBUG):
                     while True:
                         _register_call()
                         response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
@@ -142,7 +145,7 @@ class TreeHerder(object):
                         if len(response.results) != 2000:
                             break
 
-                with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}):
+                with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}, debug=DEBUG):
                     details = []
                     for _, ids in jx.groupby(jobs.id, size=40):
                         _register_call()
@@ -152,7 +155,7 @@ class TreeHerder(object):
                         ).results)
                     details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
 
-                with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}):
+                with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}, debug=DEBUG):
                     stars = []
                     for _, ids in jx.groupby(jobs.id, size=40):
                         _register_call()
@@ -160,7 +163,7 @@ class TreeHerder(object):
                         stars.extend(response),
                     stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
 
-                with Timer("Get notes from TH"):
+                with Timer("Get notes from TH", debug=DEBUG):
                     notes = []
                     for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
                         _register_call()
