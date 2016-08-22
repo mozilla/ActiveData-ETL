@@ -63,6 +63,7 @@ class TreeHerder(object):
         self.cache = elasticsearch.Cluster(cache).get_or_create_index(cache)
         self.rate_limiter = elasticsearch.Cluster(cache).get_or_create_index(rate_limiter)
         self.rate_limiter.set_refresh_interval(seconds=1)
+        self.th_requests = []
 
     def _get_job_results_from_th(self, branch, revision):
         """
@@ -70,6 +71,11 @@ class TreeHerder(object):
         :param revision:
         :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
         """
+
+        if (branch, revision) in self.th_requests:
+            Log.warning("Another request for same revsion!")
+        self.th_requests.append((branch, revision))
+
         start = None
         request = Dict(last=Date.now(), count=0)
 
@@ -78,9 +84,9 @@ class TreeHerder(object):
                 request.count += 1
                 _id = "-".join([branch, revision])
                 if not start or end or request.last < Date.now() - 5 * SECOND:
-                    request.last = Date.now()
                     if DEBUG:
-                        Log.note("Call TH")
+                        Log.note("TH call count={{count}}", count=request.count)
+                    request.last = Date.now()
                     response = http.put(
                         url=self.rate_limiter.url + "/" + _id,
                         timeout=3,
@@ -101,15 +107,13 @@ class TreeHerder(object):
                 else:
                     Log.warning("Problem registering call", cause=e)
 
-        _register_call()
-        start = Date.now().unix
-
         try:
             url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
             results = None
             for attempt in range(3):
                 try:
                     _register_call()
+                    start = coalesce(start, Date.now().unix)
                     response = http.get(url=url)
                     if str(response.status_code)[0] == b'2':
                         results = convert.json2value(convert.utf82unicode(response.content)).results

@@ -350,7 +350,7 @@ def stats(source_key, given_values, test, suite):
 
         good_excuse = [
             not rejects,
-            suite in ["basic_compositor_video has rejects"],
+            suite in ["basic_compositor_video"],
             test in ["sessionrestore_no_auto_restore"]
         ]
 
