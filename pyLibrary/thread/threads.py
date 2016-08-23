@@ -939,7 +939,7 @@ def _wait_for_exit(please_stop):
     """
     cr_count = 0  # COUNT NUMBER OF BLANK LINES
 
-    please_stop.on_go(lambda: thread.interrupt_main())
+    please_stop.on_go(_interrupt_main_safely)
 
     while not please_stop:
         # if DEBUG:
@@ -972,6 +972,14 @@ def _wait_for_interrupt(please_stop):
             _Log.note("inside wait-for-shutdown loop")
         with suppress_exception:
             Thread.sleep(please_stop=please_stop)
+
+
+def _interrupt_main_safely():
+    try:
+        thread.interrupt_main()
+    except KeyboardInterrupt:
+        # WE COULD BE INTERRUPTING SELF
+        pass
 
 
 class Till(Signal):

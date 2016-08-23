@@ -37,11 +37,12 @@ DEBUG = True
 RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultset/?format=json&count=1000&full=true&short_revision__in={{revision}}"
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 REPO_URL = "https://treeherder.mozilla.org:443/api/repository/"
-JOBS_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&result_set_id__in={{result_set_id}}"
 
-DETAILS_URL = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}"
-NOTES_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}"
-JOB_BUG_MAP = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}"
+JOBS_BY_REVISION = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&result_set_id__in={{result_set_id}}"
+JOBS_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&job_id={{job_id}}"
+DETAILS_BY_JOB_ID = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}"
+NOTES_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}"
+JOB_BUG_MAP_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}"
 
 
 class TreeHerder(object):
@@ -65,16 +66,17 @@ class TreeHerder(object):
         self.rate_limiter.set_refresh_interval(seconds=1)
         self.th_requests = []
 
-    def _get_job_results_from_th(self, branch, revision):
+    def _get_revision_results_from_th(self, branch, revision, job_id=None):
         """
         :param branch:
         :param revision:
         :return:  Null - IF THERE IS NOTHING, RAISE EXCEPTION IF WE SHOULD TRY AGAIN
         """
 
-        if (branch, revision) in self.th_requests:
-            Log.warning("Another request for same revsion!")
-        self.th_requests.append((branch, revision))
+        if not job_id:
+            if (branch, revision) in self.th_requests:
+                Log.warning("Another request for same revsion!")
+            self.th_requests.append((branch, revision))
 
         start = None
         request = Dict(last=Date.now(), count=0)
@@ -107,6 +109,64 @@ class TreeHerder(object):
                 else:
                     Log.warning("Problem registering call", cause=e)
 
+        def _get_job_details_from_th(revision_id=None, job_id=None):
+            output = []
+            jobs = DictList()
+
+            with Timer("Get jobs", debug=DEBUG):
+                while True:
+                    if revision_id:
+                        url = expand_template(JOBS_BY_REVISION, {"branch": branch, "offset": len(jobs), "result_set_id": unicode(revision_id)})
+                    else:
+                        url = expand_template(JOBS_BY_JOB_ID, {"branch": branch, "offset": len(jobs), "job_id": unicode(job_id)})
+
+                    _register_call()
+                    response = http.get_json(url)
+                    jobs.extend(response.results)
+                    if len(response.results) != 2000:
+                        break
+
+            with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}, debug=DEBUG):
+                details = []
+                for _, ids in jx.groupby(jobs.id, size=40):
+                    _register_call()
+                    details.extend(http.get_json(
+                        url=expand_template(DETAILS_BY_JOB_ID, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
+                        retry={"times": 3}
+                    ).results)
+                details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
+
+            with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}, debug=DEBUG):
+                stars = []
+                for _, ids in jx.groupby(jobs.id, size=40):
+                    _register_call()
+                    response = http.get_json(expand_template(JOB_BUG_MAP_BY_JOB_ID, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
+                    stars.extend(response),
+                stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
+
+            with Timer("Get notes from TH", debug=DEBUG):
+                notes = []
+                for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
+                    _register_call()
+                    response = http.get_json(expand_template(NOTES_BY_JOB_ID, {"branch": branch, "job_id": unicode(jid)}))
+                    notes.extend(response),
+                notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
+
+            for j in jobs:
+                output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
+            if output:
+                with Timer("Write to ES cache"):
+                    self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
+                    try:
+                        self.cache.refresh()
+                    except Exception:
+                        pass
+            return output
+
+        if job_id:
+            return _get_job_details_from_th(job_id=job_id)
+
+        # FIND THE JOBS FOR THIS REVISION
         try:
             url = expand_template(RESULT_SET_URL, {"branch": branch, "revision": revision[0:12:]})
             results = None
@@ -137,54 +197,7 @@ class TreeHerder(object):
             if results is None:
                 Log.error("Could not get good response from {{url}}", url=url, cause=e)
 
-            output = []
-            for g, repo_ids in jx.groupby(results.id, size=10):
-                repo_ids = wrap(list(repo_ids))
-                jobs = DictList()
-                with Timer("Get {{num}} jobs", {"num": len(repo_ids)}, debug=DEBUG):
-                    while True:
-                        _register_call()
-                        response = http.get_json(expand_template(JOBS_URL, {"branch": branch, "offset": len(jobs), "result_set_id": ",".join(map(unicode, repo_ids))}))
-                        jobs.extend(response.results)
-                        if len(response.results) != 2000:
-                            break
-
-                with Timer("Get (up to {{num}}) details from TH", {"num": len(jobs)}, debug=DEBUG):
-                    details = []
-                    for _, ids in jx.groupby(jobs.id, size=40):
-                        _register_call()
-                        details.extend(http.get_json(
-                            url=expand_template(DETAILS_URL, {"branch": branch, "job_id": ",".join(map(unicode, ids))}),
-                            retry={"times": 3}
-                        ).results)
-                    details = {k.job_guid: list(v) for k, v in jx.groupby(details, "job_guid")}
-
-                with Timer("Get (up to {{num}}) stars from TH", {"num": len(jobs)}, debug=DEBUG):
-                    stars = []
-                    for _, ids in jx.groupby(jobs.id, size=40):
-                        _register_call()
-                        response = http.get_json(expand_template(JOB_BUG_MAP, {"branch": branch, "job_id": "&job_id=".join(map(unicode, ids))}))
-                        stars.extend(response),
-                    stars = {k.job_id: list(v) for k, v in jx.groupby(stars, "job_id")}
-
-                with Timer("Get notes from TH", debug=DEBUG):
-                    notes = []
-                    for jid in set([j.id for j in jobs if j.failure_classification_id != 1] + stars.keys()):
-                        _register_call()
-                        response = http.get_json(expand_template(NOTES_URL, {"branch": branch, "job_id": unicode(jid)}))
-                        notes.extend(response),
-                    notes = {k.job_id: list(v) for k, v in jx.groupby(notes, "job_id")}
-
-                for j in jobs:
-                    output.append(self._normalize_job_result(branch, revision, j, details, notes, stars))
-            if output:
-                with Timer("Write to ES cache"):
-                    self.cache.extend({"id": "-".join([c.repo.branch, unicode(c.job.id)]), "value": c} for c in output)
-                    try:
-                        self.cache.refresh()
-                    except Exception:
-                        pass
-            return output
+            return _get_job_details_from_th(revision_id=results[0].id)
         finally:
             _register_call(Date.now())
 
@@ -333,13 +346,7 @@ class TreeHerder(object):
                 "filter": {"and": [
                     _filter,
                     {"term": {"repo.branch": branch}},
-                    {"prefix": {"repo.revision": revision}},
-                    {"not": {"term": {"job.state": "pending"}}},  # IGNORE ALL PENDING STATE
-                    {"or": [
-                        {"missing": {"field": "job.id"}},
-                        {"range": {"etl.timestamp": {"gte": (Date.now() - HOUR).unix}}},
-                        {"range": {"job.timing.last_modified": {"lt": (Date.now() - DAY).unix}}}
-                    ]}
+                    {"prefix": {"repo.revision": revision}}
                 ]}
             }},
             "size": 10000
@@ -361,12 +368,12 @@ class TreeHerder(object):
                     continue
                 else:
                     Log.warning("Bad ES call, fall back to TH", cause=e)
-                    return None
+                    return Null
 
         if not docs:
             if DEBUG:
                 Log.note("No cached for {{value|quote}} rev {{revision}}", value=coalesce(task_id, buildername), revision=revision)
-            return None
+            return Null
         elif len(docs) == 1:
             if DEBUG:
                 Log.note("Used ES cache to get TH details on {{value|quote}}", value=coalesce(task_id, buildername))
@@ -398,15 +405,26 @@ class TreeHerder(object):
         if not branch or not revision:
             Log.error("expecting branch and revision")
 
+        found_job_id = None
+
         while self.settings.use_cache:
             try:
                 markup = self._get_markup_from_es(branch, revision, task_id, buildername, timestamp)
+
                 if markup:
-                    # WE DO NOT NEED THESE DETAILS WHEN MARKING OTHER DOCUMENTS
-                    markup.details = None
-                    markup.stars = None
-                    markup.notes = None
-                    return markup
+                    stale = markup.etl.timestamp < (Date.now() - HOUR).unix and \
+                            markup.job.timing.last_modified > (Date.now() - DAY).unix
+
+                    if stale:
+                        markup = Null  # ALL OTHER JOBS IN REVISION ARE PROBABLY STALE
+                    elif markup.job.state not in ["pending", "running"]:
+                        # WE DO NOT NEED THESE DETAILS WHEN MARKING OTHER DOCUMENTS
+                        markup.details = None
+                        markup.stars = None
+                        markup.notes = None
+                        return markup
+
+                found_job_id = markup.job.id
             except Exception, e:
                 if "timestamp required to find best match" in e:
                     Log.error("Logic error", cause=e)
@@ -426,7 +444,7 @@ class TreeHerder(object):
             Log.error(TRY_AGAIN_LATER, reason="Appear to be working on same revision")
 
         # REGISTER OUR TREEHERDER CALL
-        job_results = self._get_job_results_from_th(branch, revision)
+        job_results = self._get_revision_results_from_th(branch, revision, job_id=found_job_id)
 
         detail = Null
         for job_result in job_results:
