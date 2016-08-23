@@ -96,6 +96,7 @@ def parse_day(settings, p, force=False):
     for group_number, ts in jx.groupby(tasks, size=100):
         if DEBUG:
             Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
+
         parsed = []
 
         group_etl = Dict(
@@ -126,10 +127,14 @@ def parse_day(settings, p, force=False):
         key = unicode(day_num) + "." + unicode(group_number)
 
         def upload(key, lines, please_stop):
-            destination.write_lines(key=key, lines=lines)
-            notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
-            with locker:
-                threads.remove(Thread.current())
+            try:
+                destination.write_lines(key=key, lines=lines)
+                notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+            except Exception:
+                Log.error("problem with upload {{key}}", key=key)
+            finally:
+                with locker:
+                    threads.remove(Thread.current())
 
         while True:
             with locker:
