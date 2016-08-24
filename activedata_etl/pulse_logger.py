@@ -24,7 +24,7 @@ from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 
 
-# ONLY DEPLOY OFF THE pulse-logger branch
+# ONLY DEPLOY OFF THE pulse-logger BRANCH
 
 
 def log_loop(settings, synch, queue, bucket, please_stop):
@@ -45,7 +45,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             if settings.destination.key_prefix:
                 full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             else:
-                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             try:
                 output = [
                     set_default(
