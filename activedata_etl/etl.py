@@ -299,19 +299,19 @@ class ETL(Thread):
                         continue
 
                     previous_attempts = coalesce(todo.previous_attempts, 0)
-                    try:
-                        # TRY TO MARKUP THE MESSAGE
-                        todo.previous_attempts = previous_attempts + 1
-                        self.work_queue.add(todo)
-                        self.work_queue.commit()
-                    except Exception, f:
-                        # UNEXPECTED PROBLEM!!!
-                        self.work_queue.rollback()
-                        Log.warning("Could not annotate todo", cause=[f, e])
+                    todo.previous_attempts = previous_attempts + 1
 
                     if previous_attempts < 3:
-                        pass
+                        # SILENT
+                        try:
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
                     elif previous_attempts > 10:
+                        #GIVE UP
                         Log.warning(
                             "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
                             tries=todo.previous_attempts,
@@ -320,6 +320,15 @@ class ETL(Thread):
                         )
                         self.work_queue.commit()
                     else:
+                        # COMPLAIN
+                        try:
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
+
                         Log.warning(
                             "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
                             tries=todo.previous_attempts,
