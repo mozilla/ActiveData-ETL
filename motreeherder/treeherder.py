@@ -75,7 +75,7 @@ class TreeHerder(object):
 
         if not job_id:
             if (branch, revision) in self.th_requests:
-                Log.warning("Another request for same revsion!")
+                Log.warning("Another request for same {{branch}}/{{revision}}", branch=branch, revision=revision)
             self.th_requests.append((branch, revision))
 
         start = None
