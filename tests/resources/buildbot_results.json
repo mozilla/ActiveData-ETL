@@ -25,19 +25,19 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-fennec-mozilla-release.py\""
+                "value": "mozilla/release-fennec-mozilla-release.py"
             },
             {
                 "name": "event_group",
-                "value": "\"tag\""
+                "value": "tag"
             },
             {
                 "name": "products",
-                "value": "\"fennec\""
+                "value": "fennec"
             }
         ],
         "properties": {
@@ -93,11 +93,11 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/m-in-w64-pgo-00000000000000000/scripts\""
+                "value": "/c/builds/moz2_slave/m-in-w64-pgo-00000000000000000/scripts"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win64-pgo/1443990639/jsshell-win64.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win64-pgo/1443990639/jsshell-win64.zip"
             }
         ],
         "properties": {
@@ -254,7 +254,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator-debug/b2g-44.0a1.en-US.android-arm.crashreporter-symbols.zip\""
+                "value": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator-debug/b2g-44.0a1.en-US.android-arm.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -378,7 +378,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/fVKmELvWSMSCpwS4R8m9ng/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/fVKmELvWSMSCpwS4R8m9ng/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -591,7 +591,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/0rgaHXgbQKWuXotnqsTMvQ/artifacts/public/build/firefox-44.0a1.en-US.linux-i686.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/0rgaHXgbQKWuXotnqsTMvQ/artifacts/public/build/firefox-44.0a1.en-US.linux-i686.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -660,7 +660,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/ELWFSIQfRqeavysa1XpFUA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/ELWFSIQfRqeavysa1XpFUA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -737,7 +737,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/m5JEp8BLSTut22LR35aLQQ/artifacts/public/build/firefox-44.0a1.en-US.win64.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/m5JEp8BLSTut22LR35aLQQ/artifacts/public/build/firefox-44.0a1.en-US.win64.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -805,7 +805,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/RJYRHoeWTZC56hTszs8ytA/artifacts/public/build/firefox-44.0a1.en-US.mac64.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/RJYRHoeWTZC56hTszs8ytA/artifacts/public/build/firefox-44.0a1.en-US.mac64.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -977,19 +977,19 @@
         "other": [
             {
                 "name": "purge_actual",
-                "value": "\"813.07GB\""
+                "value": "813.07GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"10GB\""
+                "value": "10GB"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/tb-try-c-cen-m64-d-00000000000/tools\""
+                "value": "/builds/slave/tb-try-c-cen-m64-d-00000000000/tools"
             }
         ],
         "properties": {
@@ -1206,11 +1206,11 @@
         "other": [
             {
                 "name": "http_port",
-                "value": "\"30456\""
+                "value": 30456
             },
             {
                 "name": "ssl_port",
-                "value": "\"31456\""
+                "value": 31456
             }
         ],
         "properties": {
@@ -1811,35 +1811,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"trybld\""
+                "value": "trybld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"trybld_dsa\""
+                "value": "trybld_dsa"
             },
             {
                 "name": "source_revision",
-                "value": "\"4f2b721570e9\""
+                "value": "4f2b721570e9"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "mock_target",
-                "value": "\"mozilla-centos6-x86_64\""
+                "value": "mozilla-centos6-x86_64"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -1970,35 +1970,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"trybld\""
+                "value": "trybld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"trybld_dsa\""
+                "value": "trybld_dsa"
             },
             {
                 "name": "source_revision",
-                "value": "\"4f2b721570e9\""
+                "value": "4f2b721570e9"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "mock_target",
-                "value": "\"mozilla-centos6-x86_64\""
+                "value": "mozilla-centos6-x86_64"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -2052,11 +2052,11 @@
         "other": [
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/jsshell-win64.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/jsshell-win64.zip"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/ash-w64-d-00000000000000000000/scripts\""
+                "value": "/c/builds/moz2_slave/ash-w64-d-00000000000000000000/scripts"
             }
         ],
         "properties": {
@@ -2219,35 +2219,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"trybld\""
+                "value": "trybld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"trybld_dsa\""
+                "value": "trybld_dsa"
             },
             {
                 "name": "source_revision",
-                "value": "\"4f2b721570e9\""
+                "value": "4f2b721570e9"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "mock_target",
-                "value": "\"mozilla-centos6-x86_64\""
+                "value": "mozilla-centos6-x86_64"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -2304,31 +2304,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"trybld\""
+                "value": "trybld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"trybld_dsa\""
+                "value": "trybld_dsa"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "mock_target",
-                "value": "\"mozilla-centos6-x86_64\""
+                "value": "mozilla-centos6-x86_64"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -2384,11 +2384,11 @@
         "other": [
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/jsshell-win64.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/jsshell-win64.zip"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/ash-w64-d-00000000000000000000/scripts\""
+                "value": "/c/builds/moz2_slave/ash-w64-d-00000000000000000000/scripts"
             }
         ],
         "properties": {
@@ -2473,35 +2473,35 @@
         "other": [
             {
                 "name": "packageSize",
-                "value": "\"56417724\""
+                "value": 56417724
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-linux64-debug/1443998375/jsshell-linux-x86_64.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-linux64-debug/1443998375/jsshell-linux-x86_64.zip"
             },
             {
                 "name": "purge_actual",
-                "value": "\"66.47GB\""
+                "value": "66.47GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"14GB\""
+                "value": "14GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-west-2a\""
+                "value": "us-west-2a"
             },
             {
                 "name": "packageHash",
-                "value": "\"9da29a084e51e806f11e297426fd148d5a6d7da5694a65b9b8e9b785d22e2d33143e859263118870428873e710dfe0ff31e46f533470ad9db4beb77a3c07ed10\""
+                "value": "9da29a084e51e806f11e297426fd148d5a6d7da5694a65b9b8e9b785d22e2d33143e859263118870428873e710dfe0ff31e46f533470ad9db4beb77a3c07ed10"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-beta-l64-d-00000000000000000/tools\""
+                "value": "/builds/slave/m-beta-l64-d-00000000000000000/tools"
             }
         ],
         "properties": {
@@ -2615,31 +2615,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -2699,31 +2699,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -2924,7 +2924,7 @@
         "other": [
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64-asan-debug/1443999878/jsshell-linux-x86_64-asan.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64-asan-debug/1443999878/jsshell-linux-x86_64-asan.zip"
             }
         ],
         "properties": {
@@ -3166,31 +3166,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -3247,31 +3247,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -3328,31 +3328,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -3409,31 +3409,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -3490,31 +3490,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -3716,31 +3716,31 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/jsshell-android-arm.zip"
             },
             {
                 "name": "completeMarSize",
-                "value": "\"40749237\""
+                "value": 40749237
             },
             {
                 "name": "completeMarUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/fennec-44.0a1.en-US.android-arm.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/fennec-44.0a1.en-US.android-arm.apk"
             },
             {
                 "name": "completeMarHash",
-                "value": "\"eba52d02b68c5640c749d644cdcc4bad4d1f06844f2307b5e102e9043d46c871915543753aa3aef2b46b690ba3f4b0b184241822049b705462ff35a6333c67ba\""
+                "value": "eba52d02b68c5640c749d644cdcc4bad4d1f06844f2307b5e102e9043d46c871915543753aa3aef2b46b690ba3f4b0b184241822049b705462ff35a6333c67ba"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/try-and-api-9-d-00000000000000/scripts\""
+                "value": "/builds/slave/try-and-api-9-d-00000000000000/scripts"
             }
         ],
         "properties": {
@@ -3829,31 +3829,31 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/jsshell-android-arm.zip"
             },
             {
                 "name": "completeMarSize",
-                "value": "\"42586850\""
+                "value": 42586850
             },
             {
                 "name": "completeMarUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/fennec-44.0a1.en-US.android-arm.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/fennec-44.0a1.en-US.android-arm.apk"
             },
             {
                 "name": "completeMarHash",
-                "value": "\"f47d6307560daa90e90df69b73f098e8cd6ec24c89112a3f53c741f5ee171e88e6261ff93f1239f801facbfef051f8c6388464f1ed607ba3f789cac78a340a6d\""
+                "value": "f47d6307560daa90e90df69b73f098e8cd6ec24c89112a3f53c741f5ee171e88e6261ff93f1239f801facbfef051f8c6388464f1ed607ba3f789cac78a340a6d"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/try-and-api-11-d-0000000000000/scripts\""
+                "value": "/builds/slave/try-and-api-11-d-0000000000000/scripts"
             }
         ],
         "properties": {
@@ -3948,31 +3948,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415\""
+                "value": "7f187d6f0b0c0fbd6b90fe4e8c712cfdfc467415"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4029,31 +4029,31 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"7f187d6f0b0c\""
+                "value": "7f187d6f0b0c"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4114,35 +4114,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4202,35 +4202,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4290,35 +4290,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4379,35 +4379,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4464,35 +4464,35 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "purge_actual",
-                "value": "\"78.52GB\""
+                "value": "78.52GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-west-2c\""
+                "value": "us-west-2c"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-in-linux32_g-d-0000000000000/tools\""
+                "value": "/builds/slave/m-in-linux32_g-d-0000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"c7bf0e3904129a226cc9b4aebe7b44e1894f3c97\""
+                "value": "c7bf0e3904129a226cc9b4aebe7b44e1894f3c97"
             }
         ],
         "properties": {
@@ -4553,31 +4553,31 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "purge_actual",
-                "value": "\"65.91GB\""
+                "value": "65.91GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"16GB\""
+                "value": "16GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1a\""
+                "value": "us-east-1a"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-in-l64_g-d-00000000000000000/tools\""
+                "value": "/builds/slave/m-in-l64_g-d-00000000000000000/tools"
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"c7bf0e3904129a226cc9b4aebe7b44e1894f3c97\""
+                "value": "c7bf0e3904129a226cc9b4aebe7b44e1894f3c97"
             }
         ],
         "properties": {
@@ -4639,35 +4639,35 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "purge_actual",
-                "value": "\"74.63GB\""
+                "value": "74.63GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-west-2c\""
+                "value": "us-west-2c"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-in-linux32_g-000000000000000/tools\""
+                "value": "/builds/slave/m-in-linux32_g-000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"c7bf0e3904129a226cc9b4aebe7b44e1894f3c97\""
+                "value": "c7bf0e3904129a226cc9b4aebe7b44e1894f3c97"
             }
         ],
         "properties": {
@@ -4731,35 +4731,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4816,35 +4816,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4902,35 +4902,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -4984,43 +4984,43 @@
         "other": [
             {
                 "name": "packageSize",
-                "value": "\"57773830\""
+                "value": 57773830
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/jyavenard@mozilla.com-9b4ff27a3fc0/try-linux64-mulet/jsshell-linux-x86_64.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/jyavenard@mozilla.com-9b4ff27a3fc0/try-linux64-mulet/jsshell-linux-x86_64.zip"
             },
             {
                 "name": "purge_actual",
-                "value": "\"66.04GB\""
+                "value": "66.04GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"15GB\""
+                "value": "15GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1a\""
+                "value": "us-east-1a"
             },
             {
                 "name": "packageHash",
-                "value": "\"ee81503f40417f7d45bc272fa2d33aca96b87e2df3910b95aa5ae098ea7f3178fc386703b52a2419d17325a66ed4a091f01ccec6ea34553bdfd898e9e051a35c\""
+                "value": "ee81503f40417f7d45bc272fa2d33aca96b87e2df3910b95aa5ae098ea7f3178fc386703b52a2419d17325a66ed4a091f01ccec6ea34553bdfd898e9e051a35c"
             },
             {
                 "name": "who",
-                "value": "\"jyavenard@mozilla.com\""
+                "value": "jyavenard@mozilla.com"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/try-l64-mulet-0000000000000000/tools\""
+                "value": "/builds/slave/try-l64-mulet-0000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -5082,31 +5082,31 @@
         "other": [
             {
                 "name": "packageSize",
-                "value": "\"55684299\""
+                "value": 55684299
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-win32-mulet/1422227730/jsshell-win32.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-win32-mulet/1422227730/jsshell-win32.zip"
             },
             {
                 "name": "purge_actual",
-                "value": "\"16.76GB\""
+                "value": "16.76GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "packageHash",
-                "value": "\"944705783fd2ba20fca02fb31e2a4ce11bfaf0f574ae555a365266551619935faa8af232124c771c554f94b3ec3d435111ea29649df6ab1eb39ff7d57d10ac7a\""
+                "value": "944705783fd2ba20fca02fb31e2a4ce11bfaf0f574ae555a365266551619935faa8af232124c771c554f94b3ec3d435111ea29649df6ab1eb39ff7d57d10ac7a"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"c:/builds/moz2_slave/m-in-w32-mulet-000000000000000/tools\""
+                "value": "c:/builds/moz2_slave/m-in-w32-mulet-000000000000000/tools"
             }
         ],
         "properties": {
@@ -5177,35 +5177,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -5273,35 +5273,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -5406,31 +5406,31 @@
         "other": [
             {
                 "name": "packageSize",
-                "value": "\"123525907\""
+                "value": 123525907
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-macosx64-mulet/1422230251/jsshell-mac64.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-macosx64-mulet/1422230251/jsshell-mac64.zip"
             },
             {
                 "name": "purge_actual",
-                "value": "\"507.21GB\""
+                "value": "507.21GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"12GB\""
+                "value": "12GB"
             },
             {
                 "name": "packageHash",
-                "value": "\"246d6eae553a2df5d118b3a55f9d5f4ec22372db9f28924fcd9197319cba8c28ecf97d8846031fea9d7395af88308dfc86bc6a9a3649ae0d36417291ae75794e\""
+                "value": "246d6eae553a2df5d118b3a55f9d5f4ec22372db9f28924fcd9197319cba8c28ecf97d8846031fea9d7395af88308dfc86bc6a9a3649ae0d36417291ae75794e"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-in-osx64-mulet-0000000000000/tools\""
+                "value": "/builds/slave/m-in-osx64-mulet-0000000000000/tools"
             }
         ],
         "properties": {
@@ -5486,35 +5486,35 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-2_0\""
+                "value": "integration/gaia-2_0"
             },
             {
                 "name": "purge_actual",
-                "value": "\"507.56GB\""
+                "value": "507.56GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-b32_20-osx64_g_lz-ntly-00000/tools\""
+                "value": "/builds/slave/m-b32_20-osx64_g_lz-ntly-00000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"72f41e949a55d759f9adbe95bd912492fa3447dd\""
+                "value": "72f41e949a55d759f9adbe95bd912492fa3447dd"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -5570,35 +5570,35 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-2_0\""
+                "value": "integration/gaia-2_0"
             },
             {
                 "name": "purge_actual",
-                "value": "\"56.67GB\""
+                "value": "56.67GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"c:/builds/moz2_slave/m-b32_20-w32_g_lz-ntly-0000000/tools\""
+                "value": "c:/builds/moz2_slave/m-b32_20-w32_g_lz-ntly-0000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"72f41e949a55d759f9adbe95bd912492fa3447dd\""
+                "value": "72f41e949a55d759f9adbe95bd912492fa3447dd"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -5758,39 +5758,39 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "purge_actual",
-                "value": "\"31.14GB\""
+                "value": "31.14GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1d\""
+                "value": "us-east-1d"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-cen-linux32_g_lz-ntly-000000/tools\""
+                "value": "/builds/slave/m-cen-linux32_g_lz-ntly-000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"c7bf0e3904129a226cc9b4aebe7b44e1894f3c97\""
+                "value": "c7bf0e3904129a226cc9b4aebe7b44e1894f3c97"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -5853,43 +5853,43 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"ad1399c4718a\""
+                "value": "ad1399c4718a"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -5942,39 +5942,39 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "purge_actual",
-                "value": "\"30.20GB\""
+                "value": "30.20GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"13GB\""
+                "value": "13GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1c\""
+                "value": "us-east-1c"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-cen-l64_g_lz-ntly-0000000000/tools\""
+                "value": "/builds/slave/m-cen-l64_g_lz-ntly-0000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"c7bf0e3904129a226cc9b4aebe7b44e1894f3c97\""
+                "value": "c7bf0e3904129a226cc9b4aebe7b44e1894f3c97"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -6037,39 +6037,39 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"18444135b6e5\""
+                "value": "18444135b6e5"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -6127,43 +6127,43 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"ad1399c4718a\""
+                "value": "ad1399c4718a"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -6198,27 +6198,27 @@
         "other": [
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "build_number",
-                "value": "3"
+                "value": 3
             },
             {
                 "name": "purge_target",
-                "value": "\"12GB\""
+                "value": "12GB"
             },
             {
                 "name": "purge_actual",
-                "value": "\"18.89GB\""
+                "value": "18.89GB"
             },
             {
                 "name": "products",
-                "value": "\"firefox\""
+                "value": "firefox"
             },
             {
                 "name": "toolsdir",
-                "value": "\"c:/builds/moz2_slave/rel-m-rel-xr_w32_bld-000000000/tools\""
+                "value": "c:/builds/moz2_slave/rel-m-rel-xr_w32_bld-000000000/tools"
             }
         ],
         "properties": {
@@ -6265,43 +6265,43 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"c1e69cc49e86\""
+                "value": "c1e69cc49e86"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -6361,39 +6361,39 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"c1e69cc49e86\""
+                "value": "c1e69cc49e86"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -6560,35 +6560,35 @@
         "other": [
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "purge_actual",
-                "value": "\"72.70GB\""
+                "value": "72.70GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"2GB\""
+                "value": "2GB"
             },
             {
                 "name": "products",
-                "value": "\"firefox\""
+                "value": "firefox"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1c\""
+                "value": "us-east-1c"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/rel-m-beta-xr_source-000000000/tools\""
+                "value": "/builds/slave/rel-m-beta-xr_source-000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -6629,27 +6629,27 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "chunkTotal",
-                "value": "6"
+                "value": 6
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             },
             {
                 "name": "event_group",
-                "value": "\"update_verify\""
+                "value": "update_verify"
             },
             {
                 "name": "release_tag",
-                "value": "\"FIREFOX_36_0b9_RELEASE\""
+                "value": "FIREFOX_36_0b9_RELEASE"
             },
             {
                 "name": "chunkNum",
-                "value": "2"
+                "value": 2
             }
         ],
         "properties": {
@@ -6702,27 +6702,27 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "chunkTotal",
-                "value": "6"
+                "value": 6
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             },
             {
                 "name": "event_group",
-                "value": "\"update_verify\""
+                "value": "update_verify"
             },
             {
                 "name": "release_tag",
-                "value": "\"FIREFOX_36_0b9_RELEASE\""
+                "value": "FIREFOX_36_0b9_RELEASE"
             },
             {
                 "name": "chunkNum",
-                "value": "4"
+                "value": 4
             }
         ],
         "properties": {
@@ -6773,11 +6773,11 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             }
         ],
         "properties": {"scheduler": "release-mozilla-beta-firefox_almost-ready-for-release"},
@@ -6819,19 +6819,19 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             },
             {
                 "name": "update_channel",
-                "value": "\"beta-cdntest\""
+                "value": "beta-cdntest"
             },
             {
                 "name": "event_group",
-                "value": "\"releasetest\""
+                "value": "releasetest"
             }
         ],
         "properties": {"scheduler": "release-mozilla-beta-ready-for-rel-test"},
@@ -6873,27 +6873,27 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-west-2a\""
+                "value": "us-west-2a"
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/rel-m-beta-fnl_verf-0000000000/tools\""
+                "value": "/builds/slave/rel-m-beta-fnl_verf-0000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -6978,7 +6978,7 @@
         "other": [
             {
                 "name": "nightly_build",
-                "value": "\"True\""
+                "value": true
             }
         ],
         "properties": {
@@ -7031,19 +7031,19 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "shipit",
-                "value": "\"shipit\""
+                "value": "shipit"
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-beta.py\""
+                "value": "mozilla/release-firefox-mozilla-beta.py"
             },
             {
                 "name": "update_channel",
-                "value": "\"beta\""
+                "value": "beta"
             }
         ],
         "properties": {
@@ -7095,47 +7095,47 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "packageSize",
-                "value": "\"35462493\""
+                "value": 35462493
             },
             {
                 "name": "purge_actual",
-                "value": "\"49.07GB\""
+                "value": "49.07GB"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/jsshell-android-arm.zip"
             },
             {
                 "name": "purge_target",
-                "value": "\"16GB\""
+                "value": "16GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1d\""
+                "value": "us-east-1d"
             },
             {
                 "name": "packageHash",
-                "value": "\"3a1835e1e58136400335063b96af96299cf6cd5f63b4345c72b279b4c591412f116cf5dd65b60dcff735dce9e78d710bbbfb2100ecea378c54f4f5a996e7294a\""
+                "value": "3a1835e1e58136400335063b96af96299cf6cd5f63b4345c72b279b4c591412f116cf5dd65b60dcff735dce9e78d710bbbfb2100ecea378c54f4f5a996e7294a"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-beta-and-0000000000000000000/tools\""
+                "value": "/builds/slave/m-beta-and-0000000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -7197,47 +7197,47 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "packageSize",
-                "value": "\"37649913\""
+                "value": 37649913
             },
             {
                 "name": "purge_actual",
-                "value": "\"44.73GB\""
+                "value": "44.73GB"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/jsshell-android-arm.zip"
             },
             {
                 "name": "purge_target",
-                "value": "\"14GB\""
+                "value": "14GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1d\""
+                "value": "us-east-1d"
             },
             {
                 "name": "packageHash",
-                "value": "\"213ebd356c55b0cf1f53efd4fd24ca3d4d3cfcbd8b2a5699b7e54313a7ce6b2e1a03aa893d49e1d4f759c555cf7392266b573ebdd401e59e9dbdf4ca0d2e3cd3\""
+                "value": "213ebd356c55b0cf1f53efd4fd24ca3d4d3cfcbd8b2a5699b7e54313a7ce6b2e1a03aa893d49e1d4f759c555cf7392266b573ebdd401e59e9dbdf4ca0d2e3cd3"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-beta-and-d-00000000000000000/tools\""
+                "value": "/builds/slave/m-beta-and-d-00000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -7932,11 +7932,11 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "2"
+                "value": 2
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-esr31.py\""
+                "value": "mozilla/release-firefox-mozilla-esr31.py"
             }
         ],
         "properties": {
@@ -8044,7 +8044,7 @@
         "other": [
             {
                 "name": "nightly_build",
-                "value": "\"True\""
+                "value": true
             }
         ],
         "properties": {
@@ -8146,93 +8146,72 @@
         "action": {
             "buildbot_status": "failure",
             "end_time": 1445302083,
+            "job_number": 30,
             "reason": "Created by BBB for task 5RkgjwrTR4uMA-tor63sQQ, Created by BBB for task BNnkqhLBQGSTfJynGnz9Gg, Created by BBB for task pLDT2YFzQimhkb-c0nLc-Q",
+            "repack": true,
             "request_time": 1445286812,
-            "start_time": 1445295263
+            "requests": [
+                {
+                    "request_id": 84701102,
+                    "timestamp": 1445286812
+                },
+                {
+                    "request_id": 84701101,
+                    "timestamp": 1445286812
+                },
+                {
+                    "request_id": 84701100,
+                    "timestamp": 1445286812
+                }
+            ],
+            "start_time": 1445295263,
+            "type": "l10n"
+        },
+        "build": {
+            "branch": "date",
+            "locale": "en-US",
+            "product": "firefox",
+            "release": "production",
+            "revision": "77ecfd1da6e087d4654ad6ec5f46b7bf5a451502",
+            "revision12": "77ecfd1da6e0"
         },
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000/scripts\""
-            },
-            {
-                "name": "buildername",
-                "value": "\"release-date_firefox_win32_l10n_repack\""
-            },
-            {
-                "name": "buildnumber",
-                "value": "30"
+                "value": "/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000/scripts"
             },
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "en_us_binary_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/OymZ_rjXQ8-ZWLPkdW1WKQ/artifacts/public/build\""
-            },
-            {
-                "name": "platform",
-                "value": "\"l10n\""
-            },
-            {
-                "name": "slavename",
-                "value": "\"b-2008-ix-0145\""
-            },
-            {
-                "name": "version",
-                "value": "\"44.0b9\""
-            },
-            {
-                "name": "branch",
-                "value": "\"date\""
-            },
-            {
-                "name": "revision",
-                "value": "\"77ecfd1da6e087d4654ad6ec5f46b7bf5a451502\""
-            },
-            {
-                "name": "product",
-                "value": "\"firefox\""
-            },
-            {
-                "name": "request_times",
-                "value": "{\"84701102\": 1445286812, \"84701101\": 1445286812, \"84701100\": 1445286812}"
-            },
-            {
-                "name": "log_url",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-l10n/release-date_firefox_win32_l10n_repack-bm84-build1-build30.txt.gz\""
-            },
-            {
-                "name": "request_ids",
-                "value": "[84701100, 84701101, 84701102]"
-            },
-            {
-                "name": "locales",
-                "value": "\"cy:76cfd00faa96 da:3031ec912b7a de:bbf3507eb2d1 dsb:462887cb524c el:22b959c9a739 en-GB:686f94eff7a4 en-ZA:720d9153b07b eo:3230fe303c77 es-AR:20092952ee3f es-CL:e5de7280134f es-ES:c61c25b745c3 es-MX:bf870e599f70 et:ed26b69e4de8 eu:f309d2511247 fa:cb1546a801ba\""
-            },
-            {
-                "name": "script_repo_revision",
-                "value": "\"production\""
-            },
-            {
-                "name": "script_repo_url",
-                "value": "\"https://hg.mozilla.org/build/mozharness\""
+                "value": "https://queue.taskcluster.net/v1/task/OymZ_rjXQ8-ZWLPkdW1WKQ/artifacts/public/build"
             },
             {
                 "name": "release_promotion",
-                "value": "true"
-            },
-            {
-                "name": "repo_path",
-                "value": "\"projects/date\""
+                "value": true
             }
         ],
         "properties": {
             "basedir": "/c/builds/moz2_slave/rel-date_fx_w32_l10n_rpk-00000",
             "master": "http://buildbot-master84.bb.releng.scl3.mozilla.com:8001/"
         },
-        "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"}
+        "run": {
+            "key": "release-date_firefox_win32_l10n_repack",
+            "logurl": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/date-l10n/release-date_firefox_win32_l10n_repack-bm84-build1-build30.txt.gz",
+            "machine": {
+                "name": "b-2008-ix-0145",
+                "pool": "b-2008-ix"
+            },
+            "script": {
+                "revision": "production",
+                "url": "https://hg.mozilla.org/build/mozharness"
+            }
+        },
+        "tags": ["release"],
+        "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"},
+        "version": "44.0b9"
     },
     {
         "action": {
@@ -8324,23 +8303,23 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1d\""
+                "value": "us-east-1d"
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-esr31.py\""
+                "value": "mozilla/release-firefox-mozilla-esr31.py"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/rel-m-esr31-esr_fnl_vrfy-00000/tools\""
+                "value": "/builds/slave/rel-m-esr31-esr_fnl_vrfy-00000/tools"
             }
         ],
         "properties": {
@@ -8393,27 +8372,27 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "chunkTotal",
-                "value": "6"
+                "value": 6
             },
             {
                 "name": "release_config",
-                "value": "\"mozilla/release-firefox-mozilla-esr38.py\""
+                "value": "mozilla/release-firefox-mozilla-esr38.py"
             },
             {
                 "name": "event_group",
-                "value": "\"update_verify\""
+                "value": "update_verify"
             },
             {
                 "name": "release_tag",
-                "value": "\"FIREFOX_38_1_0esr_RELEASE\""
+                "value": "FIREFOX_38_1_0esr_RELEASE"
             },
             {
                 "name": "chunkNum",
-                "value": "3"
+                "value": 3
             }
         ],
         "properties": {
@@ -8526,7 +8505,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.crashreporter-symbols.zip\""
+                "value": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -8616,7 +8595,7 @@
         "other": [
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             }
         ],
         "properties": {
@@ -8678,11 +8657,11 @@
         "other": [
             {
                 "name": "build_number",
-                "value": "1"
+                "value": 1
             },
             {
                 "name": "event_group",
-                "value": "\"release\""
+                "value": "release"
             }
         ],
         "properties": {"scheduler": "release-mozilla-beta-ready-for-release_firefox"},
@@ -8728,11 +8707,11 @@
         "other": [
             {
                 "name": "http_port",
-                "value": "\"30288\""
+                "value": 30288
             },
             {
                 "name": "ssl_port",
-                "value": "\"31288\""
+                "value": 31288
             }
         ],
         "properties": {
@@ -8794,35 +8773,35 @@
         "other": [
             {
                 "name": "tooltool_url_list",
-                "value": "\"http://tooltool.pvt.build.mozilla.org/build\""
+                "value": "http://tooltool.pvt.build.mozilla.org/build"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "upload_ssh_user",
-                "value": "\"ffxbld\""
+                "value": "ffxbld"
             },
             {
                 "name": "upload_ssh_key",
-                "value": "\"ffxbld_rsa\""
+                "value": "ffxbld_rsa"
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "tools_revision",
-                "value": "\"46c56618f0b1\""
+                "value": "46c56618f0b1"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             },
             {
                 "name": "upload_ssh_server",
-                "value": "\"stage.mozilla.org\""
+                "value": "stage.mozilla.org"
             }
         ],
         "properties": {
@@ -8875,47 +8854,47 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "packageSize",
-                "value": "\"38361133\""
+                "value": 38361133
             },
             {
                 "name": "purge_actual",
-                "value": "\"61.71GB\""
+                "value": "61.71GB"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/jsshell-android-arm.zip"
             },
             {
                 "name": "purge_target",
-                "value": "\"16GB\""
+                "value": "16GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-west-2c\""
+                "value": "us-west-2c"
             },
             {
                 "name": "packageHash",
-                "value": "\"5afa0f73611753a2b007236cba729cd938ae190df5e456c1e997c5d3245cacdf1f812e575e87bc5b46019e16c319f1d441b167a1721739ca64d79f6657f1c7db\""
+                "value": "5afa0f73611753a2b007236cba729cd938ae190df5e456c1e997c5d3245cacdf1f812e575e87bc5b46019e16c319f1d441b167a1721739ca64d79f6657f1c7db"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/ced-and-api-11-000000000000000/tools\""
+                "value": "/builds/slave/ced-and-api-11-000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -8976,7 +8955,7 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/m-in-w32-nu-000000000000000000/scripts\""
+                "value": "/c/builds/moz2_slave/m-in-w32-nu-000000000000000000/scripts"
             }
         ],
         "properties": {
@@ -9046,7 +9025,7 @@
         "other": [
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             }
         ],
         "properties": {
@@ -9117,51 +9096,51 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "packageSize",
-                "value": "\"38391141\""
+                "value": 38391141
             },
             {
                 "name": "purge_actual",
-                "value": "\"78.66GB\""
+                "value": "78.66GB"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/jsshell-android-arm.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/jsshell-android-arm.zip"
             },
             {
                 "name": "purge_target",
-                "value": "\"14GB\""
+                "value": "14GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1c\""
+                "value": "us-east-1c"
             },
             {
                 "name": "packageHash",
-                "value": "\"de708d1b478eccfde00802575d621a1a726518e7bc6d30d8824d0367b521937c07235c937cd34dd1fea73395226322063e66834b94ad2a10acaa6a95df4a01f7\""
+                "value": "de708d1b478eccfde00802575d621a1a726518e7bc6d30d8824d0367b521937c07235c937cd34dd1fea73395226322063e66834b94ad2a10acaa6a95df4a01f7"
             },
             {
                 "name": "who",
-                "value": "\"evilpies@gmail.com\""
+                "value": "evilpies@gmail.com"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/try-and-api-11-d-0000000000000/tools\""
+                "value": "/builds/slave/try-and-api-11-d-0000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -9223,7 +9202,7 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-in-osx64-d-nu-00000000000000/scripts\""
+                "value": "/builds/slave/m-in-osx64-d-nu-00000000000000/scripts"
             }
         ],
         "properties": {
@@ -9291,19 +9270,19 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/b2g-in-l64-nu-0000000000000000/scripts\""
+                "value": "/builds/slave/b2g-in-l64-nu-0000000000000000/scripts"
             },
             {
                 "name": "script_repo_checkout",
-                "value": "\"/tools/checkouts/mozharness\""
+                "value": "/tools/checkouts/mozharness"
             },
             {
                 "name": "testresults",
-                "value": "\"[('num_ctors', 'num_ctors', 125, '125')]\""
+                "value": "[('num_ctors', 'num_ctors', 125, '125')]"
             },
             {
                 "name": "num_ctors",
-                "value": "\"125\""
+                "value": 125
             }
         ],
         "properties": {
@@ -9373,51 +9352,51 @@
         "other": [
             {
                 "name": "packageSize",
-                "value": "\"27639244\""
+                "value": 27639244
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/jsshell-android-arm-armv6.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/jsshell-android-arm-armv6.zip"
             },
             {
                 "name": "purge_actual",
-                "value": "\"59.55GB\""
+                "value": "59.55GB"
             },
             {
                 "name": "purge_target",
-                "value": "\"14GB\""
+                "value": "14GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1c\""
+                "value": "us-east-1c"
             },
             {
                 "name": "packageHash",
-                "value": "\"242765a5379ac204d3641d98b5f3792ecec29f1ff1cc6455b17b6abd5a1b74bfd2732e05d5ff06bf57cb99e1fb89ea4d31c3a23d00de21017074509c90fec1f0\""
+                "value": "242765a5379ac204d3641d98b5f3792ecec29f1ff1cc6455b17b6abd5a1b74bfd2732e05d5ff06bf57cb99e1fb89ea4d31c3a23d00de21017074509c90fec1f0"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-esr31-and-a6-ntly-0000000000/tools\""
+                "value": "/builds/slave/m-esr31-and-a6-ntly-0000000000/tools"
             },
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -9479,47 +9458,47 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/gecko-unsigned-unaligned.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "packageSize",
-                "value": "\"27646340\""
+                "value": 27646340
             },
             {
                 "name": "purge_actual",
-                "value": "\"59.79GB\""
+                "value": "59.79GB"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/robocop.apk\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/jsshell-android-arm-armv6.zip\""
+                "value": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/jsshell-android-arm-armv6.zip"
             },
             {
                 "name": "purge_target",
-                "value": "\"14GB\""
+                "value": "14GB"
             },
             {
                 "name": "placement/availability_zone",
-                "value": "\"us-east-1c\""
+                "value": "us-east-1c"
             },
             {
                 "name": "packageHash",
-                "value": "\"8f92156392ec74942ffb818db78e40a18a23349f9ce29befd96aba4f00f8dd10f7fb9bb154bd5bb6c2060648cb1e752904c2dae2b8db0b7f8ce73e7bbaf5f41c\""
+                "value": "8f92156392ec74942ffb818db78e40a18a23349f9ce29befd96aba4f00f8dd10f7fb9bb154bd5bb6c2060648cb1e752904c2dae2b8db0b7f8ce73e7bbaf5f41c"
             },
             {
                 "name": "hashType",
-                "value": "\"sha512\""
+                "value": "sha512"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/m-esr31-and-a6-000000000000000/tools\""
+                "value": "/builds/slave/m-esr31-and-a6-000000000000000/tools"
             },
             {
                 "name": "purged_clobber",
-                "value": "true"
+                "value": true
             }
         ],
         "properties": {
@@ -9581,15 +9560,15 @@
         "other": [
             {
                 "name": "nightly_build",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             }
         ],
         "properties": {
@@ -9651,11 +9630,11 @@
         "other": [
             {
                 "name": "gaiaRepoPath",
-                "value": "\"integration/gaia-central\""
+                "value": "integration/gaia-central"
             },
             {
                 "name": "gaiaRevision",
-                "value": "\"a0f2cafbae71c95e9bc97d253ecacbc079e1e138\""
+                "value": "a0f2cafbae71c95e9bc97d253ecacbc079e1e138"
             }
         ],
         "properties": {
@@ -9701,7 +9680,7 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/date_source/scripts\""
+                "value": "/builds/slave/date_source/scripts"
             }
         ],
         "properties": {
@@ -9775,11 +9754,11 @@
         "other": [
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             }
         ],
         "properties": {
@@ -9813,7 +9792,7 @@
         "other": [
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             }
         ],
         "properties": {
@@ -9845,7 +9824,7 @@
         "other": [
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             }
         ],
         "properties": {
@@ -9884,11 +9863,11 @@
         "other": [
             {
                 "name": "compare_locales_revision",
-                "value": "\"1fc4e9bc8287\""
+                "value": "1fc4e9bc8287"
             },
             {
                 "name": "hgurl",
-                "value": "\"https://hg.mozilla.org/\""
+                "value": "https://hg.mozilla.org/"
             }
         ],
         "properties": {
@@ -9989,77 +9968,60 @@
         "action": {
             "buildbot_status": "exception",
             "end_time": 1451108875,
+            "job_number": 1,
             "reason": "Created by BBB for task T3UOeJ1HRsq2EKWD7QDi2Q",
             "request_time": 1451108833,
-            "start_time": 1451108874
+            "requests": [
+                {
+                    "request_id": 92019451,
+                    "timestamp": 1451108833
+                }
+            ],
+            "start_time": 1451108874,
+            "type": "build"
+        },
+        "build": {
+            "branch": "date",
+            "locale": "en-US",
+            "name": "release-date_firefox_bncr_sub",
+            "product": "firefox",
+            "revision": "ab1fe3be773ba1f0d0f50cb473989bf3bfa0e6c3",
+            "revision12": "ab1fe3be773b"
         },
         "other": [
             {
-                "name": "buildnumber",
-                "value": "1"
-            },
-            {
-                "name": "product",
-                "value": "\"firefox\""
-            },
-            {
                 "name": "build_number",
-                "value": "1"
-            },
-            {
-                "name": "request_times",
-                "value": "{\"92019451\": 1451108833}"
-            },
-            {
-                "name": "buildername",
-                "value": "\"release-date_firefox_bncr_sub\""
-            },
-            {
-                "name": "log_url",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm70-build1-build1.txt.gz\""
-            },
-            {
-                "name": "script_repo_url",
-                "value": "\"https://hg.mozilla.org/build/mozharness\""
-            },
-            {
-                "name": "branch",
-                "value": "\"releases/date\""
-            },
-            {
-                "name": "request_ids",
-                "value": "92019451"
-            },
-            {
-                "name": "slavename",
-                "value": "\"bld-linux64-spot-129\""
-            },
-            {
-                "name": "version",
-                "value": "\"44.0b26\""
+                "value": 1
             },
             {
                 "name": "release_promotion",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "bouncer_enabled",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "partial_versions",
-                "value": "\"44.0b2,\""
-            },
-            {
-                "name": "revision",
-                "value": "\"ab1fe3be773ba1f0d0f50cb473989bf3bfa0e6c3\""
+                "value": "44.0b2,"
             }
         ],
         "properties": {
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
         },
-        "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
+        "run": {
+            "key": "release-date_firefox_bncr_sub",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm70-build1-build1.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-129",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"url": "https://hg.mozilla.org/build/mozharness"}
+        },
+        "tags": ["release"],
+        "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"},
+        "version": "44.0b26"
     },
     {
         "action": {
@@ -10072,43 +10034,43 @@
         "other": [
             {
                 "name": "bouncer_enabled",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "partial_versions",
-                "value": "\"44.0b2,\""
+                "value": "44.0b2,"
             },
             {
                 "name": "buildername",
-                "value": "\"release-date_firefox_bncr_sub\""
+                "value": "release-date_firefox_bncr_sub"
             },
             {
                 "name": "buildnumber",
-                "value": "6"
+                "value": 6
             },
             {
                 "name": "build_number",
-                "value": "2"
+                "value": 2
             },
             {
                 "name": "slavename",
-                "value": "\"bld-linux64-spot-368\""
+                "value": "bld-linux64-spot-368"
             },
             {
                 "name": "version",
-                "value": "\"44.0b31\""
+                "value": "44.0b31"
             },
             {
                 "name": "branch",
-                "value": "\"releases/date\""
+                "value": "releases/date"
             },
             {
                 "name": "revision",
-                "value": "\"53f6e3a60916b82de924c8878249930453af9312\""
+                "value": "53f6e3a60916b82de924c8878249930453af9312"
             },
             {
                 "name": "product",
-                "value": "\"firefox\""
+                "value": "firefox"
             },
             {
                 "name": "request_times",
@@ -10116,27 +10078,27 @@
             },
             {
                 "name": "log_url",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz"
             },
             {
                 "name": "request_ids",
-                "value": "93080041"
+                "value": 93080041
             },
             {
                 "name": "script_repo_revision",
-                "value": "\"production\""
+                "value": "production"
             },
             {
                 "name": "script_repo_url",
-                "value": "\"https://hg.mozilla.org/build/mozharness\""
+                "value": "https://hg.mozilla.org/build/mozharness"
             },
             {
                 "name": "release_promotion",
-                "value": "true"
+                "value": true
             },
             {
                 "name": "repo_path",
-                "value": "\"projects/date\""
+                "value": "projects/date"
             }
         ],
         "properties": {
@@ -10176,7 +10138,7 @@
         "other": [
             {
                 "name": "symbols_url",
-                "value": "\"https://queue.taskcluster.net/v1/task/MjFW8neHS4iyt40OGawWOQ/artifacts/public/build/fennec-47.0a1.en-US.android-arm.crashreporter-symbols.zip\""
+                "value": "https://queue.taskcluster.net/v1/task/MjFW8neHS4iyt40OGawWOQ/artifacts/public/build/fennec-47.0a1.en-US.android-arm.crashreporter-symbols.zip"
             }
         ],
         "properties": {
@@ -10312,31 +10274,31 @@
         "other": [
             {
                 "name": "unsignedApkUrl",
-                "value": "\"http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/gecko-unsigned-unaligned.apk\""
+                "value": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/gecko-unsigned-unaligned.apk"
             },
             {
                 "name": "robocopApkUrl",
-                "value": "\"http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/robocop.apk\""
+                "value": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/robocop.apk"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/jsshell-android-arm.zip\""
+                "value": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/jsshell-android-arm.zip"
             },
             {
                 "name": "completeMarSize",
-                "value": "\"42691440\""
+                "value": 42691440
             },
             {
                 "name": "completeMarUrl",
-                "value": "\"http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.apk\""
+                "value": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.apk"
             },
             {
                 "name": "completeMarHash",
-                "value": "\"54d128c62b9c0eb9cb0e99bde84b018e2796f30706f91295469226ae97275651e6d7fb021196fb19c001a52c137aaec236379838b82f66ad88f6f72f24e299df\""
+                "value": "54d128c62b9c0eb9cb0e99bde84b018e2796f30706f91295469226ae97275651e6d7fb021196fb19c001a52c137aaec236379838b82f66ad88f6f72f24e299df"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/builds/slave/try-and-api-15-000000000000000/scripts\""
+                "value": "/builds/slave/try-and-api-15-000000000000000/scripts"
             }
         ],
         "properties": {
@@ -10440,7 +10402,7 @@
         "other": [
             {
                 "name": "nightly_build",
-                "value": "\"True\""
+                "value": true
             }
         ],
         "properties": {
@@ -10503,7 +10465,7 @@
         "other": [
             {
                 "name": "toolsdir",
-                "value": "\"/c/builds/moz2_slave/try-w32-st-an-d-00000000000000/scripts\""
+                "value": "/c/builds/moz2_slave/try-w32-st-an-d-00000000000000/scripts"
             }
         ],
         "properties": {
@@ -11064,11 +11026,11 @@
         "other": [
             {
                 "name": "MozReview-Commit-ID",
-                "value": "\"7kmAJlscG9a\""
+                "value": "7kmAJlscG9a"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/jsshell-linux-x86_64-add-on-devel.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/jsshell-linux-x86_64-add-on-devel.zip"
             }
         ],
         "properties": {
@@ -11200,7 +11162,7 @@
         "other": [
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/jsshell-win64-add-on-devel.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/jsshell-win64-add-on-devel.zip"
             }
         ],
         "properties": {
@@ -11333,11 +11295,11 @@
         "other": [
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/jsshell-mac64-add-on-devel.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/jsshell-mac64-add-on-devel.zip"
             },
             {
                 "name": "toolsdir",
-                "value": "\"/tools/checkouts/build-tools\""
+                "value": "/tools/checkouts/build-tools"
             }
         ],
         "properties": {
@@ -11420,11 +11382,11 @@
         "other": [
             {
                 "name": "MozReview-Commit-ID",
-                "value": "\"8QELFxqM6Av\""
+                "value": "8QELFxqM6Av"
             },
             {
                 "name": "jsshellUrl",
-                "value": "\"http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/jsshell-win32-add-on-devel.zip\""
+                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/jsshell-win32-add-on-devel.zip"
             }
         ],
         "properties": {

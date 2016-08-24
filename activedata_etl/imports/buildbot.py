@@ -58,10 +58,6 @@ class BuildbotTranslator(object):
         # TASK CLUSTER ID
         output.task.id = consume(props, "taskId")
 
-        if output.task.id and data.reason.startswith("Created by BBB for task "):
-            output.properties, output.other = normalize_other(props)
-            return output
-
         if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
             output.properties, output.other = normalize_other(props)
             return output
@@ -402,7 +398,18 @@ def normalize_other(other):
         if k not in unknown_properties:
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
-        unknown.append({"name": unicode(k), "value": convert.value2json(v)})
+        if isinstance(v, (list, dict, Dict)):
+            unknown.append({"name": unicode(k), "value": convert.value2json(v)})
+        elif Math.is_number(v):
+            unknown.append({"name": unicode(k), "value": convert.value2number(v)})
+        elif v in [True, "true", "True"]:
+            unknown.append({"name": unicode(k), "value": True})
+        elif v in [False, "false", "False"]:
+            unknown.append({"name": unicode(k), "value": False})
+        elif isinstance(v, unicode):
+            unknown.append({"name": unicode(k), "value": v})
+        else:
+            Log.error("Do not know how to handle type {{type}}", type=v.__class__.__name__)
 
     known.uploadFiles = unquote(known.uploadFiles)
     known.partialInfo = unquote(known.partialInfo)
@@ -497,6 +504,9 @@ BUILDER_NAMES = [
     '{{platform}} {{branch}} periodic file update',
     'Linux x86-64 {{branch}} periodic file update',  # THE platform DOES NOT MATCH
     'linux64-br-haz_{{branch}}_dep',
+    'release-{{branch}}_{{product}}_{{platform}}_update_verify',
+    'release-{{branch}}_{{product}}_bncr_sub',
+    'release-{{branch}}-{{product}}_updates',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
