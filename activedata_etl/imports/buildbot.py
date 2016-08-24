@@ -58,10 +58,10 @@ class BuildbotTranslator(object):
         # TASK CLUSTER ID
         output.task.id = consume(props, "taskId")
 
-        if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
-            output.properties, output.other = normalize_other(props)
-            return output
-
+        # if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
+        #     output.properties, output.other = normalize_other(props)
+        #     return output
+        #
         output.action.job_number = consume(props, "buildnumber")
         for k, v in consume(props, "request_times").items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
@@ -112,7 +112,7 @@ class BuildbotTranslator(object):
         #             # https://bugzilla.mozilla.org/show_bug.cgi?id=1219432#c1
         #             pass
 
-        output.version = consume(props, "version")
+        output.build.version = consume(props, "version")
 
         # BUILD ID AND DATE
         try:
@@ -507,6 +507,7 @@ BUILDER_NAMES = [
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
     'release-{{branch}}-{{product}}_updates',
+    'release-{{branch}}-{{product}}_uptake_monitoring',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
 ]
