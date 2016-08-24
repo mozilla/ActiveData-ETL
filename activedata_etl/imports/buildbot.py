@@ -19,6 +19,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
+from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
@@ -85,19 +86,21 @@ class BuildbotTranslator(object):
         output.run.script.url = consume(props, "script_repo_url")
         output.run.script.revision = consume(props, "script_repo_revision")
 
-        # REVISIONS
+        # REPO AND REVISIONS
+        output.build.gaia_revision = consume(props, "gaia_revision")
+        output.build.gaia_revision12 = output.build.gaia_revision[0:12]
         if props.gecko_revision:
-            if props.gecko_revision[0:12] != props.revision[0:12]:
+            if props.revision and props.gecko_revision[0:12] != props.revision[0:12]:
                 Log.error("expecting revision to be the gecko revision\n{{data}}", data=data)
             output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"))
             output.build.revision12 = output.build.revision[0:12]
             output.build.gecko_revision = output.build.revision
             output.build.gecko_revision12 = output.build.revision[0:12]
-            output.build.gaia_revision = consume(props, "gaia_revision")
-            output.build.gaia_revision12 = output.build.gaia_revision12[0:12]
         else:
             output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"))
             output.build.revision12 = output.build.revision[0:12]
+
+        consume(props, "commit_titles")
 
         # TODO: LOOKS LIKE A "release" LOOKUP CAN FILL IN THE REVISION
         #     if builddata['tree'].startswith('release-') and builddata['revision'] in [None, 'None']:
@@ -135,7 +138,7 @@ class BuildbotTranslator(object):
 
         output.build.url = coalesce(consume(props, "packageUrl"), consume(props, "build_url"), consume(props, "fileURL"))
         output.run.logurl = consume(props, "log_url")
-        output.build.release = coalesce(consume(props, "en_revision"), consume(props, "script_repo_revision"))
+        output.build.release = coalesce(consume(props, "en_revision"), output.run.script.revision)
         output.run.machine.aws_id = consume(props, "aws_instance_id")
         output.run.machine.name = coalesce(consume(props, "slavename"), output.run.machine.aws_id)
         split_name = output.run.machine.name.split("-")
@@ -185,11 +188,16 @@ class BuildbotTranslator(object):
         output.build.branch = branch_name = consume(props, "branch").split("/")[-1]
         if not branch_name:
             Log.error("{{key|quote}} no 'branch' property", key=buildername)
+        consume(props, "repo_path")
 
         if 'release' in buildername:
             output.tags += ['release']
         if buildername.endswith("nightly"):
             output.tags += ["nightly"]
+
+        pgo_build = unquote(consume(props, "pgo_build"))
+        if pgo_build:
+            output.build.type += ["pgo"]
 
         # DECODE buildername
         for b in BUILDER_NAMES:
@@ -252,7 +260,7 @@ class BuildbotTranslator(object):
                 else:
                     raw_platform, build = temp[0:2]
 
-                output.build.name = consume(props, "buildername")
+                output.build.name = buildername
                 set_default(output, TEST_PLATFORMS[raw_platform])
 
                 for t in BUILD_TYPES:
@@ -286,7 +294,7 @@ class BuildbotTranslator(object):
                 if t in build:
                     output.build.type += [t]
         elif buildername.endswith("non-unified"):
-            output.build.name = consume(props, "buildername")
+            output.build.name = buildername
             raw_platform, build = buildername.split(" " + branch_name + " ")
             set_default(output, TEST_PLATFORMS[raw_platform])
         elif buildername.endswith("valgrind"):
@@ -339,8 +347,8 @@ def verify(output, data):
         ALLOWED_PRODUCTS.append(output.build.product)
         Log.error("Bad Product {{product}}\n{{data|json}}", product=output.build.product, data=data)
 
-    output.build.tags = set(output.build.tags)  # TODO: unwraplist()
-    output.build.type = set(output.build.type)  # TODO: unwraplist()
+    output.build.tags = unwraplist(list(set(output.build.tags)))
+    output.build.type = unwraplist(list(set(output.build.type)))
 
 
 def parse_test(test, output):
@@ -394,7 +402,7 @@ def normalize_other(other):
         if k not in unknown_properties:
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
-        unknown.append({"name": unicode(k), "value": unicode(v)})
+        unknown.append({"name": unicode(k), "value": convert.value2json(v)})
 
     known.uploadFiles = unquote(known.uploadFiles)
     known.partialInfo = unquote(known.partialInfo)
