@@ -45,7 +45,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
 
     def test_past_problems(self):
-        COMPARE_TO_EXPECTED = False
+        COMPARE_TO_EXPECTED = True
 
         translator = BuildbotTranslator()
 

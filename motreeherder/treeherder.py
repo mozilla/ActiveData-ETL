@@ -337,8 +337,10 @@ class TreeHerder(object):
         """
         if task_id:
             _filter = {"term": {"task.id": task_id}}
-        else:
+        elif buildername:
             _filter = {"term": {"ref_data_name": buildername}}
+        else:
+            Log.error("require buildername, or task_id")
 
         query = {
             "query": {"filtered": {

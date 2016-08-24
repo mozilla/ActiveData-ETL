@@ -15,7 +15,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, listwrap
+from pyLibrary.dot import Dict, wrap, Null, listwrap, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from activedata_etl import etl2key
@@ -118,7 +118,7 @@ def transform_buildbot(source_key, other, resources, filename=None):
                     output.build.branch,
                     output.build.revision,
                     None,
-                    output.build.name,
+                    coalesce(output.build.name, output.run.key),
                     output.run.timestamp
                 )
         except Exception, e:
