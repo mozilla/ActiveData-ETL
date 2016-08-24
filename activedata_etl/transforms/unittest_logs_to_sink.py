@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.env.git import get_git_revision
@@ -143,8 +144,12 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception, e:
-            if line.startswith('<?xml version="1.0"'):
-                Log.error("Log is not ready. key={{key}} url={{url|quote}}\n\t{{line|quote}}", key=source_key, line=line, url=url)
+            e= Except.wrap(e)
+            if "Can not decode JSON" in e:
+                Log.error(TRY_AGAIN_LATER, reason="Bad JSON")
+            elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
+                Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
+
             prefix = strings.limit(line, 500)
             Log.warning(
                 "bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}",
