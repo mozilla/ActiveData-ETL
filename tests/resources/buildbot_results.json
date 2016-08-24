@@ -20,7 +20,8 @@
             "locale": "en-US",
             "name": "release-mozilla-release-fennec_tag_source",
             "product": "fennec",
-            "release": "8101fcb08286"
+            "release": "8101fcb08286",
+            "version": "41.0.2"
         },
         "other": [
             {
@@ -59,8 +60,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "41.0.2"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -6624,7 +6624,8 @@
             "name": "release-mozilla-beta-linux_update_verify_2/6",
             "platform": "linux32",
             "product": "firefox",
-            "release": "c4415621aac0"
+            "release": "c4415621aac0",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -6671,8 +6672,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -6697,7 +6697,8 @@
             "name": "release-mozilla-beta-macosx64_update_verify_4/6",
             "platform": "macosx64",
             "product": "firefox",
-            "release": "c4415621aac0"
+            "release": "c4415621aac0",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -6744,8 +6745,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -6768,7 +6768,8 @@
             "locale": "en-US",
             "name": "release-mozilla-beta-firefox_almost_ready_for_release",
             "product": "firefox",
-            "release": "FIREFOX_36_0b9_RELEASE"
+            "release": "FIREFOX_36_0b9_RELEASE",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -6790,8 +6791,7 @@
             },
             "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -6814,7 +6814,8 @@
             "locale": "en-US",
             "name": "release-mozilla-beta-firefox_ready_for_releasetest_testing",
             "product": "firefox",
-            "release": "FIREFOX_36_0b9_RELEASE"
+            "release": "FIREFOX_36_0b9_RELEASE",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -6844,8 +6845,7 @@
             },
             "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -6868,7 +6868,8 @@
             "locale": "en-US",
             "name": "release-mozilla-beta-final_verification",
             "product": "firefox",
-            "release": "FIREFOX_36_0b9_RELEASE"
+            "release": "FIREFOX_36_0b9_RELEASE",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -6915,8 +6916,7 @@
             },
             "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -7026,7 +7026,8 @@
             "locale": "en-US",
             "name": "release-mozilla-beta-update_shipping",
             "product": "firefox",
-            "release": "d7b447dca47f"
+            "release": "d7b447dca47f",
+            "version": "36.0b9"
         },
         "other": [
             {
@@ -7063,8 +7064,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "36.0b9"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -7927,7 +7927,8 @@
             "locale": "en-US",
             "name": "release-mozilla-esr31-antivirus",
             "product": "firefox",
-            "release": "b717cb3df2d6"
+            "release": "b717cb3df2d6",
+            "version": "31.5.0esr"
         },
         "other": [
             {
@@ -7957,8 +7958,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "31.5.0esr"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -8173,7 +8173,8 @@
             "product": "firefox",
             "release": "production",
             "revision": "77ecfd1da6e087d4654ad6ec5f46b7bf5a451502",
-            "revision12": "77ecfd1da6e0"
+            "revision12": "77ecfd1da6e0",
+            "version": "44.0b9"
         },
         "other": [
             {
@@ -8210,8 +8211,7 @@
             }
         },
         "tags": ["release"],
-        "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"},
-        "version": "44.0b9"
+        "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"}
     },
     {
         "action": {
@@ -8298,7 +8298,8 @@
             "locale": "en-US",
             "name": "release-mozilla-esr31-esr_final_verification",
             "product": "firefox",
-            "release": "FIREFOX_31_8_0esr_RELEASE"
+            "release": "FIREFOX_31_8_0esr_RELEASE",
+            "version": "31.8.0esr"
         },
         "other": [
             {
@@ -8341,8 +8342,7 @@
             },
             "script": {"revision": "FIREFOX_31_8_0esr_RELEASE"}
         },
-        "tags": ["release"],
-        "version": "31.8.0esr"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -8367,7 +8367,8 @@
             "name": "release-mozilla-esr38-macosx64_update_verify_esr_3/6",
             "platform": "macosx64",
             "product": "firefox",
-            "release": "3fe61f3f95d8"
+            "release": "3fe61f3f95d8",
+            "version": "38.1.0esr"
         },
         "other": [
             {
@@ -8414,8 +8415,7 @@
                 "url": "https://hg.mozilla.org/build/tools"
             }
         },
-        "tags": ["release"],
-        "version": "38.1.0esr"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -8652,7 +8652,8 @@
             "branch": "release-mozilla-beta",
             "locale": "en-US",
             "name": "release-mozilla-beta-firefox_ready_for_release",
-            "product": "firefox"
+            "product": "firefox",
+            "version": "37.0b4"
         },
         "other": [
             {
@@ -8673,8 +8674,7 @@
                 "pool": "bld-linux64-spot"
             }
         },
-        "tags": ["release"],
-        "version": "37.0b4"
+        "tags": ["release"]
     },
     {
         "action": {
@@ -9986,7 +9986,8 @@
             "name": "release-date_firefox_bncr_sub",
             "product": "firefox",
             "revision": "ab1fe3be773ba1f0d0f50cb473989bf3bfa0e6c3",
-            "revision12": "ab1fe3be773b"
+            "revision12": "ab1fe3be773b",
+            "version": "44.0b26"
         },
         "other": [
             {
@@ -10020,16 +10021,33 @@
             "script": {"url": "https://hg.mozilla.org/build/mozharness"}
         },
         "tags": ["release"],
-        "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"},
-        "version": "44.0b26"
+        "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
     },
     {
         "action": {
             "buildbot_status": "failure",
             "end_time": 1452217718,
+            "job_number": 6,
             "reason": "The web-page 'rebuild' button was pressed by '<unknown>': \n",
             "request_time": 1452217715,
-            "start_time": 1452217716
+            "requests": [
+                {
+                    "request_id": 93080041,
+                    "timestamp": 1452217715
+                }
+            ],
+            "start_time": 1452217716,
+            "type": "build"
+        },
+        "build": {
+            "branch": "date",
+            "locale": "en-US",
+            "name": "release-date_firefox_bncr_sub",
+            "product": "firefox",
+            "release": "production",
+            "revision": "53f6e3a60916b82de924c8878249930453af9312",
+            "revision12": "53f6e3a60916",
+            "version": "44.0b31"
         },
         "other": [
             {
@@ -10041,70 +10059,31 @@
                 "value": "44.0b2,"
             },
             {
-                "name": "buildername",
-                "value": "release-date_firefox_bncr_sub"
-            },
-            {
-                "name": "buildnumber",
-                "value": 6
-            },
-            {
                 "name": "build_number",
                 "value": 2
             },
             {
-                "name": "slavename",
-                "value": "bld-linux64-spot-368"
-            },
-            {
-                "name": "version",
-                "value": "44.0b31"
-            },
-            {
-                "name": "branch",
-                "value": "releases/date"
-            },
-            {
-                "name": "revision",
-                "value": "53f6e3a60916b82de924c8878249930453af9312"
-            },
-            {
-                "name": "product",
-                "value": "firefox"
-            },
-            {
-                "name": "request_times",
-                "value": "{\"93080041\": 1452217715}"
-            },
-            {
-                "name": "log_url",
-                "value": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz"
-            },
-            {
-                "name": "request_ids",
-                "value": 93080041
-            },
-            {
-                "name": "script_repo_revision",
-                "value": "production"
-            },
-            {
-                "name": "script_repo_url",
-                "value": "https://hg.mozilla.org/build/mozharness"
-            },
-            {
                 "name": "release_promotion",
                 "value": true
-            },
-            {
-                "name": "repo_path",
-                "value": "projects/date"
             }
         ],
         "properties": {
             "basedir": "/builds/slave/rel-date_fx_bncr_sub-000000000",
             "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
         },
+        "run": {
+            "key": "release-date_firefox_bncr_sub",
+            "logurl": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/releases/date-noarch/release-date_firefox_bncr_sub-bm73-build1-build6.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-368",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {
+                "revision": "production",
+                "url": "https://hg.mozilla.org/build/mozharness"
+            }
+        },
+        "tags": ["release"],
         "task": {"id": "BczAgDHfQdueE5rocPgjnQ"}
     },
     {
