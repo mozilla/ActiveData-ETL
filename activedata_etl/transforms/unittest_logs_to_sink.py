@@ -146,7 +146,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
         except Exception, e:
             e= Except.wrap(e)
             if "Can not decode JSON" in e:
-                Log.error(TRY_AGAIN_LATER, reason="Bad JSON")
+                Log.error(TRY_AGAIN_LATER, reason="Bad JSON", cause=e)
             elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
 

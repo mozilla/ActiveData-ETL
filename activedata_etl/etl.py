@@ -296,26 +296,36 @@ class ETL(Thread):
                 except Exception, e:
                     # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
                     if "Shutdown detected." not in e:
-                        previous_attempts = coalesce(todo.previous_attempts, 0)
-                        try:
-                            # TRY TO MARKUP THE MESSAGE
-                            todo.previous_attempts = previous_attempts + 1
-                            self.work_queue.add(todo)
-                            self.work_queue.commit()
-                        except Exception, f:
-                            # UNEXPECTED PROBLEM!!!
-                            self.work_queue.rollback()
-                            Log.warning("Could not annotate todo", cause=[f, e])
+                        continue
 
-                        if previous_attempts == 0:
-                            pass
-                        else:
-                            Log.warning(
-                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
-                                tries=todo.previous_attempts,
-                                key=todo.key,
-                                cause=e
-                            )
+                    previous_attempts = coalesce(todo.previous_attempts, 0)
+                    try:
+                        # TRY TO MARKUP THE MESSAGE
+                        todo.previous_attempts = previous_attempts + 1
+                        self.work_queue.add(todo)
+                        self.work_queue.commit()
+                    except Exception, f:
+                        # UNEXPECTED PROBLEM!!!
+                        self.work_queue.rollback()
+                        Log.warning("Could not annotate todo", cause=[f, e])
+
+                    if previous_attempts < 3:
+                        pass
+                    elif previous_attempts > 10:
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
+                        self.work_queue.commit()
+                    else:
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
