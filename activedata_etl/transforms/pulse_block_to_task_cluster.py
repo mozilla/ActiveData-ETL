@@ -86,6 +86,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             else:
                 tc_message._meta = None
                 tc_message.etl = None
+                tc_message.runs = None
                 tc_message.artifact = None
                 seen[normalized.task.id] = [tc_message, task, artifacts]
 
