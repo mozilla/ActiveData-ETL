@@ -128,7 +128,11 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
             Log.error("JSON string is only whitespace")
 
         if "Expecting '" in e and "' delimiter: line" in e:
-            line_index = int(strings.between(e.message, " line ", " column ")) - 1
+            possible_line_number = strings.between(e.message, " line ", " column ")
+            if possible_line_number == None:
+                Log.error("Can not decode JSON:\n\t" + json_string + "\n")
+
+            line_index = int(possible_line_number) - 1
             column = int(strings.between(e.message, " column ", " ")) - 1
             line = json_string.split("\n")[line_index].replace("\t", " ")
             if column > 20:

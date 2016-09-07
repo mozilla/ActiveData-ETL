@@ -301,7 +301,8 @@ class Index(Features):
                     data=data_bytes,
                     headers={"Content-Type": "text"},
                     timeout=self.settings.timeout,
-                    retry=self.settings.retry
+                    retry=self.settings.retry,
+                    params={"consistency": self.settings.consistency}
                 )
                 items = response["items"]
 

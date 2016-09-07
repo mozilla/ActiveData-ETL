@@ -17,10 +17,6 @@ git checkout better-balance
 sudo /usr/local/bin/pip install -r requirements.txt
 
 
-cd /home/ec2-user/ActiveData/
-export PYTHONPATH=.
-python27 resources/scripts/es_fix_unassigned_shards.py --settings=resources/config/fix_unassigned_shards.json
-
 
 
 # COPY KEYS TO MACHINE
@@ -32,5 +28,20 @@ chmod 600 ~/private.json
 #put ~/.ssh/aws-pulse-logger.pem ~/.ssh/aws-pulse-logger.pem
 chmod 600 ~/.ssh/aws-pulse-logger.pem
 
+# SIMPLE PLACE FOR LOGS
+mkdir ~/logs
+mkdir ~/logs/monit_emails
+cd /
+sudo ln -s /home/ec2-user/logs logs
 
 
+
+cd /home/ec2-user/ActiveData/
+export PYTHONPATH=.
+python27 resources/scripts/es_fix_unassigned_shards.py --settings=resources/config/fix_unassigned_shards.json
+
+
+cd /home/ec2-user/ActiveData/
+export PYTHONPATH=.
+nohup python27 resources/scripts/es_fix_unassigned_shards.py --settings=resources/config/fix_unassigned_shards.json &
+tail -f /logs/fix_unassigned_shards.log
