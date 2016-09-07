@@ -8,7 +8,7 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.7,
+			"skip": 0.5,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -16,6 +16,7 @@
 				"index": "unittest",
 				"type": "test_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
@@ -39,6 +40,7 @@
 				"index": "perf",
 				"type": "perf_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
@@ -61,6 +63,7 @@
 				"index": "jobs",
 				"type": "job",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
@@ -83,6 +86,7 @@
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
@@ -107,6 +111,7 @@
 				"index": "task",
 				"type": "task",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},

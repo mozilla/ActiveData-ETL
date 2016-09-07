@@ -17,7 +17,7 @@ where exceptions are raised and must be logged, except when a subsuming system
 can compensate. Exception handling semantics are great because they
 decouple the cause from the solution, but this can be at odds with clean
 logging - which couples raising and catching to make appropriate decisions
-about what to emit to the log.
+about what to emit to the log.  
 
 This logging module is additionally responsible for raising exceptions,
 collecting the trace and context, and then deducing if it must be logged, or
@@ -67,6 +67,11 @@ serializable so they can be stored/processed by downstream JSON tools.
 			"line": 3,
 			"file": "hello.py",
 			"method": "hello"
+		},
+		"machine": {
+            "python": "CPython",
+            "os": "Windows10",
+            "name": "ekyle-win"
 		}
 	}
 ```
@@ -79,13 +84,13 @@ serializable so they can be stored/processed by downstream JSON tools.
 
 The actual call will always raise an exception, and it manipulates the stack
 trace to ensure the caller is appropriately blamed. Feel free to use the
-`raise` keyword (as in `raise Log.error("")`), if that looks nicer to you.
+`raise` keyword (as in `raise Log.error("")`), if that looks nicer to you. 
 
 **Always chain your exceptions**
 
 The `cause` parameter accepts an `Exception`, or a list of exceptions.
 Chaining is generally good practice that helps you find the root cause of
-a failure.
+a failure. 
 
 ```python
     try:
@@ -101,13 +106,21 @@ strategy. First, exceptions are not lost because we are chaining. Second,
 we catch unexpected `Exceptions` early and we annotate them with a
 description of what the local code was intending to do. This annotation
 effectively groups the possible errors (known, or not) into a class, which
-can be used by callers to decide on appropriate mitigation.
+can be used by callers to decide on appropriate mitigation.  
 
 To repeat: When using dependency injection, callers can not reasonably be
 expected to know about the types of failures that can happen deep down the
 call chain. This makes it vitally important that methods summarize all
 exceptions, both known and unknown, so their callers have the information to
-make better decisions on appropriate action.
+make better decisions on appropriate action.  
+
+For example: An abstract document container, implemented on top of a SQL 
+database, should not emit SQLExceptions of any kind: A caller that uses a 
+document container should not need to know how to handle SQLExceptions (or any 
+other implementation-specific exceptions).  Rather, in this example, the 
+caller should be told it "can not add a document", or "can not remove a 
+document". This allows the caller to make reasonable desisions when they do 
+occur.  The original cause (the SQLException) is in the causal chain. 
 
 **Use named parameters in your error descriptions too**
 
@@ -133,7 +146,7 @@ should have no need to create new exception sub-types.
 This library advocates chaining exceptions early and often, and this hides
 important exception types in a long causal chain.   MoLogs allows you to easily
 test if a type (or string, or template) can be found in the causal chain by using
-the `in` keyword:
+the `in` keyword:   
 
 ```python
     def worker(value):
@@ -150,7 +163,7 @@ the `in` keyword:
 When a caller catches an exception from a callee, it is the caller's
 responsibility to handle that exception, or re-raise it. There are many
 situations a caller can be expected to handle exceptions; and in those cases
-logging an error would be deceptive.
+logging an error would be deceptive. 
 
 ```python
     def worker(value):
@@ -160,7 +173,8 @@ logging an error would be deceptive.
             # Try something else
 ```
 
-**Use `Log.warning()` if your code can deal with an exception, but you still want to log it as an issue**
+**Use `Log.warning()` if your code can deal with an exception, but you still 
+want to log it as an issue**
 
 ```python
     def worker(value):
@@ -214,7 +228,7 @@ structures, they will be logged!
 Despite the fact using `locals()` is a wonderful shortcut for logging it is
 dangerous because it also picks up sensitive local variables. Even if
 `{{name}}` is the only value in the template, the whole `locals()` dict will
-be sent to the structured loggers for recording.
+be sent to the structured loggers for recording. 
 
 
 Log 'Levels'
@@ -322,9 +336,9 @@ Problems with Python Logging
 ----------------------------
 
 [Python's default `logging` module](https://docs.python.org/2/library/logging.html#logging.debug)
-comes close to doing the right thing, but fails:
-  * It has keyword parameters, but they are expanded at call time so the values are lost in a string.
-  * It has `extra` parameters, but they are lost if not used by the matching `Formatter`.
+comes close to doing the right thing, but fails:  
+  * It has keyword parameters, but they are expanded at call time so the values are lost in a string.  
+  * It has `extra` parameters, but they are lost if not used by the matching `Formatter`.  
   * It even has stack trace with `exc_info` parameter, but only if an exception is being handled.
 
 Python 2.x has no builtin exception chaining, like [Python 3 does](https://www.python.org/dev/peps/pep-3134/)

@@ -251,25 +251,28 @@ def wrap_function(cache_store, func_):
 
             timeout, key, value, exception = _cache.get(args, (Null, Null, Null, Null))
 
-            if now > timeout:
-                value = func(self, *args)
+        if now > timeout:
+            value = func(self, *args)
+            with cache_store.locker:
                 _cache[args] = (now + cache_store.timeout, args, value, None)
-                return value
+            return value
 
-            if value == None:
-                if exception == None:
-                    try:
-                        value = func(self, *args)
+        if value == None:
+            if exception == None:
+                try:
+                    value = func(self, *args)
+                    with cache_store.locker:
                         _cache[args] = (now + cache_store.timeout, args, value, None)
-                        return value
-                    except Exception, e:
-                        e = Except.wrap(e)
+                    return value
+                except Exception, e:
+                    e = Except.wrap(e)
+                    with cache_store.locker:
                         _cache[args] = (now + cache_store.timeout, args, None, e)
-                        raise e
-                else:
-                    raise exception
+                    raise e
             else:
-                return value
+                raise exception
+        else:
+            return value
 
     return output
 

@@ -58,6 +58,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -70,6 +71,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -91,6 +93,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},

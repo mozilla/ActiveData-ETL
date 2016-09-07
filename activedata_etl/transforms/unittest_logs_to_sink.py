@@ -6,21 +6,21 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyLibrary import convert, strings
+from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.env import elasticsearch
+from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
-from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
-from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-
 
 DEBUG = True
 
@@ -61,7 +61,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
-        Log.error("Problem processing {{key}}", key=source_key, cause=e)
+        Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
         summary = None
 
     buildbot_summary.etl = {
@@ -114,6 +114,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 def accumulate_logs(source_key, url, lines, please_stop):
     accumulator = LogSummary(url)
+    last_line_was_json = True
     for line in lines:
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
@@ -124,7 +125,9 @@ def accumulate_logs(source_key, url, lines, please_stop):
             continue
         try:
             accumulator.stats.lines += 1
+            last_line_was_json = False
             log = convert.json2value(line)
+            last_line_was_json = True
             log.time = log.time / 1000
             accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
             accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
@@ -141,13 +144,30 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception, e:
-            if line.startswith('<?xml version="1.0"'):
-                Log.error("Log is not ready. key={{key}} url={{url|quote}}\n\t{{line|quote}}", key=source_key, line=line, url=url)
-            Log.warning("bad line in key={{key}} url={{url|quote}}:\n{{line}}", key=source_key, line=line, url=url, cause=e)
+            e= Except.wrap(e)
+            if "Can not decode JSON" in e:
+                Log.error(TRY_AGAIN_LATER, reason="Bad JSON", cause=e)
+            elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
+                Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
+
+            prefix = strings.limit(line, 500)
+            Log.warning(
+                "bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}",
+                key=source_key,
+                line_number=accumulator.stats.lines,
+                line=prefix,
+                url=url,
+                cause=e
+            )
             accumulator.stats.bad_lines += 1
 
+    if not last_line_was_json:
+        # HAPPENS WHEN FILE IS DOWNLOADED TOO SOON, AND IS INCOMPLETE
+        Log.error(TRY_AGAIN_LATER, reason="Incomplete file")
+
     output = accumulator.summary()
-    Log.note("{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url|quote}} for key {{key}}",
+    Log.note(
+        "{{num_bytes|comma}} bytes, {{num_lines|comma}} lines and {{num_tests|comma}} tests in {{url|quote}} for key {{key}}",
         key=source_key,
         num_bytes=output.stats.bytes,
         num_lines=output.stats.lines,

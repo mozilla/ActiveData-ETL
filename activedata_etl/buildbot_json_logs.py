@@ -6,26 +6,27 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-import zlib
+from __future__ import unicode_literals
+
+from tempfile import TemporaryFile
 
 from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
+from pyLibrary.debugs.exceptions import suppress_exception, Explanation
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict
 from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes, icompressed2ibytes
+from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
-from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
+from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
-
+from pyLibrary.times.timer import Timer
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
@@ -39,7 +40,10 @@ def parse_to_s3(settings):
         try:
             parse_day(settings, path, settings.force)
         except Exception, e:
-            Log.warning("problem with {{path}}", path=path, cause=e)
+            day = Date(string2datetime(path[7:17], format="%Y-%m-%d"))
+            day_num = int((day - REFERENCE_DATE) / DAY)
+
+            Log.warning("Problem with #{{num}}: {{path}}", path=path, num=day_num, cause=e)
 
 
 def random(settings):
@@ -53,6 +57,10 @@ def random(settings):
 
 
 def parse_day(settings, p, force=False):
+    locker=Lock("uploads")
+    threads = set()
+
+
     # DATE TO DAYS-SINCE-2000
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - REFERENCE_DATE) / DAY)
@@ -63,7 +71,7 @@ def parse_day(settings, p, force=False):
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
         return
 
-    Log.note("Consider {{url}}", url=day_url)
+    Log.note("Consider #{{num}}: {{url}}", url=day_url, num=day_num)
 
     destination = s3.Bucket(settings.destination)
     notify = Queue(settings=settings.notify)
@@ -87,7 +95,8 @@ def parse_day(settings, p, force=False):
     first = None
     for group_number, ts in jx.groupby(tasks, size=100):
         if DEBUG:
-            Log.note("Processing block {{num}}", num=group_number)
+            Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
+
         parsed = []
 
         group_etl = Dict(
@@ -116,8 +125,26 @@ def parse_day(settings, p, force=False):
             continue
 
         key = unicode(day_num) + "." + unicode(group_number)
-        destination.write_lines(key=key, lines=parsed)
-        notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+
+        def upload(key, lines, please_stop):
+            try:
+                destination.write_lines(key=key, lines=lines)
+                notify.add({"key": key, "bucket": destination.name, "timestamp": Date.now()})
+            except Exception:
+                Log.error("problem with upload {{key}}", key=key)
+            finally:
+                with locker:
+                    threads.remove(Thread.current())
+
+        while True:
+            with locker:
+                if len(threads) <= 20:
+                    break
+            Thread.sleep(seconds=0.1)
+
+        thread = Thread.run("upload " + key, upload, key, parsed)
+        with locker:
+            threads.add(thread)
 
     if first == None:
         Log.error("How did this happen?")
@@ -142,7 +169,7 @@ def get_all_logs(url):
             filename = strings.between(line, '</td><td><a href=\"', '">')
             if filename and filename.startswith("builds-2") and not filename.endswith(".tmp"):  # ONLY INTERESTED IN DAILY SUMMARY FILES (eg builds-2015-09-20.js.gz)
                 paths.append(filename)
-        paths = jx.reverse(jx.sort(paths))
+        paths = jx.reverse(jx.sort(paths).not_right(1))  # DO NOT INCLUDE TODAY (INCOMPLETE)
         return paths
     finally:
         response.close()
@@ -152,9 +179,22 @@ def get_all_tasks(url):
     """
     RETURN ITERATOR OF ALL `builds` IN THE BUILDBOT JSON LOG
     """
-    response = http.get(url)
+    _file = TemporaryFile()
+    with Timer("copy json log to local file"):
+        response = http.get(url)
+        _stream = response.raw
+        size = 0
+        while True:
+            chunk = _stream.read(http.MIN_READ_SIZE)
+            if not chunk:
+                break
+            size += len(chunk)
+            _file.write(chunk)
+        _file.seek(0)
+    Log.note("File is {{num}} bytes", num=size)
+
     return stream.parse(
-        scompressed2ibytes(response.raw),
+        scompressed2ibytes(_file),
         "builds",
         expected_vars=["builds"]
     )
@@ -162,14 +202,12 @@ def get_all_tasks(url):
 
 def main():
     try:
-        settings = startup.read_settings()
-        constants.set(settings.constants)
-        Log.start(settings.debug)
+        with Explanation("ETL"):
+            settings = startup.read_settings()
+            constants.set(settings.constants)
+            Log.start(settings.debug)
 
-        parse_to_s3(settings)
-        # random(settings)
-    except Exception, e:
-        Log.error("Problem with etl", e)
+            parse_to_s3(settings)
     finally:
         Log.stop()
 

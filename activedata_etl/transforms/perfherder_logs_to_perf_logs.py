@@ -15,6 +15,7 @@ from copy import copy
 from math import sqrt
 
 import pyLibrary
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
 from pyLibrary.debugs.logs import Log
@@ -120,6 +121,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 records.append({"id": key, "value": p})
                 i += 1
         except Exception, e:
+            if TRY_AGAIN_LATER:
+                Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
+
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
 
     # if not records:
@@ -199,7 +203,7 @@ def transform(source_key, perfherder, resources):
                     for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
-                                stats(sub_replicates, subtest.name, suite_name),
+                                stats(source_key, sub_replicates, subtest.name, suite_name),
                                 {
                                     "test": unicode(subtest.name) + "." + unicode(g),
                                     "ordering": i,
@@ -216,7 +220,7 @@ def transform(source_key, perfherder, resources):
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
                         {"result": set_default(
-                            stats(samples, subtest.name, suite_name),
+                            stats(source_key, samples, subtest.name, suite_name),
                             {
                                 "test": subtest.name,
                                 "ordering": i,
@@ -238,7 +242,7 @@ def transform(source_key, perfherder, resources):
                     for g, sub_replicates in jx.groupby(replicates, size=5):
                         new_record = set_default(
                             {"result": set_default(
-                                stats(sub_replicates, test_name, suite_name),
+                                stats(source_key, sub_replicates, test_name, suite_name),
                                 {
                                     "test": unicode(test_name) + "." + unicode(g),
                                     "ordering": i
@@ -252,7 +256,7 @@ def transform(source_key, perfherder, resources):
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     new_record = set_default(
                         {"result": set_default(
-                            stats(replicates, test_name, suite_name),
+                            stats(source_key, replicates, test_name, suite_name),
                             {
                                 "test": test_name,
                                 "ordering": i
@@ -286,7 +290,6 @@ def transform(source_key, perfherder, resources):
         Log.error("Transformation failure on id={{uid}}", {"uid": source_key}, e)
 
 
-
 def mainthread_transform(r):
     if r == None:
         return None
@@ -316,9 +319,10 @@ def mainthread_transform(r):
     r.mainthread = output.values()
 
 
-def stats(given_values, test, suite):
+def stats(source_key, given_values, test, suite):
     """
     RETURN dict WITH
+    source_key - NAME OF THE SOURCE (FOR LOGGING ERRORS)
     stats - LOTS OF AGGREGATES
     samples - LIST OF VALUES USED IN AGGREGATE
     rejects - LIST OF VALUES NOT USED IN AGGREGATE
@@ -327,8 +331,8 @@ def stats(given_values, test, suite):
         if given_values == None:
             return None
 
-        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v)])
-        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v)])
+        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v) or not Math.is_finite(v)])
+        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)])
 
         z = ZeroMoment.new_instance(clean_values)
         s = Dict()
@@ -344,8 +348,14 @@ def stats(given_values, test, suite):
         if Math.is_number(s.variance) and not Math.is_nan(s.variance):
             s.std = sqrt(s.variance)
 
-        if rejects and test!="sessionrestore_no_auto_restore":  # TODO: remove when fixed
-            Log.warning("{{test}} in suite {{suite}} has rejects {{samples|json}}", test=test, suite=suite, samples=given_values)
+        good_excuse = [
+            not rejects,
+            suite in ["basic_compositor_video"],
+            test in ["sessionrestore_no_auto_restore"]
+        ]
+
+        if not any(good_excuse):
+            Log.warning("{{test}} in suite {{suite}} in {{key}} has rejects {{samples|json}}", test=test, suite=suite, key=source_key, samples=given_values)
 
         return {
             "stats": s,

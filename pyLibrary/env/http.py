@@ -198,6 +198,10 @@ def post(url, **kwargs):
     return HttpResponse(request(b'post', url, **kwargs))
 
 
+def delete(url, **kwargs):
+    return HttpResponse(request(b'delete', url, **kwargs))
+
+
 def post_json(url, **kwargs):
     """
     ASSUME RESPONSE IN IN JSON
@@ -216,7 +220,7 @@ def post_json(url, **kwargs):
     except Exception, e:
         Log.error("Unexpected return value {{content}}", content=c, cause=e)
 
-    if response.status_code != 200:
+    if response.status_code not in [200, 201]:
         Log.error("Bad response", cause=Except.wrap(details))
 
     return details
@@ -268,9 +272,9 @@ class HttpResponse(Response):
 
     @property
     def all_lines(self):
-        return self._all_lines()
+        return self.get_all_lines()
 
-    def _all_lines(self, encoding="utf8"):
+    def get_all_lines(self, encoding="utf8"):
         try:
             iterator = self.raw.stream(4096, decode_content=False)
 

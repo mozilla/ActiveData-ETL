@@ -13,8 +13,10 @@ from collections import Mapping
 
 import requests
 
-from motreeherder.treeherder import TRY_AGAIN_LATER
+from activedata_etl.imports.resource_usage import normalize_resource_usage
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
@@ -50,13 +52,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized = _normalize(source_key, tc_message, task, resources)
 
             # get the artifact list for the taskId
-            artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
+            artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": taskid}), retry=RETRY).artifacts
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": taskid, "path": a.name})
                 a.expires = Date(a.expires)
                 if a.name.endswith("/live.log"):
                     read_buildbot_properties(normalized, a.url)
-            normalized.task.artifacts = artifacts
+                elif a.name.endswith("/resource-usage.json"):
+                    with suppress_exception:
+                        normalized.resource_usage = normalize_resource_usage(a.url)
 
             # FIX THE ETL
             if not source_etl:
@@ -82,11 +86,14 @@ def process(source_key, source, destination, resources, please_stop=None):
             else:
                 tc_message._meta = None
                 tc_message.etl = None
+                tc_message.runs = None
                 tc_message.artifact = None
                 seen[normalized.task.id] = [tc_message, task, artifacts]
 
             output.append(normalized)
         except Exception, e:
+            if TRY_AGAIN_LATER in e:
+                raise e
             Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
@@ -155,14 +162,15 @@ def _normalize(source_key, tc_message, task, resources):
     except Exception, e:
         Log.error("problem", cause=e)
 
-    output.task.tags = get_tags(task)
+    output.task.tags = get_tags(source_key, task)
 
     set_build_info(output, task, resources)
     set_run_info(output, task)
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
+    # ASSIGN TREEHERDER
     try:
-        if output.build.revision:
+        if output.build.revision and task.state != "exception":
             output.treeherder = resources.treeherder.get_markup(
                 output.build.branch,
                 output.build.revision,
@@ -172,7 +180,7 @@ def _normalize(source_key, tc_message, task, resources):
             )
     except Exception, e:
         if TRY_AGAIN_LATER in e:
-            Log.error("Aborting processing of {{key}}", key=source_key)
+            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
 
         Log.error(
             "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
@@ -268,9 +276,9 @@ def set_build_info(normalized, task, resources):
         for l, v in task.extra.treeherder.leaves():
             normalized.treeherder[l] = v
 
-    for k in ["opt", "debug", "asan", "pgo", "lsan"]:
+    for k, v in BUILD_TYPES.items():
         if task.extra.treeherder.collection[k]:
-            normalized.build.type += [k]
+            normalized.build.type += v
 
     # head_repo will look like "https://hg.mozilla.org/try/"
     head_repo = task.payload.env.GECKO_HEAD_REPOSITORY
@@ -278,12 +286,13 @@ def set_build_info(normalized, task, resources):
 
     normalized.build.branch = coalesce_w_conflict_detection(
         branch,
-        task.tags.build_props.branch
+        task.tags.build_props.branch,
+        task.payload.env.MH_BRANCH
     )
     normalized.build.revision12 = normalized.build.revision[0:12]
 
 
-def get_tags(task, parent=None):
+def get_tags(source_key, task, parent=None):
     tags = [{"name": k, "value": v} for k, v in task.tags.leaves()] + [{"name": k, "value": v} for k, v in task.metadata.leaves()] + [{"name": k, "value": v} for k, v in task.extra.leaves()]
     clean_tags = []
     for t in tags:
@@ -295,7 +304,7 @@ def get_tags(task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(Dict(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, Dict(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):
@@ -305,19 +314,26 @@ def get_tags(task, parent=None):
         elif not isinstance(v, unicode):
             v = convert.value2json(v)
         t["value"] = v
-        verify_tag(t)
+        verify_tag(source_key, t)
         clean_tags.append(t)
 
     return clean_tags
 
-
-def verify_tag(t):
+def verify_tag(source_key, t):
     if not isinstance(t["value"], unicode):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
-        Log.warning("unknown task tag {{tag|quote}}", tag=t["name"])
+        Log.warning("unknown task tag {{tag|quote}} while processing {{key}}", key=source_key, tag=t["name"])
         KNOWN_TAGS.add(t["name"])
 
+
+def _scrub(record, name):
+    value = record[name]
+    record[name] = None
+    if value == "-" or value == "":
+        return None
+    else:
+        return unwraplist(value)
 
 def _object_to_array(value, key_name, value_name=None):
     try:
@@ -327,6 +343,17 @@ def _object_to_array(value, key_name, value_name=None):
             return [{key_name: k, value_name: v} for k, v in value.items()]
     except Exception, e:
         Log.error("unexpected", cause=e)
+
+BUILD_TYPES = {
+    "opt": ["opt"],
+    "debug": ["debug"],
+    "asan": ["asan"],
+    "pgo": ["pgo"],
+    "lsan": ["lsan"],
+    "memleak": ["memleak"],
+    "arm-debug": ["debug", "arm"],
+    "arm-opt": ["opt", "arm"]
+}
 
 
 KNOWN_TAGS = {
@@ -443,6 +470,8 @@ KNOWN_TAGS = {
     "treeherder.collection.pgo",
     "treeherder.collection.asan",
     "treeherder.collection.lsan",
+    "treeherder.collection.arm-debug",
+    "treeherder.collection.arm-opt",
     "treeherder.groupSymbol",
     "treeherder.groupName",
     "treeherder.jobKind",
@@ -453,6 +482,8 @@ KNOWN_TAGS = {
     "treeherder.revision_hash",
     "treeherder.symbol",
     "treeherder.tier",
+
+
 
     "url.busybox",
     "useCloudMirror"

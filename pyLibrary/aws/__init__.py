@@ -19,7 +19,7 @@ import requests
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, unwrap
+from pyLibrary.dot import wrap, unwrap, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.thread.threads import Thread
@@ -140,12 +140,11 @@ def capture_termination_signal(please_stop):
 
     Thread.run("listen for termination", worker)
 
-
 def get_instance_metadata(timeout=None):
     if not isinstance(timeout, (int, float)):
         timeout = Duration(timeout).seconds
 
-    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata(timeout=5, num_retries=2).items()})
+    output = wrap({k.replace("-", "_"): v for k, v in boto_utils.get_instance_metadata(timeout=coalesce(timeout, 5), num_retries=2).items()})
     return output
 
 

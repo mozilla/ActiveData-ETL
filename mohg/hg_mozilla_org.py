@@ -17,10 +17,11 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
 from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Explanation, assert_no_exception
+from pyLibrary.debugs.exceptions import Explanation, assert_no_exception, Except
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, Null, coalesce, unwraplist
 from pyLibrary.env import http
+from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
@@ -77,8 +78,8 @@ class HgMozillaOrg(object):
         self.es.add_alias()
         try:
             self.es.set_refresh_interval(seconds=1)
-        except Exception, e:
-            Log.warning("Ignore refresh problem", cause=e)
+        except Exception:
+            pass
 
         self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
 
@@ -142,18 +143,32 @@ class HgMozillaOrg(object):
             }},
             "size": 2000,
         }
-        try:
-            docs = self.es.search(query, timeout=120).hits.hits
-            if len(docs) > 1:
-                for d in docs:
-                    if d._id.endswith(d._source.branch.locale):
-                        return d._source
-                Log.warning("expecting no more than one document")
 
-            return docs[0]._source
-        except Exception, e:
-            Log.warning("Bad ES call, fall back to hg", e)
-            return None
+        for attempt in range(3):
+            try:
+                docs = self.es.search(query).hits.hits
+                break
+            except Exception, e:
+                e = Except.wrap(e)
+                if "NodeNotConnectedException" in e:
+                    # WE LOST A NODE, THIS MAY TAKE A WHILE
+                    Thread.sleep(seconds=Random.int(5 * 60))
+                    continue
+                elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
+                    Thread.sleep(seconds=Random.int(30))
+                    continue
+                else:
+                    Log.warning("Bad ES call, fall back to TH", cause=e)
+                    return None
+
+        if len(docs) > 1:
+            for d in docs:
+                if d._id.endswith(d._source.branch.locale):
+                    return d._source
+            Log.warning("expecting no more than one document")
+
+        return docs[0]._source
+
 
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c

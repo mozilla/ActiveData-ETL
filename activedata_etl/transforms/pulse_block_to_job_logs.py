@@ -82,7 +82,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "Text log does not exist"
                     output.append(data)
                     continue
-                all_log_lines = response._all_lines(encoding=None)
+                all_log_lines = response.get_all_lines(encoding=None)
                 data.action = process_buildbot_log(all_log_lines, pulse_record.payload.logurl)
 
                 verify_equal(data, "build.revision", "action.revision", from_url=pulse_record.payload.logurl, from_key=source_key)
@@ -457,7 +457,7 @@ def process_buildbot_log(all_log_lines, from_url):
     total_bytes = 0
 
     for log_ascii in all_log_lines:
-        total_bytes += len(log_ascii)+1
+        total_bytes += len(log_ascii) + 1
 
         if not log_ascii.strip():
             continue

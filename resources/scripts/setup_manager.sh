@@ -72,6 +72,24 @@ git clone https://github.com/klahnakoski/TestFailures.git
 cd /home/ec2-user/TestFailures/
 git checkout manager
 
+# INSTALL MoDataSubmission
+# BE SURE TO INCLUDE STORAGE PERMISSIONS FILE
+cd ~
+git clone https://github.com/klahnakoski/MoDataSubmission.git
+cd /home/ec2-user/MoDataSubmission
+git checkout master
+git pull origin master
+sudo pip install -r requirements.txt
+sudo -i
+export PYTHONPATH=.
+export HOME=/home/ec2-user
+cd ~/MoDataSubmission
+nohup python27 modatasubmission/app.py --settings=resources/config/prod.json &
+disown -h
+
+
+
+
 
 # SIMPLE PLACE FOR LOGS
 mkdir ~/logs

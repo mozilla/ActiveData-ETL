@@ -45,7 +45,6 @@ from activedata_etl.sinks.multi_day_index import MultiDayIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
-
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -113,7 +112,6 @@ class ETL(Thread):
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         self.start()
-
 
     def _dispatch_work(self, source_block):
         """
@@ -296,10 +294,47 @@ class ETL(Thread):
                     else:
                         self.work_queue.rollback()
                 except Exception, e:
-                    self.work_queue.rollback()
-                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, SHOW WARNING IF NOT THE CASE
+                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
                     if "Shutdown detected." not in e:
-                        Log.warning("could not processs {{key}}.  Returned back to work queue.", key=todo.key, cause=e)
+                        continue
+
+                    previous_attempts = coalesce(todo.previous_attempts, 0)
+                    todo.previous_attempts = previous_attempts + 1
+
+                    if previous_attempts < 3:
+                        # SILENT
+                        try:
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
+                    elif previous_attempts > 10:
+                        #GIVE UP
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
+                        self.work_queue.commit()
+                    else:
+                        # COMPLAIN
+                        try:
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
+
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
@@ -440,7 +475,7 @@ def etl_one(settings):
         treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
     )
 
-    stopper = Signal()
+    stopper = Signal("main stop signal")
     ETL(
         name="ETL Loop Test",
         work_queue=queue,

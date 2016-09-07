@@ -19,6 +19,8 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import set_default, split_field, wrap, join_field
 from pyLibrary.dot.dicts import Dict
 
+STRUCT = ["object", "nested"]
+
 type2container = Dict()
 config = Dict()   # config.default IS EXPECTED TO BE SET BEFORE CALLS ARE MADE
 _ListContainer = None
@@ -45,10 +47,12 @@ def _delayed_imports():
     from pyLibrary.queries.containers.cube import Cube as _Cube
     from pyLibrary.queries.jx import run as _run
     from pyLibrary.queries.query import QueryOp as _Query
+    from pyLibrary.queries.containers import Table_usingSQLite
 
     set_default(type2container, {
         "elasticsearch": _FromES,
         "mysql": _MySQL,
+        "sqlite": Table_usingSQLite,
         "memory": None
     })
 
@@ -150,3 +154,6 @@ class Container(object):
         """
         Log.error("Not implemented")
 
+    @property
+    def schema(self):
+        Log.error("Not implemented")

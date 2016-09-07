@@ -87,7 +87,7 @@ class TestBuildbotLogs(FuzzyTestCase):
             perfherder_logs_to_perf_logs.process(source_key, bucket.get_key(source_key), dest_bucket, resources, please_stop=None)
 
     def test_stats(self):
-        results = stats([float("nan"), 1, 2, 3, 4, 5])
+        results = stats(Null, [float("nan"), 1, 2, 3, 4, 5])
         self.assertEqual(results.stats.count, 5)
         self.assertEqual(len(listwrap(results.stats.rejects)), 1)
 
