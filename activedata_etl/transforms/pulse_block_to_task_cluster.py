@@ -381,11 +381,9 @@ KNOWN_TAGS = {
     "crater.toolchainGitRepo",
     "crater.toolchainGitSha",
 
-
-
-
-
     "createdForUser",
+    "data.base.sha",
+    "data.base.user.login",
     "data.head.sha",
     "data.head.user.email",
     "description",
