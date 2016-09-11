@@ -13,6 +13,7 @@
 #   ]
 # }
 
+sudo ifconfig eth0 mtu 1500
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
