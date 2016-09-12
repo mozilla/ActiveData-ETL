@@ -109,6 +109,10 @@ class MultiDayIndex(object):
                         value.result.missing_subtests = True
                         _id, value = _fix(value)
                         row = {"id": _id, "value": value}
+                    elif line.find("\"resource_usage\":") != -1:
+                        value = convert.json2value(line)
+                        _id, value = _fix(value)
+                        row = {"id": _id, "value": value}
                     else:
                         # FAST
                         _id = strings.between(line, "\"_id\": \"", "\"")  # AVOID DECODING JSON
@@ -126,6 +130,8 @@ def _fix(value):
         value.repo = value.repo._source
     if not value.build.revision12:
         value.build.revision12 = value.build.revision[0:12]
+    if value.resource_usage:
+        value.resource_usage = None
 
     _id = value._id
 
