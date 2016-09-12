@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import sys
 
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.thread.threads import Thread, Lock
 from pyLibrary.strings import expand_template
 
@@ -22,17 +23,21 @@ DEBUG_LOGGING = False
 
 _Log = None
 _Except = None
+_Queue = None
 
 
 def _delayed_imports():
     global _Log
     global _Except
+    global _Queue
 
     from pyLibrary.debugs.logs import Log as _Log
     from pyLibrary.debugs.exceptions import Except as _Except
+    from pyLibrary.thread.threads import Queue as _Queue
 
     _ = _Log
     _ = _Except
+    _ = _Queue
 
 
 class TextLog(object):
@@ -64,10 +69,10 @@ class TextLog_usingFile(TextLog):
 class TextLog_usingThread(TextLog):
 
     def __init__(self, logger):
-        # DELAYED LOAD FOR THREADS MODULE
-        from pyLibrary.thread.threads import Queue
+        if not _Log:
+            _delayed_imports()
 
-        self.queue = Queue("logs", max=10000, silent=True)
+        self.queue = _Queue("logs", max=10000, silent=True, allow_add_after_close=True)
         self.logger = logger
 
         def worker(please_stop):
@@ -77,7 +82,7 @@ class TextLog_usingThread(TextLog):
                 for log in logs:
                     if log is Thread.STOP:
                         if DEBUG_LOGGING:
-                            sys.stdout.write("TextLog_usingThread.worker() sees stop, filling rest of queue\n")
+                            sys.stdout.write(b"TextLog_usingThread.worker() sees stop, filling rest of queue\n")
                         please_stop.go()
                     else:
                         self.logger.write(**log)
@@ -92,17 +97,17 @@ class TextLog_usingThread(TextLog):
             return self
         except Exception, e:
             e = _Except.wrap(e)
-            sys.stdout.write("IF YOU SEE THIS, IT IS LIKELY YOU FORGOT TO RUN Log.start() FIRST\n")
+            sys.stdout.write(b"IF YOU SEE THIS, IT IS LIKELY YOU FORGOT TO RUN Log.start() FIRST\n")
             raise e  # OH NO!
 
     def stop(self):
         try:
             if DEBUG_LOGGING:
-                sys.stdout.write("injecting stop into queue\n")
+                sys.stdout.write(b"injecting stop into queue\n")
             self.queue.add(Thread.STOP)  # BE PATIENT, LET REST OF MESSAGE BE SENT
             self.thread.join()
             if DEBUG_LOGGING:
-                sys.stdout.write("TextLog_usingThread telling logger to stop\n")
+                sys.stdout.write(b"TextLog_usingThread telling logger to stop\n")
             self.logger.stop()
         except Exception, e:
             if DEBUG_LOGGING:
@@ -126,16 +131,14 @@ class TextLog_usingMulti(TextLog):
                 m.write(template, params)
             except Exception, e:
                 bad.append(m)
-                sys.stdout.write("a logger failed")
+                sys.stdout.write(b"a logger failed")
                 if not _Log:
                     _delayed_imports()
 
                 _Log.warning("Logger failed!  It will be removed: {{type}}", type=m.__class__.__name__, cause=e)
-        try:
+        with suppress_exception:
             for b in bad:
                 self.many.remove(b)
-        except Exception:
-            pass
 
         return self
 
@@ -152,10 +155,8 @@ class TextLog_usingMulti(TextLog):
 
     def stop(self):
         for m in self.many:
-            try:
+            with suppress_exception:
                 m.stop()
-            except Exception, e:
-                pass
 
 
 class TextLog_usingStream(TextLog):
@@ -167,7 +168,7 @@ class TextLog_usingStream(TextLog):
         value = expand_template(template, params)
         if isinstance(value, unicode):
             value = value.encode('utf8')
-        self.stream.write(value+b"\n")
+        self.stream.write(value + b"\n")
 
     def stop(self):
         pass

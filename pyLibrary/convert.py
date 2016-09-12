@@ -29,7 +29,7 @@ from tempfile import TemporaryFile
 
 from pyLibrary import strings
 from pyLibrary.collections.multiset import Multiset
-from pyLibrary.debugs.exceptions import Except
+from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, wrap_leaves, unwrap, unwraplist, split_field, join_field
 from pyLibrary.env.big_data import FileString, safe_size
@@ -42,7 +42,7 @@ from pyLibrary.times.dates import Date
 DUE TO MY POOR MEMORY, THIS IS A LIST OF ALL CONVERSION ROUTINES
 IN <from_type> "2" <to_type> FORMAT
 """
-def value2json(obj, pretty=False):
+def value2json(obj, pretty=False, sort_keys=False):
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
@@ -51,11 +51,9 @@ def value2json(obj, pretty=False):
         return json
     except Exception, e:
         e = Except.wrap(e)
-        try:
+        with suppress_exception:
             json = pypy_json_encode(obj)
             return json
-        except Exception:
-            pass
 
         Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
@@ -110,11 +108,13 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
             json_string = re.sub(r",\s*\]", r"]", json_string)
 
         if params:
+            # LOOKUP REFERENCES
             json_string = expand_template(json_string, params)
 
-
-        # LOOKUP REFERENCES
-        value = wrap(json_decoder(json_string))
+        try:
+            value = wrap(json_decoder(unicode(json_string)))
+        except Exception, e:
+            Log.error("can not decode\n{{content}}", content=json_string, cause=e)
 
         if leaves:
             value = wrap_leaves(value)
@@ -123,8 +123,16 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
 
     except Exception, e:
         e = Except.wrap(e)
+
+        if not json_string.strip():
+            Log.error("JSON string is only whitespace")
+
         if "Expecting '" in e and "' delimiter: line" in e:
-            line_index = int(strings.between(e.message, " line ", " column ")) - 1
+            possible_line_number = strings.between(e.message, " line ", " column ")
+            if possible_line_number == None:
+                Log.error("Can not decode JSON:\n\t" + json_string + "\n")
+
+            line_index = int(possible_line_number) - 1
             column = int(strings.between(e.message, " column ", " ")) - 1
             line = json_string.split("\n")[line_index].replace("\t", " ")
             if column > 20:
@@ -142,22 +150,27 @@ def json2value(json_string, params={}, flexible=False, leaves=False):
         base_str = unicode2utf8(strings.limit(json_string, 1000))
         hexx_str = bytes2hex(base_str, " ")
         try:
-            char_str = " " + ("  ".join(c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
-        except Exception:
+            char_str = " " + "  ".join((c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
+        except Exception, e:
             char_str = " "
         Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
 
 
 def string2datetime(value, format=None):
-    return Date(value, format).value
+    return unix2datetime(Date(value, format).unix)
 
 
 def str2datetime(value, format=None):
-    return string2datetime(value, format)
+    return unix2datetime(Date(value, format).unix)
 
 
 def datetime2string(value, format="%Y-%m-%d %H:%M:%S"):
-    return Date(value).format(format=format)
+    try:
+        return value.strftime(format)
+    except Exception, e:
+        from pyLibrary.debugs.logs import Log
+
+        Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
 
 
 def datetime2str(value, format="%Y-%m-%d %H:%M:%S"):
@@ -415,10 +428,9 @@ def unicode2latin1(value):
 
 
 def quote2string(value):
-    try:
+    with suppress_exception:
         return ast.literal_eval(value)
-    except Exception:
-        pass
+
 
 # RETURN PYTHON CODE FOR THE SAME
 
@@ -644,7 +656,7 @@ json_decoder = json.JSONDecoder().decode
 
 
 def json_schema_to_markdown(schema):
-    from pyLibrary.queries import qb
+    from pyLibrary.queries import jx
 
     def _md_code(code):
         return "`"+code+"`"
@@ -676,7 +688,7 @@ def json_schema_to_markdown(schema):
     lines.append(schema.description)
     lines.append("")
 
-    for k, v in qb.sort(schema.properties.items(), 0):
+    for k, v in jx.sort(schema.properties.items(), 0):
         full_name = k
         if v.type in ["object", "array", "nested"]:
             lines.append("##"+_md_code(full_name)+" Property")

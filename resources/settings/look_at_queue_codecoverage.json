@@ -1,0 +1,14 @@
+{
+	"source": {
+		"name":"active-data-index-codecoverage-dev",
+		"$ref": "file://~/codecoverage.json#aws_credentials"
+	},
+	"debug": {
+		"trace": true,
+		"log": [
+			{
+				"log_type": "console"
+			}
+		]
+	}
+}

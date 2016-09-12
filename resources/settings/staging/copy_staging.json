@@ -11,7 +11,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
 		},
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
 	},
@@ -34,7 +35,7 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "testlog_etl.transforms.test_result_to_sink.process_test_result",
+			"transformer": "activedata_etl.transforms.test_result_to_sink.process_test_result",
 			"type": "join"
 
 		},
@@ -65,7 +66,7 @@
 					"$ref": "file://~/private.json#aws_credentials"
 				}
 			},
-			"transformer": "testlog_etl.transforms.test_result_to_redshift.process_test_result",
+			"transformer": "activedata_etl.transforms.test_result_to_redshift.process_test_result",
 			"type": "join",
 			"transform_type": "bulk"  //AVOID etl DEALING WITH INDIVIDUAL KEYS
 		}

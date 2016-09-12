@@ -9,16 +9,15 @@
 #
 
 
-from datetime import datetime
 import io
 import os
 import shutil
+from datetime import datetime
 
-from pyLibrary.strings import utf82unicode
-from pyLibrary.maths import crypto
-from pyLibrary.dot import coalesce, set_default, split_field, join_field
-from pyLibrary.dot import listwrap, wrap
 from pyLibrary import convert
+from pyLibrary.dot import coalesce
+from pyLibrary.maths import crypto
+from pyLibrary.strings import utf82unicode
 
 
 class File(object):
@@ -36,7 +35,14 @@ class File(object):
             Log.error("File must be given a filename")
         elif isinstance(filename, basestring):
             self.key = None
-            self._filename = "/".join(filename.split(os.sep))  # USE UNIX STANDARD
+            if filename.startswith("~"):
+                home_path = os.path.expanduser("~")
+                if os.sep == "\\":
+                    home_path = home_path.replace(os.sep, "/")
+                if home_path.endswith("/"):
+                    home_path = home_path[:-1]
+                filename = home_path + filename[1::]
+            self._filename = filename.replace(os.sep, "/")  # USE UNIX STANDARD
         else:
             self.key = convert.base642bytearray(filename.key)
             self._filename = "/".join(filename.path.split(os.sep))  # USE UNIX STANDARD
@@ -281,10 +287,17 @@ class File(object):
             Log.error("Could not remove file", e)
 
     def backup(self):
-        names = self._filename.split("/")[-1].split(".")
-        if len(names) == 1:
-            backup = File(self._filename + ".backup " + datetime.utcnow().strftime("%Y%m%d %H%i%s"))
-
+        path = self._filename.split("/")
+        names = path[-1].split(".")
+        if len(names) == 1 or names[0] == '':
+            backup = File(self._filename + ".backup " + datetime.utcnow().strftime("%Y%m%d %H%M%S"))
+        else:
+            backup = File.new_instance(
+                "/".join(path[:-1]),
+                ".".join(names[:-1]) + ".backup " + datetime.now().strftime("%Y%m%d %H%M%S") + "." + names[-1]
+            )
+        File.copy(self, backup)
+        return backup
 
     def create(self):
         try:

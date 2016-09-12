@@ -1,7 +1,8 @@
 {
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
 		}
 	},
 	"hg":{
@@ -38,11 +39,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][Staging] Problem reading branches from hg.mozilla.org",
-				"$ref": "file://~/private.json#email"
+
 			}
 		]
 	}

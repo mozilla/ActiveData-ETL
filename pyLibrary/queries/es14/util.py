@@ -12,6 +12,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from pyLibrary.dot import wrap, split_field, join_field
+from pyLibrary.queries.expressions import Variable
 
 
 def es_query_template(path):
@@ -52,18 +53,21 @@ def es_query_template(path):
         return output, wrap([f0])
 
 
-def qb_sort_to_es_sort(sort):
+def jx_sort_to_es_sort(sort):
     if not sort:
         return []
 
     output = []
     for s in sort:
-        if s.sort == 1:
-            output.append(s.value)
-        elif s.sort == -1:
-            output.append({s.value: "desc"})
+        if isinstance(s.value, Variable):
+            if s.sort == -1:
+                output.append({s.value.var: "desc"})
+            else:
+                output.append(s.value.var)
         else:
-            pass
+            from pyLibrary.debugs.logs import Log
+
+            Log.error("do not know how to handle")
     return output
 
 
@@ -85,13 +89,15 @@ aggregates1_4 = {
     "median": "median",
     "percentile": "percentile",
     "N": "count",
-    "X0": "count",
-    "X1": "sum",
-    "X2": "sum_of_squares",
+    "s0": "count",
+    "s1": "sum",
+    "s2": "sum_of_squares",
     "std": "std_deviation",
     "stddev": "std_deviation",
+    "union": "union",
     "var": "variance",
-    "variance": "variance"
+    "variance": "variance",
+    "stats": "stats"
 }
 
 NON_STATISTICAL_AGGS = {"none", "one"}

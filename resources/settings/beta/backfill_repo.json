@@ -2,7 +2,8 @@
 	"min_date": "01 JAN 2015",
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
 		}
 	},
 	"hg":{
@@ -44,11 +45,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses",
+				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Beta] Problem with Repo Backfill",
-				"$ref": "file://~/private.json#email"
+				"subject": "[ALERT][Beta] Problem with Repo Backfill"
 			}
 		]
 	}

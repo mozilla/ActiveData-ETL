@@ -3,7 +3,7 @@
 	"range": {"max": 1000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"no_checks": true,
 	"git":{
-		"url":"https://github.com/klahnakoski/TestLog-ETL.git",
+		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
 		"branch":"etl"
 	},
 	"source": {
@@ -34,7 +34,8 @@
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
-			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData"
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
 		}
 	},
 	"debug": {
@@ -43,11 +44,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "email",
+				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
 				"subject": "[ALERT][DEV]Problem in backfill index jobs",
-				"$ref": "file://~/private.json#email"
+
 
 			}
 		]

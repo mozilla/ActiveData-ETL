@@ -12,6 +12,7 @@ import types
 import unittest
 
 from pyLibrary import dot
+from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, literal_field
 from pyLibrary.maths import Math
@@ -52,6 +53,16 @@ class FuzzyTestCase(unittest.TestCase):
     def assertEqual(self, test_value, expected, msg=None, digits=None, places=None, delta=None):
         self.assertAlmostEqual(test_value, expected, msg=msg, digits=digits, places=places, delta=delta)
 
+    def assertRaises(self, problem, function, *args, **kwargs):
+        try:
+            function(*args, **kwargs)
+            Log.error("Expecting an exception to be raised")
+        except Exception, e:
+            if isinstance(problem, basestring):
+                if problem not in e:
+                    Log.error("expecting an exception returning {{problem|quote}}", problem=problem)
+            elif not isinstance(e, problem):
+                Log.error("expecting an exception of type {{type}} to be raised", type=problem)
 
 def zipall(*args):
     """
@@ -89,9 +100,25 @@ def assertAlmostEqual(test, expected, digits=None, places=None, msg=None, delta=
                     show_deta =False
                     v1 = test[k]
                 assertAlmostEqual(v1, v2, msg=msg, digits=digits, places=places, delta=delta)
-        elif isinstance(test, set) and isinstance(expected, set):
-            if test ^ expected:
-                Log.error("Sets do not match")
+        elif isinstance(test, (set, list)) and isinstance(expected, set):
+            test = set(test)
+            if len(test) != len(expected):
+                Log.error(
+                    "Sets do not match, element count different:\n{{test|json|indent}}\nexpecting{{expectedtest|json|indent}}",
+                    test=test,
+                    expected=expected
+                )
+
+            for e in expected:
+                for t in test:
+                    try:
+                        assertAlmostEqual(t, e, msg=msg, digits=digits, places=places, delta=delta)
+                        break
+                    except Exception, _:
+                        pass
+                else:
+                    Log.error("Sets do not match. {{value|json}} not found in {{test|json}}", value=e, test=test)
+
         elif isinstance(expected, types.FunctionType):
             return expected(test)
         elif hasattr(test, "__iter__") and hasattr(expected, "__iter__"):
@@ -112,6 +139,8 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
     """
     Snagged from unittest/case.py, then modified (Aug2014)
     """
+    if expected == None:  # None has no expectations
+        return
     if test == expected:
         # shortcut
         return
@@ -137,12 +166,10 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
         raise TypeError("specify only one of digits, places or delta")
 
     if digits is not None:
-        try:
+        with suppress_exception:
             diff = Math.log10(abs(test-expected))
             if diff < digits:
                 return
-        except Exception, e:
-            pass
 
         standardMsg = expand_template("{{test}} != {{expected}} within {{digits}} decimal places", locals())
     elif delta is not None:
@@ -154,12 +181,11 @@ def assertAlmostEqualValue(test, expected, digits=None, places=None, msg=None, d
         if places is None:
             places = 15
 
-        try:
+        with suppress_exception:
             diff = Math.log10(abs(test-expected))
             if diff < Math.ceiling(Math.log10(abs(test)))-places:
                 return
-        except Exception, e:
-            pass
+
 
         standardMsg = expand_template("{{test|json}} != {{expected|json}} within {{places}} places", locals())
 
