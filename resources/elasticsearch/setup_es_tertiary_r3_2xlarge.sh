@@ -65,11 +65,11 @@ sudo bin/plugin install mobz/elasticsearch-head
 #/dev/xvdb: data
 
 #FORMAT AND MOUNT
+sudo mkfs -t ext4 /dev/xvdb
 sudo mkfs -t ext4 /dev/xvdc
 sudo mkfs -t ext4 /dev/xvdd
 sudo mkfs -t ext4 /dev/xvde
 sudo mkfs -t ext4 /dev/xvdf
-sudo mkfs -t ext4 /dev/xvdg
 
 #MOUNT (NO FORMAT)
 #sudo mount /dev/xvdb /data1
@@ -83,11 +83,11 @@ sudo mkdir /data4
 sudo mkdir /data5
 
 # ADD TO /etc/fstab SO AROUND AFTER REBOOT
-sudo sed -i '$ a\/dev/xvdc   /data1       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdd   /data2       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvde   /data3       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdf   /data4       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdg   /data5       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdd   /data3       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvde   /data4       ext4    defaults,nofail  0   2' /etc/fstab
+sudo sed -i '$ a\/dev/xvdf   /data5       ext4    defaults,nofail  0   2' /etc/fstab
 
 # TEST IT IS WORKING
 sudo mount -a
@@ -120,7 +120,7 @@ cd ~/ActiveData-ETL
 git checkout primary
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_secondary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_tertiary.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
