@@ -158,6 +158,8 @@ class NullType(object):
         return Null
 
     def __getattribute__(self, key):
+        if key == "__class__":
+            return NullType
         try:
             d = _get(self, "__dict__")
             path = d["__key__"]

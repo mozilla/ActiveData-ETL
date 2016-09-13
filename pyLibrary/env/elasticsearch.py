@@ -176,7 +176,7 @@ class Index(Features):
 
         # WAIT FOR ALIAS TO APPEAR
         while True:
-            response = self.cluster.get("/_cluster/state/metadata", retry={"times": 5}, timeout=3)
+            response = self.cluster.get("/_cluster/state", retry={"times": 5}, timeout=3)
             if alias in response.metadata.indices[self.settings.index].aliases:
                 return
             Log.note("Waiting for alias {{alias}} to appear", alias=alias)
@@ -627,7 +627,7 @@ class Cluster(object):
         # CONFIRM INDEX EXISTS
         while True:
             try:
-                state = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=3)
+                state = self.get("/_cluster/state", retry={"times": 5}, timeout=3)
                 if index in state.metadata.indices:
                     break
                 Log.note("Waiting for index {{index}} to appear", index=index)
@@ -671,7 +671,7 @@ class Cluster(object):
         RETURN LIST OF {"alias":a, "index":i} PAIRS
         ALL INDEXES INCLUDED, EVEN IF NO ALIAS {"alias":Null}
         """
-        data = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=3)
+        data = self.get("/_cluster/state", retry={"times": 5}, timeout=3)
         output = []
         for index, desc in data.metadata.indices.items():
             if not desc["aliases"]:
@@ -686,7 +686,7 @@ class Cluster(object):
             Log.error("Metadata exploration has been disabled")
 
         if not self._metadata or force:
-            response = self.get("/_cluster/state/metadata", retry={"times": 5}, timeout=3)
+            response = self.get("/_cluster/state", retry={"times": 5}, timeout=3)
             with self.metadata_locker:
                 self._metadata = wrap(response.metadata)
                 # REPLICATE MAPPING OVER ALL ALIASES
