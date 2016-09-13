@@ -159,7 +159,18 @@ class NullType(object):
 
     def __getattribute__(self, key):
         try:
-            output = _get(self, key)
+            d = _get(self, "__dict__")
+            path = d["__key__"]
+            if path is None:
+                return Null   # NO NEED TO DO ANYTHING
+
+            full_path = [path, key]
+            output = d["_obj"]
+            for p in full_path:
+                val = output.get(p)
+                if val is None:
+                    return NullType(self, key)
+                output = val
             return output
         except Exception, e:
             return NullType(self, key)
@@ -230,7 +241,7 @@ def _assign(obj, path, value, force=True):
         if value == None:
             return
         else:
-            old_value = {}
-            obj[path0] = old_value
+            obj[path0] = old_value = {}
+
     _assign(old_value, path[1:], value)
 
