@@ -287,6 +287,7 @@ class ETL(Thread):
                     self.work_queue.commit()
                     continue
 
+
                 try:
                     is_ok = self._dispatch_work(todo)
                     if is_ok:

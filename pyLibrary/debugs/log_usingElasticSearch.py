@@ -11,6 +11,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+from collections import Mapping
+
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
@@ -58,11 +60,8 @@ class TextLog_usingElasticSearch(TextLog):
                 Thread.sleep(seconds=1)
                 messages = wrap(self.queue.pop_all())
                 if messages:
-                    # for m in messages:
-                    #     m.value.params = leafer(m.value.params)
-                    #     m.value.error = leafer(m.value.error)
                     for g, mm in jx.groupby(messages, size=self.batch_size):
-                        self.es.extend(mm)
+                        self.es.extend({"value": _deep_json_to_string(mmm["value"], 2)} for mmm in mm)
                     bad_count = 0
             except Exception, e:
                 Log.warning("Problem inserting logs into ES", cause=e)
@@ -87,13 +86,28 @@ class TextLog_usingElasticSearch(TextLog):
             self.queue.close()
 
 
+LOG_STRING_LENGTH = 5000
 
-def leafer(param):
-    temp = unwrap(param.leaves())
-    if temp:
-        return dict(temp)
+
+def _deep_json_to_string(value, depth):
+    """
+    :param value: SOME STRUCTURE
+    :param depth: THE MAX DEPTH OF PROPERTIES, DEEPER WILL BE STRING-IFIED
+    :return: FLATTER STRUCTURE
+    """
+    if isinstance(value, Mapping):
+        if depth == 0:
+            return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
+
+        return {k: _deep_json_to_string(v, depth - 1) for k, v in value.items()}
+    elif isinstance(value, list):
+        return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
+    elif isinstance(value, (float, int, long)):
+        return value
+    elif isinstance(value, basestring):
+        return strings.limit(value, LOG_STRING_LENGTH)
     else:
-        return None
+        return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
 
 
 SCHEMA = {
