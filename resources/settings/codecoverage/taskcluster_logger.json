@@ -1,14 +1,36 @@
 {
-	"source": {
-		"exchange": "exchange/taskcluster-queue/v1/task-completed",
-		"topic": "#",
-		"durable": true,
-		"timeout":600,
-		"queue": "active-data-task-cluster-log-dev",
-		"$ref": "file://~/codecoverage.json#pulse_user",
-		"debug": false
-	},
+	"source": [
+		{
+			"name": "Task Cluster",
+			"exchange": "exchange/taskcluster-queue/v1/task-completed",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-completed-dev",
+			"$ref": "file://~/codecoverage.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-exception",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-exception-dev",
+			"$ref": "file://~/codecoverage.json#pulse_user",
+			"debug": false
+		},
+		{
+			"exchange": "exchange/taskcluster-queue/v1/task-failed",
+			"topic": "#",
+			"durable": false,
+			"timeout": 600,
+			"queue": "active-data-task-cluster-log-failed-dev",
+			"$ref": "file://~/codecoverage.json#pulse_user",
+			"debug": false
+		}
+	],
 	"destination": {
+		"key_prefix": "tc",
 		"bucket": "active-data-task-cluster-logger-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/codecoverage.json#aws_credentials"
@@ -31,11 +53,10 @@
 			{"log_type":"console"},
 			{
 				"log_type":"email",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
+				"from_address": "",
+				"to_address": "",
 				"subject": "[ALERT][DEV]Problem in TaskCluster Logger",
 				"$ref":"file://~/codecoverage.json#email"
-
 			}
 		]
 	}
