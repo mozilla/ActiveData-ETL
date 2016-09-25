@@ -2,8 +2,8 @@
 	"source": {
 		"name": "Buildbot",
 		"prefix": "bb",
-		"exchange": "exchange/build/normalized",
-		"topic": "#",
+		"exchange": "exchange/build",
+		"topic": "#.finished",
 		"durable": true,
 		"timeout":600,
 		"queue": "pulse_logger_dev",
