@@ -44,4 +44,4 @@ python27 resources/scripts/es_fix_unassigned_shards.py --settings=resources/conf
 cd /home/ec2-user/ActiveData/
 export PYTHONPATH=.
 nohup python27 resources/scripts/es_fix_unassigned_shards.py --settings=resources/config/fix_unassigned_shards.json &
-tail -f /logs/fix_unassigned_shards.log
+tail -f ./results/fix_unassigned_shards.log
