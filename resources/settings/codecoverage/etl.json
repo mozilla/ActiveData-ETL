@@ -47,33 +47,12 @@
 	},
 	"workers": [
 		{
-			"name": "pulse2es",
+			"name": "tc_pulse to TC Normalized",
 			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "pulse",
-				"type": "pulse_log",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/pulse_logs.json"
-				},
-				"debug": true,
-				"limit_replicas": true
-			},
-			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
-			"type": "join"
-		},
-		{
-			"name": "pulse2tc",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger-dev",
-				"key_format": "a:b"
+				"public": true,
+				"key_format": "t.a:b",
+				"$ref": "file://~/codecoverage.json#aws_credentials"
 			},
 			"destination": {
 				"host": "http://localhost",
@@ -87,104 +66,28 @@
 				"debug": true,
 				"limit_replicas": true
 			},
-			"transformer": "activedata_etl.transforms.pulse_block_to_tc_logs.process",
+			"notify": {
+			   "name": "active-data-index-dev",
+			   "$ref": "file://~/private.json#aws_credentials"
+		   	},
+			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
 			"type": "join"
 		},
 		{
-			"name": "pulse2perfherder",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
-				"public": true,
-				"key_format": "t.a:b"
-			},
-			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-perfherder-dev",
-				"public": true,
-				"key_format": "t.a:b.c"
-			},
-			"transformer": "activedata_etl.transforms.pulse_block_to_perfherder_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-			"name": "bbb2jobs",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-buildbot-dev",
-				"key_format": "a.b"
-			},
-			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-jobs-dev",
-				"public": true,
-				"key_format": "a.b"
-			},
-			"notify": {
-				"name": "active-data-index-jobs-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
-		{
-			"name": "perfherder2perf",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-talos-dev",
-				"key_format": "a:b.c"
-			},
-			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-perf-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-perf-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
-			"type": "join"
-		},
-		{
-			"name": "pulse2test_result",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
-				"key_format": "a:b"
-			},
-			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-test-result-dev",
-				"public": true,
-				"key_format": "a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-unit-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
-		},
-		{
-			"name": "pulse_taskcluster_codecoverage_2_es",
-			"transform_type": "bulk",
+			"name": "tc_pulse to codecoverage",
 			"source": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-task-cluster-logger",
-				"key_format": "a:b"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-codecoverage-dev",
 				"public": true,
-				"key_format": "a:b.c"
+				"key_format": "t.a:b.c"
 			},
 			"notify": {
-				"name": "active-data-index-codecoverage-dev",
+				"name": "active-data-index-dev",
 				"$ref": "file://~/codecoverage.json#aws_credentials"
 			},
 			"transformer": "activedata_etl.transforms.jscov_to_es.process",
@@ -203,8 +106,8 @@
 			},
 			{
 				"log_type": "email",
-				"from_address": "chin.bimbo@gmail.com",
-				"to_address": "chin.bimbo@gmail.com",
+				"from_address": "",
+				"to_address": "",
 				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/codecoverage.json#email"
 			}

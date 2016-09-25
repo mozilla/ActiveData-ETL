@@ -48,6 +48,10 @@ JOB_BUG_MAP_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/b
 class TreeHerder(object):
     @use_settings
     def __init__(self, hg, use_cache=True, cache=None, rate_limiter=None, settings=None):
+        if cache == None:
+            self.disabled = True
+            return
+
         cache.schema = SCHEMA
         rate_limiter.schema = RATE_LIMITER_SCHEMA
 
@@ -402,6 +406,8 @@ class TreeHerder(object):
         :param timestamp:
         :return:
         """
+        if self.settings.cache==None:
+            return None
 
         # TRY CACHE
         if not branch or not revision:
