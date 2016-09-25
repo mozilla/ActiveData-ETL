@@ -41,7 +41,7 @@ from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.multi_day_index import MultiDayIndex
+from activedata_etl.sinks.rollover_index import RolloverIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
@@ -341,7 +341,7 @@ sinks = []  # LIST OF (settings, sink) PAIRS
 
 
 def get_container(settings):
-    if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
+    if isinstance(settings, (RolloverIndex, aws.s3.Bucket)):
         return settings
 
     if settings == None:

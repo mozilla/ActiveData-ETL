@@ -101,10 +101,12 @@ def log_loop(settings, synch, queue, bucket, please_stop):
 
             if please_stop:
                 break
+    except Exception, e:
+        Log.warning("Problem in the log loop", cause=e)
     finally:
         if work_queue != None:
             work_queue.close()
-    Log.note("log_loop() completed on it's own")
+    Log.note("log_loop() IS DONE")
 
 
 def main():
@@ -175,8 +177,6 @@ class ExitStack(object):
                 c.__exit__(exc_type, exc_val, exc_tb)
             except Exception:
                 pass
-
-
 
 
 if __name__ == "__main__":

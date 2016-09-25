@@ -30,11 +30,13 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.strings import utf82unicode
 from pyLibrary.thread.threads import ThreadedQueue, Thread, Lock
+from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
+INDEX_DATE_FORMAT = "%Y%m%d_%H%M%S"
 
 
 class Features(object):
@@ -508,7 +510,7 @@ class Cluster(object):
         index = settings.index
         meta = self.get_metadata()
         columns = parse_properties(index, [], meta.indices[index].mappings.values()[0].properties)
-        if len(columns)!=0:
+        if len(columns) != 0:
             settings.tjson = tjson or any(c.name.endswith("$value") for c in columns)
 
         return Index(settings)
@@ -585,15 +587,16 @@ class Cluster(object):
         self,
         index,
         alias=None,
+        create_timestamp=None,
         schema=None,
         limit_replicas=None,
         read_only=False,
         tjson=False,
         settings=None
     ):
-        if not settings.alias:
-            settings.alias = settings.index
-            index = settings.index = proto_name(settings.alias)
+        if not alias:
+            alias = settings.alias = settings.index
+            index = settings.index = proto_name(alias, create_timestamp)
 
         if settings.alias == index:
             Log.error("Expecting index name to conform to pattern")
@@ -820,8 +823,10 @@ class Cluster(object):
 
 def proto_name(prefix, timestamp=None):
     if not timestamp:
-        timestamp = datetime.utcnow()
-    return prefix + convert.datetime2string(timestamp, "%Y%m%d_%H%M%S")
+        timestamp = Date.now()
+    else:
+        timestamp = Date(timestamp)
+    return prefix + timestamp.format(INDEX_DATE_FORMAT)
 
 
 def sort(values):
