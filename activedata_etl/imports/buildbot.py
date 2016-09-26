@@ -47,7 +47,6 @@ class BuildbotTranslator(object):
 
         output.action.reason = data.reason
         output.action.request_time = Date(data.requesttime)
-        output.action.timestamp = Date(consume(data, "timestamp"))
         output.action.start_time = coalesce(Date(data.starttime), Date(data.times[0]), Date(consume(data, "insertion_time")))
         output.action.end_time = coalesce(Date(data.endtime), Date(data.times[1]))
         output.action.buildbot_status = STATUS_CODES[coalesce(data.result, consume(data, "status"))]
@@ -76,6 +75,7 @@ class BuildbotTranslator(object):
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
         consume(props, "request_ids")
 
+        output.run.timestamp = Date(consume(data, "timestamp"))
         output.run.key = buildername = consume(props, "buildername")
         consume(props, "key")  # THE PULSE KEY
 
