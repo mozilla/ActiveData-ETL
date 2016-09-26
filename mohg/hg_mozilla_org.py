@@ -27,7 +27,7 @@ from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR
+from pyLibrary.times.durations import SECOND, Duration, HOUR, MINUTE
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -203,6 +203,7 @@ class HgMozillaOrg(object):
 
             revs = []
             output = None
+            last_url = None  # SOME VARIATIONS ALL MAP TO THE SAME BASE URL
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
 
@@ -212,7 +213,9 @@ class HgMozillaOrg(object):
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
                     Log.note("Reading details from {{url}}", {"url": url})
 
-                    raw_revs = self._get_and_retry(url, found_revision.branch)
+                    if url != last_url:
+                        raw_revs = self._get_and_retry(url, found_revision.branch)
+                        last_url = url
                     for r in raw_revs.values():
                         rev = Revision(
                             branch=found_revision.branch,

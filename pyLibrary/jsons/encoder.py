@@ -213,6 +213,12 @@ def _value2json(value, _buffer):
             append(_buffer, unicode(value.seconds))
         elif type is NullType:
             append(_buffer, u"null")
+        elif isinstance(value, Mapping):
+            if not value:
+                append(_buffer, u"{}")
+            else:
+                _dict2json(value, _buffer)
+            return
         elif hasattr(value, '__json__'):
             j = value.__json__()
             append(_buffer, j)
