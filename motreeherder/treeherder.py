@@ -48,6 +48,7 @@ JOB_BUG_MAP_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/b
 class TreeHerder(object):
     @use_settings
     def __init__(self, hg, use_cache=True, cache=None, rate_limiter=None, settings=None):
+        self.settings = settings
         if cache == None:
             self.disabled = True
             return

@@ -416,13 +416,6 @@ class Index(Features):
 
     def threaded_queue(self, batch_size=None, max_size=None, period=None, silent=False):
         def errors(e, _buffer):  # HANDLE ERRORS FROM extend()
-            HOPELESS = [
-                "Document contains at least one immense term",
-                "400 MapperParsingException",
-                "400 RoutingMissingException",
-                "JsonParseException"
-            ]
-
             if e.cause.cause:
                 not_possible = [f for f in listwrap(e.cause.cause) if any(h in f for h in HOPELESS)]
                 still_have_hope = [f for f in listwrap(e.cause.cause) if all(h not in f for h in HOPELESS)]
@@ -431,7 +424,10 @@ class Index(Features):
                 still_have_hope = []
 
             if still_have_hope:
-                Log.warning("Problem with sending to ES", cause=still_have_hope)
+                if "429 EsRejectedExecutionException[rejected execution (queue capacity" in e:
+                    Log.note("waiting for ES to to be free")
+                else:
+                    Log.warning("Problem with sending to ES", cause=still_have_hope)
             elif not_possible:
                 # THERE IS NOTHING WE CAN DO
                 Log.warning("Not inserted, will not try again", cause=not_possible[0:10:])
@@ -449,6 +445,15 @@ class Index(Features):
 
     def delete(self):
         self.cluster.delete_index(index_name=self.settings.index)
+
+
+HOPELESS = [
+    "Document contains at least one immense term",
+    "400 MapperParsingException",
+    "400 RoutingMissingException",
+    "JsonParseException"
+]
+
 
 
 known_clusters = {}

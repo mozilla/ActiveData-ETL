@@ -84,7 +84,7 @@ def scrub_pulse_record(source_key, i, line, stats):
         )
 
 
-def transform_buildbot(source_key, other, resources, filename=None):
+def transform_buildbot(source_key, other, resources):
     output = Dict()
 
     if other.what == "This is a heartbeat":

@@ -39,15 +39,15 @@
 			"debug": false,
 			"limit_replicas": false
 		},
-		"cache": {
-			"host": "http://localhost",
-			"port": 9200,
-			"index": "treeherder",
-			"type": "job",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": false
-		}
+//		"cache": {
+//			"host": "http://localhost",
+//			"port": 9200,
+//			"index": "treeherder",
+//			"type": "job",
+//			"timeout": 300,
+//			"debug": false,
+//			"limit_replicas": false
+//		}
 	},
 	"hg": {
 		"use_cache": true,
