@@ -121,7 +121,11 @@
 			},
 			"notify": [
 				{
-				   "name": "active-data-index-dev",
+					"name": "active-data-etl-dev",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-dev",
 				   "$ref": "file://~/private.json#aws_credentials"
 				}
 			],
