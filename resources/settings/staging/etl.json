@@ -262,10 +262,10 @@
 			},
 			{
 				"log_type": "ses",
-				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][STAGING] Problem in ETL"
+				"subject": "[ALERT][STAGING] Problem in ETL",
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}
