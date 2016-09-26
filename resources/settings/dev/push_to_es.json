@@ -23,7 +23,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {

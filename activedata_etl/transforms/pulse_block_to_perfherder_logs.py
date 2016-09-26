@@ -128,7 +128,7 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
         for prefix in PERFHERDER_PREFIXES:
             s = log_line.find(prefix)
             if s >= 0:
-                perfherder_exists=True
+                perfherder_exists = True
                 break
         else:
             continue

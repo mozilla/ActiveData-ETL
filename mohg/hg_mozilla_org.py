@@ -47,6 +47,9 @@ def _late_imports():
 DEFAULT_LOCALE = "en-US"
 DEBUG = False
 
+last_called_url = {}
+
+
 class HgMozillaOrg(object):
     """
     USE hg.mozilla.org FOR REPO INFORMATION
@@ -203,19 +206,21 @@ class HgMozillaOrg(object):
 
             revs = []
             output = None
-            last_url = None  # SOME VARIATIONS ALL MAP TO THE SAME BASE URL
             for index, _push in data.items():
                 push = Push(id=int(index), date=_push.date, user=_push.user)
 
                 for _, ids in jx.groupby(_push.changesets.node, size=200):
                     url_param = "&".join("node=" + c[0:12] for c in ids)
-
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
-                    Log.note("Reading details from {{url}}", {"url": url})
 
-                    if url != last_url:
+                    if url in last_called_url:
+                        Log.note("using previous http response")
+                        raw_revs = last_called_url[url]
+                    else:
+                        Log.note("Reading details from {{url}}", {"url": url})
                         raw_revs = self._get_and_retry(url, found_revision.branch)
-                        last_url = url
+                        last_called_url.clear()
+                        last_called_url[url] = raw_revs
                     for r in raw_revs.values():
                         rev = Revision(
                             branch=found_revision.branch,
