@@ -47,17 +47,22 @@ class BuildbotTranslator(object):
 
         output.action.reason = data.reason
         output.action.request_time = Date(data.requesttime)
-        output.action.timestamp = Date(data.timestamp)
-        output.action.start_time = coalesce(Date(data.starttime), Date(data.times[0]))
+        output.action.timestamp = Date(consume(data, "timestamp"))
+        output.action.start_time = coalesce(Date(data.starttime), Date(data.times[0]), Date(consume(data, "insertion_time")))
         output.action.end_time = coalesce(Date(data.endtime), Date(data.times[1]))
-        output.action.buildbot_status = STATUS_CODES[coalesce(data.result, data.status)]
+        output.action.buildbot_status = STATUS_CODES[coalesce(data.result, consume(data, "status"))]
 
-        if len({"buildername", "platform", "product", "release"} - data.keys()) == 0:
+        if data.actions:
+            Log.error("See actions")
+
+        if len({"buildername", "platform", "product", "revision"} - data.keys()) == 0:
             props = data
         if not props or not props.buildername:
             output.properties, output.other = normalize_other(props)
             return output
 
+        if consume(props, "talos"):
+            output.action.type = "talos"
 
         # TASK CLUSTER ID
         output.task.id = consume(props, "taskId")
@@ -66,12 +71,14 @@ class BuildbotTranslator(object):
         #     output.properties, output.other = normalize_other(props)
         #     return output
         #
-        output.action.job_number = consume(props, "buildnumber")
+        output.action.job_number = coalesce(consume(props, "buildnumber"), consume(props, "job_number"))
         for k, v in consume(props, "request_times").items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
         consume(props, "request_ids")
 
         output.run.key = buildername = consume(props, "buildername")
+        consume(props, "key")  # THE PULSE KEY
+
         if buildername.startswith("TB "):
             buildername = buildername[3:]
 
@@ -121,7 +128,9 @@ class BuildbotTranslator(object):
         # BUILD ID AND DATE
         try:
             output.build.id = consume(props, "buildid")
-            output.build.date = unicode2Date(output.build.id, "%Y%m%d%H%M%S")
+            output.build.date = Date(consume(props, "builddate"))
+            if not output.build.date:
+                output.build.date = unicode2Date(output.build.id, "%Y%m%d%H%M%S")
         except Exception, _:
             output.build.id = "<error>"
 
@@ -136,11 +145,11 @@ class BuildbotTranslator(object):
             except Exception:
                 data.build.locales = locales.split(",")
 
-        output.build.url = coalesce(consume(props, "packageUrl"), consume(props, "build_url"), consume(props, "fileURL"))
-        output.run.logurl = consume(props, "log_url")
-        output.build.release = coalesce(consume(props, "en_revision"), output.run.script.revision)
+        output.build.url = coalesce(consume(props, "packageUrl"), consume(props, "build_url"), consume(props, "buildurl"), consume(props, "fileURL"))
+        output.run.logurl = coalesce(consume(props, "log_url"), consume(props, "logurl"))
+        output.build.release = coalesce(consume(props, "release"), consume(props, "en_revision"), output.run.script.revision)
         output.run.machine.aws_id = consume(props, "aws_instance_id")
-        output.run.machine.name = coalesce(consume(props, "slavename"), output.run.machine.aws_id)
+        output.run.machine.name = coalesce(consume(props, "slavename"), consume(props, "slave"), output.run.machine.aws_id)
         split_name = output.run.machine.name.split("-")
         if Math.is_integer(split_name[-1]):
             # EXAMPLES
@@ -155,7 +164,10 @@ class BuildbotTranslator(object):
         blobber_files = consume(props, "blobber_files")
         try:
             if blobber_files:
-                files = convert.json2value(blobber_files)
+                try:
+                    files = convert.json2value(blobber_files)
+                except Exception:
+                    files = blobber_files
                 output.run.files = [
                     {"name": name, "url": url}
                     for name, url in files.items()
@@ -195,9 +207,13 @@ class BuildbotTranslator(object):
         if buildername.endswith("nightly"):
             output.tags += ["nightly"]
 
+        # PGO MARKUP
         pgo_build = unquote(consume(props, "pgo_build"))
         if pgo_build:
             output.build.type += ["pgo"]
+        buildtype = consume(props, "buildtype")
+        if buildtype:
+            output.build.type += [buildtype]
 
         # DECODE buildername
         for b in BUILDER_NAMES:
@@ -306,7 +322,12 @@ class BuildbotTranslator(object):
             try:
                 raw_platform, test = buildername.split(" " + branch_name + " ")
             except Exception:
-                Log.error("No recognized branch name: {{key}}\n{{data}}", key=buildername, data=data)
+                raise Log.error("No recognized branch name: {{key}}\n{{data}}", key=buildername, data=data)
+
+            raw_test = consume(props, "test")
+            raw_test = raw_test.replace("-pgo", "")  # NOT A TEST PROPERTY
+            if raw_test and raw_test not in test:
+                Log.error("do not know how to handle test discrepancy")
 
             output.build.name = raw_platform
             if raw_platform not in TEST_PLATFORMS:
@@ -322,6 +343,9 @@ class BuildbotTranslator(object):
             parsed = parse_test(test, output)
             if not parsed:
                 Log.error("Test mode not recognized: {{key}}\n{{data|json}}", key=buildername, data=data)
+
+        # OS MARKUP
+        output.run.os = coalesce(output.run.os, consume(data, "os"))
 
         verify(output, data)
         output.properties, output.other = normalize_other(props)
@@ -352,7 +376,7 @@ def verify(output, data):
 
 
 def parse_test(test, output):
-    # "web-platform-tests-e10s-7"
+    # "test web-platform-tests-e10s-7"
     test = test.lower()
 
     # CHUNK NUMBER
@@ -386,7 +410,7 @@ def unquote(value):
 
 def normalize_other(other):
     """
-    the buildbot properties are unlimited in thie number of keys
+    the buildbot properties are unlimited in their number of keys
     """
     known = Dict()
     unknown = []
@@ -446,6 +470,7 @@ unknown_properties=Dict()
 
 
 test_modes = {
+    "test": {"action": {"type": "test"}},
     "debug test": {"build": {"type": ["debug"]}, "action": {"type": "test"}},
     "opt test": {"build": {"type": ["opt"]}, "action": {"type": "test"}},
     "pgo test": {"build": {"type": ["pgo"]}, "action": {"type": "test"}},
