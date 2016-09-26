@@ -74,9 +74,9 @@ def process(source_key, source, destination, resources, please_stop=None):
             runId = pulse_record.runId
             full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
 
-            if ccov_artifact_count == 0:
-                # TEMP, WHILE WE MONITOR
-                Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=full_artifact_path, key=source_key)
+            # if ccov_artifact_count == 0:
+            #     # TEMP, WHILE WE MONITOR
+            #     Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=full_artifact_path, key=source_key)
             ccov_artifact_count += 1
 
             # create the key for the file in the bucket, and add it to a list to return later
