@@ -211,26 +211,26 @@
 			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
-		{
-			"name": "pulse2test_result",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-pulse-dev",
-				"key_format": "t.a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result-dev",
-				"public": true,
-				"key_format": "t.a:b.c"
-			},
-			"notify": {
-				"name": "active-data-index-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
-			"type": "join"
-		},
+//		{
+//			"name": "pulse2test_result",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-pulse-dev",
+//				"key_format": "t.a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-test-result-dev",
+//				"public": true,
+//				"key_format": "t.a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-index-dev",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
+//			"type": "join"
+//		},
 //		{
 //			"name": "tc_pulse to codecoverage",
 //			"source": {

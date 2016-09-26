@@ -9,7 +9,7 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.8,
+			"skip": 0,
 			"rollover_field": "build.date",
 			"rollover_interval": "week",
 			"sample_only": [

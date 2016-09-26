@@ -359,7 +359,7 @@ def parse_test(test, output):
 
     if "-e10s" in test:
         test = test.replace("-e10s", "")
-        output.run.type = "e10s"
+        output.run.type += ["e10s"]
 
     for m, d in test_modes.items():
         if test.startswith(m):
