@@ -133,7 +133,7 @@ def transform_buildbot(source_key, other, resources):
             )
     else:
         bb.parse(other)
-        Log.warning("No branch!\n{{output|indent}}", output=output)
+        Log.warning("No branch for {{key}}!\n{{output|indent}}", key=source_key, output=output)
 
     return output
 

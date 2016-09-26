@@ -46,14 +46,18 @@ class BuildbotTranslator(object):
             props = data.properties.copy()
 
         output.action.reason = data.reason
-        output.action.request_time = data.requesttime
-        output.action.start_time = coalesce(data.starttime, Date(data.times[0]))
-        output.action.end_time = coalesce(data.endtime, Date(data.times[1]))
-        output.action.buildbot_status = STATUS_CODES[data.result]
+        output.action.request_time = Date(data.requesttime)
+        output.action.timestamp = Date(data.timestamp)
+        output.action.start_time = coalesce(Date(data.starttime), Date(data.times[0]))
+        output.action.end_time = coalesce(Date(data.endtime), Date(data.times[1]))
+        output.action.buildbot_status = STATUS_CODES[coalesce(data.result, data.status)]
 
+        if len({"buildername", "platform", "product", "release"} - data.keys()) == 0:
+            props = data
         if not props or not props.buildername:
             output.properties, output.other = normalize_other(props)
             return output
+
 
         # TASK CLUSTER ID
         output.task.id = consume(props, "taskId")
@@ -181,7 +185,7 @@ class BuildbotTranslator(object):
             set_default(output, KNOWN_PLATFORM[raw_platform])
 
         # BRANCH
-        output.build.branch = branch_name = consume(props, "branch").split("/")[-1]
+        output.build.branch = branch_name = coalesce(consume(props, "tree"), consume(props, "branch")).split("/")[-1]
         if not branch_name:
             Log.error("{{key|quote}} no 'branch' property", key=buildername)
         consume(props, "repo_path")
