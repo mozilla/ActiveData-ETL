@@ -24,7 +24,7 @@ from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 
 
-# ONLY DEPLOY OFF THE pulse-logger branch
+# ONLY DEPLOY OFF THE pulse-logger BRANCH
 
 
 def log_loop(settings, synch, queue, bucket, please_stop):
@@ -45,7 +45,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             if settings.destination.key_prefix:
                 full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             else:
-                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.select("_meta.count")))
+                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
             try:
                 output = [
                     set_default(
@@ -101,10 +101,12 @@ def log_loop(settings, synch, queue, bucket, please_stop):
 
             if please_stop:
                 break
+    except Exception, e:
+        Log.warning("Problem in the log loop", cause=e)
     finally:
         if work_queue != None:
             work_queue.close()
-    Log.note("log_loop() completed on it's own")
+    Log.note("log_loop() IS DONE")
 
 
 def main():
@@ -175,8 +177,6 @@ class ExitStack(object):
                 c.__exit__(exc_type, exc_val, exc_tb)
             except Exception:
                 pass
-
-
 
 
 if __name__ == "__main__":

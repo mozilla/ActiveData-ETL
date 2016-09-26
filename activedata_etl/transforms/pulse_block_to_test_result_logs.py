@@ -53,16 +53,18 @@ def process(source_key, source, destination, resources, please_stop=None):
         if not pulse_record:
             continue
 
+        buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources)
+
         if DEBUG or DEBUG_SHOW_LINE:
             Log.note(
                 "Source {{key}}, line {{line}}, buildid = {{buildid}}",
                 key=source_key,
                 line=i,
-                buildid=pulse_record.payload.builddate
+                buildid=buildbot_summary.build.id
             )
 
         file_num = 0
-        for name, url in pulse_record.payload.blobber_files.items():
+        for name, url in [(f.name, f.url) for f in buildbot_summary.run.files]:
             if SINGLE_URL is not None and url != SINGLE_URL:
                 continue
             if fast_forward:
@@ -86,7 +88,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                     },
                     debug=DEBUG
                 ):
-                    buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources, filename=name)
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
                     dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)

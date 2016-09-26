@@ -55,3 +55,29 @@ It is 2016, and Python is still hard on Windows.  It would be [a nice question f
 3. Install pycrypto.  Hopefully, [voidspace](http://www.voidspace.org.uk/python/modules.shtml) still provides pre-compiled binaries.  Knowing the internet, it probably moved by the time you read this, so I made a [copy of pycrypto-2.6.win32-py2.7.exe](resources/binaries/pycrypto-2.6.win32-py2.7.exe)
 4. `pip install fabric` again.  This should be successful.
 
+
+Configuration Files
+-------------------
+
+The configuration files, located in [`resources/settings`](https://github.com/klahnakoski/ActiveData-ETL/tree/dev/resources/settings), often point to a `private.json` config file outside the repository tree.  This file holds the credentials and access info required, and looks something like this:
+
+	{
+	    "email":{
+	        "host": "smtp.gmail.com",
+	        "port": 465,
+	        "username": "",
+	        "password": "",
+	        "use_ssl": 1
+	    },
+	    "aws_credentials":{
+	        "aws_access_key_id":"",
+	        "aws_secret_access_key" :"",
+	        "region":"us-west-2"
+	    },
+	    "pulse_user":{
+	        "user": "",
+	        "password": ""
+	    }
+	}
+
+The exact properties will depend on the the resources you are accessing. 

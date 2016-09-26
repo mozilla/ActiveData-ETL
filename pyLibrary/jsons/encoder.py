@@ -186,10 +186,13 @@ def _value2json(value, _buffer):
                 append(_buffer, ESCAPE_DCT.get(c, c))
             append(_buffer, u"\"")
         elif type is dict:
-            _dict2json(value, _buffer)
+            if not value:
+                append(_buffer, u"{}")
+            else:
+                _dict2json(value, _buffer)
             return
         elif type is Dict:
-            d = _get(value, "_dict")
+            d = _get(value, "_dict")  # MIGHT BE A VALUE NOT A DICT
             _value2json(d, _buffer)
             return
         elif type in (int, long, Decimal):
@@ -210,6 +213,12 @@ def _value2json(value, _buffer):
             append(_buffer, unicode(value.seconds))
         elif type is NullType:
             append(_buffer, u"null")
+        elif isinstance(value, Mapping):
+            if not value:
+                append(_buffer, u"{}")
+            else:
+                _dict2json(value, _buffer)
+            return
         elif hasattr(value, '__json__'):
             j = value.__json__()
             append(_buffer, j)

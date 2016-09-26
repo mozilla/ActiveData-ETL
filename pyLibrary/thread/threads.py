@@ -19,7 +19,6 @@ import sys
 import thread
 import threading
 import time
-
 import types
 from collections import deque
 from copy import copy
@@ -29,7 +28,6 @@ from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict, unwraplist, Null
-from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration
 
@@ -37,7 +35,7 @@ _Log = None
 _Except = None
 DEBUG = True
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
-DEFAULT_WAIT_TIME = timedelta(minutes=5)
+DEFAULT_WAIT_TIME = timedelta(minutes=10)
 
 def _late_import():
     global _Log
@@ -195,7 +193,7 @@ class Queue(object):
                 _Log.error(Thread.TIMEOUT)
 
             if self.silent:
-                self.lock.wait()
+                self.lock.wait(till=time_to_stop_waiting)
             else:
                 self.lock.wait(wait_time)
                 if len(self.queue) > self.max:

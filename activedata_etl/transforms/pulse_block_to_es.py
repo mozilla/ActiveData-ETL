@@ -9,12 +9,13 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, listwrap
+from pyLibrary.dot import Dict, wrap, Null, listwrap, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date
 from activedata_etl import etl2key
@@ -24,9 +25,11 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
 
 DEBUG = True
+bb = BuildbotTranslator()
 
 
 def process(source_key, source, destination, resources, please_stop=None):
+
     lines = source.read_lines()
 
     keys = []
@@ -70,28 +73,7 @@ def scrub_pulse_record(source_key, i, line, stats):
         if not line:
             return None
         pulse_record = convert.json2value(line)
-        if pulse_record._meta:
-            pulse_record.etl.source.id = pulse_record.etl.source.count  # REMOVE AFTER JULY 1 2015, JUST A FEW RECORDS HAVE THIS PROBLEM
-            return pulse_record
-        elif pulse_record.locale:
-            stats.num_missing_envelope += 1
-            pulse_record = wrap({
-                "payload": pulse_record,
-                "etl": pulse_record.etl
-            })
-            return pulse_record
-        else:
-            if i == 0 and pulse_record.source:
-                #OLD-STYLE ETL HAD A HEADER RECORD
-                return None
-
-            Log.warning(
-                "Line {{index}}: Do not know how to handle line for key {{key}}\n{{line}}",
-                line=line,
-                index=i,
-                key=source_key
-            )
-            return None
+        return pulse_record
     except Exception, e:
         Log.warning(
             "Line {{index}}: Problem with line for key {{key}}\n{{line}}",
@@ -102,87 +84,13 @@ def scrub_pulse_record(source_key, i, line, stats):
         )
 
 
-
-def transform_buildbot(source_key, payload, resources, filename=None):
+def transform_buildbot(source_key, other, resources):
     output = Dict()
 
-    if payload.what == "This is a heartbeat":
+    if other.what == "This is a heartbeat":
         return output
 
-    output.run.files = payload.blobber_files
-    output.build.date = payload.builddate
-    output.build.name = payload.buildername
-    output.build.id = payload.buildid
-    output.build.type = listwrap(payload.buildtype)
-    if "e10s" in payload.key.lower():
-        output.run.type += ["e10s"]
-
-    output.build.url = payload.buildurl
-    output.run.job_number = payload.job_number
-
-    # TODO: THESE SHOULD BE ETL PROPERTIES
-    output.run.insertion_time = payload.insertion_time
-    output.run.key = payload.key
-
-    output.build.locale = fix_locale(payload.locale)
-    output.run.logurl = payload.logurl
-    output.run.machine.os = payload.os
-    output.build.platform = payload.platform
-    output.build.product = payload.product
-    output.build.release = payload.release
-    output.build.revision = payload.revision
-    output.build.revision12 = payload.revision[0:12]
-    output.run.machine.name = payload.slave
-
-    # payload.status IS THE BUILDBOT STATUS
-    # https://github.com/mozilla/pulsetranslator/blob/acf495738f8bd119f64820958c65e348aa67963c/pulsetranslator/pulsetranslator.py#L295
-    # https://hg.mozilla.org/build/buildbot/file/fbfb8684802b/master/buildbot/status/builder.py#l25
-    try:
-        output.run.buildbot_status = buildbot.STATUS_CODES[payload.status]
-    except Exception, e:
-        Log.warning("It seems the Pulse payload status {{status|quote}} has no string representative", status=payload.status)
-
-    output.run.talos = payload.talos
-    output.run.suite = payload.test
-    output.run.timestamp = Date(payload.timestamp).unix
-    output.build.branch = payload.tree
-
-    # JUST IN CASE THERE ARE MORE PROPERTIES
-    output.other = payload = payload.copy()
-    payload.blobber_files = None
-    payload.builddate = None
-    payload.buildername = None
-    payload.buildid = None
-    payload.buildtype = None
-    payload.buildurl = None
-    payload.etl = None
-    payload.insertion_time = None
-    payload.job_number = None
-    payload.key = None
-    payload.locale = None
-    payload.logurl = None
-    payload.os = None
-    payload.platform = None
-    payload.product = None
-    payload.release = None
-    payload.revision = None
-    payload.slave = None
-    payload.status = None
-    payload.talos = None
-    payload.test = None
-    payload.timestamp = None
-    payload.tree = None
-
-    path = output.run.suite.split("-")
-    if Math.is_integer(path[-1]):
-        output.run.chunk = int(path[-1])
-        output.run.suite = "-".join(path[:-1])
-
-    output.run.files = [
-        {"name": name, "url": url}
-        for name, url in output.run.files.items()
-        if filename is None or name == filename
-    ]
+    output = bb.parse(other)
 
     if output.build.branch:
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
@@ -210,7 +118,7 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                     output.build.branch,
                     output.build.revision,
                     None,
-                    output.build.name,
+                    coalesce(output.build.name, output.run.key),
                     output.run.timestamp
                 )
         except Exception, e:
@@ -224,7 +132,8 @@ def transform_buildbot(source_key, payload, resources, filename=None):
                 cause=e
             )
     else:
-        Log.warning("No branch!\n{{output|indent}}", output=output)
+        bb.parse(other)
+        Log.warning("No branch for {{key}}!\n{{output|indent}}", key=source_key, output=output)
 
     return output
 
