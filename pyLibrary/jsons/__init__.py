@@ -18,6 +18,8 @@ import json
 import re
 from types import NoneType
 
+import math
+
 from pyLibrary.dot import DictList, NullType, Dict, unwrap
 from pyLibrary.dot.objects import DictObject
 from pyLibrary.times.dates import Date

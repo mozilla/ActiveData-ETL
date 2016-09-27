@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, Null
-from pyLibrary.env import http
+from pyLibrary.dot import Dict, wrap, coalesce
+from pyLibrary.env import http, elasticsearch
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
@@ -37,7 +37,7 @@ PERFHERDER_PREFIXES = [
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     """
-    SIMPLE CONVERT pulse_block INTO PERF HERDER, IF ANY
+    CONVERT pulse_block INTO PERFHERDER, IF ANY
     """
     etl_head_gen = EtlHeadGenerator(source_key)
     stats = Dict()
@@ -49,22 +49,35 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record:
             continue
 
-        if isinstance(pulse_record.payload.build.properties, list):
-            props = wrap({k: v for k, v, s in pulse_record.payload.build.properties})
-        else:
-            props = Null
-        log_url = coalesce(pulse_record.payload.logurl, pulse_record.payload.log_url, props.logurl, props.log_url)
-        if not log_url:
-            Log.error("no logfile")
-
         etl_file = wrap({
             "id": counter,
-            "file": log_url,
             "timestamp": Date.now().unix,
             "revision": get_git_revision(),
             "source": pulse_record.etl,
             "type": "join"
         })
+
+        propslist = coalesce(pulse_record.payload.build.properties, pulse_record.payload.properties)
+        if isinstance(propslist, list):
+            props = wrap({k: v for k, v, s in propslist})
+        else:
+            props = propslist
+        log_url = coalesce(pulse_record.payload.logurl, pulse_record.payload.log_url, props.logurl, props.log_url)
+        if not log_url:
+            if convert.value2json(pulse_record).find("logurl") != -1:
+                Log.warning("{{key}} line {{line}} has no logurl\n{{record|json}}", key=source_key, line=i, record=pulse_record)
+
+            # _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            # output |= dest_bucket.extend([{
+            #     "id": etl2key(dest_etl),
+            #     "value": {
+            #         "etl": dest_etl,
+            #         "pulse": pulse_record.payload,
+            #         "is_empty": True
+            #     }
+            # }])
+            continue
+
         with Timer("Read {{url}}", {"url": log_url}, debug=DEBUG) as timer:
             try:
                 response = http.get(log_url)
@@ -101,6 +114,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 counter += 1
                 etl_head_gen.next_id = 0
 
+        etl_file.file = log_url
         etl_file.duration = timer.duration
 
         if all_perf:

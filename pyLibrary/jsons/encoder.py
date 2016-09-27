@@ -22,6 +22,8 @@ from json import encoder as json_encoder_module
 from math import floor
 from repr import Repr
 
+import math
+
 from pyLibrary.dot import Dict, DictList, NullType, Null, unwrap
 from pyLibrary.jsons import quote, ESCAPE_DCT, scrub
 from pyLibrary.strings import utf82unicode
@@ -198,7 +200,12 @@ def _value2json(value, _buffer):
         elif type in (int, long, Decimal):
             append(_buffer, unicode(value))
         elif type is float:
-            append(_buffer, unicode(repr(value)))
+            if math.isnan(value):
+                append(_buffer, u'"nan"')
+            elif math.isinf(value):
+                append(_buffer, u'"inf"')
+            else:
+                append(_buffer, unicode(repr(value)))
         elif type in (set, list, tuple, DictList):
             _list2json(value, _buffer)
         elif type is date:

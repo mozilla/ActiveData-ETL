@@ -6,7 +6,8 @@
 	"param": {
 		"threads": 4,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": false,
+		"min_attempts": 0
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {

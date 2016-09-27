@@ -887,7 +887,7 @@ def _scrub(r):
         else:
             return r
     except Exception, e:
-        Log.warning("Can not scrub: {{json}}",  json= r)
+        Log.warning("Can not scrub: {{json}}", json=r, cause=e)
 
 
 
