@@ -464,6 +464,7 @@ KNOWN_TAGS = {
     "treeherder.build.platform",
     "treeherder.collection.ccov",
     "treeherder.collection.debug",
+    "treeherder.collection.jsdcov",
     "treeherder.collection.memleak",
     "treeherder.collection.opt",
     "treeherder.collection.pgo",

@@ -42,6 +42,7 @@ KNOWN_PERFHERDER_TESTS = [
     "build times",
     "cart",
     "chromez",
+    "compiler_metrics",
     "damp",
     "dromaeo_css",
     "dromaeo_dom",

@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce
+from pyLibrary.dot import Dict, wrap, coalesce, Null
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -49,7 +49,11 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if not pulse_record:
             continue
 
-        log_url = coalesce(pulse_record.payload.logurl, pulse_record.payload.log_url)
+        if isinstance(pulse_record.payload.build.properties, list):
+            props = wrap({k: v for k, v, s in pulse_record.payload.build.properties})
+        else:
+            props = Null
+        log_url = coalesce(pulse_record.payload.logurl, pulse_record.payload.log_url, props.logurl, props.log_url)
         if not log_url:
             Log.error("no logfile")
 

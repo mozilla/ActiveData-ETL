@@ -296,13 +296,13 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
-                    if "Shutdown detected." not in e:
+                    if "Shutdown detected." in e:
                         continue
 
                     previous_attempts = coalesce(todo.previous_attempts, 0)
                     todo.previous_attempts = previous_attempts + 1
 
-                    if previous_attempts < 3:
+                    if previous_attempts < coalesce(self.settings.min_attempts, 3):
                         # SILENT
                         try:
                             self.work_queue.add(todo)

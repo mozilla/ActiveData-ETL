@@ -81,7 +81,7 @@
 	},
 	"workers": [
 		{
-			"name": "pulse2es",
+			"name": "Buildbot Pulse to ES",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse",
