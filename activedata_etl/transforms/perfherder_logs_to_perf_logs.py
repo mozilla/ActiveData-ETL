@@ -67,6 +67,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tabpaint",
     "tart",
     "TestStandardURL",
+    "TreeTraversal",
     "tcanvasmark",
     "tcheck2",
     "tp4m_nochrome",
@@ -142,7 +143,10 @@ def transform(source_key, perfherder, resources):
         buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
-            Log.error("Can not process: no suite name is found")
+            if perfherder.is_empty:
+                return []
+            else:
+                Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
