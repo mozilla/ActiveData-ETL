@@ -45,13 +45,13 @@ class TestBuildbotLogs(FuzzyTestCase):
 
 
     def test_past_problems(self):
-        COMPARE_TO_EXPECTED = True
+        COMPARE_TO_EXPECTED = False
 
         translator = BuildbotTranslator()
 
-        builds = convert.json2value(File("tests/resources/buildbot.json").read())
+        builds = convert.json2value(File("tests/resources/buildbot.json").read(), flexible=True)
         if COMPARE_TO_EXPECTED:
-            expected = convert.json2value(File("tests/resources/buildbot_results.json").read())
+            expected = convert.json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
         else:
             expected = []
 

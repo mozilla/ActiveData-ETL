@@ -8176,5 +8176,43 @@
 	    "result": 0,
 	    "slave_id": 11805,
 	    "starttime": 1467731493
+	},
+	{
+	    "builder_id": 618989,
+	    "buildnumber": 395,
+	    "endtime": 1474881885,
+	    "id": 107747767,
+	    "master_id": 211,
+	    "properties": {
+	        "basedir": "/builds/slave/test",
+	        "blobber_files": "{\"wpt_errorsummary.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/798d8cc234031318574e525f4ad788561ea63a9ece0d110fcc658c7d23ba42e91901e4b33e66661e873406922170e7b546f5c0360ec2c3774ac376729871e312\", \"resource-usage.json\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/59c4900ba5ff671eaebb0cdd5b6ea7554458bd4d3d777c062238a336e710df51a4088bd6e5faf6130a5d7f3fb8776cf37ea09fa4081e80a1c850e5651b042fa7\", \"wpt_raw.log\": \"http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/6c61209eb040b96f47d2457ca7304614903796a1f23a5710aafbf691d0c945c1dd4cd04ac159e90e5adefd77bae832ec76cf9d26aadb639637a882118f83dd8b\"}",
+	        "branch": "try",
+	        "build_url": "https://queue.taskcluster.net/v1/task/Z0eUBcYHTkS-M77wO56y_w/artifacts/public/build/firefox-52.0a1.en-US.mac.dmg",
+	        "buildername": "Rev7 MacOSX Yosemite 10.10.5 try opt test web-platform-tests-e10s-3",
+	        "buildid": "20160926005343",
+	        "buildnumber": 395,
+	        "builduid": "7fdfd8a17e2d4c539d409516d94bf1d3",
+	        "log_url": "https://archive.mozilla.org/pub/firefox/try-builds/jwwang@mozilla.com-b9761c230d46632d62256a1331586106e67ad763/try-macosx64/try_yosemite_r7_test-web-platform-tests-e10s-3-bm136-tests1-macosx-build395.txt.gz",
+	        "master": "http://buildbot-master136.bb.releng.scl3.mozilla.com:8201/",
+	        "pgo_build": "False",
+	        "platform": "macosx64",
+	        "product": "firefox",
+	        "repo_path": "try",
+	        "request_ids": [125601914],
+	        "request_times": {"125601914": 1474881091},
+	        "revision": "b9761c230d46632d62256a1331586106e67ad763",
+	        "scheduler": "tests-try-yosemite_r7-opt-unittest",
+	        "script_repo_revision": "b9761c230d46632d62256a1331586106e67ad763",
+	        "slavebuilddir": "test",
+	        "slavename": "t-yosemite-r7-0300",
+	        "stage_platform": "macosx64"
+	    },
+	    "reason": "scheduler",
+	    "request_ids": [125601914],
+	    "requesttime": 1474881091,
+	    "result": 0,
+	    "slave_id": 13047,
+	    "starttime": 1474881090
 	}
+
 ]

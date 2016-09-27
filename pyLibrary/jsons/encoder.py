@@ -205,7 +205,7 @@ def _value2json(value, _buffer):
             elif math.isinf(value):
                 append(_buffer, u'"inf"')
             else:
-                append(_buffer, unicode(repr(value)))
+                append(_buffer, unicode(Decimal(value)))
         elif type in (set, list, tuple, DictList):
             _list2json(value, _buffer)
         elif type is date:
@@ -213,11 +213,11 @@ def _value2json(value, _buffer):
         elif type is datetime:
             append(_buffer, unicode(Decimal(time.mktime(value.timetuple()))))
         elif type is Date:
-            append(_buffer, unicode(value.unix))
+            append(_buffer, unicode(Decimal(value.unix)))
         elif type is timedelta:
-            append(_buffer, unicode(value.total_seconds()))
+            append(_buffer, unicode(Decimal(value.total_seconds())))
         elif type is Duration:
-            append(_buffer, unicode(value.seconds))
+            append(_buffer, unicode(Decimal(value.seconds)))
         elif type is NullType:
             append(_buffer, u"null")
         elif isinstance(value, Mapping):

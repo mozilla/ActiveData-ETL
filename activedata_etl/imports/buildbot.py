@@ -16,7 +16,7 @@ import re
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist
+from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist, listwrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries import jx
@@ -359,6 +359,10 @@ def consume(props, key):
 
 
 def verify(output, data):
+    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
+    output.build.type = unwraplist(list(set(listwrap(output.build.type))))
+    output.build.tags = unwraplist(list(set(output.build.tags)))
+
     if "e10s" in data.properties.buildername.lower() and output.run.type != 'e10s':
         Log.error("Did not pickup e10s in\n{{data|json}}", data=data)
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
@@ -370,9 +374,6 @@ def verify(output, data):
     if output.build.product not in ALLOWED_PRODUCTS:
         ALLOWED_PRODUCTS.append(output.build.product)
         Log.error("Bad Product {{product}}\n{{data|json}}", product=output.build.product, data=data)
-
-    output.build.tags = unwraplist(list(set(output.build.tags)))
-    output.build.type = unwraplist(list(set(output.build.type)))
 
 
 def parse_test(test, output):

@@ -9543,7 +9543,7 @@
         },
         "build": {
             "branch": "mozilla-b2g34_v2_1",
-            "date": 1422749533.0,
+            "date": 1422749533,
             "gaia_revision": "63f291df9b9ad8498fb8fc7fb8bf070524406a5c",
             "gaia_revision12": "63f291df9b9a",
             "gecko_revision": "70b8982a523d",
@@ -11418,6 +11418,73 @@
                 "pool": "b-2008-spot"
             },
             "script": {"revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8"}
+        }
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1474881885,
+            "job_number": 395,
+            "reason": "scheduler",
+            "request_time": 1474881091,
+            "requests": [
+                {
+                    "request_id": 125601914,
+                    "timestamp": 1474881091
+                }
+            ],
+            "start_time": 1474881090,
+            "type": "test"
+        },
+        "build": {
+            "branch": "try",
+            "date": 1474851223,
+            "id": "20160926005343",
+            "locale": "en-US",
+            "name": "Rev7 MacOSX Yosemite 10.10.5",
+            "platform": "macosx64",
+            "product": "firefox",
+            "release": "b9761c230d46632d62256a1331586106e67ad763",
+            "revision": "b9761c230d46632d62256a1331586106e67ad763",
+            "revision12": "b9761c230d46",
+            "type": "opt",
+            "url": "https://queue.taskcluster.net/v1/task/Z0eUBcYHTkS-M77wO56y_w/artifacts/public/build/firefox-52.0a1.en-US.mac.dmg"
+        },
+        "other": [],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builduid": "7fdfd8a17e2d4c539d409516d94bf1d3",
+            "master": "http://buildbot-master136.bb.releng.scl3.mozilla.com:8201/",
+            "scheduler": "tests-try-yosemite_r7-opt-unittest",
+            "slavebuilddir": "test",
+            "stage_platform": "macosx64"
+        },
+        "run": {
+            "chunk": 3,
+            "files": [
+                {
+                    "name": "wpt_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/798d8cc234031318574e525f4ad788561ea63a9ece0d110fcc658c7d23ba42e91901e4b33e66661e873406922170e7b546f5c0360ec2c3774ac376729871e312"
+                },
+                {
+                    "name": "resource-usage.json",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/59c4900ba5ff671eaebb0cdd5b6ea7554458bd4d3d777c062238a336e710df51a4088bd6e5faf6130a5d7f3fb8776cf37ea09fa4081e80a1c850e5651b042fa7"
+                },
+                {
+                    "name": "wpt_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/6c61209eb040b96f47d2457ca7304614903796a1f23a5710aafbf691d0c945c1dd4cd04ac159e90e5adefd77bae832ec76cf9d26aadb639637a882118f83dd8b"
+                }
+            ],
+            "key": "Rev7 MacOSX Yosemite 10.10.5 try opt test web-platform-tests-e10s-3",
+            "logurl": "https://archive.mozilla.org/pub/firefox/try-builds/jwwang@mozilla.com-b9761c230d46632d62256a1331586106e67ad763/try-macosx64/try_yosemite_r7_test-web-platform-tests-e10s-3-bm136-tests1-macosx-build395.txt.gz",
+            "machine": {
+                "name": "t-yosemite-r7-0300",
+                "os": "yosemite 10.10",
+                "pool": "t-yosemite-r7"
+            },
+            "script": {"revision": "b9761c230d46632d62256a1331586106e67ad763"},
+            "suite": "web-platform-tests",
+            "type": "e10s"
         }
     }
 ]
