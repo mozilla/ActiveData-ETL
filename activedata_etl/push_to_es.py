@@ -39,7 +39,7 @@ def splitter(work_queue, please_stop):
 
         message, payload = pair
         if not isinstance(payload, Mapping):
-            Log.error("Not expecting a Mapping payload")
+            Log.error("Not expecting a Mapping payload with `key` and `bucket` properties")
 
         key = payload.key
         with Explanation("Indexing records from {{bucket}}", bucket=payload.bucket):
@@ -108,7 +108,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id to process (prefix is ok too) ",
                 "type": str,
                 "dest": "id",

@@ -668,7 +668,7 @@ class Thread(object):
         with ALL_LOCK:
             try:
                 return ALL[id]
-            except KeyError, e:
+            except KeyError:
                 return MAIN_THREAD
 
 

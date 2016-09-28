@@ -24,6 +24,9 @@ from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread, Queue
 from pyLibrary.times.durations import MINUTE, Duration
 
+LOG_STRING_LENGTH = 5000  # CONVERTING OBJECTS TO JSON CAN RESULT IN LONG STRINGS. CHOP!! CHOP!!
+MAX_BAD_COUNT = 5  # NUMBER OF TIMES TO TRY, IN A ROW, BEFORE GIVING UP LOGGING
+
 
 class TextLog_usingElasticSearch(TextLog):
     @use_settings
@@ -59,15 +62,26 @@ class TextLog_usingElasticSearch(TextLog):
             try:
                 Thread.sleep(seconds=1)
                 messages = wrap(self.queue.pop_all())
-                if messages:
-                    for g, mm in jx.groupby(messages, size=self.batch_size):
-                        self.es.extend({"value": _deep_json_to_string(mmm["value"], 2)} for mmm in mm)
+                if not messages:
+                    continue
+
+                for g, mm in jx.groupby(messages, size=self.batch_size):
+                    scrubbed = []
+                    try:
+                        for i, message in enumerate(mm):
+                            if message is Thread.STOP:
+                                please_stop.go()
+                                return
+                            scrubbed.append(_deep_json_to_string(message, depth=3))
+                    finally:
+                        self.es.extend(scrubbed)
                     bad_count = 0
             except Exception, e:
                 Log.warning("Problem inserting logs into ES", cause=e)
                 bad_count += 1
-                if bad_count > 5:
+                if bad_count > MAX_BAD_COUNT:
                     break
+                Thread.sleep(seconds=30)
         Log.warning("Given up trying to write debug logs to ES index {{index}}", index=self.es.settings.index)
 
         # CONTINUE TO DRAIN THIS QUEUE
@@ -84,9 +98,6 @@ class TextLog_usingElasticSearch(TextLog):
 
         with suppress_exception:
             self.queue.close()
-
-
-LOG_STRING_LENGTH = 5000
 
 
 def _deep_json_to_string(value, depth):

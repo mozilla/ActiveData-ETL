@@ -20,6 +20,7 @@
 				"index": "unittest",
 				"type": "test_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
@@ -69,6 +70,7 @@
 				"index": "jobs",
 				"type": "job",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
@@ -93,6 +95,7 @@
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
@@ -119,6 +122,7 @@
 				"index": "task",
 				"type": "task",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
@@ -145,10 +149,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push unit to ES"
+				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

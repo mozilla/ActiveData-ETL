@@ -289,6 +289,7 @@ def transform(source_key, perfherder, resources):
             new_records.append(new_record)
             total.append(new_record.result.stats)
         elif perfherder.is_empty:
+            buildbot.run.result.is_empty = True
             new_records.append(buildbot)
             pass
         else:
