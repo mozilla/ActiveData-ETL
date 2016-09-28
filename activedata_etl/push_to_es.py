@@ -71,7 +71,8 @@ def splitter(work_queue, please_stop):
             Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
             more_keys = bucket.keys(prefix=key)
             if not more_keys:
-                Log.warning("No keys found {{message|json}}", message=payload)
+                # HAPPENS WHEN REPROCESSING (ETL WOULD HAVE CLEARED THE BUCKET OF THIS PREFIX FIRST)
+                Log.warning("No files found in bucket {{message|json}}", message=payload)
             else:
                 num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size, message.delete)
 
@@ -179,7 +180,7 @@ def main():
                 bucket=s3.Bucket(w.source),
                 settings=w
             )
-            Log.note("Bucket {{bucket}} using {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].path)
+            Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)

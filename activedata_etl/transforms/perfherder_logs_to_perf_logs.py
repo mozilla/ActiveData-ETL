@@ -130,8 +130,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
 
-    # if not records:
-    #     Log.warning("No perfherder records are found in {{key}}", key=source_key)
+    if not records:
+        Log.warning("No perfherder records are found in {{key}}", key=source_key)
 
     destination.extend(records)
     return [source_key]
@@ -144,7 +144,9 @@ def transform(source_key, perfherder, resources):
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:
-                return []
+                # RETURN A PLACEHOLDER
+                buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
+                return [buildbot]
             else:
                 Log.error("Can not process: no suite name is found")
 
