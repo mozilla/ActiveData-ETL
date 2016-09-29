@@ -56,7 +56,7 @@ class Sqlite(object):
         """
         if not upgrade_done:
             upgrade()
-            
+
         self.db = None
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
         self.worker = Thread.run("sqlite db thread", self._worker)
