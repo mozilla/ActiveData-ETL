@@ -188,7 +188,7 @@ class HgMozillaOrg(object):
         if not b:
             b = found_revision.branch = self.branches[(lower_name, DEFAULT_LOCALE)]
             if not b:
-                Log.error("can not find branch ({{branch}}, {{locale}})", name=lower_name, locale=locale)
+                Log.error("can not find branch ({{branch}}, {{locale}})", branch=lower_name, locale=locale)
         if Date.now() - Date(b.etl.timestamp) > _OLD_BRANCH:
             self.branches = _hg_branches.get_branches(use_cache=True, settings=self.settings)
 

@@ -102,8 +102,8 @@ def transform_buildbot(source_key, other, resources):
         try:
             output.repo = resources.hg.get_revision(rev, locale)
         except Exception, e:
-            if "release-mozilla-esr" in e:
-                # FOR SOME REASON WE CAN NOT FIND THE REVISIONS FOR ESR
+            if "release-mozilla-esr" in e or "release-comm-esr" in e:
+                # TODO: FIX PROBLEM WHERE, FOR SOME REASON, WE CAN NOT FIND THE REVISIONS FOR ESR
                 pass
             else:
                 Log.warning(
