@@ -24,7 +24,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
@@ -54,8 +54,8 @@
 				"limit_replicas": false
 			},
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perf",
+				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b.c"
 			}
 		},
@@ -75,7 +75,7 @@
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
@@ -101,7 +101,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
@@ -127,7 +127,7 @@
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
