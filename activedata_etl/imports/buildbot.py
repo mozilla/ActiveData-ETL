@@ -54,7 +54,7 @@ class BuildbotTranslator(object):
         if data.actions:
             Log.error("See actions")
 
-        if len({"buildername", "platform", "product", "revision"} - data.keys()) == 0:
+        if len({"buildername", "platform", "product"} - data.keys()) == 0:
             props = data
         if not props or not props.buildername:
             output.properties, output.other = normalize_other(props)
@@ -70,7 +70,7 @@ class BuildbotTranslator(object):
         #     output.properties, output.other = normalize_other(props)
         #     return output
         #
-        output.action.job_number = coalesce(consume(props, "buildnumber"), consume(props, "job_number"))
+        output.action.job_number = coalesce(consume(props, "buildnumber"), consume(props, "job_number"), consume(props, "build_number"))
         for k, v in consume(props, "request_times").items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
         consume(props, "request_ids")
@@ -94,17 +94,18 @@ class BuildbotTranslator(object):
         output.run.script.revision = consume(props, "script_repo_revision")
 
         # REPO AND REVISIONS
+        raw_release = consume(props, "release")
         output.build.gaia_revision = consume(props, "gaia_revision")
         output.build.gaia_revision12 = output.build.gaia_revision[0:12]
         if props.gecko_revision:
             if props.revision and props.gecko_revision[0:12] != props.revision[0:12]:
                 Log.error("expecting revision to be the gecko revision\n{{data}}", data=data)
-            output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"))
+            output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"), raw_release)
             output.build.revision12 = output.build.revision[0:12]
             output.build.gecko_revision = output.build.revision
             output.build.gecko_revision12 = output.build.revision[0:12]
         else:
-            output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"))
+            output.build.revision = coalesce(consume(props, "revision"), consume(props, "gecko_revision"), raw_release)
             output.build.revision12 = output.build.revision[0:12]
 
         consume(props, "commit_titles")
@@ -137,17 +138,16 @@ class BuildbotTranslator(object):
         # LOCALE
         output.build.locale = coalesce(consume(props, "locale"), 'en-US')
         if props.locales:  # nightly repack build
-            output.action.repack = True
-            data.build.locale = None
+            output.action.repack = coalesce(consume(props, "repack"), True)
             locales = consume(props, "locales")
             try:
-                data.build.locales = convert.json2value(locales).keys()
+                output.build.locales = convert.json2value(locales).keys()
             except Exception:
-                data.build.locales = locales.split(",")
+                output.build.locales = locales.split(",")
 
         output.build.url = coalesce(consume(props, "packageUrl"), consume(props, "build_url"), consume(props, "buildurl"), consume(props, "fileURL"))
         output.run.logurl = coalesce(consume(props, "log_url"), consume(props, "logurl"))
-        output.build.release = coalesce(consume(props, "release"), consume(props, "en_revision"), output.run.script.revision)
+        output.build.release = coalesce(raw_release, consume(props, "en_revision"), output.run.script.revision)
         output.run.machine.aws_id = consume(props, "aws_instance_id")
         output.run.machine.name = coalesce(consume(props, "slavename"), consume(props, "slave"), output.run.machine.aws_id)
         split_name = output.run.machine.name.split("-")

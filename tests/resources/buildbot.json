@@ -1,5 +1,24 @@
 [
 	{
+	    "build_number": 1,
+	    "buildername": "release-comm-esr45-win32_repack_4/10",
+	    "buildtype": "opt",
+	    "job_number": 0,
+	    "key": "build.release-comm-esr45-win32_repack_4.0.log_uploaded",
+	    "locale": "fi",
+	    "locales": "fi,fr,fy-NL,ga-IE,gd,gl",
+	    "logurl": "https://archive.mozilla.org/pub/thunderbird/candidates/45.4.0-candidates/build1/logs/release-comm-esr45-win32_repack_4-bm77-build1-build0.txt.gz",
+	    "platform": "win32",
+	    "product": "thunderbird",
+	    "release": "b10e33df895b",
+	    "repack": true,
+	    "slave": "b-2008-spot-075",
+	    "tags": [],
+	    "timestamp": "2016-09-29T00:12:42Z",
+	    "tree": "release-comm-esr45",
+	    "version": "45.4.0"
+	},
+	{
 		"builder_id": 412470,
 		"buildnumber": 5,
 		"endtime": 1444789924,
