@@ -68,6 +68,12 @@ class TestBuildbotLogs(FuzzyTestCase):
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
+    def test_perfherder_transform_d(self):
+        url = "https://archive.mozilla.org/pub/thunderbird/tinderbox-builds/comm-central-win64/1474894430/comm-central-win64-bm77-build1-build0.txt.gz"
+        response = http.get(url)
+        pulse_block_to_perfherder_logs.extract_perfherder(response.get_all_lines(flexible=True), Null, Null, None, Null)
+
+
     def test_perfherder_job_resource_usage(self):
         data = '{"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]}'
         # data = wrap({"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]})

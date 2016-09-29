@@ -105,7 +105,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         }])
 
                     continue
-                seen, all_perf = extract_perfherder(response.all_lines, etl_file, etl_head_gen, please_stop, pulse_record)
+                seen, all_perf = extract_perfherder(response.get_all_lines(flexible=True), etl_file, etl_head_gen, please_stop, pulse_record)
             except Exception, e:
                 Log.error("Problem processing {{url}}", url=log_url, cause=e)
             finally:
@@ -140,33 +140,36 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
     perfherder_exists = False
     all_perf = []
 
-    for log_line in all_log_lines:
-        if please_stop:
-            Log.error("Shutdown detected. Stopping early")
+    try:
+        for line_number, log_line in enumerate(all_log_lines):
+            if please_stop:
+                Log.error("Shutdown detected. Stopping early")
 
-        prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
-        for prefix in PERFHERDER_PREFIXES:
-            s = log_line.find(prefix)
-            if s >= 0:
-                perfherder_exists = True
-                break
-        else:
-            continue
+            prefix = None  # prefix WILL HAVE VALUE AFTER EXITING LOOP
+            for prefix in PERFHERDER_PREFIXES:
+                s = log_line.find(prefix)
+                if s >= 0:
+                    perfherder_exists = True
+                    break
+            else:
+                continue
 
-        log_line = strings.strip(log_line[s + len(prefix):])
-        perf = convert.json2value(convert.utf82unicode(log_line))
+            log_line = strings.strip(log_line[s + len(prefix):])
+            perf = convert.json2value(convert.utf82unicode(log_line))
 
-        if "TALOS" in prefix:
-            for t in perf:
-                _, dest_etl = etl_head_gen.next(etl_file, "talos")
-                t.etl = dest_etl
-                t.pulse = pulse_record.payload
-            all_perf.extend(perf)
-        else:  # PERFHERDER
-            for t in perf.suites:
-                _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
-                t.framework = perf.framework
-                t.etl = dest_etl
-                t.pulse = pulse_record.payload
-            all_perf.extend(perf.suites)
+            if "TALOS" in prefix:
+                for t in perf:
+                    _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                    t.etl = dest_etl
+                    t.pulse = pulse_record.payload
+                all_perf.extend(perf)
+            else:  # PERFHERDER
+                for t in perf.suites:
+                    _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                    t.framework = perf.framework
+                    t.etl = dest_etl
+                    t.pulse = pulse_record.payload
+                all_perf.extend(perf.suites)
+    except Exception, e:
+        Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
     return perfherder_exists, all_perf
