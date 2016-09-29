@@ -381,11 +381,9 @@ KNOWN_TAGS = {
     "crater.toolchainGitRepo",
     "crater.toolchainGitSha",
 
-
-
-
-
     "createdForUser",
+    "data.base.sha",
+    "data.base.user.login",
     "data.head.sha",
     "data.head.user.email",
     "description",
@@ -464,7 +462,9 @@ KNOWN_TAGS = {
 
     "treeherderEnv",
     "treeherder.build.platform",
+    "treeherder.collection.ccov",
     "treeherder.collection.debug",
+    "treeherder.collection.jsdcov",
     "treeherder.collection.memleak",
     "treeherder.collection.opt",
     "treeherder.collection.pgo",

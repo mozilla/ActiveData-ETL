@@ -18,6 +18,7 @@ from activedata_etl.transforms.pulse_block_to_job_logs import process_buildbot_l
 from pyLibrary import convert, jsons
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import listwrap
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
@@ -44,19 +45,22 @@ class TestBuildbotLogs(FuzzyTestCase):
 
 
     def test_past_problems(self):
-        COMPARE_TO_EXPECTED = True
+        COMPARE_TO_EXPECTED = False
 
         translator = BuildbotTranslator()
 
-        builds = convert.json2value(File("tests/resources/buildbot.json").read())
+        builds = convert.json2value(File("tests/resources/buildbot.json").read(), flexible=True)
         if COMPARE_TO_EXPECTED:
-            expected = convert.json2value(File("tests/resources/buildbot_results.json").read())
+            expected = convert.json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
         else:
             expected = []
 
         results = []
         failures = []
         for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
+            if e != None:
+                e.other = set(listwrap(e.other))
+                e.properties.uploadFiles = set(listwrap(e.properties.uploadFiles))
             try:
                 result = translator.parse(b)
                 results.append(result)

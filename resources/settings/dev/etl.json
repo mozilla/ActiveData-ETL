@@ -4,16 +4,51 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 4,
+		"threads": 1,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": false,
+		"min_attempts": 0
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
+//			"User-Agent": "kyle's dev machine debugging ActievData-ETL"
 		},
+		"pyLibrary.env.http.DEBUG": false,
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
+	},
+	"treeherder": {
+		"use_cache": true,
+		"rate_limiter": {
+			"host": "http://localhost",
+			"port": 9200,
+			"index": "treeherder_requests",
+			"type": "request",
+			"timeout": 3,
+			"schema": {
+				"mappings": {
+					"my_type": {
+						"_ttl": {
+							"enabled": true,
+							"default": "10m"
+						}
+					}
+				}
+			},
+			"debug": false,
+			"limit_replicas": false
+		},
+//		"cache": {
+//			"host": "http://localhost",
+//			"port": 9200,
+//			"index": "treeherder",
+//			"type": "job",
+//			"timeout": 300,
+//			"debug": false,
+//			"limit_replicas": false
+//		}
 	},
 	"hg": {
 		"use_cache": true,
@@ -26,6 +61,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -38,6 +74,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -59,6 +96,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -82,10 +120,16 @@
 				"key_format": "t.a:b",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
-			"notify": {
-			   "name": "active-data-index-dev",
-			   "$ref": "file://~/private.json#aws_credentials"
-		   	},
+			"notify": [
+				{
+					"name": "active-data-etl-dev",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-dev",
+				   "$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
 			"type": "join"
 		},

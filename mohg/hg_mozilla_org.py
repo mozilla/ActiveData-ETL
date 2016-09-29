@@ -27,7 +27,7 @@ from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR
+from pyLibrary.times.durations import SECOND, Duration, HOUR, MINUTE
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -46,6 +46,9 @@ def _late_imports():
 
 DEFAULT_LOCALE = "en-US"
 DEBUG = False
+
+last_called_url = {}
+
 
 class HgMozillaOrg(object):
     """
@@ -208,11 +211,16 @@ class HgMozillaOrg(object):
 
                 for _, ids in jx.groupby(_push.changesets.node, size=200):
                     url_param = "&".join("node=" + c[0:12] for c in ids)
-
                     url = found_revision.branch.url.rstrip("/") + "/json-info?" + url_param
-                    Log.note("Reading details from {{url}}", {"url": url})
 
-                    raw_revs = self._get_and_retry(url, found_revision.branch)
+                    if url in last_called_url:
+                        Log.note("using previous http response")
+                        raw_revs = last_called_url[url]
+                    else:
+                        Log.note("Reading details from {{url}}", {"url": url})
+                        raw_revs = self._get_and_retry(url, found_revision.branch)
+                        last_called_url.clear()
+                        last_called_url[url] = raw_revs
                     for r in raw_revs.values():
                         rev = Revision(
                             branch=found_revision.branch,

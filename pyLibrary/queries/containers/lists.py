@@ -12,10 +12,11 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from collections import Mapping
+from types import NoneType
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default, join_field, split_field
+from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default, join_field, split_field, NullType
 from pyLibrary.queries import jx, Schema
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.expression_compiler import compile_expression
@@ -246,7 +247,8 @@ def _get_schema_from_list(frum, columns, prefix, nested_path):
 
 
 _type_to_name = {
-    None: "undefined",
+    NoneType: "undefined",
+    NullType: "undefined",
     str: "string",
     unicode: "string",
     int: "integer",
@@ -262,6 +264,7 @@ _type_to_name = {
 
 _merge_type = {
     "undefined": {
+        "undefined": "undefined",
         "boolean": "boolean",
         "integer": "integer",
         "long": "long",
@@ -272,6 +275,7 @@ _merge_type = {
         "nested": "nested"
     },
     "boolean": {
+        "undefined": "boolean",
         "boolean": "boolean",
         "integer": "integer",
         "long": "long",
@@ -282,6 +286,7 @@ _merge_type = {
         "nested": None
     },
     "integer": {
+        "undefined": "integer",
         "boolean": "integer",
         "integer": "integer",
         "long": "long",
@@ -292,6 +297,7 @@ _merge_type = {
         "nested": None
     },
     "long": {
+        "undefined": "long",
         "boolean": "long",
         "integer": "long",
         "long": "long",
@@ -302,6 +308,7 @@ _merge_type = {
         "nested": None
     },
     "float": {
+        "undefined": "float",
         "boolean": "float",
         "integer": "float",
         "long": "double",
@@ -312,6 +319,7 @@ _merge_type = {
         "nested": None
     },
     "double": {
+        "undefined": "double",
         "boolean": "double",
         "integer": "double",
         "long": "double",
@@ -322,6 +330,7 @@ _merge_type = {
         "nested": None
     },
     "string": {
+        "undefined": "string",
         "boolean": "string",
         "integer": "string",
         "long": "string",
@@ -332,6 +341,7 @@ _merge_type = {
         "nested": None
     },
     "object": {
+        "undefined": "object",
         "boolean": None,
         "integer": None,
         "long": None,
@@ -342,6 +352,7 @@ _merge_type = {
         "nested": "nested"
     },
     "nested": {
+        "undefined": "nested",
         "boolean": None,
         "integer": None,
         "long": None,
