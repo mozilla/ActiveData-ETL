@@ -6,23 +6,20 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from activedata_etl import etl2key
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.env.git import get_git_revision
-from pyLibrary.dot import Dict, wrap, Null, listwrap, coalesce
-from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date
-from activedata_etl import etl2key
-from activedata_etl.imports import buildbot
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
+from pyLibrary import convert, strings
+from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.profiles import Profiler
+from pyLibrary.dot import Dict, Null, coalesce
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
 bb = BuildbotTranslator()
@@ -46,11 +43,18 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             with Profiler("transform_buildbot"):
                 record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
+                key = pulse_record._meta.routing_key
+                key_path = key.split(".")
+                pulse_id = ".".join(key_path[:-1])
+                pulse_action = key_path[-1]
+
                 record.etl = {
                     "id": i,
                     "source": pulse_record.etl,
                     "type": "join",
-                    "revision": get_git_revision()
+                    "revision": get_git_revision(),
+                    "pulse_key": pulse_id,
+                    "pulse_action": pulse_action
                 }
             key = etl2key(record.etl)
             keys.append(key)
@@ -133,7 +137,7 @@ def transform_buildbot(source_key, other, resources):
             )
     else:
         bb.parse(other)
-        Log.warning("No branch for {{key}}!\n{{output|indent}}", key=source_key, output=output)
+        Log.warning("No branch for {{key}}!\n{{output|indent}}", key=source_key, output=other)
 
     return output
 

@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from pyLibrary import convert, strings
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
+from pyLibrary.dot import coalesce, wrap, Null
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings
@@ -46,7 +46,13 @@ class RolloverIndex(object):
         # Log.error("Not supported")
 
     def _get_queue(self, row):
+        row = wrap(row)
+        if row.json:
+            row.value, row.json = convert.json2value(row.json), None
         timestamp = Date(self.rollover_field(wrap(row).value))
+        if timestamp == None:
+            return Null
+
         rounded_timestamp = timestamp.floor(self.rollover_interval)
         queue = self.known_queues.get(rounded_timestamp.unix)
         if queue == None:
@@ -134,7 +140,7 @@ class RolloverIndex(object):
                     row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
                     num_keys += 1
 
-                    if queue==None:
+                    if queue == None:
                         queue = self._get_queue(row)
                     queue.add(row)
 
@@ -144,6 +150,8 @@ class RolloverIndex(object):
                 Log.warning("Could not process {{key}}", key=key, cause=e)
 
         if done_copy:
+            if queue == None:
+                done_copy()
             queue.add(done_copy)
 
         return num_keys

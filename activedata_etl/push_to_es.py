@@ -35,6 +35,7 @@ def splitter(work_queue, please_stop):
                 v.add(Thread.STOP)
             return
         if pair == None:
+            Thread.sleep(seconds=5)
             continue
 
         message, payload = pair
@@ -49,14 +50,14 @@ def splitter(work_queue, please_stop):
                 continue
 
         es = params.es
-        bucket = params.bucket
+        source_bucket = params.bucket
         settings = params.settings
 
         extend_time = Timer("insert", silent=True)
 
         with extend_time:
             if settings.skip and Random.float() < settings.skip:
-                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
+                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
                 work_queue.add(payload)
                 message.delete()
                 continue
@@ -68,20 +69,22 @@ def splitter(work_queue, please_stop):
             else:
                 sample_filter = None
 
-            Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
-            more_keys = bucket.keys(prefix=key)
+            Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
+            more_keys = source_bucket.keys(prefix=key)
             if not more_keys:
                 # HAPPENS WHEN REPROCESSING (ETL WOULD HAVE CLEARED THE BUCKET OF THIS PREFIX FIRST)
                 Log.warning("No files found in bucket {{message|json}}", message=payload)
+                message.delete()
+                num_keys = 0
             else:
-                num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size, message.delete)
+                num_keys = es.copy(more_keys, source_bucket, sample_filter, settings.sample_size, message.delete)
 
         if num_keys > 1:
             Log.note(
                 "Added {{num}} keys from {{key}} in {{bucket}} to {{es}} in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
-                bucket=bucket.name,
+                bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)

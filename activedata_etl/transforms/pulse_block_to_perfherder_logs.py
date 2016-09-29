@@ -64,18 +64,22 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             props = propslist
         log_url = coalesce(pulse_record.payload.logurl, pulse_record.payload.log_url, props.logurl, props.log_url)
         if not log_url:
-            if convert.value2json(pulse_record).find("logurl") != -1:
+            if pulse_record._meta.routing_key.endswith(".log_uploaded"):
                 Log.warning("{{key}} line {{line}} has no logurl\n{{record|json}}", key=source_key, line=i, record=pulse_record)
+            continue
 
-            # _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
-            # output |= dest_bucket.extend([{
-            #     "id": etl2key(dest_etl),
-            #     "value": {
-            #         "etl": dest_etl,
-            #         "pulse": pulse_record.payload,
-            #         "is_empty": True
-            #     }
-            # }])
+        if "scl3.mozilla.com" in log_url:
+            # DO NOT EVEN TRY
+            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            dest_etl.error = "log_url not accessible"
+            output |= dest_bucket.extend([{
+                "id": etl2key(dest_etl),
+                "value": {
+                    "etl": dest_etl,
+                    "pulse": pulse_record.payload,
+                    "is_empty": True
+                }
+            }])
             continue
 
         with Timer("Read {{url}}", {"url": log_url}, debug=DEBUG) as timer:
@@ -103,9 +107,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     continue
                 seen, all_perf = extract_perfherder(response.all_lines, etl_file, etl_head_gen, please_stop, pulse_record)
             except Exception, e:
-                Log.error("Problem processing {{url}}", {
-                    "url": log_url
-                }, e)
+                Log.error("Problem processing {{url}}", url=log_url, cause=e)
             finally:
                 try:
                     response.close()
