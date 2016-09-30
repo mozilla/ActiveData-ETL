@@ -341,12 +341,16 @@ class List_usingStream(object):
             self.start = self._mark
             offset = index - self.start
             self.buffer = self.buffer[needless_bytes:]
+            self.buffer_length = len(self.buffer)
 
         more = self.get_more()
         self.buffer += more
         self.buffer_length = len(self.buffer)
 
-        return self.buffer[offset]
+        try:
+            return self.buffer[offset]
+        except Exception, e:
+            Log.error("error", cause=e)
 
     def slice(self, start, stop):
         self.mark(start)
