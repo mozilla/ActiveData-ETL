@@ -37,6 +37,9 @@ DEBUG = True
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 DEFAULT_WAIT_TIME = timedelta(minutes=10)
 
+datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
+
+
 def _late_import():
     global _Log
     global _Except
@@ -502,12 +505,16 @@ class Thread(object):
                 try:
                     children = copy(self.children)
                     for c in children:
-                        with suppress_exception:
+                        try:
                             c.stop()
+                        except Exception, e:
+                            _Log.warning("Problem stopping thread {{thread}}", thread=c.name, cause=e)
 
                     for c in children:
-                        with suppress_exception:
+                        try:
                             c.join()
+                        except Exception, e:
+                            _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
 
                     _Log.note("thread {{name|quote}} is done", name=self.name)
                     self.stopped.go()
