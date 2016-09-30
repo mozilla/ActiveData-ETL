@@ -68,7 +68,7 @@ class RolloverIndex(object):
                 if timestamp > c.date:
                     best = c
             if not best or rounded_timestamp > best.date:
-                if rounded_timestamp < candidates[-1].date:
+                if rounded_timestamp < wrap(candidates[-1]).date:
                     es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
                 else:
                     es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
