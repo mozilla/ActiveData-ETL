@@ -59,9 +59,9 @@ class Date(object):
             year = int(math.floor(month/12))
             month -= 12*year
             return Date(datetime(year, month+1, 1))
-        # elif duration.milli % (7 * 86400000) == 0:
-        #     offset = 4*86400
-        #     return unix2Date(math.floor((self.unix + offset) / duration.seconds) * duration.seconds - offset)
+        elif duration.milli % (7 * 86400000) == 0:
+            offset = 4*86400
+            return unix2Date(math.floor((self.unix + offset) / duration.seconds) * duration.seconds - offset)
         else:
             return unix2Date(math.floor(self.unix / duration.seconds) * duration.seconds)
 
