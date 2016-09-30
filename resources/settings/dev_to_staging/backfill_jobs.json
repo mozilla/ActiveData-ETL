@@ -3,7 +3,7 @@
 	"no_checks": true,
 	"range": {
 		// RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
-		"min":500
+		"min":630
 	},
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"git": {
