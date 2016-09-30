@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce
+from pyLibrary.dot import Dict, wrap, coalesce, Null
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -139,6 +139,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse_record):
     perfherder_exists = False
     all_perf = []
+    line_number = Null
+    log_line = Null
 
     try:
         for line_number, log_line in enumerate(all_log_lines):
