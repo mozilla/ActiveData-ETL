@@ -80,7 +80,7 @@ class TestBuildbotLogs(FuzzyTestCase):
             File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
 
     def test_by_key_day(self):
-        day = 579
+        day = 634
         date = Date("2015/01/01") + day * DAY
         filename = date.format("builds-%Y-%m-%d.js.gz")
 
@@ -104,13 +104,12 @@ class TestBuildbotLogs(FuzzyTestCase):
                     "User-Agent": "ActiveData-ETL"
                 }
             },
-            "debug": {"cprofile": True}
+            "debug": {"cprofile": False}
         }, "file:///")
 
         Log.start(settings.debug)
 
         parse_day(settings, filename, force=True)
-
 
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"
