@@ -71,7 +71,11 @@ class RolloverIndex(object):
                 if rounded_timestamp < wrap(candidates[-1]).date:
                     es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
                 else:
-                    es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
+                    try:
+                        es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
+                    except Exception, e:
+                        if "IndexAlreadyExistsException" not in e:
+                            Log.error("Problem creating index", cause=e)
                     es.add_alias(self.settings.index)
             else:
                 es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
@@ -150,6 +154,7 @@ class RolloverIndex(object):
                     if please_stop:
                         break
             except Exception, e:
+                done_copy = None
                 Log.warning("Could not process {{key}}", key=key, cause=e)
 
         if done_copy:
