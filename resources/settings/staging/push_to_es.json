@@ -83,33 +83,33 @@
 				"key_format": "a.b"
 			}
 		},
-		{
-			"name": "code coverage",
-			"skip": 0.7,
-			"queue_size": 2000,
-			"batch_size": 1000,
-			"rollover_field": "build.created_timestamp",
-			"rollover_interval": "day",
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "coverage",
-				"type": "code_coverage",
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/code_coverage.json"
-				},
-				"debug": false,
-				"limit_replicas": false
-			},
-			"source": {
-				"bucket": "active-data-codecoverage",
-				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b.c"
-			}
-		},
+//		{
+//			"name": "code coverage",
+//			"skip": 0.7,
+//			"queue_size": 2000,
+//			"batch_size": 1000,
+//			"rollover_field": "build.created_timestamp",
+//			"rollover_interval": "day",
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://localhost",
+//				"port": 9200,
+//				"index": "coverage",
+//				"type": "code_coverage",
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../../schema/code_coverage.json"
+//				},
+//				"debug": false,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"bucket": "active-data-codecoverage",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "t.a:b.c"
+//			}
+//		},
 		{
 			"name": "task",
 			"queue_size": 2000,
