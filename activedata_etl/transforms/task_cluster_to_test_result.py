@@ -39,15 +39,19 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.delete_key(e)
 
     file_num = 0
-    lines = list(enumerate(source.read_lines()))
+    lines = list(source.read_lines())
 
-    for i, line in lines:
+    for i, line in enumerate(lines):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 
         task_cluster_summary = convert.json2value(line)
         short_summary = copy(task_cluster_summary)
-        short_summary.task = {"id": task_cluster_summary.task.id}
+        short_summary.action = None  # DETAILS ABOUT STEPS IS NOT REQUIRED
+        short_summary.task = {  # SLIMMER DETAILS ABOUT THE TASK
+            "id": task_cluster_summary.task.id,
+            "treeherder": task_cluster_summary.task.treeherder
+        }
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):

@@ -21,7 +21,7 @@ from pyLibrary.times.durations import MONTH
 from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
 from activedata_etl.imports.buildbot import BuildbotTranslator
-from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_buildbot_log
+from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
 
 _ = convert
 DEBUG = False
@@ -138,7 +138,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "Text log does not exist"
                 else:
                     all_log_lines = response.get_all_lines(encoding=None)
-                    action = process_buildbot_log(all_log_lines, url)
+                    action = process_text_log(all_log_lines, url)
                     set_default(data.action, action)
 
                 data.action.duration = data.action.end_time - data.action.start_time

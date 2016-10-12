@@ -14,7 +14,7 @@ import itertools
 from activedata_etl.buildbot_json_logs import parse_day
 from activedata_etl.imports import buildbot
 from activedata_etl.imports.buildbot import BuildbotTranslator
-from activedata_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
+from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 from pyLibrary import convert, jsons
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
@@ -162,5 +162,5 @@ class TestBuildbotLogs(FuzzyTestCase):
         #
         #     Log.note("{{line}}", line=l)
 
-        data = process_buildbot_log(response.get_all_lines(encoding=None), url)
+        data = process_text_log(response.get_all_lines(encoding=None), url)
         Log.note("{{data}}", data=data)

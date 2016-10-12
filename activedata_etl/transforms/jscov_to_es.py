@@ -46,19 +46,19 @@ def process(source_key, source, destination, resources, please_stop=None):
     etl_header_gen = EtlHeadGenerator(source_key)
     ccov_artifact_count = 0
 
-    for msg_line_index, msg_line in enumerate(source.read_lines()):
+    for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
         try:
-            pulse_record = convert.json2value(msg_line)
+            task_cluster_record = convert.json2value(msg_line)
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
 
-        task_id = pulse_record.status.taskId
+        task_id = task_cluster_record.status.taskId
 
         # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
         artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
@@ -71,7 +71,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
 
             # construct the artifact's full url
-            runId = pulse_record.runId
+            runId = task_cluster_record.runId
             full_artifact_path = "https://public-artifacts.taskcluster.net/" + task_id + "/" + unicode(runId) + "/" + artifact_file_name
 
             # if ccov_artifact_count == 0:
@@ -80,7 +80,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             ccov_artifact_count += 1
 
             # create the key for the file in the bucket, and add it to a list to return later
-            _, dest_etl = etl_header_gen.next(pulse_record.etl, url=full_artifact_path)
+            _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=full_artifact_path)
             add_tc_prefix(dest_etl)
             keys.append(etl2key(dest_etl))
 
