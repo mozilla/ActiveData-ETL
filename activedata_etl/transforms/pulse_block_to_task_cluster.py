@@ -265,10 +265,12 @@ def set_run_info(normalized, task, env):
     :param task: The task definition
     :return: The run object
     """
+    metadata_name = consume(task, "metadata.name")
     set_default(
         normalized,
         {"run": {
-            "name": coalesce_w_conflict_detection(consume(task, "extra.build_name"), consume(task, "metadata.name")),
+            "key": consume(task, "payload.buildername"),
+            "name": metadata_name,
             "machine": normalized.treeherder.machine,
             "suite": consume(task, "extra.suite"),
             "chunk": consume(task, "extra.chunks.current"),
@@ -304,6 +306,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     set_default(
         normalized,
         {"build": {
+            "name": consume(task, "extra.build_name"),
             "product": coalesce_w_conflict_detection(
                 consume(task, "tags.build_props.product"),
                 task.extra.treeherder.productName,
@@ -315,6 +318,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "url": env.MOZILLA_BUILD_URL,
             "revision": coalesce_w_conflict_detection(
                 consume(task, "tags.build_props.revision"),
+                consume(task, "payload.sourcestamp.revision"),
                 env.GECKO_HEAD_REV
             ),
             "type": listwrap({"dbg": "debug"}.get(consume(task, "extra.build_type"), consume(task, "extra.build_type"))),
@@ -324,6 +328,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     normalized.build.branch = coalesce_w_conflict_detection(
         consume(task, "tags.build_props.branch"),
+        consume(task, "payload.sourcestamp.branch"),
         env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
         env.MH_BRANCH
     )
@@ -351,11 +356,13 @@ def get_tags(source_key, task, parent=None):
     t = consume(task, "tags").leaves()
     m = consume(task, "metadata").leaves()
     e = consume(task, "extra").leaves()
-    g = [(k, consume(task.payload, k)) for k in ["supersederUrl", "onExitStatus", "signingManifest"]]
+    p = consume(task, "payload.properties").leaves()
+    g = [(k, consume(task.payload, k)) for k in PAYLOAD_PROPERTIES]
 
     tags = [{"name": k, "value": v} for k, v in t] + \
            [{"name": k, "value": v} for k, v in m] + \
            [{"name": k, "value": v} for k, v in e] + \
+           [{"name": k, "value": v} for k, v in p] + \
            [{"name": k, "value": v} for k, v in g]
     clean_tags = []
     for t in tags:
@@ -413,18 +420,25 @@ def _object_to_array(value, key_name, value_name=None):
 
 
 BUILD_TYPES = {
-    "opt": ["opt"],
-    "debug": ["debug"],
+    "arm-debug": ["debug", "arm"],
+    "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
+    "opt": ["opt"],
+    "ccov": ["ccov"],
+    "debug": ["debug"],
     "gyp": ["gyp"],
-    "pgo": ["pgo"],
     "lsan": ["lsan"],
     "memleak": ["memleak"],
-    "arm-debug": ["debug", "arm"],
-    "arm-opt": ["opt", "arm"]
+    "pgo": ["pgo"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
+PAYLOAD_PROPERTIES = {
+    "encryptedEnv",
+    "onExitStatus",
+    "signingManifest",
+    "supersederUrl"
+}
 
 KNOWN_TAGS = {
     "build_name",
@@ -527,13 +541,11 @@ KNOWN_TAGS = {
     "npmCache.url",
     "npmCache.expires",
     "objective",
-    "onExitStatus",
     "owner",
     "signing.signature",
     "source",
     "suite.flavor",
     "suite.name",
-    "supersederUrl",
 
     "treeherderEnv",
     "treeherder.build.platform",
@@ -564,7 +576,7 @@ KNOWN_TAGS = {
 
     "url.busybox",
     "useCloudMirror"
-}
+} | PAYLOAD_PROPERTIES
 
 def consume(props, key):
     output, props[key] = props[key], None

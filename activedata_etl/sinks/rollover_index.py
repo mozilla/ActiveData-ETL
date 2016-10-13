@@ -155,7 +155,8 @@ class RolloverIndex(object):
         if done_copy:
             if queue == None:
                 done_copy()
-            queue.add(done_copy)
+            else:
+                queue.add(done_copy)
 
         return num_keys
 

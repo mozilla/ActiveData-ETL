@@ -16,7 +16,7 @@ from types import NoneType
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default, join_field, split_field, NullType
+from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default, join_field, split_field, NullType, Null
 from pyLibrary.queries import jx, Schema
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.expression_compiler import compile_expression
@@ -49,6 +49,12 @@ class ListContainer(Container):
     @property
     def schema(self):
         return self._schema
+
+    def last(self):
+        if self.data:
+            return self.data[-1]
+        else:
+            return Null
 
     def query(self, q):
         frum = self
