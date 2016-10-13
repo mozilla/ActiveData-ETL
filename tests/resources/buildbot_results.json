@@ -1,6 +1,110 @@
 [
     {
         "action": {
+            "buildbot_status": "success",
+            "end_time": 1476212268,
+            "job_number": 6,
+            "reason": "Created by BBB for task JQNPowFwSjGBJCfyMiuP_A",
+            "request_time": 1476155268,
+            "requests": [
+                {
+                    "request_id": 127480658,
+                    "timestamp": 1476155268
+                }
+            ],
+            "start_time": 1476212015,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-firefox_version_bump",
+            "product": "firefox",
+            "release": "70abfe99097824fd510544b188f24c588fd6d5a0",
+            "revision": "70abfe99097824fd510544b188f24c588fd6d5a0",
+            "revision12": "70abfe990978",
+            "version": "50.0b6"
+        },
+        "other": [
+            {
+                "name": "release_promotion",
+                "value": true
+            },
+            {
+                "name": "next_version",
+                "value": "50.0b7"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fx_version_bump-000",
+            "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-firefox_version_bump",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_version_bump-bm70-build1-build6.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-223",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"}
+        },
+        "tags": ["release"],
+        "task": {"id": "JQNPowFwSjGBJCfyMiuP_A"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1476172637,
+            "job_number": 12,
+            "reason": "Created by BBB for task vYLB3w0zS0Wo_7ruP2zgvg",
+            "request_time": 1476155268,
+            "requests": [
+                {
+                    "request_id": 127415148,
+                    "timestamp": 1476155268
+                }
+            ],
+            "start_time": 1476172539,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-firefox_chcksms",
+            "product": "firefox",
+            "release": "70abfe99097824fd510544b188f24c588fd6d5a0",
+            "revision": "70abfe99097824fd510544b188f24c588fd6d5a0",
+            "revision12": "70abfe990978",
+            "version": "50.0b6"
+        },
+        "other": [
+            {
+                "name": "release_promotion",
+                "value": true
+            },
+            {
+                "name": "toolsdir",
+                "value": "/tools/checkouts/build-tools"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fx_chcksms-00000000",
+            "master": "http://buildbot-master74.bb.releng.usw2.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-firefox_chcksms",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_chcksms-bm74-build1-build12.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-411",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"}
+        },
+        "tags": ["release"],
+        "task": {"id": "vYLB3w0zS0Wo_7ruP2zgvg"}
+    },
+    {
+        "action": {
             "job_number": 0,
             "repack": true,
             "step": "4/10"
@@ -8,6 +112,7 @@
         "build": {
             "branch": "release-comm-esr45",
             "locale": "fi",
+            "locales": ["fi", "fr", "fy-NL", "ga-IE", "gd", "gl"],
             "platform": "win32",
             "product": "thunderbird",
             "release": "b10e33df895b",
@@ -16,6 +121,7 @@
             "type": "opt",
             "version": "45.4.0"
         },
+        "other": [],
         "run": {
             "key": "release-comm-esr45-win32_repack_4/10",
             "logurl": "https://archive.mozilla.org/pub/thunderbird/candidates/45.4.0-candidates/build1/logs/release-comm-esr45-win32_repack_4-bm77-build1-build0.txt.gz",
@@ -8166,6 +8272,7 @@
         "build": {
             "branch": "date",
             "locale": "en-US",
+            "locales": ["cy:76cfd00faa96 da:3031ec912b7a de:bbf3507eb2d1 dsb:462887cb524c el:22b959c9a739 en-GB:686f94eff7a4 en-ZA:720d9153b07b eo:3230fe303c77 es-AR:20092952ee3f es-CL:e5de7280134f es-ES:c61c25b745c3 es-MX:bf870e599f70 et:ed26b69e4de8 eu:f309d2511247 fa:cb1546a801ba"],
             "product": "firefox",
             "release": "production",
             "revision": "77ecfd1da6e087d4654ad6ec5f46b7bf5a451502",

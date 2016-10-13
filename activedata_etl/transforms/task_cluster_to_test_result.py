@@ -13,7 +13,7 @@ from copy import copy
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import listwrap, set_default, wrap
+from pyLibrary.dot import listwrap, set_default, wrap, Dict
 from pyLibrary.times.dates import Date
 from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
@@ -39,15 +39,17 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.delete_key(e)
 
     file_num = 0
-    lines = list(enumerate(source.read_lines()))
+    lines = list(source.read_lines())
 
-    for i, line in lines:
+    for i, line in enumerate(lines):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 
         task_cluster_summary = convert.json2value(line)
-        short_summary = copy(task_cluster_summary)
-        short_summary.task = {"id": task_cluster_summary.task.id}
+        short_summary = Dict(task={  # SLIMMER DETAILS ABOUT THE TASK
+            "id": task_cluster_summary.task.id,
+            "treeherder": task_cluster_summary.task.treeherder
+        })
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):

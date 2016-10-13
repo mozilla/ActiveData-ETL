@@ -536,7 +536,9 @@ BUILDER_NAMES = [
     'linux64-br-haz_{{branch}}_dep',
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
+    'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_updates',
+    'release-{{branch}}-{{product}}_version_bump',
     'release-{{branch}}-{{product}}_uptake_monitoring',
     '{{vm}}_{{branch}}_{{clean_platform}} nightly',
     '{{vm}}_{{branch}}_{{clean_platform}} build'
