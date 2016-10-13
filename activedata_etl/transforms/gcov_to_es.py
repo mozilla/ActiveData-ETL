@@ -13,15 +13,14 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
-from activedata_etl.transforms import EtlHeadGenerator
 
+ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+LIST_TASK_GROUP = "https://queue.taskcluster.net/v1/task-group/{{group_id}}/list"
 RETRY = {"times": 3, "sleep": 5}
 
-# task groupId -> taskId that has the gcno file
-task_group_to_build_task_id_map = {}
 
 def process(source_key, source, destination, resources, please_stop=None):
     """
@@ -36,8 +35,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    etl_header_gen = EtlHeadGenerator(source_key)
-    ccov_artifact_count = 0
 
     for msg_line_index, msg_line in enumerate(source.read_lines()):
         if please_stop:
@@ -58,18 +55,38 @@ def process(source_key, source, destination, resources, please_stop=None):
         artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
 
         for artifact in artifacts.artifacts:
-            artifact_file_name = artifact.name
+            if "gcda" in artifact.name:
+                Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
+                # Note: cache gcda temporarily?
 
-            if "gcno" in artifact_file_name:
-                task_group_to_build_task_id_map[task_group_id] = task_id
-            elif "gcda" in artifact_file_name:
-                if task_group_id not in task_group_to_build_task_id_map:
-                    Log.warning("Failed to find parent build task (for gcno) on task {{task_id}} and group {{group_id}}", task_id=task_id, group_id=task_group_id)
-                    continue
+                artifacts = group_to_gcno_artifacts(task_group_id)
+                files = artifacts.url
 
-                parent_build_task_id = task_group_to_build_task_id_map[task_group_id]
-
-                Log.warning("Unimplemented gcda+gcno -> lcov! gcda={{gcda_task_id}} gcno={{gcno_task_id}} group={{group_id}}", gcda_task_id=task_id, gcno_task_id=parent_build_task_id, group_id=task_group_id)
+                for file in files:
+                    Log.note("Processing gcno artifact {{file}}", file=file)
+                    # Note: Fetch file, extract to tmp folder, run LCOV.
+                    pass
 
     return keys
 
+
+def group_to_gcno_artifacts(group_id):
+    """
+    Finds a task id in a task group with a given artifact.
+
+    :param group_id:
+    :param artifact_file_name:
+    :return: task json object for the found task. None if no task was found.
+    """
+
+    result = http.post_json(ACTIVE_DATA_QUERY, data={
+        "from": "task.task.artifacts",
+        "where": {"and": [
+            {"eq": {"task.group.id": group_id}},
+            {"regex": {"name": ".*gcno.*"}}
+        ]},
+        "limit": 100,
+        "select": ["task.id", "task.group.id", "name", "url"]
+    })
+
+    return result.data # TODO This is a bit rough for now.
