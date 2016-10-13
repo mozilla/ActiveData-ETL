@@ -18,6 +18,7 @@ from pyLibrary.queries import jx
 from activedata_etl import key2etl, etl2path
 from pyLibrary.times.dates import Date, unicode2Date
 from pyLibrary.times.durations import Duration
+from pyLibrary.times.timer import Timer
 
 
 class RolloverIndex(object):
@@ -139,23 +140,25 @@ class RolloverIndex(object):
         num_keys = 0
         queue = None
         for key in keys:
+            timer = Timer("key")
             try:
-                for rownum, line in enumerate(source.read_lines(strip_extension(key))):
-                    if not line:
-                        continue
+                with timer:
+                    for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                        if not line:
+                            continue
 
-                    row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
-                    num_keys += 1
+                        row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
+                        num_keys += 1
 
-                    if queue == None:
-                        queue = self._get_queue(row)
-                    queue.add(row)
+                        if queue == None:
+                            queue = self._get_queue(row)
+                        queue.add(row)
 
-                    if please_stop:
-                        break
+                        if please_stop:
+                            break
             except Exception, e:
                 done_copy = None
-                Log.warning("Could not process {{key}}", key=key, cause=e)
+                Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
 
         if done_copy:
             if queue == None:

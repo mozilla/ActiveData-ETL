@@ -85,6 +85,7 @@
 		},
 		{
 			"name":"code coverage",
+			"skip": 0.7,
 			"queue_size": 2000,
 			"batch_size": 1000,
 			"rollover_field": "build.created_timestamp",
