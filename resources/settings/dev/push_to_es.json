@@ -10,8 +10,11 @@
 			"name": "unit",
 			"batch_size": 5000,
 			"skip": 0,
-			"rollover_field": "build.date",
-			"rollover_interval": "week",
+			"rollover":{
+				"field": "build.date",
+				"interval": "week",
+				"max": "5week"
+			},
 			"sample_only": [
 			],
 			"elasticsearch": {
@@ -35,8 +38,11 @@
 		},
 		{
 			"name":"perf",
-			"rollover_field": "build.date",
-			"rollover_interval": "year",
+			"rollover":{
+				"field": "build.date",
+				"interval": "year",
+				"max":"2year"
+			},
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": [],
@@ -61,8 +67,11 @@
 		},
 		{
 			"name":"jobs",
-			"rollover_field": "build.date",
-			"rollover_interval": "3month",
+			"rollover": {
+				"field": "build.date",
+				"interval": "3month",
+				"max":"2year"
+			},
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
@@ -88,8 +97,11 @@
 			"name":"code coverage",
 			"queue_size": 2000,
 			"batch_size": 1000,
-			"rollover_field": "build.created_timestamp",
-			"rollover_interval": "day",
+			"rollover": {
+				"field": "build.created_timestamp",
+				"interval": "day",
+				"max": "5day"
+			},
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -114,8 +126,11 @@
 			"name": "task",
 			"queue_size": 2000,
 			"batch_size": 1000,
-			"rollover_field": "task.created",
-			"rollover_interval": "3month",
+			"rollover": {
+				"field": "task.created",
+				"interval": "3month",
+				"max": "2year"
+			},
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",

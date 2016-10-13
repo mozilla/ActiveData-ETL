@@ -212,7 +212,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     set_build_info(source_key, output, task, env, resources)
     set_run_info(output, task, env)
 
-    output.task.tags = get_tags(source_key, task)
+    output.task.tags = get_tags(source_key, output.task.id, task)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
@@ -352,7 +352,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         Log.warning("new collection type of {{type}} while processing key", type=diff, key=source_key)
 
 
-def get_tags(source_key, task, parent=None):
+def get_tags(source_key, task_id, task, parent=None):
     t = consume(task, "tags").leaves()
     m = consume(task, "metadata").leaves()
     e = consume(task, "extra").leaves()
@@ -376,7 +376,7 @@ def get_tags(source_key, task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(source_key, Dict(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, task_id, Dict(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):
@@ -386,17 +386,17 @@ def get_tags(source_key, task, parent=None):
         elif not isinstance(v, unicode):
             v = convert.value2json(v)
         t["value"] = v
-        verify_tag(source_key, t)
+        verify_tag(source_key, task_id, t)
         clean_tags.append(t)
 
     return clean_tags
 
 
-def verify_tag(source_key, t):
+def verify_tag(source_key, task_id, t):
     if not isinstance(t["value"], unicode):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
-        Log.warning("unknown task tag {{tag|quote}} while processing {{key}}", key=source_key, tag=t["name"])
+        Log.warning("unknown task tag {{tag|quote}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t["name"])
         KNOWN_TAGS.add(t["name"])
 
 
@@ -437,7 +437,8 @@ PAYLOAD_PROPERTIES = {
     "encryptedEnv",
     "onExitStatus",
     "signingManifest",
-    "supersederUrl"
+    "supersederUrl",
+    "osGroups"
 }
 
 KNOWN_TAGS = {
@@ -542,6 +543,7 @@ KNOWN_TAGS = {
     "npmCache.expires",
     "objective",
     "owner",
+    "parent_task_id",
     "signing.signature",
     "source",
     "suite.flavor",
@@ -575,7 +577,8 @@ KNOWN_TAGS = {
 
 
     "url.busybox",
-    "useCloudMirror"
+    "useCloudMirror",
+    "who"
 } | PAYLOAD_PROPERTIES
 
 def consume(props, key):

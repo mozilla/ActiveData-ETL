@@ -14,6 +14,8 @@ from __future__ import unicode_literals
 from collections import Mapping
 from types import NoneType
 
+import itertools
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, join_field, split_field, NullType, Null
@@ -22,7 +24,7 @@ from pyLibrary.queries.containers import Container
 from pyLibrary.queries.expression_compiler import compile_expression
 from pyLibrary.queries.expressions import TRUE_FILTER, jx_expression, Expression, TrueOp, jx_expression_to_function, Variable
 from pyLibrary.queries.lists.aggs import is_aggs, list_aggs
-from pyLibrary.queries.meta import Column
+from pyLibrary.queries.meta import Column, ROOT_PATH
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
 
@@ -176,6 +178,24 @@ class ListContainer(Container):
 
         return frum
 
+    def groupby(self, keys, contiguous=False):
+        try:
+            keys = listwrap(keys)
+            get_key = jx_expression_to_function(keys)
+            if not contiguous:
+                data = sorted(self.data, key=get_key)
+
+            def _output():
+                for g, v in itertools.groupby(data, get_key):
+                    group = Dict()
+                    for k, gg in zip(keys, g):
+                        group[k] = gg
+                    yield (group, wrap(list(v)))
+
+            return _output()
+        except Exception, e:
+            Log.error("Problem grouping", e)
+
     def insert(self, documents):
         self.data.extend(documents)
 
@@ -200,7 +220,7 @@ class ListContainer(Container):
         return self.data[item]
 
     def __iter__(self):
-        return self.data.__iter__()
+        return (wrap(d) for d in self.data)
 
     def __len__(self):
         return len(self.data)
@@ -210,7 +230,7 @@ def get_schema_from_list(frum):
     SCAN THE LIST FOR COLUMN TYPES
     """
     columns = []
-    _get_schema_from_list(frum, columns, prefix=[], nested_path=["."])
+    _get_schema_from_list(frum, columns, prefix=[], nested_path=ROOT_PATH)
     return Schema(columns)
 
 def _get_schema_from_list(frum, columns, prefix, nested_path):

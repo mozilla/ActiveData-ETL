@@ -22,13 +22,12 @@ from pyLibrary.thread.threads import Queue, Signal, Thread
 from pyLibrary.times.timer import Timer
 
 DEBUG = True
-upgrade_done = False
 
 
-def upgrade():
-    global upgrade_done
-    upgrade_done = True
-
+_upgraded = False
+def _upgrade():
+    global _upgraded
+    _upgraded = True
     try:
         import sys
 
@@ -54,8 +53,8 @@ class Sqlite(object):
         :param db:  Optional, wrap a sqlite db in a thread
         :return: Multithread save database
         """
-        if not upgrade_done:
-            upgrade()
+        if not _upgraded:
+            _upgrade()
 
         self.db = None
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
@@ -139,4 +138,5 @@ class Sqlite(object):
             Log.error("Problem with sql thread", e)
         finally:
             self.db.close()
+
 
