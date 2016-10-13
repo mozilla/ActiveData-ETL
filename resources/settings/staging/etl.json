@@ -6,7 +6,8 @@
 	"param": {
 		"threads": 4,
 		"wait_forever": true,
-		"keep_unknown_on_queue": false
+		"keep_unknown_on_queue": false,
+		"min_attempts": 2
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
@@ -81,7 +82,7 @@
 	},
 	"workers": [
 		{
-			"name": "pulse2es",
+			"name": "Buildbot Pulse to ES",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-pulse",
@@ -262,10 +263,10 @@
 			},
 			{
 				"log_type": "ses",
-				"$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][STAGING] Problem in ETL"
+				"subject": "[ALERT][STAGING] Problem in ETL",
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

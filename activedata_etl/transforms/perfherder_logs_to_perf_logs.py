@@ -35,27 +35,29 @@ NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "basic_compositor_video",
+    "build times",
     "cart",
     "chromez",
+    "compiler_metrics",
     "damp",
     "dromaeo_css",
     "dromaeo_dom",
     "dromaeojs",
+    "GfxBench",
     "g1",
     "g2",
     "g3",
     "g4",
     "glterrain",
+    "installer size",
+    "jittest.jittest.overall",
     "kraken",
     "media_tests",
-    "mochitest.mochitest-devtools-chrome.1.run-tests",
-    "mochitest.mochitest-devtools-chrome.1.stage-files",
-    "mochitest.mochitest-devtools-chrome.1.install",
-    "mochitest.mochitest-devtools-chrome.1.overall",
+    "mochitest-browser-chrome",
     "other_nol64",
     "other_l64",
     "other",
@@ -64,6 +66,8 @@ KNOWN_PERFHERDER_TESTS = [
     "svgr",
     "tabpaint",
     "tart",
+    "TestStandardURL",
+    "TreeTraversal",
     "tcanvasmark",
     "tcheck2",
     "tp4m_nochrome",
@@ -126,8 +130,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
 
-    # if not records:
-    #     Log.warning("No perfherder records are found in {{key}}", key=source_key)
+    if not records:
+        Log.warning("No perfherder records are found in {{key}}", key=source_key)
 
     destination.extend(records)
     return [source_key]
@@ -139,7 +143,12 @@ def transform(source_key, perfherder, resources):
         buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
-            Log.error("Can not process: no suite name is found")
+            if perfherder.is_empty:
+                # RETURN A PLACEHOLDER
+                buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
+                return [buildbot]
+            else:
+                Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
@@ -168,16 +177,18 @@ def transform(source_key, perfherder, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            Log.warning(
-                "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                uid=source_key,
-                buildbot=buildbot,
-                name=suite_name,
-                perfherder=perfherder
-            )
+            if not perfherder.is_empty and perfherder.framework.name != "job_resource_usage":
+                Log.warning(
+                    "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                    uid=source_key,
+                    buildbot=buildbot,
+                    name=suite_name,
+                    perfherder=perfherder
+                )
+                KNOWN_PERFHERDER_TESTS.append(suite_name)
 
         # UPDATE buildbot PROPERTIES TO BETTER VALUES
-        buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp)
+        buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
         buildbot.run.suite = suite_name
         buildbot.run.framework = perfherder.framework
 
@@ -266,7 +277,21 @@ def transform(source_key, perfherder, resources):
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
+        elif perfherder.value != None:  # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
+            new_record = set_default(
+                {"result": set_default(
+                    stats(source_key, [perfherder.value], None, suite_name),
+                    {
+                        "unit": perfherder.unit,
+                        "lower_is_better": perfherder.lowerIsBetter
+                    }
+                )},
+                buildbot
+            )
+            new_records.append(new_record)
+            total.append(new_record.result.stats)
         elif perfherder.is_empty:
+            buildbot.run.result.is_empty = True
             new_records.append(buildbot)
             pass
         else:
@@ -280,8 +305,9 @@ def transform(source_key, perfherder, resources):
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
         buildbot.run.stats = geo_mean(total)
         Log.note(
-            "Done {{uid}}, processed {{name}}, transformed {{num}} records",
+            "Done {{uid}}, processed {{framework|upper}} :: {{name}}, transformed {{num}} records",
             uid=source_key,
+            framework=buildbot.run.framework.name,
             name=suite_name,
             num=len(new_records)
         )

@@ -104,10 +104,10 @@ def _refresh_indexer():
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
-
-        # RESTART ANYWAY, SO WE USE LATEST INDEX
-        with fabric_settings(warn_only=True):
-            sudo("supervisorctl restart push_to_es")
+        else:
+            # RESTART ANYWAY, SO WE USE LATEST INDEX
+            with fabric_settings(warn_only=True):
+                sudo("supervisorctl restart push_to_es")
 
 
 def _start_supervisor():

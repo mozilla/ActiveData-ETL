@@ -9,6 +9,9 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
+			"skip": 0,
+			"rollover_field": "build.date",
+			"rollover_interval": "week",
 			"sample_only": [
 			],
 			"elasticsearch": {
@@ -17,10 +20,11 @@
 				"index": "unittest",
 				"type": "test_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
@@ -31,6 +35,8 @@
 		},
 		{
 			"name":"perf",
+			"rollover_field": "build.date",
+			"rollover_interval": "year",
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": [],
@@ -40,6 +46,7 @@
 				"index": "perf",
 				"type": "perf_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
@@ -54,6 +61,8 @@
 		},
 		{
 			"name":"jobs",
+			"rollover_field": "build.date",
+			"rollover_interval": "3month",
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
@@ -62,6 +71,7 @@
 				"index": "jobs",
 				"type": "job",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
@@ -78,12 +88,15 @@
 			"name":"code coverage",
 			"queue_size": 2000,
 			"batch_size": 1000,
+			"rollover_field": "build.created_timestamp",
+			"rollover_interval": "day",
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
@@ -101,6 +114,8 @@
 			"name": "task",
 			"queue_size": 2000,
 			"batch_size": 1000,
+			"rollover_field": "task.created",
+			"rollover_interval": "3month",
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -108,6 +123,7 @@
 				"index": "task",
 				"type": "task",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
@@ -134,10 +150,11 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
+				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Push unit to ES"
+				"subject": "[ALERT][DEV]Problem in Push to ES",
+				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}
