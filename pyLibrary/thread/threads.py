@@ -527,6 +527,9 @@ class Thread(object):
                 except Exception, e:
                     if DEBUG:
                         _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
+                finally:
+                    if DEBUG:
+                        _Log.note("thread {{name|quote}} is done", name=self.name)
 
     def is_alive(self):
         return not self.stopped
