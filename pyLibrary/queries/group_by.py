@@ -55,7 +55,6 @@ def groupby(data, keys=None, size=None, min_size=None, max_size=None, contiguous
                 yield (group, wrap(v))
 
         return _output()
-
     except Exception, e:
         Log.error("Problem grouping", e)
 

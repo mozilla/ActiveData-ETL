@@ -16,7 +16,7 @@ from types import NoneType
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, set_default, join_field, split_field, NullType, Null
+from pyLibrary.dot import Dict, wrap, listwrap, unwraplist, DictList, unwrap, join_field, split_field, NullType, Null
 from pyLibrary.queries import jx, Schema
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.expression_compiler import compile_expression
@@ -51,12 +51,16 @@ class ListContainer(Container):
         return self._schema
 
     def last(self):
+        """
+        :return:  Last element in the list, or Null
+        """
         if self.data:
             return self.data[-1]
         else:
             return Null
 
     def query(self, q):
+        q = wrap(q)
         frum = self
         if is_aggs(q):
             frum = list_aggs(frum.data, q)
@@ -178,9 +182,6 @@ class ListContainer(Container):
     def extend(self, documents):
         self.data.extend(documents)
 
-    def add(self, doc):
-        self.data.append(doc)
-
     def to_dict(self):
         return wrap({
             "meta": {"format": "list"},
@@ -190,7 +191,12 @@ class ListContainer(Container):
     def get_columns(self, table_name=None):
         return self.schema.values()
 
+    def add(self, value):
+        self.data.append(value)
+
     def __getitem__(self, item):
+        if item < 0 or len(self.data) <= item:
+            return Null
         return self.data[item]
 
     def __iter__(self):

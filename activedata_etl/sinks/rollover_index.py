@@ -18,6 +18,7 @@ from pyLibrary.queries import jx
 from activedata_etl import key2etl, etl2path
 from pyLibrary.times.dates import Date, unicode2Date
 from pyLibrary.times.durations import Duration
+from pyLibrary.times.timer import Timer
 
 
 class RolloverIndex(object):
@@ -68,10 +69,14 @@ class RolloverIndex(object):
                 if timestamp > c.date:
                     best = c
             if not best or rounded_timestamp > best.date:
-                if rounded_timestamp < candidates.last().date:
+                if rounded_timestamp < wrap(candidates[-1]).date:
                     es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
                 else:
-                    es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
+                    try:
+                        es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
+                    except Exception, e:
+                        if "IndexAlreadyExistsException" not in e:
+                            Log.error("Problem creating index", cause=e)
                     es.add_alias(self.settings.index)
             else:
                 es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
@@ -135,22 +140,25 @@ class RolloverIndex(object):
         num_keys = 0
         queue = None
         for key in keys:
+            timer = Timer("key")
             try:
-                for rownum, line in enumerate(source.read_lines(strip_extension(key))):
-                    if not line:
-                        continue
+                with timer:
+                    for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                        if not line:
+                            continue
 
-                    row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
-                    num_keys += 1
+                        row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
+                        num_keys += 1
 
-                    if queue == None:
-                        queue = self._get_queue(row)
-                    queue.add(row)
+                        if queue == None:
+                            queue = self._get_queue(row)
+                        queue.add(row)
 
-                    if please_stop:
-                        break
+                        if please_stop:
+                            break
             except Exception, e:
-                Log.warning("Could not process {{key}}", key=key, cause=e)
+                done_copy = None
+                Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
 
         if done_copy:
             if queue == None:

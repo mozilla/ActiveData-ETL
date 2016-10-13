@@ -19,7 +19,7 @@ from pyLibrary.queries import es09
 from pyLibrary.queries.es14.decoders import DefaultDecoder, AggsDecoder
 from pyLibrary.queries.es14.decoders import DimFieldListDecoder
 from pyLibrary.queries.es14.util import aggregates1_4, NON_STATISTICAL_AGGS
-from pyLibrary.queries.expressions import simplify_esfilter, split_expression_by_depth, AndOp, Variable
+from pyLibrary.queries.expressions import simplify_esfilter, split_expression_by_depth, AndOp, Variable, NullOp
 from pyLibrary.queries.query import MAX_LIMIT
 from pyLibrary.times.timer import Timer
 
@@ -37,9 +37,8 @@ def get_decoders_by_depth(query):
     """
     schema = query.frum
     output = DictList()
-    limit = query.limit
-    for e in coalesce(query.edges, query.groupby, []):
-        if e.value != None:
+    for e in wrap(coalesce(query.edges, query.groupby, [])):
+        if e.value != None and not isinstance(e.vlaue, NullOp):
             e = e.copy()
             vars_ = e.value.vars()
 
@@ -72,14 +71,20 @@ def get_decoders_by_depth(query):
             for p in e.domain.partitions:
                 vars_ |= p.where.vars()
 
-        depths = set(len(listwrap(schema[v].nested_path)) for v in vars_)
-        if len(depths) > 1:
-            Log.error("expression {{expr}} spans tables, can not handle", expr=e.value)
-        depth = list(depths)[0]
-        while len(output) <= depth:
+        try:
+            depths = set(len(listwrap(schema[v].nested_path)) for v in vars_)
+            if len(depths) > 1:
+                Log.error("expression {{expr}} spans tables, can not handle", expr=e.value)
+            max_depth = Math.MAX(depths)
+            while len(output) <= max_depth:
+                output.append([])
+        except Exception, e:
+            # USUALLY THE SCHEMA IS EMPTY, SO WE ASSUME THIS IS A SIMPLE QUERY
+            max_depth = 0
             output.append([])
-        output[depth].append(AggsDecoder(e, query, limit))
+
         limit = 0
+        output[max_depth].append(AggsDecoder(e, query, limit))
     return output
 
 
