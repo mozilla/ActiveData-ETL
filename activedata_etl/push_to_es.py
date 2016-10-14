@@ -26,9 +26,11 @@ from activedata_etl.etl import parse_id_argument
 from activedata_etl.sinks.rollover_index import RolloverIndex
 
 split = {}
-
+empty_bucket_complaint_sent = False
 
 def splitter(work_queue, please_stop):
+    global empty_bucket_complaint_sent
+
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
             for k,v in split.items():
@@ -73,7 +75,9 @@ def splitter(work_queue, please_stop):
             more_keys = source_bucket.keys(prefix=key)
             if not more_keys:
                 # HAPPENS WHEN REPROCESSING (ETL WOULD HAVE CLEARED THE BUCKET OF THIS PREFIX FIRST)
-                Log.warning("No files found in bucket {{message|json}}", message=payload)
+                if not empty_bucket_complaint_sent:
+                    empty_bucket_complaint_sent = True
+                    Log.warning("No files found in bucket {{message|json}}. THIS WARNING WILL NOT BE SENT AGAIN!!", message=payload)
                 message.delete()
                 num_keys = 0
             else:
