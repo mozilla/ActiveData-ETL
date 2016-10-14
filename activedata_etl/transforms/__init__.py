@@ -32,7 +32,8 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
-    "arm.apk",
+    ".apk",
+    "/buildbot_properties.json",
     "/log_raw.log",
     "/talos_raw.log",
     "/buildprops.json",
@@ -65,6 +66,7 @@ NOT_STRUCTURED_LOGS = [
     "/xvfb.log",
     "/xsession-errors.log",
     "/resource-usage.json",
+    ".html",
     ".pom.sha1",
     ".pom",
     ".xml.sha1",

@@ -24,8 +24,8 @@ from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread, Queue
 from pyLibrary.times.durations import MINUTE, Duration
 
-LOG_STRING_LENGTH = 5000  # CONVERTING OBJECTS TO JSON CAN RESULT IN LONG STRINGS. CHOP!! CHOP!!
-MAX_BAD_COUNT = 5  # NUMBER OF TIMES TO TRY, IN A ROW, BEFORE GIVING UP LOGGING
+MAX_BAD_COUNT = 5
+LOG_STRING_LENGTH = 2000
 
 
 class TextLog_usingElasticSearch(TextLog):

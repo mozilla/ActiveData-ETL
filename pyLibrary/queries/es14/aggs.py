@@ -38,7 +38,7 @@ def get_decoders_by_depth(query):
     schema = query.frum
     output = DictList()
     for e in wrap(coalesce(query.edges, query.groupby, [])):
-        if e.value != None and not isinstance(e.vlaue, NullOp):
+        if e.value != None and not isinstance(e.value, NullOp):
             e = e.copy()
             vars_ = e.value.vars()
 
@@ -72,7 +72,7 @@ def get_decoders_by_depth(query):
                 vars_ |= p.where.vars()
 
         try:
-            depths = set(len(listwrap(schema[v].nested_path)) for v in vars_)
+            depths = set(len(schema[v].nested_path)-1 for v in vars_)
             if len(depths) > 1:
                 Log.error("expression {{expr}} spans tables, can not handle", expr=e.value)
             max_depth = Math.MAX(depths)
@@ -198,14 +198,14 @@ def es_aggsop(es, frum, query):
             es_query.aggs[literal_field(canonical_name)].value_count.script = abs_value.to_ruby()
             s.pull = literal_field(canonical_name) + ".value"
         elif s.aggregate == "median":
-            #ES USES DIFFERENT METHOD FOR PERCENTILES THAN FOR STATS AND COUNT
+            # ES USES DIFFERENT METHOD FOR PERCENTILES THAN FOR STATS AND COUNT
             key = literal_field(canonical_name + " percentile")
 
             es_query.aggs[key].percentiles.script = abs_value.to_ruby()
             es_query.aggs[key].percentiles.percents += [50]
             s.pull = key + ".values.50\.0"
         elif s.aggregate == "percentile":
-            #ES USES DIFFERENT METHOD FOR PERCENTILES THAN FOR STATS AND COUNT
+            # ES USES DIFFERENT METHOD FOR PERCENTILES THAN FOR STATS AND COUNT
             key = literal_field(canonical_name + " percentile")
             percent = Math.round(s.percentile * 100, decimal=6)
 
@@ -213,7 +213,7 @@ def es_aggsop(es, frum, query):
             es_query.aggs[key].percentiles.percents += [percent]
             s.pull = key + ".values." + literal_field(unicode(percent))
         elif s.aggregate == "cardinality":
-            #ES USES DIFFERENT METHOD FOR CARDINALITY
+            # ES USES DIFFERENT METHOD FOR CARDINALITY
             key = canonical_name + " cardinality"
 
             es_query.aggs[key].cardinality.script = abs_value.to_ruby()

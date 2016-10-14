@@ -169,13 +169,14 @@ def main():
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
-            if not w.rollover_interval or not w.rollover_field:
-                Log.error("All workers must declare an `rollover_interval` which will indicate when to rollover to a fresh index")
+            if not w.rollover.interval or not w.rollover.field:
+                Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
 
             split[w.source.bucket] = Dict(
                 es=RolloverIndex(
-                    rollover_field=w.rollover_field,
-                    rollover_interval=w.rollover_interval,
+                    rollover_field=w.rollover.field,
+                    rollover_interval=w.rollover.interval,
+                    rollover_max=w.rollover.max,
                     queue_size=coalesce(w.queue_size, 1000),
                     batch_size=unwrap(w.batch_size),
                     settings=w.elasticsearch
