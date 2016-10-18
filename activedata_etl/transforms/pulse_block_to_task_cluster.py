@@ -308,6 +308,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         {"build": {
             "name": consume(task, "extra.build_name"),
             "product": coalesce_w_conflict_detection(
+                consume(task, "payload.properties.product"),
                 consume(task, "tags.build_props.product"),
                 task.extra.treeherder.productName,
                 consume(task, "extra.build_product")
@@ -423,25 +424,31 @@ BUILD_TYPES = {
     "arm-debug": ["debug", "arm"],
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
-    "opt": ["opt"],
     "ccov": ["ccov"],
     "debug": ["debug"],
     "gyp": ["gyp"],
+    "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "memleak": ["memleak"],
-    "pgo": ["pgo"]
+    "opt": ["opt"],
+    "pgo": ["pgo"],
+    "ubsan": ["ubsan"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "desiredResolution",
     "encryptedEnv",
+    "graphs",  # POINTER TO graph.json ARTIFACT
     "onExitStatus",
     "signingManifest",
     "supersederUrl",
-    "osGroups"
+    "osGroups",
+    "unsignedArtifacts"
 }
 
 KNOWN_TAGS = {
+    "buildid",
     "build_name",
     "build_type",
     "build_product",
@@ -575,7 +582,7 @@ KNOWN_TAGS = {
     "treeherder.tier",
 
 
-
+    "upload_to_task_id",
     "url.busybox",
     "useCloudMirror",
     "who"
