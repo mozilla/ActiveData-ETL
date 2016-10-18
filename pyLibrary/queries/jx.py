@@ -21,7 +21,7 @@ import itertools
 from pyLibrary import dot, convert
 from pyLibrary.collections import UNION, MIN
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, wrap, unwrap
+from pyLibrary.dot import listwrap, wrap, unwrap, unwraplist
 from pyLibrary.dot import set_default, Null, Dict, split_field, coalesce, join_field
 from pyLibrary.dot.lists import DictList
 from pyLibrary.dot.objects import DictObject
