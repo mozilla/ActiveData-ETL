@@ -329,7 +329,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     normalized.build.branch = coalesce_w_conflict_detection(
         consume(task, "tags.build_props.branch"),
-        consume(task, "payload.sourcestamp.branch"),
+        consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
         env.MH_BRANCH
     )
