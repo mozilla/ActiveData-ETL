@@ -101,8 +101,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             file_etl,
                             obj,
                             task_cluster_record,
-                            records,
-                            keys
+                            records
                         )
                     except Exception, e:
                         Log.warning(
@@ -114,11 +113,12 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             with Timer("writing {{num}} records to s3", {"num": len(records)}):
                 destination.extend(records, overwrite=True)
+            keys.append(etl2key(file_etl))
 
     return keys
 
 
-def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
+def process_source_file(parent_etl, obj, task_cluster_record, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -185,7 +185,6 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
         )
         key = etl2key(new_record.etl)
         records.append({"id": key, "value": new_record})
-        keys.append(key)
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
@@ -218,7 +217,7 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
     )
     key = etl2key(new_record.etl)
     records.append({"id": key, "value": new_record})
-    keys.append(key)
+
 
 def get_revision_info(task_definition, resources):
     """
