@@ -119,7 +119,7 @@
 			"source": {
 				"bucket": "active-data-codecoverage",
 				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b.c"
+				"key_format": "t.a:b.c.d"
 			}
 		},
 		{
