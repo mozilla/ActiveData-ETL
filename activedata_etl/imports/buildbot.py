@@ -64,12 +64,9 @@ class BuildbotTranslator(object):
             output.action.type = "talos"
 
         # TASK CLUSTER ID
-        output.task.id = consume(props, "taskId")
+        bbb_task_id = data.reason[24:] if data.reason.startswith("Created by BBB for task ") else None
+        output.task.id = coalesce(consume(props, "taskId"), bbb_task_id)
 
-        # if data.reason.startswith("The web-page 'rebuild' button was pressed by "):
-        #     output.properties, output.other = normalize_other(props)
-        #     return output
-        #
         output.action.job_number = coalesce(consume(props, "buildnumber"), consume(props, "job_number"), consume(props, "build_number"))
         for k, v in consume(props, "request_times").items():
             output.action.requests += [{"request_id": int(k), "timestamp": v}]
@@ -537,6 +534,7 @@ BUILDER_NAMES = [
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
     'release-{{branch}}-{{product}}_chcksms',
+    'release-{{branch}}-{{product}}_publish_balrog',
     'release-{{branch}}-{{product}}_updates',
     'release-{{branch}}-{{product}}_version_bump',
     'release-{{branch}}-{{product}}_uptake_monitoring',

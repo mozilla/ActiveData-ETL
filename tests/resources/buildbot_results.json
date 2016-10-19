@@ -2,6 +2,62 @@
     {
         "action": {
             "buildbot_status": "success",
+            "end_time": 1476801004,
+            "job_number": 4,
+            "reason": "Created by BBB for task JawA2fkSTveFmzv98Dq4aw",
+            "request_time": 1476746840,
+            "requests": [
+                {
+                    "request_id": 128305720,
+                    "timestamp": 1476746840
+                }
+            ],
+            "start_time": 1476800997,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-firefox_publish_balrog",
+            "product": "firefox",
+            "release": "b7adb2f10487f6f886e047670ba720a248edcb44",
+            "revision": "b7adb2f10487f6f886e047670ba720a248edcb44",
+            "revision12": "b7adb2f10487",
+            "version": "50.0b8"
+        },
+        "other": [
+            {
+                "name": "balrog_api_root",
+                "value": "https://aus4-admin.mozilla.org/api"
+            },
+            {
+                "name": "channels",
+                "value": "beta"
+            },
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fx_publish_balrog-0",
+            "master": "http://buildbot-master77.bb.releng.use1.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-firefox_publish_balrog",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_publish_balrog-bm77-build1-build4.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-233",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "b7adb2f10487f6f886e047670ba720a248edcb44"}
+        },
+        "tags": ["release"],
+        "task": {"id": "JawA2fkSTveFmzv98Dq4aw"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
             "end_time": 1476212268,
             "job_number": 6,
             "reason": "Created by BBB for task JQNPowFwSjGBJCfyMiuP_A",

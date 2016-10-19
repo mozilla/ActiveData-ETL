@@ -73,9 +73,9 @@ def process(source_key, source, destination, resources, please_stop=None):
             if "jscov" not in artifact.name:
                 continue
 
-            if ccov_artifact_count == 0:
-                # TEMP, WHILE WE MONITOR
-                Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
+            # if ccov_artifact_count == 0:
+            #     # TEMP, WHILE WE MONITOR
+            #     Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
             ccov_artifact_count += 1
 
             # fetch the artifact
