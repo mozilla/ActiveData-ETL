@@ -432,19 +432,25 @@ BUILD_TYPES = {
     "memleak": ["memleak"],
     "opt": ["opt"],
     "pgo": ["pgo"],
+    "nostylo": ["nostylo"],
     "ubsan": ["ubsan"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "description",
     "desiredResolution",
     "encryptedEnv",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "onExitStatus",
+    "osGroups",
     "signingManifest",
     "supersederUrl",
-    "osGroups",
-    "unsignedArtifacts"
+    "template_key",
+    "taskid_to_beetmove"
+    "unsignedArtifacts",
+    "upload_date",
+    "version"
 }
 
 KNOWN_TAGS = {
