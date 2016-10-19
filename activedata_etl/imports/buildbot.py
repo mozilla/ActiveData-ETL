@@ -553,7 +553,9 @@ BUILD_TYPES = [
     "tsan",   # THREAD SANITIZER
     "l10n",   # INTERNATIONALIZATION
     "leak test",
-    "static analysis"
+    "static analysis",
+    "ubsan",   #
+    "jsdcov"  # JAVASCRIPT CODE COVERAGE
 
 ]
 

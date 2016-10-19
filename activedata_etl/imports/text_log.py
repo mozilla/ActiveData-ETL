@@ -264,6 +264,7 @@ def process_text_log(all_log_lines, from_url):
                     data[key] = value
                 continue
             except Exception, e:
+                e = Except.wrap(e)
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
                     Log.warning("Log header {{log_line|quote}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)

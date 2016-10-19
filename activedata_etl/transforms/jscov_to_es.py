@@ -15,7 +15,7 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Dict, unwraplist
+from pyLibrary.dot import wrap, Dict, unwraplist, set_default
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.strings import expand_template
@@ -58,10 +58,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
 
-        task_id = task_cluster_record.task.id
+        parent_etl = task_cluster_record.etl
+        artifacts = task_cluster_record.task.artifacts
 
-        # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-        artifacts = task_cluster_record.artifacts
+        # chop some not-needed, and verbose, properties from tc record
+        task_cluster_record.etl = None
+        task_cluster_record.action.timings = None
+        task_cluster_record.action.etl = None
+        task_cluster_record.task.artifacts = None
+        task_cluster_record.task.runs = None
 
         for artifact in artifacts:
             # we're only interested in jscov files, at lease at the moment
@@ -73,23 +78,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
             ccov_artifact_count += 1
 
-            # create the key for the file in the bucket, and add it to a list to return later
-            _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=artifact.url)
-            add_tc_prefix(dest_etl)
-            keys.append(etl2key(dest_etl))
-
-            # get the task definition
-            queue = taskcluster.Queue()
-            task_definition = wrap(queue.task(taskId=task_id))
-
-            # get additional info
-            repo = get_revision_info(task_definition, resources)
-            task = {"id": task_id}
-            run = get_run_info(task_definition)
-            build = get_build_info(task_definition)
-
             # fetch the artifact
             response_stream = http.get(artifact.url).raw
+
+            _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
 
             records = []
             with Timer("Processing {{ccov_file}}", param={"ccov_file": artifact.url}):
@@ -106,13 +98,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
                     try:
                         process_source_file(
-                            dest_etl,
+                            file_etl,
                             obj,
-                            repo,
-                            task,
-                            run,
-                            build,
-                            records
+                            task_cluster_record,
+                            records,
+                            keys
                         )
                     except Exception, e:
                         Log.warning(
@@ -128,7 +118,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_source_file(dest_etl, obj, repo, task, run, build, records):
+def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -136,7 +126,7 @@ def process_source_file(dest_etl, obj, repo, task, run, build, records):
     try:
         test_name = unwraplist(obj.testUrl).split("/")[-1]
     except Exception, e:
-        Log.error("can not get testUrl from coverage object", cause=e)
+        raise Log.error("can not get testUrl from coverage object", cause=e)
 
     # turn obj.covered (a list) into a set for use later
     file_covered = set(obj.covered)
@@ -158,76 +148,77 @@ def process_source_file(dest_etl, obj, repo, task, run, build, records):
     # iterate through the methods of this source file
     # a variable to count the number of lines so far for this source file
     for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
-        all_method_lines_set = set(method_lines)
-        method_covered = all_method_lines_set & file_covered
-        method_uncovered = all_method_lines_set - method_covered
-        method_percentage_covered = len(method_covered) / len(all_method_lines_set)
+        all_method_lines = set(method_lines)
+        method_covered = all_method_lines & file_covered
+        method_uncovered = all_method_lines - method_covered
+        method_percentage_covered = len(method_covered) / len(all_method_lines)
 
         orphan_covered = orphan_covered - method_covered
         orphan_uncovered = orphan_uncovered - method_uncovered
 
-        new_record = wrap({
+        new_record = set_default(
+            {
+                "test": {
+                    "name": test_name,
+                    "url": obj.testUrl
+                },
+                "source": {
+                    "file": file_info,
+                    "method": {
+                        "name": method_name,
+                        "covered": [{"line": c} for c in method_covered],
+                        "uncovered": method_uncovered,
+                        "total_covered": len(method_covered),
+                        "total_uncovered": len(method_uncovered),
+                        "percentage_covered": method_percentage_covered,
+                    }
+                },
+                "etl": {
+                    "id": count + 1,
+                    "source": parent_etl,
+                    "type": "join",
+                    "machine": machine_metadata,
+                    "timestamp": Date.now()
+                }
+            },
+            task_cluster_record
+        )
+        key = etl2key(new_record.etl)
+        records.append({"id": key, "value": new_record})
+        keys.append(key)
+
+    # a record for all the lines that are not in any method
+    # every file gets one because we can use it as canonical representative
+    new_record = set_default(
+        {
             "test": {
                 "name": test_name,
                 "url": obj.testUrl
             },
             "source": {
+                "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
                 "file": file_info,
                 "method": {
-                    "name": method_name,
-                    "covered": [{"line": c} for c in method_covered],
-                    "uncovered": method_uncovered,
-                    "total_covered": len(method_covered),
-                    "total_uncovered": len(method_uncovered),
-                    "percentage_covered": method_percentage_covered,
+                    "covered": [{"line": c} for c in orphan_covered],
+                    "uncovered": orphan_uncovered,
+                    "total_covered": len(orphan_covered),
+                    "total_uncovered": len(orphan_uncovered),
+                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
                 }
             },
             "etl": {
-                "id": count+1,
-                "source": dest_etl,
+                "id": 0,
+                "source": parent_etl,
                 "type": "join",
                 "machine": machine_metadata,
                 "timestamp": Date.now()
             },
-            "repo": repo,
-            "task": task,
-            "run": run,
-            "build": build
-        })
-        records.append({"id": etl2key(new_record.etl), "value": new_record})
-
-    # a record for all the lines that are not in any method
-    # every file gets one because we can use it as canonical representative
-    new_record = wrap({
-        "test": {
-            "name": test_name,
-            "url": obj.testUrl
         },
-        "source": {
-            "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
-            "file": file_info,
-            "method": {
-                "covered": [{"line": c} for c in orphan_covered],
-                "uncovered": orphan_uncovered,
-                "total_covered": len(orphan_covered),
-                "total_uncovered": len(orphan_uncovered),
-                "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-            }
-        },
-        "etl": {
-            "id": 0,
-            "source": dest_etl,
-            "type": "join",
-            "machine": machine_metadata,
-            "timestamp": Date.now()
-        },
-        "repo": repo,
-        "run": run,
-        "build": build,
-        "is_file": True
-    })
-    records.append({"id": etl2key(new_record.etl), "value": new_record})
-
+        task_cluster_record
+    )
+    key = etl2key(new_record.etl)
+    records.append({"id": key, "value": new_record})
+    keys.append(key)
 
 def get_revision_info(task_definition, resources):
     """

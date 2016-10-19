@@ -308,6 +308,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         {"build": {
             "name": consume(task, "extra.build_name"),
             "product": coalesce_w_conflict_detection(
+                consume(task, "payload.properties.product"),
                 consume(task, "tags.build_props.product"),
                 task.extra.treeherder.productName,
                 consume(task, "extra.build_product")
@@ -328,7 +329,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     normalized.build.branch = coalesce_w_conflict_detection(
         consume(task, "tags.build_props.branch"),
-        consume(task, "payload.sourcestamp.branch"),
+        consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
         env.MH_BRANCH
     )
@@ -423,25 +424,37 @@ BUILD_TYPES = {
     "arm-debug": ["debug", "arm"],
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
-    "opt": ["opt"],
     "ccov": ["ccov"],
     "debug": ["debug"],
     "gyp": ["gyp"],
+    "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "memleak": ["memleak"],
-    "pgo": ["pgo"]
+    "opt": ["opt"],
+    "pgo": ["pgo"],
+    "nostylo": ["nostylo"],
+    "ubsan": ["ubsan"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "description",
+    "desiredResolution",
     "encryptedEnv",
+    "graphs",  # POINTER TO graph.json ARTIFACT
     "onExitStatus",
+    "osGroups",
     "signingManifest",
     "supersederUrl",
-    "osGroups"
+    "template_key",
+    "taskid_to_beetmove"
+    "unsignedArtifacts",
+    "upload_date",
+    "version"
 }
 
 KNOWN_TAGS = {
+    "buildid",
     "build_name",
     "build_type",
     "build_product",
@@ -575,7 +588,7 @@ KNOWN_TAGS = {
     "treeherder.tier",
 
 
-
+    "upload_to_task_id",
     "url.busybox",
     "useCloudMirror",
     "who"

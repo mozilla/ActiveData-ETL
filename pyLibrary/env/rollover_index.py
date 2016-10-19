@@ -16,7 +16,7 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
-from activedata_etl import key2etl, etl2path
+# from activedata_etl import key2etl, etl2path
 from pyLibrary.times.dates import Date, unicode2Date, unix2Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer

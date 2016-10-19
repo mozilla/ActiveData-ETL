@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+from activedata_etl.etl import parse_id_argument
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
@@ -18,12 +19,11 @@ from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
-from activedata_etl.etl import parse_id_argument
-from activedata_etl.sinks.rollover_index import RolloverIndex
 
 split = {}
 empty_bucket_complaint_sent = False

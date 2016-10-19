@@ -32,6 +32,7 @@ from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
@@ -41,7 +42,6 @@ from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.rollover_index import RolloverIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
