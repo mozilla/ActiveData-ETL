@@ -152,8 +152,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.env = _object_to_array(env, "name", "value")
 
     features = consume(task, "payload.features")
-    if all(v==True for v in features.values()):
-        output.task.features = features.keys()
+    if all(isinstance(v, bool) for v in features.values()):
+        output.task.features = [k if v else "!" + k for k, v in features.items()]
     else:
         Log.error("Unexpected features: {{features|json}}", features=features)
     output.task.cache = _object_to_array(consume(task, "payload.cache"), "name", "value")

@@ -111,9 +111,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                             cause=e
                         )
 
-            with Timer("writing {{num}} records to s3", {"num": len(records)}):
+            key = etl2key(file_etl)
+            keys.append(key)
+            with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": key}):
                 destination.extend(records, overwrite=True)
-            keys.append(etl2key(file_etl))
 
     return keys
 
