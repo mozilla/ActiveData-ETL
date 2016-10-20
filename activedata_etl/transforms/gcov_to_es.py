@@ -76,6 +76,7 @@ def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
     Log.note('Using temp dir: {{tempdir}}', tempdir=tmpdir)
 
     # Download the gcda artifact
+    # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
     gcda_full_artifact_url = 'https://public-artifacts.taskcluster.net/%s/%s/%s' % (task_id, run_id, artifact.name)
 
     Log.note('Fetching gcda artifact: {{url}}', url=gcda_full_artifact_url)
