@@ -323,6 +323,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "revision": coalesce_w_conflict_detection(
                 consume(task, "tags.build_props.revision"),
                 consume(task, "payload.sourcestamp.revision"),
+                consume(task, "payload.properties.revision"),
                 env.GECKO_HEAD_REV
             ),
             "type": listwrap({"dbg": "debug"}.get(consume(task, "extra.build_type"), consume(task, "extra.build_type"))),
@@ -333,6 +334,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.branch = coalesce_w_conflict_detection(
         consume(task, "tags.build_props.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
+        consume(task, "payload.properties.repo_path").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
         env.MH_BRANCH
     )
@@ -451,7 +453,6 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "release_promotion",
     "repack_manifests_url",
-    "revision",
     "script_repo_revision",
     "signingManifest",
     "supersederUrl",
