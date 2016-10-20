@@ -14,13 +14,17 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
 
+from StringIO import StringIO
+import tempfile
+import zipfile
+import os
+
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 LIST_TASK_GROUP = "https://queue.taskcluster.net/v1/task-group/{{group_id}}/list"
 RETRY = {"times": 3, "sleep": 5}
-
 
 def process(source_key, source, destination, resources, please_stop=None):
     """
@@ -48,6 +52,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
 
+        run_id = pulse_record.runId # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
         task_id = pulse_record.status.taskId
         task_group_id = pulse_record.status.taskGroupId
 
@@ -56,19 +61,50 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         for artifact in artifacts.artifacts:
             if "gcda" in artifact.name:
-                Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
-                # Note: cache gcda temporarily?
-
-                artifacts = group_to_gcno_artifacts(task_group_id)
-                files = artifacts.url
-
-                for file in files:
-                    Log.note("Processing gcno artifact {{file}}", file=file)
-                    # Note: Fetch file, extract to tmp folder, run LCOV.
-                    pass
+                process_gcda_artifact(run_id, task_id, task_group_id, artifact)
 
     return keys
 
+
+def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
+    Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
+
+    tmpdir = tempfile.mkdtemp()
+    os.mkdir('%s/ccov' % tmpdir)
+    os.mkdir('%s/out' % tmpdir)
+
+    Log.note('Using temp dir: {{tempdir}}', tempdir=tmpdir)
+
+    # Download the gcda artifact
+    gcda_full_artifact_url = 'https://public-artifacts.taskcluster.net/%s/%s/%s' % (task_id, run_id, artifact.name)
+
+    Log.note('Fetching gcda artifact: {{url}}', url=gcda_full_artifact_url)
+
+    zipdata = StringIO()
+    zipdata.write(http.get(gcda_full_artifact_url).content)
+
+    Log.note('Extracting gcda files to %s/ccov' % tmpdir)
+
+    gcda_zipfile = zipfile.ZipFile(zipdata)
+    gcda_zipfile.extractall('%s/ccov' % tmpdir)
+
+    artifacts = group_to_gcno_artifacts(task_group_id)
+    files = artifacts.url
+
+    for file_url in files:
+        # TODO delete old gcno files
+
+        Log.note('Downloading gcno artifact {{file}}', file=file_url)
+
+        zipdata = StringIO()
+        zipdata.write(http.get(file_url).content)
+
+        Log.note('Extracting gcno files to %s/ccov' % tmpdir)
+
+        gcno_zipfile = zipfile.ZipFile(zipdata)
+        gcno_zipfile.extractall('%s/ccov' % tmpdir)
+
+        # TODO: Run LCOV
 
 def group_to_gcno_artifacts(group_id):
     """
@@ -79,7 +115,7 @@ def group_to_gcno_artifacts(group_id):
     :return: task json object for the found task. None if no task was found.
     """
 
-    result = http.post_json(ACTIVE_DATA_QUERY, data={
+    result = http.post_json(ACTIVE_DATA_QUERY, json={
         "from": "task.task.artifacts",
         "where": {"and": [
             {"eq": {"task.group.id": group_id}},
