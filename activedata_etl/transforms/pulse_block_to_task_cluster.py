@@ -273,7 +273,10 @@ def set_run_info(normalized, task, env):
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
             "suite": consume(task, "extra.suite"),
-            "chunk": consume(task, "extra.chunks.current"),
+            "chunk": coalesce_w_conflict_detection(
+                consume(task, "extra.chunks.current"),
+                consume(task, "payload.properties.THIS_CHUNK")
+            ),
             "timestamp": normalized.task.run.start_time
         }}
     )
@@ -438,18 +441,27 @@ BUILD_TYPES = {
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "build_number",
     "description",
     "desiredResolution",
     "encryptedEnv",
     "graphs",  # POINTER TO graph.json ARTIFACT
+    "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
+    "release_promotion",
+    "repack_manifests_url",
+    "revision",
+    "script_repo_revision",
     "signingManifest",
     "supersederUrl",
-    "template_key",
     "taskid_to_beetmove"
+    "template_key",
+    "THIS_CHUNK",
+    "TOTAL_CHUNKS",
     "unsignedArtifacts",
     "upload_date",
+    "VERIFY_CONFIG",
     "version"
 }
 
