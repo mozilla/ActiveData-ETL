@@ -89,8 +89,8 @@ def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
     gcda_zipfile = zipfile.ZipFile(zipdata)
     gcda_zipfile.extractall('%s/ccov' % tmpdir)
 
-    artifacts = group_to_gcno_artifacts(task_group_id)
-    files = artifacts.url
+    artifacts = group_to_gcno_artifact_urls(task_group_id)
+    files = artifacts
 
     for file_url in files:
         # TODO delete old gcno files
@@ -107,7 +107,7 @@ def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
 
         # TODO: Run LCOV
 
-def group_to_gcno_artifacts(group_id):
+def group_to_gcno_artifact_urls(group_id):
     """
     Finds a task id in a task group with a given artifact.
 
@@ -123,7 +123,7 @@ def group_to_gcno_artifacts(group_id):
             {"regex": {"name": ".*gcno.*"}}
         ]},
         "limit": 100,
-        "select": ["task.id", "task.group.id", "name", "url"]
+        "select": ["url"]
     })
 
-    return result.data # TODO This is a bit rough for now.
+    return result.data.url # TODO This is a bit rough for now.
