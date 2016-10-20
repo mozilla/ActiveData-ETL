@@ -444,6 +444,8 @@ BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
     "build_number",
+    "created",
+    "deadline",
     "description",
     "desiredResolution",
     "encryptedEnv",
