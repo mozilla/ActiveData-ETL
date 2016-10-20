@@ -80,6 +80,7 @@ class RolloverIndex(object):
                     except Exception, e:
                         if "IndexAlreadyExistsException" not in e:
                             Log.error("Problem creating index", cause=e)
+                        return self._get_queue(row)  # TRY AGAIN
                     es.add_alias(self.settings.index)
             else:
                 es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
