@@ -1,5 +1,38 @@
 [
 	{
+	    "builder_id": 607538,
+	    "buildnumber": 3,
+	    "endtime": 1476992645,
+	    "id": 109924155,
+	    "master_id": 184,
+	    "properties": {
+	        "basedir": "/builds/slave/rel-m-rel-fx_bouncer_aliases-0",
+	        "branch": "mozilla-release",
+	        "build_number": 2,
+	        "buildername": "release-mozilla-release-firefox_bouncer_aliases",
+	        "buildnumber": 3,
+	        "log_url": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-release-noarch/release-mozilla-release-firefox_bouncer_aliases-bm72-build1-build3.txt.gz",
+	        "master": "http://buildbot-master72.bb.releng.usw2.mozilla.com:8001/",
+	        "product": "firefox",
+	        "release_promotion": true,
+	        "repo_path": "releases/mozilla-release",
+	        "request_ids": [128698393],
+	        "request_times": {"128698393": 1476920575},
+	        "revision": "7356baae8e736a6c9444bdd21562df806a39766b",
+	        "script_repo_revision": "7356baae8e736a6c9444bdd21562df806a39766b",
+	        "slavename": "bld-linux64-spot-475",
+	        "taskId": "U-CJ_NIHQQi86pn7t7EMag",
+	        "tuxedo_server_url": "https://bounceradmin.mozilla.com/api",
+	        "version": "49.0.2"
+	    },
+	    "reason": "Created by BBB for task U-CJ_NIHQQi86pn7t7EMag",
+	    "request_ids": [128698393],
+	    "requesttime": 1476920575,
+	    "result": 6,
+	    "slave_id": 7090,
+	    "starttime": 1476992642
+	},
+	{
 	    "builder_id": 677049,
 	    "buildnumber": 4,
 	    "endtime": 1476801004,

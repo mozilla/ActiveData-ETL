@@ -1,6 +1,58 @@
 [
     {
         "action": {
+            "buildbot_status": "cancelled",
+            "end_time": 1476992645,
+            "job_number": 3,
+            "reason": "Created by BBB for task U-CJ_NIHQQi86pn7t7EMag",
+            "request_time": 1476920575,
+            "requests": [
+                {
+                    "request_id": 128698393,
+                    "timestamp": 1476920575
+                }
+            ],
+            "start_time": 1476992642,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-release",
+            "locale": "en-US",
+            "name": "release-mozilla-release-firefox_bouncer_aliases",
+            "product": "firefox",
+            "release": "7356baae8e736a6c9444bdd21562df806a39766b",
+            "revision": "7356baae8e736a6c9444bdd21562df806a39766b",
+            "revision12": "7356baae8e73",
+            "version": "49.0.2"
+        },
+        "other": [
+            {
+                "name": "tuxedo_server_url",
+                "value": "https://bounceradmin.mozilla.com/api"
+            },
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-rel-fx_bouncer_aliases-0",
+            "master": "http://buildbot-master72.bb.releng.usw2.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-release-firefox_bouncer_aliases",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-release-noarch/release-mozilla-release-firefox_bouncer_aliases-bm72-build1-build3.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-475",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "7356baae8e736a6c9444bdd21562df806a39766b"}
+        },
+        "tags": ["release"],
+        "task": {"id": "U-CJ_NIHQQi86pn7t7EMag"}
+    },
+    {
+        "action": {
             "buildbot_status": "success",
             "end_time": 1476801004,
             "job_number": 4,
