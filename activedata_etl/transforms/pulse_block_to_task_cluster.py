@@ -443,13 +443,17 @@ BUILD_TYPES = {
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "artifactsTaskId",
     "build_number",
     "created",
     "deadline",
     "description",
     "desiredResolution",
     "encryptedEnv",
+    "en_us_binary_url",
     "graphs",  # POINTER TO graph.json ARTIFACT
+    "locales",
+    "mar_tools_url",
     "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
