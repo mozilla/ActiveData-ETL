@@ -210,7 +210,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         Log.error("problem", cause=e)
 
     set_build_info(source_key, output, task, env, resources)
-    set_run_info(output, task, env)
+    set_run_info(source_key, output, task, env)
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
@@ -259,7 +259,7 @@ def _normalize_run(run):
     return output
 
 
-def set_run_info(normalized, task, env):
+def set_run_info(source_key, normalized, task, env):
     """
     Get the run object that contains properties that describe the run of this job
     :param task: The task definition
@@ -274,6 +274,7 @@ def set_run_info(normalized, task, env):
             "machine": normalized.treeherder.machine,
             "suite": consume(task, "extra.suite"),
             "chunk": coalesce_w_conflict_detection(
+                source_key,
                 consume(task, "extra.chunks.current"),
                 consume(task, "payload.properties.THIS_CHUNK")
             ),
@@ -282,7 +283,7 @@ def set_run_info(normalized, task, env):
     )
 
 
-def coalesce_w_conflict_detection(*args):
+def coalesce_w_conflict_detection(source_key, *args):
     output = None
     for a in args:
         if a == None:
@@ -290,7 +291,7 @@ def coalesce_w_conflict_detection(*args):
         if output == None:
             output = a
         elif a != output:
-            Log.warning("tried to coalesce {{values_|json}}", values_=args)
+            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
         else:
             pass
     return output
@@ -311,6 +312,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         {"build": {
             "name": consume(task, "extra.build_name"),
             "product": coalesce_w_conflict_detection(
+                source_key,
                 consume(task, "payload.properties.product"),
                 consume(task, "tags.build_props.product"),
                 task.extra.treeherder.productName,
@@ -321,6 +323,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
             "url": env.MOZILLA_BUILD_URL,
             "revision": coalesce_w_conflict_detection(
+                source_key,
                 consume(task, "tags.build_props.revision"),
                 consume(task, "payload.sourcestamp.revision"),
                 consume(task, "payload.properties.revision"),
@@ -332,6 +335,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     )
 
     normalized.build.branch = coalesce_w_conflict_detection(
+        source_key,
         consume(task, "tags.build_props.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         consume(task, "payload.properties.repo_path").split("/")[-1],
