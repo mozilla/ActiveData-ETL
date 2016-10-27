@@ -52,35 +52,8 @@
 			"name": "gcov to codecoverage",
 			"source": {
 				"bucket": "active-data-task-cluster-normalized",
-				"public": true,
 				"key_format": "t.a:b",
 				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"destination": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "task_cluster",
-				"type": "task_cluster_log",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/pulse_logs.json"
-				},
-				"debug": true,
-				"limit_replicas": true
-			},
-			"notify": {
-			   "name": "active-data-index-dev",
-			   "$ref": "file://~/private.json#aws_credentials"
-		   	},
-			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
-			"type": "join"
-		},
-		{
-			"name": "tc_pulse to codecoverage",
-			"source": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-task-cluster-logger",
-				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
