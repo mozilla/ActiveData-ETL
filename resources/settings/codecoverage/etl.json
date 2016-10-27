@@ -26,6 +26,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -38,6 +39,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -47,9 +49,9 @@
 	},
 	"workers": [
 		{
-			"name": "tc_pulse to TC Normalized",
+			"name": "gcov to codecoverage",
 			"source": {
-				"bucket": "active-data-task-cluster-logger-dev",
+				"bucket": "active-data-task-cluster-normalized",
 				"public": true,
 				"key_format": "t.a:b",
 				"$ref": "file://~/codecoverage.json#aws_credentials"
@@ -84,7 +86,7 @@
 				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-codecoverage-dev",
 				"public": true,
-				"key_format": "t.a:b.c"
+				"key_format": "t.a:b.c.d"
 			},
 			"notify": {
 				"name": "active-data-index-dev",

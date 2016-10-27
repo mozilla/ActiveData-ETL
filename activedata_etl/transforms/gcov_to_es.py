@@ -9,15 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
+import tempfile
+import zipfile
+from StringIO import StringIO
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
-from pyLibrary.strings import expand_template
-
-from StringIO import StringIO
-import tempfile
-import zipfile
-import os
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -26,13 +25,14 @@ ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{pa
 LIST_TASK_GROUP = "https://queue.taskcluster.net/v1/task-group/{{group_id}}/list"
 RETRY = {"times": 3, "sleep": 5}
 
+
 def process(source_key, source, destination, resources, please_stop=None):
     """
     This transform will turn a pulse message containing info about a gcov artifact (gcda or gcno file) on taskcluster
     into a list of records of method coverages. Each record represents a method in a source file, given a test.
 
-    :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
-    :param source: The source pulse messages, in a batch of (usually) 100
+    :param source_key: The key of the file containing the normalized task cluster messages
+    :param source: The file contents, a cr-delimited list of normalized task cluster messages
     :param destination: The destination for the transformed data
     :param resources: not used
     :param please_stop: The stop signal to stop the current thread
@@ -40,33 +40,35 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
 
-    for msg_line_index, msg_line in enumerate(source.read_lines()):
+    for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
         try:
-            pulse_record = convert.json2value(msg_line)
+            task_cluster_record = convert.json2value(msg_line)
+            # SCRUB PROPERTIES WE DO NOT WANT
+            task_cluster_record.actions = None
+            task_cluster_record.runs = None
+            task_cluster_record.tags = None
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
 
-        run_id = pulse_record.runId # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-        task_id = pulse_record.status.taskId
-        task_group_id = pulse_record.status.taskGroupId
+        artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-        artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY)
+        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
 
-        for artifact in artifacts.artifacts:
-            if "gcda" in artifact.name:
-                process_gcda_artifact(run_id, task_id, task_group_id, artifact)
+        for artifact in artifacts:
+            Log.note("{{name}}", name=artifact.name)
+            if artifact.name.find("gcda")!=-1:
+                process_gcda_artifact(source_key, task_cluster_record, artifact)
 
     return keys
 
 
-def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
+def process_gcda_artifact(source_key, task_cluster_record, artifact):
     Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
 
     tmpdir = tempfile.mkdtemp()
@@ -75,21 +77,17 @@ def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
 
     Log.note('Using temp dir: {{tempdir}}', tempdir=tmpdir)
 
-    # Download the gcda artifact
-    # TEMPORARY: UNTIL WE HOOK THIS UP TO THE PARSED TC RECORDS
-    gcda_full_artifact_url = 'https://public-artifacts.taskcluster.net/%s/%s/%s' % (task_id, run_id, artifact.name)
-
-    Log.note('Fetching gcda artifact: {{url}}', url=gcda_full_artifact_url)
+    Log.note('Fetching gcda artifact: {{url}}', url=artifact.url)
 
     zipdata = StringIO()
-    zipdata.write(http.get(gcda_full_artifact_url).content)
+    zipdata.write(http.get(artifact.url).content)
 
     Log.note('Extracting gcda files to %s/ccov' % tmpdir)
 
     gcda_zipfile = zipfile.ZipFile(zipdata)
     gcda_zipfile.extractall('%s/ccov' % tmpdir)
 
-    artifacts = group_to_gcno_artifact_urls(task_group_id)
+    artifacts = group_to_gcno_artifact_urls(task_cluster_record.task.group.id)
     files = artifacts
 
     for file_url in files:
@@ -106,6 +104,8 @@ def process_gcda_artifact(run_id, task_id, task_group_id, artifact):
         gcno_zipfile.extractall('%s/ccov' % tmpdir)
 
         # TODO: Run LCOV
+    pass
+
 
 def group_to_gcno_artifact_urls(group_id):
     """
