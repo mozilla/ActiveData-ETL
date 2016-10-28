@@ -15,12 +15,13 @@ import zipfile
 from StringIO import StringIO
 from subprocess import Popen, PIPE
 
-from activedata_etl.parse_lcov import parse_lcov_coverage
-
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
 from pyLibrary.strings import expand_template
+from activedata_etl import etl2key
+from activedata_etl.parse_lcov import parse_lcov_coverage
+from activedata_etl.transforms import EtlHeadGenerator
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -42,6 +43,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     :param please_stop: The stop signal to stop the current thread
     :return: The list of keys of files in the destination bucket
     """
+    etl_header_gen = EtlHeadGenerator(source_key)
     keys = []
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
@@ -67,7 +69,6 @@ def process(source_key, source, destination, resources, please_stop=None):
         for artifact in artifacts:
             Log.note("{{name}}", name=artifact.name)
             if artifact.name.find("gcda") != -1:
-                # TODO this should be ran on a separate proces
                 process_gcda_artifact(source_key, task_cluster_record, artifact)
 
     return keys
