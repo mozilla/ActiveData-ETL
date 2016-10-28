@@ -385,6 +385,9 @@ def get_tags(source_key, task_id, task, parent=None):
     if isinstance(platforms, unicode):
         platforms = map(unicode.strip, platforms.split(","))
         tags.append({"name": "platforms", "value": platforms})
+    link = consume(task, "payload.link")
+    if link:
+        tags.append({"name": "link", "value": link})
 
     # VARIOUS LOCATIONS TO FIND TAGS
     t = consume(task, "tags").leaves()
@@ -573,6 +576,7 @@ KNOWN_TAGS = {
     "index.rank",
     "l10n_changesets",
 
+    "link",
     "locations.mozharness",
     "locations.test_packages",
     "locations.build",
