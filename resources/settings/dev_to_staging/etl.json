@@ -135,7 +135,7 @@
 		"type": "join"
 	},
 	{
-		"name": "taskcluster to test_result",
+		"name": "TC Normalized to test_result",
 		"source": {
 			"$ref": "file://~/private.json#aws_credentials",
 			"bucket": "active-data-task-cluster-normalized",
@@ -238,7 +238,7 @@
 			"type": "join"
 		},
 		{
-			"name": "tc_pulse to codecoverage",
+			"name": "tc_normalized to codecoverage",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",

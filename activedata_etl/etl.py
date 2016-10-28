@@ -45,6 +45,8 @@ from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+
+
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -170,7 +172,7 @@ class ETL(Thread):
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
-                elif len(etl_ids)==1 and key2etl(source_key).id==etl_ids[0]:
+                elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
                 else:
                     for i, eid in enumerate(etl_ids):
