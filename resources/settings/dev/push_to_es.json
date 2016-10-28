@@ -100,7 +100,7 @@
 			"rollover": {
 				"field": "build.created_timestamp",
 				"interval": "day",
-				"max": "5day"
+				"max": "10day"
 			},
 			"sample_only": [],
 			"elasticsearch": {
