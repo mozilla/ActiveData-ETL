@@ -13,10 +13,14 @@ import os
 import tempfile
 import zipfile
 from StringIO import StringIO
+from subprocess import Popen, PIPE
+
+from activedata_etl.parse_lcov import parse_lcov_coverage
 
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.env import http
+from pyLibrary.strings import expand_template
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -62,7 +66,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         for artifact in artifacts:
             Log.note("{{name}}", name=artifact.name)
-            if artifact.name.find("gcda")!=-1:
+            if artifact.name.find("gcda") != -1:
+                # TODO this should be ran on a separate proces
                 process_gcda_artifact(source_key, task_cluster_record, artifact)
 
     return keys
@@ -103,8 +108,11 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
         gcno_zipfile = zipfile.ZipFile(zipdata)
         gcno_zipfile.extractall('%s/ccov' % tmpdir)
 
-        # TODO: Run LCOV
-    pass
+        Log.note('Running LCOV on ccov directory')
+ 
+        lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
+
+        Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
 
 def group_to_gcno_artifact_urls(group_id):
@@ -127,3 +135,16 @@ def group_to_gcno_artifact_urls(group_id):
     })
 
     return result.data.url # TODO This is a bit rough for now.
+
+
+def run_lcov_on_directory(directory_path):
+    """
+    Runs lcov on a directory.
+    :param directory_path:
+    :return: array of parsed coverage artifacts (files)
+    """
+
+    proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
+    results = parse_lcov_coverage(proc.stdout)
+
+    return results

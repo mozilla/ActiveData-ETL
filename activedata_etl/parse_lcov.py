@@ -15,10 +15,13 @@ import sys
 import json
 
 
-def parse_lcov_coverage(file_path):
-    # XXX BRDA, BRF, BFH not implemented because not needed
-    # TODO This should support streams instead, for when eventually input is streamed directly
-    # in from lcov via stdout
+def parse_lcov_coverage(stream):
+    """
+    Parses lcov coverage from a stream
+    :param stream:
+    :return:
+    """
+    # XXX BRDA, BRF, BFH not implemented because not used in the output
 
     sources = {}
 
@@ -27,74 +30,73 @@ def parse_lcov_coverage(file_path):
     total_lines_covered = 0
     total_lines_uncovered = 0
 
-    with open(file_path) as f:
-        for line in f:
-            line = line.strip()
+    for line in stream:
+        line = line.strip()
 
-            if line == 'end_of_record':
-                current_source = None
-            else:
-                colon_index = line.index(':')
-                cmd = line[0:colon_index]
-                data = line[colon_index + 1:]
+        if line == 'end_of_record':
+            current_source = None
+        else:
+            colon_index = line.index(':')
+            cmd = line[0:colon_index]
+            data = line[colon_index + 1:]
 
-                if cmd == 'TN':
-                    test_name = data
-                elif cmd == 'SF':
-                    source_file = data
+            if cmd == 'TN':
+                test_name = data
+            elif cmd == 'SF':
+                source_file = data
 
-                    if source_file not in sources:
-                        sources[source_file] = {
-                            'file': source_file,
-                            'functions': {},
-                            'lines_covered': set(),
-                            'lines_uncovered': set(),
-                            'line_execution_counts': {}
-                        }
-
-                    current_source = sources[source_file]
-                elif cmd == 'FNF':
-                    functions_found = int(data)
-                elif cmd == 'FNH':
-                    functions_hit = int(data)
-                elif cmd == 'LF':
-                    lines_found = int(data)
-                elif cmd == 'LH':
-                    lines_hit = int(data)
-                elif cmd == 'DA':
-                    split = data.split(',')
-                    line_number = int(split[0])
-                    execution_count = int(split[1])
-
-                    current_source['line_execution_counts'][line_number] = execution_count
-
-                    if execution_count > 0:
-                        current_source['lines_covered'].add(line_number)
-                        total_lines_covered += 1
-                    else:
-                        current_source['lines_uncovered'].add(line_number)
-                        total_lines_uncovered += 1
-                elif cmd == 'FN':
-                    split = data.split(',')
-                    min_line = int(split[0])
-                    function_name = split[1]
-
-                    current_source['functions'][function_name] = {
-                        'start': min_line,
-                        'execution_count': 0
+                if source_file not in sources:
+                    sources[source_file] = {
+                        'file': source_file,
+                        'functions': {},
+                        'lines_covered': set(),
+                        'lines_uncovered': set(),
+                        'line_execution_counts': {}
                     }
-                elif cmd == 'FNDA':
-                    split = data.split(',')
-                    execution_count = int(split[0])
-                    function_name = split[1]
 
-                    if function_name not in current_source['functions']:
-                        # print('Unknown function %s for FNDA' % function_name)
-                        continue
+                current_source = sources[source_file]
+            elif cmd == 'FNF':
+                functions_found = int(data)
+            elif cmd == 'FNH':
+                functions_hit = int(data)
+            elif cmd == 'LF':
+                lines_found = int(data)
+            elif cmd == 'LH':
+                lines_hit = int(data)
+            elif cmd == 'DA':
+                split = data.split(',')
+                line_number = int(split[0])
+                execution_count = int(split[1])
 
-                    current_source['functions'][function_name]['execution_count'] = execution_count
+                current_source['line_execution_counts'][line_number] = execution_count
+
+                if execution_count > 0:
+                    current_source['lines_covered'].add(line_number)
+                    total_lines_covered += 1
                 else:
-                    print('Unsupported cmd %s with data "%s"' % (cmd, data))
+                    current_source['lines_uncovered'].add(line_number)
+                    total_lines_uncovered += 1
+            elif cmd == 'FN':
+                split = data.split(',')
+                min_line = int(split[0])
+                function_name = split[1]
+
+                current_source['functions'][function_name] = {
+                    'start': min_line,
+                    'execution_count': 0
+                }
+            elif cmd == 'FNDA':
+                split = data.split(',')
+                execution_count = int(split[0])
+                function_name = split[1]
+
+                if function_name not in current_source['functions']:
+                    # print('Unknown function %s for FNDA' % function_name)
+                    continue
+
+                current_source['functions'][function_name]['execution_count'] = execution_count
+            else:
+                print('Unsupported cmd %s with data "%s"' % (cmd, data))
 
     results = []
     results.append({
