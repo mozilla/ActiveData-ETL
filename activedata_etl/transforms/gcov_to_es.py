@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 import os
 import tempfile
+import shutil
 import zipfile
 from StringIO import StringIO
 from subprocess import Popen, PIPE
@@ -29,6 +30,21 @@ ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 LIST_TASK_GROUP = "https://queue.taskcluster.net/v1/task-group/{{group_id}}/list"
 RETRY = {"times": 3, "sleep": 5}
+
+
+def remove_files_recursively(root_directory, file_extension):
+    """
+    Removes files with the given file extension from a directory recursively.
+
+    :param root_directory: The directory to remove files from recursively
+    :param file_extension: The file extension files must match
+    """
+    full_ext = '.%s' % file_extension
+
+    for root, diirs, files in os.walk(root_directory):
+        for file in files:
+            if file.endswith(full_ext):
+                os.remove(os.path.join(root, file))
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -75,6 +91,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
 def process_gcda_artifact(source_key, task_cluster_record, artifact):
+    """
+    Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
+    The lcov results are then processed and converted to the standard ccov format.
+    TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
+    """
     Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
 
     tmpdir = tempfile.mkdtemp()
@@ -97,7 +118,7 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
     files = artifacts
 
     for file_url in files:
-        # TODO delete old gcno files
+        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
         Log.note('Downloading gcno artifact {{file}}', file=file_url)
 
@@ -115,6 +136,9 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
+        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+    shutil.rmtree(tmpdir)
 
 def group_to_gcno_artifact_urls(group_id):
     """
