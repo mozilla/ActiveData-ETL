@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+from activedata_etl.etl import parse_id_argument
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
@@ -18,12 +19,11 @@ from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
-from activedata_etl.etl import parse_id_argument
-from activedata_etl.sinks.multi_day_index import MultiDayIndex
 
 split = {}
 
@@ -35,11 +35,12 @@ def splitter(work_queue, please_stop):
                 v.add(Thread.STOP)
             return
         if pair == None:
+            Thread.sleep(seconds=5)
             continue
 
         message, payload = pair
         if not isinstance(payload, Mapping):
-            Log.error("Not expecting a Mapping payload")
+            Log.error("Not expecting a Mapping payload with `key` and `bucket` properties")
 
         key = payload.key
         with Explanation("Indexing records from {{bucket}}", bucket=payload.bucket):
@@ -49,14 +50,14 @@ def splitter(work_queue, please_stop):
                 continue
 
         es = params.es
-        bucket = params.bucket
+        source_bucket = params.bucket
         settings = params.settings
 
         extend_time = Timer("insert", silent=True)
 
         with extend_time:
             if settings.skip and Random.float() < settings.skip:
-                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
+                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
                 work_queue.add(payload)
                 message.delete()
                 continue
@@ -68,21 +69,22 @@ def splitter(work_queue, please_stop):
             else:
                 sample_filter = None
 
-            Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=bucket.name)
-            more_keys = bucket.keys(prefix=key)
+            Log.note("Indexing {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
+            more_keys = source_bucket.keys(prefix=key)
             if not more_keys:
-                Log.warning("No keys found {{message|json}}", message=payload)
+                # HAPPENS WHEN REPROCESSING (ETL WOULD HAVE CLEARED THE BUCKET OF THIS PREFIX FIRST)
+                Log.warning("No files found in bucket {{message|json}}", message=payload)
+                message.delete()
+                num_keys = 0
             else:
-                num_keys = es.copy(more_keys, bucket, sample_filter, settings.sample_size)
-
-            add_message_to_queue(es.queue, payload.key, message)
+                num_keys = es.copy(more_keys, source_bucket, sample_filter, settings.sample_size, message.delete)
 
         if num_keys > 1:
             Log.note(
                 "Added {{num}} keys from {{key}} in {{bucket}} to {{es}} in {{duration}} ({{rate|round(places=3)}} keys/second)",
                 num=num_keys,
                 key=key,
-                bucket=bucket.name,
+                bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
                 rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
@@ -98,7 +100,7 @@ def safe_splitter(work_queue, please_stop):
             Log.warning("problem", cause=e)
 
 
-def add_message_to_queue(queue, payload_key, message):
+def add_message_confirmation(queue, payload_key, message):
     def _delete():
         # Log.note("confirming message for {{id}}", id=payload_key)
         message.delete()
@@ -110,7 +112,7 @@ def main():
     try:
         settings = startup.read_settings(defs=[
             {
-                "name": ["--id"],
+                "name": ["--id", "--key"],
                 "help": "id to process (prefix is ok too) ",
                 "type": str,
                 "dest": "id",
@@ -167,12 +169,22 @@ def main():
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
+            if not w.rollover.interval or not w.rollover.field:
+                Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
+
             split[w.source.bucket] = Dict(
-                es=MultiDayIndex(w.elasticsearch, queue_size=coalesce(w.queue_size, 1000), batch_size=unwrap(w.batch_size)),
+                es=RolloverIndex(
+                    rollover_field=w.rollover.field,
+                    rollover_interval=w.rollover.interval,
+                    rollover_max=w.rollover.max,
+                    queue_size=coalesce(w.queue_size, 1000),
+                    batch_size=unwrap(w.batch_size),
+                    settings=w.elasticsearch
+                ),
                 bucket=s3.Bucket(w.source),
                 settings=w
             )
-            Log.note("Bucket {{bucket}} using {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.es.url)
+            Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)

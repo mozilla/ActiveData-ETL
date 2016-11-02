@@ -8,18 +8,22 @@
 		{
 			"name": "unit",
 			"batch_size": 5000,
-			"skip": 0.5,
-			"sample_only": [],
+			"skip": 0,
+			"rollover_field": "build.date",
+			"rollover_interval": "week",
+			"sample_only": [
+			],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
@@ -30,6 +34,8 @@
 		},
 		{
 			"name": "perf",
+			"rollover_field": "build.date",
+			"rollover_interval": "year",
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": [],
@@ -39,6 +45,7 @@
 				"index": "perf",
 				"type": "perf_result",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
@@ -46,13 +53,15 @@
 				"limit_replicas": false
 			},
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-perf",
+				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b.c"
 			}
 		},
 		{
 			"name": "jobs",
+			"rollover_field": "build.date",
+			"rollover_interval": "3month",
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
@@ -61,45 +70,52 @@
 				"index": "jobs",
 				"type": "job",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-jobs",
+				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "a.b"
 			}
 		},
-		{
-			"name": "code coverage",
-			"queue_size": 2000,
-			"batch_size": 1000,
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "coverage",
-				"type": "code_coverage",
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/code_coverage.json"
-				},
-				"debug": true,
-				"limit_replicas": false
-			},
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage",
-				"key_format": "t.a:b.c"
-			}
-		},
+//		{
+//			"name": "code coverage",
+//			"skip": 0.7,
+//			"queue_size": 2000,
+//			"batch_size": 1000,
+//			"rollover_field": "build.created_timestamp",
+//			"rollover_interval": "day",
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://localhost",
+//				"port": 9200,
+//				"index": "coverage",
+//				"type": "code_coverage",
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../../schema/code_coverage.json"
+//				},
+//				"debug": false,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"bucket": "active-data-codecoverage",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "t.a:b.c"
+//			}
+//		},
 		{
 			"name": "task",
 			"queue_size": 2000,
 			"batch_size": 1000,
+			"rollover_field": "task.created",
+			"rollover_interval": "3month",
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -107,15 +123,16 @@
 				"index": "task",
 				"type": "task",
 				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
+				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b"
 			}
 		}

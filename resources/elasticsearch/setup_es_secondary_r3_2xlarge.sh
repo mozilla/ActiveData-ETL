@@ -14,6 +14,8 @@
 # }
 
 
+sudo ifconfig eth0 mtu 1500
+
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
 # ORACLE'S JAVA VERISON 8 IS APPARENTLY MUCH FASTER
@@ -47,6 +49,7 @@ sudo bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
 # BE SURE YOUR elasticsearch.yml FILE IS HAS
 #     http.cors.enabled: true
 #     http.cors.allow-origin: "*"
+
 sudo bin/plugin install mobz/elasticsearch-head
 
 
@@ -70,9 +73,9 @@ sudo mkfs -t ext4 /dev/xvde
 sudo mkfs -t ext4 /dev/xvdf
 sudo mkfs -t ext4 /dev/xvdg
 
-
 #MOUNT (NO FORMAT)
 #sudo mount /dev/xvdb /data1
+
 
 
 sudo mkdir /data1

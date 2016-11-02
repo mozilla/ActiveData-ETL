@@ -22,6 +22,7 @@ from pyLibrary.dot import wrap, unwrap, listwrap
 from pyLibrary.dot.dicts import Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.maths import Math
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import Schema, wrap_from
 from pyLibrary.queries.containers import Container, STRUCT
 from pyLibrary.queries.dimensions import Dimension
@@ -55,7 +56,6 @@ class QueryOp(Expression):
         for s in QueryOp.__slots__:
             setattr(output, s, None)
         return output
-
 
     def __init__(self, op, frum, select=None, edges=None, groupby=None, window=None, where=None, sort=None, limit=None, format=None):
         if isinstance(frum, Container):
@@ -207,13 +207,13 @@ class QueryOp(Expression):
         if not schema and isinstance(output.frum, Schema):
             schema = output.frum
 
-        if query.select:
+        if query.select or isinstance(query.select, (Mapping, list)):
             output.select = _normalize_selects(query.select, query.frum, schema=schema)
         else:
             if query.edges or query.groupby:
                 output.select = Dict(name="count", value=jx_expression("."), aggregate="count", default=0)
             else:
-                output.select = _normalize_selects(".", query["from"])
+                output.select = _normalize_selects(".", query.frum)
 
         if query.groupby and query.edges:
             Log.error("You can not use both the `groupby` and `edges` clauses in the same query!")
@@ -282,7 +282,11 @@ canonical_aggregates = wrap({
 def _normalize_selects(selects, frum, schema=None, ):
     if frum == None or isinstance(frum, (list, set, unicode)):
         if isinstance(selects, list):
-            output = [_normalize_select_no_context(s, schema=schema) for s in selects]
+            if len(selects) == 0:
+                output = Dict()
+                return output
+            else:
+                output = [_normalize_select_no_context(s, schema=schema) for s in selects]
         else:
             return _normalize_select_no_context(selects)
     elif isinstance(selects, list):
@@ -389,7 +393,10 @@ def _normalize_select_no_context(select, schema=None):
     output = select.copy()
     if not select.value:
         output.name = coalesce(select.name, select.aggregate)
-        output.value = jx_expression(".")
+        if output.name:
+            output.value = jx_expression(".")
+        else:
+            return output
     elif isinstance(select.value, basestring):
         if select.value.endswith(".*"):
             output.name = coalesce(select.name, select.value[:-2], select.aggregate)
@@ -412,7 +419,6 @@ def _normalize_select_no_context(select, schema=None):
     if output.name.endswith(".*"):
         Log.error("{{name|quote}} is invalid select", name=output.name)
 
-
     output.aggregate = coalesce(canonical_aggregates[select.aggregate].name, select.aggregate, "none")
     output.default = coalesce(select.default, canonical_aggregates[output.aggregate].default)
     return output
@@ -426,7 +432,9 @@ def _normalize_edge(edge, schema=None):
     if not _Column:
         _late_import()
 
-    if isinstance(edge, basestring):
+    if edge == None:
+        Log.error("Edge has no value, or expression is empty")
+    elif isinstance(edge, basestring):
         if schema:
             try:
                 e = schema[edge]
@@ -502,7 +510,7 @@ def _normalize_group(edge, schema=None):
         return wrap({
             "name": edge,
             "value": jx_expression(edge),
-            "allowNulls": True,
+            "allowNulls": False,
             "domain": {"type": "default"}
         })
     else:

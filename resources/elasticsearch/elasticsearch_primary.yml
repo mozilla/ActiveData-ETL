@@ -7,7 +7,7 @@ node.data: true
 script.inline: on
 script.indexed: on
 
-
+cluster.routing.allocation.enable: none
 cluster.routing.allocation.awareness.force.zone.values: primary,secondary,spot
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
@@ -45,4 +45,3 @@ http.timeout: 600
 
 threadpool.bulk.queue_size: 3000
 threadpool.index.queue_size: 1000
-

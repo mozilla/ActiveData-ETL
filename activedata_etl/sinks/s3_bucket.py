@@ -77,9 +77,7 @@ class S3Bucket(object):
         for d in wrap(documents):
             parent_key = etl2key(key2etl(d.id).source)
             d.value._id = d.id
-            sub = parts.get(parent_key)
-            if not sub:
-                sub = parts[parent_key] = []
+            sub = parts.setdefault(parent_key, [])
             sub.append(d.value)
 
         for k, docs in parts.items():
@@ -88,12 +86,6 @@ class S3Bucket(object):
         return set(parts.keys())
 
     def _extend(self, key, documents, overwrite=False):
-        #TODO: FIND OUT IF THIS FUNCTION IS EVER USED (TALOS MAYBE?)
-        if self.bucket.name == "ekyle-test-result":
-             #TODO: PUT THIS LOGIC ELSEWHERE (LIKE settings) WE DO NOT CARE WHAT'S IN THE BUCKET, OVERWRITE ALL
-            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
-            return
-
         if overwrite:
             self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
             return

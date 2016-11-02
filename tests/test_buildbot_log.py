@@ -11,17 +11,19 @@ from __future__ import unicode_literals
 
 import itertools
 
+from activedata_etl.buildbot_json_logs import parse_day
+from activedata_etl.imports import buildbot
+from activedata_etl.imports.buildbot import BuildbotTranslator
+from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 from pyLibrary import convert, jsons
-from pyLibrary.aws import s3
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import listwrap
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from activedata_etl.buildbot_json_jogs import parse_day
-from activedata_etl.imports import buildbot
-from activedata_etl.imports.buildbot import BuildbotTranslator
-from activedata_etl.transforms.pulse_block_to_job_logs import process_buildbot_log
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import DAY
 
 false = False
 true = True
@@ -47,15 +49,18 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         translator = BuildbotTranslator()
 
-        builds = convert.json2value(File("tests/resources/buildbot.json").read())
+        builds = convert.json2value(File("tests/resources/buildbot.json").read(), flexible=True)
         if COMPARE_TO_EXPECTED:
-            expected = convert.json2value(File("tests/resources/buildbot_results.json").read())
+            expected = convert.json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
         else:
             expected = []
 
         results = []
         failures = []
         for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
+            if e != None:
+                e.other = set(listwrap(e.other))
+                e.properties.uploadFiles = set(listwrap(e.properties.uploadFiles))
             try:
                 result = translator.parse(b)
                 results.append(result)
@@ -73,6 +78,38 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         if not COMPARE_TO_EXPECTED:
             File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
+
+    def test_by_key_day(self):
+        day = 634
+        date = Date("2015/01/01") + day * DAY
+        filename = date.format("builds-%Y-%m-%d.js.gz")
+
+        settings = jsons.ref.expand({
+            "force": true,
+            "source": {
+                "url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
+            },
+            "destination": {
+                "bucket": "active-data-buildbot",
+                "public": true,
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "notify": {
+                "name": "active-data-etl",
+                "$ref": "file://~/private.json#aws_credentials"
+            },
+            "constants": {
+                "pyLibrary.env.http.default_headers": {
+                    "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+                    "User-Agent": "ActiveData-ETL"
+                }
+            },
+            "debug": {"cprofile": False}
+        }, "file:///")
+
+        Log.start(settings.debug)
+
+        parse_day(settings, filename, force=True)
 
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"
@@ -125,5 +162,5 @@ class TestBuildbotLogs(FuzzyTestCase):
         #
         #     Log.note("{{line}}", line=l)
 
-        data = process_buildbot_log(response.get_all_lines(encoding=None), url)
+        data = process_text_log(response.get_all_lines(encoding=None), url)
         Log.note("{{data}}", data=data)

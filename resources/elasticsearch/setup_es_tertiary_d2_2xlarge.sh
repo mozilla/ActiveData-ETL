@@ -13,6 +13,7 @@
 #   ]
 # }
 
+sudo ifconfig eth0 mtu 1500
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
@@ -74,7 +75,7 @@ sudo mkfs -t ext4 /dev/xvdg
 
 #MOUNT (NO FORMAT)
 #sudo mount /dev/xvdb /data1
-#sudo mount /dev/xvdb /data1
+
 
 
 sudo mkdir /data1

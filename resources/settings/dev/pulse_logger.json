@@ -2,8 +2,8 @@
 	"source": {
 		"name": "Buildbot",
 		"prefix": "bb",
-		"exchange": "exchange/build/normalized",
-		"topic": "#",
+		"exchange": "exchange/build",
+		"topic": "#.log_uploaded",
 		"durable": true,
 		"timeout":600,
 		"queue": "pulse_logger_dev",
@@ -11,6 +11,7 @@
 		"debug": false
 	},
 	"destination": {
+		"key_prefix": "bb",
 		"bucket": "active-data-pulse-dev",
 		"public": true,    // default = false
 		"$ref": "file://~/private.json#aws_credentials"

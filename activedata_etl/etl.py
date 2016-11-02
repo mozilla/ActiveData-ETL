@@ -32,6 +32,7 @@ from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
@@ -41,10 +42,11 @@ from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.multi_day_index import MultiDayIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+
+
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -91,7 +93,7 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = dot.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?)", path=t_name)
+                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
                     # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
                     w._transformer = w._transformer.__new__()
@@ -170,7 +172,7 @@ class ETL(Thread):
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
-                elif len(etl_ids)==1 and key2etl(source_key).id==etl_ids[0]:
+                elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
                 else:
                     for i, eid in enumerate(etl_ids):
@@ -287,6 +289,7 @@ class ETL(Thread):
                     self.work_queue.commit()
                     continue
 
+
                 try:
                     is_ok = self._dispatch_work(todo)
                     if is_ok:
@@ -295,11 +298,33 @@ class ETL(Thread):
                         self.work_queue.rollback()
                 except Exception, e:
                     # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
-                    if "Shutdown detected." not in e:
-                        previous_attempts = coalesce(todo.previous_attempts, 0)
+                    if "Shutdown detected." in e:
+                        continue
+
+                    previous_attempts = coalesce(todo.previous_attempts, 0)
+                    todo.previous_attempts = previous_attempts + 1
+
+                    if previous_attempts < coalesce(self.settings.min_attempts, 3):
+                        # SILENT
                         try:
-                            # TRY TO MARKUP THE MESSAGE
-                            todo.previous_attempts = previous_attempts + 1
+                            self.work_queue.add(todo)
+                            self.work_queue.commit()
+                        except Exception, f:
+                            # UNEXPECTED PROBLEM!!!
+                            self.work_queue.rollback()
+                            Log.warning("Could not annotate todo", cause=[f, e])
+                    elif previous_attempts > 10:
+                        #GIVE UP
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
+                        self.work_queue.commit()
+                    else:
+                        # COMPLAIN
+                        try:
                             self.work_queue.add(todo)
                             self.work_queue.commit()
                         except Exception, f:
@@ -307,22 +332,19 @@ class ETL(Thread):
                             self.work_queue.rollback()
                             Log.warning("Could not annotate todo", cause=[f, e])
 
-                        if previous_attempts == 0:
-                            pass
-                        else:
-                            Log.warning(
-                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
-                                tries=todo.previous_attempts,
-                                key=todo.key,
-                                cause=e
-                            )
+                        Log.warning(
+                            "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                            tries=todo.previous_attempts,
+                            key=todo.key,
+                            cause=e
+                        )
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
 
 def get_container(settings):
-    if isinstance(settings, (MultiDayIndex, aws.s3.Bucket)):
+    if isinstance(settings, (RolloverIndex, aws.s3.Bucket)):
         return settings
 
     if settings == None:
@@ -456,7 +478,7 @@ def etl_one(settings):
         treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
     )
 
-    stopper = Signal()
+    stopper = Signal("main stop signal")
     ETL(
         name="ETL Loop Test",
         work_queue=queue,
