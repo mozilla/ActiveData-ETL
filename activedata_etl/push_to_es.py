@@ -15,13 +15,14 @@ from activedata_etl.etl import parse_id_argument
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.exceptions import Explanation, WarnOnException, suppress_exception
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
+from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
 
@@ -112,6 +113,22 @@ def add_message_confirmation(queue, payload_key, message):
     queue.add(_delete)
 
 
+def shutdown_local_es_node():
+    Log.warning("Shutdown ES on node {{node}}", machine_metadata)
+
+    proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
+
+    try:
+        while True:
+            line = proc.stdout.pop().strip()
+            if not line:
+                continue
+            Log.note("Shutdown es: {{note}}", note=line)
+    finally:
+        with suppress_exception:
+            proc.join()
+
+
 def main():
     try:
         settings = startup.read_settings(defs=[
@@ -191,6 +208,11 @@ def main():
             Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
+        aws_shutdown = Signal("aws shutdown")
+        aws_shutdown.on_go(shutdown_local_es_node())
+        aws_shutdown.on_go(lambda: please_stop.go())
+        aws.capture_termination_signal(aws_shutdown)
+
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
@@ -200,7 +222,6 @@ def main():
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
-        aws.capture_termination_signal(please_stop)
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
         Log.note("Shutdown started")
