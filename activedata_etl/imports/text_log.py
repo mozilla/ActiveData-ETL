@@ -162,7 +162,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             # INJECT CHILDREN INTO THIS LIST
             new_build_times.extend([
                 {
-                    "builder": {"step": b.step},
+                    "step": b.step,
                     "harness": c
                 }
                 for c in b.children
@@ -176,6 +176,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     except Exception, e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
+    action.start_time = start_time
     action.end_time = end_time
     action.duration = end_time - start_time
     action.harness_time_zone = new_mozharness_line.time_zone

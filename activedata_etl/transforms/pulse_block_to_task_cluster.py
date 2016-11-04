@@ -22,6 +22,7 @@ from pyLibrary.debugs.exceptions import suppress_exception, Except
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
+from pyLibrary.maths import Math
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
@@ -195,8 +196,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.group = consume(tc_message, "workerGroup")
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
+
     # DELETE JUNK
     consume(task, "payload.routes")
+    if not task.payload.mounts:
+        consume(task, "payload.mounts")
 
     artifacts = consume(task, "payload.artifacts")
     try:
@@ -266,6 +270,7 @@ def _normalize_run(run):
     output.scheduled = Date(run.scheduled)
     output.start_time = Date(run.started)
     output.end_time = Date(run.takenUntil)
+    output.duration = Date(run.takenUntil) - Date(run.started)
     output.state = run.state
     output.worker.group = run.workerGroup
     output.worker.id = run.workerId
@@ -278,19 +283,60 @@ def set_run_info(source_key, normalized, task, env):
     :param task: The task definition
     :return: The run object
     """
+
+    run_type = []
     metadata_name = consume(task, "metadata.name")
+    if "-e10s" in metadata_name:
+        metadata_name = metadata_name.replace("-e10s", "")
+        run_type += ["e10s"]
+
+    # PARSE TEST SUITE NAME
+    suite = consume(task, "extra.suite")
+    test = suite.name.lower()
+
+    # FLAVOR
+    flavor = suite.flavor.lower()
+    if test == flavor:
+        flavor = None
+    elif flavor.startswith(test + "-"):
+        flavor = flavor[len(test) + 1::]
+
+    if test.startswith("mochitest-"):
+        # mochitest-chrome
+        # mochitest-media-2
+        # mochitest-plain-clipboard
+        path = test.split("-")
+        test = path[0]
+        flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
+
+    if flavor and "-e10s" in flavor:
+        flavor = flavor.replace("-e10s", "").strip()
+        if not flavor:
+            flavor = None
+        run_type += ["e10s"]
+
+    # CHUNK NUMBER
+    chunk = None
+    path = test.split("-")
+    if Math.is_integer(path[-1]):
+        chunk = int(path[-1])
+        test = "-".join(path[:-1])
+    chunk = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "extra.chunks.current"),
+        consume(task, "payload.properties.THIS_CHUNK"),
+        chunk
+    )
+
     set_default(
         normalized,
         {"run": {
             "key": consume(task, "payload.buildername"),
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
-            "suite": consume(task, "extra.suite"),
-            "chunk": coalesce_w_conflict_detection(
-                source_key,
-                consume(task, "extra.chunks.current"),
-                consume(task, "payload.properties.THIS_CHUNK")
-            ),
+            "suite": {"name": test, "flavor": flavor, "fullname": test + ("-" + flavor if flavor else "")},
+            "chunk": chunk,
+            "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
         }}
     )
