@@ -41,7 +41,7 @@ def remove_files_recursively(root_directory, file_extension):
     """
     full_ext = '.%s' % file_extension
 
-    for root, diirs, files in os.walk(root_directory):
+    for root, dirs, files in os.walk(root_directory):
         for file in files:
             if file.endswith(full_ext):
                 os.remove(os.path.join(root, file))
@@ -85,17 +85,18 @@ def process(source_key, source, destination, resources, please_stop=None):
         for artifact in artifacts:
             Log.note("{{name}}", name=artifact.name)
             if artifact.name.find("gcda") != -1:
-                process_gcda_artifact(source_key, task_cluster_record, artifact)
+                keys.extend(process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artifact))
 
     return keys
 
 
-def process_gcda_artifact(source_key, task_cluster_record, artifact):
+def process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
+    keys = []
     Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
 
     tmpdir = tempfile.mkdtemp()
@@ -109,7 +110,7 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
     zipdata = StringIO()
     zipdata.write(http.get(artifact.url).content)
 
-    Log.note('Extracting gcda files to %s/ccov' % tmpdir)
+    Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
 
     gcda_zipfile = zipfile.ZipFile(zipdata)
     gcda_zipfile.extractall('%s/ccov' % tmpdir)
@@ -122,10 +123,17 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
 
         Log.note('Downloading gcno artifact {{file}}', file=file_url)
 
+        _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=file_url)
+        add_tc_prefix(dest_etl)
+
+        etl_key = etl2key(dest_etl)
+        keys.append(etl_key)
+        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+
         zipdata = StringIO()
         zipdata.write(http.get(file_url).content)
 
-        Log.note('Extracting gcno files to %s/ccov' % tmpdir)
+        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
 
         gcno_zipfile = zipfile.ZipFile(zipdata)
         gcno_zipfile.extractall('%s/ccov' % tmpdir)
@@ -139,6 +147,7 @@ def process_gcda_artifact(source_key, task_cluster_record, artifact):
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
     shutil.rmtree(tmpdir)
+    return keys
 
 def group_to_gcno_artifact_urls(group_id):
     """
@@ -173,3 +182,10 @@ def run_lcov_on_directory(directory_path):
     results = parse_lcov_coverage(proc.stdout)
 
     return results
+
+
+def add_tc_prefix(dest_etl):
+    # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+    if not dest_etl.source.source.source:
+        dest_etl.source.source.type = "join"
+        dest_etl.source.source.source = {"id": "tc"}
