@@ -97,9 +97,11 @@ class RolloverIndex(object):
         for c in candidates:
             timestamp = unicode2Date(c.index[-15:], "%Y%m%d_%H%M%S")
             if timestamp + self.rollover_interval < Date.today() - self.rollover_max:
-                Log.warning("Will delete {{index}}", index=c.index)
-                # self.cluster.delete_index(c.index)
-
+                # Log.warning("Will delete {{index}}", index=c.index)
+                try:
+                    self.cluster.delete_index(c.index)
+                except Exception, e:
+                    Log.warning("could not delete index {{index}}", index=c.index, cause=e)
         for t, q in list(self.known_queues.items()):
             if unix2Date(t) + self.rollover_interval < Date.today() - self.rollover_max:
                 del self.known_queues[t]

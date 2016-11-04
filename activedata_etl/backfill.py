@@ -126,7 +126,6 @@ def get_all_in_es(es, in_range, es_filter, field):
         with suppress_exception:
             good_es.append(int(k))
 
-
     Log.note(
         "got {{num}} from {{index}}",
         num=len(good_es),
