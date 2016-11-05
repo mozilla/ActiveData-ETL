@@ -421,7 +421,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     diff = treeherder.collection.keys() - BUILD_TYPE_KEYS
     if diff:
-        Log.warning("new collection type of {{type}} while processing key", type=diff, key=source_key)
+        Log.warning("new collection type of {{type}} while processing key {{key}}", type=diff, key=source_key)
 
 
 def get_tags(source_key, task_id, task, parent=None):
@@ -511,6 +511,7 @@ BUILD_TYPES = {
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
+    "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],

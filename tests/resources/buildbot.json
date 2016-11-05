@@ -1,5 +1,38 @@
 [
 	{
+	    "builder_id": 697604,
+	    "buildnumber": 5,
+	    "endtime": 1477412805,
+	    "id": 110307844,
+	    "master_id": 152,
+	    "properties": {
+	        "basedir": "/builds/slave/rel-m-beta-fx_mark_as_shipped-",
+	        "branch": "mozilla-beta",
+	        "build_number": 1,
+	        "buildername": "release-mozilla-beta-firefox_mark_as_shipped",
+	        "buildnumber": 5,
+	        "log_url": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_mark_as_shipped-bm70-build1-build5.txt.gz",
+	        "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/",
+	        "next_version": "50.0b11",
+	        "product": "firefox",
+	        "release_promotion": true,
+	        "repo_path": "releases/mozilla-beta",
+	        "request_ids": [129222718],
+	        "request_times": {"129222718": 1477367713},
+	        "revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
+	        "script_repo_revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
+	        "slavename": "bld-linux64-spot-223",
+	        "taskId": "olkHXGt1QCuIn1iQ_PmTqw",
+	        "version": "50.0b10"
+	    },
+	    "reason": "Created by BBB for task olkHXGt1QCuIn1iQ_PmTqw",
+	    "request_ids": [129222718],
+	    "requesttime": 1477367713,
+	    "result": 0,
+	    "slave_id": 9858,
+	    "starttime": 1477412796
+	},
+	{
 	    "builder_id": 607538,
 	    "buildnumber": 3,
 	    "endtime": 1476992645,
