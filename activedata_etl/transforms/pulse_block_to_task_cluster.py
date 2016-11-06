@@ -185,8 +185,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
 
-
-
     artifacts = consume(task, "payload.artifacts")
     try:
 
