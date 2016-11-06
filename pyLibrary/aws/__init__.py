@@ -131,7 +131,7 @@ def capture_termination_signal(please_stop):
         while not please_stop:
             try:
                 response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
-                if Math.round(response.status_code, decimal=-2):
+                if response.status_code in [400, 404]:
                     please_stop.go()
                     return
             except Exception, e:
