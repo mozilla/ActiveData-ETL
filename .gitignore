@@ -20,3 +20,4 @@ log.txt
 /resources/settings/raptor_settings.json
 /activedata_etl/raptor.py
 /mohg/.svn
+/activedata_etl/imports/gcov.py

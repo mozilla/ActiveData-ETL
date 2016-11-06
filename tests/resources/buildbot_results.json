@@ -2,6 +2,166 @@
     {
         "action": {
             "buildbot_status": "success",
+            "end_time": 1477412805,
+            "job_number": 5,
+            "reason": "Created by BBB for task olkHXGt1QCuIn1iQ_PmTqw",
+            "request_time": 1477367713,
+            "requests": [
+                {
+                    "request_id": 129222718,
+                    "timestamp": 1477367713
+                }
+            ],
+            "start_time": 1477412796,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-firefox_mark_as_shipped",
+            "product": "firefox",
+            "release": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
+            "revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
+            "revision12": "38cfded17052",
+            "version": "50.0b10"
+        },
+        "other": [
+            {
+                "name": "release_promotion",
+                "value": true
+            },
+            {
+                "name": "next_version",
+                "value": "50.0b11"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fx_mark_as_shipped-",
+            "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-firefox_mark_as_shipped",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_mark_as_shipped-bm70-build1-build5.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-223",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec"}
+        },
+        "tags": ["release"],
+        "task": {"id": "olkHXGt1QCuIn1iQ_PmTqw"}
+    },
+    {
+        "action": {
+            "buildbot_status": "cancelled",
+            "end_time": 1476992645,
+            "job_number": 3,
+            "reason": "Created by BBB for task U-CJ_NIHQQi86pn7t7EMag",
+            "request_time": 1476920575,
+            "requests": [
+                {
+                    "request_id": 128698393,
+                    "timestamp": 1476920575
+                }
+            ],
+            "start_time": 1476992642,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-release",
+            "locale": "en-US",
+            "name": "release-mozilla-release-firefox_bouncer_aliases",
+            "product": "firefox",
+            "release": "7356baae8e736a6c9444bdd21562df806a39766b",
+            "revision": "7356baae8e736a6c9444bdd21562df806a39766b",
+            "revision12": "7356baae8e73",
+            "version": "49.0.2"
+        },
+        "other": [
+            {
+                "name": "tuxedo_server_url",
+                "value": "https://bounceradmin.mozilla.com/api"
+            },
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-rel-fx_bouncer_aliases-0",
+            "master": "http://buildbot-master72.bb.releng.usw2.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-release-firefox_bouncer_aliases",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-release-noarch/release-mozilla-release-firefox_bouncer_aliases-bm72-build1-build3.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-475",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "7356baae8e736a6c9444bdd21562df806a39766b"}
+        },
+        "tags": ["release"],
+        "task": {"id": "U-CJ_NIHQQi86pn7t7EMag"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1476801004,
+            "job_number": 4,
+            "reason": "Created by BBB for task JawA2fkSTveFmzv98Dq4aw",
+            "request_time": 1476746840,
+            "requests": [
+                {
+                    "request_id": 128305720,
+                    "timestamp": 1476746840
+                }
+            ],
+            "start_time": 1476800997,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-firefox_publish_balrog",
+            "product": "firefox",
+            "release": "b7adb2f10487f6f886e047670ba720a248edcb44",
+            "revision": "b7adb2f10487f6f886e047670ba720a248edcb44",
+            "revision12": "b7adb2f10487",
+            "version": "50.0b8"
+        },
+        "other": [
+            {
+                "name": "balrog_api_root",
+                "value": "https://aus4-admin.mozilla.org/api"
+            },
+            {
+                "name": "channels",
+                "value": "beta"
+            },
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fx_publish_balrog-0",
+            "master": "http://buildbot-master77.bb.releng.use1.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-firefox_publish_balrog",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-firefox_publish_balrog-bm77-build1-build4.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-233",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "b7adb2f10487f6f886e047670ba720a248edcb44"}
+        },
+        "tags": ["release"],
+        "task": {"id": "JawA2fkSTveFmzv98Dq4aw"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
             "end_time": 1476212268,
             "job_number": 6,
             "reason": "Created by BBB for task JQNPowFwSjGBJCfyMiuP_A",

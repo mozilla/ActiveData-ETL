@@ -9,20 +9,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import taskcluster
-
-from mohg.repos.changesets import Changeset
-from mohg.repos.revisions import Revision
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Dict, unwraplist, set_default
-from pyLibrary.env import http
-from pyLibrary.jsons import stream
-from pyLibrary.strings import expand_template
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
 from activedata_etl.transforms import EtlHeadGenerator
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log, machine_metadata
+from pyLibrary.dot import wrap, unwraplist, set_default
+from pyLibrary.env import http
+from pyLibrary.jsons import stream
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
@@ -73,18 +68,24 @@ def process(source_key, source, destination, resources, please_stop=None):
             if "jscov" not in artifact.name:
                 continue
 
-            if ccov_artifact_count == 0:
-                # TEMP, WHILE WE MONITOR
-                Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
+            # if ccov_artifact_count == 0:
+            #     # TEMP, WHILE WE MONITOR
+            #     Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
             ccov_artifact_count += 1
+            _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
 
             # fetch the artifact
             response_stream = http.get(artifact.url).raw
 
-            _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-
             records = []
             with Timer("Processing {{ccov_file}}", param={"ccov_file": artifact.url}):
+                def count_generator():
+                    count = 0
+                    while True:
+                        yield count
+                        count += 1
+                counter = count_generator().next
+
                 for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
                     if please_stop:
                         Log.error("Shutdown detected. Stopping job ETL.")
@@ -98,11 +99,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
                     try:
                         process_source_file(
-                            file_etl,
+                            artifact_etl,
+                            counter,
                             obj,
                             task_cluster_record,
-                            records,
-                            keys
+                            records
                         )
                     except Exception, e:
                         Log.warning(
@@ -112,13 +113,15 @@ def process(source_key, source, destination, resources, please_stop=None):
                             cause=e
                         )
 
-            with Timer("writing {{num}} records to s3", {"num": len(records)}):
+            key = etl2key(artifact_etl)
+            keys.append(key)
+            with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": key}):
                 destination.extend(records, overwrite=True)
 
     return keys
 
 
-def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
+def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -147,7 +150,7 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
 
     # iterate through the methods of this source file
     # a variable to count the number of lines so far for this source file
-    for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
+    for method_name, method_lines in obj.methods.iteritems():
         all_method_lines = set(method_lines)
         method_covered = all_method_lines & file_covered
         method_uncovered = all_method_lines - method_covered
@@ -174,7 +177,7 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
                     }
                 },
                 "etl": {
-                    "id": count + 1,
+                    "id": count(),
                     "source": parent_etl,
                     "type": "join",
                     "machine": machine_metadata,
@@ -185,7 +188,6 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
         )
         key = etl2key(new_record.etl)
         records.append({"id": key, "value": new_record})
-        keys.append(key)
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
@@ -207,7 +209,7 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
                 }
             },
             "etl": {
-                "id": 0,
+                "id": count(),
                 "source": parent_etl,
                 "type": "join",
                 "machine": machine_metadata,
@@ -218,77 +220,3 @@ def process_source_file(parent_etl, obj, task_cluster_record, records, keys):
     )
     key = etl2key(new_record.etl)
     records.append({"id": key, "value": new_record})
-    keys.append(key)
-
-def get_revision_info(task_definition, resources):
-    """
-    Get the changeset, revision and push info for a given task in TaskCluster
-
-    :param task_definition: The task definition
-    :param resources: Pass this from the process method
-    :return: The repo object containing information about the changeset, revision and push
-    """
-
-    # head_repo will look like "https://hg.mozilla.org/try/"
-    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
-    branch = head_repo.split("/")[-2]
-
-    revision = task_definition.payload.env.GECKO_HEAD_REV
-    rev = Revision(branch={"name": branch}, changeset=Changeset(id=revision))
-    repo = resources.hg.get_revision(rev)
-    return repo
-
-
-def get_run_info(task_definition):
-    """
-    Get the run object that contains properties that describe the run of this job
-
-    :param task_definition: The task definition
-    :return: The run object
-    """
-    run = Dict()
-    run.suite = task_definition.extra.suite
-    run.chunk = task_definition.extra.chunks.current
-    return run
-
-
-def get_build_info(task_definition):
-    """
-    Get a build object that describes the build
-
-    :param task_definition: The task definition
-    :return: The build object
-    """
-    build = Dict()
-    build.platform = task_definition.extra.treeherder.build.platform
-
-    # head_repo will look like "https://hg.mozilla.org/try/"
-    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
-    branch = head_repo.split("/")[-2]
-    build.branch = branch
-
-    build.revision = task_definition.payload.env.GECKO_HEAD_REV
-    build.revision12 = build.revision[0:12]
-
-    # MOZILLA_BUILD_URL looks like this:
-    # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
-    build.url = task_definition.payload.env.MOZILLA_BUILD_URL
-
-    # get the taskId of the build, then from that get the task definition of the build
-    # note: this is a fragile way to get the taskId of the build
-    build.taskId = build.url.split("/")[5]
-    queue = taskcluster.Queue()
-    build_task_definition = wrap(queue.task(taskId=build.taskId))
-    build.name = build_task_definition.extra.build_name
-    build.product = build_task_definition.extra.build_product
-    build.type = build_task_definition.extra.build_type  #TODO: expand "dbg" to "debug"
-    build.created_timestamp = Date(build_task_definition.created).unix
-
-    return build
-
-
-def add_tc_prefix(dest_etl):
-    # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
-    if not dest_etl.source.source.source:
-        dest_etl.source.source.type = "join"
-        dest_etl.source.source.source = {"id": "tc"}

@@ -87,8 +87,14 @@ cd ~/MoDataSubmission
 nohup python27 modatasubmission/app.py --settings=resources/config/prod.json &
 disown -h
 
-
-
+# INSTALL esShardBalancer
+cd ~
+git clone https://github.com/klahnakoski/esShardBalancer.git
+cd esShardBalancer
+git checkout master
+# RUN IT
+chmod a+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
+/home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
 
 # SIMPLE PLACE FOR LOGS
@@ -112,6 +118,7 @@ chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
 chmod a+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
+chmod a+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
 sudo rm /var/spool/cron/ec2-user
