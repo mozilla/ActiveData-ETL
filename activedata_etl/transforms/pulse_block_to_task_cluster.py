@@ -197,10 +197,19 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
 
+    output.task.manifest = {
+        "task_id": consume(task, "taskid_of_manifest"),
+        "update": consume(task, "update_manifest")
+    }
+    output.task.beetmove = {
+        "task_id": consume(task, "taskid_to_beetmove")
+    }
+
     # DELETE JUNK
     consume(task, "payload.routes")
-    if not task.payload.mounts:
-        consume(task, "payload.mounts")
+
+    # MOUNTS
+    output.task.mounts = consume(task, "payload.mounts")
 
     artifacts = consume(task, "payload.artifacts")
     try:
