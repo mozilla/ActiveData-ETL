@@ -9,8 +9,11 @@
 			"name": "unit",
 			"batch_size": 5000,
 			"skip": 0,
-			"rollover_field": "build.date",
-			"rollover_interval": "week",
+			"rollover":{
+				"field": "build.date",
+				"interval": "week",
+				"max": "5week"
+			},
 			"sample_only": [
 			],
 			"elasticsearch": {
@@ -34,8 +37,11 @@
 		},
 		{
 			"name": "perf",
-			"rollover_field": "build.date",
-			"rollover_interval": "year",
+			"rollover":{
+				"field": "build.date",
+				"interval": "year",
+				"max":"2year"
+			},
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": [],
@@ -60,8 +66,11 @@
 		},
 		{
 			"name": "jobs",
-			"rollover_field": "build.date",
-			"rollover_interval": "3month",
+			"rollover": {
+				"field": "build.date",
+				"interval": "3month",
+				"max":"2year"
+			},
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
@@ -83,39 +92,45 @@
 				"key_format": "a.b"
 			}
 		},
-//		{
-//			"name": "code coverage",
-//			"skip": 0.7,
-//			"queue_size": 2000,
-//			"batch_size": 1000,
-//			"rollover_field": "build.created_timestamp",
-//			"rollover_interval": "day",
-//			"sample_only": [],
-//			"elasticsearch": {
-//				"host": "http://localhost",
-//				"port": 9200,
-//				"index": "coverage",
-//				"type": "code_coverage",
-//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-//				"timeout": 300,
-//				"schema": {
-//					"$ref": "//../../schema/code_coverage.json"
-//				},
-//				"debug": false,
-//				"limit_replicas": false
-//			},
-//			"source": {
-//				"bucket": "active-data-codecoverage",
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"key_format": "t.a:b.c"
-//			}
-//		},
+		{
+			"name": "code coverage",
+			"skip": 0.5,
+			"queue_size": 2000,
+			"batch_size": 1000,
+			"rollover": {
+				"field": "repo.push.date",
+				"interval": "day",
+				"max": "5day"
+			},
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "coverage",
+				"type": "code_coverage",
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"timeout": 300,
+				"schema": {
+					"$ref": "//../../schema/code_coverage.json"
+				},
+				"debug": false,
+				"limit_replicas": false
+			},
+			"source": {
+				"bucket": "active-data-codecoverage",
+				"$ref": "file://~/private.json#aws_credentials",
+				"key_format": "t.a:b.c.d"
+			}
+		},
 		{
 			"name": "task",
 			"queue_size": 2000,
 			"batch_size": 1000,
-			"rollover_field": "task.created",
-			"rollover_interval": "3month",
+			"rollover": {
+				"field": "task.created",
+				"interval": "3month",
+				"max": "2year"
+			},
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",

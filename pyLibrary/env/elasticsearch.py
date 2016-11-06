@@ -669,7 +669,7 @@ class Cluster(object):
         try:
             response = http.delete(url)
             if response.status_code != 200:
-                Log.error("Expecting a 200")
+                Log.error("Expecting a 200, got {{code}}", code=response.status_code)
             details = convert.json2value(utf82unicode(response.content))
             if self.debug:
                 Log.note("delete response {{response}}", response=details)
