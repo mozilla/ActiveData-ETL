@@ -209,8 +209,8 @@ def main():
 
         please_stop = Signal()
         aws_shutdown = Signal("aws shutdown")
-        aws_shutdown.on_go(shutdown_local_es_node())
-        aws_shutdown.on_go(lambda: please_stop.go())
+        aws_shutdown.on_go(shutdown_local_es_node)
+        aws_shutdown.on_go(lambda: please_stop.go)
         aws.capture_termination_signal(aws_shutdown)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)

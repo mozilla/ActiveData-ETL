@@ -195,8 +195,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.group = consume(tc_message, "workerGroup")
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
-    # DELETE JUNK
-    consume(task, "payload.routes")
 
     artifacts = consume(task, "payload.artifacts")
     try:
