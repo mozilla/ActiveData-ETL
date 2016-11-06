@@ -185,8 +185,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.routes = consume(task, "routes")
 
     run_id = consume(tc_message, "runId")
-    output.task.run = _normalize_run(task.runs[run_id])
-    output.task.runs = map(_normalize_run, consume(task, "runs"))
+    output.task.run = _normalize_task_run(task.runs[run_id])
+    output.task.runs = map(_normalize_task_run, consume(task, "runs"))
 
     output.task.scheduler.id = consume(task, "schedulerId")
     output.task.scopes = consume(task, "scopes")
@@ -197,13 +197,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
 
-    output.task.manifest = {
-        "task_id": consume(task, "taskid_of_manifest"),
-        "update": consume(task, "update_manifest")
-    }
-    output.task.beetmove = {
-        "task_id": consume(task, "taskid_to_beetmove")
-    }
+    output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
+    output.task.manifest.update = consume(task, "payload.update_manifest")
+    output.task.beetmove.task_id = consume(task, "payload.taskid_to_beetmove")
 
     # DELETE JUNK
     consume(task, "payload.routes")
@@ -236,7 +232,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         Log.error("problem", cause=e)
 
     set_build_info(source_key, output, task, env, resources)
-    set_run_info(source_key, output, task, env)
+    _normalize_run(source_key, output, task, env)
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
@@ -272,7 +268,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     return output
 
 
-def _normalize_run(run):
+def _normalize_task_run(run):
     output = Dict()
     output.reason_created = run.reasonCreated
     output.id = run.id
@@ -286,7 +282,7 @@ def _normalize_run(run):
     return output
 
 
-def set_run_info(source_key, normalized, task, env):
+def _normalize_run(source_key, normalized, task, env):
     """
     Get the run object that contains properties that describe the run of this job
     :param task: The task definition
@@ -323,6 +319,12 @@ def set_run_info(source_key, normalized, task, env):
         if not flavor:
             flavor = None
         run_type += ["e10s"]
+
+    if flavor and "-chunked" in flavor:
+        flavor = flavor.replace("-chunked", "").strip()
+        if not flavor:
+            flavor = None
+        run_type += ["chunked"]
 
     # CHUNK NUMBER
     chunk = None
