@@ -22,6 +22,7 @@ from pyLibrary.debugs.exceptions import suppress_exception, Except
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
+from pyLibrary.maths import Math
 from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
@@ -184,8 +185,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.routes = consume(task, "routes")
 
     run_id = consume(tc_message, "runId")
-    output.task.run = _normalize_run(task.runs[run_id])
-    output.task.runs = map(_normalize_run, consume(task, "runs"))
+    output.task.run = _normalize_task_run(task.runs[run_id])
+    output.task.runs = map(_normalize_task_run, consume(task, "runs"))
 
     output.task.scheduler.id = consume(task, "schedulerId")
     output.task.scopes = consume(task, "scopes")
@@ -195,6 +196,16 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.worker.group = consume(tc_message, "workerGroup")
     output.task.worker.id = consume(tc_message, "workerId")
     output.task.worker.type = consume(task, "workerType")
+
+    output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
+    output.task.manifest.update = consume(task, "payload.update_manifest")
+    output.task.beetmove.task_id = consume(task, "payload.taskid_to_beetmove")
+
+    # DELETE JUNK
+    consume(task, "payload.routes")
+
+    # MOUNTS
+    output.task.mounts = consume(task, "payload.mounts")
 
     artifacts = consume(task, "payload.artifacts")
     try:
@@ -221,7 +232,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         Log.error("problem", cause=e)
 
     set_build_info(source_key, output, task, env, resources)
-    set_run_info(source_key, output, task, env)
+    _normalize_run(source_key, output, task, env)
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
@@ -257,38 +268,86 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     return output
 
 
-def _normalize_run(run):
+def _normalize_task_run(run):
     output = Dict()
     output.reason_created = run.reasonCreated
     output.id = run.id
     output.scheduled = Date(run.scheduled)
     output.start_time = Date(run.started)
     output.end_time = Date(run.takenUntil)
+    output.duration = Date(run.takenUntil) - Date(run.started)
     output.state = run.state
     output.worker.group = run.workerGroup
     output.worker.id = run.workerId
     return output
 
 
-def set_run_info(source_key, normalized, task, env):
+def _normalize_run(source_key, normalized, task, env):
     """
     Get the run object that contains properties that describe the run of this job
     :param task: The task definition
     :return: The run object
     """
+
+    run_type = []
     metadata_name = consume(task, "metadata.name")
+    if "-e10s" in metadata_name:
+        metadata_name = metadata_name.replace("-e10s", "")
+        run_type += ["e10s"]
+
+    # PARSE TEST SUITE NAME
+    suite = consume(task, "extra.suite")
+    test = suite.name.lower()
+
+    # FLAVOR
+    flavor = suite.flavor.lower()
+    if test == flavor:
+        flavor = None
+    elif flavor.startswith(test + "-"):
+        flavor = flavor[len(test) + 1::]
+
+    if test.startswith("mochitest-"):
+        # mochitest-chrome
+        # mochitest-media-2
+        # mochitest-plain-clipboard
+        path = test.split("-")
+        test = path[0]
+        flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
+
+    if flavor and "-e10s" in flavor:
+        flavor = flavor.replace("-e10s", "").strip()
+        if not flavor:
+            flavor = None
+        run_type += ["e10s"]
+
+    if flavor and "-chunked" in flavor:
+        flavor = flavor.replace("-chunked", "").strip()
+        if not flavor:
+            flavor = None
+        run_type += ["chunked"]
+
+    # CHUNK NUMBER
+    chunk = None
+    path = test.split("-")
+    if Math.is_integer(path[-1]):
+        chunk = int(path[-1])
+        test = "-".join(path[:-1])
+    chunk = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "extra.chunks.current"),
+        consume(task, "payload.properties.THIS_CHUNK"),
+        chunk
+    )
+
     set_default(
         normalized,
         {"run": {
             "key": consume(task, "payload.buildername"),
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
-            "suite": consume(task, "extra.suite"),
-            "chunk": coalesce_w_conflict_detection(
-                source_key,
-                consume(task, "extra.chunks.current"),
-                consume(task, "payload.properties.THIS_CHUNK")
-            ),
+            "suite": {"name": test, "flavor": flavor, "fullname": test + ("-" + flavor if flavor else "")},
+            "chunk": chunk,
+            "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
         }}
     )
@@ -373,7 +432,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     diff = treeherder.collection.keys() - BUILD_TYPE_KEYS
     if diff:
-        Log.warning("new collection type of {{type}} while processing key", type=diff, key=source_key)
+        Log.warning("new collection type of {{type}} while processing key {{key}}", type=diff, key=source_key)
 
 
 def get_tags(source_key, task_id, task, parent=None):
@@ -463,6 +522,7 @@ BUILD_TYPES = {
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
+    "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],

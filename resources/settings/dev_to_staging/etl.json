@@ -8,7 +8,7 @@
 		"threads": 1,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true,
-				"min_attempts": 0
+		"min_attempts": 0
 	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {

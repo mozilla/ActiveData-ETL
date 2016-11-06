@@ -536,6 +536,7 @@ BUILDER_NAMES = [
     'release-{{branch}}-{{product}}_bouncer_aliases',
     'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_publish_balrog',
+    'release-{{branch}}-{{product}}_mark_as_shipped',
     'release-{{branch}}-{{product}}_updates',
     'release-{{branch}}-{{product}}_version_bump',
     'release-{{branch}}-{{product}}_uptake_monitoring',
