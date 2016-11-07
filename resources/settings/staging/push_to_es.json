@@ -166,7 +166,7 @@
 			},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",
-				"filename" : "~/logs/push_to_es_direct.log",
+				"filename" : "logs/push_to_es_direct.log",
 				"maxBytes" : 10000000,
 				"backupCount" : 10,
 				"encoding" : "utf8"
