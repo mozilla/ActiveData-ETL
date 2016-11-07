@@ -131,7 +131,6 @@ def capture_termination_signal(please_stop):
         while not please_stop:
             try:
                 response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
-                Log.note("terminate time? : {{code}}", code=response.status_code)
                 if response.status_code not in [400, 404]:
                     Log.warning("Shutdown AWS Spot Node {{name}} {{type}}", name=machine_metadata.name, type=machine_metadata.aws_instance_type)
                     please_stop.go()
