@@ -223,7 +223,7 @@ def main():
 
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
-        Log.note("Shutdown started")
+        Log.note("Shutdown")
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
