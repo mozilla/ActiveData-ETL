@@ -74,6 +74,9 @@ git checkout manager
 
 # INSTALL MoDataSubmission
 # BE SURE TO INCLUDE STORAGE PERMISSIONS FILE
+# put ~/storage_permissions.json ~/storage_permissions.json
+chmod 600 ~/storage_permissions.json
+
 cd ~
 git clone https://github.com/klahnakoski/MoDataSubmission.git
 cd /home/ec2-user/MoDataSubmission
@@ -86,16 +89,7 @@ export HOME=/home/ec2-user
 cd ~/MoDataSubmission
 nohup python27 modatasubmission/app.py --settings=resources/config/prod.json &
 disown -h
-
-# INSTALL esShardBalancer
-cd ~
-git clone https://github.com/klahnakoski/esShardBalancer.git
-cd esShardBalancer
-git checkout master
-# RUN IT
-chmod a+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
-/home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
-
+exit
 
 # SIMPLE PLACE FOR LOGS
 mkdir ~/logs
@@ -112,13 +106,24 @@ chmod 600 ~/private.json
 #put ~/.ssh/aws-pulse-logger.pem ~/.ssh/aws-pulse-logger.pem
 chmod 600 ~/.ssh/aws-pulse-logger.pem
 
+
+# INSTALL esShardBalancer
+cd ~
+git clone https://github.com/klahnakoski/esShardBalancer.git
+cd ~/esShardBalancer
+git checkout master
+# RUN IT
+chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
+/home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
+
+
+
 # CRON JOBS
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
-chmod a+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
-chmod a+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
+chmod u+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
 sudo rm /var/spool/cron/ec2-user
