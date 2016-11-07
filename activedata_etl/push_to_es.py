@@ -114,11 +114,10 @@ def add_message_confirmation(queue, payload_key, message):
 
 
 def shutdown_local_es_node():
-    Log.warning("Shutdown ES on node {{node}}", machine_metadata)
-
-    proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
-
+    Log.warning("Shutdown ES on node {{node}}", node=machine_metadata)
+    proc = None
     try:
+        proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
         while True:
             line = proc.stdout.pop().strip()
             if not line:
@@ -224,7 +223,7 @@ def main():
 
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
-        Log.note("Shutdown started")
+        Log.note("Shutdown")
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
