@@ -322,7 +322,10 @@ def _normalize_run(source_key, normalized, task, env):
             flavor = None
         run_type += ["e10s"]
 
-    if flavor and "-chunked" in flavor:
+    if flavor=="chunked":
+        flavor = None
+        run_type += ["chunked"]
+    elif flavor and "-chunked" in flavor:
         flavor = flavor.replace("-chunked", "").strip()
         if not flavor:
             flavor = None
@@ -355,20 +358,6 @@ def _normalize_run(source_key, normalized, task, env):
     )
 
 
-def coalesce_w_conflict_detection(source_key, *args):
-    output = None
-    for a in args:
-        if a == None:
-            continue
-        if output == None:
-            output = a
-        elif a != output:
-            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
-        else:
-            pass
-    return output
-
-
 def set_build_info(source_key, normalized, task, env, resources):
     """
     Get a build object that describes the build
@@ -381,18 +370,25 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     build_type = consume(task, "extra.build_type")
 
+    build_product = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "payload.properties.product"),
+        consume(task, "tags.build_props.product"),
+        task.extra.treeherder.productName,
+        consume(task, "extra.build_product"),
+        "firefox" if task.extra.suite.name.startswith("firefox") else None,
+        "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else None
+    )
+
     set_default(
         normalized,
         {"build": {
             "name": consume(task, "extra.build_name"),
-            "product": coalesce_w_conflict_detection(
-                source_key,
-                consume(task, "payload.properties.product"),
-                consume(task, "tags.build_props.product"),
-                task.extra.treeherder.productName,
-                consume(task, "extra.build_product")
+            "product": build_product,
+            "platform": coalesce_w_conflict_detection(
+                task.extra.treeherder.build.platform,
+                task.extra.treeherder.machine.platform
             ),
-            "platform": task.extra.treeherder.build.platform,
             # MOZILLA_BUILD_URL looks like this:
             # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
             "url": env.MOZILLA_BUILD_URL,
@@ -497,6 +493,20 @@ def verify_tag(source_key, task_id, t):
     if t["name"] not in KNOWN_TAGS:
         Log.warning("unknown task tag {{tag|quote}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t["name"])
         KNOWN_TAGS.add(t["name"])
+
+
+def coalesce_w_conflict_detection(source_key, *args):
+    output = None
+    for a in args:
+        if a == None:
+            continue
+        if output == None:
+            output = a
+        elif a != output:
+            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
+        else:
+            pass
+    return output
 
 
 def _scrub(record, name):
@@ -605,7 +615,6 @@ KNOWN_TAGS = {
     "data.head.user.email",
     "description",
 
-    "extra.build_product",  # error?
     "funsize.partials",
     "funsize.partials.branch",
     "funsize.partials.from_mar",
@@ -682,29 +691,29 @@ KNOWN_TAGS = {
     "suite.name",
 
     "treeherderEnv",
-    "treeherder.build.platform",
-    "treeherder.collection.ccov",
-    "treeherder.collection.debug",
-    "treeherder.collection.gyp",
-    "treeherder.collection.jsdcov",
-    "treeherder.collection.memleak",
-    "treeherder.collection.opt",
-    "treeherder.collection.pgo",
-    "treeherder.collection.asan",
-    "treeherder.collection.lsan",
-    "treeherder.collection.arm-debug",
-    "treeherder.collection.arm-opt",
-    "treeherder.groupSymbol",
-    "treeherder.groupName",
-    "treeherder.jobKind",
-    "treeherder.labels",
-    "treeherder.machine.platform",
-    "treeherder.productName",
-    "treeherder.reason",
-    "treeherder.revision",
-    "treeherder.revision_hash",
-    "treeherder.symbol",
-    "treeherder.tier",
+    # "treeherder.build.platform",
+    # "treeherder.collection.ccov",
+    # "treeherder.collection.debug",
+    # "treeherder.collection.gyp",
+    # "treeherder.collection.jsdcov",
+    # "treeherder.collection.memleak",
+    # "treeherder.collection.opt",
+    # "treeherder.collection.pgo",
+    # "treeherder.collection.asan",
+    # "treeherder.collection.lsan",
+    # "treeherder.collection.arm-debug",
+    # "treeherder.collection.arm-opt",
+    # "treeherder.groupSymbol",
+    # "treeherder.groupName",
+    # "treeherder.jobKind",
+    # "treeherder.labels",
+    # "treeherder.machine.platform",
+    # "treeherder.productName",
+    # "treeherder.reason",
+    # "treeherder.revision",
+    # "treeherder.revision_hash",
+    # "treeherder.symbol",
+    # "treeherder.tier",
 
 
     "upload_to_task_id",
