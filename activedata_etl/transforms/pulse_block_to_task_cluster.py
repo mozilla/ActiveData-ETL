@@ -159,6 +159,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.dependencies = unwraplist(consume(task, "dependencies"))
     output.task.expires = Date(consume(task, "expires"))
     output.task.maxRunTime = consume(task, "payload.maxRunTime")
+    if output.task.maxRunTime == "hello":
+        output.task.maxRunTime = None
 
     env = consume(task, "payload.env")
     output.task.env = _object_to_array(env, "name", "value")
