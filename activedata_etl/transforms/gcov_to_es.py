@@ -16,10 +16,18 @@ import zipfile
 from StringIO import StringIO
 from subprocess import Popen, PIPE
 
+import taskcluster
+
+from mohg.repos.changesets import Changeset
+from mohg.repos.revisions import Revision
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.logs import Log, machine_metadata
+from pyLibrary.dot import wrap, Dict, unwraplist
 from pyLibrary.env import http
+from pyLibrary.jsons import stream
 from pyLibrary.strings import expand_template
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
@@ -82,15 +90,19 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
 
-        for artifact in artifacts:
-            Log.note("{{name}}", name=artifact.name)
-            if artifact.name.find("gcda") != -1:
-                keys.extend(process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artifact))
+        try: # TODO rm
+            for artifact in artifacts:
+                Log.note("{{name}}", name=artifact.name)
+                if artifact.name.find("gcda") != -1:
+                    keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
+        except Exception as e:
+            import traceback
+            Log.note(traceback.format_exc())
 
     return keys
 
 
-def process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artifact):
+def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -110,20 +122,27 @@ def process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artif
     zipdata = StringIO()
     zipdata.write(http.get(artifact.url).content)
 
-    Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+    try:
+        gcda_zipfile = zipfile.ZipFile(zipdata)
 
-    gcda_zipfile = zipfile.ZipFile(zipdata)
-    gcda_zipfile.extractall('%s/ccov' % tmpdir)
+        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
 
-    artifacts = group_to_gcno_artifact_urls(task_cluster_record.task.group.id)
+        gcda_zipfile.extractall('%s/ccov' % tmpdir)
+    except zipfile.BadZipfile:
+        Log.note('Bad zip file for gcda artifact: {{url}}', url=artifact.url)
+        return []
+
+    artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
     files = artifacts
 
-    for file_url in files:
+    records = []
+
+    for file_obj in files:
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-        Log.note('Downloading gcno artifact {{file}}', file=file_url)
+        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
 
-        _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=file_url)
+        _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=file_obj.url)
         add_tc_prefix(dest_etl)
 
         etl_key = etl2key(dest_etl)
@@ -131,7 +150,7 @@ def process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artif
         Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
         zipdata = StringIO()
-        zipdata.write(http.get(file_url).content)
+        zipdata.write(http.get(file_obj.url).content)
 
         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
 
@@ -144,12 +163,28 @@ def process_gcda_artifact(source_key, etl_header_gen, task_cluster_record, artif
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
+        # get the task definition
+        queue = taskcluster.Queue()
+        task_definition = wrap(queue.task(taskId=file_obj.task_id))
+
+        # get additional info
+        repo = get_revision_info(task_definition, resources)
+        task = {"id": task_id}
+        run = get_run_info(task_definition)
+        build = get_build_info(task_definition)
+
+        process_source_file(dest_etl, lcov_coverage, repo, task, run, build, records)
+
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
     shutil.rmtree(tmpdir)
+
+    with Timer("writing {{num}} records to s3", {"num": len(records)}):
+        destination.extend(records, overwrite=True)
+
     return keys
 
-def group_to_gcno_artifact_urls(group_id):
+def group_to_gcno_artifacts(group_id):
     """
     Finds a task id in a task group with a given artifact.
 
@@ -158,17 +193,30 @@ def group_to_gcno_artifact_urls(group_id):
     :return: task json object for the found task. None if no task was found.
     """
 
-    result = http.post_json(ACTIVE_DATA_QUERY, json={
+    data = http.post_json(ACTIVE_DATA_QUERY, json={
         "from": "task.task.artifacts",
         "where": {"and": [
             {"eq": {"task.group.id": group_id}},
             {"regex": {"name": ".*gcno.*"}}
         ]},
         "limit": 100,
-        "select": ["url"]
+        "select": ["task.id", "url"]
     })
 
-    return result.data.url # TODO This is a bit rough for now.
+    values = data.data.values()
+
+    results = []
+
+    for i in range(len(values[0])):
+        # Note: values is sensitive to select order
+        # Currently bug in pyLibrary Dict and can't
+        # retrieve the task.id member (TODO)
+        results.append(wrap({
+            'task_id': values[1][i],
+            'url': values[0][i]
+        }))
+
+    return results
 
 
 def run_lcov_on_directory(directory_path):
@@ -182,6 +230,174 @@ def run_lcov_on_directory(directory_path):
     results = parse_lcov_coverage(proc.stdout)
 
     return results
+
+
+def process_source_file(dest_etl, obj, repo, task, run, build, records):
+    obj = wrap(obj)
+
+    # get the test name. Just use the test file name at the moment
+    # TODO: change this when needed
+    try:
+        test_name = unwraplist(obj.testUrl).split("/")[-1]
+    except Exception, e:
+        Log.error("can not get testUrl from coverage object", cause=e)
+
+    # turn obj.covered (a list) into a set for use later
+    file_covered = set(obj.covered)
+
+    # file-level info
+    file_info = wrap({
+        "name": obj.sourceFile,
+        "covered": [{"line": c} for c in obj.covered],
+        "uncovered": obj.uncovered,
+        "total_covered": len(obj.covered),
+        "total_uncovered": len(obj.uncovered),
+        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+    })
+
+    # orphan lines (i.e. lines without a method), initialized to all lines
+    orphan_covered = set(obj.covered)
+    orphan_uncovered = set(obj.uncovered)
+
+    # iterate through the methods of this source file
+    # a variable to count the number of lines so far for this source file
+    for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
+        all_method_lines_set = set(method_lines)
+        method_covered = all_method_lines_set & file_covered
+        method_uncovered = all_method_lines_set - method_covered
+        method_percentage_covered = len(method_covered) / len(all_method_lines_set)
+
+        orphan_covered = orphan_covered - method_covered
+        orphan_uncovered = orphan_uncovered - method_uncovered
+
+        new_record = wrap({
+            "test": {
+                "name": test_name,
+                "url": obj.testUrl
+            },
+            "source": {
+                "file": file_info,
+                "method": {
+                    "name": method_name,
+                    "covered": [{"line": c} for c in method_covered],
+                    "uncovered": method_uncovered,
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
+            },
+            "etl": {
+                "id": count+1,
+                "source": dest_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            },
+            "repo": repo,
+            "task": task,
+            "run": run,
+            "build": build
+        })
+        records.append({"id": etl2key(new_record.etl), "value": new_record})
+
+    # a record for all the lines that are not in any method
+    # every file gets one because we can use it as canonical representative
+    new_record = wrap({
+        "test": {
+            "name": test_name,
+            "url": obj.testUrl
+        },
+        "source": {
+            "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
+            "file": file_info,
+            "method": {
+                "covered": [{"line": c} for c in orphan_covered],
+                "uncovered": orphan_uncovered,
+                "total_covered": len(orphan_covered),
+                "total_uncovered": len(orphan_uncovered),
+                "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+            }
+        },
+        "etl": {
+            "id": 0,
+            "source": dest_etl,
+            "type": "join",
+            "machine": machine_metadata,
+            "timestamp": Date.now()
+        },
+        "repo": repo,
+        "run": run,
+        "build": build,
+        "is_file": True
+    })
+    records.append({"id": etl2key(new_record.etl), "value": new_record})
+
+
+def get_revision_info(task_definition, resources):
+    """
+    Get the changeset, revision and push info for a given task in TaskCluster
+
+    :param task_definition: The task definition
+    :param resources: Pass this from the process method
+    :return: The repo object containing information about the changeset, revision and push
+    """
+
+    # head_repo will look like "https://hg.mozilla.org/try/"
+    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
+    branch = head_repo.split("/")[-2]
+
+    revision = task_definition.payload.env.GECKO_HEAD_REV
+    rev = Revision(branch={"name": branch}, changeset=Changeset(id=revision))
+    repo = resources.hg.get_revision(rev)
+    return repo
+
+
+def get_run_info(task_definition):
+    """
+    Get the run object that contains properties that describe the run of this job
+
+    :param task_definition: The task definition
+    :return: The run object
+    """
+    run = Dict()
+    run.suite = task_definition.extra.suite
+    run.chunk = task_definition.extra.chunks.current
+    return run
+
+
+def get_build_info(task_definition):
+    """
+    Get a build object that describes the build
+
+    :param task_definition: The task definition
+    :return: The build object
+    """
+    build = Dict()
+    build.platform = task_definition.extra.treeherder.build.platform
+
+    # head_repo will look like "https://hg.mozilla.org/try/"
+    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
+    branch = head_repo.split("/")[-2]
+    build.branch = branch
+
+    build.revision = task_definition.payload.env.GECKO_HEAD_REV
+    build.revision12 = build.revision[0:12]
+
+    # MOZILLA_BUILD_URL looks like this:
+    # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
+    build.url = task_definition.payload.env.MOZILLA_BUILD_URL
+
+    # get the taskId of the build, then from that get the task definition of the build
+    # note: this is a fragile way to get the taskId of the build
+    build.taskId = build.url.split("/")[5]
+    queue = taskcluster.Queue()
+    build_task_definition = wrap(queue.task(taskId=build.taskId))
+    build.name = build_task_definition.extra.build_name
+    build.product = build_task_definition.extra.build_product
+    build.type = build_task_definition.extra.build_type  #TODO: expand "dbg" to "debug"
+    build.created_timestamp = Date(build_task_definition.created).unix
+
+    return build
 
 
 def add_tc_prefix(dest_etl):
