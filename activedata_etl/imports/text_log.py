@@ -739,6 +739,8 @@ def fix_times(times, start_time, end_time):
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
             t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
         t.duration = Math.max(time, t.end_time) - t.start_time
+        if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
+            t.duration+=HOUR
         if t.duration==None or t.duration < 0:
             Log.error("logic error")
         time = t.start_time

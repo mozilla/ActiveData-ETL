@@ -205,6 +205,12 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     # DELETE JUNK
     consume(task, "payload.routes")
+    consume(task, "payload.log")
+    consume(task, "payload.upstreamArtifacts")
+    output.task.signing.cert = consume(task, "payload.signing_cert"),
+    output.task.parent.id = consume(task, "parent_task_id")
+    output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
+
 
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
@@ -536,6 +542,7 @@ BUILD_TYPES = {
     "debug": ["debug"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
+    "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "memleak": ["memleak"],
@@ -640,6 +647,9 @@ KNOWN_TAGS = {
     "github.baseUser",
     "githubPullRequest",
 
+    "imageMeta.contextHash",
+    "imageMeta.imageName",
+    "imageMeta.level",
     "index.data.hello",
     "index.expires",
     "index.rank",
@@ -682,7 +692,6 @@ KNOWN_TAGS = {
     "npmCache.expires",
     "objective",
     "owner",
-    "parent_task_id",
     "partial_versions",
     "platforms",
     "signing.signature",

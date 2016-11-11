@@ -493,6 +493,9 @@ def etl_one(settings):
 
 
 def parse_id_argument(id):
+    many = map(strings.trim, id.split(","))
+    if len(many) > 1:
+        return many
     if id.find("..") >= 0:
         #range of ids
         min_, max_ = map(int, map(strings.trim, id.split("..")))
