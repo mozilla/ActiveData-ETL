@@ -214,14 +214,17 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
     output.task.manifest.update = consume(task, "payload.update_manifest")
-    output.task.beetmove.task_id = consume(task, "payload.taskid_to_beetmove")
+    output.task.beetmove.task_id = coalesce_w_conflict_detection(
+        consume(task, "payload.taskid_to_beetmove"),
+        consume(task, "payload.properties.taskid_to_beetmove")
+    )
 
     # DELETE JUNK
     consume(task, "payload.routes")
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
     output.task.signing.cert = consume(task, "payload.signing_cert"),
-    output.task.parent.id = consume(task, "parent_task_id")
+    output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
 
@@ -589,7 +592,6 @@ PAYLOAD_PROPERTIES = {
     "script_repo_revision",
     "signingManifest",
     "supersederUrl",
-    "taskid_to_beetmove"
     "template_key",
     "THIS_CHUNK",
     "TOTAL_CHUNKS",
