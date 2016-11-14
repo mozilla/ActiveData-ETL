@@ -21,7 +21,7 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -34,7 +34,7 @@
 			"limit_replicas": true
 		},
 		"repo": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
