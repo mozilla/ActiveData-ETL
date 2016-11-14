@@ -78,13 +78,6 @@
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"log_type": "email",
-				"from_address": "",
-				"to_address": "",
-				"subject": "[ALERT][DEV] Problem in ETL",
-				"$ref": "file://~/codecoverage.json#email"
 			}
 		]
 	}
