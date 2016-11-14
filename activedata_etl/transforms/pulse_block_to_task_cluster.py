@@ -30,7 +30,8 @@ from pyLibrary.times.dates import Date
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
+MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
+STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
@@ -54,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             Log.note("{{id}} found (line #{{num}})", id=task_id, num=i, artifact=tc_message.artifact.name)
 
-            task_url = expand_template(STATUS_URL, {"task_id": task_id})
+            task_url = expand_template(MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=RETRY, session=session)
             if task.code == u'ResourceNotFound':
                 Log.note("Can not find task {{task}} while processing key {{key}}", key=source_key, task=task_id)
@@ -80,6 +81,18 @@ def process(source_key, source, destination, resources, please_stop=None):
                 output.append(normalized)
 
                 continue
+
+            # if not tc_message.status.runs.last().resolved:
+            # UPDATE TASK STATUS (tc_message MAY BE OLD)
+            status_url = expand_template(STATUS_URL, {"task_id": task_id})
+            task_status = http.get_json(status_url, retry=RETRY, session=session)
+            consume(task_status, "status.taskId")
+            temp_runs, task_status.status.runs = task_status.status.runs, None  # set_default() will screw `runs` up
+            set_default(tc_message.status, task_status.status)
+            tc_message.status.runs = [set_default(r, tc_message.status.runs[i]) for i, r in enumerate(temp_runs)]
+            if not tc_message.status.runs.last().resolved:
+                Log.error(TRY_AGAIN_LATER, reason="task is not resolved")
+
             normalized = _normalize(source_key, task_id, tc_message, task, resources)
 
             # get the artifact list for the taskId
@@ -92,7 +105,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         read_actions(source_key, normalized, a.url)
                     except Exception, e:
                         if TRY_AGAIN_LATER in e:
-                            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
+                            Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)
@@ -282,8 +295,9 @@ def _normalize_task_run(run):
     output.id = run.id
     output.scheduled = Date(run.scheduled)
     output.start_time = Date(run.started)
-    output.end_time = Date(run.takenUntil)
-    output.duration = Date(run.takenUntil) - Date(run.started)
+    output.status = run.reasonResolved
+    output.end_time = Date(run.resolved)
+    output.duration = Date(run.resolved) - Date(run.started)
     output.state = run.state
     output.worker.group = run.workerGroup
     output.worker.id = run.workerId
