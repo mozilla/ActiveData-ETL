@@ -11,24 +11,27 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+from activedata_etl.etl import parse_id_argument
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException
-from pyLibrary.debugs.logs import Log
+from pyLibrary.debugs.exceptions import Explanation, WarnOnException, suppress_exception
+from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
+from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, Signal, Queue
 from pyLibrary.times.timer import Timer
-from activedata_etl.etl import parse_id_argument
-from activedata_etl.sinks.rollover_index import RolloverIndex
 
 split = {}
-
+empty_bucket_complaint_sent = False
 
 def splitter(work_queue, please_stop):
+    global empty_bucket_complaint_sent
+
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
             for k,v in split.items():
@@ -73,7 +76,9 @@ def splitter(work_queue, please_stop):
             more_keys = source_bucket.keys(prefix=key)
             if not more_keys:
                 # HAPPENS WHEN REPROCESSING (ETL WOULD HAVE CLEARED THE BUCKET OF THIS PREFIX FIRST)
-                Log.warning("No files found in bucket {{message|json}}", message=payload)
+                if not empty_bucket_complaint_sent:
+                    empty_bucket_complaint_sent = True
+                    Log.warning("No files found in bucket {{message|json}}. THIS WARNING WILL NOT BE SENT AGAIN!!", message=payload)
                 message.delete()
                 num_keys = 0
             else:
@@ -106,6 +111,21 @@ def add_message_confirmation(queue, payload_key, message):
         message.delete()
 
     queue.add(_delete)
+
+
+def shutdown_local_es_node():
+    Log.warning("Shutdown ES on node {{node}}", node=machine_metadata)
+    proc = None
+    try:
+        proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
+        while True:
+            line = proc.stdout.pop().strip()
+            if not line:
+                continue
+            Log.note("Shutdown es: {{note}}", note=line)
+    finally:
+        with suppress_exception:
+            proc.join()
 
 
 def main():
@@ -169,13 +189,14 @@ def main():
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
-            if not w.rollover_interval or not w.rollover_field:
-                Log.error("All workers must declare an `rollover_interval` which will indicate when to rollover to a fresh index")
+            if not w.rollover.interval or not w.rollover.field:
+                Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
 
             split[w.source.bucket] = Dict(
                 es=RolloverIndex(
-                    rollover_field=w.rollover_field,
-                    rollover_interval=w.rollover_interval,
+                    rollover_field=w.rollover.field,
+                    rollover_interval=w.rollover.interval,
+                    rollover_max=w.rollover.max,
                     queue_size=coalesce(w.queue_size, 1000),
                     batch_size=unwrap(w.batch_size),
                     settings=w.elasticsearch
@@ -186,6 +207,11 @@ def main():
             Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
+        aws_shutdown = Signal("aws shutdown")
+        aws_shutdown.on_go(shutdown_local_es_node)
+        aws_shutdown.on_go(lambda: please_stop.go)
+        aws.capture_termination_signal(aws_shutdown)
+
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
@@ -195,10 +221,9 @@ def main():
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
-        aws.capture_termination_signal(please_stop)
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
-        Log.note("Shutdown started")
+        Log.note("Shutdown")
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

@@ -33,7 +33,7 @@ def diff(settings, please_stop=None):
     if settings.range.min == None:
         settings.range.min = coalesce(settings.start, 0)
 
-    #SHOULD WE PUSH?
+    # SHOULD WE PUSH?
     work_queue = aws.Queue(settings=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
@@ -125,7 +125,6 @@ def get_all_in_es(es, in_range, es_filter, field):
     for k in result.aggregations._filter._match.buckets.key:
         with suppress_exception:
             good_es.append(int(k))
-
 
     Log.note(
         "got {{num}} from {{index}}",

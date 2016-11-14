@@ -32,6 +32,7 @@ from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
 from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
@@ -41,10 +42,11 @@ from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.rollover_index import RolloverIndex
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+
+
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -170,7 +172,7 @@ class ETL(Thread):
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
-                elif len(etl_ids)==1 and key2etl(source_key).id==etl_ids[0]:
+                elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
                 else:
                     for i, eid in enumerate(etl_ids):
@@ -491,6 +493,9 @@ def etl_one(settings):
 
 
 def parse_id_argument(id):
+    many = map(strings.trim, id.split(","))
+    if len(many) > 1:
+        return many
     if id.find("..") >= 0:
         #range of ids
         min_, max_ = map(int, map(strings.trim, id.split("..")))

@@ -38,11 +38,11 @@ RESULT_SET_URL = "https://treeherder.mozilla.org/api/project/{{branch}}/resultse
 FAILURE_CLASSIFICATION_URL = "https://treeherder.mozilla.org/api/failureclassification/"
 REPO_URL = "https://treeherder.mozilla.org:443/api/repository/"
 
-JOBS_BY_REVISION = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&result_set_id__in={{result_set_id}}"
-JOBS_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&job_id={{job_id}}"
-DETAILS_BY_JOB_ID = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}"
-NOTES_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}"
-JOB_BUG_MAP_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}"
+JOBS_BY_REVISION = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&result_set_id__in={{result_set_id}}&format=json"
+JOBS_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/jobs/?count=2000&offset={{offset}}&job_id={{job_id}}&format=json"
+DETAILS_BY_JOB_ID = "https://treeherder.mozilla.org/api/jobdetail/?job_id__in={{job_id}}&repository={{branch}}&format=json"
+NOTES_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/note/?job_id={{job_id}}&format=json"
+JOB_BUG_MAP_BY_JOB_ID = "https://treeherder.mozilla.org/api/project/{{branch}}/bug-job-map/?job_id={{job_id}}&format=json"
 
 
 class TreeHerder(object):

@@ -149,7 +149,7 @@ class Log(object):
             return TextLog_usingSES(settings)
         if settings.log_type.lower() in ["nothing", "none", "null"]:
             from .log_usingNothing import TextLog_usingNothing
-            return TextLog_usingNothing(settings)
+            return TextLog_usingNothing()
 
         Log.error("Log type of {{log_type|quote}} is not recognized", log_type=settings.log_type)
 
@@ -451,18 +451,6 @@ machine_metadata = wrap({
     "name": platform.node()
 })
 
-
-# GET FROM AWS, IF WE CAN
-def _get_metadata_from_from_aws(please_stop):
-    with suppress_exception:
-        from pyLibrary import aws
-
-        ec2 = aws.get_instance_metadata()
-        if ec2:
-            machine_metadata.aws_instance_type = ec2.instance_type
-            machine_metadata.name = ec2.instance_id
-
-Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
 
 if not Log.main_log:
     Log.main_log = TextLog_usingStream(sys.stdout)

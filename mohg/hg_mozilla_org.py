@@ -172,7 +172,6 @@ class HgMozillaOrg(object):
 
         return docs[0]._source
 
-
     def _load_all_in_push(self, revision, locale=None):
         # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
         found_revision = copy(revision)

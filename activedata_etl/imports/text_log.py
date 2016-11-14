@@ -162,7 +162,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             # INJECT CHILDREN INTO THIS LIST
             new_build_times.extend([
                 {
-                    "builder": {"step": b.step},
+                    "step": b.step,
                     "harness": c
                 }
                 for c in b.children
@@ -176,6 +176,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     except Exception, e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
+    action.start_time = start_time
     action.end_time = end_time
     action.duration = end_time - start_time
     action.harness_time_zone = new_mozharness_line.time_zone
@@ -264,6 +265,7 @@ def process_text_log(all_log_lines, from_url):
                     data[key] = value
                 continue
             except Exception, e:
+                e = Except.wrap(e)
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
                     Log.warning("Log header {{log_line|quote}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
@@ -737,6 +739,8 @@ def fix_times(times, start_time, end_time):
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
             t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
         t.duration = Math.max(time, t.end_time) - t.start_time
+        if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
+            t.duration+=HOUR
         if t.duration==None or t.duration < 0:
             Log.error("logic error")
         time = t.start_time
