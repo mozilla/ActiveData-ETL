@@ -24,8 +24,10 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import wrap, unwraplist, set_default
 from pyLibrary.env import http
+from pyLibrary.env.big_data import sbytes2ilines
 from pyLibrary.env.files import File
 from pyLibrary.thread.multiprocess import Process
+from pyLibrary.thread.threads import Thread
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -81,7 +83,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+        # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
 
         for artifact in artifacts:
             if artifact.name.find("gcda") != -1:
@@ -212,11 +214,15 @@ def run_lcov_on_directory(directory_path):
     :return: array of parsed coverage artifacts (files)
     """
     if os.name == 'nt':
-        proc = Process("lcov", ["c:\\msys64\\msys2.exe", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
+        # proc = Process("lcov", ["C:\msys64\msys2_shell.cmd", "-mingw64", "-c", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
+        # Thread.sleep(seconds=10)
+
+        output_file = File("c:\\msys64\\tmp\\output.txt")
+        while not output_file.exists:
+            Thread.sleep(seconds=1)
+        results = parse_lcov_coverage(sbytes2ilines(open(output_file.abspath)))
+
         proc.join()
-        echo = Process("type", ["type", "c:\\msys64\\tmp\\output.txt"])
-        results = parse_lcov_coverage(echo.stdout)
-        echo.join()
         return results
     else:
         proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
