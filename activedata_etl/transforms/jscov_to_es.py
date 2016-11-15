@@ -62,6 +62,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         task_cluster_record.action.etl = None
         task_cluster_record.task.artifacts = None
         task_cluster_record.task.runs = None
+        task_cluster_record.task.tags = None
+        task_cluster_record.task.env = None
 
         for artifact in artifacts:
             # we're only interested in jscov files, at lease at the moment

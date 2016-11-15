@@ -11,11 +11,9 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-from tempfile import NamedTemporaryFile, mkdtemp
 import zipfile
-from StringIO import StringIO
-from mmap import mmap
 from subprocess import Popen, PIPE
+from tempfile import NamedTemporaryFile, mkdtemp
 
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
@@ -72,7 +70,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         try:
             task_cluster_record = convert.json2value(msg_line)
             # SCRUB PROPERTIES WE DO NOT WANT
-            task_cluster_record.action = None
+            task_cluster_record.action.timings = None
+            task_cluster_record.action.etl = None
             task_cluster_record.task.runs = None
             task_cluster_record.task.tags = None
             task_cluster_record.task.env = None
@@ -215,8 +214,8 @@ def run_lcov_on_directory(directory_path):
     :return: array of parsed coverage artifacts (files)
     """
     if os.name == 'nt':
-        # proc = Process("lcov", ["C:\msys64\msys2_shell.cmd", "-mingw64", "-c", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
-        # Thread.sleep(seconds=10)
+        proc = Process("lcov", ["C:\msys64\msys2_shell.cmd", "-mingw64", "-c", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
+        Thread.sleep(seconds=10)
 
         output_file = File("c:\\msys64\\tmp\\output.txt")
         while not output_file.exists:
@@ -224,6 +223,7 @@ def run_lcov_on_directory(directory_path):
         results = parse_lcov_coverage(sbytes2ilines(open(output_file.abspath)))
 
         proc.join()
+        Log.note("{{num}} coverage records generated", num=len(results))
         return results
     else:
         proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
