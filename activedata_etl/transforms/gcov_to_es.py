@@ -10,35 +10,24 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
-import tempfile
 import shutil
+import tempfile
 import zipfile
 from StringIO import StringIO
 from mmap import mmap
 from subprocess import Popen, PIPE
 
-import taskcluster
-from pandas.io.wb import download
-
-from mohg.repos.changesets import Changeset
-from mohg.repos.revisions import Revision
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Dict, unwraplist
-from pyLibrary.env import http
-from pyLibrary.jsons import stream
-from pyLibrary.strings import expand_template
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log, machine_metadata
+from pyLibrary.dot import wrap, unwraplist, set_default
+from pyLibrary.env import http
+from pyLibrary.times.dates import Date
+from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-LIST_TASK_GROUP = "https://queue.taskcluster.net/v1/task-group/{{group_id}}/list"
 RETRY = {"times": 3, "sleep": 5}
 
 
@@ -291,34 +280,34 @@ def process_source_file(dest_etl, obj, task_cluster_record, records):
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
-    new_record = wrap({
-        "test": {
-            "name": test_name,
-            "url": obj.testUrl
+    new_record = set_default(
+        {
+            "test": {
+                "name": test_name,
+                "url": obj.testUrl
+            },
+            "source": {
+                "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
+                "file": file_info,
+                "method": {
+                    "covered": [{"line": c} for c in orphan_covered],
+                    "uncovered": orphan_uncovered,
+                    "total_covered": len(orphan_covered),
+                    "total_uncovered": len(orphan_uncovered),
+                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+                }
+            },
+            "etl": {
+                "id": 0,
+                "source": dest_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            },
+            "is_file": True
         },
-        "source": {
-            "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
-            "file": file_info,
-            "method": {
-                "covered": [{"line": c} for c in orphan_covered],
-                "uncovered": orphan_uncovered,
-                "total_covered": len(orphan_covered),
-                "total_uncovered": len(orphan_uncovered),
-                "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-            }
-        },
-        "etl": {
-            "id": 0,
-            "source": dest_etl,
-            "type": "join",
-            "machine": machine_metadata,
-            "timestamp": Date.now()
-        },
-        "repo": repo,
-        "run": run,
-        "build": build,
-        "is_file": True
-    })
+        task_cluster_record
+    )
     records.append({"id": etl2key(new_record.etl), "value": new_record})
 
 
