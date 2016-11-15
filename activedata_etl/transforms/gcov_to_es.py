@@ -24,6 +24,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import wrap, unwraplist, set_default
 from pyLibrary.env import http
+from pyLibrary.env.files import File
 from pyLibrary.thread.multiprocess import Process
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
@@ -107,10 +108,12 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
     else:
         tmpdir = mkdtemp()
 
-    os.mkdir('%s/ccov' % tmpdir)
-    os.mkdir('%s/out' % tmpdir)
+    ccov = File(tmpdir + '/ccov')
+    ccov.delete()
+    out = File(tmpdir + "/out")
+    out.delete()
 
-    Log.note('Using temp dir: {{tempdir}}', tempdir=tmpdir)
+    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
 
     Log.note('Fetching gcda artifact: {{url}}', url=artifact.url)
 
@@ -209,7 +212,7 @@ def run_lcov_on_directory(directory_path):
     :return: array of parsed coverage artifacts (files)
     """
     if os.name == 'nt':
-        proc = Process("lcov", ["c:\\msys64\\msys2.exe", "lcov --capture --directory /tmp/lcov --output-file output.txt"])
+        proc = Process("lcov", ["c:\\msys64\\msys2.exe", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
         proc.join()
         echo = Process("type", ["type", "c:\\msys64\\tmp\\output.txt"])
         results = parse_lcov_coverage(echo.stdout)
