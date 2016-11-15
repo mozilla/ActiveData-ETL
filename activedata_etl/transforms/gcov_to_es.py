@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-import tempfile
+from tempfile import NamedTemporaryFile, mkdtemp
 import zipfile
 from StringIO import StringIO
 from mmap import mmap
@@ -24,6 +24,7 @@ from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import wrap, unwraplist, set_default
 from pyLibrary.env import http
+from pyLibrary.thread.multiprocess import Process
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -82,12 +83,12 @@ def process(source_key, source, destination, resources, please_stop=None):
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
 
         for artifact in artifacts:
-            try:
-                Log.note("{{name}}", name=artifact.name)
-                if artifact.name.find("gcda") != -1:
+            if artifact.name.find("gcda") != -1:
+                try:
+                    Log.note("{{name}}", name=artifact.name)
                     keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
-            except Exception as e:
-                Log.warning("problem processing {{artifact}}", artifact=artifact.name, cause=e)
+                except Exception as e:
+                    Log.warning("problem processing {{artifact}}", artifact=artifact.name, cause=e)
 
     return keys
 
@@ -101,7 +102,11 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
     keys = []
     Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
 
-    tmpdir = tempfile.mkdtemp()
+    if os.name == "nt":
+        tmpdir = "C:/msys64/tmp"
+    else:
+        tmpdir = mkdtemp()
+
     os.mkdir('%s/ccov' % tmpdir)
     os.mkdir('%s/out' % tmpdir)
 
@@ -118,8 +123,8 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
 
         gcda_zipfile.extractall('%s/ccov' % tmpdir)
     except zipfile.BadZipfile:
-        Log.note('Bad zip file for gcda artifact: {{url}}', url=artifact.url)
-        return []
+        Log.error('Bad zip file for gcda artifact: {{url}} while processing {{key}}', url=artifact.url, key=source_key)
+
 
     artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
     files = artifacts
@@ -137,8 +142,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         keys.append(etl_key)
         Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
-        zipdata = StringIO()
-        zipdata.write(http.get(file_obj.url).content)
+        zipdata = download_file(file_obj.url)
 
         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
 
@@ -204,11 +208,17 @@ def run_lcov_on_directory(directory_path):
     :param directory_path:
     :return: array of parsed coverage artifacts (files)
     """
-
-    proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
-    results = parse_lcov_coverage(proc.stdout)
-
-    return results
+    if os.name == 'nt':
+        proc = Process("lcov", ["c:\\msys64\\msys2.exe", "lcov --capture --directory /tmp/lcov --output-file output.txt"])
+        proc.join()
+        echo = Process("type", ["type", "c:\\msys64\\tmp\\output.txt"])
+        results = parse_lcov_coverage(echo.stdout)
+        echo.join()
+        return results
+    else:
+        proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
+        results = parse_lcov_coverage(proc.stdout)
+        return results
 
 
 def process_source_file(dest_etl, obj, task_cluster_record, records):
@@ -312,9 +322,11 @@ def process_source_file(dest_etl, obj, task_cluster_record, records):
 
 
 def download_file(url):
-    output = tempfile.TemporaryFile()
-    with open(output):
-        destination = mmap(output.fileno())
-        for b in http.get(url).iter_content():
-            destination.write(b)
-    return output
+    tempfile = NamedTemporaryFile(delete=False)
+    stream = http.get(url).raw
+    try:
+        for b in iter(lambda: stream.read(8192), b""):
+            tempfile.write(b)
+    finally:
+        stream.close()
+    return tempfile
