@@ -90,14 +90,13 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
 
-        try: # TODO rm
-            for artifact in artifacts:
+        for artifact in artifacts:
+            try:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
                     keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
-        except Exception as e:
-            import traceback
-            Log.note(traceback.format_exc())
+            except Exception as e:
+                Log.error("problem processing {{artifact}}", artifact=artifact.name, cause=e)
 
     return keys
 
@@ -158,7 +157,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         gcno_zipfile.extractall('%s/ccov' % tmpdir)
 
         Log.note('Running LCOV on ccov directory')
- 
+
         lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
