@@ -72,9 +72,10 @@ def process(source_key, source, destination, resources, please_stop=None):
         try:
             task_cluster_record = convert.json2value(msg_line)
             # SCRUB PROPERTIES WE DO NOT WANT
-            task_cluster_record.actions = None
-            task_cluster_record.runs = None
-            task_cluster_record.tags = None
+            task_cluster_record.action = None
+            task_cluster_record.task.runs = None
+            task_cluster_record.task.tags = None
+            task_cluster_record.task.env = None
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
