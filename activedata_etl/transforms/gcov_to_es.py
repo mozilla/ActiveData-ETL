@@ -88,7 +88,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         for artifact in artifacts:
             if artifact.name.find("gcda") != -1:
                 try:
-                    Log.note("{{name}}", name=artifact.name)
+                    Log.note("Process GCDA artifact {{name}} for key {{key}}", name=artifact.name, key=task_cluster_record._id)
                     keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
                 except Exception as e:
                     Log.warning("problem processing {{artifact}}", artifact=artifact.name, cause=e)
