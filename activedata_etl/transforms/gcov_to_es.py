@@ -14,9 +14,11 @@ import tempfile
 import shutil
 import zipfile
 from StringIO import StringIO
+from mmap import mmap
 from subprocess import Popen, PIPE
 
 import taskcluster
+from pandas.io.wb import download
 
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
@@ -96,7 +98,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 if artifact.name.find("gcda") != -1:
                     keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
             except Exception as e:
-                Log.error("problem processing {{artifact}}", artifact=artifact.name, cause=e)
+                Log.warning("problem processing {{artifact}}", artifact=artifact.name, cause=e)
 
     return keys
 
@@ -118,8 +120,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
 
     Log.note('Fetching gcda artifact: {{url}}', url=artifact.url)
 
-    zipdata = StringIO()
-    zipdata.write(http.get(artifact.url).content)
+    zipdata = download_file(artifact.url)
 
     try:
         gcda_zipfile = zipfile.ZipFile(zipdata)
@@ -142,7 +143,6 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
 
         _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=file_obj.url)
-        add_tc_prefix(dest_etl)
 
         etl_key = etl2key(dest_etl)
         keys.append(etl_key)
@@ -162,17 +162,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
-        # get the task definition
-        queue = taskcluster.Queue()
-        task_definition = wrap(queue.task(taskId=file_obj.task_id))
-
-        # get additional info
-        repo = get_revision_info(task_definition, resources)
-        task = {"id": task_id}
-        run = get_run_info(task_definition)
-        build = get_build_info(task_definition)
-
-        process_source_file(dest_etl, lcov_coverage, repo, task, run, build, records)
+        process_source_file(dest_etl, lcov_coverage, task_cluster_record, records)
 
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
@@ -182,6 +172,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         destination.extend(records, overwrite=True)
 
     return keys
+
 
 def group_to_gcno_artifacts(group_id):
     """
@@ -231,7 +222,7 @@ def run_lcov_on_directory(directory_path):
     return results
 
 
-def process_source_file(dest_etl, obj, repo, task, run, build, records):
+def process_source_file(dest_etl, obj, task_cluster_record, records):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -269,34 +260,33 @@ def process_source_file(dest_etl, obj, repo, task, run, build, records):
         orphan_covered = orphan_covered - method_covered
         orphan_uncovered = orphan_uncovered - method_uncovered
 
-        new_record = wrap({
-            "test": {
-                "name": test_name,
-                "url": obj.testUrl
-            },
-            "source": {
-                "file": file_info,
-                "method": {
-                    "name": method_name,
-                    "covered": [{"line": c} for c in method_covered],
-                    "uncovered": method_uncovered,
-                    "total_covered": len(method_covered),
-                    "total_uncovered": len(method_uncovered),
-                    "percentage_covered": method_percentage_covered,
+        new_record = set_default(
+            {
+                "test": {
+                    "name": test_name,
+                    "url": obj.testUrl
+                },
+                "source": {
+                    "file": file_info,
+                    "method": {
+                        "name": method_name,
+                        "covered": [{"line": c} for c in method_covered],
+                        "uncovered": method_uncovered,
+                        "total_covered": len(method_covered),
+                        "total_uncovered": len(method_uncovered),
+                        "percentage_covered": method_percentage_covered,
+                    }
+                },
+                "etl": {
+                    "id": count+1,
+                    "source": dest_etl,
+                    "type": "join",
+                    "machine": machine_metadata,
+                    "timestamp": Date.now()
                 }
             },
-            "etl": {
-                "id": count+1,
-                "source": dest_etl,
-                "type": "join",
-                "machine": machine_metadata,
-                "timestamp": Date.now()
-            },
-            "repo": repo,
-            "task": task,
-            "run": run,
-            "build": build
-        })
+            task_cluster_record
+        )
         records.append({"id": etl2key(new_record.etl), "value": new_record})
 
     # a record for all the lines that are not in any method
@@ -332,75 +322,10 @@ def process_source_file(dest_etl, obj, repo, task, run, build, records):
     records.append({"id": etl2key(new_record.etl), "value": new_record})
 
 
-def get_revision_info(task_definition, resources):
-    """
-    Get the changeset, revision and push info for a given task in TaskCluster
-
-    :param task_definition: The task definition
-    :param resources: Pass this from the process method
-    :return: The repo object containing information about the changeset, revision and push
-    """
-
-    # head_repo will look like "https://hg.mozilla.org/try/"
-    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
-    branch = head_repo.split("/")[-2]
-
-    revision = task_definition.payload.env.GECKO_HEAD_REV
-    rev = Revision(branch={"name": branch}, changeset=Changeset(id=revision))
-    repo = resources.hg.get_revision(rev)
-    return repo
-
-
-def get_run_info(task_definition):
-    """
-    Get the run object that contains properties that describe the run of this job
-
-    :param task_definition: The task definition
-    :return: The run object
-    """
-    run = Dict()
-    run.suite = task_definition.extra.suite
-    run.chunk = task_definition.extra.chunks.current
-    return run
-
-
-def get_build_info(task_definition):
-    """
-    Get a build object that describes the build
-
-    :param task_definition: The task definition
-    :return: The build object
-    """
-    build = Dict()
-    build.platform = task_definition.extra.treeherder.build.platform
-
-    # head_repo will look like "https://hg.mozilla.org/try/"
-    head_repo = task_definition.payload.env.GECKO_HEAD_REPOSITORY
-    branch = head_repo.split("/")[-2]
-    build.branch = branch
-
-    build.revision = task_definition.payload.env.GECKO_HEAD_REV
-    build.revision12 = build.revision[0:12]
-
-    # MOZILLA_BUILD_URL looks like this:
-    # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
-    build.url = task_definition.payload.env.MOZILLA_BUILD_URL
-
-    # get the taskId of the build, then from that get the task definition of the build
-    # note: this is a fragile way to get the taskId of the build
-    build.taskId = build.url.split("/")[5]
-    queue = taskcluster.Queue()
-    build_task_definition = wrap(queue.task(taskId=build.taskId))
-    build.name = build_task_definition.extra.build_name
-    build.product = build_task_definition.extra.build_product
-    build.type = build_task_definition.extra.build_type  #TODO: expand "dbg" to "debug"
-    build.created_timestamp = Date(build_task_definition.created).unix
-
-    return build
-
-
-def add_tc_prefix(dest_etl):
-    # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
-    if not dest_etl.source.source.source:
-        dest_etl.source.source.type = "join"
-        dest_etl.source.source.source = {"id": "tc"}
+def download_file(url):
+    output = tempfile.TemporaryFile()
+    with open(output):
+        destination = mmap(output.fileno())
+        for b in http.get(url).iter_content():
+            destination.write(b)
+    return output

@@ -7,7 +7,7 @@ This directory contains scripts that can be used to setup the various ActiveData
 
 ## Installing MSYS2 on Windows
 
-The CodeCoverage ETL requires `lcov` to decode the binary `gdsa` `gcno` files. `lcov` is not available on Windows, so we require some Linux emulator to do this for us. MSYS2 can be controlled from the Windows command line; effectively giving the full power of Linux to Windows!! 
+The CodeCoverage ETL requires `lcov` to decode the binary `gcda` `gcno` files. `lcov` is not available on Windows, so we require some Linux emulator to do this for us. MSYS2 can be controlled from the Windows command line; effectively giving the full power of Linux to Windows!! 
 
 
 Install MSYS2 on your windows machine
