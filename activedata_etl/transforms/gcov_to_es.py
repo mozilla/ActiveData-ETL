@@ -214,12 +214,27 @@ def run_lcov_on_directory(directory_path):
     :return: array of parsed coverage artifacts (files)
     """
     if os.name == 'nt':
-        proc = Process("lcov", ["C:\msys64\msys2_shell.cmd", "-mingw64", "-c", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
-        if DEBUG:
-            while not proc.service_stopped:
-                line = proc.stdout.pop()
-                Log.note("[lcov] {{lcov_says}}", lcov_says=line)
-        proc.join()
+        directory = File(directory_path)
+        procs = []
+        for c in directory.children:
+            subdir = "/tmp/ccov/" + c.name
+            filename = "/tmp/output." + c.name + ".txt"
+
+            procs.append((
+                filename,
+                Process(
+                    "lcov",
+                    [
+                        "C:\msys64\msys2_shell.cmd",
+                        "-mingw64",
+                        "-c",
+                        "lcov --capture --directory " + subdir + " --output-file " + filename + " 2>/dev/null"
+                    ]
+                )
+            ))
+
+        for p in procs:
+            p[1].join()
 
         output_file = File("c:\\msys64\\tmp\\output.txt")
         while not output_file.exists:
