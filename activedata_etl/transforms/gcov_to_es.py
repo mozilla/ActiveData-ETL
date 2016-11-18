@@ -68,12 +68,13 @@ def process(source_key, source, destination, resources, please_stop=None):
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
         record_key = etl2key(task_cluster_record.etl)
-        etl_header_gen = EtlHeadGenerator(record_key)
-        for artifact in artifacts:
+        for ai, artifact in enumerate(artifacts):
             if artifact.name.find("gcda") != -1:
                 try:
                     Log.note("Process GCDA artifact {{name}} for key {{key}}", name=artifact.name, key=task_cluster_record._id)
-                    keys = process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact)
+                    artifact_key = record_key+"."+unicode(ai)
+                    artifact_etl_gen = EtlHeadGenerator(artifact_key)
+                    keys = process_gcda_artifact(source_key, destination, artifact_etl_gen, task_cluster_record, artifact)
                     keys.extend(keys)
                 except Exception as e:
                     Log.warning("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
@@ -128,8 +129,8 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
         for r in wrap(records):
             r._id, etl = etl_header_gen.next(task_cluster_record.etl)
-            r.etl.gcno = gcno_artifact.url
-            r.etl.gcda = gcda_artifact.url
+            etl.gcno = gcno_artifact.url
+            etl.gcda = gcda_artifact.url
             set_default(r, task_cluster_record)
             r.etl = etl
             keys.append(r._id)
