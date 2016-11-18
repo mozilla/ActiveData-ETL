@@ -55,27 +55,6 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         except Exception, e:
             Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
 
-        # TREEHERDER MARKUP
-        try:
-            if data.build.revision:
-                data.treeherder = resources.treeherder.get_markup(
-                    data.build.branch,
-                    data.build.revision,
-                    None,
-                    data.run.key,
-                    data.action.end_time
-                )
-        except Exception, e:
-            if TRY_AGAIN_LATER in e:
-                Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
-
-            Log.warning(
-                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
-                key=source_key,
-                revision=data.build.revision12,
-                cause=e
-            )
-
         if data.action.start_time < TOO_OLD:
             Log.warning("Do not try to process old buildbot logs")
             return set()

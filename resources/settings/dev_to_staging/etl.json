@@ -5,7 +5,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"param": {
-		"threads": 1,
+		"threads": 4,
 		"wait_forever": true,
 		"keep_unknown_on_queue": true,
 		"min_attempts": 0
@@ -19,37 +19,6 @@
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
-	},
-	"treeherder": {
-		"use_cache": true,
-		"rate_limiter": {
-			"host": "http://activedata.allizom.org",
-			"port": 9200,
-			"index": "treeherder_requests",
-			"type": "request",
-			"timeout": 3,
-			"schema": {
-				"mappings": {
-					"my_type": {
-						"_ttl": {
-							"enabled": true,
-							"default": "10m"
-						}
-					}
-				}
-			},
-			"debug": false,
-			"limit_replicas": false
-		},
-		"cache": {
-			"host": "http://activedata.allizom.org",
-			"port": 9200,
-			"index": "treeherder",
-			"type": "job",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": false
-		}
 	},
 	"hg": {
 		"use_cache": true,
@@ -135,7 +104,7 @@
 		"type": "join"
 	},
 	{
-		"name": "TC Normalized to test_result",
+		"name": "taskcluster to test_result",
 		"source": {
 			"$ref": "file://~/private.json#aws_credentials",
 			"bucket": "active-data-task-cluster-normalized",
