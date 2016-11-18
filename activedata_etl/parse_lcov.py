@@ -15,14 +15,13 @@ import sys
 import json
 
 
-def parse_lcov_coverage(stream):
+def parse_lcov_coverage(source_key, stream):
     """
     Parses lcov coverage from a stream
     :param stream:
     :return:
     """
     # XXX BRDA, BRF, BFH not implemented because not used in the output
-
     sources = {}
 
     current_source = None
