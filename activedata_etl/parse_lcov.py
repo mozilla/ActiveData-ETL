@@ -98,10 +98,6 @@ def parse_lcov_coverage(source_key, stream):
                 print('Unsupported cmd %s with data "%s"' % (cmd, data))
 
     results = []
-    results.append({
-        'version': 1
-    })
-
     for key, value in sources.iteritems():
         lines_covered = sorted(value['lines_covered'])
 

@@ -124,16 +124,15 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
     keys = []
 
     for file in lcov_files:
-        with file:
-            records = parse_lcov_coverage(source_key, etl_header_gen, file)
-            Log.note('Extracted {{num_records}} records', num_records=len(records))
-            for r in records:
-                r._id, etl = etl_header_gen.next(task_cluster_record.etl)
-                r.etl.gcno = gcno_artifact.url
-                r.etl.gcda = gcda_artifact.url
-                set_default(r, task_cluster_record)
-                r.etl = etl
-                keys.append(r._id)
+        records = parse_lcov_coverage(source_key, file)
+        Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
+        for r in records:
+            r._id, etl = etl_header_gen.next(task_cluster_record.etl)
+            r.etl.gcno = gcno_artifact.url
+            r.etl.gcda = gcda_artifact.url
+            set_default(r, task_cluster_record)
+            r.etl = etl
+            keys.append(r._id)
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
     shutil.rmtree(tmpdir)
