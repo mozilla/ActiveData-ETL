@@ -126,7 +126,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
     for file in lcov_files:
         records = parse_lcov_coverage(source_key, file)
         Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
-        for r in records:
+        for r in wrap(records):
             r._id, etl = etl_header_gen.next(task_cluster_record.etl)
             r.etl.gcno = gcno_artifact.url
             r.etl.gcda = gcda_artifact.url
