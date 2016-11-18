@@ -243,7 +243,7 @@ class BuildbotTranslator(object):
                 "jetpack-(.*)-{{platform}}-{{type}}",
                 {
                     "platform": raw_platform,
-                    "type": unwraplist(output.build.type)
+                    "type": unwraplist(list(set(output.build.type)))
                 }
             ), buildername)
 

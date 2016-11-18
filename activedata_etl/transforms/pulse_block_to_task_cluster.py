@@ -262,27 +262,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
-    # ASSIGN TREEHERDER
-    try:
-        if output.build.revision and output.task.state != "exception":
-            output.treeherder = resources.treeherder.get_markup(
-                output.build.branch,
-                output.build.revision,
-                output.task.id,
-                None,
-                output.task.run.end_time
-            )
-    except Exception, e:
-        if TRY_AGAIN_LATER in e:
-            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
-
-        Log.error(
-            "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
-            key=source_key,
-            revision=output.build.revision12,
-            cause=e
-        )
-
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()]) - new_seen_tc_properties
     if remaining_keys:

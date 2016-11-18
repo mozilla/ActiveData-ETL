@@ -23,7 +23,6 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from motreeherder.treeherder import TreeHerder
 from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
@@ -419,8 +418,7 @@ def main():
 
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(
-            hg=hg,
-            treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
+            hg=hg
         )
 
         stopper = Signal()
@@ -474,8 +472,7 @@ def etl_one(settings):
 
     hg = HgMozillaOrg(settings=settings.hg)
     resources = Dict(
-        hg=hg,
-        treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
+        hg=hg
     )
 
     stopper = Signal("main stop signal")
