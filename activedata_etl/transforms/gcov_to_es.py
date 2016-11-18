@@ -33,20 +33,6 @@ ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 
-def remove_files_recursively(root_directory, file_extension):
-    """
-    Removes files with the given file extension from a directory recursively.
-
-    :param root_directory: The directory to remove files from recursively
-    :param file_extension: The file extension files must match
-    """
-    full_ext = '.%s' % file_extension
-
-    for root, dirs, files in os.walk(root_directory):
-        for file in files:
-            if file.endswith(full_ext):
-                os.remove(os.path.join(root, file))
-
 
 def process(source_key, source, destination, resources, please_stop=None):
     """
@@ -249,106 +235,6 @@ def run_lcov_on_directory(directory_path):
         return results
 
 
-def process_source_file(dest_etl, obj, task_cluster_record, records):
-    obj = wrap(obj)
-
-    # get the test name. Just use the test file name at the moment
-    # TODO: change this when needed
-    try:
-        test_name = unwraplist(obj.testUrl).split("/")[-1]
-    except Exception, e:
-        Log.error("can not get testUrl from coverage object", cause=e)
-
-    # turn obj.covered (a list) into a set for use later
-    file_covered = set(obj.covered)
-
-    # file-level info
-    file_info = wrap({
-        "name": obj.sourceFile,
-        "covered": [{"line": c} for c in obj.covered],
-        "uncovered": obj.uncovered,
-        "total_covered": len(obj.covered),
-        "total_uncovered": len(obj.uncovered),
-        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
-    })
-
-    # orphan lines (i.e. lines without a method), initialized to all lines
-    orphan_covered = set(obj.covered)
-    orphan_uncovered = set(obj.uncovered)
-
-    # iterate through the methods of this source file
-    # a variable to count the number of lines so far for this source file
-    for count, (method_name, method_lines) in enumerate(obj.methods.iteritems()):
-        all_method_lines_set = set(method_lines)
-        method_covered = all_method_lines_set & file_covered
-        method_uncovered = all_method_lines_set - method_covered
-        method_percentage_covered = len(method_covered) / len(all_method_lines_set)
-
-        orphan_covered = orphan_covered - method_covered
-        orphan_uncovered = orphan_uncovered - method_uncovered
-
-        new_record = set_default(
-            {
-                "test": {
-                    "name": test_name,
-                    "url": obj.testUrl
-                },
-                "source": {
-                    "file": file_info,
-                    "method": {
-                        "name": method_name,
-                        "covered": [{"line": c} for c in method_covered],
-                        "uncovered": method_uncovered,
-                        "total_covered": len(method_covered),
-                        "total_uncovered": len(method_uncovered),
-                        "percentage_covered": method_percentage_covered,
-                    }
-                },
-                "etl": {
-                    "id": count+1,
-                    "source": dest_etl,
-                    "type": "join",
-                    "machine": machine_metadata,
-                    "timestamp": Date.now()
-                }
-            },
-            task_cluster_record
-        )
-        records.append({"id": etl2key(new_record.etl), "value": new_record})
-
-    # a record for all the lines that are not in any method
-    # every file gets one because we can use it as canonical representative
-    new_record = set_default(
-        {
-            "test": {
-                "name": test_name,
-                "url": obj.testUrl
-            },
-            "source": {
-                "is_file": True,  # THE ORPHAN LINES WILl REPRESENT THE FILE AS A WHILE
-                "file": file_info,
-                "method": {
-                    "covered": [{"line": c} for c in orphan_covered],
-                    "uncovered": orphan_uncovered,
-                    "total_covered": len(orphan_covered),
-                    "total_uncovered": len(orphan_uncovered),
-                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-                }
-            },
-            "etl": {
-                "id": 0,
-                "source": dest_etl,
-                "type": "join",
-                "machine": machine_metadata,
-                "timestamp": Date.now()
-            },
-            "is_file": True
-        },
-        task_cluster_record
-    )
-    records.append({"id": etl2key(new_record.etl), "value": new_record})
-
-
 def download_file(url):
     tempfile = NamedTemporaryFile(delete=False)
     stream = http.get(url).raw
@@ -358,3 +244,20 @@ def download_file(url):
     finally:
         stream.close()
     return tempfile
+
+
+def remove_files_recursively(root_directory, file_extension):
+    """
+    Removes files with the given file extension from a directory recursively.
+
+    :param root_directory: The directory to remove files from recursively
+    :param file_extension: The file extension files must match
+    """
+    full_ext = '.%s' % file_extension
+
+    for root, dirs, files in os.walk(root_directory):
+        for file in files:
+            if file.endswith(full_ext):
+                os.remove(os.path.join(root, file))
+
+
