@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-import zipfile
+from zipfile import ZipFile
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
 
@@ -19,14 +19,11 @@ from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, unwraplist, set_default
+from pyLibrary.debugs.logs import Log
+from pyLibrary.dot import wrap, set_default, Null
 from pyLibrary.env import http
-from pyLibrary.env.big_data import sbytes2ilines
 from pyLibrary.env.files import File
 from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
@@ -49,7 +46,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     :param please_stop: The stop signal to stop the current thread
     :return: The list of keys of files in the destination bucket
     """
-    etl_header_gen = EtlHeadGenerator(source_key)
     keys = []
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
@@ -69,18 +65,18 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
-
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
-
+        record_key = etl2key(task_cluster_record.etl)
+        etl_header_gen = EtlHeadGenerator(record_key)
         for artifact in artifacts:
             if artifact.name.find("gcda") != -1:
                 try:
                     Log.note("Process GCDA artifact {{name}} for key {{key}}", name=artifact.name, key=task_cluster_record._id)
-                    keys.extend(process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact))
+                    keys = process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact)
+                    keys.extend(keys)
                 except Exception as e:
-                    Log.warning("problem processing {{artifact}}", artifact=artifact.name, cause=e)
+                    Log.warning("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
 
     return keys
 
