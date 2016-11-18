@@ -68,23 +68,20 @@ def process(source_key, source, destination, resources, please_stop=None):
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
         record_key = etl2key(task_cluster_record.etl)
-        found_gcda = 0
+        file_etl_gen = EtlHeadGenerator(record_key)
         for artifact in artifacts:
             if artifact.name.find("gcda") != -1:
                 try:
                     Log.note("Process GCDA artifact {{name}} for key {{key}}", name=artifact.name, key=task_cluster_record._id)
-                    artifact_key = record_key + "." + unicode(found_gcda)
-                    artifact_etl_gen = EtlHeadGenerator(artifact_key)
-                    keys = process_gcda_artifact(source_key, destination, artifact_etl_gen, task_cluster_record, artifact)
+                    keys = process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_record, artifact)
                     keys.extend(keys)
-                    found_gcda += 1
                 except Exception as e:
                     Log.warning("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
 
     return keys
 
 
-def process_gcda_artifact(source_key, destination, artifact_etl_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_record, gcda_artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -124,21 +121,21 @@ def process_gcda_artifact(source_key, destination, artifact_etl_gen, task_cluste
     Log.note('Running LCOV on ccov directory')
     lcov_files = run_lcov_on_directory('%s/ccov' % tmpdir)
 
-    acc = []
     keys = []
     for file in lcov_files:
-        records = parse_lcov_coverage(source_key, file)
+        file_id, file_etl = file_etl_gen.next(task_cluster_record.etl)
+        line_etl_gen = EtlHeadGenerator(file_id)
+        records = wrap(parse_lcov_coverage(source_key, file))
         Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
-        for r in wrap(records):
-            r._id, etl = artifact_etl_gen.next(task_cluster_record.etl)
+        for r in records:
+            r._id, etl = line_etl_gen.next(file_etl)
             etl.gcno = gcno_artifact.url
             etl.gcda = gcda_artifact.url
             set_default(r, task_cluster_record)
             r.etl = etl
             keys.append(r._id)
-        acc.extend(records)
-    with Timer("writing {{num}} records to s3", {"num": len(acc)}):
-        destination.extend(acc, overwrite=True)
+        with Timer("writing {{num}} records to s3", {"num": len(records)}):
+            destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
     shutil.rmtree(tmpdir)
