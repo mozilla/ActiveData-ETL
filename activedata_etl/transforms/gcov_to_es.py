@@ -32,6 +32,9 @@ from pyLibrary.times.timer import Timer
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
+ENABLE_LCOV = False
+WINDOWS_TEMP_DIR = "c:\\msys64\\tmp"
+MSYS2_TEMP_DIR = "/tmp"
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -88,7 +91,6 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
-    keys = []
     Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
 
     if os.name == "nt":
@@ -149,6 +151,7 @@ def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_
         process_source_file(dest_etl, lcov_coverage, task_cluster_record, records)
 
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+    keys = []
 
     shutil.rmtree(tmpdir)
 
@@ -203,8 +206,9 @@ def run_lcov_on_directory(directory_path):
         directory = File(directory_path)
         procs = []
         for c in directory.children:
-            subdir = "/tmp/ccov/" + c.name
-            filename = "/tmp/output." + c.name + ".txt"
+            subdir = MSYS2_TEMP_DIR + "/ccov/" + c.name
+            filename = "output." + c.name + ".txt"
+            fullpath = MSYS2_TEMP_DIR + "/" + filename
 
             procs.append((
                 filename,
