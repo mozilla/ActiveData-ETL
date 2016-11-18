@@ -85,74 +85,61 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, artifact):
+def process_gcda_artifact(source_key, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
-    Log.note("Processing gcda artifact {{artifact}}", artifact=artifact.name)
+    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     if os.name == "nt":
-        tmpdir = "C:/msys64/tmp"
+        tmpdir = WINDOWS_TEMP_DIR
     else:
         tmpdir = mkdtemp()
+    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
 
     ccov = File(tmpdir + '/ccov')
     ccov.delete()
     out = File(tmpdir + "/out")
     out.delete()
 
-    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
+    Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
+    gcda_file = download_file(gcda_artifact.url)
 
-    Log.note('Fetching gcda artifact: {{url}}', url=artifact.url)
-
-    zipdata = download_file(artifact.url)
-
-    try:
-        gcda_zipfile = zipfile.ZipFile(zipdata)
-
-        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-
-        gcda_zipfile.extractall('%s/ccov' % tmpdir)
-    except zipfile.BadZipfile:
-        Log.error('Bad zip file for gcda artifact: {{url}} while processing {{key}}', url=artifact.url, key=source_key)
-
+    Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+    ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
 
     artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-    files = artifacts
+    if len(artifacts) != 1:
+        Log.error("Do not know how to handle more than one gcno file")
+    gcno_artifact = artifacts[0]
+    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-    records = []
+    Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
+    gcno_file = download_file(gcno_artifact.url)
 
-    for file_obj in files:
-        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+    Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+    ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+    Log.note('Running LCOV on ccov directory')
+    lcov_files = run_lcov_on_directory('%s/ccov' % tmpdir)
 
-        _, dest_etl = etl_header_gen.next(task_cluster_record.etl, url=file_obj.url)
-
-        etl_key = etl2key(dest_etl)
-        keys.append(etl_key)
-        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-
-        zipdata = download_file(file_obj.url)
-
-        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-
-        gcno_zipfile = zipfile.ZipFile(zipdata)
-        gcno_zipfile.extractall('%s/ccov' % tmpdir)
-
-        Log.note('Running LCOV on ccov directory')
-
-        lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
-
-        Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-
-        process_source_file(dest_etl, lcov_coverage, task_cluster_record, records)
-
-        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
     keys = []
 
+    for file in lcov_files:
+        with file:
+            records = parse_lcov_coverage(source_key, etl_header_gen, file)
+            Log.note('Extracted {{num_records}} records', num_records=len(records))
+            for r in records:
+                r._id, etl = etl_header_gen.next(task_cluster_record.etl)
+                r.etl.gcno = gcno_artifact.url
+                r.etl.gcda = gcda_artifact.url
+                set_default(r, task_cluster_record)
+                r.etl = etl
+                keys.append(r._id)
+
+    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
     shutil.rmtree(tmpdir)
 
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
