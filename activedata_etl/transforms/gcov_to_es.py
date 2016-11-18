@@ -213,27 +213,22 @@ def run_lcov_on_directory(directory_path):
             procs.append((
                 filename,
                 Process(
-                    "lcov",
+                    "lcov"+unicode(len(procs)),
                     [
                         "C:\msys64\msys2_shell.cmd",
                         "-mingw64",
                         "-c",
-                        "lcov --capture --directory " + subdir + " --output-file " + filename + " 2>/dev/null"
+                        "lcov --capture --directory " + subdir + " --output-file " + fullpath + " 2>/dev/null"
                     ]
-                )
+                ) if ENABLE_LCOV else Null
             ))
 
-        for p in procs:
-            p[1].join()
+        for n, p in procs:
+            p.join()
 
-        output_file = File("c:\\msys64\\tmp\\output.txt")
-        while not output_file.exists:
-            Thread.sleep(seconds=1)
-        results = parse_lcov_coverage(sbytes2ilines(open(output_file.abspath)))
-
-        Log.note("{{num}} coverage records generated", num=len(results))
-        return results
+        return [File(WINDOWS_TEMP_DIR + "/" + n) for n, p in procs]
     else:
+        Log.error("must return a list of files, it returns a stream instead")
         proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
         results = parse_lcov_coverage(proc.stdout)
         return results
