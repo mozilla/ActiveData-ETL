@@ -556,7 +556,8 @@ class Thread(object):
                 with self.synch_lock:
                     for i in range(10):
                         if self.stopped:
-                            self.parent.remove_child(self)
+                            with suppress_exception:
+                                self.parent.remove_child(self)
                             if not self.end_of_thread.exception:
                                 return self.end_of_thread.response
                             else:

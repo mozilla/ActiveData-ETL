@@ -31,7 +31,7 @@ from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
-
+DEBUG = True
 
 def remove_files_recursively(root_directory, file_extension):
     """
@@ -215,14 +215,17 @@ def run_lcov_on_directory(directory_path):
     """
     if os.name == 'nt':
         proc = Process("lcov", ["C:\msys64\msys2_shell.cmd", "-mingw64", "-c", "lcov --capture --directory /tmp/ccov --output-file /tmp/output.txt 2>/dev/null"])
-        Thread.sleep(seconds=10)
+        if DEBUG:
+            while not proc.service_stopped:
+                line = proc.stdout.pop()
+                Log.note("[lcov] {{lcov_says}}", lcov_says=line)
+        proc.join()
 
         output_file = File("c:\\msys64\\tmp\\output.txt")
         while not output_file.exists:
             Thread.sleep(seconds=1)
         results = parse_lcov_coverage(sbytes2ilines(open(output_file.abspath)))
 
-        proc.join()
         Log.note("{{num}} coverage records generated", num=len(results))
         return results
     else:
