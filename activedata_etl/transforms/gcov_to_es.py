@@ -24,12 +24,13 @@ from pyLibrary.dot import wrap, set_default, Null
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.thread.multiprocess import Process
+from pyLibrary.thread.threads import Thread, ThreadedQueue, Queue, Lock
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
-ENABLE_LCOV = False
+ENABLE_LCOV = True
 WINDOWS_TEMP_DIR = "c:\\msys64\\tmp"
 MSYS2_TEMP_DIR = "/tmp"
 
@@ -181,33 +182,40 @@ def run_lcov_on_directory(directory_path):
     """
     Runs lcov on a directory.
     :param directory_path:
-    :return: array of parsed coverage artifacts (files)
+    :return: queue with files
     """
     if os.name == 'nt':
         directory = File(directory_path)
-        procs = []
-        for c in directory.children:
-            subdir = MSYS2_TEMP_DIR + "/ccov/" + c.name
-            filename = "output." + c.name + ".txt"
+        output = Queue("lcov artifacts")
+        children = directory.children
+        locker = Lock()
+        expected = [len(children)]
+        for subdir in children:
+            filename = "output." + subdir.name + ".txt"
+            dest_dir = MSYS2_TEMP_DIR + "/ccov/" + subdir.name
             fullpath = MSYS2_TEMP_DIR + "/" + filename
 
-            procs.append((
-                filename,
-                Process(
-                    "lcov"+unicode(len(procs)),
-                    [
-                        "C:\msys64\msys2_shell.cmd",
-                        "-mingw64",
-                        "-c",
-                        "lcov --capture --directory " + subdir + " --output-file " + fullpath + " 2>/dev/null"
-                    ]
-                ) if ENABLE_LCOV else Null
-            ))
+            proc = Process(
+                "lcov"+fullpath,
+                [
+                    "C:\msys64\msys2_shell.cmd",
+                    "-mingw64",
+                    "-c",
+                    "lcov --capture --directory " + dest_dir + " --output-file " + fullpath + " 2>/dev/null"
+                ]
+            ) if ENABLE_LCOV else Null
 
-        for n, p in procs:
-            p.join()
+            def closure_wrap(subdir, proc):
+                def is_done():
+                    output.add(subdir)
+                    with locker:
+                        expected[0] -= 1
+                        if not expected[0]:
+                            output.add(Thread.STOP)
+                proc.service_stopped.on_go(is_done)
+            closure_wrap(subdir, proc)
 
-        return [File(WINDOWS_TEMP_DIR + "/" + n) for n, p in procs]
+        return output
     else:
         Log.error("must return a list of files, it returns a stream instead")
         proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
