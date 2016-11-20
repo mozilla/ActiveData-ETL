@@ -132,7 +132,7 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
                 records = wrap(parse_lcov_coverage(source_key, file))
                 Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
             except Exception, e:
-                Log.warning("Problem parsing lcov output for {{file}}", file=file, cause=e)
+                Log.warning("Problem parsing lcov output for {{file}}", file=file.name, cause=e)
                 continue
 
             for r in records:
