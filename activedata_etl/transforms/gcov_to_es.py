@@ -132,7 +132,10 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
                 records = wrap(parse_lcov_coverage(source_key, file))
                 Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
             except Exception, e:
-                Log.warning("Problem parsing lcov output for {{file}}", file=file.name, cause=e)
+                if "No such file or directory" in e:
+                    Log.note("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
+                else:
+                    Log.warning("Problem parsing lcov output for {{file}}", file=file.abspath, cause=e)
                 continue
 
             for r in records:
@@ -206,11 +209,27 @@ def run_lcov_on_directory(directory_path):
             proc = Process(
                 "lcov: "+linux_dest_file,
                 [
-                    "C:\msys64\msys2_shell.cmd",
-                    "-mingw64",
-                    "-c",
+                    "start",
+                    "/W",
+                    "c:\\msys64\\usr\\bin\\mintty",
+                    # "-i",
+                    # "/msys2.ico",
+                    "/usr/bin/bash",
+                    "--login",
+                    "-c"
+                    # "C:\msys64\msys2_shell.cmd",
+                    # "-mingw64",
+                    # "-c",
                     "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
-                ]
+                ],
+                cwd="C:\\msys64",
+                env=set_default(
+                    {
+                        "WD": "C:\\msys64\\usr\\bin\\",
+                        "MSYSTEM": "MINGW64"
+                    },
+                    os.environ
+                )
             ) if ENABLE_LCOV else Null
 
             def closure_wrap(_dest_file, _proc):
