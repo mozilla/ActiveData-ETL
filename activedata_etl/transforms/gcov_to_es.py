@@ -23,6 +23,7 @@ from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, set_default, Null
 from pyLibrary.env import http
 from pyLibrary.env.files import File
+from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, ThreadedQueue, Queue, Lock
 from pyLibrary.times.timer import Timer
@@ -31,7 +32,7 @@ ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 ENABLE_LCOV = True
-WINDOWS_TEMP_DIR = "c:\\msys64\\tmp"
+WINDOWS_TEMP_DIR = "c:/msys64/tmp"
 MSYS2_TEMP_DIR = "/tmp"
 
 
@@ -91,7 +92,7 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     if os.name == "nt":
-        tmpdir = WINDOWS_TEMP_DIR
+        tmpdir = WINDOWS_TEMP_DIR + "/" + Random.hex(10)
     else:
         tmpdir = mkdtemp()
     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
@@ -101,46 +102,52 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
     out = File(tmpdir + "/out")
     out.delete()
 
-    Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-    gcda_file = download_file(gcda_artifact.url)
+    try:
+        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
+        gcda_file = download_file(gcda_artifact.url)
 
-    Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-    ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
+        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
 
-    artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-    if len(artifacts) != 1:
-        Log.error("Do not know how to handle more than one gcno file")
-    gcno_artifact = artifacts[0]
-    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+        artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+        if len(artifacts) != 1:
+            Log.error("Do not know how to handle more than one gcno file")
+        gcno_artifact = artifacts[0]
+        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-    Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
-    gcno_file = download_file(gcno_artifact.url)
+        Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
+        gcno_file = download_file(gcno_artifact.url)
 
-    Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-    ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-    Log.note('Running LCOV on ccov directory')
-    lcov_files = run_lcov_on_directory('%s/ccov' % tmpdir)
+        Log.note('Running LCOV on ccov directory')
+        lcov_files = run_lcov_on_directory('%s/ccov' % tmpdir)
 
-    keys = []
-    for file in lcov_files:
-        file_id, file_etl = file_etl_gen.next(task_cluster_record.etl)
-        line_etl_gen = EtlHeadGenerator(file_id)
-        records = wrap(parse_lcov_coverage(source_key, file))
-        Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
-        for r in records:
-            r._id, etl = line_etl_gen.next(file_etl)
-            etl.gcno = gcno_artifact.url
-            etl.gcda = gcda_artifact.url
-            set_default(r, task_cluster_record)
-            r.etl = etl
-            keys.append(r._id)
-        with Timer("writing {{num}} records to s3", {"num": len(records)}):
-            destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
+        keys = []
+        for file in lcov_files:
+            file_id, file_etl = file_etl_gen.next(task_cluster_record.etl)
+            line_etl_gen = EtlHeadGenerator(file_id)
+            try:
+                records = wrap(parse_lcov_coverage(source_key, file))
+                Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
+            except Exception, e:
+                Log.warning("Problem parsing lcov output for {{file}}", file=file, cause=e)
+                continue
 
-    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-    shutil.rmtree(tmpdir)
-    return keys
+            for r in records:
+                r._id, etl = line_etl_gen.next(file_etl)
+                etl.gcno = gcno_artifact.url
+                etl.gcda = gcda_artifact.url
+                set_default(r, task_cluster_record)
+                r.etl = etl
+                keys.append(r._id)
+            with Timer("writing {{num}} records to s3", {"num": len(records)}):
+                destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
+
+        return keys
+    finally:
+        shutil.rmtree(tmpdir)
 
 
 def group_to_gcno_artifacts(group_id):
