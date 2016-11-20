@@ -14,6 +14,8 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 import sys
 import json
 
+from pyLibrary.dot import Null
+
 
 def parse_lcov_coverage(source_key, stream):
     """
@@ -136,5 +138,5 @@ if __name__ == '__main__':
 
     file_path = sys.argv[1]
 
-    parsed = parse_lcov_coverage(file_path)
+    parsed = parse_lcov_coverage(Null, file_path)
     json.dump(parsed, sys.stdout)
