@@ -33,7 +33,7 @@ from pyLibrary.times.durations import SECOND, Duration
 
 _Log = None
 _Except = None
-DEBUG = True
+DEBUG = False
 DEBUG_SIGNAL = False
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
@@ -123,8 +123,8 @@ class Queue(object):
                     yield value
             except Exception, e:
                 _Log.warning("Tell me about what happened here", e)
-
-        _Log.note("queue iterator is done")
+        if DEBUG:
+            _Log.note("queue iterator is done")
 
     def add(self, value, timeout=None):
         if not self.keep_running and not self.allow_add_after_close:
@@ -369,7 +369,7 @@ class MainThread(object):
 
         children = copy(self.children)
         for c in reversed(children):
-            if c.name and DEBUG:
+            if DEBUG and c.name:
                 _Log.note("Stopping thread {{name|quote}}", name=c.name)
             try:
                 c.stop()
@@ -463,7 +463,7 @@ class Thread(object):
 
     def stop(self):
         for c in copy(self.children):
-            if c.name and DEBUG:
+            if DEBUG and c.name:
                 _Log.note("Stopping thread {{name|quote}}", name=c.name)
             c.stop()
         self.please_stop.go()
@@ -521,7 +521,8 @@ class Thread(object):
                         except Exception, e:
                             _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
 
-                    _Log.note("thread {{name|quote}} is done", name=self.name)
+                    if DEBUG:
+                        _Log.note("thread {{name|quote}} is done", name=self.name)
                     self.stopped.go()
                     del self.target, self.args, self.kwargs
                     with ALL_LOCK:
