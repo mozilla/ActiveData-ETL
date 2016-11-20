@@ -432,6 +432,7 @@ def main():
                 please_stop=stopper
             )
 
+        aws.capture_termination_signal(stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception, e:
         Log.error("Problem with etl", e)
@@ -485,7 +486,6 @@ def etl_one(settings):
         please_stop=stopper
     )
 
-    aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
