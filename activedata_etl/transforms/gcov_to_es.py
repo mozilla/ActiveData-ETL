@@ -192,34 +192,37 @@ def run_lcov_on_directory(directory_path):
         expected = [len(children)]
         for subdir in children:
             filename = "output." + subdir.name + ".txt"
-            dest_dir = MSYS2_TEMP_DIR + "/ccov/" + subdir.name
-            fullpath = MSYS2_TEMP_DIR + "/" + filename
+            linux_source_dir = subdir.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+            windows_dest_file = File.new_instance(directory, filename)
+            linux_dest_file = windows_dest_file.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
 
             proc = Process(
-                "lcov"+fullpath,
+                "lcov: "+linux_dest_file,
                 [
                     "C:\msys64\msys2_shell.cmd",
                     "-mingw64",
                     "-c",
-                    "lcov --capture --directory " + dest_dir + " --output-file " + fullpath + " 2>/dev/null"
+                    "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
                 ]
             ) if ENABLE_LCOV else Null
 
-            def closure_wrap(subdir, proc):
+            def closure_wrap(_dest_file, _proc):
                 def is_done():
-                    output.add(subdir)
+                    output.add(_dest_file)
                     with locker:
                         expected[0] -= 1
+                        Log.note("{{dir}} is done.  REMAINING {{num}}", dir=_dest_file.name, num=expected[0])
                         if not expected[0]:
                             output.add(Thread.STOP)
-                proc.service_stopped.on_go(is_done)
-            closure_wrap(subdir, proc)
+                Log.note("added proc {{name}} for dir {{dir}}", name=_proc.name, dir=_dest_file.name)
+                _proc.service_stopped.on_go(is_done)
+            closure_wrap(windows_dest_file, proc)
 
         return output
     else:
         Log.error("must return a list of files, it returns a stream instead")
         proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
-        results = parse_lcov_coverage(proc.stdout)
+        results = parse_lcov_coverage(Null, proc.stdout)
         return results
 
 
