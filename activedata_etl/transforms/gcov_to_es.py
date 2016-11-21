@@ -136,7 +136,7 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
                     Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
                 except Exception, e:
                     if "No such file or directory" in e:
-                        Log.note("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
+                        Log.error("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
                     else:
                         Log.warning("Problem parsing lcov output for {{file}}", file=file.abspath, cause=e)
                     continue
@@ -147,7 +147,7 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
                     etl.gcda = gcda_artifact.url
                     set_default(r, task_cluster_record)
                     r.etl = etl
-                    keys.append(r._id)
+                keys.append(file_id)
                 with Timer("writing {{num}} records to s3", {"num": len(records)}):
                     destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
 
