@@ -61,6 +61,9 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
+        e = Except.wrap(e)
+        if "EOF occurred in violation of protocol" in e:
+            Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
         Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
         summary = None
 
