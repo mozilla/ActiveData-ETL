@@ -54,7 +54,6 @@ def process(source_key, source, destination, resources, please_stop=None):
             consume(tc_message, "_meta")
 
             Log.note("{{id}} found (line #{{num}})", id=task_id, num=i, artifact=tc_message.artifact.name)
-
             task_url = expand_template(MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=RETRY, session=session)
             if task.code == u'ResourceNotFound':
@@ -106,6 +105,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     except Exception, e:
                         if TRY_AGAIN_LATER in e:
                             Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
+                        else:
+                            Log.warning("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)

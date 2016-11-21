@@ -80,7 +80,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
         try:
             prefix = strings.between(log_line, "[", "]")
-            if prefix:
+            if prefix and log_line.startswith("[" + prefix):
                 prefix_words = prefix.split(' ')
                 tc_timestamp = Date(' '.join(prefix_words[1:]))
                 step_name = prefix_words[0]
@@ -140,6 +140,18 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
             timestamp, mode, harness_step = mozharness_says
+
+            step_name = "mozharness"
+            task_step = task_steps[step_name]
+            if not task_step:
+                task_step = task_steps[step_name] = Dict()
+                task_step.step = step_name
+                action.timings.append(task_step)
+
+            start_time = Math.min(start_time, timestamp)
+            end_time = Math.max(end_time, timestamp)
+            task_step.start_time = Math.min(task_step.start_time, timestamp)
+            task_step.end_time = Math.max(task_step.end_time, timestamp)
 
             task_step.children += [{
                 "step": harness_step,
@@ -370,7 +382,6 @@ def process_text_log(all_log_lines, from_url):
 
 
 
-
 NEW_MOZLOG_STEP = re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] .*")
 NEW_MOZLOG_START_STEP = re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] (Running|Skipping) (.*) step.")
 NEW_MOZLOG_END_STEP = [
@@ -398,6 +409,7 @@ class NewHarnessLines(object):
         012345678901234567890123456789012345678901234567890123456789
         [mozharness: 2016-07-11 21:35:08.2927233Z] Finished run-tests step (success)
 
+        12:23:12     INFO - [mozharness: 2016-11-10 20:23:12.172233Z] Finished run-tests step (success)
         """
 
         if not NEW_MOZLOG_STEP.match(curr_line):
@@ -421,7 +433,9 @@ class NewHarnessLines(object):
             return None
 
         timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
-        if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+        if last_timestamp == None:
+            last_timestamp = timestamp
+        elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
             Log.error("not expected")
         if self.time_zone is None:
             self.time_skew = last_timestamp - timestamp
