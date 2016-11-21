@@ -130,25 +130,26 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
         for file in lcov_files:
             file_id, file_etl = file_etl_gen.next(task_cluster_record.etl)
             line_etl_gen = EtlHeadGenerator(file_id)
-            try:
-                records = wrap(parse_lcov_coverage(source_key, file))
-                Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
-            except Exception, e:
-                if "No such file or directory" in e:
-                    Log.note("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
-                else:
-                    Log.warning("Problem parsing lcov output for {{file}}", file=file.abspath, cause=e)
-                continue
+            with Timer("process {{file}}", param={"file":file.name}):
+                try:
+                    records = wrap(parse_lcov_coverage(source_key, file))
+                    Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
+                except Exception, e:
+                    if "No such file or directory" in e:
+                        Log.note("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
+                    else:
+                        Log.warning("Problem parsing lcov output for {{file}}", file=file.abspath, cause=e)
+                    continue
 
-            for r in records:
-                r._id, etl = line_etl_gen.next(file_etl)
-                etl.gcno = gcno_artifact.url
-                etl.gcda = gcda_artifact.url
-                set_default(r, task_cluster_record)
-                r.etl = etl
-                keys.append(r._id)
-            with Timer("writing {{num}} records to s3", {"num": len(records)}):
-                destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
+                for r in records:
+                    r._id, etl = line_etl_gen.next(file_etl)
+                    etl.gcno = gcno_artifact.url
+                    etl.gcda = gcda_artifact.url
+                    set_default(r, task_cluster_record)
+                    r.etl = etl
+                    keys.append(r._id)
+                with Timer("writing {{num}} records to s3", {"num": len(records)}):
+                    destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
 
         return keys
     finally:
@@ -216,10 +217,10 @@ def run_lcov_on_directory(directory_path):
             env[b"MSYSTEM"] = b"MINGW64"
 
             proc = Process(
-                "lcov: "+linux_dest_file,
+                "lcov: " + linux_dest_file,
                 [
-                    "start",
-                    "/W",
+                    # "start",
+                    # "/W",
                     "c:\\msys64\\usr\\bin\\mintty",
                     # "-i",
                     # "/msys2.ico",
@@ -232,8 +233,8 @@ def run_lcov_on_directory(directory_path):
                     "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
                 ],
                 cwd="C:\\msys64",
-                env=env,
-                shell=True
+                env=env
+                # shell=True
             ) if ENABLE_LCOV else Null
 
             def closure_wrap(_dest_file, _proc):
