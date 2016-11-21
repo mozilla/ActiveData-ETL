@@ -78,7 +78,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     keys = process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_record, artifact)
                     keys.extend(keys)
                 except Exception as e:
-                    Log.warning("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
+                    Log.error("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
 
     return keys
 
@@ -216,8 +216,8 @@ def run_lcov_on_directory(directory_path):
             proc = Process(
                 "lcov: "+linux_dest_file,
                 [
-                    # "start",
-                    # "/W",
+                    "start",
+                    "/W",
                     "c:\\msys64\\usr\\bin\\mintty",
                     # "-i",
                     # "/msys2.ico",
