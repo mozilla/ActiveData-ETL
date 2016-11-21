@@ -150,7 +150,10 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
 
         return keys
     finally:
-        shutil.rmtree(tmpdir)
+        try:
+            shutil.rmtree(tmpdir)
+        except Exception:
+            pass
 
 
 def group_to_gcno_artifacts(group_id):
@@ -206,30 +209,28 @@ def run_lcov_on_directory(directory_path):
             windows_dest_file = File.new_instance(directory, filename)
             linux_dest_file = windows_dest_file.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
 
+            env = os.environ.copy()
+            env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
+            env[b"MSYSTEM"] = b"MINGW64"
+
             proc = Process(
                 "lcov: "+linux_dest_file,
                 [
-                    "start",
-                    "/W",
+                    # "start",
+                    # "/W",
                     "c:\\msys64\\usr\\bin\\mintty",
                     # "-i",
                     # "/msys2.ico",
                     "/usr/bin/bash",
                     "--login",
-                    "-c"
+                    "-c",
                     # "C:\msys64\msys2_shell.cmd",
                     # "-mingw64",
                     # "-c",
                     "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
                 ],
                 cwd="C:\\msys64",
-                env=set_default(
-                    {
-                        "WD": "C:\\msys64\\usr\\bin\\",
-                        "MSYSTEM": "MINGW64"
-                    },
-                    os.environ
-                )
+                env=env
             ) if ENABLE_LCOV else Null
 
             def closure_wrap(_dest_file, _proc):
