@@ -70,6 +70,10 @@ class File(object):
 
         return File('/'.join(scrub(i, p) for i, p in enumerate(path)))
 
+    @property
+    def timestamp(self):
+        output = os.path.getmtime(self.abspath)
+        return output
 
     @property
     def filename(self):

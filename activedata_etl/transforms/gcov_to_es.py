@@ -26,6 +26,8 @@ from pyLibrary.env.files import File
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, ThreadedQueue, Queue, Lock
+from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import SECOND
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
@@ -230,11 +232,23 @@ def run_lcov_on_directory(directory_path):
                     "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
                 ],
                 cwd="C:\\msys64",
-                env=env
+                env=env,
+                shell=True
             ) if ENABLE_LCOV else Null
 
             def closure_wrap(_dest_file, _proc):
                 def is_done():
+                    # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
+                    # POLL THE FILE UNTIL IT STOPS CHANGING
+                    while not _dest_file.exists:
+                        Thread.sleep(seconds=1)
+                    while True:
+                        expiry = _dest_file.timestamp + 60
+                        now = Date.now().unix
+                        if now >= expiry:
+                            break
+                        Thread.sleep(seconds=expiry - now)
+
                     output.add(_dest_file)
                     with locker:
                         expected[0] -= 1

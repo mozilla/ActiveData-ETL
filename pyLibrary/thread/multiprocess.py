@@ -21,7 +21,7 @@ DEBUG = True
 
 
 class Process(object):
-    def __init__(self, name, params, cwd=None, env=None, debug=False):
+    def __init__(self, name, params, cwd=None, env=None, shell=None, debug=False):
         self.name = name
         self.service_stopped = Signal("stopped signal for " + convert.string2quote(name))
         self.stdin = Queue("stdin for process " + convert.string2quote(name), silent=True)
@@ -37,7 +37,8 @@ class Process(object):
                 stderr=subprocess.PIPE,
                 bufsize=-1,
                 cwd=cwd,
-                env=env
+                env=env,
+                shell=shell
             )
 
             self.stopper = Signal()
