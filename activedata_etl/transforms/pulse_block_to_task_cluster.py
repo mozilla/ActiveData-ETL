@@ -157,7 +157,9 @@ def read_actions(source_key, normalized, url):
         normalized.action = process_tc_live_log(all_log_lines, url, normalized)
     except Exception, e:
         e = Except.wrap(e)
-        if "An existing connection was forcibly closed by the remote host" in e:
+        if "Failed to establish a new connection" in e:
+            Log.error(TRY_AGAIN_LATER, reason="could not connect")
+        elif "An existing connection was forcibly closed by the remote host" in e:
             Log.error(TRY_AGAIN_LATER, reason="text log was forcibly closed")
         else:
             Log.error("problem processing {{key}}", key=source_key, cause=e)
