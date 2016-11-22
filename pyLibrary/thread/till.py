@@ -75,7 +75,6 @@ class Till(Signal):
 
                 if work:
                     for t, s in work:
-                        print unicode(t)
                         s.go()
         except Exception, e:
             from pyLibrary.debugs.logs import Log
