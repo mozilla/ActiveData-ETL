@@ -44,7 +44,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     lines = list(enumerate(source.read_lines()))
     session = requests.session()
-    for i, line in lines:
+    for line_number, line in lines:
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
@@ -53,7 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
 
-            Log.note("{{id}} found (line #{{num}})", id=task_id, num=i, artifact=tc_message.artifact.name)
+            Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
             task_url = expand_template(MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=RETRY, session=session)
             if task.code == u'ResourceNotFound':
@@ -68,7 +68,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 normalized = Dict(
                     task={"id": task_id},
                     etl={
-                        "id": i,
+                        "id": line_number,
                         "source": source_etl,
                         "type": "join",
                         "timestamp": Date.now(),
@@ -88,7 +88,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             consume(task_status, "status.taskId")
             temp_runs, task_status.status.runs = task_status.status.runs, None  # set_default() will screw `runs` up
             set_default(tc_message.status, task_status.status)
-            tc_message.status.runs = [set_default(r, tc_message.status.runs[i]) for i, r in enumerate(temp_runs)]
+            tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
             if not tc_message.status.runs.last().resolved:
                 Log.error(TRY_AGAIN_LATER, reason="task is not resolved")
 
@@ -119,7 +119,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     source_etl.source.type = "join"
                     source_etl.source.source = {"id": "tc"}
             normalized.etl = {
-                "id": i,
+                "id": line_number,
                 "source": source_etl,
                 "type": "join",
                 "timestamp": Date.now(),
