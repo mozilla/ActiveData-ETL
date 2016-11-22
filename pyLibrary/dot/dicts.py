@@ -510,11 +510,6 @@ class _DictUsingSelf(dict):
             return "Dict()"
 
 
-
-# KEEP TRACK OF WHAT ATTRIBUTES ARE REQUESTED, MAYBE SOME (BUILTIN) ARE STILL USEFUL
-requested = set()
-
-
 def _str(value, depth):
     """
     FOR DEBUGGING POSSIBLY RECURSIVE STRUCTURES

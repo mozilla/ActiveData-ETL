@@ -17,8 +17,6 @@ from __future__ import unicode_literals
 
 import sys
 import thread
-import threading
-import time
 import types
 from collections import deque
 from copy import copy
@@ -28,13 +26,15 @@ from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict, unwraplist, Null
+from pyLibrary.thread.lock import Lock
+from pyLibrary.thread.signal import Signal
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration
+from pyLibrary.times.durations import SECOND
 
 _Log = None
 _Except = None
 DEBUG = True
-DEBUG_SIGNAL = False
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 DEFAULT_WAIT_TIME = timedelta(minutes=10)
@@ -52,45 +52,6 @@ def _late_import():
     _ = _Log
     _ = _Except
 
-
-class Lock(object):
-    """
-    SIMPLE LOCK (ACTUALLY, A PYTHON threadind.Condition() WITH notify() BEFORE EVERY RELEASE)
-    """
-
-    def __init__(self, name=""):
-        self.monitor = threading.Condition()
-        # if not name:
-        # if "extract_stack" not in globals():
-        # from pyLibrary.debugs.logs import extract_stack
-        #
-        #     self.name = extract_stack(1)[0].method
-
-
-    def __enter__(self):
-        # with pyLibrary.times.timer.Timer("get lock"):
-        self.monitor.acquire()
-        return self
-
-    def __exit__(self, a, b, c):
-        self.monitor.notify()
-        self.monitor.release()
-
-    def wait(self, timeout=None, till=None):
-        if till:
-            timeout = (till - Date.now()).seconds
-            if timeout < 0:
-                return
-        if isinstance(timeout, Duration):
-            timeout = timeout.seconds
-
-        try:
-            self.monitor.wait(timeout=float(timeout) if timeout!=None else None)
-        except Exception, e:
-            _Log.error("logic error using timeout {{timeout}}", timeout=timeout, cause=e)
-
-    def notify_all(self):
-        self.monitor.notify_all()
 
 
 class Queue(object):
@@ -410,7 +371,6 @@ class Thread(object):
     STOP = "stop"
     TIMEOUT = "TIMEOUT"
 
-
     def __init__(self, name, target, *args, **kwargs):
         if not _Log:
             _late_import()
@@ -423,11 +383,11 @@ class Thread(object):
 
         # ENSURE THERE IS A SHARED please_stop SIGNAL
         self.kwargs = copy(kwargs)
-        self.kwargs["please_stop"] = self.kwargs.get("please_stop", Signal())
+        self.kwargs["please_stop"] = self.kwargs.get("please_stop", Signal("please_stop for "+self.name))
         self.please_stop = self.kwargs["please_stop"]
 
         self.thread = None
-        self.stopped = Signal(name+" has stopped")
+        self.stopped = Signal("stopped signal for "+self.name)
         self.cprofiler = None
         self.children = []
 
@@ -537,47 +497,27 @@ class Thread(object):
     def is_alive(self):
         return not self.stopped
 
-    def join(self, timeout=None, till=None):
+    def join(self, till=None):
         """
         RETURN THE RESULT {"response":r, "exception":e} OF THE THREAD EXECUTION (INCLUDING EXCEPTION, IF EXISTS)
         """
-        if timeout is not None:
-            if till is None:
-                till = datetime.utcnow() + timedelta(seconds=timeout)
-            else:
-                _Log.error("Can not except both `timeout` and `till`")
-
         children = copy(self.children)
         for c in children:
             c.join(till=till)
 
-        if till is None:
-            while True:
-                with self.synch_lock:
-                    for i in range(10):
-                        if self.stopped:
-                            self.parent.remove_child(self)
-                            if not self.end_of_thread.exception:
-                                return self.end_of_thread.response
-                            else:
-                                # IF JOINING WITH A THREAD, YOU ARE EXPECTED TO HANDLE ITS EXCEPTION
-                                _Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
-                        self.synch_lock.wait(0.5)
-
-                if DEBUG:
-                    _Log.note("{{parent|quote}} waiting on thread {{child|quote}}", parent=Thread.current().name, child=self.name)
-        else:
-            self.stopped.wait_for_go(till=till)
-            if self.stopped:
-                self.parent.remove_child(self)
-                if not self.end_of_thread.exception:
-                    return self.end_of_thread.response
-                else:
-                    _Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
+        if DEBUG:
+            _Log.note("{{parent|quote}} waiting on thread {{child|quote}}", parent=Thread.current().name, child=self.name)
+        (self.stopped | till).wait_for_go()
+        if self.stopped:
+            self.parent.remove_child(self)
+            if not self.end_of_thread.exception:
+                return self.end_of_thread.response
             else:
-                from pyLibrary.debugs.exceptions import Except
+                _Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
+        else:
+            from pyLibrary.debugs.exceptions import Except
 
-                raise Except(type=Thread.TIMEOUT)
+            raise Except(type=Thread.TIMEOUT)
 
     @staticmethod
     def run(name, target, *args, **kwargs):
@@ -596,45 +536,8 @@ class Thread(object):
 
     @staticmethod
     def sleep(seconds=None, till=None, timeout=None, please_stop=None):
-
-        if please_stop is not None or isinstance(till, Signal):
-            if isinstance(till, Signal):
-                please_stop = till
-                till = MAX_DATETIME
-
-            if seconds is not None:
-                till = datetime.utcnow() + timedelta(seconds=seconds)
-            elif timeout is not None:
-                till = datetime.utcnow() + timedelta(seconds=timeout.seconds)
-            elif till is None:
-                till = MAX_DATETIME
-
-            while not please_stop:
-                time.sleep(1)
-                if till < datetime.utcnow():
-                    break
-            return
-
-        if seconds != None:
-            if isinstance(seconds, Duration):
-                time.sleep(seconds.total_seconds)
-            else:
-                time.sleep(seconds)
-        elif till != None:
-            if isinstance(till, datetime):
-                duration = (till - datetime.utcnow()).total_seconds()
-            else:
-                duration = (till - datetime.utcnow()).total_seconds
-
-            if duration > 0:
-                try:
-                    time.sleep(duration)
-                except Exception, e:
-                    raise e
-        else:
-            while True:
-                time.sleep(10)
-
+        waiter = Till(seconds=seconds, till=till, timeout=timeout) | please_stop
+        waiter.wait_for_go()
 
     @staticmethod
     def wait_for_shutdown_signal(
@@ -685,108 +588,6 @@ class Thread(object):
                 return ALL[id]
             except KeyError:
                 return MAIN_THREAD
-
-
-class Signal(object):
-    """
-    SINGLE-USE THREAD SAFE SIGNAL
-
-    go() - ACTIVATE SIGNAL (DOES NOTHING IF SIGNAL IS ALREADY ACTIVATED)
-    wait_for_go() - PUT THREAD IN WAIT STATE UNTIL SIGNAL IS ACTIVATED
-    is_go() - TEST IF SIGNAL IS ACTIVATED, DO NOT WAIT (you can also check truthiness)
-    on_go() - METHOD FOR OTHER THREAD TO RUN WHEN ACTIVATING SIGNAL
-    """
-
-    def __init__(self, name=None):
-        self._name = name
-        self.lock = Lock()
-        self._go = False
-        self.job_queue = []
-
-    def __str__(self):
-        return str(self._go)
-
-    def __bool__(self):
-        with self.lock:
-            return self._go
-
-    def __nonzero__(self):
-        with self.lock:
-            return self._go
-
-    def wait_for_go(self, timeout=None, till=None):
-        """
-        PUT THREAD IN WAIT STATE UNTIL SIGNAL IS ACTIVATED
-        """
-        with self.lock:
-            while not self._go:
-                self.lock.wait(timeout=timeout, till=till)
-
-            return True
-
-    def go(self):
-        """
-        ACTIVATE SIGNAL (DOES NOTHING IF SIGNAL IS ALREADY ACTIVATED)
-        """
-        with self.lock:
-            if self._go:
-                return
-
-            if DEBUG_SIGNAL:
-                if not _Log:
-                    _late_import()
-            self._go = True
-            jobs = self.job_queue
-            self.job_queue = []
-            self.lock.notify_all()
-
-        for j in jobs:
-            try:
-                j()
-            except Exception, e:
-                if not _Log:
-                    _late_import()
-                _Log.warning("Trigger on Signal.go() failed!", cause=e)
-
-    def is_go(self):
-        """
-        TEST IF SIGNAL IS ACTIVATED, DO NOT WAIT
-        """
-        with self.lock:
-            return self._go
-
-    def on_go(self, target):
-        """
-        RUN target WHEN SIGNALED
-        """
-        if not target:
-            if not _Log:
-                _late_import()
-            _Log.error("expecting target")
-
-        with self.lock:
-            if self._go:
-                if DEBUG_SIGNAL:
-                    if not _Log:
-                        _late_import()
-                    _Log.note("Signal {{name|quote}} already triggered, running job immediately", name=self.name)
-                target()
-            else:
-                if DEBUG:
-                    if not _Log:
-                        _late_import()
-                    _Log.note("Adding target to signal {{name|quote}}", name=self.name)
-                self.job_queue.append(target)
-
-    @property
-    def name(self):
-        if not self._name:
-            return "anonymous signal"
-        else:
-            return self._name
-
-    def __str__(self):
-        return self.name.decode(unicode)
 
 
 class ThreadedQueue(Queue):
@@ -998,31 +799,4 @@ def _interrupt_main_safely():
         pass
 
 
-class Till(Signal):
-    """
-    MANAGE THE TIMEOUT LOGIC
-    """
-    def __init__(self, till=None, timeout=None, seconds=None):
-        Signal.__init__(self)
-
-        timers = []
-
-        def go():
-            self.go()
-            for t in timers:
-                t.cancel()
-
-        if isinstance(till, Date):
-            t = threading.Timer((till - Date.now()).seconds, go)
-            t.start()
-            timers.append(t)
-        if timeout:
-            t = threading.Timer(timeout.seconds, go)
-            t.start()
-            timers.append(t)
-        if seconds:
-            t = threading.Timer(seconds, go)
-            t.start()
-            timers.append(t)
-        if isinstance(till, Signal):
-            till.on_go(go)
+Thread.run("timers", Till.daemon)
