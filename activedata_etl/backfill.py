@@ -44,7 +44,7 @@ def diff(settings, please_stop=None):
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"not": {"prefix": {"etl.revision": rev}}}
+        es_filter = {"prefix": {"etl.revision": rev[0:12]}}
     else:
         es_filter = {"match_all": {}}
 

@@ -23,6 +23,7 @@ from pyLibrary.thread.signal import Signal
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import Duration
 
+DEBUG = True
 INTERVAL = 0.1
 next_ping = _time()
 
@@ -65,7 +66,7 @@ class Till(Signal):
                     if Till.all_timers:
                         Till.all_timers.sort(key=lambda r: r[0])
                         for i, (t, s) in enumerate(Till.all_timers):
-                            if now > t:
+                            if now < t:
                                 work, Till.all_timers[:i] = Till.all_timers[:i], []
                                 next_ping = min(next_ping, Till.all_timers[0][0])
                                 break
@@ -74,6 +75,7 @@ class Till(Signal):
 
                 if work:
                     for t, s in work:
+                        print unicode(t)
                         s.go()
         except Exception, e:
             from pyLibrary.debugs.logs import Log

@@ -181,5 +181,4 @@ def _get_metadata_from_from_aws(please_stop):
 
 Thread.run("get aws machine metadata", _get_metadata_from_from_aws)
 
-
 from . import s3

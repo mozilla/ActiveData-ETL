@@ -481,7 +481,8 @@ class Thread(object):
                         except Exception, e:
                             _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
 
-                    _Log.note("thread {{name|quote}} is done", name=self.name)
+                    if DEBUG:
+                        _Log.note("thread {{name|quote}} stopping", name=self.name)
                     self.stopped.go()
                     del self.target, self.args, self.kwargs
                     with ALL_LOCK:
@@ -493,6 +494,7 @@ class Thread(object):
                 finally:
                     if DEBUG:
                         _Log.note("thread {{name|quote}} is done", name=self.name)
+                    self.stopped.go()
 
     def is_alive(self):
         return not self.stopped

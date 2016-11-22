@@ -1,8 +1,11 @@
 {
 	"no_checks": true,
-	"range": {"min": 286510},
-//	"revision": "7c0b201f3a15",
-	"limit": 10000,
+	"range": {"min": 400143},
+	"git":{
+		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+		"branch":"etl"
+	},
+	"limit": 20000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-etl",
 		"$ref": "file://~/private.json#aws_credentials"
