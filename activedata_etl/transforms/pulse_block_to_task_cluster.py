@@ -106,11 +106,11 @@ def process(source_key, source, destination, resources, please_stop=None):
                         if TRY_AGAIN_LATER in e:
                             Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                         else:
+                            # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
                             Log.warning("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)
-
             # FIX THE ETL
             if not source_etl:
                 # USE ONE SOURCE ETL, OTHERWISE WE MAKE TOO MANY KEYS

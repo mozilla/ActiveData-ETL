@@ -13,8 +13,8 @@ The main distinction between this library and Python's is:
 
   * All threads are required to accept a `please_stop` token and are expected to test for its signal in a timely manner and exit when signalled.
   * All threads have a parent - The parent is responsible for ensuring their children get the `please_stop` signal, and are dead, before stopping themselves.
-
-3. **Logging and Profiling is Integrated** - Logging and exception handling is seamlessly included: This means logs are centrally handled, and thread safe. Parent threads have access to uncaught child thread exceptions, and the cProfiler properly aggregates results from the multiple threads.
+3. Uses **Signals** to simplify logical dependencies among multiple threads, events, and timeouts.
+4. **Logging and Profiling is Integrated** - Logging and exception handling is seamlessly included: This means logs are centrally handled, and thread safe. Parent threads have access to uncaught child thread exceptions, and the cProfiler properly aggregates results from the multiple threads.
 
 
 ###What's it used for###
@@ -36,7 +36,7 @@ Mixing regular methods and co-routines (with their `yield from` pollution) is
 dangerous because:
 
 1. calling styles between methods and co-routines can be easily confused
-2. actors can use methods, co-routines can not
+2. actors can use blocking methods, co-routines can not
 3. there is no way to manage resource priority with co-routines.
 4. stack traces are lost with co-routines
 
@@ -64,22 +64,43 @@ These three aspects can be combined to give us 8 synchronization primitives:
 * `R - I` - ?limited usefulness?
 * `R B I` - ?limited usefulness?
 
-##Class `Signal`
+##The `Signal` and `Till` Classes
 
-An irreversible binary semaphore used to signal state progression.
+[The `Signal` class](https://github.com/klahnakoski/pyLibrary/blob/dev/pyLibrary/thread/signal.py) is like a binary semaphore that can only be signalled once. It can be signalled by any thread, subsequent signals have no effect. Any thread can wait on a `Signal`; and once signalled, all waits are unblocked, including all subsequent waits. Its current state can be accessed by any thread without blocking. `Signal` is used to model thread-safe state advancement. It initializes to `False`, and when signalled (with `go()`) becomes `True`.  It can not be reversed.  
 
-**Method `wait_for_go(self, timeout=None, till=None)`**
+	is_done = Signal()
+	yield is_done
+	# DO WORK
+	is_done.go()
 
-Put a thread into a waiting state until the signal is activated
+You can attach methods to a `Signal`, which will be run, just once, upon `go()`
 
-**Method `go(self)`**
+	is_done = Signal()
+	is_done.on_go(lambda: print("done"))
+	return is_done
 
-Activate the signal. Does nothing if already activated.
+You may also wait on a `Signal`, which will block the current thread until the `Signal` is a go
 
-**Method `is_go(self)`**
+	is_done = worker_thread.stopped
+	is_done.wait_for_go()
+	is_done = print("worker thread is done")
 
-Test if the signal is activated, do not wait
+[The `Till` class](https://github.com/klahnakoski/pyLibrary/blob/dev/pyLibrary/thread/till.py) is used to represent timeouts. They can serve as a `sleep()` replacement: 
 
-**Method `on_go(self, target)`**
+	Till(seconds=20).wait_for_go()
+	Till(till=Date("21 Jan 2016")).wait_for_go()
 
-Run the `target` method when the signal is activated. The activating thread will be running the target method, so be sure you are not accessing resources.
+Because `Signals` are first class, they can be passed around and combined with other Signals.  For example, using logical or (`|`):
+
+	def worker(please_stop):
+		while not please_stop:
+			#DO WORK 
+
+	user_cancel = get_user_cancel_signal()
+	worker(user_cancel | Till(seconds=360))
+
+`Signal`s can also be combined using logical and (`&`):
+
+	(workerA.stopped & workerB.stopped).wait_for_go()
+	print("both threads are done")
+

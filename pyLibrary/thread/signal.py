@@ -178,7 +178,7 @@ class Signal(object):
                 _late_import()
             _Log.error("Expecting OR with other signal")
 
-        output = Signal()
+        output = Signal(self.name+" and "+other.name)
         gen = _agg(output)
         self.on_go(gen.next)
         other.on_go(gen.next)
@@ -187,5 +187,5 @@ class Signal(object):
 
 def _agg(output):
     yield
-    yield
     output.go()
+    yield

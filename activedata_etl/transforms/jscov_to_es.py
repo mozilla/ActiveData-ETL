@@ -55,13 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
-
-        # chop some not-needed, and verbose, properties from tc record
-        task_cluster_record.etl = None
-        task_cluster_record.action.timings = None
-        task_cluster_record.action.etl = None
-        task_cluster_record.task.artifacts = None
-        task_cluster_record.task.runs = None
+        minimize_task(task_cluster_record)
 
         for artifact in artifacts:
             # we're only interested in jscov files, at lease at the moment

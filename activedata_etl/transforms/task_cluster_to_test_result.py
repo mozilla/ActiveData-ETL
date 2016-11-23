@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from copy import copy
 
+from activedata_etl.imports.task import minimize_task
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import listwrap, set_default, wrap, Dict
@@ -45,23 +46,21 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 
-        task_cluster_summary = convert.json2value(line)
-        short_summary = Dict(task={  # SLIMMER DETAILS ABOUT THE TASK
-            "id": task_cluster_summary.task.id,
-            "treeherder": task_cluster_summary.task.treeherder
-        })
+        task = convert.json2value(line)
+        artifacts = task.task.artifacts
+        minimize_task(task)
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
-        for j, a in enumerate(listwrap(task_cluster_summary.task.artifacts)):
+        for j, a in enumerate(listwrap(artifacts)):
             if Date(a.expires) < Date.now():
                 Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
                 continue  # ARTIFACT IS GONE
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
             if lines:
-                dest_key, dest_etl = etl_header_gen.next(task_cluster_summary.etl, a.name)
+                dest_key, dest_etl = etl_header_gen.next(task.etl, a.name)
                 dest_etl.machine = machine_metadata
                 dest_etl.url = a.url
-                process_unittest(dest_key, dest_etl, short_summary, lines, destination, please_stop=please_stop)
+                process_unittest(dest_key, dest_etl, task, lines, destination, please_stop=please_stop)
                 file_num += 1
                 output.append(dest_key)
 
