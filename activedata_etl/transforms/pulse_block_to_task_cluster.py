@@ -580,6 +580,7 @@ PAYLOAD_PROPERTIES = {
     "repack_manifests_url",
     "script_repo_revision",
     "signingManifest",
+    "sourcestamp.repository",
     "supersederUrl",
     "template_key",
     "THIS_CHUNK",

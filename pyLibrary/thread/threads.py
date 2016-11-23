@@ -341,11 +341,13 @@ class MainThread(object):
         if join_errors:
             _Log.error("Problem while stopping {{name|quote}}", name=self.name, cause=unwraplist(join_errors))
 
+        self.timers.stop()
+        self.timers.join()
+
         if DEBUG:
             _Log.note("Thread {{name|quote}} now stopped", name=self.name)
 
-        self.timers.stop()
-        self.timers.join()
+
 
 class Thread(object):
     """

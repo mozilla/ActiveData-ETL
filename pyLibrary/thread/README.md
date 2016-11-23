@@ -59,10 +59,30 @@ These three aspects can be combined to give us 8 synchronization primitives:
 * `- B -` - Binary Semaphore
 * `R - -` - Monitor
 * `R B -` - Lock
-* `- - I` - Progress
+* `- - I` - Progress (not implemented)
 * `- B I` - Signal
 * `R - I` - ?limited usefulness?
 * `R B I` - ?limited usefulness?
+
+## The `Lock`
+
+Locks are identical to [threading monitors](https://en.wikipedia.org/wiki/Monitor_(synchronization)), except for two differences: 
+
+1. The `wait()` method will **always acquire the lock before returning**. This is an important feature; ensuring every line in a code block has  lock acquisition is easier to reason about.
+2. Exiting a lock via `wait()` or `__exit__()` will **always** signal any waiting thread to resume immediately. This ensures no signals are missed, and every thread gets an opportunity to react to possible change.  
+
+		lock = Lock()
+		todo = []
+
+		while not please_stop:
+			with lock:
+				while not todo:
+					lock.wait(seconds=1)
+				# DO SOME WORK
+	
+In this example, we look for stuff `todo`, and if there is none, we wait for a second. During that time others can acquire the `lock` and add `todo` items. Upon releasing the the `lock`, our example code will immediately resume to see what's available, waiting again if nothing is found.
+
+
 
 ##The `Signal` and `Till` Classes
 
@@ -90,7 +110,7 @@ You may also wait on a `Signal`, which will block the current thread until the `
 	Till(seconds=20).wait_for_go()
 	Till(till=Date("21 Jan 2016")).wait_for_go()
 
-Because `Signals` are first class, they can be passed around and combined with other Signals.  For example, using logical or (`|`):
+Because `Signals` are first class, they can be passed around and combined with other Signals. For example, using logical or (`|`):
 
 	def worker(please_stop):
 		while not please_stop:

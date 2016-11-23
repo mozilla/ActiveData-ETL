@@ -26,17 +26,22 @@ from pyLibrary.times.durations import Duration
 DEBUG = True
 INTERVAL = 0.1
 next_ping = _time()
-
+done = Signal("Timers shutdown")
+done.go()
 
 class Till(Signal):
     """
     TIMEOUT AS A SIGNAL
     """
+    enabled = False
     all_timers = []
     locker = _allocate_lock()
 
+
     def __new__(cls, till=None, timeout=None, seconds=None):
-        if till is None and timeout is None and seconds is None:
+        if not Till.enabled:
+            return done
+        elif till is None and timeout is None and seconds is None:
             return None
         else:
             return object.__new__(cls)
@@ -59,6 +64,8 @@ class Till(Signal):
     @classmethod
     def daemon(cls, please_stop):
         global next_ping
+
+        Till.enabled = True
         try:
             while not please_stop:
                 now = _time()
@@ -82,8 +89,16 @@ class Till(Signal):
                 if work:
                     for t, s in work:
                         s.go()
+
         except Exception, e:
             from pyLibrary.debugs.logs import Log
 
             Log.warning("timer shutdown", cause=e)
+        finally:
+            Till.enabled = False
+            # TRIGGER ALL REMAINING TIMERS RIGHT NOW
+            with Till.locker:
+                work, Till.all_timers = Till.all_timers, []
+            for t, s in work:
+                s.go()
 
