@@ -103,7 +103,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception, e:
-                        if TRY_AGAIN_LATER in e:
+                        if "could not connect" in e and normalized.task.run.status != "completed":  # in ["deadline-exceeded"]:
+                            # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
+                            pass
+                        elif TRY_AGAIN_LATER in e:
                             Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                         else:
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
@@ -553,6 +556,8 @@ BUILD_TYPES = {
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "apks.armv7_v15",
+    "apks.x86",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
@@ -562,8 +567,10 @@ PAYLOAD_PROPERTIES = {
     "desiredResolution",
     "encryptedEnv",
     "en_us_binary_url",
+    "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "locales",
+    "locale",
     "mar_tools_url",
     "next_version",
     "NO_BBCONFIG",
@@ -582,6 +589,7 @@ PAYLOAD_PROPERTIES = {
     "upload_date",
     "VERIFY_CONFIG",
     "version"
+
 }
 
 KNOWN_TAGS = {
@@ -698,30 +706,6 @@ KNOWN_TAGS = {
     "suite.name",
 
     "treeherderEnv",
-    # "treeherder.build.platform",
-    # "treeherder.collection.ccov",
-    # "treeherder.collection.debug",
-    # "treeherder.collection.gyp",
-    # "treeherder.collection.jsdcov",
-    # "treeherder.collection.memleak",
-    # "treeherder.collection.opt",
-    # "treeherder.collection.pgo",
-    # "treeherder.collection.asan",
-    # "treeherder.collection.lsan",
-    # "treeherder.collection.arm-debug",
-    # "treeherder.collection.arm-opt",
-    # "treeherder.groupSymbol",
-    # "treeherder.groupName",
-    # "treeherder.jobKind",
-    # "treeherder.labels",
-    # "treeherder.machine.platform",
-    # "treeherder.productName",
-    # "treeherder.reason",
-    # "treeherder.revision",
-    # "treeherder.revision_hash",
-    # "treeherder.symbol",
-    # "treeherder.tier",
-
 
     "upload_to_task_id",
     "url.busybox",

@@ -32,8 +32,8 @@ from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 
-_Log = None
 _Except = None
+_Log = None
 DEBUG = True
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
@@ -43,14 +43,14 @@ datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
 
 
 def _late_import():
-    global _Log
     global _Except
+    global _Log
 
-    from pyLibrary.debugs.logs import Log as _Log
     from pyLibrary.debugs.exceptions import Except as _Except
+    from pyLibrary.debugs.logs import Log as _Log
 
-    _ = _Log
     _ = _Except
+    _ = _Log
 
 
 class Queue(object):
@@ -303,6 +303,7 @@ class MainThread(object):
         self.name = "Main Thread"
         self.id = thread.get_ident()
         self.children = []
+        self.timers = None
 
     def add_child(self, child):
         self.children.append(child)
@@ -343,12 +344,8 @@ class MainThread(object):
         if DEBUG:
             _Log.note("Thread {{name|quote}} now stopped", name=self.name)
 
-MAIN_THREAD = MainThread()
-
-ALL_LOCK = Lock("threads ALL_LOCK")
-ALL = dict()
-ALL[thread.get_ident()] = MAIN_THREAD
-
+        self.timers.stop()
+        self.timers.join()
 
 class Thread(object):
     """
@@ -470,9 +467,9 @@ class Thread(object):
                         except Exception, e:
                             _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
 
+                    self.stopped.go()
                     if DEBUG:
                         _Log.note("thread {{name|quote}} stopping", name=self.name)
-                    self.stopped.go()
                     del self.target, self.args, self.kwargs
                     with ALL_LOCK:
                         del ALL[self.id]
@@ -481,9 +478,9 @@ class Thread(object):
                     if DEBUG:
                         _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
                 finally:
+                    self.stopped.go()
                     if DEBUG:
                         _Log.note("thread {{name|quote}} is done", name=self.name)
-                    self.stopped.go()
 
     def is_alive(self):
         return not self.stopped
@@ -790,4 +787,11 @@ def _interrupt_main_safely():
         pass
 
 
-Thread.run("timers", Till.daemon)
+MAIN_THREAD = MainThread()
+
+ALL_LOCK = Lock("threads ALL_LOCK")
+ALL = dict()
+ALL[thread.get_ident()] = MAIN_THREAD
+
+MAIN_THREAD.timers = Thread.run("timers", Till.daemon)
+MAIN_THREAD.children.remove(MAIN_THREAD.timers)
