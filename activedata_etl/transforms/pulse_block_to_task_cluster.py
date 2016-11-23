@@ -95,7 +95,13 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized = _normalize(source_key, task_id, tc_message, task, resources)
 
             # get the artifact list for the taskId
-            artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+            try:
+                artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+            except Exception, e:
+                # e = Except.wrap(e)
+                # if "<title>Application Error | Heroku</title>" in e:
+                Log.error(TRY_AGAIN_LATER, "Can not get artifacts for task " + task_id, cause=e)
+
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
