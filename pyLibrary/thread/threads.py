@@ -23,7 +23,7 @@ from copy import copy
 from datetime import datetime, timedelta
 
 from pyLibrary import strings
-from pyLibrary.debugs.exceptions import Except, suppress_exception
+from pyLibrary.debugs.exceptions import Except, suppress_exception, Explanation
 from pyLibrary.debugs.profiles import CProfiler
 from pyLibrary.dot import coalesce, Dict, unwraplist, Null
 from pyLibrary.thread.lock import Lock
@@ -51,7 +51,6 @@ def _late_import():
 
     _ = _Log
     _ = _Except
-
 
 
 class Queue(object):
@@ -114,12 +113,15 @@ class Queue(object):
                 self.queue.appendleft(value)
         return self
 
-    def pop_message(self, wait=SECOND, till=None):
+    def pop_message(self, till=None):
         """
         RETURN TUPLE (message, payload) CALLER IS RESPONSIBLE FOR CALLING message.delete() WHEN DONE
         DUMMY IMPLEMENTATION FOR DEBUGGING
         """
-        return Null, self.pop(timeout=wait, till=till)
+
+        if till is not None and not isinstance(till, Signal):
+            _Log.error("Expecting a signal")
+        return Null, self.pop(till=till)
 
     def extend(self, values):
         if not self.keep_running and not self.allow_add_after_close:
@@ -181,47 +183,34 @@ class Queue(object):
         with self.lock:
             return any(r != Thread.STOP for r in self.queue)
 
-    def pop(self, till=None, timeout=None):
+    def pop(self, till=None):
         """
         WAIT FOR NEXT ITEM ON THE QUEUE
         RETURN Thread.STOP IF QUEUE IS CLOSED
-        IF till IS PROVIDED, THEN pop() CAN TIMEOUT AND RETURN None
-        """
+        RETURN None IF till IS REACHED AND QUEUE IS STILL EMPTY
 
-        if timeout:
-            till = Date.now() + timeout
+        :param till:  A `Signal` to stop waiting and return None
+        :return:  A value, or a Thread.STOP or None
+        """
+        if till is not None and not isinstance(till, Signal):
+            _Log.error("expecting a signal")
 
         with self.lock:
-            if till == None:
-                while self.keep_running:
-                    if self.queue:
-                        value = self.queue.popleft()
-                        if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
-                            self.keep_running = False
-                        return value
+            while self.keep_running:
+                if self.queue:
+                    value = self.queue.popleft()
+                    if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
+                        self.keep_running = False
+                    return value
 
-                    with suppress_exception:
-                        self.lock.wait()
-            else:
-                while self.keep_running:
-                    if self.queue:
-                        value = self.queue.popleft()
-                        if value is Thread.STOP:  # SENDING A STOP INTO THE QUEUE IS ALSO AN OPTION
-                            self.keep_running = False
-                        return value
-                    elif Date.now() > till:
-                        break
-
-                    with suppress_exception:
-                        self.lock.wait(till=till)
-
-                if self.keep_running:
-                    return None
+                if not self.lock.wait(till=till):
+                    break
+            if self.keep_running:
+                return None
 
         if DEBUG or not self.silent:
             _Log.note(self.name + " queue stopped")
         return Thread.STOP
-
 
     def pop_all(self):
         """
@@ -657,7 +646,7 @@ class ThreadedQueue(Queue):
                             next_time = now + period
                         continue
 
-                    item = self.pop(till=next_time)
+                    item = self.pop(till=Till(till=next_time))
                     now = Date.now()
 
                     if item is Thread.STOP:

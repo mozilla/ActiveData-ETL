@@ -22,6 +22,7 @@ from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import wrap, unwrap, coalesce
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
+from pyLibrary.thread.signal import Signal
 from pyLibrary.thread.threads import Thread
 from pyLibrary.times.durations import SECOND, Duration
 
@@ -77,6 +78,9 @@ class Queue(object):
             self.add(m)
 
     def pop(self, wait=SECOND, till=None):
+        if till is not None and not isinstance(till, Signal):
+            Log.error("Expecting a signal")
+
         m = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
         if not m:
             return None
@@ -89,6 +93,9 @@ class Queue(object):
         """
         RETURN TUPLE (message, payload) CALLER IS RESPONSIBLE FOR CALLING message.delete() WHEN DONE
         """
+        if till is not None and not isinstance(till, Signal):
+            Log.error("Expecting a signal")
+
         message = self.queue.read(wait_time_seconds=Math.floor(wait.seconds))
         if not message:
             return None

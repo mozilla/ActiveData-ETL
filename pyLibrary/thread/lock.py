@@ -81,5 +81,6 @@ class Lock(object):
             self.waiting.appendleft(waiter)
             self.lock.release()
             (waiter | till).wait_for_go()
+            return not not waiter
         finally:
             self.lock.acquire()

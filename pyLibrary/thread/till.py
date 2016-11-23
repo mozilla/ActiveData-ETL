@@ -35,6 +35,12 @@ class Till(Signal):
     all_timers = []
     locker = _allocate_lock()
 
+    def __new__(cls, till=None, timeout=None, seconds=None):
+        if till is None and timeout is None and seconds is None:
+            return None
+        else:
+            return object.__new__(cls)
+
     def __init__(self, till=None, timeout=None, seconds=None):
         global next_ping
 

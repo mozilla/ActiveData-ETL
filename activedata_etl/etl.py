@@ -36,6 +36,7 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
@@ -274,7 +275,7 @@ class ETL(Thread):
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
                     else:
-                        todo = self.work_queue.pop(till=Date.now())
+                        todo = self.work_queue.pop(till=Till(till=Date.now()))
                     if todo == None:
                         please_stop.go()
                         return
