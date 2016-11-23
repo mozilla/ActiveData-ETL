@@ -76,21 +76,10 @@ class Lock(object):
             waiter = self.waiting.pop()
             waiter.go()
 
-        if DEBUG:
-            _late_import()
-            _Log.note("make signal for "+_Thread.current().name)
-            waiter = Signal(_Thread.current().name+" waiting")
-            self.waiting.appendleft(waiter)
-            self.lock.release()
-
-            _Log.note("wait on {{lock|quote}}", lock=waiter.name)
-            (waiter | till).wait_for_go()
-
-            _Log.note("resumed from wait "+_Thread.current().name)
-            self.lock.acquire()
-        else:
+        try:
             waiter = Signal()
             self.waiting.appendleft(waiter)
             self.lock.release()
             (waiter | till).wait_for_go()
+        finally:
             self.lock.acquire()
