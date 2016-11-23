@@ -15,9 +15,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import thread
 from collections import deque
-
+from thread import allocate_lock as _allocate_lock
 
 from pyLibrary.thread.signal import Signal
 
@@ -53,7 +52,7 @@ class Lock(object):
 
     def __init__(self, name=""):
         self.name = name
-        self.lock = thread.allocate_lock()
+        self.lock = _allocate_lock()
         self.waiting = deque()
 
     def __enter__(self):

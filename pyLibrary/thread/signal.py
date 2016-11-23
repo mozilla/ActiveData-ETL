@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import thread
+from thread import allocate_lock as _allocate_lock
 
 _Log = None
 DEBUG = False
@@ -48,7 +48,7 @@ class Signal(object):
                 _late_import()
             _Log.note("New signal {{name|quote}}", name=name)
         self._name = name
-        self.lock = thread.allocate_lock()
+        self.lock = _allocate_lock()
         self._go = False
         self.job_queue = []
         self.waiting_threads = []
@@ -71,7 +71,7 @@ class Signal(object):
         with self.lock:
             if self._go:
                 return True
-            stopper = thread.allocate_lock()
+            stopper = _allocate_lock()
             stopper.acquire()
             self.waiting_threads.append(stopper)
 
@@ -178,14 +178,28 @@ class Signal(object):
                 _late_import()
             _Log.error("Expecting OR with other signal")
 
-        output = Signal(self.name+" and "+other.name)
-        gen = _agg(output)
-        self.on_go(gen.next)
-        other.on_go(gen.next)
+        if DEBUG:
+            output = Signal(self.name+" and "+other.name)
+        else:
+            output = Signal(self.name+" and "+other.name)
+
+        gen = BinaryAndSignals(output)
+        self.on_go(gen.advance)
+        other.on_go(gen.advance)
         return output
 
 
-def _agg(output):
-    yield
-    output.go()
-    yield
+class BinaryAndSignals(object):
+    __slots__ = ["signal", "inc", "locker"]
+
+    def __init__(self, signal):
+        self.signal = signal
+        self.locker = _allocate_lock()
+        self.inc = 0
+
+    def advance(self):
+        with self.locker:
+            if self.inc is 0:
+                self.inc = 1
+            else:
+                self.signal.go()

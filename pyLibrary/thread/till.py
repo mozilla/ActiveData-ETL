@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import thread
+from thread import allocate_lock as _allocate_lock
 from time import sleep as _sleep
 from time import time as _time
 
@@ -33,7 +33,7 @@ class Till(Signal):
     TIMEOUT AS A SIGNAL
     """
     all_timers = []
-    locker = thread.allocate_lock()
+    locker = _allocate_lock()
 
     def __init__(self, till=None, timeout=None, seconds=None):
         global next_ping
