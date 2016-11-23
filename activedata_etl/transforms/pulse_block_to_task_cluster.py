@@ -660,6 +660,7 @@ KNOWN_TAGS = {
     "index.data.hello",
     "index.expires",
     "index.rank",
+    "installer_path",
     "l10n_changesets",
 
     "link",
