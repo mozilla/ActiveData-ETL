@@ -106,7 +106,7 @@ def main():
                 _refresh_etl(i, settings, cw)
             except Exception, e:
                 ec2_conn.terminate_instances([i.id])
-                Log.warning("Problem resetting {{instance}}, terminated", instance=i.id, cause=e)
+                Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
