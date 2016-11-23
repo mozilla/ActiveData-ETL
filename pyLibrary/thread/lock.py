@@ -67,6 +67,11 @@ class Lock(object):
         self.lock.release()
 
     def wait(self, till=None):
+        """
+        THE ASSUMPTION IS wait() WILL ALWAYS RETURN WITH THE LOCK ACQUIRED
+        :param till: WHEN TO GIVE UP WAITING FOR ANOTHER THREAD TO SIGNAL
+        :return:
+        """
         if self.waiting:
             waiter = self.waiting.pop()
             waiter.go()
@@ -82,18 +87,10 @@ class Lock(object):
             (waiter | till).wait_for_go()
 
             _Log.note("resumed from wait "+_Thread.current().name)
-            if waiter:
-                self.lock.acquire()
-                return True
-            return False
+            self.lock.acquire()
         else:
             waiter = Signal()
             self.waiting.appendleft(waiter)
             self.lock.release()
-
             (waiter | till).wait_for_go()
-
-            if waiter:
-                self.lock.acquire()
-                return True
-            return False
+            self.lock.acquire()
