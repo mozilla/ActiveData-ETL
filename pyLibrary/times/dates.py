@@ -119,7 +119,7 @@ class Date(object):
         if abs(candidate - unix) > 0.1:
             from pyLibrary.debugs.logs import Log
 
-            Log.error("not expected")
+            Log.warning("_time() and datetime.utcnow() is off by {{amount}}", amount=candidate - unix)
         return unix2Date(datetime2unix(temp))
 
     @staticmethod
