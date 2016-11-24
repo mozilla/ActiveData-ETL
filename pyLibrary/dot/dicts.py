@@ -94,6 +94,8 @@ class Dict(MutableMapping):
             for n in seq:
                 if isinstance(d, NullType):
                     d = NullType(d, n)  # OH DEAR, Null TREATS n AS PATH, NOT LITERAL
+                elif isinstance(d, list):
+                    d = [_getdefault(dd, n) for dd in d]
                 else:
                     d = _getdefault(d, n)  # EVERYTHING ELSE TREATS n AS LITERAL
 
