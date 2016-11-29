@@ -29,6 +29,7 @@ next_ping = _time()
 done = Signal("Timers shutdown")
 done.go()
 
+
 class Till(Signal):
     """
     TIMEOUT AS A SIGNAL
@@ -53,7 +54,7 @@ class Till(Signal):
         if till != None:
             timeout = Date(till).unix
         elif timeout != None:
-            timeout = (_time() + Duration(timeout).seconds).unix
+            timeout = _time() + Duration(timeout).seconds
         elif seconds != None:
             timeout = _time() + seconds
 
