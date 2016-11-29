@@ -116,25 +116,6 @@ def transform_buildbot(source_key, other, resources):
                     cause=e
                 )
 
-        try:
-            if output.build.branch and output.build.revision:
-                output.treeherder = resources.treeherder.get_markup(
-                    output.build.branch,
-                    output.build.revision,
-                    None,
-                    coalesce(output.build.name, output.run.key),
-                    output.run.timestamp
-                )
-        except Exception, e:
-            if TRY_AGAIN_LATER in e:
-                Log.error("Looks like TH is not done processing.  Aborting processing of {{key}}", key=source_key, cause=e)
-
-            Log.warning(
-                "Could not lookup Treeherder data for {{key}} and revision={{revision}}",
-                key=source_key,
-                revision=output.build.revision12,
-                cause=e
-            )
     else:
         bb.parse(other)
         Log.warning("No branch for {{key}}!\n{{output|indent}}", key=source_key, output=other)

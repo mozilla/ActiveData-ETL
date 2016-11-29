@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
+from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
@@ -55,13 +56,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
-
-        # chop some not-needed, and verbose, properties from tc record
-        task_cluster_record.etl = None
-        task_cluster_record.action.timings = None
-        task_cluster_record.action.etl = None
-        task_cluster_record.task.artifacts = None
-        task_cluster_record.task.runs = None
+        minimize_task(task_cluster_record)
 
         for artifact in artifacts:
             # we're only interested in jscov files, at lease at the moment

@@ -23,7 +23,6 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from motreeherder.treeherder import TreeHerder
 from pyLibrary import aws, dot, strings
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
@@ -37,6 +36,7 @@ from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.testing import fuzzytestcase
 from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 from activedata_etl import key2etl
@@ -275,7 +275,7 @@ class ETL(Thread):
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
                     else:
-                        todo = self.work_queue.pop(till=Date.now())
+                        todo = self.work_queue.pop(till=Till(till=Date.now()))
                     if todo == None:
                         please_stop.go()
                         return
@@ -419,8 +419,7 @@ def main():
 
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
         resources = Dict(
-            hg=hg,
-            treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
+            hg=hg
         )
 
         stopper = Signal()
@@ -434,6 +433,7 @@ def main():
                 please_stop=stopper
             )
 
+        aws.capture_termination_signal(stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception, e:
         Log.error("Problem with etl", e)
@@ -474,8 +474,7 @@ def etl_one(settings):
 
     hg = HgMozillaOrg(settings=settings.hg)
     resources = Dict(
-        hg=hg,
-        treeherder=TreeHerder(hg=hg, settings=settings.treeherder)
+        hg=hg
     )
 
     stopper = Signal("main stop signal")
@@ -488,11 +487,13 @@ def etl_one(settings):
         please_stop=stopper
     )
 
-    aws.capture_termination_signal(stopper)
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
 def parse_id_argument(id):
+    many = map(strings.trim, id.split(","))
+    if len(many) > 1:
+        return many
     if id.find("..") >= 0:
         #range of ids
         min_, max_ = map(int, map(strings.trim, id.split("..")))

@@ -61,6 +61,9 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
     except Exception, e:
+        e = Except.wrap(e)
+        if "EOF occurred in violation of protocol" in e:
+            Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
         Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
         summary = None
 
@@ -145,9 +148,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
                 accumulator.last_subtest = log.time
         except Exception, e:
             e= Except.wrap(e)
-            if "Can not decode JSON" in e:
-                Log.error(TRY_AGAIN_LATER, reason="Bad JSON", cause=e)
-            elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
+            if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
 
             prefix = strings.limit(line, 500)

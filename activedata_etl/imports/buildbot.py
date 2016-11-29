@@ -243,7 +243,7 @@ class BuildbotTranslator(object):
                 "jetpack-(.*)-{{platform}}-{{type}}",
                 {
                     "platform": raw_platform,
-                    "type": unwraplist(output.build.type)
+                    "type": unwraplist(list(set(listwrap(output.build.type))))
                 }
             ), buildername)
 
@@ -356,11 +356,11 @@ def consume(props, key):
 
 
 def verify(output, data):
-    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
-    output.build.type = unwraplist(list(set(listwrap(output.build.type))))
-    output.build.tags = unwraplist(list(set(output.build.tags)))
+    output.run.type = list(set(listwrap(output.run.type)))
+    output.build.type = list(set(listwrap(output.build.type)))
+    output.build.tags = list(set(output.build.tags))
 
-    if "e10s" in data.properties.buildername.lower() and output.run.type != 'e10s':
+    if "e10s" in data.properties.buildername.lower() and 'e10s' not in output.run.type:
         Log.error("Did not pickup e10s in\n{{data|json}}", data=data)
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)

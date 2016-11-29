@@ -82,6 +82,7 @@ KNOWN_PERFHERDER_TESTS = [
     "ts_paint",
     "tscrollx",
     "tsvgr_opacity",
+    "tsvg_static",
     "tsvgx",
     "v8_7",
     "xperf"
@@ -163,7 +164,7 @@ def transform(source_key, perfherder, resources):
                         option=option
                     )
                 suite_name = suite_name.replace("-" + option, "")
-        buildbot.run.type += listwrap(perfherder.extraOptions)
+        buildbot.run.type = list(set(buildbot.run.type + listwrap(perfherder.extraOptions)))
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:

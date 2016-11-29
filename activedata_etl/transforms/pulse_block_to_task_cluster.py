@@ -30,7 +30,8 @@ from pyLibrary.times.dates import Date
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
+MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
+STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
@@ -43,7 +44,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     lines = list(enumerate(source.read_lines()))
     session = requests.session()
-    for i, line in lines:
+    for line_number, line in lines:
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
@@ -52,9 +53,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
 
-            Log.note("{{id}} found (line #{{num}})", id=task_id, num=i, artifact=tc_message.artifact.name)
-
-            task_url = expand_template(STATUS_URL, {"task_id": task_id})
+            Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
+            task_url = expand_template(MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=RETRY, session=session)
             if task.code == u'ResourceNotFound':
                 Log.note("Can not find task {{task}} while processing key {{key}}", key=source_key, task=task_id)
@@ -68,7 +68,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 normalized = Dict(
                     task={"id": task_id},
                     etl={
-                        "id": i,
+                        "id": line_number,
                         "source": source_etl,
                         "type": "join",
                         "timestamp": Date.now(),
@@ -80,10 +80,28 @@ def process(source_key, source, destination, resources, please_stop=None):
                 output.append(normalized)
 
                 continue
+
+            # if not tc_message.status.runs.last().resolved:
+            # UPDATE TASK STATUS (tc_message MAY BE OLD)
+            status_url = expand_template(STATUS_URL, {"task_id": task_id})
+            task_status = http.get_json(status_url, retry=RETRY, session=session)
+            consume(task_status, "status.taskId")
+            temp_runs, task_status.status.runs = task_status.status.runs, None  # set_default() will screw `runs` up
+            set_default(tc_message.status, task_status.status)
+            tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
+            if not tc_message.status.runs.last().resolved:
+                Log.error(TRY_AGAIN_LATER, reason="task is not resolved")
+
             normalized = _normalize(source_key, task_id, tc_message, task, resources)
 
             # get the artifact list for the taskId
-            artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+            try:
+                artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+            except Exception, e:
+                # e = Except.wrap(e)
+                # if "<title>Application Error | Heroku</title>" in e:
+                Log.error(TRY_AGAIN_LATER, "Can not get artifacts for task " + task_id, cause=e)
+
             for a in artifacts:
                 a.url = expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
@@ -91,12 +109,17 @@ def process(source_key, source, destination, resources, please_stop=None):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception, e:
-                        if TRY_AGAIN_LATER in e:
-                            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
+                        if "could not connect" in e and normalized.task.run.status != "completed":  # in ["deadline-exceeded"]:
+                            # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
+                            pass
+                        elif TRY_AGAIN_LATER in e:
+                            Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
+                        else:
+                            # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
+                            Log.warning("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)
-
             # FIX THE ETL
             if not source_etl:
                 # USE ONE SOURCE ETL, OTHERWISE WE MAKE TOO MANY KEYS
@@ -105,7 +128,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     source_etl.source.type = "join"
                     source_etl.source.source = {"id": "tc"}
             normalized.etl = {
-                "id": i,
+                "id": line_number,
                 "source": source_etl,
                 "type": "join",
                 "timestamp": Date.now(),
@@ -143,7 +166,11 @@ def read_actions(source_key, normalized, url):
         normalized.action = process_tc_live_log(all_log_lines, url, normalized)
     except Exception, e:
         e = Except.wrap(e)
-        if "An existing connection was forcibly closed by the remote host" in e:
+        if "Read timed out" in e:
+            Log.error(TRY_AGAIN_LATER, reason="read timeout")
+        elif "Failed to establish a new connection" in e:
+            Log.error(TRY_AGAIN_LATER, reason="could not connect")
+        elif "An existing connection was forcibly closed by the remote host" in e:
             Log.error(TRY_AGAIN_LATER, reason="text log was forcibly closed")
         else:
             Log.error("problem processing {{key}}", key=source_key, cause=e)
@@ -159,6 +186,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.dependencies = unwraplist(consume(task, "dependencies"))
     output.task.expires = Date(consume(task, "expires"))
     output.task.maxRunTime = consume(task, "payload.maxRunTime")
+    if output.task.maxRunTime == "hello":
+        output.task.maxRunTime = None
 
     env = consume(task, "payload.env")
     output.task.env = _object_to_array(env, "name", "value")
@@ -199,10 +228,19 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
     output.task.manifest.update = consume(task, "payload.update_manifest")
-    output.task.beetmove.task_id = consume(task, "payload.taskid_to_beetmove")
+    output.task.beetmove.task_id = coalesce_w_conflict_detection(
+        consume(task, "payload.taskid_to_beetmove"),
+        consume(task, "payload.properties.taskid_to_beetmove")
+    )
 
     # DELETE JUNK
     consume(task, "payload.routes")
+    consume(task, "payload.log")
+    consume(task, "payload.upstreamArtifacts")
+    output.task.signing.cert = consume(task, "payload.signing_cert"),
+    output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
+    output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
+
 
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
@@ -238,27 +276,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
 
-    # ASSIGN TREEHERDER
-    try:
-        if output.build.revision and output.task.state != "exception":
-            output.treeherder = resources.treeherder.get_markup(
-                output.build.branch,
-                output.build.revision,
-                output.task.id,
-                None,
-                output.task.run.end_time
-            )
-    except Exception, e:
-        if TRY_AGAIN_LATER in e:
-            Log.error("Aborting processing of {{key}}", key=source_key, cause=e)
-
-        Log.error(
-            "Treeherder info could not be picked up for key={{key}}, revision={{revision}}",
-            key=source_key,
-            revision=output.build.revision12,
-            cause=e
-        )
-
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()]) - new_seen_tc_properties
     if remaining_keys:
@@ -274,8 +291,9 @@ def _normalize_task_run(run):
     output.id = run.id
     output.scheduled = Date(run.scheduled)
     output.start_time = Date(run.started)
-    output.end_time = Date(run.takenUntil)
-    output.duration = Date(run.takenUntil) - Date(run.started)
+    output.status = run.reasonResolved
+    output.end_time = Date(run.resolved)
+    output.duration = Date(run.resolved) - Date(run.started)
     output.state = run.state
     output.worker.group = run.workerGroup
     output.worker.id = run.workerId
@@ -320,7 +338,10 @@ def _normalize_run(source_key, normalized, task, env):
             flavor = None
         run_type += ["e10s"]
 
-    if flavor and "-chunked" in flavor:
+    if flavor=="chunked":
+        flavor = None
+        run_type += ["chunked"]
+    elif flavor and "-chunked" in flavor:
         flavor = flavor.replace("-chunked", "").strip()
         if not flavor:
             flavor = None
@@ -353,20 +374,6 @@ def _normalize_run(source_key, normalized, task, env):
     )
 
 
-def coalesce_w_conflict_detection(source_key, *args):
-    output = None
-    for a in args:
-        if a == None:
-            continue
-        if output == None:
-            output = a
-        elif a != output:
-            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
-        else:
-            pass
-    return output
-
-
 def set_build_info(source_key, normalized, task, env, resources):
     """
     Get a build object that describes the build
@@ -379,18 +386,25 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     build_type = consume(task, "extra.build_type")
 
+    build_product = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "payload.properties.product"),
+        consume(task, "tags.build_props.product"),
+        task.extra.treeherder.productName,
+        consume(task, "extra.build_product"),
+        "firefox" if task.extra.suite.name.startswith("firefox") else None,
+        "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else None
+    )
+
     set_default(
         normalized,
         {"build": {
             "name": consume(task, "extra.build_name"),
-            "product": coalesce_w_conflict_detection(
-                source_key,
-                consume(task, "payload.properties.product"),
-                consume(task, "tags.build_props.product"),
-                task.extra.treeherder.productName,
-                consume(task, "extra.build_product")
+            "product": build_product,
+            "platform": coalesce_w_conflict_detection(
+                task.extra.treeherder.build.platform,
+                task.extra.treeherder.machine.platform
             ),
-            "platform": task.extra.treeherder.build.platform,
             # MOZILLA_BUILD_URL looks like this:
             # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
             "url": env.MOZILLA_BUILD_URL,
@@ -497,6 +511,20 @@ def verify_tag(source_key, task_id, t):
         KNOWN_TAGS.add(t["name"])
 
 
+def coalesce_w_conflict_detection(source_key, *args):
+    output = None
+    for a in args:
+        if a == None:
+            continue
+        if output == None:
+            output = a
+        elif a != output:
+            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
+        else:
+            pass
+    return output
+
+
 def _scrub(record, name):
     value = record[name]
     record[name] = None
@@ -524,6 +552,7 @@ BUILD_TYPES = {
     "debug": ["debug"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
+    "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "memleak": ["memleak"],
@@ -535,6 +564,8 @@ BUILD_TYPES = {
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
+    "apks.armv7_v15",
+    "apks.x86",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
@@ -544,8 +575,10 @@ PAYLOAD_PROPERTIES = {
     "desiredResolution",
     "encryptedEnv",
     "en_us_binary_url",
+    "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "locales",
+    "locale",
     "mar_tools_url",
     "next_version",
     "NO_BBCONFIG",
@@ -555,8 +588,8 @@ PAYLOAD_PROPERTIES = {
     "repack_manifests_url",
     "script_repo_revision",
     "signingManifest",
+    "sourcestamp.repository",
     "supersederUrl",
-    "taskid_to_beetmove"
     "template_key",
     "THIS_CHUNK",
     "TOTAL_CHUNKS",
@@ -565,6 +598,7 @@ PAYLOAD_PROPERTIES = {
     "upload_date",
     "VERIFY_CONFIG",
     "version"
+
 }
 
 KNOWN_TAGS = {
@@ -603,7 +637,6 @@ KNOWN_TAGS = {
     "data.head.user.email",
     "description",
 
-    "extra.build_product",  # error?
     "funsize.partials",
     "funsize.partials.branch",
     "funsize.partials.from_mar",
@@ -629,9 +662,13 @@ KNOWN_TAGS = {
     "github.baseUser",
     "githubPullRequest",
 
+    "imageMeta.contextHash",
+    "imageMeta.imageName",
+    "imageMeta.level",
     "index.data.hello",
     "index.expires",
     "index.rank",
+    "installer_path",
     "l10n_changesets",
 
     "link",
@@ -671,7 +708,6 @@ KNOWN_TAGS = {
     "npmCache.expires",
     "objective",
     "owner",
-    "parent_task_id",
     "partial_versions",
     "platforms",
     "signing.signature",
@@ -680,30 +716,6 @@ KNOWN_TAGS = {
     "suite.name",
 
     "treeherderEnv",
-    "treeherder.build.platform",
-    "treeherder.collection.ccov",
-    "treeherder.collection.debug",
-    "treeherder.collection.gyp",
-    "treeherder.collection.jsdcov",
-    "treeherder.collection.memleak",
-    "treeherder.collection.opt",
-    "treeherder.collection.pgo",
-    "treeherder.collection.asan",
-    "treeherder.collection.lsan",
-    "treeherder.collection.arm-debug",
-    "treeherder.collection.arm-opt",
-    "treeherder.groupSymbol",
-    "treeherder.groupName",
-    "treeherder.jobKind",
-    "treeherder.labels",
-    "treeherder.machine.platform",
-    "treeherder.productName",
-    "treeherder.reason",
-    "treeherder.revision",
-    "treeherder.revision_hash",
-    "treeherder.symbol",
-    "treeherder.tier",
-
 
     "upload_to_task_id",
     "url.busybox",

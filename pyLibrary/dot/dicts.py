@@ -94,6 +94,8 @@ class Dict(MutableMapping):
             for n in seq:
                 if isinstance(d, NullType):
                     d = NullType(d, n)  # OH DEAR, Null TREATS n AS PATH, NOT LITERAL
+                elif isinstance(d, list):
+                    d = [_getdefault(dd, n) for dd in d]
                 else:
                     d = _getdefault(d, n)  # EVERYTHING ELSE TREATS n AS LITERAL
 
@@ -110,6 +112,8 @@ class Dict(MutableMapping):
             from pyLibrary.debugs.logs import Log
 
             Log.error("key is empty string.  Probably a bad idea")
+        if key == None:
+            return Null
         if key == ".":
             # SOMETHING TERRIBLE HAPPENS WHEN value IS NOT A Mapping;
             # HOPEFULLY THE ONLY OTHER METHOD RUN ON self IS unwrap()
@@ -288,6 +292,8 @@ class Dict(MutableMapping):
 def leaves(value, prefix=None):
     """
     LIKE items() BUT RECURSIVE, AND ONLY FOR THE LEAVES (non dict) VALUES
+    SEE wrap_leaves FOR THE INVERSE
+
     :param value: THE Mapping TO TRAVERSE
     :param prefix:  OPTIONAL PREFIX GIVEN TO EACH KEY
     :return: Dict, WHICH EACH KEY BEING A PATH INTO value TREE
@@ -506,11 +512,6 @@ class _DictUsingSelf(dict):
             return "Dict("+dict.__repr__(self)+")"
         except Exception, e:
             return "Dict()"
-
-
-
-# KEEP TRACK OF WHAT ATTRIBUTES ARE REQUESTED, MAYBE SOME (BUILTIN) ARE STILL USEFUL
-requested = set()
 
 
 def _str(value, depth):
