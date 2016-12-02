@@ -18,20 +18,22 @@ from __future__ import unicode_literals
 import sys
 import thread
 import types
-from collections import deque
+from collections import deque, Mapping
 from copy import copy
 from datetime import datetime, timedelta
 
-from pyLibrary import strings
-from pyLibrary.debugs.exceptions import Except, suppress_exception, Explanation
+from pyLibrary import strings, convert
+from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
-from pyLibrary.dot import coalesce, Dict, unwraplist, Null
+from pyLibrary.dot import coalesce, Dict, unwraplist, Null, wrap
+from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.lock import Lock
 from pyLibrary.thread.signal import Signal
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND
 
+_convert = None
 _Except = None
 _Log = None
 DEBUG = True
@@ -43,12 +45,14 @@ datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
 
 
 def _late_import():
+    global _convert
     global _Except
     global _Log
 
     from pyLibrary.debugs.exceptions import Except as _Except
     from pyLibrary.debugs.logs import Log as _Log
 
+    _ = _convert
     _ = _Except
     _ = _Log
 
@@ -146,10 +150,10 @@ class Queue(object):
         wait_time = 5 * SECOND
 
         now = Date.now()
-        if timeout:
+        if timeout!=None:
             time_to_stop_waiting = now + timeout
         else:
-            time_to_stop_waiting = Date.MAX
+            time_to_stop_waiting = None
 
         if self.next_warning < now:
             self.next_warning = now + wait_time
@@ -715,6 +719,15 @@ class ThreadedQueue(Queue):
             self._wait_for_queue_space(timeout=timeout)
             if self.keep_running:
                 self.queue.append(value)
+            if Random.range(0, 50) == 0:
+                sizes = wrap([{"id":i["id"], "size":len(convert.value2json(i))} for i in self.queue if isinstance(i, Mapping)])
+                size=sum(sizes.size)
+                if size>50000000:
+                    from pyLibrary.queries import jx
+
+                    biggest = jx.sort(sizes, "size").last().id
+                    _Log.note("Big record {{id}}", id=biggest)
+                _Log.note("{{name}} has {{num}} items with json size of {{size|comma}}", name=self.name, num=len(self.queue), size=size)
         return self
 
     def extend(self, values):
@@ -723,6 +736,7 @@ class ThreadedQueue(Queue):
             self._wait_for_queue_space()
             if self.keep_running:
                 self.queue.extend(values)
+            _Log.note("{{name}} has {{num}} items", name=self.name, num=len(self.queue))
         return self
 
 

@@ -178,12 +178,13 @@ def main():
             main_work_queue = Queue("local work queue")
             for w in settings.workers:
                 bucket = s3.Bucket(w.source)
-                for k in parse_id_argument(settings.args.id):
-                    key = bucket.get_meta(key=k)
-                    main_work_queue.extend(Dict(
-                        key=key,
-                        bucket=bucket.name
-                    ))
+                for prefixes in parse_id_argument(settings.args.id):
+                    keys = bucket.keys(prefix=prefixes)
+                    for k in keys:
+                        main_work_queue.add(Dict(
+                            key=k,
+                            bucket=bucket.name
+                        ))
         else:
             main_work_queue = aws.Queue(settings=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)

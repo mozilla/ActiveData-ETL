@@ -7,7 +7,7 @@
 	"workers":[
 		{
 			"name": "unit",
-			"batch_size": 5000,
+			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
 				"field": "build.date",
@@ -26,7 +26,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -83,7 +83,7 @@
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -113,7 +113,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -142,7 +142,7 @@
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
