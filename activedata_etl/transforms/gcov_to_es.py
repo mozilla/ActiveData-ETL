@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-from zipfile import ZipFile
+from zipfile import ZipFile, BadZipfile
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
 
@@ -19,15 +19,14 @@ from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, set_default, Null
+from pyLibrary.debugs.logs import Log, machine_metadata
+from pyLibrary.dot import wrap, Null, unwraplist, set_default
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, ThreadedQueue, Queue, Lock
+from pyLibrary.thread.threads import Thread, Queue, Lock
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
@@ -51,6 +50,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
+    etl_header_gen = EtlHeadGenerator(source_key)
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
@@ -71,26 +71,27 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.error("unexpected JSON decoding problem", cause=e)
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        record_key = etl2key(task_cluster_record.etl)
-        file_etl_gen = EtlHeadGenerator(record_key)
-        for artifact in artifacts:
-            if artifact.name.find("gcda") != -1:
-                try:
-                    Log.note("Process GCDA artifact {{name}} for key {{key}}", name=artifact.name, key=task_cluster_record._id)
-                    keys = process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_record, artifact)
-                    keys.extend(keys)
-                except Exception as e:
-                    Log.error("problem processing {{artifact}} for key {{key}}", key=source_key, artifact=artifact.name, cause=e)
+        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+
+        try: # TODO rm
+            for artifact in artifacts:
+                Log.note("{{name}}", name=artifact.name)
+                if artifact.name.find("gcda") != -1:
+                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+        except Exception as e:
+            import traceback
+            Log.note(traceback.format_exc())
 
     return keys
 
 
-def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
+    keys = []
     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     if os.name == "nt":
@@ -110,54 +111,63 @@ def process_gcda_artifact(source_key, destination, file_etl_gen, task_cluster_re
 
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
+    except BadZipfile:
+        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+        return []
 
-        artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-        if len(artifacts) != 1:
-            Log.error("Do not know how to handle more than one gcno file")
-        gcno_artifact = artifacts[0]
+    parent_etl = task_cluster_record.etl
+    artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+    files = artifacts
+
+    # chop some not-needed, and verbose, properties from tc record
+    task_cluster_record.etl = None
+    task_cluster_record.action.timings = None
+    task_cluster_record.action.etl = None
+    task_cluster_record.task.artifacts = None
+    task_cluster_record.task.runs = None
+
+    records = []
+
+    for file_obj in files:
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-        Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
-        gcno_file = download_file(gcno_artifact.url)
+        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+
+        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
+
+        etl_key = etl2key(file_etl)
+        keys.append(etl_key)
+        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+
+        gcno_file = download_file(file_obj.url)
 
         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-        Log.note('Running LCOV on ccov directory')
-        lcov_files = run_lcov_on_directory('%s/ccov' % tmpdir)
+        with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
+            lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
 
-        keys = []
-        for file in lcov_files:
-            file_id, file_etl = file_etl_gen.next(task_cluster_record.etl)
-            line_etl_gen = EtlHeadGenerator(file_id)
-            with Timer("process {{file}}", param={"file":file.name}):
-                try:
-                    records = wrap(parse_lcov_coverage(source_key, file))
-                    Log.note('Extracted {{num_records}} records from {{file}}', num_records=len(records), file=file.name)
-                except Exception, e:
-                    if "No such file or directory" in e:
-                        Log.error("Problem parsing lcov output for {{file}}: NO FILE EXISTS", file=file.abspath)
-                    else:
-                        Log.warning("Problem parsing lcov output for {{file}}", file=file.abspath, cause=e)
-                    continue
+            Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
-                for r in records:
-                    r._id, etl = line_etl_gen.next(file_etl)
-                    etl.gcno = gcno_artifact.url
-                    etl.gcda = gcda_artifact.url
-                    set_default(r, task_cluster_record)
-                    r.etl = etl
-                keys.append(file_id)
-                with Timer("writing {{num}} records to s3", {"num": len(records)}):
-                    destination.extend(({"id": a._id, "value": a} for a in records), overwrite=True)
+            def count_generator():
+                count = 0
+                while True:
+                    yield count
+                    count += 1
+            counter = count_generator().next
 
-        return keys
-    finally:
-        try:
-            shutil.rmtree(tmpdir)
-        except Exception:
-            pass
+            for index, obj in enumerate(lcov_coverage):
+                if index != 0:
+                    process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
+            remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+    shutil.rmtree(tmpdir)
+
+    with Timer("writing {{num}} records to s3", {"num": len(records)}):
+        destination.extend(records, overwrite=True)
+
+    return keys
 
 def group_to_gcno_artifacts(group_id):
     """
@@ -262,9 +272,11 @@ def run_lcov_on_directory(directory_path):
 
         return output
     else:
-        Log.error("must return a list of files, it returns a stream instead")
-        proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=PIPE)
-        results = parse_lcov_coverage(Null, proc.stdout)
+        fdevnull = open(os.devnull, 'w')
+
+        proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=fdevnull)
+        results = parse_lcov_coverage(proc.stdout)
+
         return results
 
 
@@ -277,6 +289,107 @@ def download_file(url):
     finally:
         stream.close()
     return tempfile
+
+
+def process_source_file(parent_etl, count, obj, task_cluster_record, records):
+    obj = wrap(obj)
+
+    # get the test name. Just use the test file name at the moment
+    # TODO: change this when needed
+    try:
+        test_name = unwraplist(obj.testUrl).split("/")[-1]
+    except Exception, e:
+        raise Log.error("can not get testUrl from coverage object", cause=e)
+
+    # turn obj.covered (a list) into a set for use later
+    file_covered = set(obj.covered)
+
+    # file-level info
+    file_info = wrap({
+        "name": obj.sourceFile,
+        "covered": [{"line": c} for c in obj.covered],
+        "uncovered": obj.uncovered,
+        "total_covered": len(obj.covered),
+        "total_uncovered": len(obj.uncovered),
+        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
+    })
+
+    # orphan lines (i.e. lines without a method), initialized to all lines
+    orphan_covered = set(obj.covered)
+    orphan_uncovered = set(obj.uncovered)
+
+    # iterate through the methods of this source file
+    # a variable to count the number of lines so far for this source file
+    for method_name, method_lines in obj.methods.iteritems():
+        all_method_lines = set(method_lines)
+        method_covered = all_method_lines & file_covered
+        method_uncovered = all_method_lines - method_covered
+        method_percentage_covered = len(method_covered) / len(all_method_lines)
+
+        orphan_covered = orphan_covered - method_covered
+        orphan_uncovered = orphan_uncovered - method_uncovered
+
+        new_record = set_default(
+            {
+                "test": {
+                    "name": test_name,
+                    "url": obj.testUrl
+                },
+                "source": {
+                    "file": file_info,
+                    "method": {
+                        "name": method_name,
+                        "covered": [{"line": c} for c in method_covered],
+                        "uncovered": method_uncovered,
+                        "total_covered": len(method_covered),
+                        "total_uncovered": len(method_uncovered),
+                        "percentage_covered": method_percentage_covered,
+                    }
+                },
+                "etl": {
+                    "id": count(),
+                    "source": parent_etl,
+                    "type": "join",
+                    "machine": machine_metadata,
+                    "timestamp": Date.now()
+                }
+            },
+            task_cluster_record
+        )
+        key = etl2key(new_record.etl)
+        records.append({"id": key, "value": new_record})
+
+    # a record for all the lines that are not in any method
+    # every file gets one because we can use it as canonical representative
+    new_record = set_default(
+        {
+            "test": {
+                "name": test_name,
+                "url": obj.testUrl
+            },
+            "source": {
+                "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
+                "file": file_info,
+                "method": {
+                    "covered": [{"line": c} for c in orphan_covered],
+                    "uncovered": orphan_uncovered,
+                    "total_covered": len(orphan_covered),
+                    "total_uncovered": len(orphan_uncovered),
+                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+                }
+            },
+            "etl": {
+                "id": count(),
+                "source": parent_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            },
+        },
+        task_cluster_record
+    )
+    key = etl2key(new_record.etl)
+    records.append({"id": key, "value": new_record})
 
 
 def remove_files_recursively(root_directory, file_extension):

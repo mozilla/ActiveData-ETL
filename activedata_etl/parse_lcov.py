@@ -14,10 +14,8 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 import sys
 import json
 
-from pyLibrary.dot import Null
 
-
-def parse_lcov_coverage(source_key, stream):
+def parse_lcov_coverage(stream):
     """
     Parses lcov coverage from a stream
     :param stream:
@@ -36,7 +34,7 @@ def parse_lcov_coverage(source_key, stream):
 
         if line == 'end_of_record':
             current_source = None
-        else:
+        elif ':' in line:
             colon_index = line.index(':')
             cmd = line[0:colon_index]
             data = line[colon_index + 1:]
@@ -99,6 +97,8 @@ def parse_lcov_coverage(source_key, stream):
             else:
                 print('Unsupported cmd %s with data "%s"' % (cmd, data))
 
+    print('done')
+
     results = []
     for key, value in sources.iteritems():
         lines_covered = sorted(value['lines_covered'])
@@ -138,5 +138,7 @@ if __name__ == '__main__':
 
     file_path = sys.argv[1]
 
-    parsed = parse_lcov_coverage(Null, file_path)
+    with open(file_path) as f:
+        parsed = parse_lcov_coverage(f)
+
     json.dump(parsed, sys.stdout)
