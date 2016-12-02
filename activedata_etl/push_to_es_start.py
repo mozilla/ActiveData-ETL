@@ -45,11 +45,13 @@ def _config_fabric(connect, instance):
 
 def _stop_indexer():
     with fabric_settings(warn_only=True):
+        # sudo("supervisorctl stop es")
         sudo("supervisorctl stop push_to_es")
 
 
 def _start_indexer():
     with fabric_settings(warn_only=True):
+        # sudo("supervisorctl start es")
         sudo("supervisorctl start push_to_es")
 
 
@@ -69,9 +71,12 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            _config_fabric(settings.fabric, i)
-            Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _start_indexer()
+            try:
+                _config_fabric(settings.fabric, i)
+                Log.note("Start indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                _start_indexer()
+            except Exception, e:
+                Log.warning("Problem with stopping", e)
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
