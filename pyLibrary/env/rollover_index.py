@@ -21,6 +21,8 @@ from pyLibrary.times.dates import Date, unicode2Date, unix2Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
 
+MAX_RECORD_LENGTH = 100000
+
 
 class RolloverIndex(object):
     """
@@ -205,15 +207,13 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
             suite_json = '{' + found + "}"
             if suite_json:
                 suite = convert.json2value(suite_json)
-                suite = convert.value2json(suite.name)
+                suite = convert.value2json(coalesce(suite.fullname, suite.name))
                 line = line.replace(suite_json, suite)
 
     if rownum == 0:
         value = convert.json2value(line)
-        if len(line) > 100000:
-            value.result.subtests = [s for s in value.result.subtests if s.ok is False]
-            value.result.missing_subtests = True
-
+        if len(line) > MAX_RECORD_LENGTH:
+            _shorten(value)
         _id, value = _fix(value)
         row = {"id": _id, "value": value}
         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
@@ -221,13 +221,12 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
             if value.etl.id != 0:
                 Log.error("Expecting etl.id==0")
             return row, True
-    elif len(line) > 100000:
+    elif len(line) > MAX_RECORD_LENGTH:
         value = convert.json2value(line)
-        value.result.subtests = [s for s in value.result.subtests if s.ok is False]
-        value.result.missing_subtests = True
+        _shorten(value)
         _id, value = _fix(value)
         row = {"id": _id, "value": value}
-    elif line.find("\"resource_usage\":") != -1:
+    elif line.find('"resource_usage":') != -1:
         value = convert.json2value(line)
         _id, value = _fix(value)
         row = {"id": _id, "value": value}
@@ -237,6 +236,14 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
         row = {"id": _id, "json": line}
 
     return row, False
+
+
+def _shorten(value):
+    value.result.subtests = [s for s in value.result.subtests if s.ok is False]
+    value.result.missing_subtests = True
+    shorter_length = len(convert.value2json(value))
+    if shorter_length > MAX_RECORD_LENGTH:
+        Log.warning("Monstrous record {{id}} of length {{length}}", id=value._id, length=shorter_length)
 
 
 def _fix(value):

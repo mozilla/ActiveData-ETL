@@ -162,6 +162,12 @@ class Bucket(object):
         self.bucket.delete_keys(keys)
 
     def get_meta(self, key, conforming=True):
+        """
+        RETURN METADATA ON FILE IN BUCKET
+        :param key:  KEY, OR PREFIX OF KEY
+        :param conforming: TEST IF THE KEY CONFORMS TO REQUIRED PATTERN
+        :return: METADATA, IF UNIQUE, ELSE ERROR
+        """
         try:
             metas = list(self.bucket.list(prefix=key))
             metas = wrap([m for m in metas if m.name.find(".json") != -1])

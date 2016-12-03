@@ -7,7 +7,7 @@
 	"workers":[
 		{
 			"name": "unit",
-			"batch_size": 5000,
+			"batch_size": 100,
 			"skip": 0,
 			"rollover":{
 				"field": "build.date",
@@ -26,7 +26,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -42,8 +42,8 @@
 				"interval": "year",
 				"max":"2year"
 			},
-			"batch_size": 1000,
-			"queue_size": 2000,
+			"batch_size": 100,
+			"queue_size": 200,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
@@ -71,7 +71,7 @@
 				"interval": "3month",
 				"max":"2year"
 			},
-			"batch_size": 500,
+			"batch_size": 50,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
@@ -83,7 +83,7 @@
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -95,8 +95,8 @@
 		{
 			"name":"code coverage",
 			"skip": 0.0,
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
@@ -113,7 +113,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -124,8 +124,8 @@
 		},
 		{
 			"name": "task",
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
 				"field": "task.created",
 				"interval": "3month",
@@ -142,7 +142,7 @@
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
