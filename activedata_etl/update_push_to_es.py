@@ -98,8 +98,28 @@ def _es_up():
         _start_es()
         return
 
+def _disable_oom_on_es():
+    with cd("/home/ec2-user"):
+        run("mkdir -p temp")
+    with cd("/home/ec2-user/temp"):
+        processes = sudo("ps -eo pid,command | grep java")
+        candidates = [
+            line
+            for line in processes.split("\n")
+            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch" != -1)
+        ]
+        if not candidates:
+            Log.error("Expecting to find some hint of Elasticsearch running")
+        elif len(candidates) > 1:
+            Log.error("Fond more than one Elasticsearch running, not sure what to do")
+
+        pid = candidates[0].split(" ")[0].strip()
+        run("echo -16 > oom_adj")
+        sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
+
 
 def _refresh_indexer():
+    _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
@@ -144,9 +164,18 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _config_fabric(settings.fabric, i)
-            _refresh_indexer()
+            try:
+                Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                _config_fabric(settings.fabric, i)
+                _refresh_indexer()
+            except Exception, e:
+                Log.warning(
+                    "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
+                    insance_id=i.id,
+                    name=i.tags["Name"],
+                    ip=i.ip_address,
+                    cause=e
+                )
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:
