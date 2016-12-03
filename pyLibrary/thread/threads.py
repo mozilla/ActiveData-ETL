@@ -719,15 +719,15 @@ class ThreadedQueue(Queue):
             self._wait_for_queue_space(timeout=timeout)
             if self.keep_running:
                 self.queue.append(value)
-            if Random.range(0, 50) == 0:
-                sizes = wrap([{"id":i["id"], "size":len(convert.value2json(i))} for i in self.queue if isinstance(i, Mapping)])
-                size=sum(sizes.size)
-                if size>50000000:
-                    from pyLibrary.queries import jx
-
-                    biggest = jx.sort(sizes, "size").last().id
-                    _Log.note("Big record {{id}}", id=biggest)
-                _Log.note("{{name}} has {{num}} items with json size of {{size|comma}}", name=self.name, num=len(self.queue), size=size)
+            # if Random.range(0, 50) == 0:
+            #     sizes = wrap([{"id":i["id"], "size":len(convert.value2json(i))} for i in self.queue if isinstance(i, Mapping)])
+            #     size=sum(sizes.size)
+            #     if size>50000000:
+            #         from pyLibrary.queries import jx
+            #
+            #         biggest = jx.sort(sizes, "size").last().id
+            #         _Log.note("Big record {{id}}", id=biggest)
+            #     _Log.note("{{name}} has {{num}} items with json size of {{size|comma}}", name=self.name, num=len(self.queue), size=size)
         return self
 
     def extend(self, values):
