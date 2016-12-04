@@ -342,6 +342,7 @@ def process_text_log(all_log_lines, from_url):
             else:
                 harness_step = harness_steps[harness_step_name]
                 harness_step.result = result
+                harness_step.end_time = timestamp
 
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
