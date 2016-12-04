@@ -205,26 +205,26 @@
 			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
-		{
-			"name": "gcov to codecoverage",
-			"source": {
-				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"destination": {
-				"$ref": "file://~/codecoverage.json#aws_credentials",
-				"bucket": "active-data-codecoverage-dev",
-				"public": true,
-				"key_format": "t.a:b.c.d"
-			},
-			"notify": {
-				"name": "active-data-index-dev",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.gcov_to_es.process",
-			"type": "join"
-		},
+//		{
+//			"name": "gcov to codecoverage",
+//			"source": {
+//				"bucket": "active-data-task-cluster-normalized",
+//				"key_format": "t.a:b",
+//				"$ref": "file://~/codecoverage.json#aws_credentials"
+//			},
+//			"destination": {
+//				"$ref": "file://~/codecoverage.json#aws_credentials",
+//				"bucket": "active-data-codecoverage-dev",
+//				"public": true,
+//				"key_format": "t.a:b.c.d"
+//			},
+//			"notify": {
+//				"name": "active-data-index-dev",
+//				"$ref": "file://~/codecoverage.json#aws_credentials"
+//			},
+//			"transformer": "activedata_etl.transforms.gcov_to_es.process",
+//			"type": "join"
+//		},
 		{
 			"name": "tc_normalized to codecoverage",
 			"source": {
