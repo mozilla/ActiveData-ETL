@@ -224,6 +224,7 @@ def process_text_log(all_log_lines, from_url):
 
     process_head = True
     data = Dict()
+    harness_steps = {}
     data.timings = []
 
     start_time = None
@@ -328,28 +329,27 @@ def process_text_log(all_log_lines, from_url):
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
-            timestamp, mode, result, harness_step = mozharness_says
+            timestamp, mode, result, harness_step_name = mozharness_says
             end_time = Math.max(end_time, timestamp)
 
             if not result:
-                builder_step.children += [{
-                    "step": harness_step,
+                harness_step = harness_steps[harness_step_name] = {
+                    "step": harness_step_name,
                     "mode": mode,
                     "start_time": timestamp
-                }]
+                }
+                builder_step.children += [harness_step]
             else:
-                prev_step = builder_step.children.last()
-                if prev_step.step != harness_step:
-                    Log.error("expecting match")
-                prev_step.result = result
+                harness_step = harness_steps[harness_step_name]
+                harness_step.result = result
 
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
+            timestamp, mode, harness_step_name = mozharness_says
             end_time = Math.max(end_time, timestamp)
 
             builder_step.children += [{
-                "step": harness_step,
+                "step": harness_step_name,
                 "mode": mode,
                 "start_time": timestamp
             }]
