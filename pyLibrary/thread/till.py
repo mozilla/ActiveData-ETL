@@ -37,7 +37,7 @@ class Till(Signal):
     TIMEOUT AS A SIGNAL
     """
     enabled = False
-    all_timers = []
+    new_timers = []
 
     def __new__(cls, till=None, timeout=None, seconds=None):
         if not Till.enabled:
@@ -60,38 +60,45 @@ class Till(Signal):
 
         with _till_locker:
             next_ping = min(next_ping, timeout)
-            Till.all_timers.append((timeout, self))
+            Till.new_timers.append((timeout, self))
 
     @classmethod
     def daemon(cls, please_stop):
         global next_ping
 
         Till.enabled = True
+        sorted_timers = []
+
         try:
             while not please_stop:
                 now = _time()
+
                 with _till_locker:
-                    if next_ping > now:
-                        _till_locker.release()
-                        _sleep(min(next_ping - now, INTERVAL))
-                        _till_locker.acquire()
-                        continue
+                    later = next_ping > now
 
+                if later:
+                    _sleep(min(next_ping - now, INTERVAL))
+                    continue
+
+                with _till_locker:
                     next_ping = now + INTERVAL
-                    work = None
-                    if Till.all_timers:
-                        Till.all_timers.sort(key=lambda r: r[0])
-                        for i, (t, s) in enumerate(Till.all_timers):
-                            if now < t:
-                                work, Till.all_timers[:i] = Till.all_timers[:i], []
-                                next_ping = min(next_ping, Till.all_timers[0][0])
-                                break
-                        else:
-                            work, Till.all_timers = Till.all_timers, []
+                    new_timers, Till.new_timers = Till.new_timers, []
 
-                if work:
-                    for t, s in work:
-                        s.go()
+                sorted_timers.extend(new_timers)
+
+                if sorted_timers:
+                    sorted_timers.sort(key=lambda r: r[0])
+                    for i, (t, s) in enumerate(sorted_timers):
+                        if now < t:
+                            work, sorted_timers[:i] = sorted_timers[:i], []
+                            next_ping = min(next_ping, sorted_timers[0][0])
+                            break
+                    else:
+                        work, sorted_timers = sorted_timers, []
+
+                    if work:
+                        for t, s in work:
+                            s.go()
 
         except Exception, e:
             from pyLibrary.debugs.logs import Log
@@ -101,7 +108,7 @@ class Till(Signal):
             Till.enabled = False
             # TRIGGER ALL REMAINING TIMERS RIGHT NOW
             with _till_locker:
-                work, Till.all_timers = Till.all_timers, []
+                work, Till.new_timers = Till.new_timers, []
             for t, s in work:
                 s.go()
 
