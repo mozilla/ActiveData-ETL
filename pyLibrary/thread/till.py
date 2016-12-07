@@ -25,6 +25,8 @@ from pyLibrary.times.durations import Duration
 
 DEBUG = True
 INTERVAL = 0.1
+
+_till_locker = _allocate_lock()
 next_ping = _time()
 done = Signal("Timers shutdown")
 done.go()
@@ -36,8 +38,6 @@ class Till(Signal):
     """
     enabled = False
     all_timers = []
-    locker = _allocate_lock()
-
 
     def __new__(cls, till=None, timeout=None, seconds=None):
         if not Till.enabled:
@@ -58,7 +58,7 @@ class Till(Signal):
         elif seconds != None:
             timeout = _time() + seconds
 
-        with Till.locker:
+        with _till_locker:
             next_ping = min(next_ping, timeout)
             Till.all_timers.append((timeout, self))
 
@@ -70,9 +70,11 @@ class Till(Signal):
         try:
             while not please_stop:
                 now = _time()
-                with Till.locker:
+                with _till_locker:
                     if next_ping > now:
+                        _till_locker.release()
                         _sleep(min(next_ping - now, INTERVAL))
+                        _till_locker.acquire()
                         continue
 
                     next_ping = now + INTERVAL
@@ -98,7 +100,7 @@ class Till(Signal):
         finally:
             Till.enabled = False
             # TRIGGER ALL REMAINING TIMERS RIGHT NOW
-            with Till.locker:
+            with _till_locker:
                 work, Till.all_timers = Till.all_timers, []
             for t, s in work:
                 s.go()
