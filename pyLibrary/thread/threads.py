@@ -633,15 +633,15 @@ class ThreadedQueue(Queue):
                 try:
                     if not _buffer:
                         item = self.pop()
-                        items = [item] + self.pop_all()
+                        items = [item] + self.pop_all()  # PLEASE REMOVE
                         now = Date.now()
                         next_push = now + period
                     else:
                         item = self.pop(till=Till(till=next_push))
-                        items = [item]+self.pop_all()
+                        items = [item]+self.pop_all()  # PLEASE REMOVE
                         now = Date.now()
 
-                    for item in items:
+                    for item in items:  # PLEASE REMOVE
                         if item is Thread.STOP:
                             push_to_queue()
                             please_stop.go()
