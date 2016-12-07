@@ -8,7 +8,7 @@
 		{
 			"name": "unit",
 			"batch_size": 1000,
-			"skip": 0.5,
+			"skip": 0.95,
 			"rollover":{
 				"field": "build.date",
 				"interval": "week",
