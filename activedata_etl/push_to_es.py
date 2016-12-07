@@ -124,8 +124,10 @@ def shutdown_local_es_node():
                 continue
             Log.note("Shutdown es: {{note}}", note=line)
     finally:
-        with suppress_exception:
+        try:
             proc.join()
+        except Exception, e:
+            Log.warning("could not shutdown es", cause=e)
 
 
 def main():
@@ -211,7 +213,7 @@ def main():
         aws_shutdown = Signal("aws shutdown")
         aws_shutdown.on_go(shutdown_local_es_node)
         aws_shutdown.on_go(lambda: please_stop.go)
-        aws.capture_termination_signal(aws_shutdown)
+        aws.capture_termination_signal(please_stop)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 

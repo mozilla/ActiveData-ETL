@@ -620,7 +620,7 @@ class ThreadedQueue(Queue):
 
             _buffer = []
             _post_push_functions = []
-            next_time = Date.now() + period  # THE TIME WE SHOULD DO A PUSH
+            next_push = Date.now() + period  # THE TIME WE SHOULD DO A PUSH
 
             def push_to_queue():
                 queue.extend(_buffer)
@@ -633,8 +633,15 @@ class ThreadedQueue(Queue):
                 try:
                     if not _buffer:
                         item = self.pop()
+                        items = [item] + self.pop_all()  # PLEASE REMOVE
+                        now = Date.now()
+                        next_push = now + period
+                    else:
+                        item = self.pop(till=Till(till=next_push))
+                        items = [item]+self.pop_all()  # PLEASE REMOVE
                         now = Date.now()
 
+                    for item in items:  # PLEASE REMOVE
                         if item is Thread.STOP:
                             push_to_queue()
                             please_stop.go()
@@ -643,23 +650,6 @@ class ThreadedQueue(Queue):
                             _post_push_functions.append(item)
                         elif item is not None:
                             _buffer.append(item)
-
-                        # DO NOT START AGAIN TOO SOON
-                        if next_time < now + period:
-                            next_time = now + period
-                        continue
-
-                    item = self.pop(till=Till(till=next_time))
-                    now = Date.now()
-
-                    if item is Thread.STOP:
-                        push_to_queue()
-                        please_stop.go()
-                        break
-                    elif isinstance(item, types.FunctionType):
-                        _post_push_functions.append(item)
-                    elif item is not None:
-                        _buffer.append(item)
 
                 except Exception, e:
                     e = Except.wrap(e)
@@ -680,14 +670,13 @@ class ThreadedQueue(Queue):
                         )
 
                 try:
-                    if len(_buffer) >= batch_size or now > next_time:
-                        next_time = now + period
+                    if len(_buffer) >= batch_size or now > next_push:
+                        next_push = now + period
                         if _buffer:
                             push_to_queue()
                             # A LITTLE MORE TIME TO FILL THE NEXT BUFFER
                             now = Date.now()
-                            if now > next_time:
-                                next_time = now + bit_more_time
+                            next_push = max(next_push, now + bit_more_time)
 
                 except Exception, e:
                     e = Except.wrap(e)
@@ -738,7 +727,6 @@ class ThreadedQueue(Queue):
                 self.queue.extend(values)
             _Log.note("{{name}} has {{num}} items", name=self.name, num=len(self.queue))
         return self
-
 
     def __enter__(self):
         return self

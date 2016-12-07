@@ -101,6 +101,17 @@
 						}
 					}
 				},
+				"action": {
+					"type":"object",
+					"dynamic":true,
+					"properties":{
+						"timings":{
+							"type":"nested",
+							"dynamic":"true"
+
+						}
+					}
+				},
 				"etl":{
 					"type":"object",
 					"properties":{
