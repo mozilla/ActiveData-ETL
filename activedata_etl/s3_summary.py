@@ -1,5 +1,3 @@
-import boto
-from pympler.summary import summarize
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
