@@ -633,7 +633,7 @@ class ThreadedQueue(Queue):
                 try:
                     if not _buffer:
                         item = self.pop()
-                        items = [item]+self.pop_all()
+                        items = [item] + self.pop_all()
                         now = Date.now()
                         next_push = now + period
                     else:
@@ -727,7 +727,6 @@ class ThreadedQueue(Queue):
                 self.queue.extend(values)
             _Log.note("{{name}} has {{num}} items", name=self.name, num=len(self.queue))
         return self
-
 
     def __enter__(self):
         return self
