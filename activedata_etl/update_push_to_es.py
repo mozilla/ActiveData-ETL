@@ -106,7 +106,7 @@ def _disable_oom_on_es():
         candidates = [
             line
             for line in processes.split("\n")
-            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch" != -1)
+            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch") != -1
         ]
         if not candidates:
             Log.error("Expecting to find some hint of Elasticsearch running")
