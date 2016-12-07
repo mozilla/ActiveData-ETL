@@ -59,6 +59,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     start_time = None
     end_time = None
 
+    harness_steps = {}
     task_steps = Dict()
 
     new_mozharness_line = NewHarnessLines()
@@ -139,7 +140,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
+            timestamp, mode, result, harness_step_name = mozharness_says
 
             step_name = "mozharness"
             task_step = task_steps[step_name]
@@ -153,11 +154,17 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             task_step.start_time = Math.min(task_step.start_time, timestamp)
             task_step.end_time = Math.max(task_step.end_time, timestamp)
 
-            task_step.children += [{
-                "step": harness_step,
-                "mode": mode,
-                "start_time": timestamp
-            }]
+            harness_step = harness_steps.get(harness_step_name)
+            if not harness_step:
+                harness_step = harness_steps[harness_step_name] = {
+                    "step": harness_step_name,
+                    "mode": mode,
+                    "start_time": timestamp
+                }
+                task_step.children += [harness_step]
+            else:
+                harness_step['result'] = result
+                harness_step['end_time'] = timestamp
 
     try:
         fix_overlap(action.timings)
@@ -217,6 +224,7 @@ def process_text_log(all_log_lines, from_url):
 
     process_head = True
     data = Dict()
+    harness_steps = {}
     data.timings = []
 
     start_time = None
@@ -321,22 +329,28 @@ def process_text_log(all_log_lines, from_url):
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
+            timestamp, mode, result, harness_step_name = mozharness_says
             end_time = Math.max(end_time, timestamp)
 
-            builder_step.children += [{
-                "step": harness_step,
-                "mode": mode,
-                "start_time": timestamp
-            }]
+            if not result:
+                harness_step = harness_steps[harness_step_name] = {
+                    "step": harness_step_name,
+                    "mode": mode,
+                    "start_time": timestamp
+                }
+                builder_step.children += [harness_step]
+            else:
+                harness_step = harness_steps[harness_step_name]
+                harness_step['result'] = result
+                harness_step['end_time'] = timestamp
 
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
+            timestamp, mode, harness_step_name = mozharness_says
             end_time = Math.max(end_time, timestamp)
 
             builder_step.children += [{
-                "step": harness_step,
+                "step": harness_step_name,
                 "mode": mode,
                 "start_time": timestamp
             }]
@@ -395,6 +409,7 @@ class NewHarnessLines(object):
     def __init__(self):
         self.time_zone = None
         self.time_skew = None
+        self.last_seen = None
 
     def match(self, source, last_timestamp, curr_line):
         """
@@ -418,20 +433,23 @@ class NewHarnessLines(object):
         match = NEW_MOZLOG_START_STEP.match(curr_line)
         if match:
             _utc_time, mode, message = match.group(1, 2, 3)
+            timestamp = self.utc_to_timestamp(_utc_time, last_timestamp)
             mode = mode.strip().lower()
-        else:
-            for p in NEW_MOZLOG_END_STEP:
-                match = p.match(curr_line)
-                if match:
-                    _utc_time, message, mode = match.group(1, 2, 3)
-                    break
-            else:
-                Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
-                return None
+            if DEBUG:
+                Log.note("{{line}}", line=curr_line)
+            return timestamp, mode, None, message
 
-            # SOME MOZHARNESS STEPS HAVE A SUMMARY, IGNORE THEM
-            return None
+        for p in NEW_MOZLOG_END_STEP:
+            match = p.match(curr_line)
+            if match:
+                _utc_time, message, result = match.group(1, 2, 3)
+                timestamp = self.utc_to_timestamp(_utc_time, last_timestamp)
+                result = result.strip().lower()
+                return timestamp, None, result, message
+        Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
+        return None
 
+    def utc_to_timestamp(self, _utc_time, last_timestamp):
         timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
         if last_timestamp == None:
             last_timestamp = timestamp
@@ -443,10 +461,8 @@ class NewHarnessLines(object):
             if DEBUG:
                 Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         timestamp += self.time_zone
-
-        if DEBUG:
-            Log.note("{{line}}", line=curr_line)
-        return timestamp, mode, message
+        self.last_seen = Math.max(timestamp, self.last_seen)
+        return timestamp
 
 
 OLD_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")

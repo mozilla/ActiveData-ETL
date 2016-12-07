@@ -28,6 +28,7 @@ from pyLibrary.meta import use_settings
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
+TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
 VALID_KEY = r"\d+([.:]\d+)*"
@@ -226,32 +227,20 @@ class Bucket(object):
         """
         RETURN THE METADATA DESCRIPTORS FOR EACH KEY
         """
-
+        limit = coalesce(limit, TOO_MANY_KEYS)
         keys = self.bucket.list(prefix=prefix, delimiter=delimiter)
-        if limit:
-            output = []
-            for i, k in enumerate(keys):
-                output.append({
-                    "key": strip_extension(k.key),
-                    "etag": convert.quote2string(k.etag),
-                    "expiry_date": Date(k.expiry_date),
-                    "last_modified": Date(k.last_modified)
-                })
-                if i >= limit:
-                    break
-            return wrap(output)
-
-        output = [
-            {
+        prefix_len = len(prefix)
+        output = []
+        for i, k in enumerate(k for k in keys if len(k.key) == prefix_len or k.key[prefix_len] in [".", ":"]):
+            output.append({
                 "key": strip_extension(k.key),
                 "etag": convert.quote2string(k.etag),
                 "expiry_date": Date(k.expiry_date),
                 "last_modified": Date(k.last_modified)
-            }
-            for k in keys
-        ]
+            })
+            if i >= limit:
+                break
         return wrap(output)
-
 
     def read(self, key):
         source = self.get_meta(key)

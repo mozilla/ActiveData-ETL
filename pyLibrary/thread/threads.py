@@ -639,7 +639,6 @@ class ThreadedQueue(Queue):
                     else:
                         item = self.pop(till=Till(till=next_push))
                         items = [item]+self.pop_all()
-                        _Log.note("popped")
                         now = Date.now()
 
                     for item in items:
