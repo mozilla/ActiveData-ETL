@@ -173,6 +173,9 @@ class RolloverIndex(object):
                         if not line:
                             continue
 
+                        if rownum%1000==0:
+                            Log.note("Ingested {{num}} records from {{key}}", num=rownum, key=key)
+
                         row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
                         num_keys += 1
 
@@ -192,6 +195,7 @@ class RolloverIndex(object):
             else:
                 queue.add(done_copy)
 
+        Log.note("{{num}} keys from {{keys|json}} added", num=num_keys, key=keys)
         return num_keys
 
 
