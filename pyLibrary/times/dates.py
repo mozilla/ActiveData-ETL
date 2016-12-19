@@ -450,7 +450,7 @@ def _leap_logging(clock_time, utc_time):
             from pyLibrary.debugs.logs import Log as _Log
             _Log.warning("preparing for leap seconds near {{date|datetime}}", date=LEAP_SECOND)
 
-    if abs(diff) < 5:  # RECORD THE FIVE SECONDS AROUND THE LEAP SECOND
+    if abs(diff) < 30:  # RECORD AROUND THE LEAP SECOND
         with _leap_lock:
             _leap_log.append((clock_time, utc_time))
     if diff > 60 and _leap_log:
