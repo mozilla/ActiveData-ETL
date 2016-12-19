@@ -118,7 +118,7 @@ class Date(object):
         candidate = _time()
         temp = _utcnow()
         unix = datetime2unix(temp)
-        _leap_logging(unix)
+        _leap_logging(candidate, unix)
 
         if abs(unix - candidate) > 0.1:
             from pyLibrary.debugs.logs import Log
@@ -440,24 +440,31 @@ _leap_lock = _allocate_lock()
 _Log = None
 
 
-def _leap_logging(timestamp):
+def _leap_logging(clock_time, utc_time):
     global _Log
     global _leap_log
 
-    diff = timestamp - LEAP_SECOND
+    diff = clock_time - LEAP_SECOND
     with _leap_lock:
         if not _Log:
             from pyLibrary.debugs.logs import Log as _Log
             _Log.warning("preparing for leap seconds near {{date|datetime}}", date=LEAP_SECOND)
 
-    if abs(diff) < 5:
+    if abs(diff) < 5:  # RECORD THE FIVE SECONDS AROUND THE LEAP SECOND
         with _leap_lock:
-            _leap_log.append(timestamp)
+            _leap_log.append((clock_time, utc_time))
     if diff > 60 and _leap_log:
         with _leap_lock:
-            temp, _leap_log = _leap_log, None
+            temp, _leap_log = _leap_log, Null
         if temp:
-            _Log.warning("Leap second logging results\n{{results}}\n{{diff}}", results=temp, diff=[b-a for a, b in zip(temp, temp[1:])])
+            clocks, utcs = zip(*temp)
+            _Log.warning(
+                "Leap second logging results\ntime.time\n{{clocks|json}}\ntime.time diff\n{{clocks_diff|json}}\nutcnow\n{{utc|json}}\nutc diff\n{{utc_diff|json}}",
+                clocks=clocks,
+                clocks_diff=[b - a for a, b in zip(clocks, clocks[1:])],
+                utc=utcs,
+                utc_diff=[b - a for a, b in zip(utcs, utcs[1:])]
+            )
 
 
 Date.MIN = Date(datetime(1, 1, 1))
