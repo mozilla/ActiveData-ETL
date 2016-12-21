@@ -51,7 +51,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
         docs = es.search(query).hits.hits._source
         # IF IT IS TOO OLD, THEN PULL FROM HG
         oldest = Date(Math.MAX(docs.etl.timestamp))
-        if Date.now() - oldest > OLD_BRANCH:
+        if oldest == None or Date.now() - oldest > OLD_BRANCH:
             return get_branches(use_cache=False, settings=settings)
 
         try:

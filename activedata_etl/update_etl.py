@@ -62,6 +62,7 @@ def _refresh_etl(instance, settings, conn):
             Log.note("No change required")
             if cpu_percent > 70:
                 return
+            Log.note("Low CPU implies problem, restarting anyway")
         sudo("supervisorctl restart all")
 
 
