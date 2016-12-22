@@ -24,6 +24,7 @@ DEBUG_LOGGING = False
 _Except = None
 _Queue = None
 _Thread = None
+_Till = None
 _Log = None
 
 
@@ -31,16 +32,19 @@ def _delayed_imports():
     global _Except
     global _Queue
     global _Thread
+    global _Till
     global _Log
 
     from pyLibrary.debugs.exceptions import Except as _Except
     from pyLibrary.thread.threads import Queue as _Queue
     from pyLibrary.thread.threads import Thread as _Thread
+    from pyLibrary.thread.threads import Till as _Till
     from pyLibrary.debugs.logs import Log as _Log
 
     _ = _Except
     _ = _Queue
     _ = _Thread
+    _ = _Till
     _ = _Log
 
 class TextLog(object):
@@ -80,7 +84,7 @@ class TextLog_usingThread(TextLog):
 
         def worker(please_stop):
             while not please_stop:
-                _Thread.sleep(1)
+                _Till(seconds=1).wait_for_go()
                 logs = self.queue.pop_all()
                 for log in logs:
                     if log is _Thread.STOP:

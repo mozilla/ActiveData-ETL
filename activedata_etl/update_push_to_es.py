@@ -24,6 +24,8 @@ from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env.files import File
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.till import Till
+
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
@@ -60,7 +62,7 @@ def _start_es():
     with hide('output'):
         with fabric_settings(warn_only=True):
             run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-    Thread.sleep(seconds=5)
+    (Till(seconds=5)).wait_for_go()
 
     File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
     with cd("/home/ec2-user/"):

@@ -19,7 +19,7 @@ from pyLibrary.debugs.text_logs import TextLog, DEBUG_LOGGING
 from pyLibrary.debugs.logs import Log
 from pyLibrary.strings import expand_template
 from pyLibrary.thread.threads import Thread
-
+from pyLibrary.thread.till import Till
 
 
 class TextLog_usingThreadedStream(TextLog):
@@ -98,7 +98,7 @@ def time_delta_pusher(please_stop, appender, queue, interval):
     next_run = datetime.utcnow() + interval
 
     while not please_stop:
-        Thread.sleep(till=next_run)
+        (Till(next_run)).wait_for_go()
         next_run = datetime.utcnow() + interval
         logs = queue.pop_all()
         if logs:

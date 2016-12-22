@@ -529,9 +529,10 @@ class Thread(object):
         return output
 
     @staticmethod
-    def sleep(seconds=None, till=None, timeout=None, please_stop=None):
-        waiter = Till(seconds=seconds, till=till, timeout=timeout) | please_stop
-        waiter.wait_for_go()
+    def sleep(till=None):
+        if till and not isinstance(till, Till):
+            _Log.error("Expecting Till object")
+        till.wait_for_go()
 
     @staticmethod
     def wait_for_shutdown_signal(
@@ -754,7 +755,7 @@ def _wait_for_exit(please_stop):
         # if DEBUG:
         #     Log.note("inside wait-for-shutdown loop")
         if cr_count > 30:
-            Thread.sleep(seconds=3, please_stop=please_stop)
+            (Till(seconds=3) | please_stop).wait_for_go()
         try:
             line = sys.stdin.readline()
         except Exception, e:
@@ -780,7 +781,7 @@ def _wait_for_interrupt(please_stop):
         if DEBUG:
             _Log.note("inside wait-for-shutdown loop")
         with suppress_exception:
-            Thread.sleep(please_stop=please_stop)
+            please_stop.wait_for_go()
 
 
 def _interrupt_main_safely():

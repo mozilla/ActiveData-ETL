@@ -26,6 +26,7 @@ from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
 from pyLibrary.thread.threads import Thread, Lock, Queue
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, Duration, HOUR, MINUTE
 
@@ -155,10 +156,10 @@ class HgMozillaOrg(object):
                 e = Except.wrap(e)
                 if "NodeNotConnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    Thread.sleep(seconds=Random.int(5 * 60))
+                    (Till(seconds=Random.int(5 * 60))).wait_for_go()
                     continue
                 elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
-                    Thread.sleep(seconds=Random.int(30))
+                    (Till(seconds=Random.int(30))).wait_for_go()
                     continue
                 else:
                     Log.warning("Bad ES call, fall back to TH", cause=e)
@@ -258,7 +259,7 @@ class HgMozillaOrg(object):
             pass
 
         try:
-            Thread.sleep(seconds=5)
+            (Till(seconds=5)).wait_for_go()
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
         except Exception, f:
             pass
