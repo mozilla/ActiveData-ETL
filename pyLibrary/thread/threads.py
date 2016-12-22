@@ -529,12 +529,6 @@ class Thread(object):
         return output
 
     @staticmethod
-    def sleep(till=None):
-        if till and not isinstance(till, Till):
-            _Log.error("Expecting Till object")
-        till.wait_for_go()
-
-    @staticmethod
     def wait_for_shutdown_signal(
         please_stop=False,  # ASSIGN SIGNAL TO STOP EARLY
         allow_exit=False  # ALLOW "exit" COMMAND ON CONSOLE TO ALSO STOP THE APP
