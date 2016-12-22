@@ -220,10 +220,10 @@ def main():
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
-        def monitor_progress(please_stop_):
-            while not please_stop_:
+        def monitor_progress(please_stop):
+            while not please_stop:
                 Log.note("Remaining: {{num}}", num=len(main_work_queue))
-                Thread.sleep(till=please_stop_ | Till(seconds=10))
+                Thread.sleep(till=please_stop | Till(seconds=10))
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
