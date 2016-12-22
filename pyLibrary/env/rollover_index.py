@@ -21,7 +21,7 @@ from pyLibrary.times.dates import Date, unicode2Date, unix2Date
 from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
 
-MAX_RECORD_LENGTH = 100000
+MAX_RECORD_LENGTH = 400000
 
 
 class RolloverIndex(object):
