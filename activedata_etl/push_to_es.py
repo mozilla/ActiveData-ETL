@@ -41,7 +41,7 @@ def splitter(work_queue, please_stop):
             return
         if pair == None:
             # ADD BACKFILLING HERE
-            Thread.sleep(till=please_stop | Till(seconds=5))
+            Thread.sleep(please_stop=please_stop | Till(seconds=5))
             continue
 
         message, payload = pair
@@ -223,7 +223,7 @@ def main():
         def monitor_progress(please_stop):
             while not please_stop:
                 Log.note("Remaining: {{num}}", num=len(main_work_queue))
-                Thread.sleep(till=please_stop | Till(seconds=10))
+                Thread.sleep(please_stop=please_stop | Till(seconds=10))
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 

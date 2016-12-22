@@ -127,7 +127,7 @@ def get_all_s3(in_es, in_range, source_prefix, settings):
 
 
 def backfill_recent(settings, index_queue, please_stop):
-    max_backfill = Math.round(settings.batch_size / 10, decimal=0)
+    max_backfill = Math.round(settings.batch_size, decimal=0)
     max_duration = Duration(settings.rollover.max)
     interval = Duration(settings.rollover.interval)
     oldest_backfill = (Date.now() - max_duration).floor(interval).unix
@@ -162,7 +162,7 @@ def backfill_recent(settings, index_queue, please_stop):
             {"eq": {source_field: source}}
         ]
 
-    def bisect(source, min_id, max_id):
+    def bisect(source, min_id, max_id, please_stop):
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
             "select": [
@@ -188,6 +188,9 @@ def backfill_recent(settings, index_queue, please_stop):
             "where": {"and": discriminate(source, min_id, max_id)},
             "format": "list"
         })
+        if please_stop:
+            Log.error("Asked to stop")
+
         min_id = result.data.min
         max_id = result.data.max
         num = max_id - min_id + 1
@@ -198,18 +201,18 @@ def backfill_recent(settings, index_queue, please_stop):
         elif num > result.data.count:
             if num > max_backfill:
                 # BISECT AND RETRY
-                mid_id = int(round((max_id + min_id) / 2))
-                bisect(source, mid_id, max_id)  # DO THE HIGHER VALUES FIRST
-                bisect(source, min_id, mid_id)
+                mid_id = Math.floor((max_id - min_id) / 2, max_backfill) + min_id
+                bisect(source, mid_id, max_id, please_stop)  # DO THE HIGHER VALUES FIRST
+                bisect(source, min_id, mid_id, please_stop)
             else:
                 # LOAD HOLES
-                fill_big_holes(source, min_id, max_id)
+                fill_big_holes(source, min_id, max_id, please_stop)
         else:
             # GOOD! LOOK FOR TINY HOLES
             Log.note("{{min}} to {{max}} is dense, look for small holes", min=min_id, max=max_id)
             fill_tiny_holes(source, min_id, max_id, main_depth - 1)
 
-    def fill_big_holes(source, min_id, max_id):
+    def fill_big_holes(source, min_id, max_id, please_stop):
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
             "select": main_id,
@@ -221,7 +224,10 @@ def backfill_recent(settings, index_queue, please_stop):
         in_es = set(result.data)
         keys = get_all_s3(in_es, in_range, source, settings)
 
+        Log.note("adding {{num}} keys to {{bucket}}", num=len(keys), bucket=settings.source.bucket)
         for k in keys:
+            if please_stop:
+                Log.error("Asked to stop")
             now = Date.now()
             index_queue.add({
                 "bucket": settings.source.bucket,
@@ -252,13 +258,11 @@ def backfill_recent(settings, index_queue, please_stop):
         #     in_es = set(result.data)
         #     in_range = set()
 
+    bb = Thread.run("bb", bisect, "bb", 0, 10000000000)
+    tc = Thread.run("tc", bisect, "tc", 0, 10000000000)
 
-
-
-    bisect("bb", 0, 10000000000)
-    bisect("tc", 0, 10000000000)
-
-
+    bb.join()
+    tc.join()
 
     # WHAT IS IN ES NOW, AND WHAT IS THE DATE RANGE? CAN WE ESTIMATE S3 RANGE?
     # DO A BACKWARDS SCAN OF S3?
