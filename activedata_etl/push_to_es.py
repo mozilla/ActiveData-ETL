@@ -15,7 +15,7 @@ from activedata_etl.etl import parse_id_argument
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException, suppress_exception
+from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log, machine_metadata
 from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
@@ -24,21 +24,24 @@ from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, Signal, Queue
+from pyLibrary.thread.till import Till
 from pyLibrary.times.timer import Timer
 
 split = {}
 empty_bucket_complaint_sent = False
+
 
 def splitter(work_queue, please_stop):
     global empty_bucket_complaint_sent
 
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
-            for k,v in split.items():
+            for k, v in split.items():
                 v.add(Thread.STOP)
             return
         if pair == None:
-            Thread.sleep(seconds=5)
+            # ADD BACKFILLING HERE
+            Thread.sleep(till=please_stop | Till(seconds=5))
             continue
 
         message, payload = pair
@@ -212,15 +215,15 @@ def main():
         please_stop = Signal()
         aws_shutdown = Signal("aws shutdown")
         aws_shutdown.on_go(shutdown_local_es_node)
-        aws_shutdown.on_go(lambda: please_stop.go)
+        aws_shutdown.on_go(please_stop.go)
         aws.capture_termination_signal(please_stop)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
-        def monitor_progress(please_stop):
-            while not please_stop:
+        def monitor_progress(please_stop_):
+            while not please_stop_:
                 Log.note("Remaining: {{num}}", num=len(main_work_queue))
-                Thread.sleep(seconds=10)
+                Thread.sleep(till=please_stop_ | Till(seconds=10))
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 

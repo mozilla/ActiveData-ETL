@@ -12,7 +12,6 @@ from collections import Mapping
 
 from pyLibrary import strings
 from pyLibrary.aws import s3
-from pyLibrary.collections import reverse
 from pyLibrary.debugs.logs import Log
 from pyLibrary.dot import wrap, coalesce
 from pyLibrary.queries import jx
