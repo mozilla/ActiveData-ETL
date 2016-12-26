@@ -19,7 +19,7 @@ from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap, Dict
+from pyLibrary.dot import coalesce, wrap, Dict, listwrap, split_field
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.git import get_remote_revision
 from pyLibrary.maths import Math
@@ -98,10 +98,16 @@ def get_all_s3(in_es, in_range, source_prefix, settings):
             {"bucket": bucket.name, "prefix": source_prefix + "." + prefix}
         ):
             prefixes = set()
-            for p in bucket.list(prefix=source_prefix + "." + prefix, delimiter=":"):
-                pp = p.name.split(":")[0].split(".")[1]
-                prefixes.add(pp)
-            prefixes = list(prefixes)
+            if source_prefix:
+                batch_prefix = source_prefix + "." + prefix
+                for p in bucket.list(prefix=batch_prefix, delimiter=":"):
+                    pp = p.name.split(":")[0].split(".")[1]
+                    prefixes.add(pp)
+            else:
+                batch_prefix = prefix
+                for p in bucket.list(prefix=batch_prefix, delimiter=":"):
+                    pp = p.name.split(":")[0].split(".")[0]
+                    prefixes.add(pp)
 
         for i, q in enumerate(prefixes):
             try:
@@ -135,45 +141,50 @@ def backfill_recent(settings, index_queue, please_stop):
 
     # WHAT IS THE KEY FORMAT?
     key_format = settings.source.key_format
-    example_etl = key2etl(key_format)
-    source_depth = 1
-    temp = example_etl
-    while temp.source:
-        temp = temp.source
-        source_depth += 1
-    main_depth = source_depth - 2
+    backfill = Dict(total=0)
 
     def etl_source(depth_):
         return "etl" + "".join([".source"] * depth_)
 
-    source_field = etl_source(source_depth) + ".code"
-    main_id = etl_source(main_depth) + ".id"
+    source_field = settings.backfill.source_key
+    prime_id = settings.backfill.prime_key
+    prime_depth = len(split_field(prime_id)) - 2
 
     def discriminate(source, min_id, max_id):
-        return [
-           {"eq": {etl_source(i) + ".id": 0}}
-           for i in range(main_depth)
-        ] + filter_range(source, min_id, max_id)
+        if settings.name == "perf":
+            return [
+               {"eq": {etl_source(i) + ".id": 0}}
+               for i in range(prime_depth)
+               if i != 1
+            ] + filter_range(source, min_id, max_id)
+        else:
+            return [
+               {"eq": {etl_source(i) + ".id": 0}}
+               for i in range(prime_depth)
+            ] + filter_range(source, min_id, max_id)
 
     def filter_range(source, min_id, max_id):
         return [
-            {"gte": {main_id: min_id}},
-            {"lte": {main_id: max_id}},
-            {"eq": {source_field: source}}
+            {"gte": {prime_id: min_id}},
+            {"lt": {prime_id: max_id}},
+            {"eq": {source_field: source}} if source_field else True
         ]
 
-    def bisect(source, min_id, max_id, please_stop):
+    def bisect(source, range_min_id, range_max_id, please_stop):
+        if backfill.total>max_backfill:
+            return
+
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
             "select": [
                 {
                     "name": "min",
-                    "value": main_id,
+                    "value": prime_id,
                     "aggregate": "min"
                 },
                 {
                     "name": "max",
-                    "value": main_id,
+                    "value": prime_id,
                     "aggregate": "max"
                 },
                 {
@@ -185,56 +196,71 @@ def backfill_recent(settings, index_queue, please_stop):
                     "aggregate": "max"
                 }
             ],
-            "where": {"and": discriminate(source, min_id, max_id)},
+            "where": {"and": discriminate(source, range_min_id, range_max_id)},
             "format": "list"
         })
         if please_stop:
             Log.error("Asked to stop")
 
-        min_id = result.data.min
-        max_id = result.data.max
-        num = max_id - min_id + 1
+        # actual_min = result.data.min
+        # actual_max = result.data.max
+        expected_num = range_max_id - range_min_id
+        # num = actual_max - actual_min + 1
 
+        Log.note(
+            "Scan from {{min}} to {{max}} expects {{expected}}, but returns {{num}}",
+            min=range_min_id,
+            max=range_max_id,
+            expected=expected_num,
+            num=result.data.count
+        )
         if result.data.youngest < oldest_backfill:
             # DATA IS TOO OLD TO BOTHER WITH
             pass
-        elif num > result.data.count:
-            if num > max_backfill:
+        elif expected_num > result.data.count:
+            if expected_num > max_backfill:
+                half_width = expected_num / 2
+                floor = Math.floor(range_min_id, max_backfill)
+                mid = max_backfill
+                while mid < half_width:
+                    mid *= 2
                 # BISECT AND RETRY
-                mid_id = Math.floor((max_id - min_id) / 2, max_backfill) + min_id
-                bisect(source, mid_id, max_id, please_stop)  # DO THE HIGHER VALUES FIRST
-                bisect(source, min_id, mid_id, please_stop)
+                mid_id = floor + mid
+                bisect(source, mid_id, range_max_id, please_stop)  # DO THE HIGHER VALUES FIRST
+                bisect(source, range_min_id, mid_id, please_stop)
             else:
                 # LOAD HOLES
-                fill_big_holes(source, min_id, max_id, please_stop)
+                fill_big_holes(source, range_min_id, range_max_id, please_stop)
         else:
             # GOOD! LOOK FOR TINY HOLES
-            Log.note("{{min}} to {{max}} is dense, look for small holes", min=min_id, max=max_id)
-            fill_tiny_holes(source, min_id, max_id, main_depth - 1)
+            Log.note("{{min}} to {{max}} is dense, look for small holes", min=range_min_id, max=range_max_id)
+            fill_tiny_holes(source, range_min_id, range_max_id, prime_depth - 1)
 
     def fill_big_holes(source, min_id, max_id, please_stop):
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
-            "select": main_id,
+            "select": prime_id,
             "where": {"and": discriminate(source, min_id, max_id)},
-            "sort": "_id",
+            "limit": max_backfill,
             "format": "list"
         })
-        in_range = set(range(int(min_id), int(max_id) + 1, 1))
+
         in_es = set(result.data)
+        in_range = set(range(int(min_id), int(max_id), 1))
         keys = get_all_s3(in_es, in_range, source, settings)
 
-        Log.note("adding {{num}} keys to {{bucket}}", num=len(keys), bucket=settings.source.bucket)
-        for k in keys:
-            if please_stop:
-                Log.error("Asked to stop")
-            now = Date.now()
-            index_queue.add({
-                "bucket": settings.source.bucket,
-                "key": source + "." + unicode(k),
-                "timestamp": now.unix,
-                "date/time": now.format()
-            })
+        with Timer("adding {{num}} keys to {{bucket}}", param={"num":len(keys), "bucket":settings.source.bucket}):
+            for k in keys:
+                if please_stop:
+                    Log.error("Asked to stop")
+                now = Date.now()
+                index_queue.add({
+                    "bucket": settings.source.bucket,
+                    "key": source + "." + unicode(k) if source else unicode(k),
+                    "timestamp": now.unix,
+                    "date/time": now.format()
+                })
+        backfill.total += len(keys)
 
     def fill_tiny_holes(source, min_id, max_id, depth):
         pass
@@ -258,11 +284,19 @@ def backfill_recent(settings, index_queue, please_stop):
         #     in_es = set(result.data)
         #     in_range = set()
 
-    bb = Thread.run("bb", bisect, "bb", 0, 10000000000)
-    tc = Thread.run("tc", bisect, "tc", 0, 10000000000)
+    summary = http.post_json(ACTIVE_DATA, json={
+        "from": settings.elasticsearch.index,
+        "select": [
+            {"aggregate": "count"},
+            {"value": prime_id, "aggregate": "max", "name": "max"}
+        ],
+        "groupby": [{"name": "source", "value": source_field}] if source_field else None,
+        "format": "list"
+    })
 
-    bb.join()
-    tc.join()
+    threads = [Thread.run(d.source, bisect, d.source, 0, d.max + 1) for d in listwrap(summary.data)]
+    for t in threads:
+        t.join()
 
     # WHAT IS IN ES NOW, AND WHAT IS THE DATE RANGE? CAN WE ESTIMATE S3 RANGE?
     # DO A BACKWARDS SCAN OF S3?
@@ -302,7 +336,7 @@ def main():
 
         threads = [
             Thread.run(w.name, backfill_recent, w, queue)
-            for w in settings.workers[0:1:]
+            for w in settings.workers[2:3:]
         ]
 
         for t in threads:

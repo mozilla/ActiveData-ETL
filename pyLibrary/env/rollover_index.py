@@ -173,8 +173,8 @@ class RolloverIndex(object):
                         if not line:
                             continue
 
-                        if rownum%1000==0:
-                            Log.note("Ingested {{num}} records from {{key}}", num=rownum, key=key)
+                        if rownum > 0 and rownum % 1000 == 0:
+                            Log.note("Ingested {{num}} records from {{key}} in bucket {{bucket}}", num=rownum, key=key, bucket=source.name)
 
                         row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
                         num_keys += 1

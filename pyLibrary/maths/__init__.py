@@ -182,8 +182,10 @@ class Math(object):
                 except Exception, e:
                     from pyLibrary.debugs.logs import Log
                     Log.error("not expected", e)
-
-        return __builtin__.round(value, decimal)
+        elif decimal <= 0:
+            return int(__builtin__.round(value, decimal))
+        else:
+            return __builtin__.round(value, decimal)
 
 
     @staticmethod
