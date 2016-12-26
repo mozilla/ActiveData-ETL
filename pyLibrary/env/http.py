@@ -139,7 +139,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
     errors = []
     for r in range(retry.times):
         if r:
-            (Till(seconds=retry.sleep)).wait_for_go()
+            Till(seconds=retry.sleep).wait()
 
         try:
             if DEBUG:

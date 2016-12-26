@@ -150,8 +150,8 @@ def capture_termination_signal(please_stop):
                     return
                 else:
                     Log.warning("AWS shutdown detection has problems", cause=e)
-                (Till(seconds=61) | please_stop).wait_for_go()
-            (Till(seconds=11) | please_stop).wait_for_go()
+                (Till(seconds=61) | please_stop).wait()
+            (Till(seconds=11) | please_stop).wait()
 
     Thread.run("listen for termination", worker, please_stop=please_stop)
 

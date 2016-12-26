@@ -27,6 +27,7 @@ from pyLibrary.strings import indent
 
 _Thread = None
 
+
 class Log(object):
     """
     FOR STRUCTURED LOGGING AND EXCEPTION CHAINING

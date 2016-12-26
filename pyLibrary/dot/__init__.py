@@ -309,15 +309,15 @@ def _get_attr(obj, path):
                 possible_error = Except.wrap(e)
 
         # TRY A CASE-INSENSITIVE MATCH
-        attr_name = lower_match(attr_name, dir(obj))
-        if not attr_name:
+        matched_attr_name = lower_match(attr_name, dir(obj))
+        if not matched_attr_name:
             from pyLibrary.debugs.logs import Log
-            Log.warning(PATH_NOT_FOUND + ". Returning None.", cause=possible_error)
-        elif len(attr_name) > 1:
+            Log.warning(PATH_NOT_FOUND + "({{name|quote}}) Returning None.", name=attr_name, cause=possible_error)
+        elif len(matched_attr_name) > 1:
             from pyLibrary.debugs.logs import Log
             Log.error(AMBIGUOUS_PATH_FOUND + " {{paths}}", paths=attr_name)
         else:
-            return _get_attr(obj[attr_name[0]], path[1:])
+            return _get_attr(obj[matched_attr_name[0]], path[1:])
 
     try:
         obj = obj[int(attr_name)]

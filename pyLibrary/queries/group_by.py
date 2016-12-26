@@ -12,17 +12,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import itertools
 import math
 import sys
 
 from pyLibrary.collections.multiset import Multiset
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, listwrap, Null, Dict
+from pyLibrary.dot import listwrap, Null, Dict
 from pyLibrary.dot.lists import DictList
 from pyLibrary.queries.containers import Container
-from pyLibrary.queries.expressions import jx_expression_to_function, TupleOp, Expression, jx_expression
+from pyLibrary.queries.expressions import jx_expression_to_function, jx_expression
 
 
 def groupby(data, keys=None, size=None, min_size=None, max_size=None, contiguous=False):
