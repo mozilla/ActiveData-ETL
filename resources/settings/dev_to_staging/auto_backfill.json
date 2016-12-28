@@ -85,7 +85,7 @@
 		{
 			"name":"jobs",
 			"rollover": {
-				"field": "build.date",
+				"field": {"coalesce":["build.date", "action.request_time"]},
 				"interval": "3month",
 				"max":"2year"
 			},

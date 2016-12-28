@@ -26,7 +26,7 @@ from pyLibrary.times.timer import Timer
 
 DEBUG = False
 DEBUG_INSERT = False
-
+_load_extension_warning_sent = False
 
 _upgraded = False
 def _upgrade():
@@ -100,6 +100,8 @@ class Sqlite(DB):
         return result
 
     def _worker(self, please_stop):
+        global _load_extension_warning_sent
+
         if Sqlite.canonical:
             self.db = Sqlite.canonical
         else:
@@ -109,7 +111,9 @@ class Sqlite(DB):
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
             except Exception, e:
-                Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
+                if not _load_extension_warning_sent:
+                    Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
+                    _load_extension_warning_sent = True
 
         try:
             while not please_stop:

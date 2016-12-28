@@ -165,6 +165,7 @@ class RolloverIndex(object):
         """
         num_keys = 0
         queue = None
+        pending = []  # FOR WHEN WE DO NOT HAVE QUEUE YET
         for key in keys:
             timer = Timer("key")
             try:
@@ -181,6 +182,13 @@ class RolloverIndex(object):
 
                         if queue == None:
                             queue = self._get_queue(row)
+                            if queue == None:
+                                pending.append(row)
+                                continue
+                            if pending:
+                                queue.extend(pending)
+                                pending = []
+
                         queue.add(row)
 
                         if please_stop:

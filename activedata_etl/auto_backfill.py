@@ -27,8 +27,8 @@ from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
-RUN_TIME = 10*60
-MAX_SIZE = 20000
+RUN_TIME = 10 * 60
+MAX_SIZE = 10000
 QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
 
 
@@ -74,12 +74,12 @@ def backfill_recent(cache, settings, index_queue, please_stop):
     def fill_holes(prefix, please_stop):
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
-            "select": ["_id", prime_id],
+            "select": ["_id", {"name": "value", "value": prime_id}],
             "where": {"and": [
-                {"eq":{"etl.id": 0}},
-                {"prefix": {"_id": prefix}},
+                {"eq": {"etl.id": 0}},
+                {"prefix": {"_id": prefix}}
             ]},
-            "limit": MAX_SIZE,
+            "limit": 2 * MAX_SIZE,
             "format": "list"
         })
 
@@ -142,7 +142,7 @@ def main():
 
         threads = [
             Thread.run("backfill " + w.name, backfill_recent, settings.cache, w, queue)
-            for w in settings.workers[0:4:]
+            for w in settings.workers[2:3:]
         ]
 
         for t in threads:
