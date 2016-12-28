@@ -36,7 +36,7 @@ from pyLibrary.times.durations import SECOND
 _convert = None
 _Except = None
 _Log = None
-DEBUG = False
+DEBUG = True
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 DEFAULT_WAIT_TIME = timedelta(minutes=10)
@@ -211,16 +211,12 @@ class Queue(object):
         if till is not None and not isinstance(till, Signal):
             _Log.error("expecting a signal")
 
-        while self.keep_running:
-            with self.lock:
+        with self.lock:
+            while self.keep_running:
                 if self.queue:
                     value = self.queue.popleft()
                     return value
-
                 self.lock.wait(till=till)
-            if self.keep_running:
-                return None
-
         if DEBUG or not self.silent:
             _Log.note(self.name + " queue stopped")
         return Thread.STOP
@@ -467,15 +463,22 @@ class Thread(object):
                     children = copy(self.children)
                     for c in children:
                         try:
+                            if DEBUG:
+                                sys.stdout.write(b"Stopping thread " + str(c.name) + b"\n")
                             c.stop()
                         except Exception, e:
                             _Log.warning("Problem stopping thread {{thread}}", thread=c.name, cause=e)
 
                     for c in children:
                         try:
+                            if DEBUG:
+                                sys.stdout.write(b"Joining on thread " + str(c.name) + b"\n")
                             c.join()
                         except Exception, e:
                             _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
+                        finally:
+                            if DEBUG:
+                                sys.stdout.write(b"Joined on thread " + str(c.name) + b"\n")
 
                     self.stopped.go()
                     if DEBUG:
@@ -499,6 +502,9 @@ class Thread(object):
         """
         RETURN THE RESULT {"response":r, "exception":e} OF THE THREAD EXECUTION (INCLUDING EXCEPTION, IF EXISTS)
         """
+        if self is Thread:
+            _Log.error("Thread.join() is not a valid call, use t.join()")
+
         children = copy(self.children)
         for c in children:
             c.join(till=till)

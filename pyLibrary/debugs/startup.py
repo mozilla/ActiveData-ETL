@@ -118,9 +118,10 @@ class SingleInstance:
             try:
                 fcntl.lockf(self.fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except IOError:
-                Log.note("\n"+
-                    "**********************************************************************\n"+
-                    "** Another instance is already running, quitting.\n"+
+                Log.note(
+                    "\n"
+                    "**********************************************************************\n"
+                    "** Another instance is already running, quitting.\n"
                     "**********************************************************************\n"
                 )
                 sys.exit(-1)

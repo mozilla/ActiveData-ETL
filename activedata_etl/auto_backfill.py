@@ -9,310 +9,116 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.thread.threads import Thread
+import sys
 
-from activedata_etl import key2etl
 from pyLibrary.times.durations import Duration
 
-from pyLibrary import aws
-from pyLibrary.aws import s3
+from activedata_etl.imports.s3_cache import S3Cache
+from pyLibrary import aws, convert
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap, Dict, listwrap, split_field
-from pyLibrary.env import elasticsearch, http
-from pyLibrary.env.git import get_remote_revision
-from pyLibrary.maths import Math
+from pyLibrary.dot import Dict, Null
+from pyLibrary.env import http
 from pyLibrary.queries import jx
-from pyLibrary.queries.expressions import jx_expression
+from pyLibrary.sql.sqlite import Sqlite
+from pyLibrary.thread.threads import Thread
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
+RUN_TIME = 10*60
+MAX_SIZE = 20000
+QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
 
 
-
-
-def get_all_in_es(es, in_range, es_filter, field):
-    if es_filter==None:
-        es_filter = {"match_all": {}}
-
-    in_es = set()
-    es_query = wrap({
-        "aggs": {
-            "_filter": {
-                "filter": {"and": [
-                    es_filter
-                ]},
-                "aggs": {
-                    "_match": {
-                        "terms": {
-                            # "field": field,
-                            "script": jx_expression({"string": field}).to_ruby(),
-                            "size": 200000
-                        }
-                    }
-                }
-            }
-        },
-        "size": 0
-    })
-    if in_range:
-        _filter = es_query.aggs._filter.filter["and"]
-        if in_range.min:
-            _filter.append({"range": {field: {"gte": in_range.min}}})
-        if in_range.max:
-            _filter.append({"range": {field: {"lt": in_range.max}}})
-
-    result = es.search(es_query)
-
-    good_es = []
-    for k in result.aggregations._filter._match.buckets.key:
-        with suppress_exception:
-            good_es.append(int(k))
-
-    Log.note(
-        "got {{num}} from {{index}}",
-        num=len(good_es),
-        index=es.settings.index
-    )
-    in_es |= set(good_es)
-
-    return in_es
-
-
-def get_all_s3(in_es, in_range, source_prefix, settings):
-    in_s3 = []
-    min_range = coalesce(Math.MIN(in_range), 0)
-    bucket = s3.Bucket(settings.source)
-    max_allowed = Math.MAX([Math.MAX(in_range), Math.MAX(in_es)])
-    min_allowed = Math.MIN([Math.MIN(in_range), Math.MIN(in_es)])
-    extra_digits = Math.ceiling(Math.log10(max_allowed-min_allowed))
-
-    prefix = unicode(max(in_range - in_es))[:-extra_digits]
-    prefix_max = int(prefix + ("999999999999"[:extra_digits]))
-    while prefix != "0" and min_range <= prefix_max:
-        # EVERYTHING FROM S3
-        with Timer(
-            "Scanning S3 bucket {{bucket}} with prefix {{prefix|quote}}",
-            {"bucket": bucket.name, "prefix": source_prefix + "." + prefix}
-        ):
-            prefixes = set()
-            if source_prefix:
-                batch_prefix = source_prefix + "." + prefix
-                for p in bucket.list(prefix=batch_prefix, delimiter=":"):
-                    pp = p.name.split(":")[0].split(".")[1]
-                    prefixes.add(pp)
-            else:
-                batch_prefix = prefix
-                for p in bucket.list(prefix=batch_prefix, delimiter=":"):
-                    pp = p.name.split(":")[0].split(".")[0]
-                    prefixes.add(pp)
-
-        for i, q in enumerate(prefixes):
-            try:
-                p = int(q)
-                if in_range and p not in in_range:
-                    continue
-                if p in in_es:
-                    continue
-                # if p >= max_allowed:
-                #     continue
-
-                in_s3.append(p)
-            except Exception, e:
-                Log.note("delete key? {{key|quote}}", key=q)
-
-        if prefix == "":
-            break
-        prefix = unicode(int(prefix) - 1)
-        prefix_max = int(prefix + ("999999999999"[:extra_digits]))
-
-    in_s3 = jx.reverse(jx.sort(in_s3))
-    return in_s3
-
-
-def backfill_recent(settings, index_queue, please_stop):
-    max_backfill = Math.round(settings.batch_size, decimal=0)
-    max_duration = Duration(settings.rollover.max)
-    interval = Duration(settings.rollover.interval)
-    oldest_backfill = (Date.now() - max_duration).floor(interval).unix
-    date_field = settings.rollover.field
-
-    # WHAT IS THE KEY FORMAT?
-    key_format = settings.source.key_format
+def backfill_recent(cache, settings, index_queue, please_stop):
+    bucket = S3Cache(cache=cache, settings=settings.source)
+    prime_id = settings.rollover.field
     backfill = Dict(total=0)
+    too_old = (Date.now().floor(Duration(settings.rollover.interval)) - Duration(settings.rollover.max))
 
-    def etl_source(depth_):
-        return "etl" + "".join([".source"] * depth_)
+    def get_in_s3(prefix):
+        result = bucket.db.query(
+            " SELECT " +
+            "    key, annotate"
+            " FROM files " +
+            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + bucket.db.quote_value(prefix) +
+            " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
+            " AND last_modified > " + bucket.db.quote_value(too_old.unix)
+        )
+        return set(d[0] for d in result.data)
 
-    source_field = settings.backfill.source_key
-    prime_id = settings.backfill.prime_key
-    prime_depth = len(split_field(prime_id)) - 2
-
-    def discriminate(source, min_id, max_id):
-        if settings.name == "perf":
-            return [
-               {"eq": {etl_source(i) + ".id": 0}}
-               for i in range(prime_depth)
-               if i != 1
-            ] + filter_range(source, min_id, max_id)
-        else:
-            return [
-               {"eq": {etl_source(i) + ".id": 0}}
-               for i in range(prime_depth)
-            ] + filter_range(source, min_id, max_id)
-
-    def filter_range(source, min_id, max_id):
-        return [
-            {"gte": {prime_id: min_id}},
-            {"lt": {prime_id: max_id}},
-            {"eq": {source_field: source}} if source_field else True
-        ]
-
-    def bisect(source, range_min_id, range_max_id, please_stop):
-        if backfill.total>max_backfill:
+    def decimate(prefix, please_stop):
+        if backfill.total > MAX_SIZE:
             return
 
-        result = http.post_json(ACTIVE_DATA, json={
-            "from": settings.elasticsearch.index,
-            "select": [
-                {
-                    "name": "min",
-                    "value": prime_id,
-                    "aggregate": "min"
-                },
-                {
-                    "name": "max",
-                    "value": prime_id,
-                    "aggregate": "max"
-                },
-                {
-                    "aggregate": "count"
-                },
-                {
-                    "name": "youngest",
-                    "value": date_field,
-                    "aggregate": "max"
-                }
-            ],
-            "where": {"and": discriminate(source, range_min_id, range_max_id)},
-            "format": "list"
-        })
-        if please_stop:
-            Log.error("Asked to stop")
-
-        # actual_min = result.data.min
-        # actual_max = result.data.max
-        expected_num = range_max_id - range_min_id
-        # num = actual_max - actual_min + 1
-
-        Log.note(
-            "Scan from {{min}} to {{max}} expects {{expected}}, but returns {{num}}",
-            min=range_min_id,
-            max=range_max_id,
-            expected=expected_num,
-            num=result.data.count
+        # HOW MANY WITH GIVEN PREFIX?
+        result = bucket.db.query(
+            " SELECT " +
+            "    substr(name, 1, " + unicode(len(prefix) + 1) + ") as prefix," +
+            "    count(1) as number " +
+            " FROM files " +
+            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + bucket.db.quote_value(prefix) +
+            " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
+            " AND last_modified > " + bucket.db.quote_value(too_old.unix) +
+            " GROUP BY substr(name, 1, " + unicode(len(prefix) + 1) + ")"
         )
-        if result.data.youngest < oldest_backfill:
-            # DATA IS TOO OLD TO BOTHER WITH
-            pass
-        elif expected_num > result.data.count:
-            if expected_num > max_backfill:
-                half_width = expected_num / 2
-                floor = Math.floor(range_min_id, max_backfill)
-                mid = max_backfill
-                while mid < half_width:
-                    mid *= 2
-                # BISECT AND RETRY
-                mid_id = floor + mid
-                bisect(source, mid_id, range_max_id, please_stop)  # DO THE HIGHER VALUES FIRST
-                bisect(source, range_min_id, mid_id, please_stop)
-            else:
-                # LOAD HOLES
-                fill_big_holes(source, range_min_id, range_max_id, please_stop)
-        else:
-            # GOOD! LOOK FOR TINY HOLES
-            Log.note("{{min}} to {{max}} is dense, look for small holes", min=range_min_id, max=range_max_id)
-            fill_tiny_holes(source, range_min_id, range_max_id, prime_depth - 1)
 
-    def fill_big_holes(source, min_id, max_id, please_stop):
+        for prefix2, count in list(reversed(sorted(result.data, key=lambda d: d[0]))):
+            if count < MAX_SIZE:
+                fill_holes(prefix2, please_stop)
+            else:
+                decimate(prefix2, please_stop)
+
+    def fill_holes(prefix, please_stop):
         result = http.post_json(ACTIVE_DATA, json={
             "from": settings.elasticsearch.index,
-            "select": prime_id,
-            "where": {"and": discriminate(source, min_id, max_id)},
-            "limit": max_backfill,
+            "select": ["_id", prime_id],
+            "where": {"and": [
+                {"eq":{"etl.id": 0}},
+                {"prefix": {"_id": prefix}},
+            ]},
+            "limit": MAX_SIZE,
             "format": "list"
         })
 
-        in_es = set(result.data)
-        in_range = set(range(int(min_id), int(max_id), 1))
-        keys = get_all_s3(in_es, in_range, source, settings)
+        in_es = set(".".join(i.split(".")[:-1]) for i in result.data._id)
+        in_s3 = get_in_s3(prefix)
 
-        with Timer("adding {{num}} keys to {{bucket}}", param={"num":len(keys), "bucket":settings.source.bucket}):
+        keys = list(reversed(sorted(in_s3 - in_es)))
+
+        with Timer("adding {{num}} keys to {{bucket}} with prefix {{prefix}}", param={"num": len(keys), "bucket": settings.source.bucket, "prefix": prefix}):
+            invalid = set()
             for k in keys:
                 if please_stop:
                     Log.error("Asked to stop")
+                try:
+                    bucket.bucket._verify_key_format(k)
+                except Exception:
+                    invalid.add(k)
+                    continue
                 now = Date.now()
                 index_queue.add({
                     "bucket": settings.source.bucket,
-                    "key": source + "." + unicode(k) if source else unicode(k),
+                    "key": k,
                     "timestamp": now.unix,
                     "date/time": now.format()
                 })
-        backfill.total += len(keys)
+        if invalid:
+            Log.note("{{num}} invalid keys", num=len(invalid))
+            for g, some in jx.groupby(invalid, size=100):
+                bucket.db.execute(
+                    "UPDATE files SET annotate=" + QUOTED_INVALID + " WHERE key in (" +
+                    ",".join(bucket.db.quote_value(k) for k in some) +
+                    ")"
+                )
+        backfill.total += len(keys) - len(invalid)
 
-    def fill_tiny_holes(source, min_id, max_id, depth):
-        pass
-        # second =  [
-        #    {"eq": {etl_source(i) + ".id": 0}}
-        #    for i in range(depth)
-        # ] + filter_range(source, min_id, max_id)
-        #
-        # result = http.post_json(ACTIVE_DATA, json={
-        #     "from": settings.elasticsearch.index,
-        #     "select": {"aggregate": "count"},
-        #     "where": {"and": filter_range(source, min_id, max_id)}
-        # })
-        # if result.data.count < max_backfill:
-        #     result = http.post_json(ACTIVE_DATA, json={
-        #         "from": settings.elasticsearch.index,
-        #         "select": "_id",
-        #         "where": {"and": second},
-        #         "format": "list"
-        #     })
-        #     in_es = set(result.data)
-        #     in_range = set()
-
-    summary = http.post_json(ACTIVE_DATA, json={
-        "from": settings.elasticsearch.index,
-        "select": [
-            {"aggregate": "count"},
-            {"value": prime_id, "aggregate": "max", "name": "max"}
-        ],
-        "groupby": [{"name": "source", "value": source_field}] if source_field else None,
-        "format": "list"
-    })
-
-    threads = [Thread.run(d.source, bisect, d.source, 0, d.max + 1) for d in listwrap(summary.data)]
-    for t in threads:
-        t.join()
-
-    # WHAT IS IN ES NOW, AND WHAT IS THE DATE RANGE? CAN WE ESTIMATE S3 RANGE?
-    # DO A BACKWARDS SCAN OF S3?
-
-    # LOOK FOR BLATANT HOLES
-    #
-
-
-
-    # FOR EACH LEVEL OF ETL KEY, ENSURE THE WHOLE RANGE MATCHES S3
-    # BISECT UNTIL WE HAVE A MANAGEABLE CHUNK
-
-    # LOOK FOR HOLES IN A BATCH
-    # FIND THE OLDEST DATA THAT IS STILL ALLOWED TO BE BACK-FILLED
-    # FIND THE MOST RECENT
-    # ADD TO THE INDEX QUEUE
+    timeout = Till(seconds=RUN_TIME)
+    decimate("", please_stop)
+    (timeout | bucket.up_to_date).wait()
+    Log.note("done")
 
 
 def main():
@@ -335,12 +141,14 @@ def main():
         queue = aws.Queue(settings.work_queue)
 
         threads = [
-            Thread.run(w.name, backfill_recent, w, queue)
-            for w in settings.workers[2:3:]
+            Thread.run("backfill " + w.name, backfill_recent, settings.cache, w, queue)
+            for w in settings.workers[0:4:]
         ]
 
         for t in threads:
-            Thread.join(t)
+            t.join()
+        sys.stdout.write("main done\n")
+        Log.note("main done")
     except Exception, e:
         Log.error("Problem with etl", e)
     finally:

@@ -131,3 +131,13 @@ sudo cp /home/ec2-user/ActiveData-ETL/resources/cron/manager.cron /var/spool/cro
 
 
 
+
+
+
+
+
+
+
+
+
+
