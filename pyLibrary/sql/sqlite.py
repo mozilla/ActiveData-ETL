@@ -112,8 +112,9 @@ class Sqlite(DB):
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
             except Exception, e:
                 if not _load_extension_warning_sent:
-                    Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
                     _load_extension_warning_sent = True
+                    Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
+
 
         try:
             while not please_stop:

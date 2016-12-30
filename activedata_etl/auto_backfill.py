@@ -142,7 +142,7 @@ def main():
 
         threads = [
             Thread.run("backfill " + w.name, backfill_recent, settings.cache, w, queue)
-            for w in settings.workers[2:3:]
+            for w in settings.workers#[:3:]
         ]
 
         for t in threads:
