@@ -140,7 +140,7 @@ def parse_day(settings, p, force=False):
             with locker:
                 if len(threads) <= 20:
                     break
-            (Till(seconds=0.1)).wait_for_go()
+            (Till(seconds=0.1)).wait()
 
         thread = Thread.run("upload " + key, upload, key, parsed)
         with locker:

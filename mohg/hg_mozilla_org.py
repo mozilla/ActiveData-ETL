@@ -156,10 +156,10 @@ class HgMozillaOrg(object):
                 e = Except.wrap(e)
                 if "NodeNotConnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    (Till(seconds=Random.int(5 * 60))).wait_for_go()
+                    (Till(seconds=Random.int(5 * 60))).wait()
                     continue
                 elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
-                    (Till(seconds=Random.int(30))).wait_for_go()
+                    (Till(seconds=Random.int(30))).wait()
                     continue
                 else:
                     Log.warning("Bad ES call, fall back to TH", cause=e)
@@ -259,7 +259,7 @@ class HgMozillaOrg(object):
             pass
 
         try:
-            (Till(seconds=5)).wait_for_go()
+            (Till(seconds=5)).wait()
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
         except Exception, f:
             pass

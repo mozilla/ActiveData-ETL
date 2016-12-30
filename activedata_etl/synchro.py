@@ -57,7 +57,7 @@ class SynchState(object):
                 resume_time = Date(last_run.timestamp) + WAIT_FOR_ACTIVITY
                 Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...",  time= resume_time)
                 while resume_time > Date.now():
-                    (Till(seconds=10)).wait_for_go()
+                    (Till(seconds=10)).wait()
                     json = self.synch.read()
                     if json == None:
                         Log.note("{{synchro_key}} disappeared!  Starting over.",  synchro_key= SYNCHRONIZATION_KEY)
@@ -109,7 +109,7 @@ class SynchState(object):
     def _pinger(self, please_stop):
         Log.note("pinger started")
         while not please_stop:
-            (Till(self.ping_time + PING_PERIOD) | please_stop).wait_for_go()
+            (Till(self.ping_time + PING_PERIOD) | please_stop).wait()
             if please_stop:  # EXIT EARLY, OTHERWISE WE MAY OVERWRITE THE shutdown
                 break
             if Date.now() < self.ping_time + PING_PERIOD:

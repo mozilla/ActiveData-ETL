@@ -132,7 +132,7 @@ def getall(hg, es, please_stop):
         #TODO: use the `retry_on_conflict` parameter
         while len(errors) < 3 and not please_stop:
             try:
-                (Till(seconds=10)).wait_for_go()
+                (Till(seconds=10)).wait()
                 es.update({
                     "set": wrap_leaves({SCAN_DONE: True}),
                     "where": {"eq": {"changeset.id": id}}

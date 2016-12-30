@@ -62,7 +62,7 @@ def _start_es():
     with hide('output'):
         with fabric_settings(warn_only=True):
             run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-    (Till(seconds=5)).wait_for_go()
+    (Till(seconds=5)).wait()
 
     File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
     with cd("/home/ec2-user/"):
