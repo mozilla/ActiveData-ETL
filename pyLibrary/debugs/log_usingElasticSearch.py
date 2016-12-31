@@ -17,7 +17,7 @@ from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.text_logs import TextLog
-from pyLibrary.dot import wrap, coalesce
+from pyDots import wrap, coalesce
 from pyLibrary.env.elasticsearch import Cluster
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx

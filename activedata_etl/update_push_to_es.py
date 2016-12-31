@@ -6,8 +6,8 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
@@ -15,21 +15,19 @@ from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
+from pyDots import unwrap, wrap
+from pyDots.objects import datawrap
 from pyLibrary.aws import aws_retry
 from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
 from pyLibrary.env.files import File
 from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread
 from pyLibrary.thread.till import Till
 
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([dictwrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
     return output
 
 
@@ -43,7 +41,7 @@ def _get_managed_instances(ec2_conn, name):
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
                 instance.request = requests[instance.id]
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 

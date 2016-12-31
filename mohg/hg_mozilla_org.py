@@ -16,10 +16,10 @@ from copy import copy
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
+from pyDots import set_default, Null, coalesce, unwraplist
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import Explanation, assert_no_exception, Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, unwraplist
 from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings, cache
@@ -28,7 +28,7 @@ from pyLibrary.testing import elasticsearch
 from pyLibrary.thread.threads import Thread, Lock, Queue
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR, MINUTE
+from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 _hg_branches = None
 _OLD_BRANCH = None

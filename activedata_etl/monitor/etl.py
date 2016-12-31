@@ -6,10 +6,8 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-import boto
-from boto.ec2 import cloudwatch
+from __future__ import unicode_literals
 
 from fabric.context_managers import cd
 from fabric.operations import run, sudo

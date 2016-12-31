@@ -11,10 +11,10 @@ from __future__ import unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from pyDots import Data, wrap, coalesce, set_default, literal_field
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math
@@ -179,11 +179,11 @@ def accumulate_logs(source_key, url, lines, please_stop):
     return output
 
 
-class LogSummary(Dict):
+class LogSummary(Data):
     def __init__(self, url):
-        Dict.__init__(self)
-        self.tests = Dict()
-        self.logs = Dict()
+        Data.__init__(self)
+        self.tests = Data()
+        self.logs = Data()
         self.last_subtest = None
         self.url = url
 
@@ -193,7 +193,7 @@ class LogSummary(Dict):
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[literal_field(log.test)] = Dict(
+        self.tests[literal_field(log.test)] = Data(
             test=log.test,
             start_time=log.time
         )
@@ -220,7 +220,7 @@ class LogSummary(Dict):
         test = self.tests[literal_field(log.test)]
         test.stats.action.test_status += 1
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
@@ -282,7 +282,7 @@ class LogSummary(Dict):
         self.logs[test_name] += [log]
         test = self.tests[test_name]
         if not test:
-            self.tests[test_name] = test = Dict(
+            self.tests[test_name] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 crash=True,
@@ -303,7 +303,7 @@ class LogSummary(Dict):
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True

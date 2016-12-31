@@ -9,8 +9,8 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from pyLibrary import aws
 from pyLibrary.debugs import startup

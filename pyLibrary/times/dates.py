@@ -26,7 +26,7 @@ try:
 except Exception:
     pass
 
-from pyLibrary.dot import Null
+from pyDots import Null
 from pyLibrary.maths import Math
 from pyLibrary.times.durations import Duration, MILLI_VALUES
 from pyLibrary.vendor.dateutil.parser import parse as parse_date

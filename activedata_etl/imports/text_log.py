@@ -13,10 +13,10 @@ import re
 from copy import copy
 
 from activedata_etl.imports import buildbot
+from pyDots import coalesce, wrap, FlatList, Null, Data, unwrap
 from pyLibrary import convert, strings
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap, DictList, Null, Dict, unwrap
 from pyLibrary.maths import Math
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date, unicode2Date
@@ -53,14 +53,14 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     """
 
     process_head = True
-    action = Dict()
+    action = Data()
     action.timings = []
 
     start_time = None
     end_time = None
 
     harness_steps = {}
-    task_steps = Dict()
+    task_steps = Data()
 
     new_mozharness_line = NewHarnessLines()
 
@@ -92,7 +92,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
                 task_step = task_steps[step_name]
                 if not task_step:
-                    task_step = task_steps[step_name] = Dict()
+                    task_step = task_steps[step_name] = Data()
                     task_step.step = step_name
                     action.timings.append(task_step)
                 task_step.start_time = Math.min(task_step.start_time, tc_timestamp)
@@ -145,7 +145,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             step_name = "mozharness"
             task_step = task_steps[step_name]
             if not task_step:
-                task_step = task_steps[step_name] = Dict()
+                task_step = task_steps[step_name] = Data()
                 task_step.step = step_name
                 action.timings.append(task_step)
 
@@ -170,7 +170,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
         fix_overlap(action.timings)
         fix_times(action.timings, start_time, end_time)
 
-        new_build_times = DictList()
+        new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
         for b in action.timings:
             new_build_times.append(b)
@@ -223,7 +223,7 @@ def process_text_log(all_log_lines, from_url):
     """
 
     process_head = True
-    data = Dict()
+    data = Data()
     harness_steps = {}
     data.timings = []
 
@@ -357,7 +357,7 @@ def process_text_log(all_log_lines, from_url):
 
     try:
         fix_times(data.timings.builder, start_time, end_time)
-        new_build_times = DictList()
+        new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
         for b in data.timings:
             new_build_times.append(b)

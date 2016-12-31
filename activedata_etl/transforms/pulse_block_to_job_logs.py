@@ -13,13 +13,12 @@ from activedata_etl import etl2key, key2etl
 from activedata_etl.imports.text_log import process_text_log
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
+from pyDots import Data, wrap, coalesce
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, MINUTE
 from pyLibrary.times.timer import Timer
 
 _ = convert
@@ -28,7 +27,7 @@ DEBUG = False
 
 def process(source_key, source, dest_bucket, resources, please_stop=None):
     etl_head_gen = EtlHeadGenerator(source_key)
-    stats = Dict()
+    stats = Data()
     counter = 0
     output = []
 
@@ -55,7 +54,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         })
 
         if pulse_record.payload.what == "This is a heartbeat":  # RECORD THE HEARTBEAT, OTHERWISE SOMEONE WILL ASK WHERE THE MISSING RECORDS ARE
-            data = Dict(etl=etl)
+            data = Data(etl=etl)
             data.etl.error = "Pulse Heartbeat"
             output.append(data)
             counter += 1

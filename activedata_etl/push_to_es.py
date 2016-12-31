@@ -12,12 +12,12 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
+from pyDots import coalesce, unwrap, Data, wrap
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import Explanation, WarnOnException
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
@@ -186,7 +186,7 @@ def main():
                 for prefixes in parse_id_argument(settings.args.id):
                     keys = bucket.keys(prefix=prefixes)
                     for k in keys:
-                        main_work_queue.add(Dict(
+                        main_work_queue.add(Data(
                             key=k,
                             bucket=bucket.name
                         ))
@@ -198,7 +198,7 @@ def main():
             if not w.rollover.interval or not w.rollover.field:
                 Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
 
-            split[w.source.bucket] = Dict(
+            split[w.source.bucket] = Data(
                 es=RolloverIndex(
                     rollover_field=w.rollover.field,
                     rollover_interval=w.rollover.interval,

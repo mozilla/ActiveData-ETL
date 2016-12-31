@@ -6,25 +6,26 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
+
+import datetime
 
 from boto import ec2 as boto_ec2
-import datetime
 from boto.ec2 import cloudwatch
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
+from pyDots import unwrap, wrap
+from pyDots.objects import datawrap
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
 from pyLibrary.queries.unique_index import UniqueIndex
 
 
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([dictwrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
     return output
 
 
@@ -37,7 +38,7 @@ def _get_managed_instances(ec2_conn, name):
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
                 instance.request = requests[instance.id]
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 

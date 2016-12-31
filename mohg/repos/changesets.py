@@ -7,13 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary.dot import coalesce, wrap, Dict
+from pyDots import Data
 
 
-class Changeset(Dict):
+class Changeset(Data):
 
     def __hash__(self):
         return hash(self.id)

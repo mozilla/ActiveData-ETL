@@ -26,7 +26,7 @@ from time import sleep
 from pyLibrary import strings
 from pyLibrary.debugs.exceptions import Except, suppress_exception
 from pyLibrary.debugs.profiles import CProfiler
-from pyLibrary.dot import coalesce, Dict, unwraplist, Null
+from pyDots import coalesce, Data, unwraplist, Null
 from pyLibrary.thread.lock import Lock
 from pyLibrary.thread.signal import Signal
 from pyLibrary.thread.till import Till
@@ -445,13 +445,13 @@ class Thread(object):
                     a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
                     response = self.target(*a, **k)
                     with self.synch_lock:
-                        self.end_of_thread = Dict(response=response)
+                        self.end_of_thread = Data(response=response)
                 else:
                     with self.synch_lock:
                         self.end_of_thread = Null
             except Exception, e:
                 with self.synch_lock:
-                    self.end_of_thread = Dict(exception=_Except.wrap(e))
+                    self.end_of_thread = Data(exception=_Except.wrap(e))
                 if self not in self.parent.children:
                     # THREAD FAILURES ARE A PROBLEM ONLY IF NO ONE WILL BE JOINING WITH IT
                     try:

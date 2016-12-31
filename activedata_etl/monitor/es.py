@@ -6,17 +6,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 import requests
 
-from pyLibrary import convert, aws
+from pyLibrary import convert
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict
-
 
 with suppress_exception:
     # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP

@@ -29,7 +29,7 @@ from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
+from pyDots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
@@ -227,7 +227,7 @@ class ETL(Thread):
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
-                        self.work_queue.add(Dict(
+                        self.work_queue.add(Data(
                             bucket=action.destination.bucket,
                             key=k
                         ))
@@ -418,7 +418,7 @@ def main():
             return
 
         hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
-        resources = Dict(
+        resources = Data(
             hg=hg
         )
 
@@ -439,7 +439,7 @@ def main():
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
-        # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
+        # write_profile(Data(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):
@@ -459,21 +459,21 @@ def etl_one(settings):
                 keys = source.keys(i)
                 for k in keys:
                     already_in_queue.add(k)
-                    queue.add(Dict(
+                    queue.add(Data(
                         bucket=w.source.bucket,
                         key=k
                     ))
         except Exception, e:
             if "Key {{key}} does not exist" in e:
                 already_in_queue.add(id(source))
-                queue.add(Dict(
+                queue.add(Data(
                     bucket=w.source.bucket,
                     key=settings.args.id
                 ))
             Log.warning("Problem", cause=e)
 
     hg = HgMozillaOrg(settings=settings.hg)
-    resources = Dict(
+    resources = Data(
         hg=hg
     )
 

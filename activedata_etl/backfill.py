@@ -9,15 +9,12 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import os
-from math import log10
-
+from pyDots import coalesce, wrap
 from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
 from pyLibrary.maths import Math

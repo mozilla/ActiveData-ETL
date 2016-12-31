@@ -16,18 +16,17 @@ from math import sqrt
 
 import pyLibrary
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from pyDots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import literal_field, Dict, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
-from pyLibrary.dot.lists import DictList
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Lock
 from pyLibrary.times.dates import Date
-from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000
@@ -196,7 +195,7 @@ def transform(source_key, perfherder, resources):
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
 
-        new_records = DictList()
+        new_records = FlatList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
         if perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES:
@@ -206,7 +205,7 @@ def transform(source_key, perfherder, resources):
             if any(remainder.values()):
                 new_records.append(set_default(remainder, buildbot))
 
-        total = DictList()
+        total = FlatList()
 
         if perfherder.subtests:
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
@@ -321,7 +320,7 @@ def mainthread_transform(r):
     if r == None:
         return None
 
-    output = Dict()
+    output = Data()
 
     for i in r.mainthread_readbytes:
         output[literal_field(i[1])].name = i[1]
@@ -362,7 +361,7 @@ def stats(source_key, given_values, test, suite):
         clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)])
 
         z = ZeroMoment.new_instance(clean_values)
-        s = Dict()
+        s = Data()
         for k, v in z.dict.items():
             s[k] = v
         for k, v in ZeroMoment2Stats(z).items():
@@ -398,7 +397,7 @@ def geo_mean(values):
     """
     GIVEN AN ARRAY OF dicts, CALC THE GEO-MEAN ON EACH ATTRIBUTE
     """
-    agg = Dict()
+    agg = Data()
     for d in values:
         for k, v in d.items():
             if v != 0:

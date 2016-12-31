@@ -15,10 +15,10 @@ from activedata_etl.transforms import TRY_AGAIN_LATER
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
+from pyDots import Data, Null
 from pyLibrary import convert, strings
 from pyLibrary.debugs.logs import Log
 from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.dot import Dict, Null, coalesce
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
@@ -31,7 +31,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     keys = []
     records = []
-    stats = Dict()
+    stats = Data()
     for i, line in enumerate(lines):
         if please_stop:
             Log.error("Unexpected request to stop")
@@ -89,7 +89,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 def transform_buildbot(source_key, other, resources):
-    output = Dict()
+    output = Data()
 
     if other.what == "This is a heartbeat":
         return output

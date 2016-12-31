@@ -17,10 +17,10 @@ from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from pyDots import set_default, Data, unwraplist, listwrap, wrap
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import suppress_exception, Except
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
 from pyLibrary.maths import Math
 from pyLibrary.strings import expand_template
@@ -65,7 +65,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         source_etl.source.type = "join"
                         source_etl.source.source = {"id": "tc"}
 
-                normalized = Dict(
+                normalized = Data(
                     task={"id": task_id},
                     etl={
                         "id": line_number,
@@ -177,7 +177,7 @@ def read_actions(source_key, normalized, url):
 
 
 def _normalize(source_key, task_id, tc_message, task, resources):
-    output = Dict()
+    output = Data()
     set_default(task, consume(tc_message, "status"))
 
     output.task.id = task_id
@@ -286,7 +286,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
 
 def _normalize_task_run(run):
-    output = Dict()
+    output = Data()
     output.reason_created = run.reasonCreated
     output.id = run.id
     output.scheduled = Date(run.scheduled)
@@ -485,7 +485,7 @@ def get_tags(source_key, task_id, task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(source_key, task_id, Dict(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, task_id, Data(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):

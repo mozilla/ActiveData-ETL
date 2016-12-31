@@ -11,13 +11,13 @@ from __future__ import unicode_literals
 
 from tempfile import TemporaryFile
 
+from pyDots import Data
 from pyLibrary import convert, strings
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception, Explanation
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
@@ -85,7 +85,7 @@ def parse_day(settings, p, force=False):
             return
 
     Log.note("Processing {{url}}", url=day_url)
-    day_etl = Dict(
+    day_etl = Data(
         id=day_num,
         url=day_url,
         timestamp=Date.now(),
@@ -99,14 +99,14 @@ def parse_day(settings, p, force=False):
 
         parsed = []
 
-        group_etl = Dict(
+        group_etl = Data(
             id=group_number,
             source=day_etl,
             type="join",
             timestamp=Date.now()
         )
         for row_number, d in enumerate(ts):
-            row_etl = Dict(
+            row_etl = Data(
                 id=row_number,
                 source=group_etl,
                 type="join"

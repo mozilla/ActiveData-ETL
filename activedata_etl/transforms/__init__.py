@@ -12,7 +12,7 @@ from __future__ import division
 from pyLibrary import convert
 from pyLibrary import strings
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, literal_field
+from pyDots import wrap, Data, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
@@ -72,7 +72,7 @@ NOT_STRUCTURED_LOGS = [
     ".xml.sha1",
     ".xml",
     ]
-TOO_MANY_NON_JSON_LINES = Dict()
+TOO_MANY_NON_JSON_LINES = Data()
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 

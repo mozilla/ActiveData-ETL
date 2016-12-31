@@ -18,7 +18,7 @@ from collections import Mapping
 from pyLibrary import convert
 from pyLibrary.debugs.exceptions import Except, extract_stack, ERROR
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, coalesce
+from pyDots import Data, coalesce
 from pyLibrary.env.files import File
 from pyLibrary.sql import DB, SQL
 from pyLibrary.thread.threads import Queue, Signal, Thread
@@ -29,6 +29,7 @@ DEBUG_INSERT = False
 _load_extension_warning_sent = False
 
 _upgraded = False
+
 def _upgrade():
     global _upgraded
     _upgraded = True
@@ -63,7 +64,7 @@ class Sqlite(DB):
         self.filename = filename
         self.db = db
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
-        self.worker = None
+        self.worker = Thread.run("sqlite db thread", self._worker)
         self.get_trace = DEBUG
 
     def execute(self, command):
@@ -73,9 +74,6 @@ class Sqlite(DB):
         :param command: COMMAND FOR SQLITE
         :return: None
         """
-        if not self.worker:
-            self.worker = Thread.run("sqlite db thread", self._worker)
-
         if self.get_trace:
             trace = extract_stack(1)
         else:
@@ -92,7 +90,7 @@ class Sqlite(DB):
             self.worker = Thread.run("sqlite db thread", self._worker)
 
         signal = Signal()
-        result = Dict()
+        result = Data()
         self.queue.add((command, result, signal, None))
         signal.wait()
         if result.exception:

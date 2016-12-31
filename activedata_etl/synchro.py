@@ -7,13 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log
 from pyLibrary.thread.threads import Thread
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import MINUTE
-
 
 PING_PERIOD = MINUTE
 WAIT_FOR_ACTIVITY = PING_PERIOD * 2

@@ -6,10 +6,10 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
+from __future__ import unicode_literals
 
+from pyLibrary import convert
 from pyLibrary.aws.s3 import Connection
 from pyLibrary.debugs import startup
 from pyLibrary.debugs.logs import Log

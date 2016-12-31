@@ -11,19 +11,18 @@ from __future__ import unicode_literals
 
 import sys
 
-from pyLibrary.times.durations import Duration
-
 from activedata_etl.imports.s3_cache import S3Cache
+from pyDots import Data
 from pyLibrary import aws, convert
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, Null
 from pyLibrary.env import http
 from pyLibrary.queries import jx
 from pyLibrary.sql.sqlite import Sqlite
 from pyLibrary.thread.threads import Thread
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
+from pyLibrary.times.durations import Duration
 from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
@@ -33,19 +32,21 @@ QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
 
 
 def backfill_recent(cache, settings, index_queue, please_stop):
-    bucket = S3Cache(cache=cache, settings=settings.source)
+    db_filename = cache + "." + settings.source.bucket + ".sqlite"
+    db = Sqlite(db_filename)
+    bucket = S3Cache(db=db, settings=settings.source)
     prime_id = settings.rollover.field
-    backfill = Dict(total=0)
+    backfill = Data(total=0)
     too_old = (Date.now().floor(Duration(settings.rollover.interval)) - Duration(settings.rollover.max))
 
     def get_in_s3(prefix):
-        result = bucket.db.query(
+        result = db.query(
             " SELECT " +
             "    key, annotate"
             " FROM files " +
-            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + bucket.db.quote_value(prefix) +
+            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
-            " AND last_modified > " + bucket.db.quote_value(too_old.unix)
+            " AND last_modified > " + db.quote_value(too_old.unix)
         )
         return set(d[0] for d in result.data)
 
@@ -54,16 +55,18 @@ def backfill_recent(cache, settings, index_queue, please_stop):
             return
 
         # HOW MANY WITH GIVEN PREFIX?
-        result = bucket.db.query(
+        result = db.query(
             " SELECT " +
             "    substr(name, 1, " + unicode(len(prefix) + 1) + ") as prefix," +
             "    count(1) as number " +
             " FROM files " +
-            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + bucket.db.quote_value(prefix) +
+            " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
-            " AND last_modified > " + bucket.db.quote_value(too_old.unix) +
+            " AND last_modified > " + db.quote_value(too_old.unix) +
             " GROUP BY substr(name, 1, " + unicode(len(prefix) + 1) + ")"
         )
+
+        # TODO: PULL THE SAME COUNTS FROM ES, BUT GROUPBY ON _id IS BROKEN
 
         for prefix2, count in list(reversed(sorted(result.data, key=lambda d: d[0]))):
             if count < MAX_SIZE:
@@ -88,7 +91,10 @@ def backfill_recent(cache, settings, index_queue, please_stop):
 
         keys = list(reversed(sorted(in_s3 - in_es)))
 
-        with Timer("adding {{num}} keys to {{bucket}} with prefix {{prefix}}", param={"num": len(keys), "bucket": settings.source.bucket, "prefix": prefix}):
+        if not keys:
+            return
+
+        with Timer("adding {{num}} keys from {{bucket}} with prefix {{prefix}}", param={"num": len(keys), "bucket": settings.source.bucket, "prefix": prefix}):
             invalid = set()
             for k in keys:
                 if please_stop:
@@ -108,9 +114,9 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         if invalid:
             Log.note("{{num}} invalid keys", num=len(invalid))
             for g, some in jx.groupby(invalid, size=100):
-                bucket.db.execute(
+                db.execute(
                     "UPDATE files SET annotate=" + QUOTED_INVALID + " WHERE key in (" +
-                    ",".join(bucket.db.quote_value(k) for k in some) +
+                    ",".join(db.quote_value(k) for k in some) +
                     ")"
                 )
         backfill.total += len(keys) - len(invalid)
@@ -142,7 +148,7 @@ def main():
 
         threads = [
             Thread.run("backfill " + w.name, backfill_recent, settings.cache, w, queue)
-            for w in settings.workers#[:3:]
+            for w in settings.workers[4:5:]
         ]
 
         for t in threads:

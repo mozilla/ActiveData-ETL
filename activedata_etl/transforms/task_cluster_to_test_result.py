@@ -9,15 +9,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from copy import copy
-
 from activedata_etl.imports.task import minimize_task
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import listwrap, set_default, wrap, Dict
-from pyLibrary.times.dates import Date
 from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
+from pyDots import listwrap
+from pyLibrary import convert
+from pyLibrary.debugs.logs import Log, machine_metadata
+from pyLibrary.times.dates import Date
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

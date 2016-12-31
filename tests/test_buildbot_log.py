@@ -18,7 +18,7 @@ from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 from pyLibrary import convert, jsons
 from pyLibrary.debugs.exceptions import Except
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap
+from pyDots import listwrap
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase

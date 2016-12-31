@@ -8,9 +8,10 @@
 #
 from __future__ import unicode_literals
 
+from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from pyDots import listwrap, unwrap, wrap, wrap_leaves
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries.jx_usingES import FromES
@@ -18,7 +19,6 @@ from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
-from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
 DEBUG = False

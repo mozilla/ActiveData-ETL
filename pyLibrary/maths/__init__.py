@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 import __builtin__
 import math
 
-from pyLibrary.dot import Null, coalesce
+from pyDots import Null, coalesce
 from pyLibrary.strings import find_first
 
 

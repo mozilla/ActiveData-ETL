@@ -6,9 +6,10 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from activedata_etl import key2etl, etl2path
 from pyLibrary import aws, strings
 from pyLibrary.aws.s3 import Connection, key_prefix
 from pyLibrary.debugs import startup
@@ -17,7 +18,6 @@ from pyLibrary.env.files import File
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-from activedata_etl import key2etl, etl2path
 
 
 def main():
