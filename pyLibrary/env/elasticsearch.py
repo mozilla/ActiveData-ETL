@@ -456,6 +456,7 @@ HOPELESS = [
     "Document contains at least one immense term",
     "400 MapperParsingException",
     "400 RoutingMissingException",
+    "500 IllegalArgumentException[cannot change DocValues type",
     "JsonParseException"
 ]
 
