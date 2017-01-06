@@ -14,7 +14,7 @@ from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, tran
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from pyDots import Data
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
+from MoLogs import Log, machine_metadata
 from pyLibrary.env import http
 from pyLibrary.thread.threads import Signal
 from pyLibrary.times.timer import Timer

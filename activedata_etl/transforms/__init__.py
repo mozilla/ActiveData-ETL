@@ -11,7 +11,7 @@ from __future__ import division
 
 from pyLibrary import convert
 from pyLibrary import strings
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import wrap, Data, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision

@@ -16,8 +16,8 @@ from activedata_etl.imports import buildbot
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 from pyLibrary import convert, jsons
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from MoLogs.exceptions import Except
+from MoLogs import Log
 from pyDots import listwrap
 from pyLibrary.env import http
 from pyLibrary.env.files import File

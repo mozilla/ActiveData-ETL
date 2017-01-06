@@ -12,8 +12,8 @@ from activedata_etl import etl2key
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from pyDots import Data, wrap, coalesce, Null
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs import Log, strings
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date

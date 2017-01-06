@@ -1,6 +1,6 @@
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs import Log
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.threads import Thread
 

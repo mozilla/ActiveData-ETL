@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 import hashlib
 
 from pyLibrary import convert, jsons
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.files import File
 from pyLibrary.thread.threads import Thread

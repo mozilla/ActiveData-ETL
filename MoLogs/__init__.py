@@ -19,11 +19,10 @@ import sys
 from collections import Mapping
 from datetime import datetime
 
-from pyLibrary.debugs import constants, exceptions
-from pyLibrary.debugs.exceptions import Except, suppress_exception
-from pyLibrary.debugs.text_logs import TextLog_usingMulti, TextLog_usingThread, TextLog_usingStream, TextLog_usingFile
+from MoLogs import constants
+from MoLogs.exceptions import Except, suppress_exception
+from MoLogs.strings import indent
 from pyDots import coalesce, listwrap, wrap, unwrap, unwraplist, set_default
-from pyLibrary.strings import indent
 
 _Thread = None
 
@@ -59,10 +58,13 @@ class Log(object):
             return
         settings = wrap(settings)
 
+        Log.stop()
+
         cls.settings = settings
-        cls.trace = cls.trace | coalesce(settings.trace, False)
+        cls.trace = coalesce(settings.trace, False)
         if cls.trace:
             from pyLibrary.thread.threads import Thread as _Thread
+            _ = _Thread
 
         if settings.cprofile is False:
             settings.cprofile = {"enabled": False}
@@ -76,7 +78,7 @@ class Log(object):
             cls.cprofiler.enable()
 
         if settings.profile is True or (isinstance(settings.profile, Mapping) and settings.profile.enabled):
-            from pyLibrary.debugs import profiles
+            from MoLogs import profiles
 
             if isinstance(settings.profile, bool):
                 profiles.ON = True
@@ -89,10 +91,9 @@ class Log(object):
             constants.set(settings.constants)
 
         if settings.log:
-            cls.logging_multi = TextLog_usingMulti()
-            if cls.main_log:
-                cls.main_log.stop()
-            cls.main_log = TextLog_usingThread(cls.logging_multi)
+            cls.logging_multi = StructuredLogger_usingMulti()
+            from MoLogs.log_usingThread import StructuredLogger_usingThread
+            cls.main_log = StructuredLogger_usingThread(cls.logging_multi)
 
             for log in listwrap(settings.log):
                 Log.add_log(Log.new_instance(log))
@@ -102,7 +103,7 @@ class Log(object):
 
     @classmethod
     def stop(cls):
-        from pyLibrary.debugs import profiles
+        from MoLogs import profiles
 
         if cls.cprofiler and hasattr(cls, "settings"):
             if cls.cprofiler == None:
@@ -117,7 +118,7 @@ class Log(object):
         if profiles.ON and hasattr(cls, "settings"):
             profiles.write(cls.settings.profile)
         cls.main_log.stop()
-        cls.main_log = TextLog_usingStream(sys.stdout)
+        cls.main_log = StructuredLogger_usingStream(sys.stdout)
 
     @classmethod
     def new_instance(cls, settings):
@@ -125,38 +126,38 @@ class Log(object):
 
         if settings["class"]:
             if settings["class"].startswith("logging.handlers."):
-                from .log_usingLogger import TextLog_usingLogger
+                from MoLogs.log_usingLogger import StructuredLogger_usingLogger
 
-                return TextLog_usingLogger(settings)
+                return StructuredLogger_usingLogger(settings)
             else:
                 with suppress_exception:
-                    from .log_usingLogger import make_log_from_settings
+                    from MoLogs.log_usingLogger import make_log_from_settings
 
                     return make_log_from_settings(settings)
                   # OH WELL :(
 
         if settings.log_type == "file" or settings.file:
-            return TextLog_usingFile(settings.file)
+            return StructuredLogger_usingFile(settings.file)
         if settings.log_type == "file" or settings.filename:
-            return TextLog_usingFile(settings.filename)
+            return StructuredLogger_usingFile(settings.filename)
         if settings.log_type == "console":
-            from .log_usingThreadedStream import TextLog_usingThreadedStream
-            return TextLog_usingThreadedStream(sys.stdout)
+            from MoLogs.log_usingThreadedStream import StructuredLogger_usingThreadedStream
+            return StructuredLogger_usingThreadedStream(sys.stdout)
         if settings.log_type == "stream" or settings.stream:
-            from .log_usingThreadedStream import TextLog_usingThreadedStream
-            return TextLog_usingThreadedStream(settings.stream)
+            from MoLogs.log_usingThreadedStream import StructuredLogger_usingThreadedStream
+            return StructuredLogger_usingThreadedStream(settings.stream)
         if settings.log_type == "elasticsearch" or settings.stream:
-            from .log_usingElasticSearch import TextLog_usingElasticSearch
-            return TextLog_usingElasticSearch(settings)
+            from MoLogs.log_usingElasticSearch import StructuredLogger_usingElasticSearch
+            return StructuredLogger_usingElasticSearch(settings)
         if settings.log_type == "email":
-            from .log_usingEmail import TextLog_usingEmail
-            return TextLog_usingEmail(settings)
+            from MoLogs.log_usingEmail import StructuredLogger_usingEmail
+            return StructuredLogger_usingEmail(settings)
         if settings.log_type == "ses":
-            from .log_usingSES import TextLog_usingSES
-            return TextLog_usingSES(settings)
+            from MoLogs.log_usingSES import StructuredLogger_usingSES
+            return StructuredLogger_usingSES(settings)
         if settings.log_type.lower() in ["nothing", "none", "null"]:
-            from .log_usingNothing import TextLog_usingNothing
-            return TextLog_usingNothing()
+            from MoLogs.log_usingNothing import StructuredLogger
+            return StructuredLogger()
 
         Log.error("Log type of {{log_type|quote}} is not recognized", log_type=settings.log_type)
 
@@ -460,6 +461,11 @@ machine_metadata = wrap({
 })
 
 
+from MoLogs.log_usingFile import StructuredLogger_usingFile
+from MoLogs.log_usingMulti import StructuredLogger_usingMulti
+from MoLogs.log_usingStream import StructuredLogger_usingStream
+
+
 if not Log.main_log:
-    Log.main_log = TextLog_usingStream(sys.stdout)
+    Log.main_log = StructuredLogger_usingStream(sys.stdout)
 

@@ -17,8 +17,8 @@ from fabric.state import env
 from pyDots import unwrap, wrap
 from pyDots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs import Log
 
 
 @aws_retry

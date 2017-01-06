@@ -16,7 +16,7 @@ from pyDots import wrap
 from pyLibrary import convert
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex

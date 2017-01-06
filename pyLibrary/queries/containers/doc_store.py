@@ -15,7 +15,7 @@ from copy import copy
 from datetime import datetime
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import wrap, Data, FlatList, literal_field
 from pyLibrary.queries import jx
 from pyLibrary.queries.containers import Container
@@ -128,7 +128,7 @@ class DocStore(Container):
                 indexed_values[i]=index
                 continue
 
-            function_name = convert.value2json(s.value.to_dict(), sort_keys=True)
+            function_name = convert.value2json(s.value.__data__(), sort_keys=True)
             index = self._index.get(function_name, None)
             indexed_values[i]=index
             if index is not None:

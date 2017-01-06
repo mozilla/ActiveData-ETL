@@ -14,8 +14,8 @@ import sys
 from activedata_etl.imports.s3_cache import S3Cache
 from pyDots import Data
 from pyLibrary import aws, convert
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs import Log
 from pyLibrary.env import http
 from pyLibrary.queries import jx
 from pyLibrary.sql.sqlite import Sqlite

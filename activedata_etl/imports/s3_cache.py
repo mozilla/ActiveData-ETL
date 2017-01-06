@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary import aws
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.thread.signal import Signal

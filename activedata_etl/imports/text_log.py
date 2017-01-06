@@ -14,9 +14,9 @@ from copy import copy
 
 from activedata_etl.imports import buildbot
 from pyDots import coalesce, wrap, FlatList, Null, Data, unwrap
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs.exceptions import Except
+from MoLogs import Log, strings
 from pyLibrary.maths import Math
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date, unicode2Date

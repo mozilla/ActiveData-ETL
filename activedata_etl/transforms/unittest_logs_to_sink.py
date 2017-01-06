@@ -12,9 +12,9 @@ from __future__ import unicode_literals
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyDots import Data, wrap, coalesce, set_default, literal_field
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs.exceptions import Except
+from MoLogs import Log, strings
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.jsons import scrub
 from pyLibrary.maths import Math

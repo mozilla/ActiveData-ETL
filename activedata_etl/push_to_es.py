@@ -15,9 +15,9 @@ from activedata_etl.etl import parse_id_argument
 from pyDots import coalesce, unwrap, Data, wrap
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException
-from pyLibrary.debugs.logs import Log, machine_metadata
+from MoLogs import startup, constants
+from MoLogs.exceptions import Explanation, WarnOnException
+from MoLogs import Log, machine_metadata
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math

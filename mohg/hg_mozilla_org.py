@@ -17,9 +17,9 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
 from pyDots import set_default, Null, coalesce, unwraplist
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Explanation, assert_no_exception, Except
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs.exceptions import Explanation, assert_no_exception, Except
+from MoLogs import Log, strings
 from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings, cache

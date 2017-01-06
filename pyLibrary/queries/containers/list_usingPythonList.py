@@ -17,7 +17,7 @@ from types import NoneType
 import itertools
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import Data, wrap, listwrap, unwraplist, FlatList, unwrap, join_field, split_field, NullType, Null
 from pyLibrary.queries import jx, Schema
 from pyLibrary.queries.containers import Container
@@ -174,7 +174,7 @@ class ListContainer(Container):
         elif format == "cube":
             frum = convert.list2cube(self.data, self.schema.keys())
         else:
-            frum = self.to_dict()
+            frum = self.__data__()
 
         return frum
 
@@ -202,7 +202,7 @@ class ListContainer(Container):
     def extend(self, documents):
         self.data.extend(documents)
 
-    def to_dict(self):
+    def __data__(self):
         return wrap({
             "meta": {"format": "list"},
             "data": [{k: unwraplist(v) for k, v in row.items()} for row in self.data]

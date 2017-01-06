@@ -20,7 +20,7 @@ from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from pyDots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
 from pyLibrary import convert
 from pyLibrary.collections import MIN, MAX
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.maths import Math
 from pyLibrary.maths.stats import ZeroMoment2Stats, ZeroMoment

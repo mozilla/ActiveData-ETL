@@ -11,7 +11,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyDots import Data, join_field, wrap
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.env import http
 
 

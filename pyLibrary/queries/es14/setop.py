@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 from pyLibrary import queries
 from pyLibrary.collections import AND
 from pyLibrary.collections.matrix import Matrix
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import coalesce, split_field, set_default, Data, unwraplist, literal_field, join_field, unwrap, wrap
 from pyDots import listwrap
 from pyDots.lists import FlatList
@@ -82,7 +82,7 @@ def extract_rows(es, es_query, query):
                     es_query.fields = None
                     source = "_source"
 
-                    net_columns = leaf_columns - set(selects.name)
+                    net_columns = leaf_columns - set(selects.name) - {"_id"}
                     for n in net_columns:
                         new_select.append({
                             "name": n,

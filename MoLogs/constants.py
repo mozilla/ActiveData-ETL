@@ -6,14 +6,14 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 import sys
 
 import pyDots
 from pyDots import wrap, join_field, split_field
-
 
 DEBUG = True
 
@@ -52,7 +52,7 @@ def set(constants):
                 if caller_module.endswith(prefix):
                     old_value = pyDots.set_attr(caller_globals, name, new_value)
                     if DEBUG:
-                        from pyLibrary.debugs.logs import Log
+                        from MoLogs import Log
 
                         Log.note("Changed {{module}}[{{attribute}}] from {{old_value}} to {{new_value}}",
                             module= prefix,
@@ -64,6 +64,6 @@ def set(constants):
             errors.append[e]
 
         if errors:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
 
             Log.error("Can not set constant {{path}}", path=k, cause=errors)

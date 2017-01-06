@@ -23,12 +23,11 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot, strings
+from pyLibrary import aws, dot
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log, startup, constants, strings
+from MoLogs.exceptions import suppress_exception
 from pyDots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex

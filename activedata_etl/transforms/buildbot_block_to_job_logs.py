@@ -15,8 +15,8 @@ from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
 from pyDots import Data, set_default
 from pyLibrary import convert
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from MoLogs.exceptions import Except
+from MoLogs import Log
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date

@@ -12,9 +12,9 @@ from BeautifulSoup import BeautifulSoup
 
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from pyDots import Data, set_default
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs.exceptions import suppress_exception
+from MoLogs import Log
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings

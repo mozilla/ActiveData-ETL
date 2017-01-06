@@ -15,9 +15,9 @@ from pyLibrary import aws
 from pyLibrary import convert
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs.exceptions import Except
+from MoLogs import Log
 from pyLibrary.env import pulse
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread

@@ -16,17 +16,17 @@ import subprocess
 import urllib
 from datetime import timedelta
 
+from MoLogs.strings import between
 from pyDots import coalesce, wrap
 from pyLibrary import convert
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup
+from MoLogs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.files import File
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.sql.mysql import MySQL
 from pyLibrary.sql.sql import find_holes
-from pyLibrary.strings import between
 from pyLibrary.thread.multithread import Multithread
 from pyLibrary.times.timer import Timer
 

@@ -13,8 +13,8 @@ from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs import Log
 
 
 def _config_fabric(connect):

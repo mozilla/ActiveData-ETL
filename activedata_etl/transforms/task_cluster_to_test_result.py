@@ -14,7 +14,7 @@ from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from pyDots import listwrap
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
+from MoLogs import Log, machine_metadata
 from pyLibrary.times.dates import Date
 
 DEBUG = False

@@ -13,17 +13,17 @@ from collections import Mapping
 
 import requests
 
+from MoLogs.strings import expand_template
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from pyDots import set_default, Data, unwraplist, listwrap, wrap
 from pyLibrary import convert
-from pyLibrary.debugs.exceptions import suppress_exception, Except
-from pyLibrary.debugs.logs import Log, machine_metadata
+from MoLogs.exceptions import suppress_exception, Except
+from MoLogs import Log, machine_metadata
 from pyLibrary.env import http
 from pyLibrary.maths import Math
-from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
 
