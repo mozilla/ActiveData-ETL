@@ -154,8 +154,8 @@ class Version(object):
     def __unicode__(self):
         return ".".join(unicode(p) for p in self.path)
 
-    def __json__(self):
-        return "\".".join(unicode(p) for p in self.path)+"\""
+    def __data__(self):
+        return "\".".join(unicode(p) for p in self.path) + "\""
 
 
 def comparePath(a, b):

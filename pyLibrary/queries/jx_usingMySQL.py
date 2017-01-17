@@ -54,9 +54,6 @@ class MySQL(object):
         settings.settings = None
         return unwrap(settings)
 
-    def __json__(self):
-        return convert.value2json(self.__data__())
-
     def query(self, query, stacked=False):
         """
         TRANSLATE JSON QUERY EXPRESSION ON SINGLE TABLE TO SQL QUERY

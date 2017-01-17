@@ -35,7 +35,7 @@ from pyLibrary.times.durations import SECOND
 _convert = None
 _Except = None
 _Log = None
-DEBUG = True
+DEBUG = False
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 DEFAULT_WAIT_TIME = timedelta(minutes=10)
@@ -96,6 +96,7 @@ class Queue(object):
         with self.lock:
             if value is Thread.STOP:
                 # INSIDE THE lock SO THAT EXITING WILL RELEASE wait()
+                self.queue.append(value)
                 self.keep_running = False
                 return
 

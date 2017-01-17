@@ -90,7 +90,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             set_default(tc_message.status, task_status.status)
             tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
             if not tc_message.status.runs.last().resolved:
-                Log.error(TRY_AGAIN_LATER, reason="task is not resolved")
+                Log.error(TRY_AGAIN_LATER, reason="task still runnning (not \"resolved\")")
 
             normalized = _normalize(source_key, task_id, tc_message, task, resources)
 
@@ -569,6 +569,7 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
+    "context",
     "created",
     "deadline",
     "description",

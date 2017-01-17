@@ -24,7 +24,7 @@ _Except = None
 _Thread = None
 _extract_stack = None
 
-DEBUG = True
+DEBUG = False
 DEBUG_SIGNAL = False
 
 
