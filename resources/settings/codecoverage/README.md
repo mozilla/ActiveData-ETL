@@ -8,6 +8,7 @@ Requirements
 ------------
 
 * Local installation of Elasticsearch 1.7.x (NOT A RECENT VERSION)
+
 * Forked-and-cloned copy of `git clone https://github.com/klahnakoski/ActiveData-ETL.git`
 
 
@@ -31,6 +32,15 @@ and you will push your own changes
 	git push origin codecoverage
 
 
+There are several dependencies you will need before you can "pip install" all the requirements.  Here is the script I use on the production machines.
+
+	sudo yum group install "Development Tools"
+	sudo yum install -y libffi-devel
+	sudo yum install -y openssl-devel
+	
+	sudo /usr/local/bin/pip install ecdsa
+	sudo /usr/local/bin/pip install fabric
+	sudo /usr/local/bin/pip install -r requirements.txt
 
 
 Configuration
