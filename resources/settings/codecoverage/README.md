@@ -4,6 +4,65 @@ Code Coverage Settings
 
 Settings for the code coverage project.
 
+Requirements
+------------
+
+* Local installation of Elasticsearch 1.7.x (NOT A RECENT VERSION)
+* Forked-and-cloned copy of `git clone https://github.com/klahnakoski/ActiveData-ETL.git`
+
+
+Install
+-------
+
+Fork the ActiveData-ETL repo, then clone it locally:
+
+	git clone https://github.com/klahnakoski/ActiveData-ETL.git
+
+be sure to use the `codecoverage` branch
+
+	git checkout codecoverage
+
+during development you will occasionally pull changes other made to the branch
+
+	git pull origin codecoverage
+
+and you will push your own changes
+
+	git push origin codecoverage
+
+
+
+
+Configuration
+-------
+
+You must make your own `codecoverage.json` file. The config files in the repo assume this file is in your home directory `~/codecoverage.json`.  Wherever you put it, it should be in a safe place; not in your cloned repo directory where it may get picked up by Git and pushed to the public repo. It will contain the important keys to access various services.
+
+	{
+	    "email":{
+	        "host": "smtp.gmail.com",
+	        "port": 465,
+	        "username": "klahnakoski@mozilla.com",
+	        "password": "password",
+	        "use_ssl": 1
+	    },
+	    "ssl_context": "adhoc",
+	    "aws_credentials":{
+	        "aws_access_key_id":"blah",
+	        "aws_secret_access_key" :"blah",
+	        "region":"us-west-2"
+	    },
+	    "pulse_user":{
+	        "user": "ekyle-aws-1",
+	        "password": "blah"
+	    }
+	}
+
+
+
+
+
+
 AWS Permissions
 ---------------
 
