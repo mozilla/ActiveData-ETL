@@ -11,9 +11,8 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from pyDots import wrap, coalesce
-from pyLibrary import strings
 from pyLibrary.aws import s3
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log, strings
 from pyLibrary.queries import jx
 
 

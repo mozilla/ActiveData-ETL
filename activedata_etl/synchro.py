@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.thread.threads import Thread
 from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date

@@ -13,20 +13,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import itertools
 import re
 from collections import Mapping, OrderedDict
 from copy import copy
 
+from MoLogs import Log
+# from MoLogs.strings import expand_template
+from pyDots import listwrap, coalesce, Data, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
+    relative_field, concat_field
 from pyLibrary import convert
 from pyLibrary.collections import UNION
 from pyLibrary.collections.matrix import Matrix, index_to_coordinate
-from pyLibrary.debugs.logs import Log
-from pyDots import listwrap, coalesce, Data, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
-    relative_field, concat_field
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
-from pyLibrary.meta import use_settings, DataClass
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.queries.containers import Container, STRUCT
 from pyLibrary.queries.domains import SimpleSetDomain, DefaultDomain
@@ -34,7 +34,6 @@ from pyLibrary.queries.expressions import jx_expression, Variable, sql_type_to_j
 from pyLibrary.queries.meta import Column
 from pyLibrary.queries.query import QueryOp
 from pyLibrary.sql.sqlite import Sqlite
-from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 
 _containers = None
@@ -953,7 +952,7 @@ class Table_usingSQLite(Container):
                 for details in s.value.to_sql(self):
                     sql = details.sql["n"]
                     for name, code in STATS.items():
-                        full_sql = expand_template(code, {"value": sql})
+                        full_sql = code.replace("{{value}}", sql)
                         column_number = len(outer_selects)
                         outer_selects.append(full_sql + " AS " + _make_column_name(column_number))
                         index_to_column[column_number] = Data(

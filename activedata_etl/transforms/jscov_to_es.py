@@ -14,7 +14,7 @@ from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from pyDots import wrap, unwraplist, set_default
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
+from MoLogs import Log, machine_metadata
 from pyLibrary.env import http
 from pyLibrary.jsons import stream
 from pyLibrary.times.dates import Date

@@ -3,139 +3,139 @@
         "repos": [
             {
                 "name": "Fx-Team",
-                "url": "http://hg.mozilla.org/integration/fx-team",
+                "url": "https://hg.mozilla.org/integration/fx-team",
                 "directory": "C:/Users/klahnakoski/temp/Fx-Team"
             },
             {
                 "name": "Mozilla-Aurora",
-                "url": "http://hg.mozilla.org/releases/mozilla-aurora",
+                "url": "https://hg.mozilla.org/releases/mozilla-aurora",
                 "directory": "C:/Users/klahnakoski/temp/Mozilla-Aurora"
             }
             ,
             {
                 "name": "Mozilla-Beta",
-                "url": "http://hg.mozilla.org/releases/mozilla-beta",
+                "url": "https://hg.mozilla.org/releases/mozilla-beta",
                 "directory": "C:/Users/klahnakoski/temp/Mozilla-Beta"
             },
             {
                 "name": "Mozilla-Release",
-                "url": "http://hg.mozilla.org/releases/mozilla-release",
+                "url": "https://hg.mozilla.org/releases/mozilla-release",
                 "directory": "C:/Users/klahnakoski/temp/Mozilla-Release"
             },
             {
                 "name": "Mozilla-Esr10",
-                "url": "http://hg.mozilla.org/releases/mozilla-esr10",
+                "url": "https://hg.mozilla.org/releases/mozilla-esr10",
                 "directory": "C:/Users/klahnakoski/temp/Mozilla-Esr10"
             },
             {
                 "name": "Accessibility",
-                "url": "http://hg.mozilla.org/projects/accessibility",
+                "url": "https://hg.mozilla.org/projects/accessibility",
                 "directory": "C:/Users/klahnakoski/temp/Accessibility"
             },
             {
                 "name": "Addon-SDK",
-                "url": "http://hg.mozilla.org/projects/addon-sdk",
+                "url": "https://hg.mozilla.org/projects/addon-sdk",
                 "directory": "C:/Users/klahnakoski/temp/Addon-SDK"
             },
             {
                 "name": "Build-System",
-                "url": "http://hg.mozilla.org/projects/build-system",
+                "url": "https://hg.mozilla.org/projects/build-system",
                 "directory": "C:/Users/klahnakoski/temp/Build-System"
             },
             {
                 "name": "Devtools",
-                "url": "http://hg.mozilla.org/projects/devtools",
+                "url": "https://hg.mozilla.org/projects/devtools",
                 "directory": "C:/Users/klahnakoski/temp/Devtools"
             },
 
             {
                 "name": "Ionmonkey",
-                "url": "http://hg.mozilla.org/projects/ionmonkey",
+                "url": "https://hg.mozilla.org/projects/ionmonkey",
                 "directory": "C:/Users/klahnakoski/temp/Ionmonkey"
             },
             {
                 "name": "JägerMonkey",
-                "url": "http://hg.mozilla.org/projects/jaegermonkey",
+                "url": "https://hg.mozilla.org/projects/jaegermonkey",
                 "directory": "C:/Users/klahnakoski/temp/JägerMonkey"
             },
             {
                 "name": "Profiling",
-                "url": "http://hg.mozilla.org/projects/profiling",
+                "url": "https://hg.mozilla.org/projects/profiling",
                 "directory": "C:/Users/klahnakoski/temp/Profiling"
             },
             {
                 "name": "Services-Central",
-                "url": "http://hg.mozilla.org/services/services-central",
+                "url": "https://hg.mozilla.org/services/services-central",
                 "directory": "C:/Users/klahnakoski/temp/Services-Central"
             },
             {
                 "name": "UX",
-                "url": "http://hg.mozilla.org/projects/ux",
+                "url": "https://hg.mozilla.org/projects/ux",
                 "directory": "C:/Users/klahnakoski/temp/UX"
             },
             {
                 "name": "Alder",
-                "url": "http://hg.mozilla.org/projects/alder",
+                "url": "https://hg.mozilla.org/projects/alder",
                 "directory": "C:/Users/klahnakoski/temp/Alder"
             },
             {
                 "name": "Ash",
-                "url": "http://hg.mozilla.org/projects/ash",
+                "url": "https://hg.mozilla.org/projects/ash",
                 "directory": "C:/Users/klahnakoski/temp/Ash"
             },
             {
                 "name": "Birch",
-                "url": "http://hg.mozilla.org/projects/birch",
+                "url": "https://hg.mozilla.org/projects/birch",
                 "directory": "C:/Users/klahnakoski/temp/Birch"
             },
             {
                 "name": "Cedar",
-                "url": "http://hg.mozilla.org/projects/cedar",
+                "url": "https://hg.mozilla.org/projects/cedar",
                 "directory": "C:/Users/klahnakoski/temp/Cedar"
             },
             {
                 "name": "Elm",
-                "url": "http://hg.mozilla.org/projects/elm",
+                "url": "https://hg.mozilla.org/projects/elm",
                 "directory": "C:/Users/klahnakoski/temp/Elm"
             },
             {
                 "name": "Holly",
-                "url": "http://hg.mozilla.org/projects/holly",
+                "url": "https://hg.mozilla.org/projects/holly",
                 "directory": "C:/Users/klahnakoski/temp/Holly"
             },
             {
                 "name": "Larch",
-                "url": "http://hg.mozilla.org/projects/larch",
+                "url": "https://hg.mozilla.org/projects/larch",
                 "directory": "C:/Users/klahnakoski/temp/Larch"
             },
             {
                 "name": "Maple",
-                "url": "http://hg.mozilla.org/projects/maple",
+                "url": "https://hg.mozilla.org/projects/maple",
                 "directory": "C:/Users/klahnakoski/temp/Maple"
             },
             {
                 "name": "Oak",
-                "url": "http://hg.mozilla.org/projects/oak",
+                "url": "https://hg.mozilla.org/projects/oak",
                 "directory": "C:/Users/klahnakoski/temp/Oak"
             },
             {
                 "name": "Pine",
-                "url": "http://hg.mozilla.org/projects/pine",
+                "url": "https://hg.mozilla.org/projects/pine",
                 "directory": "C:/Users/klahnakoski/temp/Pine"
             },
             {
                 "name": "Electrolysis",
-                "url": "http://hg.mozilla.org/projects/electrolysis",
+                "url": "https://hg.mozilla.org/projects/electrolysis",
                 "directory": "C:/Users/klahnakoski/temp/Electrolysis"
             },
             {
                 "name": "Graphics",
-                "url": "http://hg.mozilla.org/projects/graphics",
+                "url": "https://hg.mozilla.org/projects/graphics",
                 "directory": "C:/Users/klahnakoski/temp/Graphics"
             },
             {
                 "name": "Places",
-                "url": "http://hg.mozilla.org/projects/places",
+                "url": "https://hg.mozilla.org/projects/places",
                 "directory": "C:/Users/klahnakoski/temp/Places"
             },
             {
@@ -145,12 +145,12 @@
             },
             {
                 "name": "Mozilla-Inbound",
-                "url": "http://hg.mozilla.org/integration/mozilla-inbound",
+                "url": "https://hg.mozilla.org/integration/mozilla-inbound",
                 "directory": "C:/Users/klahnakoski/temp/mozilla-inbound"
             },
             {
                 "name": "Firefox",
-                "url": "http://hg.mozilla.org/mozilla-central",
+                "url": "https://hg.mozilla.org/mozilla-central",
                 "directory": "C:/Users/klahnakoski/temp/src"
             }
 

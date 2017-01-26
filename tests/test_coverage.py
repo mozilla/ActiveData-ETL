@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 import requests
 
 from activedata_etl.transforms.jscov_to_es import process_source_file
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import Null, Data
 from pyLibrary.jsons import stream
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase

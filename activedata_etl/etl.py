@@ -23,12 +23,12 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot, strings
+import pyDots
+from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.collections import MIN
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log, startup, constants, strings
+from MoLogs.exceptions import suppress_exception
 from pyDots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
@@ -91,7 +91,7 @@ class ETL(Thread):
                 break
             else:
                 t_name = w.transformer
-                w._transformer = dot.get_attr(sys.modules, t_name)
+                w._transformer = pyDots.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):

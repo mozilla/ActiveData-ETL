@@ -16,7 +16,7 @@ import re
 import itertools
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.maths import Math
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyDots import coalesce, Data, set_default, Null, listwrap
@@ -65,12 +65,12 @@ class Domain(object):
 
 
     def __copy__(self):
-        return self.__class__(**self.as_dict())
+        return self.__class__(**self.__data__())
 
     def copy(self):
-        return self.__class__(**self.as_dict())
+        return self.__class__(**self.__data__())
 
-    def as_dict(self):
+    def __data__(self):
         return wrap({
             "name": self.name,
             "type": self.type,
@@ -80,9 +80,6 @@ class Domain(object):
             "where": self.where,
             "dimension": self.dimension
         })
-
-    def __json__(self):
-        return convert.value2json(self.as_dict())
 
     @property
     def __all_slots__(self):
@@ -166,8 +163,8 @@ class DefaultDomain(Domain):
     def getLabel(self, part):
         return part.value
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
         output.partitions = self.partitions
         output.limit = self.limit
         return output
@@ -321,8 +318,8 @@ class SimpleSetDomain(Domain):
     def getLabel(self, part):
         return part[self.label]
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
         output.partitions = self.partitions
         return output
 
@@ -423,8 +420,8 @@ class SetDomain(Domain):
     def getLabel(self, part):
         return part[self.label]
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
         output.partitions = self.partitions
         return output
 
@@ -484,8 +481,8 @@ class TimeDomain(Domain):
     def getKeyByIndex(self, index):
         return self.partitions[index][self.key]
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
 
         output.partitions = self.partitions
         output.min = self.min
@@ -544,8 +541,8 @@ class DurationDomain(Domain):
     def getKeyByIndex(self, index):
         return self.partitions[index][self.key]
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
 
         output.partitions = self.partitions
         output.min = self.min
@@ -591,8 +588,8 @@ class NumericDomain(Domain):
     def getKeyByIndex(self, index):
         return index
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
 
         output.min = self.min
         output.max = self.max
@@ -678,8 +675,8 @@ class RangeDomain(Domain):
     def getKeyByIndex(self, index):
         return self.partitions[index][self.key]
 
-    def as_dict(self):
-        output = Domain.as_dict(self)
+    def __data__(self):
+        output = Domain.__data__(self)
 
         output.partitions = self.partitions
         output.min = self.min

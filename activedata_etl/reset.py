@@ -10,10 +10,9 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import key2etl, etl2path
-from pyLibrary import aws, strings
+from pyLibrary import aws
 from pyLibrary.aws.s3 import Connection, key_prefix
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log, startup, strings
 from pyLibrary.env.files import File
 from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date
@@ -155,8 +154,8 @@ class Version(object):
     def __unicode__(self):
         return ".".join(unicode(p) for p in self.path)
 
-    def __json__(self):
-        return "\".".join(unicode(p) for p in self.path)+"\""
+    def __data__(self):
+        return "\".".join(unicode(p) for p in self.path) + "\""
 
 
 def comparePath(a, b):

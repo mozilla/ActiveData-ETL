@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 import itertools
 
 from pyLibrary.collections.matrix import Matrix
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import listwrap
 from pyLibrary.queries import windows
 from pyLibrary.queries.domains import SimpleSetDomain, DefaultDomain
@@ -33,7 +33,7 @@ def cube_aggs(frum, query):
             # DEFAULT DOMAINS CAN EASILY BE LOOKED UP FROM frum
             for fe in frum.edges:
                 if fe.name == e.value:
-                    e.domain = SimpleSetDomain(**fe.domain.as_dict())
+                    e.domain = SimpleSetDomain(**fe.domain.__data__())
                     e.value = e.value + "." + fe.domain.key
                     break
         else:

@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import Null, listwrap, Data, wrap
 from pyLibrary.env import http
 from pyLibrary.jsons import ref

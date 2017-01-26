@@ -12,8 +12,8 @@ from __future__ import unicode_literals
 from activedata_etl import key2etl, etl2path
 from pyDots import unwrap
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup
+from MoLogs import Log
 from pyLibrary.queries import jx
 
 

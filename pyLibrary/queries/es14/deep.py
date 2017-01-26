@@ -12,7 +12,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary import queries, convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import split_field, FlatList, listwrap, literal_field, coalesce, Data, unwrap
 from pyLibrary.queries import es09, es14
 from pyLibrary.queries.containers import STRUCT
@@ -62,7 +62,7 @@ def es_deepop(es, query):
     es_query, es_filters = es14.util.es_query_template(query.frum.name)
 
     # SPLIT WHERE CLAUSE BY DEPTH
-    wheres = split_expression_by_depth(query.where, query.frum, map_to_es_columns)
+    wheres = split_expression_by_depth(query.where, query.frum.schema, map_to_es_columns)
     for i, f in enumerate(es_filters):
         # PROBLEM IS {"match_all": {}} DOES NOT SURVIVE set_default()
         for k, v in unwrap(simplify_esfilter(AndOp("and", wheres[i]).to_esfilter())).items():
@@ -206,7 +206,7 @@ def es_deepop(es, query):
             new_select.append({
                 "name": s.name if is_list else ".",
                 "pull": pull,
-                "value": expr.to_dict(),
+                "value": expr.__data__(),
                 "put": {"name": s.name, "index": i, "child": "."}
             })
             i += 1

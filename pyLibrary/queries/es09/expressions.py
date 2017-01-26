@@ -17,7 +17,7 @@ import re
 
 from pyLibrary import convert
 from pyLibrary.collections import reverse
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.maths import Math
 from pyDots import split_field, Data, Null, join_field, coalesce
 from pyDots import listwrap
@@ -315,8 +315,8 @@ class Compiled(object):
     def __str__(self):
         return self.code
 
-    def __json__(self):
-        return convert.string2quote(self.code)
+    def __data__(self):
+        return self.code
 
 
 

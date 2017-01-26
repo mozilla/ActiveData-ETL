@@ -100,7 +100,7 @@
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
-				"max": "5day"
+				"max": "10day"
 			},
 			"sample_only": [],
 			"elasticsearch": {

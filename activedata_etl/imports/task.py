@@ -21,5 +21,7 @@ def minimize_task(task):
     task.etl = None
     task.action.timings = None
     task.action.etl = None
+    task.repo.changeset.files = None
     task.task.artifacts = None
     task.task.runs = None
+

@@ -8,6 +8,8 @@ sudo yum -y install git
 # INSTALL PYTHON
 sudo yum -y install python27
 sudo easy_install pip
+sudo pip install --upgrade pip
+
 
 # BUILDBOT PROCESSING REQUIRES THE FOLLOWING POLICY
 #{
@@ -112,10 +114,18 @@ cd ~
 git clone https://github.com/klahnakoski/esShardBalancer.git
 cd ~/esShardBalancer
 git checkout master
+sudo yum group install "Development Tools"
+sudo yum install -y libffi-devel
+sudo yum install -y openssl-devel
+
+sudo /usr/local/bin/pip install ecdsa
+sudo /usr/local/bin/pip install fabric
+sudo /usr/local/bin/pip install -r requirements.txt
+
+
 # RUN IT
 chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
-
 
 
 # CRON JOBS

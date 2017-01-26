@@ -14,8 +14,8 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from pyLibrary import convert
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
+from MoLogs.exceptions import Except
+from MoLogs import Log
 from pyDots import coalesce, split_field, literal_field, unwraplist, join_field
 from pyDots import wrap, listwrap
 from pyDots import Data
@@ -100,13 +100,10 @@ class FromES(Container):
         output._es = es
         return output
 
-    def as_dict(self):
+    def __data__(self):
         settings = self.settings.copy()
         settings.settings = None
         return settings
-
-    def __json__(self):
-        return convert.value2json(self.as_dict())
 
     def __enter__(self):
         Log.error("No longer used")

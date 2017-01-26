@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 
 from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 from pyDots import listwrap, unwrap, wrap, wrap_leaves
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup, constants
+from MoLogs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries.jx_usingES import FromES

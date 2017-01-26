@@ -21,7 +21,7 @@ import boto
 from boto.s3.connection import Location
 
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyDots import wrap, Null, coalesce, unwrap
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines, ibytes2ilines, scompressed2ibytes
 from pyLibrary.meta import use_settings
@@ -47,6 +47,9 @@ class File(object):
 
     def write(self, value):
         self.bucket.write(self.key, value)
+
+    def write_lines(self, lines):
+        self.bucket.write_lines(self.key, lines)
 
     @property
     def meta(self):

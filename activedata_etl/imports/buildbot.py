@@ -14,9 +14,9 @@ import ast
 import re
 
 from pyDots import wrap, Data, coalesce, set_default, unwraplist, listwrap
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs.exceptions import suppress_exception
+from MoLogs import Log, strings
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.times.dates import Date, unicode2Date

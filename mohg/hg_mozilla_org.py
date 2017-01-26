@@ -17,9 +17,9 @@ from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
 from pyDots import set_default, Null, coalesce, unwraplist
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Explanation, assert_no_exception, Except
-from pyLibrary.debugs.logs import Log
+from pyLibrary import convert
+from MoLogs.exceptions import Explanation, assert_no_exception, Except
+from MoLogs import Log, strings
 from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings, cache
@@ -174,7 +174,7 @@ class HgMozillaOrg(object):
         return docs[0]._source
 
     def _load_all_in_push(self, revision, locale=None):
-        # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
+        # https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
         found_revision = copy(revision)
         if isinstance(found_revision.branch, basestring):
             lower_name = found_revision.branch.lower()
@@ -229,7 +229,7 @@ class HgMozillaOrg(object):
                                 id=r.node,
                                 id12=r.node[0:12],
                                 author=r.user,
-                                description=r.description,
+                                description=strings.limit(r.description, 2000),
                                 date=Date(r.date),
                                 files=r.files,
                                 backedoutby=r.backedoutby
@@ -281,7 +281,7 @@ class HgMozillaOrg(object):
             path = path[0:4] + ["mozilla-beta"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
         elif len(path) > 7 and path[5] == "mozilla-release":
-            # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            # FROM https://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             path = path[0:4] + ["mozilla-release"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)

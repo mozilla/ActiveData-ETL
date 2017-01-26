@@ -7,22 +7,23 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
 from collections import Mapping
 
+from MoLogs import Log
+from MoLogs.exceptions import suppress_exception
+from MoLogs.strings import indent, expand_template
+from pyDots import coalesce
+from pyDots import wrap, listwrap, unwrap
+from pyDots.lists import FlatList
 from pyLibrary import convert
 from pyLibrary.collections.matrix import Matrix
-from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.meta import use_settings
 from pyLibrary.sql import SQL
 from pyLibrary.sql.mysql import int_list_packer
-from pyLibrary.debugs.logs import Log
-from pyLibrary.strings import indent, expand_template
-from pyDots import coalesce
-from pyDots.lists import FlatList
-from pyDots import wrap, listwrap, unwrap
 
 
 class MySQL(object):
@@ -48,13 +49,10 @@ class MySQL(object):
         self.settings = settings
         self._db = MySQL(settings)
 
-    def as_dict(self):
+    def __data__(self):
         settings = self.settings.copy()
         settings.settings = None
         return unwrap(settings)
-
-    def __json__(self):
-        return convert.value2json(self.as_dict())
 
     def query(self, query, stacked=False):
         """
