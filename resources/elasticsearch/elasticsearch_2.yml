@@ -1,7 +1,7 @@
 cluster.name: active-data
 node.zone: primary
 node.name: 2
-node.master: false
+node.master: true
 node.data: true
 
 script.inline: on
