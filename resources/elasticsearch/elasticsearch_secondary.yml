@@ -1,6 +1,6 @@
 cluster.name: active-data
 node.zone: primary
-node.name: secondary
+node.name: 2
 node.master: false
 node.data: true
 

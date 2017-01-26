@@ -15,12 +15,11 @@ import requests
 
 from MoLogs import Log, machine_metadata, strings
 from MoLogs.exceptions import suppress_exception, Except
-# from MoLogs.strings import expand_template
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from pyDots import set_default, Data, unwraplist, listwrap, wrap, Null
+from pyDots import set_default, Data, unwraplist, listwrap, wrap
 from pyLibrary import convert
 from pyLibrary.env import http
 from pyLibrary.maths import Math
@@ -34,7 +33,7 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-ACTIVEDATA_URL = "http://activedata.allizom.org:9200/task/_search"
+ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/_search"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -480,7 +479,7 @@ def get_build_task(source_key, normalized_task):
     if not build_task_id:
         Log.error("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
     response = http.post_json(
-        ACTIVEDATA_URL,
+        ACTIVEDATA_TASK_URL,
         data={
             "query": {"filtered": {"filter": {"term": {
                 "task.id": build_task_id
