@@ -170,7 +170,7 @@ class Queue(object):
         if self.next_warning < now:
             self.next_warning = now + wait_time
 
-        while self.keep_running and len(self.queue) > self.max:
+        while self.keep_running and len(self.queue) >= self.max:
             if now > time_to_stop_waiting:
                 if not _Log:
                     _late_import()
