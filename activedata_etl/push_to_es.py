@@ -12,33 +12,36 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
+from pyDots import coalesce, unwrap, Data, wrap
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException, suppress_exception
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import coalesce, unwrap, Dict, wrap
+from MoLogs import startup, constants
+from MoLogs.exceptions import Explanation, WarnOnException
+from MoLogs import Log, machine_metadata
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, Signal, Queue
+from pyLibrary.thread.till import Till
 from pyLibrary.times.timer import Timer
 
 split = {}
 empty_bucket_complaint_sent = False
+
 
 def splitter(work_queue, please_stop):
     global empty_bucket_complaint_sent
 
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
-            for k,v in split.items():
+            for k, v in split.items():
                 v.add(Thread.STOP)
             return
         if pair == None:
-            Thread.sleep(seconds=5)
+            # ADD BACKFILLING HERE
+            (Till(seconds=5) | please_stop).wait()
             continue
 
         message, payload = pair
@@ -183,7 +186,7 @@ def main():
                 for prefixes in parse_id_argument(settings.args.id):
                     keys = bucket.keys(prefix=prefixes)
                     for k in keys:
-                        main_work_queue.add(Dict(
+                        main_work_queue.add(Data(
                             key=k,
                             bucket=bucket.name
                         ))
@@ -195,7 +198,7 @@ def main():
             if not w.rollover.interval or not w.rollover.field:
                 Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
 
-            split[w.source.bucket] = Dict(
+            split[w.source.bucket] = Data(
                 es=RolloverIndex(
                     rollover_field=w.rollover.field,
                     rollover_interval=w.rollover.interval,
@@ -212,7 +215,7 @@ def main():
         please_stop = Signal()
         aws_shutdown = Signal("aws shutdown")
         aws_shutdown.on_go(shutdown_local_es_node)
-        aws_shutdown.on_go(lambda: please_stop.go)
+        aws_shutdown.on_go(please_stop.go)
         aws.capture_termination_signal(please_stop)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
@@ -220,7 +223,7 @@ def main():
         def monitor_progress(please_stop):
             while not please_stop:
                 Log.note("Remaining: {{num}}", num=len(main_work_queue))
-                Thread.sleep(seconds=10)
+                (please_stop | Till(seconds=10)).wait()
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 

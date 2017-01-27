@@ -14,11 +14,11 @@ from fabric.api import settings as fabric_settings
 from fabric.operations import sudo
 from fabric.state import env
 
+from pyDots import unwrap, wrap
+from pyDots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
+from MoLogs import startup, constants
+from MoLogs import Log
 
 
 @aws_retry
@@ -29,7 +29,7 @@ def _get_managed_instances(ec2_conn, name):
     for res in reservations:
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 
@@ -52,7 +52,7 @@ def _stop_indexer():
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
-        sudo("supervisorctl start push_to_es")
+        sudo("supervisorctl restart push_to_es")
 
 
 def main():

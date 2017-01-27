@@ -9,14 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from activedata_etl import key2etl
 from pyLibrary import convert
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from MoLogs import startup
+from MoLogs import Log
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Queue, Thread
-from activedata_etl import key2etl
 
 known_tasks = set()
 queue = Queue("packer", max=20)

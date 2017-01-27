@@ -13,20 +13,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import itertools
 import re
 from collections import Mapping, OrderedDict
 from copy import copy
 
+from MoLogs import Log
+# from MoLogs.strings import expand_template
+from pyDots import listwrap, coalesce, Data, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
+    relative_field, concat_field
 from pyLibrary import convert
 from pyLibrary.collections import UNION
 from pyLibrary.collections.matrix import Matrix, index_to_coordinate
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, coalesce, Dict, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
-    relative_field
 from pyLibrary.maths import Math
 from pyLibrary.maths.randoms import Random
-from pyLibrary.meta import use_settings, DataClass
+from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.queries.containers import Container, STRUCT
 from pyLibrary.queries.domains import SimpleSetDomain, DefaultDomain
@@ -34,7 +34,6 @@ from pyLibrary.queries.expressions import jx_expression, Variable, sql_type_to_j
 from pyLibrary.queries.meta import Column
 from pyLibrary.queries.query import QueryOp
 from pyLibrary.sql.sqlite import Sqlite
-from pyLibrary.strings import expand_template
 from pyLibrary.times.dates import Date
 
 _containers = None
@@ -184,7 +183,7 @@ class Table_usingSQLite(Container):
             for i in range(len(path)+1):
                 yield join_field(path[0:i])
 
-        columns = Dict()
+        columns = Data()
         for k in set(kk for k in self.columns.keys() for kk in paths(k)):
             for j, c in ((j, cc) for j, c in self.columns.items() for cc in c):
                 if startswith_field(j, k):
@@ -210,7 +209,7 @@ class Table_usingSQLite(Container):
             self.columns[column.name].add(column)
 
         if column.type == "nested":
-            nested_table_name = join_field(split_field(self.name) + split_field(column.name))
+            nested_table_name = concat_field(self.name, column.name)
             # MAKE THE TABLE
             table = Table_usingSQLite(nested_table_name, self.db, exists=False)
             self.nested_tables[column.name] = table
@@ -250,7 +249,7 @@ class Table_usingSQLite(Container):
                   " FROM " + quote_table(self.name)
         rows = self.db.query(command)
         for r in rows:
-            output = Dict()
+            output = Data()
             for (k, t), v in zip(columns, r):
                 output[k] = v
             yield output
@@ -303,7 +302,7 @@ class Table_usingSQLite(Container):
         # UPDATE THE NESTED VALUES
         for nested_column_name, nested_value in command.set.items():
             if get_type(nested_value) == "nested":
-                nested_table_name = join_field(split_field(self.name)+split_field(nested_column_name))
+                nested_table_name = concat_field(self.name, nested_column_name)
                 nested_table = nested_tables[nested_column_name]
                 self_primary_key = ",".join(quote_table(c.es_column) for u in self.uid for c in self.columns[u])
                 extra_key_name = UID_PREFIX+"id"+unicode(len(self.uid))
@@ -332,7 +331,7 @@ class Table_usingSQLite(Container):
 
                 doc_collection = {}
                 for d in listwrap(nested_value):
-                    nested_table.flatten(d, Dict(), doc_collection, path=nested_column_name)
+                    nested_table.flatten(d, Data(), doc_collection, path=nested_column_name)
 
                 prefix = "INSERT INTO " + quote_table(nested_table.name) + \
                          "(" + \
@@ -508,10 +507,10 @@ class Table_usingSQLite(Container):
             output = Table_usingSQLite(new_table, db=self.db, uid=self.uid, exists=True)
         elif query.format == "cube" or (not query.format and query.edges):
             if len(query.edges) == 0 and len(query.groupby) == 0:
-                data = {n: Dict() for n in column_names}
+                data = {n: Data() for n in column_names}
                 for s in index_to_columns.values():
                     data[s.push_name][s.push_child] = unwrap(s.pull(result.data[0]))
-                return Dict(
+                return Data(
                     data=unwrap(data),
                     meta={"format": "cube"}
                 )
@@ -534,14 +533,14 @@ class Table_usingSQLite(Container):
                         domain = SimpleSetDomain(partitions=[])
 
                     dims.append(1 if allowNulls else 0)
-                    edges.append(Dict(
+                    edges.append(Data(
                         name=e.name,
                         allowNulls=allowNulls,
                         domain=domain
                     ))
 
                 zeros = [
-                    0 if s.aggregate == "count" and index_to_columns[si].push_child == "." else Dict
+                    0 if s.aggregate == "count" and index_to_columns[si].push_child == "." else Data
                     for si, s in enumerate(listwrap(query.select))
                 ]
                 data = {s.name: Matrix(dims=dims, zeros=zeros[si]) for si, s in enumerate(listwrap(query.select))}
@@ -551,7 +550,7 @@ class Table_usingSQLite(Container):
                 else:
                     select = {"name": query.select.name}
 
-                return Dict(
+                return Data(
                     meta={"format": "cube"},
                     edges=edges,
                     select=select,
@@ -586,14 +585,14 @@ class Table_usingSQLite(Container):
                     domain = SimpleSetDomain(partitions=jx.sort(parts))
 
                 dims.append(len(domain.partitions)+(1 if allowNulls else 0))
-                edges.append(Dict(
+                edges.append(Data(
                     name=e.name,
                     allowNulls=allowNulls,
                     domain=domain
                 ))
 
             zeros = [
-                0 if s.aggregate == "count" and index_to_columns[si].push_child == "." else Dict
+                0 if s.aggregate == "count" and index_to_columns[si].push_child == "." else Data
                 for si, s in enumerate(listwrap(query.select))
             ]
             data_cubes = {s.name: Matrix(dims=dims, zeros=zeros[si]) for si, s in enumerate(listwrap(query.select))}
@@ -614,7 +613,7 @@ class Table_usingSQLite(Container):
             else:
                 select = {"name": query.select.name}
 
-            return Dict(
+            return Data(
                 meta={"format": "cube"},
                 edges=edges,
                 select=select,
@@ -633,13 +632,13 @@ class Table_usingSQLite(Container):
                             tuple_value = row[s.push_column] = [None] * s.num_push_columns
                         tuple_value[s.push_child] = s.pull(d)
                     elif row[s.push_column] == None:
-                        row[s.push_column] = Dict()
+                        row[s.push_column] = Data()
                         row[s.push_column][s.push_child] = s.pull(d)
                     else:
                         row[s.push_column][s.push_child] = s.pull(d)
                 data.append(tuple(unwrap(r) for r in row))
 
-            output = Dict(
+            output = Data(
                 meta={"format": "table"},
                 header=column_names,
                 data=data
@@ -648,30 +647,30 @@ class Table_usingSQLite(Container):
 
             if not query.edges and not query.groupby and any(listwrap(query.select).aggregate):
                 if isinstance(query.select, list):
-                    data = Dict()
+                    data = Data()
                     for c in index_to_columns.values():
                         if c.push_child==".":
                             data[c.push_name] = c.pull(result.data[0])
                         else:
                             data[c.push_name][c.push_child] = c.pull(result.data[0])
 
-                    output = Dict(
+                    output = Data(
                         meta={"format": "value"},
                         data=data
                     )
                 else:
-                    data = Dict()
+                    data = Data()
                     for s in index_to_columns.values():
                         data[s.push_child] = s.pull(result.data[0])
 
-                    output = Dict(
+                    output = Data(
                         meta={"format": "value"},
                         data=unwrap(data)
                     )
             else:
                 data = []
                 for rownum in result.data:
-                    row = Dict()
+                    row = Data()
                     for c in index_to_columns.values():
                         if c.push_child == ".":
                             row[c.push_name] = c.pull(rownum)
@@ -685,7 +684,7 @@ class Table_usingSQLite(Container):
 
                     data.append(row)
 
-                output = Dict(
+                output = Data(
                     meta={"format": "list"},
                     data=data
                 )
@@ -763,7 +762,7 @@ class Table_usingSQLite(Container):
                     push_child = "."
                     num_push_columns = None
 
-                index_to_column[num_sql_columns] = Dict(
+                index_to_column[num_sql_columns] = Data(
                     is_edge=True,
                     push_name=query_edge.name,
                     push_column=edge_index,
@@ -899,7 +898,7 @@ class Table_usingSQLite(Container):
 
                 column_number = len(outer_selects)
                 outer_selects.append(sql)
-                index_to_column[column_number] = Dict(
+                index_to_column[column_number] = Data(
                     push_name=s.name,
                     push_column=si,
                     push_child=".",
@@ -918,7 +917,7 @@ class Table_usingSQLite(Container):
                         column_number = len(outer_selects)
                         count_sql = "COUNT(DISTINCT(" + sql + ")) AS " + _make_column_name(column_number)
                         outer_selects.append(count_sql)
-                        index_to_column[column_number] = Dict(
+                        index_to_column[column_number] = Data(
                             push_name=s.name,
                             push_column=si,
                             push_child=".",
@@ -940,7 +939,7 @@ class Table_usingSQLite(Container):
                         concat_sql = concat_sql[0] + " AS " + _make_column_name(column_number)
 
                     outer_selects.append(concat_sql)
-                    index_to_column[column_number] = Dict(
+                    index_to_column[column_number] = Data(
                         push_name=s.name,
                         push_column=si,
                         push_child=".",
@@ -953,10 +952,10 @@ class Table_usingSQLite(Container):
                 for details in s.value.to_sql(self):
                     sql = details.sql["n"]
                     for name, code in STATS.items():
-                        full_sql = expand_template(code, {"value": sql})
+                        full_sql = code.replace("{{value}}", sql)
                         column_number = len(outer_selects)
                         outer_selects.append(full_sql + " AS " + _make_column_name(column_number))
-                        index_to_column[column_number] = Dict(
+                        index_to_column[column_number] = Data(
                             push_name=s.name,
                             push_column=si,
                             push_child=name,
@@ -972,7 +971,7 @@ class Table_usingSQLite(Container):
                         if s.default != None:
                             sql = "COALESCE(" + sql + ", " + quote_value(s.default) + ")"
                         outer_selects.append(sql+" AS " + _make_column_name(column_number))
-                        index_to_column[column_number] = Dict(
+                        index_to_column[column_number] = Data(
                             push_name=s.name,
                             push_column=si,
                             push_child=".", #join_field(split_field(details.name)[1::]),
@@ -1069,7 +1068,7 @@ class Table_usingSQLite(Container):
             groupby.append(sql)
             selects.append(sql+" AS "+e.name)
 
-            index_to_column[column_number] = Dict(
+            index_to_column[column_number] = Data(
                 is_edge=True,
                 push_name=e.name,
                 push_column=column_number,
@@ -1088,7 +1087,7 @@ class Table_usingSQLite(Container):
             else:
                 selects.append(sql_aggs[s.aggregate] + "(" + sql + ") AS " + quote_table(s.name))
 
-            index_to_column[column_number] = Dict(
+            index_to_column[column_number] = Data(
                 push_name=s.name,
                 push_column=column_number,
                 push_child=".",
@@ -1114,10 +1113,12 @@ class Table_usingSQLite(Container):
         primary_nested_path = join_field(split_field(frum)[1:])
         vars_ = UNION([s.value.vars() for s in listwrap(query.select)])
 
-        nest_to_alias = {nested_path: "__" + unichr(ord('a') + i) + "__" for i, (nested_path, sub_table) in enumerate(self.nested_tables.items())}
-        # columns = self._get_sql_schema(frum)
+        nest_to_alias = {
+            nested_path: "__" + unichr(ord('a') + i) + "__"
+            for i, (nested_path, sub_table) in enumerate(self.nested_tables.items())
+        }
 
-        active_columns = {}
+        active_columns = {".": []}
         for cname, cols in self.columns.items():
             if any(startswith_field(cname, v) for v in vars_):
                 for c in cols:
@@ -1131,21 +1132,13 @@ class Table_usingSQLite(Container):
         # ANY VARS MENTIONED WITH NO COLUMNS?
         for v in vars_:
             if not any(startswith_field(cname, v) for cname in self.columns.keys()):
-                active_columns.append(Column(
-                    "name",
-                    "table",
-                    "es_column",
-                    "es_index",
-                    # "es_type",
-                    "type",
-                    {"name": "useSource", "default": False},
-                    {"name": "nested_path", "nulls": True},  # AN ARRAY OF PATHS (FROM DEEPEST TO SHALLOWEST) INDICATING THE JSON SUB-ARRAYS
-                    {"name": "relative", "nulls": True},
-                    {"name": "count", "nulls": True},
-                    {"name": "cardinality", "nulls": True},
-                    {"name": "partitions", "nulls": True},
-                    {"name": "last_updated", "nulls": True}
-
+                active_columns["."].append(Column(
+                    name=v,
+                    table=".",
+                    type="unknown",
+                    es_column=".",
+                    es_index=".",
+                    nested_path=["."]
                 ))
 
 
@@ -1153,18 +1146,12 @@ class Table_usingSQLite(Container):
         index_to_column = {}  # MAP FROM INDEX TO COLUMN (OR SELECT CLAUSE)
         index_to_uid = {}  # FROM NESTED PATH TO THE INDEX OF UID
         sql_selects = []  # EVERY SELECT CLAUSE (NOT TO BE USED ON ALL TABLES, OF COURSE)
-        nest_to_alias = {nested_path: "__" + unichr(ord('a') + i) + "__" for i, (nested_path, sub_table) in enumerate(self.nested_tables.items())}
+        nest_to_alias = {
+            nested_path: "__" + unichr(ord('a') + i) + "__"
+            for i, (nested_path, sub_table) in enumerate(self.nested_tables.items())
+        }
 
-        # WE MUST HAVE THE ALIAS NAMES FOR THE TABLES
-        def copy_cols(cols):
-            output = set()
-            for c in cols:
-                c = copy(c)
-                c.es_index = nest_to_alias[c.nested_path[0]]
-                output.add(c)
-            return output
-        columns = {k: copy_cols(v) for k, v in self.columns.items()}
-        columns['_db'] = self.db
+        columns = {k: copy_cols(v, nest_to_alias) for k, v in self.columns.items()}
 
         sorts = []
         if query.sort:
@@ -1185,7 +1172,7 @@ class Table_usingSQLite(Container):
                         sorts.append(column_alias+" IS NULL")
                         sorts.append(column_alias)
 
-        primary_doc_details = Dict()
+        primary_doc_details = Data()
         # EVERY SELECT STATEMENT THAT WILL BE REQUIRED, NO MATTER THE DEPTH
         # WE WILL CREATE THEM ACCORDING TO THE DEPTH REQUIRED
         for nested_path, sub_table in self.nested_tables.items():
@@ -1212,14 +1199,11 @@ class Table_usingSQLite(Container):
 
             # WE ALWAYS ADD THE UID AND ORDER
             column_number = index_to_uid[nested_path] = nested_doc_details['id_coord'] = len(sql_selects)
-            column_alias = _make_column_name(column_number)
-            sql_selects.append(alias + "." + quoted_UID + " AS " +column_alias)
+            sql_select = alias + "." + quoted_UID
+            sql_selects.append(sql_select+ " AS "+_make_column_name(column_number))
             if nested_path != ".":
-                column_alias = _make_column_name(column_number + 1)
-                sql_selects.append(alias + "." + quote_table(ORDER) + " AS " + column_alias)
-
-            # ALWAYS ADD SORTS
-
+                sql_select = alias + "." + quote_table(ORDER)
+                sql_selects.append(sql_select+ " AS "+_make_column_name(column_number))
 
             # WE DO NOT NEED DATA FROM TABLES WE REQUEST NOTHING FROM
             if nested_path not in active_columns:
@@ -1244,8 +1228,8 @@ class Table_usingSQLite(Container):
                                     # SQL HAS ABS TABLE REFERENCE
                                     column_alias = _make_column_name(column_number)
                                     sql_selects.append(unsorted_sql + " AS " + column_alias)
-                                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Dict(
-                                        push_name=join_field(split_field(s.name)+split_field(column.name)),
+                                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Data(
+                                        push_name=concat_field(s.name, column.name),
                                         push_column=si,
                                         push_child=".",
                                         pull=get_column(column_number),
@@ -1264,7 +1248,7 @@ class Table_usingSQLite(Container):
                                     # SQL HAS ABS TABLE REFERENCE
                                     column_alias = _make_column_name(column_number)
                                     sql_selects.append(unsorted_sql + " AS " + column_alias)
-                                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Dict(
+                                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Data(
                                         push_name=s.name,
                                         push_column=si,
                                         push_child=column.name,
@@ -1286,10 +1270,10 @@ class Table_usingSQLite(Container):
                     unsorted_sql = nest_to_alias[nested_path[0]] + "." + quote_table(c.es_column)
                     column_alias = _make_column_name(column_number)
                     sql_selects.append(unsorted_sql + " AS " + column_alias)
-                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Dict(
-                        push_name=c.name,
-                        push_column=ci,
-                        push_child=".",
+                    index_to_column[column_number] = nested_doc_details['index_to_column'][column_number] = Data(
+                        push_name=s.name,
+                        push_column=si,
+                        push_child=relative_field(c.name, s.name),
                         pull=get_column(column_number),
                         sql=unsorted_sql,
                         type=c.type,
@@ -1332,7 +1316,7 @@ class Table_usingSQLite(Container):
             :return: the nested property (usually an array)
             """
             previous_doc_id = None
-            doc = Dict()
+            doc = Data()
             output = []
             id_coord = nested_doc_details['id_coord']
 
@@ -1346,7 +1330,7 @@ class Table_usingSQLite(Container):
 
                 if doc_id != previous_doc_id:
                     previous_doc_id = doc_id
-                    doc = Dict()
+                    doc = Data()
                     curr_nested_path = nested_doc_details['nested_path'][0]
                     if isinstance(query.select, list) or isinstance(query.select.value, LeavesOp):
                         # ASSIGN INNER PROPERTIES
@@ -1357,7 +1341,7 @@ class Table_usingSQLite(Container):
                             if value == '':
                                 continue
 
-                            relative_path = relative_field(join_field(split_field(c.push_name)+[c.push_child]), curr_nested_path)
+                            relative_path = relative_field(concat_field(c.push_name, c.push_child), curr_nested_path)
                             if relative_path == ".":
                                 doc = value
                             else:
@@ -1404,9 +1388,9 @@ class Table_usingSQLite(Container):
                         column = temp_data[c.push_column][rownum]
                         if column is None:
                             column = temp_data[c.push_column][rownum] = {}
-                        Dict(column)[c.push_child] = c.pull(d)
+                        Data(column)[c.push_child] = c.pull(d)
 
-            output = Dict(
+            output = Data(
                 meta={"format": "cube"},
                 data={n: temp_data[c] for c, n in map_index_to_name.items()},
                 edges=[{
@@ -1420,7 +1404,7 @@ class Table_usingSQLite(Container):
                 }]
             )
             return output
-        elif query.format=="table":
+        elif query.format == "table":
             # selects = listwrap(query.select)
             # num_column = len(selects)
             # header = selects.name
@@ -1435,7 +1419,7 @@ class Table_usingSQLite(Container):
                 for c in cols:
                     set_column(row, c.push_column, c.push_child, c.pull(d))
                 output_data.append(row)
-            return Dict(
+            return Data(
                 meta={"format": "table"},
                 header=header,
                 data=output_data
@@ -1443,7 +1427,7 @@ class Table_usingSQLite(Container):
         else:
             rows = list(reversed(unwrap(result.data)))
             row = rows.pop()
-            output = Dict(
+            output = Data(
                 meta={"format": "list"},
                 data=listwrap(_accumulate_nested(rows, row, primary_doc_details, None, None))
             )
@@ -1487,7 +1471,7 @@ class Table_usingSQLite(Container):
                 for select_index, s in enumerate(selects):
                     sql_select = index_to_sql_select.get(select_index)
                     if not sql_select:
-                        select_clause.append("NULL AS " + _make_column_name(select_index))
+                        select_clause.append(selects[select_index])
                         continue
 
                     if startswith_field(sql_select.nested_path[0], nested_path):
@@ -1682,7 +1666,7 @@ class Table_usingSQLite(Container):
         # COLLECT AS MANY doc THAT DO NOT REQUIRE SCHEMA CHANGE
 
         required_changes = []
-        _insertion = Dict(
+        _insertion = Data(
             active_columns=set(),
             rows=[]
         )
@@ -1708,7 +1692,7 @@ class Table_usingSQLite(Container):
 
             if isinstance(data, Mapping):
                 for k, v in data.items():
-                    cname = join_field(split_field(full_path) + [k])
+                    cname = concat_field(full_path, k)
                     value_type = get_type(v)
                     if value_type is None:
                         continue
@@ -1739,7 +1723,7 @@ class Table_usingSQLite(Container):
                             nested_path = [deeper_nested_path] + nested_path
                             insertion = doc_collection.get(nested_path[0], None)
                             if not insertion:
-                                insertion = doc_collection[nested_path[0]] = Dict(
+                                insertion = doc_collection[nested_path[0]] = Data(
                                     active_columns=set(),
                                     rows=[]
                                 )
@@ -1770,7 +1754,7 @@ class Table_usingSQLite(Container):
                         deeper_nested_path = [cname] + nested_path
                         insertion = doc_collection.get(cname, None)
                         if not insertion:
-                            insertion = doc_collection[cname] = Dict(
+                            insertion = doc_collection[cname] = Data(
                                 active_columns=set(),
                                 rows=[]
                             )
@@ -1785,7 +1769,7 @@ class Table_usingSQLite(Container):
             else:
                 k = "."
                 v = data
-                cname = join_field(split_field(full_path) + [k])
+                cname = concat_field(full_path, k)
                 value_type = get_type(v)
                 if value_type is None:
                     return
@@ -1823,7 +1807,7 @@ class Table_usingSQLite(Container):
                     deeper_nested_path = [cname] + nested_path
                     insertion = doc_collection.get(cname, None)
                     if not insertion:
-                        doc_collection[cname] = Dict(
+                        doc_collection[cname] = Data(
                             active_columns=set(),
                             rows=[]
                         )
@@ -1855,7 +1839,7 @@ class Table_usingSQLite(Container):
         for nested_path, details in collection.items():
             active_columns = wrap(list(details.active_columns))
             rows = details.rows
-            table_name = join_field(split_field(self.name)+split_field(nested_path))
+            table_name = concat_field(self.name, nested_path)
 
             if table_name == self.name:
                 # DO NOT REQUIRE PARENT OR ORDER COLUMNS
@@ -1992,7 +1976,7 @@ def is_type(value, type):
 def typed_column(name, type_):
     if type_ == "nested":
         type_ = "object"
-    return join_field(split_field(name) + ["$" + type_])
+    return concat_field(name, "$" + type_)
 
 
 def untyped_column(column_name):
@@ -2074,6 +2058,19 @@ def set_column(row, col, child, value):
         column = row[col]
         if column is None:
             column = row[col] = {}
-        Dict(column)[child] = value
+        Data(column)[child] = value
 
 
+def copy_cols(cols, nest_to_alias):
+    """
+    MAKE ALIAS FOR EACH COLUMN
+    :param cols:
+    :param nest_to_alias:  map from nesting level to subquery alias
+    :return:
+    """
+    output = set()
+    for c in cols:
+        c = copy(c)
+        c.es_index = nest_to_alias[c.nested_path[0]]
+        output.add(c)
+    return output

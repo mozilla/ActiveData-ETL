@@ -33,6 +33,10 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result",
 				"key_format": "t.a:b.c"
+			},
+			"backfill":{
+				"prime_key": "etl.source.source.id",
+				"source_key": "etl.source.source.source.source.code"
 			}
 		},
 		{
@@ -62,6 +66,11 @@
 				"bucket": "active-data-perf",
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b.c"
+			},
+			"backfill":{
+				"ignore_key": "etl.source.id",
+				"prime_key": "etl.source.source.source.id",
+				"source_key": "etl.source.source.source.source.source.code"
 			}
 		},
 		{
@@ -90,6 +99,11 @@
 				"bucket": "active-data-jobs",
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "a.b"
+			},
+			"backfill":{
+				"prime_key": "etl.source.source.id", // "etl.source.id"],
+				"source": null,
+				"source_key": null
 			}
 		},
 		{
@@ -100,7 +114,7 @@
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
-				"max": "5day"
+				"max": "10day"
 			},
 			"sample_only": [],
 			"elasticsearch": {

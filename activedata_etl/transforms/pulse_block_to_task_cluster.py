@@ -13,17 +13,16 @@ from collections import Mapping
 
 import requests
 
+from MoLogs import Log, machine_metadata, strings
+from MoLogs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from pyDots import set_default, Data, unwraplist, listwrap, wrap
 from pyLibrary import convert
-from pyLibrary.debugs.exceptions import suppress_exception, Except
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, Dict, unwraplist, listwrap, wrap
 from pyLibrary.env import http
 from pyLibrary.maths import Math
-from pyLibrary.strings import expand_template
 from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
 from pyLibrary.times.dates import Date
 
@@ -34,9 +33,12 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/_search"
+
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
+
 
 def process(source_key, source, destination, resources, please_stop=None):
     output = []
@@ -54,7 +56,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             consume(tc_message, "_meta")
 
             Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
-            task_url = expand_template(MAIN_URL, {"task_id": task_id})
+            task_url = strings.expand_template(MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=RETRY, session=session)
             if task.code == u'ResourceNotFound':
                 Log.note("Can not find task {{task}} while processing key {{key}}", key=source_key, task=task_id)
@@ -65,7 +67,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         source_etl.source.type = "join"
                         source_etl.source.source = {"id": "tc"}
 
-                normalized = Dict(
+                normalized = Data(
                     task={"id": task_id},
                     etl={
                         "id": line_number,
@@ -83,27 +85,27 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # if not tc_message.status.runs.last().resolved:
             # UPDATE TASK STATUS (tc_message MAY BE OLD)
-            status_url = expand_template(STATUS_URL, {"task_id": task_id})
+            status_url = strings.expand_template(STATUS_URL, {"task_id": task_id})
             task_status = http.get_json(status_url, retry=RETRY, session=session)
             consume(task_status, "status.taskId")
             temp_runs, task_status.status.runs = task_status.status.runs, None  # set_default() will screw `runs` up
             set_default(tc_message.status, task_status.status)
             tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
             if not tc_message.status.runs.last().resolved:
-                Log.error(TRY_AGAIN_LATER, reason="task is not resolved")
+                Log.error(TRY_AGAIN_LATER, reason="task still runnning (not \"resolved\")")
 
             normalized = _normalize(source_key, task_id, tc_message, task, resources)
 
             # get the artifact list for the taskId
             try:
-                artifacts = normalized.task.artifacts = http.get_json(expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+                artifacts = normalized.task.artifacts = http.get_json(strings.expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
             except Exception, e:
                 # e = Except.wrap(e)
                 # if "<title>Application Error | Heroku</title>" in e:
                 Log.error(TRY_AGAIN_LATER, "Can not get artifacts for task " + task_id, cause=e)
 
             for a in artifacts:
-                a.url = expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
+                a.url = strings.expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
                 if a.name.endswith("/live.log"):
                     try:
@@ -177,7 +179,7 @@ def read_actions(source_key, normalized, url):
 
 
 def _normalize(source_key, task_id, tc_message, task, resources):
-    output = Dict()
+    output = Data()
     set_default(task, consume(tc_message, "status"))
 
     output.task.id = task_id
@@ -286,7 +288,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
 
 def _normalize_task_run(run):
-    output = Dict()
+    output = Data()
     output.reason_created = run.reasonCreated
     output.id = run.id
     output.scheduled = Date(run.scheduled)
@@ -448,6 +450,70 @@ def set_build_info(source_key, normalized, task, env, resources):
     if diff:
         Log.warning("new collection type of {{type}} while processing key {{key}}", type=diff, key=source_key)
 
+    # FIND BUILD TASK
+    if treeherder.jobKind == 'test':
+        build_task = get_build_task(source_key, normalized)
+        if build_task:
+            Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            build_task.task.artifacts = None
+            build_task.task.env = None
+            build_task.task.scopes = None
+            build_task.task.runs = None
+            build_task.task.routes = None
+            build_task.repo.changeset.files = None
+            build_task.action.timings = None
+            build_task.etl = None
+            set_default(normalized.build, {"build": build_task})
+
+
+def get_build_task(source_key, normalized_task):
+    # "revision12":"571286200177",
+    # "url":"https://queue.taskcluster.net/v1/task/J4jnKgKAQieAhwvSQBKa3Q/artifacts/public/build/target.tar.bz2",
+    # "platform":"linux64",
+    # "branch":"graphics",
+    # "date":1484242475,
+    # "type":"opt",
+    # "revision":"571286200177ae7ddfa1893c6b42853b60f2e81e"
+
+    build_task_id = strings.between(normalized_task.build.url, "task/", "/")
+    if not build_task_id:
+        Log.error("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+    response = http.post_json(
+        ACTIVEDATA_TASK_URL,
+        data={
+            "query": {"filtered": {"filter": {"term": {
+                "task.id": build_task_id
+            }}}},
+            "from": 0,
+            "size": 10
+        },
+        retry={"times": 3, "sleep": 3}
+    )
+    if not response.hits.hits:
+        Log.warning(
+            "Could not find any build task {{build}} for test {{task}} in {{key}}",
+            task=normalized_task.task.id,
+            build=build_task_id,
+            key=source_key
+        )
+        return None
+
+    if len(response.hits.hits) > 1:
+        Log.warning("Found too many builds for {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+        return None
+
+    candidate = response.hits.hits[0]
+    if candidate.build.revision12 != normalized_task.build.revision12:
+        Log.warning(
+            "Could not find matching build task {{build}} for test {{task}} in {{key}}",
+            task=normalized_task.task.id,
+            build=build_task_id,
+            key=source_key
+        )
+        return None
+
+    return candidate
+
 
 def get_tags(source_key, task_id, task, parent=None):
     tags = []
@@ -485,7 +551,7 @@ def get_tags(source_key, task_id, task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(source_key, task_id, Dict(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, task_id, Data(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, unicode):
@@ -569,6 +635,8 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
+    "CHANNEL",
+    "context",
     "created",
     "deadline",
     "description",
@@ -584,6 +652,7 @@ PAYLOAD_PROPERTIES = {
     "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
+    "purpose",
     "release_promotion",
     "repack_manifests_url",
     "script_repo_revision",

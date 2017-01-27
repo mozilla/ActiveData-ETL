@@ -7,7 +7,7 @@
 	"workers": [
 		{
 			"name": "unit",
-			"batch_size": 1000,
+			"batch_size": 100,
 			"skip": 0,
 			"rollover":{
 				"field": "build.date",
@@ -42,8 +42,8 @@
 				"interval": "year",
 				"max":"2year"
 			},
-			"batch_size": 1000,
-			"queue_size": 2000,
+			"batch_size": 100,
+			"queue_size": 200,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -71,7 +71,7 @@
 				"interval": "3month",
 				"max":"2year"
 			},
-			"batch_size": 500,
+			"batch_size": 50,
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
@@ -95,12 +95,12 @@
 		{
 			"name": "code coverage",
 			"skip": 0.0,
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
-				"max": "5day"
+				"max": "10day"
 			},
 			"sample_only": [],
 			"elasticsearch": {
@@ -124,8 +124,8 @@
 		},
 		{
 			"name": "task",
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
 				"field": "task.created",
 				"interval": "3month",

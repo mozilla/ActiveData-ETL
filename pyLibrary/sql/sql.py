@@ -11,9 +11,10 @@
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+
 from pyLibrary.env import elasticsearch
 from pyLibrary.queries.jx_usingMySQL import esfilter2sqlwhere
-from pyLibrary.dot import wrap
+from pyDots import wrap
 
 
 def find_holes(db, table_name, column_name, _range, filter=None):

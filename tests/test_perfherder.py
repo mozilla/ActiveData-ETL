@@ -10,8 +10,8 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, listwrap, Dict, wrap
+from MoLogs import Log
+from pyDots import Null, listwrap, Data, wrap
 from pyLibrary.env import http
 from pyLibrary.jsons import ref
 from pyLibrary.maths.randoms import Random
@@ -35,7 +35,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         def dummy(a, b):
             return Null, Null
-        seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Dict(next=dummy), Null, Null)
+        seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Data(next=dummy), Null, Null)
         Log.note("{{output}}", output=all_perf)
 
 
@@ -110,4 +110,4 @@ class TestBuildbotLogs(FuzzyTestCase):
 def wrap_as_bucket(data):
     def read_lines():
         return data
-    return Dict(read_lines=read_lines)
+    return Data(read_lines=read_lines)

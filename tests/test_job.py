@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.debugs.logs import Log
+from MoLogs import Log
 from pyLibrary.env import http
 from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
 from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log

@@ -8,16 +8,16 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, Null
-from pyLibrary.env import http, elasticsearch
+from activedata_etl import etl2key
+from activedata_etl.transforms import EtlHeadGenerator
+from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from pyDots import Data, wrap, coalesce, Null
+from pyLibrary import convert
+from MoLogs import Log, strings
+from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-from activedata_etl import etl2key
-from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from activedata_etl.transforms import EtlHeadGenerator
 
 DEBUG = False
 
@@ -40,7 +40,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     CONVERT pulse_block INTO PERFHERDER, IF ANY
     """
     etl_head_gen = EtlHeadGenerator(source_key)
-    stats = Dict()
+    stats = Data()
     counter = 0
 
     output = set()

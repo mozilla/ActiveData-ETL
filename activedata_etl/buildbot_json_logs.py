@@ -11,19 +11,20 @@ from __future__ import unicode_literals
 
 from tempfile import TemporaryFile
 
-from pyLibrary import convert, strings
+from pyDots import Data
+from pyLibrary import convert
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception, Explanation
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
+from MoLogs import startup, constants, strings
+from MoLogs.exceptions import suppress_exception, Explanation
+from MoLogs import Log
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 from pyLibrary.jsons import stream
 from pyLibrary.maths.randoms import Random
 from pyLibrary.queries import jx
 from pyLibrary.thread.threads import Thread, Lock
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import DAY
 from pyLibrary.times.timer import Timer
@@ -85,7 +86,7 @@ def parse_day(settings, p, force=False):
             return
 
     Log.note("Processing {{url}}", url=day_url)
-    day_etl = Dict(
+    day_etl = Data(
         id=day_num,
         url=day_url,
         timestamp=Date.now(),
@@ -99,14 +100,14 @@ def parse_day(settings, p, force=False):
 
         parsed = []
 
-        group_etl = Dict(
+        group_etl = Data(
             id=group_number,
             source=day_etl,
             type="join",
             timestamp=Date.now()
         )
         for row_number, d in enumerate(ts):
-            row_etl = Dict(
+            row_etl = Data(
                 id=row_number,
                 source=group_etl,
                 type="join"
@@ -140,7 +141,7 @@ def parse_day(settings, p, force=False):
             with locker:
                 if len(threads) <= 20:
                     break
-            Thread.sleep(seconds=0.1)
+            (Till(seconds=0.1)).wait()
 
         thread = Thread.run("upload " + key, upload, key, parsed)
         with locker:

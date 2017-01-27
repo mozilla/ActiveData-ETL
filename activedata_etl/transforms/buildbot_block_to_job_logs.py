@@ -8,20 +8,20 @@
 #
 from __future__ import unicode_literals
 
+from activedata_etl import etl2key
+from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
+from pyDots import Data, set_default
 from pyLibrary import convert
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default
+from MoLogs.exceptions import Except
+from MoLogs import Log
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.git import get_git_revision
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import MONTH
 from pyLibrary.times.timer import Timer
-from activedata_etl import etl2key
-from activedata_etl.imports.buildbot import BuildbotTranslator
-from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
 
 _ = convert
 DEBUG = False
@@ -60,7 +60,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             return set()
 
         try:
-            rev = Dict(
+            rev = Data(
                 changeset={"id": data.build.revision},
                 branch={"name": data.build.branch, "locale": data.build.locale}
             )

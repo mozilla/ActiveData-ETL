@@ -25,11 +25,11 @@ try:
 except Exception:
     pass
 
-from pyLibrary.dot import Null
+from pyDots import Null
 from pyLibrary.maths import Math
 from pyLibrary.times.durations import Duration, MILLI_VALUES
 from pyLibrary.vendor.dateutil.parser import parse as parse_date
-from pyLibrary.strings import deformat
+from MoLogs.strings import deformat
 
 ISO8601 = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -71,13 +71,20 @@ class Date(object):
         try:
             return unix2datetime(self.unix).strftime(format)
         except Exception, e:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
 
             Log.error("Can not format {{value}} with {{format}}", value=unix2datetime(self.unix), format=format, cause=e)
 
     @property
     def milli(self):
         return self.unix*1000
+
+    @property
+    def hour(self):
+        """
+        :return: HOUR (int) IN THE GMT DAY
+        """
+        return int(int(self.unix)/60/60 % 24)
 
     def addDay(self):
         return Date(unix2datetime(self.unix) + timedelta(days=1))
@@ -108,7 +115,7 @@ class Date(object):
             else:
                 return unix2Date(self.unix + other.seconds)
         else:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
 
             Log.error("can not subtract {{type}} from Date", type=other.__class__.__name__)
 
@@ -117,11 +124,12 @@ class Date(object):
         candidate = _time()
         temp = _utcnow()
         unix = datetime2unix(temp)
-        if abs(candidate - unix) > 0.1:
-            from pyLibrary.debugs.logs import Log
+
+        if abs(unix - candidate) > 0.1:
+            from MoLogs import Log
 
             Log.warning("_time() and _utcnow() is off by {{amount}}", amount=unix - candidate)
-        return unix2Date(datetime2unix(temp))
+        return unix2Date(unix)
 
     @staticmethod
     def eod():
@@ -190,6 +198,8 @@ class Date(object):
     def __add__(self, other):
         return self.add(other)
 
+    def __data__(self):
+        return self
 
     @classmethod
     def min(cls, *values):
@@ -234,7 +244,7 @@ def parse(*args):
 
         return output
     except Exception, e:
-        from pyLibrary.debugs.logs import Log
+        from MoLogs import Log
 
         Log.error("Can not convert {{args}} to Date", args=args, cause=e)
 
@@ -276,7 +286,7 @@ def set_day(offset, day):
 def parse_time_expression(value):
     def simple_date(sign, dig, type, floor):
         if dig or sign:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
             Log.error("can not accept a multiplier on a datetime")
 
         if floor:
@@ -309,7 +319,7 @@ def parse_time_expression(value):
         op = {"+": "__add__", "-": "__sub__"}[sign]
         if type in MILLI_VALUES.keys():
             if floor:
-                from pyLibrary.debugs.logs import Log
+                from MoLogs import Log
                 Log.error("floor (|) of duration not accepted")
             value = value.__getattribute__(op)(Duration(dig+type))
         else:
@@ -332,7 +342,7 @@ def unicode2Date(value, format=None):
                 value += ".000"
             return unix2Date(datetime2unix(datetime.strptime(value, format)))
         except Exception, e:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
 
             Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
 
@@ -391,8 +401,12 @@ def unicode2Date(value, format=None):
             pass
 
     else:
-        from pyLibrary.debugs.logs import Log
+        from MoLogs import Log
         Log.error("Can not interpret {{value}} as a datetime",  value= value)
+
+
+DATETIME_EPOCH = datetime(1970, 1, 1)
+DATE_EPOCH = date(1970, 1, 1)
 
 
 def datetime2unix(value):
@@ -400,18 +414,16 @@ def datetime2unix(value):
         if value == None:
             return None
         elif isinstance(value, datetime):
-            epoch = datetime(1970, 1, 1)
-            diff = value - epoch
+            diff = value - DATETIME_EPOCH
             return diff.total_seconds()
         elif isinstance(value, date):
-            epoch = date(1970, 1, 1)
-            diff = value - epoch
+            diff = value - DATE_EPOCH
             return diff.total_seconds()
         else:
-            from pyLibrary.debugs.logs import Log
+            from MoLogs import Log
             Log.error("Can not convert {{value}} of type {{type}}", value=value, type=value.__class__)
     except Exception, e:
-        from pyLibrary.debugs.logs import Log
+        from MoLogs import Log
         Log.error("Can not convert {{value}}", value=value, cause=e)
 
 
@@ -421,7 +433,7 @@ def unix2datetime(unix):
 
 def unix2Date(unix):
     if not isinstance(unix, float):
-        from pyLibrary.debugs.logs import Log
+        from MoLogs import Log
         Log.error("problem")
 
     output = object.__new__(Date)

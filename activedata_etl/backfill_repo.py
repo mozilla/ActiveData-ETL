@@ -8,16 +8,17 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
+from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from pyDots import listwrap, unwrap, wrap, wrap_leaves
+from MoLogs import startup, constants
+from MoLogs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
 from pyLibrary.queries.jx_usingES import FromES
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.thread.threads import Thread, Signal
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
-from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 
 
 DEBUG = False
@@ -131,7 +132,7 @@ def getall(hg, es, please_stop):
         #TODO: use the `retry_on_conflict` parameter
         while len(errors) < 3 and not please_stop:
             try:
-                Thread.sleep(seconds=10)
+                (Till(seconds=10)).wait()
                 es.update({
                     "set": wrap_leaves({SCAN_DONE: True}),
                     "where": {"eq": {"changeset.id": id}}

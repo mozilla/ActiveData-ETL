@@ -7,19 +7,18 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-import ast
+from __future__ import unicode_literals
 
+import ast
 import re
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist, listwrap
+from pyDots import wrap, Data, coalesce, set_default, unwraplist, listwrap
+from pyLibrary import convert
+from MoLogs.exceptions import suppress_exception
+from MoLogs import Log, strings
 from pyLibrary.env import elasticsearch
 from pyLibrary.maths import Math
-from pyLibrary.queries import jx
 from pyLibrary.times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
@@ -32,7 +31,7 @@ class BuildbotTranslator(object):
 
     def parse(self, data):
         data = wrap(data)
-        output = Dict()
+        output = Data()
 
         if data.build.times:
             if len(data.build.times) != 2:
@@ -41,7 +40,7 @@ class BuildbotTranslator(object):
             data = data.build
 
         if isinstance(data.properties, list):
-            props = data.properties = Dict(**{a: b for a, b, c in data.properties})
+            props = data.properties = Data(**{a: b for a, b, c in data.properties})
         else:
             props = data.properties.copy()
 
@@ -261,7 +260,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR INGNORED, ALREADY SENT
             set_default(output, KNOWN_PLATFORM[raw_platform])
         elif buildername.endswith("nightly"):
             output.build.trigger = "nightly"
@@ -297,7 +296,7 @@ class BuildbotTranslator(object):
                         self.unknown_platforms += [raw_platform]
                         Log.error("Test platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                     else:
-                        return Dict()  # ERROR INGNORED, ALREADY SENT
+                        return Data()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
             except Exception, e:
@@ -333,7 +332,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR INGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -410,7 +409,7 @@ def normalize_other(other):
     """
     the buildbot properties are unlimited in their number of keys
     """
-    known = Dict()
+    known = Data()
     unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
@@ -424,7 +423,7 @@ def normalize_other(other):
         if k not in unknown_properties:
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
-        if isinstance(v, (list, dict, Dict)):
+        if isinstance(v, (list, dict, Data)):
             unknown.append({"name": unicode(k), "value": convert.value2json(v)})
         elif Math.is_number(v):
             unknown.append({"name": unicode(k), "value": convert.value2number(v)})
@@ -464,7 +463,7 @@ known_properties = {
     "uploadFiles"
 }
 
-unknown_properties=Dict()
+unknown_properties=Data()
 
 
 test_modes = {

@@ -10,8 +10,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, join_field, wrap
+from pyDots import Data, join_field, wrap
+from MoLogs import Log
 from pyLibrary.env import http
 
 
@@ -29,7 +29,7 @@ def normalize_resource_usage(url):
         return None
     usage = convert.json2value(convert.utf82unicode(content))
 
-    output = Dict()
+    output = Data()
     output.meta.version = usage.version
     output.timing.start = usage.start
     output.timing.end = usage.end

@@ -16,18 +16,19 @@ from copy import copy
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Explanation, assert_no_exception, Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, Null, coalesce, unwraplist
+from pyDots import set_default, Null, coalesce, unwraplist
+from pyLibrary import convert
+from MoLogs.exceptions import Explanation, assert_no_exception, Except
+from MoLogs import Log, strings
 from pyLibrary.env import http
 from pyLibrary.maths.randoms import Random
 from pyLibrary.meta import use_settings, cache
 from pyLibrary.queries import jx
 from pyLibrary.testing import elasticsearch
 from pyLibrary.thread.threads import Thread, Lock, Queue
+from pyLibrary.thread.till import Till
 from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, Duration, HOUR, MINUTE
+from pyLibrary.times.durations import SECOND, Duration, HOUR
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -155,10 +156,10 @@ class HgMozillaOrg(object):
                 e = Except.wrap(e)
                 if "NodeNotConnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    Thread.sleep(seconds=Random.int(5 * 60))
+                    (Till(seconds=Random.int(5 * 60))).wait()
                     continue
                 elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
-                    Thread.sleep(seconds=Random.int(30))
+                    (Till(seconds=Random.int(30))).wait()
                     continue
                 else:
                     Log.warning("Bad ES call, fall back to TH", cause=e)
@@ -173,7 +174,7 @@ class HgMozillaOrg(object):
         return docs[0]._source
 
     def _load_all_in_push(self, revision, locale=None):
-        # http://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
+        # https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=57c461500a0c
         found_revision = copy(revision)
         if isinstance(found_revision.branch, basestring):
             lower_name = found_revision.branch.lower()
@@ -228,7 +229,7 @@ class HgMozillaOrg(object):
                                 id=r.node,
                                 id12=r.node[0:12],
                                 author=r.user,
-                                description=r.description,
+                                description=strings.limit(r.description, 2000),
                                 date=Date(r.date),
                                 files=r.files,
                                 backedoutby=r.backedoutby
@@ -258,7 +259,7 @@ class HgMozillaOrg(object):
             pass
 
         try:
-            Thread.sleep(seconds=5)
+            (Till(seconds=5)).wait()
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
         except Exception, f:
             pass
@@ -280,7 +281,7 @@ class HgMozillaOrg(object):
             path = path[0:4] + ["mozilla-beta"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)
         elif len(path) > 7 and path[5] == "mozilla-release":
-            # FROM http://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+            # FROM https://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
             path = path[0:4] + ["mozilla-release"] + path[7:]
             return self._get_and_retry("/".join(path), branch, **kwargs)

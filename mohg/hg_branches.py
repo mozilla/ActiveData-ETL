@@ -8,21 +8,19 @@
 #
 from __future__ import unicode_literals
 
-from copy import copy
-
 from BeautifulSoup import BeautifulSoup
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default
+from mohg.hg_mozilla_org import DEFAULT_LOCALE
+from pyDots import Data, set_default
+from MoLogs import startup, constants
+from MoLogs.exceptions import suppress_exception
+from MoLogs import Log
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
 from pyLibrary.queries.unique_index import UniqueIndex
 from pyLibrary.times.dates import Date
 from pyLibrary.times.durations import SECOND, DAY
-from mohg.hg_mozilla_org import DEFAULT_LOCALE
 
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -134,7 +132,7 @@ def _get_single_branch_from_hg(settings, description, dir):
                 continue
 
             name, desc, last_used = [c.text for c in columns][0:3]
-            detail = Dict(
+            detail = Data(
                 name=name.lower(),
                 locale=DEFAULT_LOCALE,
                 parent_name=description,

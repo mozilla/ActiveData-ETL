@@ -10,11 +10,9 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from pyLibrary import strings
+from pyDots import wrap, coalesce
 from pyLibrary.aws import s3
-from pyLibrary.collections import reverse
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, coalesce
+from MoLogs import Log, strings
 from pyLibrary.queries import jx
 
 
