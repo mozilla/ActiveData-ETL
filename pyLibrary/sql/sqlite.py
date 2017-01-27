@@ -118,7 +118,10 @@ class Sqlite(DB):
             while not please_stop:
                 if DEBUG:
                     Log.note("begin pop")
-                command, result, signal, trace = self.queue.pop(till=please_stop)
+                toople = self.queue.pop(till=please_stop)
+                if toople == None and please_stop:
+                    break
+                command, result, signal, trace = toople
                 if DEBUG:
                     Log.note("done pop")
 
@@ -161,7 +164,6 @@ class Sqlite(DB):
             if DEBUG:
                 Log.note("Database is closed")
             self.db.commit()
-            self.db.close()
 
     def quote_column(self, column_name, table=None):
         if table != None:

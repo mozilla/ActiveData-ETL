@@ -58,7 +58,8 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         result = db.query(
             " SELECT " +
             "    substr(name, 1, " + unicode(len(prefix) + 1) + ") as prefix," +
-            "    count(1) as number " +
+            "    count(1) as number, " +
+            "    avg(last_modified) as `avg` " +
             " FROM files " +
             " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
@@ -68,10 +69,16 @@ def backfill_recent(cache, settings, index_queue, please_stop):
 
         # TODO: PULL THE SAME COUNTS FROM ES, BUT GROUPBY ON _id IS BROKEN
 
-        for prefix2, count in list(reversed(sorted(result.data, key=lambda d: d[0]))):
+        for prefix2, count, timestamp in list(reversed(sorted(result.data, key=lambda d: d[2]))):
             if count < MAX_SIZE:
                 fill_holes(prefix2, please_stop)
             else:
+                Log.note(
+                    "Decimate prefix={{prefix|quote}}, count={{count}}, timestamp={{timestamp|datetime}}",
+                    prefix=prefix2,
+                    timestamp=timestamp,
+                    count=count
+                )
                 decimate(prefix2, please_stop)
 
     def fill_holes(prefix, please_stop):
@@ -122,7 +129,8 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         backfill.total += len(keys) - len(invalid)
 
     timeout = Till(seconds=RUN_TIME)
-    decimate("", please_stop)
+    if not settings.backfill.disabled:
+        decimate("", please_stop)
     (timeout | bucket.up_to_date).wait()
     Log.note("done")
 
