@@ -486,8 +486,7 @@ def etl_one(settings):
         resources=resources,
         please_stop=stopper
     )
-    queue.add(Thread.STOP)
-    Thread.wait_for_shutdown_signal(stopper, allow_exit=True, wait_forever=False)
+    Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
 def parse_id_argument(id):
