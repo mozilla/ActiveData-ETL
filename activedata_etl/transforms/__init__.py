@@ -10,8 +10,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
-from pyLibrary import strings
-from MoLogs import Log
+from MoLogs import Log, strings
 from pyDots import wrap, Data, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
