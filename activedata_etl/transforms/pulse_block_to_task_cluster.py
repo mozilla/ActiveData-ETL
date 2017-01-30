@@ -33,7 +33,7 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/_search"
+ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/task/_search"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -502,7 +502,7 @@ def get_build_task(source_key, normalized_task):
         Log.warning("Found too many builds for {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
 
-    candidate = response.hits.hits[0]
+    candidate = response.hits.hits[0]._source
     if candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",
