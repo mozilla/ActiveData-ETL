@@ -19,7 +19,7 @@ from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from pyDots import set_default, Data, unwraplist, listwrap, wrap
+from pyDots import set_default, Data, unwraplist, listwrap, wrap, coalesce
 from pyLibrary import convert
 from pyLibrary.env import http
 from pyLibrary.maths import Math
@@ -456,10 +456,12 @@ def set_build_info(source_key, normalized, task, env, resources):
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
             build_task.task.artifacts = None
+            build_task.task.command = None
             build_task.task.env = None
             build_task.task.scopes = None
             build_task.task.runs = None
             build_task.task.routes = None
+            build_task.task.tags = None
             build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
@@ -475,22 +477,24 @@ def get_build_task(source_key, normalized_task):
     # "type":"opt",
     # "revision":"571286200177ae7ddfa1893c6b42853b60f2e81e"
 
-    build_task_id = strings.between(normalized_task.build.url, "task/", "/")
+    build_task_id = coalesce(strings.between(normalized_task.build.url, "task/", "/"), normalized_task.task.dependencies)
     if not build_task_id:
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
     response = http.post_json(
         ACTIVEDATA_TASK_URL,
         data={
-            "query": {"filtered": {"filter": {"term": {
-                "task.id": build_task_id
+            "query": {"filtered": {"filter": {"terms": {
+                "task.id": listwrap(build_task_id)
             }}}},
             "from": 0,
             "size": 10
         },
         retry={"times": 3, "sleep": 3}
     )
-    if not response.hits.hits:
+
+    candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
+    if not candidates:
         Log.warning(
             "Could not find any build task {{build}} for test {{task}} in {{key}}",
             task=normalized_task.task.id,
@@ -499,12 +503,12 @@ def get_build_task(source_key, normalized_task):
         )
         return None
 
-    if len(response.hits.hits) > 1:
+    if len(candidates) > 1:
         Log.warning("Found too many builds for {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
 
-    candidate = response.hits.hits[0]._source
-    if candidate.build.revision12 != normalized_task.build.revision12:
+    candidate = candidates[0]
+    if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",
             task=normalized_task.task.id,
