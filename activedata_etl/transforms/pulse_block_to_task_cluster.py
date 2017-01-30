@@ -218,6 +218,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     run_id = consume(tc_message, "runId")
     output.task.run = _normalize_task_run(task.runs[run_id])
     output.task.runs = map(_normalize_task_run, consume(task, "runs"))
+    output.task.reboot = consume(task, "payload.reboot")
 
     output.task.scheduler.id = consume(task, "schedulerId")
     output.task.scopes = consume(task, "scopes")
