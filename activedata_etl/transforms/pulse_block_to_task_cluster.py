@@ -239,7 +239,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     consume(task, "payload.routes")
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
-    output.task.signing.cert = consume(task, "payload.signing_cert"),
+    output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
     output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
@@ -468,6 +468,9 @@ def set_build_info(source_key, normalized, task, env, resources):
             set_default(normalized.build, {"build": build_task})
 
 
+MISSING_BUILDS = set()
+
+
 def get_build_task(source_key, normalized_task):
     # "revision12":"571286200177",
     # "url":"https://queue.taskcluster.net/v1/task/J4jnKgKAQieAhwvSQBKa3Q/artifacts/public/build/target.tar.bz2",
@@ -477,7 +480,7 @@ def get_build_task(source_key, normalized_task):
     # "type":"opt",
     # "revision":"571286200177ae7ddfa1893c6b42853b60f2e81e"
 
-    build_task_id = coalesce(strings.between(normalized_task.build.url, "task/", "/"), normalized_task.task.dependencies)
+    build_task_id = listwrap(coalesce(strings.between(normalized_task.build.url, "task/", "/"), normalized_task.task.dependencies))
     if not build_task_id:
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
@@ -485,7 +488,7 @@ def get_build_task(source_key, normalized_task):
         ACTIVEDATA_TASK_URL,
         data={
             "query": {"filtered": {"filter": {"terms": {
-                "task.id": listwrap(build_task_id)
+                "task.id": build_task_id
             }}}},
             "from": 0,
             "size": 10
@@ -495,12 +498,14 @@ def get_build_task(source_key, normalized_task):
 
     candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
     if not candidates:
-        Log.warning(
-            "Could not find any build task {{build}} for test {{task}} in {{key}}",
-            task=normalized_task.task.id,
-            build=build_task_id,
-            key=source_key
-        )
+        if not any(b in MISSING_BUILDS for b in build_task_id):
+            Log.warning(
+                "Could not find any build task {{build}} for test {{task}} in {{key}}",
+                task=normalized_task.task.id,
+                build=build_task_id,
+                key=source_key
+            )
+            MISSING_BUILDS.update(build_task_id)
         return None
 
     if len(candidates) > 1:
