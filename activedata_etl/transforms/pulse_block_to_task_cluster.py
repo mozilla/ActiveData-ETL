@@ -477,7 +477,8 @@ def get_build_task(source_key, normalized_task):
 
     build_task_id = strings.between(normalized_task.build.url, "task/", "/")
     if not build_task_id:
-        Log.error("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+        Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+        return None
     response = http.post_json(
         ACTIVEDATA_TASK_URL,
         data={
