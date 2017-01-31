@@ -87,8 +87,8 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 step_name = prefix_words[0]
                 curr_line = log_line[len(prefix) + 3:]
 
-                start_time = Math.min(start_time, tc_timestamp)
-                end_time = MAX(end_time, tc_timestamp)
+                start_time = MIN([start_time, tc_timestamp])
+                end_time = MAX([end_time, tc_timestamp])
 
                 task_step = task_steps[step_name]
                 if not task_step:
@@ -149,8 +149,8 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 task_step.step = step_name
                 action.timings.append(task_step)
 
-            start_time = Math.min(start_time, timestamp)
-            end_time = MAX(end_time, timestamp)
+            start_time = MIN([start_time, timestamp])
+            end_time = MAX([end_time, timestamp])
             task_step.start_time = Math.min(task_step.start_time, timestamp)
             task_step.end_time = MAX(task_step.end_time, timestamp)
 
@@ -203,8 +203,6 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
     action.etl.total_bytes = total_bytes
     return action
-
-
 
 
 def process_text_log(all_log_lines, from_url):
@@ -759,16 +757,16 @@ def fix_times(times, start_time, end_time):
     for i, t in enumerate(times):
         if t.start_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS STARTED
-            t.start_time = Math.min(MIN(t.children.start_time), MIN(t.children.end_time), time)
-        time = MAX(t.start_time, t.end_time, time)
+            t.start_time = MIN([MIN(t.children.start_time), MIN(t.children.end_time), time])
+        time = MAX([t.start_time, t.end_time, time])
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
     for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
-            t.end_time = MAX(MAX(t.children.start_time), MAX(t.children.end_time), time, t.start_time)
-        t.duration = MAX(time, t.end_time) - t.start_time
+            t.end_time = MAX([MAX(t.children.start_time), MAX(t.children.end_time), time, t.start_time])
+        t.duration = MAX([time, t.end_time]) - t.start_time
         if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
             t.duration+=HOUR
         if t.duration==None or t.duration < 0:

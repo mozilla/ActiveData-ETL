@@ -259,85 +259,89 @@ class ETL(Thread):
         return True
 
     def loop(self, please_stop):
-        with self.work_queue:
-            while not please_stop:
-                if self.settings.wait_forever:
-                    todo = None
-                    while not please_stop and not todo:
+        try:
+            with self.work_queue:
+                while not please_stop:
+                    if self.settings.wait_forever:
+                        todo = None
+                        while not please_stop and not todo:
+                            if isinstance(self.work_queue, aws.Queue):
+                                todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
+                            else:
+                                todo = self.work_queue.pop()
+                        if not todo:
+                            break  # please_stop MUST HAVE BEEN TRIGGERED
+
+                    else:
                         if isinstance(self.work_queue, aws.Queue):
-                            todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
-                        else:
                             todo = self.work_queue.pop()
-                    if not todo:
-                        break  # please_stop MUST HAVE BEEN TRIGGERED
+                        else:
+                            todo = self.work_queue.pop(till=Till(till=Date.now().unix))
+                        if todo == None:
+                            please_stop.go()
+                            return
 
-                else:
-                    if isinstance(self.work_queue, aws.Queue):
-                        todo = self.work_queue.pop()
-                    else:
-                        todo = self.work_queue.pop(till=Till(till=Date.now()))
                     if todo == None:
-                        please_stop.go()
-                        return
-
-                if todo == None:
-                    Log.warning("Should never happen")
-                    continue
-
-                if isinstance(todo, unicode):
-                    Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
-                    self.work_queue.commit()
-                    continue
-
-
-                try:
-                    is_ok = self._dispatch_work(todo)
-                    if is_ok:
-                        self.work_queue.commit()
-                    else:
-                        self.work_queue.rollback()
-                except Exception, e:
-                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
-                    if "Shutdown detected." in e:
+                        Log.warning("Should never happen")
                         continue
 
-                    previous_attempts = coalesce(todo.previous_attempts, 0)
-                    todo.previous_attempts = previous_attempts + 1
-
-                    if previous_attempts < coalesce(self.settings.min_attempts, 3):
-                        # SILENT
-                        try:
-                            self.work_queue.add(todo)
-                            self.work_queue.commit()
-                        except Exception, f:
-                            # UNEXPECTED PROBLEM!!!
-                            self.work_queue.rollback()
-                            Log.warning("Could not annotate todo", cause=[f, e])
-                    elif previous_attempts > 10:
-                        #GIVE UP
-                        Log.warning(
-                            "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
-                            tries=todo.previous_attempts,
-                            key=todo.key,
-                            cause=e
-                        )
+                    if isinstance(todo, unicode):
+                        Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                         self.work_queue.commit()
-                    else:
-                        # COMPLAIN
-                        try:
-                            self.work_queue.add(todo)
-                            self.work_queue.commit()
-                        except Exception, f:
-                            # UNEXPECTED PROBLEM!!!
-                            self.work_queue.rollback()
-                            Log.warning("Could not annotate todo", cause=[f, e])
+                        continue
 
-                        Log.warning(
-                            "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
-                            tries=todo.previous_attempts,
-                            key=todo.key,
-                            cause=e
-                        )
+
+                    try:
+                        is_ok = self._dispatch_work(todo)
+                        if is_ok:
+                            self.work_queue.commit()
+                        else:
+                            self.work_queue.rollback()
+                    except Exception, e:
+                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
+                        if "Shutdown detected." in e:
+                            continue
+
+                        previous_attempts = coalesce(todo.previous_attempts, 0)
+                        todo.previous_attempts = previous_attempts + 1
+
+                        if previous_attempts < coalesce(self.settings.min_attempts, 3):
+                            # SILENT
+                            try:
+                                self.work_queue.add(todo)
+                                self.work_queue.commit()
+                            except Exception, f:
+                                # UNEXPECTED PROBLEM!!!
+                                self.work_queue.rollback()
+                                Log.warning("Could not annotate todo", cause=[f, e])
+                        elif previous_attempts > 10:
+                            #GIVE UP
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
+                                tries=todo.previous_attempts,
+                                key=todo.key,
+                                cause=e
+                            )
+                            self.work_queue.commit()
+                        else:
+                            # COMPLAIN
+                            try:
+                                self.work_queue.add(todo)
+                                self.work_queue.commit()
+                            except Exception, f:
+                                # UNEXPECTED PROBLEM!!!
+                                self.work_queue.rollback()
+                                Log.warning("Could not annotate todo", cause=[f, e])
+
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                                tries=todo.previous_attempts,
+                                key=todo.key,
+                                cause=e
+                            )
+        except Exception, e:
+            Log.warning("Failure in the ETL loop", cause=e)
+            raise e
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
