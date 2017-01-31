@@ -12,20 +12,20 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
-from pyDots import coalesce, unwrap, Data, wrap
+from mo_dots import coalesce, unwrap, Data, wrap
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from MoLogs import startup, constants
-from MoLogs.exceptions import Explanation, WarnOnException
-from MoLogs import Log, machine_metadata
+from mo_logs import startup, constants
+from mo_logs.exceptions import Explanation, WarnOnException
+from mo_logs import Log, machine_metadata
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.maths import Math
-from pyLibrary.maths.randoms import Random
+from mo_math import Math
+from mo_math.randoms import Random
 from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, Signal, Queue
-from pyLibrary.thread.till import Till
-from pyLibrary.times.timer import Timer
+from mo_threads import Thread, Signal, Queue
+from mo_threads import Till
+from mo_times.timer import Timer
 
 split = {}
 empty_bucket_complaint_sent = False
@@ -95,7 +95,7 @@ def splitter(work_queue, please_stop):
                 bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
-                rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
+                rate=num_keys / MAX(extend_time.duration.seconds, 0.01)
             )
 
 

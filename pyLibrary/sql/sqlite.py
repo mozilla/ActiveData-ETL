@@ -15,14 +15,14 @@ from __future__ import unicode_literals
 import sqlite3
 from collections import Mapping
 
+from mo_files import File
+from mo_logs import Log
+from mo_logs.exceptions import Except, extract_stack, ERROR, _extract_traceback
+from mo_threads import Queue, Signal, Thread
+from mo_times.timer import Timer
+from mo_dots import Data, coalesce
 from pyLibrary import convert
-from MoLogs.exceptions import Except, extract_stack, ERROR
-from MoLogs import Log
-from pyDots import Data, coalesce
-from pyLibrary.env.files import File
 from pyLibrary.sql import DB, SQL
-from pyLibrary.thread.threads import Queue, Signal, Thread
-from pyLibrary.times.timer import Timer
 
 DEBUG = False
 DEBUG_INSERT = False
@@ -106,6 +106,9 @@ class Sqlite(DB):
             self.db = sqlite3.connect(coalesce(self.filename, ':memory:'))
             full_path = File("pyLibrary/vendor/sqlite/libsqlitefunctions.so").abspath
             try:
+                trace = _extract_traceback(0)[0]
+                file = File.new_instance(trace.file, "../../pyLibrary/vendor/sqlite/libsqlitefunctions.so")
+                full_path = file.abspath
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
             except Exception, e:
@@ -118,10 +121,7 @@ class Sqlite(DB):
             while not please_stop:
                 if DEBUG:
                     Log.note("begin pop")
-                toople = self.queue.pop(till=please_stop)
-                if toople == None and please_stop:
-                    break
-                command, result, signal, trace = toople
+                command, result, signal, trace = self.queue.pop(till=please_stop)
                 if DEBUG:
                     Log.note("done pop")
 
@@ -164,6 +164,7 @@ class Sqlite(DB):
             if DEBUG:
                 Log.note("Database is closed")
             self.db.commit()
+            self.db.close()
 
     def quote_column(self, column_name, table=None):
         if table != None:

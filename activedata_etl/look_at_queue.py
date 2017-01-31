@@ -13,8 +13,8 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary import aws
-from MoLogs import startup
-from MoLogs import Log
+from mo_logs import startup
+from mo_logs import Log
 
 
 def list_queue(settings, num):

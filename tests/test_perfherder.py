@@ -10,12 +10,12 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
-from MoLogs import Log
-from pyDots import Null, listwrap, Data, wrap
+from mo_logs import Log
+from mo_dots import Null, listwrap, Data, wrap
 from pyLibrary.env import http
-from pyLibrary.jsons import ref
-from pyLibrary.maths.randoms import Random
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_json import ref
+from mo_math.randoms import Random
+from mo_testing.fuzzytestcase import FuzzyTestCase
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs, EtlHeadGenerator
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import stats

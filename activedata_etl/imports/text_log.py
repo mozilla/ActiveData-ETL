@@ -13,14 +13,14 @@ import re
 from copy import copy
 
 from activedata_etl.imports import buildbot
-from pyDots import coalesce, wrap, FlatList, Null, Data, unwrap
+from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
 from pyLibrary import convert
-from MoLogs.exceptions import Except
-from MoLogs import Log, strings
-from pyLibrary.maths import Math
+from mo_logs.exceptions import Except
+from mo_logs import Log, strings
+from mo_math import Math, MAX, MIN
 from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date, unicode2Date
-from pyLibrary.times.durations import SECOND, MINUTE, HOUR, DAY
+from mo_times.dates import Date, unicode2Date
+from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 
 DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
@@ -88,7 +88,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 curr_line = log_line[len(prefix) + 3:]
 
                 start_time = Math.min(start_time, tc_timestamp)
-                end_time = Math.max(end_time, tc_timestamp)
+                end_time = MAX(end_time, tc_timestamp)
 
                 task_step = task_steps[step_name]
                 if not task_step:
@@ -96,7 +96,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                     task_step.step = step_name
                     action.timings.append(task_step)
                 task_step.start_time = Math.min(task_step.start_time, tc_timestamp)
-                task_step.end_time = Math.max(task_step.end_time, tc_timestamp)
+                task_step.end_time = MAX(task_step.end_time, tc_timestamp)
             else:
                 # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
                 process_head = False
@@ -150,9 +150,9 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 action.timings.append(task_step)
 
             start_time = Math.min(start_time, timestamp)
-            end_time = Math.max(end_time, timestamp)
+            end_time = MAX(end_time, timestamp)
             task_step.start_time = Math.min(task_step.start_time, timestamp)
-            task_step.end_time = Math.max(task_step.end_time, timestamp)
+            task_step.end_time = MAX(task_step.end_time, timestamp)
 
             harness_step = harness_steps.get(harness_step_name)
             if not harness_step:
@@ -297,7 +297,7 @@ def process_text_log(all_log_lines, from_url):
             process_head = False
             timestamp, elapsed, builder_raw_step_name, command, parts, done, status = builder_says
 
-            end_time = Math.max(end_time, timestamp)
+            end_time = MAX(end_time, timestamp)
 
             if done:
                 if builder_step.raw_step == builder_raw_step_name:
@@ -330,7 +330,7 @@ def process_text_log(all_log_lines, from_url):
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
             timestamp, mode, result, harness_step_name = mozharness_says
-            end_time = Math.max(end_time, timestamp)
+            end_time = MAX(end_time, timestamp)
 
             if not result:
                 harness_step = harness_steps[harness_step_name] = {
@@ -347,7 +347,7 @@ def process_text_log(all_log_lines, from_url):
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step_name = mozharness_says
-            end_time = Math.max(end_time, timestamp)
+            end_time = MAX(end_time, timestamp)
 
             builder_step.children += [{
                 "step": harness_step_name,
@@ -461,7 +461,7 @@ class NewHarnessLines(object):
             if DEBUG:
                 Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         timestamp += self.time_zone
-        self.last_seen = Math.max(timestamp, self.last_seen)
+        self.last_seen = MAX(timestamp, self.last_seen)
         return timestamp
 
 
@@ -759,16 +759,16 @@ def fix_times(times, start_time, end_time):
     for i, t in enumerate(times):
         if t.start_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS STARTED
-            t.start_time = Math.min(Math.MIN(t.children.start_time), Math.MIN(t.children.end_time), time)
-        time = Math.max(t.start_time, t.end_time, time)
+            t.start_time = Math.min(MIN(t.children.start_time), MIN(t.children.end_time), time)
+        time = MAX(t.start_time, t.end_time, time)
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
     for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
-            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
-        t.duration = Math.max(time, t.end_time) - t.start_time
+            t.end_time = MAX(MAX(t.children.start_time), MAX(t.children.end_time), time, t.start_time)
+        t.duration = MAX(time, t.end_time) - t.start_time
         if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
             t.duration+=HOUR
         if t.duration==None or t.duration < 0:

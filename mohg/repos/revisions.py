@@ -10,7 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyDots import Data
+from mo_dots import Data
 
 
 class Revision(Data):

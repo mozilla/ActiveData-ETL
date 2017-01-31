@@ -10,12 +10,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary import convert
-from MoLogs import Log
-from pyDots import Data
+from mo_logs import Log
+from mo_dots import Data
 from pyLibrary.env.big_data import GzipLines
-from pyLibrary.env.files import File
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from pyLibrary.times.timer import Timer
+from mo_files import File
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_times.timer import Timer
 from activedata_etl.transforms import verify_blobber_file
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 

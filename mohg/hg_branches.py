@@ -10,17 +10,17 @@ from __future__ import unicode_literals
 
 from BeautifulSoup import BeautifulSoup
 
+from mo_collections import UniqueIndex
+from mo_dots import Data, set_default
+from mo_logs import Log
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_math import MAX
+from mo_times.dates import Date
+from mo_times.durations import SECOND, DAY
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
-from pyDots import Data, set_default
-from MoLogs import startup, constants
-from MoLogs.exceptions import suppress_exception
-from MoLogs import Log
 from pyLibrary.env import elasticsearch, http
-from pyLibrary.maths import Math
 from pyLibrary.meta import use_settings
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, DAY
 
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -48,7 +48,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
 
         docs = es.search(query).hits.hits._source
         # IF IT IS TOO OLD, THEN PULL FROM HG
-        oldest = Date(Math.MAX(docs.etl.timestamp))
+        oldest = Date(MAX(docs.etl.timestamp))
         if oldest == None or Date.now() - oldest > OLD_BRANCH:
             return get_branches(use_cache=False, settings=settings)
 

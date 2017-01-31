@@ -9,15 +9,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyDots import Null, listwrap
+from mo_dots import Null, listwrap
 from pyLibrary import aws
-from MoLogs import Log, Except
+from mo_logs import Log, Except
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.queries.expressions import jx_expression
 from pyLibrary.thread.signal import Signal
-from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
+from mo_threads import Thread
+from mo_times.dates import Date
 
 DEBUG = True
 

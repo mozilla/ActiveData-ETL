@@ -16,14 +16,14 @@ from activedata_etl.imports import buildbot
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 from pyLibrary import convert, jsons
-from MoLogs.exceptions import Except
-from MoLogs import Log
-from pyDots import listwrap
+from mo_logs.exceptions import Except
+from mo_logs import Log
+from mo_dots import listwrap
 from pyLibrary.env import http
-from pyLibrary.env.files import File
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
+from mo_files import File
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_times.dates import Date
+from mo_times.durations import DAY
 
 false = False
 true = True

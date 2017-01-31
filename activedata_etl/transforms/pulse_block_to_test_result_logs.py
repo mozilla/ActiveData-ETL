@@ -12,12 +12,12 @@ from __future__ import unicode_literals
 from activedata_etl.transforms import EtlHeadGenerator, verify_blobber_file
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
-from pyDots import Data
+from mo_dots import Data
 from pyLibrary import convert
-from MoLogs import Log, machine_metadata
+from mo_logs import Log, machine_metadata
 from pyLibrary.env import http
-from pyLibrary.thread.threads import Signal
-from pyLibrary.times.timer import Timer
+from mo_threads import Signal
+from mo_times.timer import Timer
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 
 from boto.s3 import connect_to_region
 
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 def main():

@@ -17,15 +17,15 @@ import re
 from collections import Mapping, OrderedDict
 from copy import copy
 
-from MoLogs import Log
-# from MoLogs.strings import expand_template
-from pyDots import listwrap, coalesce, Data, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
+from mo_logs import Log
+# from mo_logs.strings import expand_template
+from mo_dots import listwrap, coalesce, Data, wrap, Null, unwraplist, split_field, join_field, startswith_field, literal_field, unwrap, \
     relative_field, concat_field
 from pyLibrary import convert
-from pyLibrary.collections import UNION
-from pyLibrary.collections.matrix import Matrix, index_to_coordinate
-from pyLibrary.maths import Math
-from pyLibrary.maths.randoms import Random
+from mo_math import UNION
+from mo_collections.matrix import Matrix, index_to_coordinate
+from mo_math import Math
+from mo_math.randoms import Random
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from pyLibrary.queries.containers import Container, STRUCT
@@ -34,7 +34,7 @@ from pyLibrary.queries.expressions import jx_expression, Variable, sql_type_to_j
 from pyLibrary.queries.meta import Column
 from pyLibrary.queries.query import QueryOp
 from pyLibrary.sql.sqlite import Sqlite
-from pyLibrary.times.dates import Date
+from mo_times.dates import Date
 
 _containers = None
 
@@ -1377,7 +1377,7 @@ class Table_usingSQLite(Container):
 
         if query.format == "cube":
             num_rows = len(result.data)
-            num_cols = Math.MAX([c.push_column for c in cols]) + 1 if len(cols) else 0
+            num_cols = MAX([c.push_column for c in cols]) + 1 if len(cols) else 0
             map_index_to_name = {c.push_column: c.push_name for c in cols}
             temp_data = [[None]*num_rows for _ in range(num_cols)]
             for rownum, d in enumerate(result.data):
@@ -1408,7 +1408,7 @@ class Table_usingSQLite(Container):
             # selects = listwrap(query.select)
             # num_column = len(selects)
             # header = selects.name
-            num_column = Math.MAX([c.push_column for c in cols])+1
+            num_column = MAX([c.push_column for c in cols])+1
             header = [None]*num_column
             for c in cols:
                 header[c.push_column]=c.push_name

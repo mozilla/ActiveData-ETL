@@ -17,11 +17,11 @@ from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
-from pyDots import unwrap, wrap
-from pyDots.objects import datawrap
-from MoLogs import startup, constants
-from MoLogs import Log
-from pyLibrary.queries.unique_index import UniqueIndex
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_collections import UniqueIndex
 
 
 def _get_managed_spot_requests(ec2_conn, name):

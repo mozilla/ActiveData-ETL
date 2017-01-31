@@ -9,16 +9,16 @@
 from __future__ import unicode_literals
 
 from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
-from pyDots import listwrap, unwrap, wrap, wrap_leaves
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_dots import listwrap, unwrap, wrap, wrap_leaves
+from mo_logs import startup, constants
+from mo_logs import Log
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
+from mo_math import Math
 from pyLibrary.queries.jx_usingES import FromES
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread, Signal
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
+from mo_collections import UniqueIndex
+from mo_threads import Thread, Signal
+from mo_threads import Till
+from mo_times.dates import Date
 
 
 DEBUG = False

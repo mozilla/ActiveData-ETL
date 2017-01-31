@@ -9,11 +9,11 @@
 from __future__ import unicode_literals
 
 from pyLibrary import convert
-from MoLogs import Log
-from pyLibrary.thread.threads import Thread
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import MINUTE
+from mo_logs import Log
+from mo_threads import Thread
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import MINUTE
 
 PING_PERIOD = MINUTE
 WAIT_FOR_ACTIVITY = PING_PERIOD * 2

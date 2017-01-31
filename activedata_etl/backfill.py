@@ -9,19 +9,19 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyDots import coalesce, wrap
+from mo_dots import coalesce, wrap
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from MoLogs import startup, constants
-from MoLogs.exceptions import suppress_exception
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
-from pyLibrary.maths import Math
+from mo_math import Math, MAX, MIN
 from pyLibrary.queries import jx
 from pyLibrary.queries.expressions import jx_expression
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 
 def diff(settings, please_stop=None):
@@ -49,7 +49,7 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
-        max_in_es = Math.MAX(in_es)
+        max_in_es = MAX(in_es)
         _min = coalesce(settings.range.min, 0)
         _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
         in_range = set(range(_min, _max))
@@ -64,8 +64,8 @@ def diff(settings, please_stop=None):
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to {{queue}}",
         num=len(remaining_in_s3),
-        min=Math.MIN(remaining_in_s3),
-        max=Math.MAX(remaining_in_s3),
+        min=MIN(remaining_in_s3),
+        max=MAX(remaining_in_s3),
         queue=work_queue.name
     )
 
@@ -135,11 +135,11 @@ def get_all_in_es(es, in_range, es_filter, field):
 
 def get_all_s3(in_es, in_range, settings):
     in_s3 = []
-    min_range = coalesce(Math.MIN(in_range), 0)
+    min_range = coalesce(MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
-    max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es)])
-    extra_digits = Math.ceiling(Math.log10(Math.MIN([max_allowed-settings.range.min, limit])))
+    max_allowed = MAX([settings.range.max, MAX(in_es)])
+    extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
     prefix = unicode(max(in_range - in_es))[:-extra_digits]

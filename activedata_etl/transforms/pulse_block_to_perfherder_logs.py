@@ -11,13 +11,13 @@ from __future__ import unicode_literals
 from activedata_etl import etl2key
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from pyDots import Data, wrap, coalesce, Null
+from mo_dots import Data, wrap, coalesce, Null
 from pyLibrary import convert
-from MoLogs import Log, strings
+from mo_logs import Log, strings
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 DEBUG = False
 

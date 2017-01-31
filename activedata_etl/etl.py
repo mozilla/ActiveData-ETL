@@ -23,22 +23,22 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-import pyDots
+import mo_dots
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
-from pyLibrary.collections import MIN
-from MoLogs import Log, startup, constants, strings
-from MoLogs.exceptions import suppress_exception
-from pyDots import coalesce, listwrap, Data, Null, wrap
+from mo_math import MIN
+from mo_logs import Log, startup, constants, strings
+from mo_logs.exceptions import suppress_exception
+from mo_dots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
-from pyLibrary.testing import fuzzytestcase
-from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND
+from mo_testing import fuzzytestcase
+from mo_threads import Thread, Signal, Queue, Lock
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
@@ -91,7 +91,7 @@ class ETL(Thread):
                 break
             else:
                 t_name = w.transformer
-                w._transformer = pyDots.get_attr(sys.modules, t_name)
+                w._transformer = mo_dots.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):

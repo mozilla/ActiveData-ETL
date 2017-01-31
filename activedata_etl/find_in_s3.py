@@ -11,8 +11,8 @@ from __future__ import unicode_literals
 
 from pyLibrary import convert
 from pyLibrary.aws.s3 import Connection
-from MoLogs import startup
-from MoLogs import Log
+from mo_logs import startup
+from mo_logs import Log
 from pyLibrary.queries import jx
 
 

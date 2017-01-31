@@ -10,12 +10,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
-from MoLogs import Log, strings
-from pyDots import wrap, Data, literal_field
+from mo_logs import Log, strings
+from mo_dots import wrap, Data, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

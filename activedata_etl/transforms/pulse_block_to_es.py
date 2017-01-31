@@ -15,10 +15,10 @@ from activedata_etl.transforms import TRY_AGAIN_LATER
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
-from pyDots import Data, Null
+from mo_dots import Data, Null
 from pyLibrary import convert
-from MoLogs import Log, strings
-from MoLogs.profiles import Profiler
+from mo_logs import Log, strings
+from mo_logs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True

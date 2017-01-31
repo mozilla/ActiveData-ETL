@@ -13,9 +13,9 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary import aws
-from MoLogs import startup
-from MoLogs import Log
-from pyLibrary.times.durations import SECOND
+from mo_logs import startup
+from mo_logs import Log
+from mo_times.durations import SECOND
 
 
 def copy_queue(settings):

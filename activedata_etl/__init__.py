@@ -10,9 +10,9 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from pyDots import wrap, coalesce
+from mo_dots import wrap, coalesce
+from mo_logs import Log, strings
 from pyLibrary.aws import s3
-from MoLogs import Log, strings
 from pyLibrary.queries import jx
 
 

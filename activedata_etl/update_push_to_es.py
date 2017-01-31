@@ -15,14 +15,14 @@ from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
-from pyDots import unwrap, wrap
-from pyDots.objects import datawrap
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from MoLogs import startup, constants
-from MoLogs import Log
-from pyLibrary.env.files import File
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.till import Till
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_files import File
+from mo_collections import UniqueIndex
+from mo_threads import Till
 
 
 @aws_retry

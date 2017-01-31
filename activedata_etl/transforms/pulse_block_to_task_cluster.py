@@ -13,18 +13,18 @@ from collections import Mapping
 
 import requests
 
-from MoLogs import Log, machine_metadata, strings
-from MoLogs.exceptions import suppress_exception, Except
+from mo_logs import Log, machine_metadata, strings
+from mo_logs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from pyDots import set_default, Data, unwraplist, listwrap, wrap, coalesce
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
 from pyLibrary import convert
 from pyLibrary.env import http
-from pyLibrary.maths import Math
-from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
-from pyLibrary.times.dates import Date
+from mo_math import Math
+from mo_testing.fuzzytestcase import assertAlmostEqual
+from mo_times.dates import Date
 
 DEBUG = True
 DISABLE_LOG_PARSING = False

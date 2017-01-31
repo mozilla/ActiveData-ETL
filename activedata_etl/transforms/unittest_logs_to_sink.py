@@ -11,16 +11,16 @@ from __future__ import unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-from pyDots import Data, wrap, coalesce, set_default, literal_field
+from mo_dots import Data, wrap, coalesce, set_default, literal_field
+from mo_json import scrub
+from mo_logs import Log, strings
+from mo_logs.exceptions import Except
+from mo_math import Math, MAX, MIN
+from mo_times.dates import Date
+from mo_times.durations import DAY
+from mo_times.timer import Timer
 from pyLibrary import convert
-from MoLogs.exceptions import Except
-from MoLogs import Log, strings
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.jsons import scrub
-from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
-from pyLibrary.times.timer import Timer
 
 DEBUG = True
 
@@ -132,8 +132,8 @@ def accumulate_logs(source_key, url, lines, please_stop):
             log = convert.json2value(line)
             last_line_was_json = True
             log.time = log.time / 1000
-            accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
-            accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
+            accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])
+            accumulator.stats.end_time = MAX([accumulator.stats.end_time, log.time])
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):

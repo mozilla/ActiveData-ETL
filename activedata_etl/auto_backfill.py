@@ -12,18 +12,18 @@ from __future__ import unicode_literals
 import sys
 
 from activedata_etl.imports.s3_cache import S3Cache
-from pyDots import Data
+from mo_dots import Data
 from pyLibrary import aws, convert
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 from pyLibrary.env import http
 from pyLibrary.queries import jx
 from pyLibrary.sql.sqlite import Sqlite
-from pyLibrary.thread.threads import Thread
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
-from pyLibrary.times.timer import Timer
+from mo_threads import Thread
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import Duration
+from mo_times.timer import Timer
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 RUN_TIME = 10 * 60

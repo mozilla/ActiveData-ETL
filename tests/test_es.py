@@ -16,7 +16,7 @@ import unittest
 import requests
 
 from pyLibrary import jsons
-from pyLibrary.testing import elasticsearch
+from mo_testing import elasticsearch
 
 ID = "tc.480019:48001141.30"
 TASK_ID = "ER70OtGBQla6YOW5qeivnw"
