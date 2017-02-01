@@ -96,7 +96,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                     task_step.step = step_name
                     action.timings.append(task_step)
                 task_step.start_time = Math.min(task_step.start_time, tc_timestamp)
-                task_step.end_time = MAX(task_step.end_time, tc_timestamp)
+                task_step.end_time = MAX([task_step.end_time, tc_timestamp])
             else:
                 # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
                 process_head = False
@@ -152,7 +152,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             start_time = MIN([start_time, timestamp])
             end_time = MAX([end_time, timestamp])
             task_step.start_time = Math.min(task_step.start_time, timestamp)
-            task_step.end_time = MAX(task_step.end_time, timestamp)
+            task_step.end_time = MAX([task_step.end_time, timestamp])
 
             harness_step = harness_steps.get(harness_step_name)
             if not harness_step:
@@ -295,7 +295,7 @@ def process_text_log(all_log_lines, from_url):
             process_head = False
             timestamp, elapsed, builder_raw_step_name, command, parts, done, status = builder_says
 
-            end_time = MAX(end_time, timestamp)
+            end_time = MAX([end_time, timestamp])
 
             if done:
                 if builder_step.raw_step == builder_raw_step_name:
@@ -328,7 +328,7 @@ def process_text_log(all_log_lines, from_url):
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
             timestamp, mode, result, harness_step_name = mozharness_says
-            end_time = MAX(end_time, timestamp)
+            end_time = MAX([end_time, timestamp])
 
             if not result:
                 harness_step = harness_steps[harness_step_name] = {
@@ -345,7 +345,7 @@ def process_text_log(all_log_lines, from_url):
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
             timestamp, mode, harness_step_name = mozharness_says
-            end_time = MAX(end_time, timestamp)
+            end_time = MAX([end_time, timestamp])
 
             builder_step.children += [{
                 "step": harness_step_name,

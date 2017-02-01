@@ -13,19 +13,18 @@ from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
 from mo_dots import coalesce, unwrap, Data, wrap
-from pyLibrary import queries, aws
-from pyLibrary.aws import s3
+from mo_logs import Log, machine_metadata
 from mo_logs import startup, constants
 from mo_logs.exceptions import Explanation, WarnOnException
-from mo_logs import Log, machine_metadata
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.rollover_index import RolloverIndex
-from mo_math import Math
+from mo_math import MAX
 from mo_math.randoms import Random
-from pyLibrary.thread.multiprocess import Process
-from mo_threads import Thread, Signal, Queue
+from mo_threads import Process, Thread, Signal, Queue
 from mo_threads import Till
 from mo_times.timer import Timer
+from pyLibrary import queries, aws
+from pyLibrary.aws import s3
+from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
 
 split = {}
 empty_bucket_complaint_sent = False
@@ -95,7 +94,7 @@ def splitter(work_queue, please_stop):
                 bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
-                rate=num_keys / MAX(extend_time.duration.seconds, 0.01)
+                rate=num_keys / MAX([extend_time.duration.seconds, 0.01])
             )
 
 
