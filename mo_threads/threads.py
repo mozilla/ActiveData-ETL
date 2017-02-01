@@ -26,7 +26,6 @@ from mo_threads.till import Till
 from mo_threads.lock import Lock
 from mo_dots import Data, unwraplist, Null
 
-_convert = None
 _Except = None
 _CProfiler = None
 _Log = None
@@ -41,7 +40,6 @@ datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
 
 
 def _late_import():
-    global _convert
     global _Except
     global _CProfiler
     global _Log
@@ -50,7 +48,6 @@ def _late_import():
     from mo_logs.profiles import CProfiler as _CProfiler
     from mo_logs import Log as _Log
 
-    _ = _convert
     _ = _Except
     _ = _CProfiler
     _ = _Log
