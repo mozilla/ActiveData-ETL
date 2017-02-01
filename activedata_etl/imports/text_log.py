@@ -459,7 +459,7 @@ class NewHarnessLines(object):
             if DEBUG:
                 Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         timestamp += self.time_zone
-        self.last_seen = MAX(timestamp, self.last_seen)
+        self.last_seen = MAX([timestamp, self.last_seen])
         return timestamp
 
 
