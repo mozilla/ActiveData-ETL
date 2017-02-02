@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import unittest
 
 from activedata_etl.transforms import gcov_to_es
-from pyLibrary.dot import Null
+from pyLibrary.dot import Null, Dict
 from pyLibrary.env.files import File
 
 
@@ -22,7 +22,7 @@ class TestGcov(unittest.TestCase):
     def test_parsing(self):
         gcov_to_es.process_directory(
             source_dir="tests/resources/ccov/atk",
-            destination=File("results/ccov/gcov_parsing_result.txt"),
+            destination=Dict(extend=File("results/ccov/gcov_parsing_result.txt").append),
             task_cluster_record=Null,
             file_etl=Null
         )
