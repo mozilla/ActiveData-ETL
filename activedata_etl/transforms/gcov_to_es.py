@@ -9,12 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import json
 import os
 import shutil
-from zipfile import ZipFile, BadZipfile
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
+from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
@@ -29,8 +28,6 @@ from pyLibrary.thread.multiprocess import Process
 from pyLibrary.thread.threads import Thread, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
-
-from pyLibrary.debugs import startup, constants
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
@@ -231,7 +228,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-    process_directory(tmpdir, destination, task_cluster_record, file_etl)
+    process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
+    shutil.rmtree(tmpdir)
 
     keys = [etl_key]
     return keys
@@ -239,8 +237,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
     records = []
-    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % source_dir}):
-        lcov_coverage = run_lcov_on_directory('%s/ccov' % source_dir)
+    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
+        lcov_coverage = run_lcov_on_directory(source_dir)
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
@@ -256,8 +254,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
             if index != 0:
                 process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
-        remove_files_recursively('%s/ccov' % source_dir, 'gcno')
-    shutil.rmtree(source_dir)
+        remove_files_recursively(source_dir, 'gcno')
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
         destination.extend(records, overwrite=True)
 
@@ -490,33 +487,3 @@ def remove_files_recursively(root_directory, file_extension):
             if file.endswith(full_ext):
                 os.remove(os.path.join(root, file))
 
-#
-# def main():
-#
-#     try:
-#         settings = startup.read_settings(defs=[
-#             {
-#                 "name": ["--id", "--key"],
-#                 "help": "id(s) to process.  Use \"..\" for a range.",
-#                 "type": str,
-#                 "dest": "id",
-#                 "required": False
-#             }
-#         ])
-#         constants.set(settings.constants)
-#         Log.start(settings.debug)
-#         resources = None
-#         please_stop = False
-#         source_key = '/home/melissa/UCOSP/ccovtest'
-#         source_test = open('/home/melissa/UCOSP/ccovtest')
-#         destination = '/home/melissa/UCOSP/transformed'
-#         process(source_key, source_test, destination, resources, please_stop)
-#     except Exception, e:
-#         Log.error("Problem with etl", e)
-#     finally:
-#         Log.stop()
-#         source_test.close()
-#         # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
-#
-# if __name__ == "__main__":
-#     main()
