@@ -246,8 +246,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         counter = count_generator().next
 
         for index, obj in enumerate(lcov_coverage):
-            if index != 0:
-                process_source_file(file_etl, counter, obj, task_cluster_record, records)
+            process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
         remove_files_recursively(source_dir, 'gcno')
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
