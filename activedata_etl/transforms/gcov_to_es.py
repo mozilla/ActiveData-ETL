@@ -80,7 +80,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
-                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    keys.extend(process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
         except Exception as e:
@@ -89,7 +89,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -178,89 +178,89 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     return keys
 
-#
-# def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
-#     """
-#     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
-#     The lcov results are then processed and converted to the standard ccov format.
-#     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
-#     """
-#     keys = []
-#     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
-#
-#     if os.name == "nt":
-#         tmpdir = WINDOWS_TEMP_DIR + "/" + Random.hex(10)
-#     else:
-#         tmpdir = mkdtemp()
-#     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-#
-#     ccov = File(tmpdir + '/ccov')
-#     ccov.delete()
-#     out = File(tmpdir + "/out")
-#     out.delete()
-#
-#     try:
-#         Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-#         gcda_file = download_file(gcda_artifact.url)
-#
-#         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-#         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
-#     except BadZipfile:
-#         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
-#         return []
-#
-#     parent_etl = task_cluster_record.etl
-#     artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-#     files = artifacts
-#
-#     # chop some not-needed, and verbose, properties from tc record
-#     task_cluster_record.etl = None
-#     task_cluster_record.action.timings = None
-#     task_cluster_record.action.etl = None
-#     task_cluster_record.task.artifacts = None
-#     task_cluster_record.task.runs = None
-#
-#     records = []
-#
-#     for file_obj in files: #not true loop as only ever one file
-#         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-#
-#         Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-#         _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-#
-#         etl_key = etl2key(file_etl)
-#         keys.append(etl_key)
-#         Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-#
-#         gcno_file = download_file(file_obj.url)
-#
-#         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-#         ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
-#
-#         with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-#             lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
-#
-#             Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-#
-#             def count_generator():
-#                 count = 0
-#                 while True:
-#                     yield count
-#                     count += 1
-#             counter = count_generator().next
-#
-#             for index, obj in enumerate(lcov_coverage):
-#                 if index != 0:
-#                     process_source_file(file_etl, counter, obj, task_cluster_record, records)
-#
-#             remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-#
-#     shutil.rmtree(tmpdir)
-#
-#     with Timer("writing {{num}} records to s3", {"num": len(records)}):
-#         destination.extend(records, overwrite=True)
-#
-#     return keys
+
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+    """
+    Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
+    The lcov results are then processed and converted to the standard ccov format.
+    TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
+    """
+    keys = []
+    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
+
+    if os.name == "nt":
+        tmpdir = WINDOWS_TEMP_DIR + "/" + Random.hex(10)
+    else:
+        tmpdir = mkdtemp()
+    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
+
+    ccov = File(tmpdir + '/ccov')
+    ccov.delete()
+    out = File(tmpdir + "/out")
+    out.delete()
+
+    try:
+        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
+        gcda_file = download_file(gcda_artifact.url)
+
+        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
+    except BadZipfile:
+        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+        return []
+
+    parent_etl = task_cluster_record.etl
+    artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+    files = artifacts
+
+    # chop some not-needed, and verbose, properties from tc record
+    task_cluster_record.etl = None
+    task_cluster_record.action.timings = None
+    task_cluster_record.action.etl = None
+    task_cluster_record.task.artifacts = None
+    task_cluster_record.task.runs = None
+
+    records = []
+
+    for file_obj in files: #not true loop as only ever one file
+        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
+
+        etl_key = etl2key(file_etl)
+        keys.append(etl_key)
+        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+
+        gcno_file = download_file(file_obj.url)
+
+        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+
+        with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
+            lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
+
+            Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
+
+            def count_generator():
+                count = 0
+                while True:
+                    yield count
+                    count += 1
+            counter = count_generator().next
+
+            for index, obj in enumerate(lcov_coverage):
+                if index != 0:
+                    process_source_file(file_etl, counter, obj, task_cluster_record, records)
+
+            remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+    shutil.rmtree(tmpdir)
+
+    with Timer("writing {{num}} records to s3", {"num": len(records)}):
+        destination.extend(records, overwrite=True)
+
+    return keys
 
 def group_to_gcno_artifacts(group_id):
     """
