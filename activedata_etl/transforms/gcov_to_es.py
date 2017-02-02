@@ -185,7 +185,6 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
-    keys = []
     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     if os.name == "nt":
@@ -219,15 +218,12 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     task_cluster_record.task.artifacts = None
     task_cluster_record.task.runs = None
 
-    records = []
-
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
     Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
     _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
 
     etl_key = etl2key(file_etl)
-    keys.append(etl_key)
     Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
     gcno_file = download_file(file_obj.url)
@@ -235,8 +231,16 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-        lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
+    process_directory(tmpdir, destination, task_cluster_record, file_etl)
+
+    keys = [etl_key]
+    return keys
+
+
+def process_directory(source_dir, destination, task_cluster_record, file_etl):
+    records = []
+    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % source_dir}):
+        lcov_coverage = run_lcov_on_directory('%s/ccov' % source_dir)
 
         Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
@@ -245,20 +249,18 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
             while True:
                 yield count
                 count += 1
+
         counter = count_generator().next
 
         for index, obj in enumerate(lcov_coverage):
             if index != 0:
                 process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
-        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-
-    shutil.rmtree(tmpdir)
-
+        remove_files_recursively('%s/ccov' % source_dir, 'gcno')
+    shutil.rmtree(source_dir)
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
         destination.extend(records, overwrite=True)
 
-    return keys
 
 def group_to_gcno_artifacts(group_id):
     """
