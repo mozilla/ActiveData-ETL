@@ -21,8 +21,8 @@ class TestGcov(unittest.TestCase):
 
     def test_parsing(self):
         gcov_to_es.process_directory(
-            source_dir="C:\\msys64\\tmp\\06CC0B896E\\ccov\\accessible",
-            destination=File("C:\\msys64\\tmp\\test_output.txt"),
+            source_dir="tests/resources/ccov/atk",
+            destination=File("results/ccov/gcov_parsing_result.txt"),
             task_cluster_record=Null,
             file_etl=Null
         )

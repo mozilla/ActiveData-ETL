@@ -293,9 +293,10 @@ def run_lcov_on_directory(directory_path):
     if os.name == 'nt':
         directory = File(directory_path)
         filename = "output." + directory.name + ".txt"
-        linux_source_dir = directory.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-        windows_dest_file = File.new_instance(directory, filename)
-        linux_dest_file = windows_dest_file.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+        linux_source_dir = directory.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+        windows_dest_file = File.new_instance(directory, filename).delete()
+        linux_dest_file = windows_dest_file.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+
 
         env = os.environ.copy()
         env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
@@ -317,10 +318,11 @@ def run_lcov_on_directory(directory_path):
 
         # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
         # POLL THE FILE UNTIL IT STOPS CHANGING
+        proc.service_stopped.wait_for_go()
         while not windows_dest_file.exists:
             Thread.sleep(seconds=1)
         while True:
-            expiry = windows_dest_file.timestamp + 60
+            expiry = windows_dest_file.timestamp + 20  # assume done after 20seconds of inactivity
             now = Date.now().unix
             if now >= expiry:
                 break
