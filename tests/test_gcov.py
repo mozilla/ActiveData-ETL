@@ -13,13 +13,11 @@ import unittest
 
 from activedata_etl.transforms import gcov_to_es
 from pyLibrary import convert
-from pyLibrary.dot import Null, Dict
+from pyLibrary.dot import Null
 from pyLibrary.env.files import File
 
 
 class TestGcov(unittest.TestCase):
-
-
     def test_parsing(self):
         gcov_to_es.process_directory(
             source_dir="tests/resources/ccov/atk",
