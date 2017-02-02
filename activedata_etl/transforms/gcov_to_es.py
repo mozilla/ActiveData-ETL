@@ -304,17 +304,10 @@ def run_lcov_on_directory(directory_path):
         proc = Process(
             "lcov: " + linux_dest_file,
             [
-                # "start",
-                # "/W",
                 "c:\\msys64\\usr\\bin\\mintty",
-                # "-i",
-                # "/msys2.ico",
                 "/usr/bin/bash",
                 "--login",
                 "-c",
-                # "C:\msys64\msys2_shell.cmd",
-                # "-mingw64",
-                # "-c",
                 "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
             ],
             cwd="C:\\msys64",
@@ -322,34 +315,20 @@ def run_lcov_on_directory(directory_path):
             # shell=True
         ) if ENABLE_LCOV else Null
 
-        output = Queue("lcov artifacts")
-        locker = Lock()
-        expected = [1]
+        # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
+        # POLL THE FILE UNTIL IT STOPS CHANGING
+        while not windows_dest_file.exists:
+            Thread.sleep(seconds=1)
+        while True:
+            expiry = windows_dest_file.timestamp + 60
+            now = Date.now().unix
+            if now >= expiry:
+                break
+            Thread.sleep(seconds=expiry - now)
 
-        def closure_wrap(_dest_file, _proc):
-            def is_done():
-                # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
-                # POLL THE FILE UNTIL IT STOPS CHANGING
-                while not _dest_file.exists:
-                    Thread.sleep(seconds=1)
-                while True:
-                    expiry = _dest_file.timestamp + 60
-                    now = Date.now().unix
-                    if now >= expiry:
-                        break
-                    Thread.sleep(seconds=expiry - now)
-
-                output.add(_dest_file)
-                with locker:
-                    expected[0] -= 1
-                    Log.note("{{dir}} is done.  REMAINING {{num}}", dir=_dest_file.name, num=expected[0])
-                    if not expected[0]:
-                        output.add(Thread.STOP)
-            Log.note("added proc {{name}} for dir {{dir}}", name=_proc.name, dir=_dest_file.name)
-            _proc.service_stopped.on_go(is_done)
-        closure_wrap(windows_dest_file, proc)
-
-        return output
+        with open(windows_dest_file.abspath, "rb") as stream:
+            results = parse_lcov_coverage(stream)
+        return results
     else:
         fdevnull = open(os.devnull, 'w')
 
