@@ -80,7 +80,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
-                    keys.extend(process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
         except Exception as e:
@@ -210,8 +210,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         return []
 
     parent_etl = task_cluster_record.etl
-    artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-    files = artifacts
+    file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
 
     # chop some not-needed, and verbose, properties from tc record
     task_cluster_record.etl = None
@@ -222,38 +221,37 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     records = []
 
-    for file_obj in files: #not true loop as only ever one file
+    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+    Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+    _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
+
+    etl_key = etl2key(file_etl)
+    keys.append(etl_key)
+    Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+
+    gcno_file = download_file(file_obj.url)
+
+    Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+    ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+
+    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
+        lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
+
+        Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
+
+        def count_generator():
+            count = 0
+            while True:
+                yield count
+                count += 1
+        counter = count_generator().next
+
+        for index, obj in enumerate(lcov_coverage):
+            if index != 0:
+                process_source_file(file_etl, counter, obj, task_cluster_record, records)
+
         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-
-        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-
-        etl_key = etl2key(file_etl)
-        keys.append(etl_key)
-        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-
-        gcno_file = download_file(file_obj.url)
-
-        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
-
-        with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-            lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
-
-            Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-
-            def count_generator():
-                count = 0
-                while True:
-                    yield count
-                    count += 1
-            counter = count_generator().next
-
-            for index, obj in enumerate(lcov_coverage):
-                if index != 0:
-                    process_source_file(file_etl, counter, obj, task_cluster_record, records)
-
-            remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
     shutil.rmtree(tmpdir)
 
@@ -271,30 +269,20 @@ def group_to_gcno_artifacts(group_id):
     :return: task json object for the found task. None if no task was found.
     """
 
-    data = http.post_json(ACTIVE_DATA_QUERY, json={
+    result = http.post_json(ACTIVE_DATA_QUERY, json={
         "from": "task.task.artifacts",
         "where": {"and": [
             {"eq": {"task.group.id": group_id}},
             {"regex": {"name": ".*gcno.*"}}
         ]},
         "limit": 100,
-        "select": ["task.id", "url"]
+        "select": [{"name": "task_id", "value": "task.id"}, "url"],
+        "format": "list"
     })
 
-    values = data.data.values()
-
-    results = []
-
-    for i in range(len(values[0])):
-        # Note: values is sensitive to select order
-        # Currently bug in pyLibrary Dict and can't
-        # retrieve the task.id member (TODO)
-        results.append(wrap({
-            'task_id': values[1][i],
-            'url': values[0][i]
-        }))
-
-    return results
+    if len(result.data) != 1:
+        Log.error("not expected")
+    return result.data[0]
 
 
 def run_lcov_on_directory(directory_path):
