@@ -224,7 +224,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
     process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
-    shutil.rmtree(tmpdir)
+    File(tmpdir).delete()
 
     keys = [etl_key]
     return keys
@@ -248,7 +248,6 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         for index, obj in enumerate(lcov_coverage):
             process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
-        remove_files_recursively(source_dir, 'gcno')
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
         destination.extend(records, overwrite=True)
 

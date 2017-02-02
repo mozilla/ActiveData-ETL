@@ -19,12 +19,18 @@ from pyLibrary.env.files import File
 
 class TestGcov(unittest.TestCase):
     def test_parsing(self):
+        destination_file = "results/ccov/gcov_parsing_result.txt"
+
         gcov_to_es.process_directory(
             source_dir="tests/resources/ccov/atk",
             destination=Destination("results/ccov/gcov_parsing_result.txt"),
             task_cluster_record=Null,
             file_etl=Null
         )
+
+        lines = File(destination_file).read().split("\n")
+        self.assertEqual(len(lines), 83, "Expecting 83 lines (last one is empty)")
+
 
 
 class Destination(object):
