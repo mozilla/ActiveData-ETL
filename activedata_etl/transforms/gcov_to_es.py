@@ -33,8 +33,8 @@ ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 ENABLE_LCOV = True
-WINDOWS_TEMP_DIR = "c:/msys64/tmp"
-MSYS2_TEMP_DIR = "/tmp"
+WINDOWS_TEMP_DIR = "c:/msys64/tmp/ccov"
+MSYS2_TEMP_DIR = "/tmp/ccov"
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -291,10 +291,14 @@ def run_lcov_on_directory(directory_path):
     :return: queue with files
     """
     if os.name == 'nt':
-        directory = File(directory_path)
-        filename = "output." + directory.name + ".txt"
-        linux_source_dir = directory.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-        windows_dest_file = File.new_instance(directory, filename).delete()
+        File(WINDOWS_TEMP_DIR).delete()
+        windows_dest_dir = File.new_instance(WINDOWS_TEMP_DIR, File(directory_path).name)
+        File.copy(directory_path, windows_dest_dir)
+
+        # directory = File(directory_path)
+        filename = "output.txt"
+        linux_source_dir = windows_dest_dir.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+        windows_dest_file = File.new_instance(WINDOWS_TEMP_DIR, filename).delete()
         linux_dest_file = windows_dest_file.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
 
 
