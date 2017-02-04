@@ -14,29 +14,30 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 import mo_json
+from mo_dots import wrap, coalesce
+from mo_json import value2json
+from mo_kwargs import override
+from mo_threads import Thread, Queue, Till, THREAD_STOP
+from mo_times import MINUTE, Duration
+from pyLibrary.env.elasticsearch import Cluster
+from pyLibrary.queries import jx
+
 from mo_logs import Log, strings
 from mo_logs.exceptions import suppress_exception
 from mo_logs.log_usingNothing import StructuredLogger
-from mo_dots import wrap, coalesce
-from pyLibrary import convert
-from pyLibrary.env.elasticsearch import Cluster
-from pyLibrary.meta import use_settings
-from pyLibrary.queries import jx
-from mo_threads import Thread, Queue, Till, THREAD_STOP
-from mo_times.durations import MINUTE, Duration
 
 MAX_BAD_COUNT = 5
 LOG_STRING_LENGTH = 2000
 
 
 class StructuredLogger_usingElasticSearch(StructuredLogger):
-    @use_settings
+    @override
     def __init__(self, host, index, type="log", max_size=1000, batch_size=100, settings=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
         self.es = Cluster(settings).get_or_create_index(
-            schema=mo_json.json2value(convert.value2json(SCHEMA), leaves=True),
+            schema=mo_json.json2value(value2json(SCHEMA), leaves=True),
             limit_replicas=True,
             tjson=True,
             settings=settings
@@ -108,17 +109,17 @@ def _deep_json_to_string(value, depth):
     """
     if isinstance(value, Mapping):
         if depth == 0:
-            return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
+            return strings.limit(value2json(value), LOG_STRING_LENGTH)
 
         return {k: _deep_json_to_string(v, depth - 1) for k, v in value.items()}
     elif isinstance(value, list):
-        return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
+        return strings.limit(value2json(value), LOG_STRING_LENGTH)
     elif isinstance(value, (float, int, long)):
         return value
     elif isinstance(value, basestring):
         return strings.limit(value, LOG_STRING_LENGTH)
     else:
-        return strings.limit(convert.value2json(value), LOG_STRING_LENGTH)
+        return strings.limit(value2json(value), LOG_STRING_LENGTH)
 
 
 SCHEMA = {

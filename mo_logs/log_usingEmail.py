@@ -13,20 +13,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_kwargs import override
+from mo_threads import Lock
+from mo_times import Date, HOUR, MINUTE, Duration
+from pyLibrary.env.emailer import Emailer
+
 from mo_logs import Log
 from mo_logs.exceptions import ALARM, NOTE
 from mo_logs.log_usingNothing import StructuredLogger
 from mo_logs.strings import expand_template
-from mo_threads import Lock
-from mo_times.dates import Date
-from mo_times.durations import HOUR, MINUTE, Duration
-from pyLibrary.env.emailer import Emailer
-from pyLibrary.meta import use_settings
 
 
 class StructuredLogger_usingEmail(StructuredLogger):
 
-    @use_settings
+    @override
     def __init__(
         self,
         from_address,

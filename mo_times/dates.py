@@ -18,8 +18,8 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 from time import time as _time
 
-from mo_logs.strings import deformat
 from mo_dots import Null
+from mo_logs.strings import deformat
 
 from mo_times.durations import Duration, MILLI_VALUES
 from mo_times.vendor.dateutil.parser import parse as parse_date
@@ -199,7 +199,7 @@ class Date(object):
         return self.add(other)
 
     def __data__(self):
-        return self
+        return self.unix
 
     @classmethod
     def min(cls, *values):
@@ -439,6 +439,23 @@ def unix2Date(unix):
     output = object.__new__(Date)
     output.unix = unix
     return output
+
+
+delchars = "".join(c.decode("latin1") for c in map(chr, range(256)) if not c.decode("latin1").isalnum())
+def deformat(value):
+    """
+    REMOVE NON-ALPHANUMERIC CHARACTERS
+
+    FOR SOME REASON translate CAN NOT BE CALLED:
+        ERROR: translate() takes exactly one argument (2 given)
+	    File "C:\Python27\lib\string.py", line 493, in translate
+    """
+    output = []
+    for c in value:
+        if c in delchars:
+            continue
+        output.append(c)
+    return "".join(output)
 
 
 Date.MIN = Date(datetime(1, 1, 1))

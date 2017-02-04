@@ -12,23 +12,28 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
 import sqlite3
 from collections import Mapping
 
+import sys
+
+from mo_dots import Data, coalesce
 from mo_files import File
 from mo_logs import Log
 from mo_logs.exceptions import Except, extract_stack, ERROR, _extract_traceback
+from mo_math.stats import percentile
 from mo_threads import Queue, Signal, Thread
 from mo_times.timer import Timer
-from mo_dots import Data, coalesce
 from pyLibrary import convert
 from pyLibrary.sql import DB, SQL
 
 DEBUG = False
 DEBUG_INSERT = False
-_load_extension_warning_sent = False
 
+_load_extension_warning_sent = False
 _upgraded = False
+
 
 def _upgrade():
     global _upgraded
@@ -67,6 +72,24 @@ class Sqlite(DB):
         self.worker = Thread.run("sqlite db thread", self._worker)
         self.get_trace = DEBUG
 
+    def _enhancements(self):
+        def regex(pattern, value):
+            return 1 if re.match(pattern+"$", value) else 0
+        con = self.db.create_function("regex", 2, regex)
+
+        class Percentile(object):
+            def __init__(self, percentile):
+                self.percentile=percentile
+                self.acc=[]
+
+            def step(self, value):
+                self.acc.append(value)
+
+            def finalize(self):
+                return percentile(self.acc, self.percentile)
+
+        con.create_aggregate("percentile", 2, Percentile)
+
     def execute(self, command):
         """
         COMMANDS WILL BE EXECUTED IN THE ORDER THEY ARE GIVEN
@@ -104,10 +127,12 @@ class Sqlite(DB):
             self.db = Sqlite.canonical
         else:
             self.db = sqlite3.connect(coalesce(self.filename, ':memory:'))
-            full_path = File("pyLibrary/vendor/sqlite/libsqlitefunctions.so").abspath
+
+            library_loc = File.new_instance(sys.modules[__name__].__file__, "../..")
+            full_path = File.new_instance(library_loc, "vendor/sqlite/libsqlitefunctions.so").abspath
             try:
-                trace = _extract_traceback(0)[0]
-                file = File.new_instance(trace.file, "../../pyLibrary/vendor/sqlite/libsqlitefunctions.so")
+                trace = extract_stack(0)[0]
+                file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
                 full_path = file.abspath
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
@@ -115,7 +140,6 @@ class Sqlite(DB):
                 if not _load_extension_warning_sent:
                     _load_extension_warning_sent = True
                     Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
-
 
         try:
             while not please_stop:

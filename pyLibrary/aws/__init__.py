@@ -22,7 +22,7 @@ from mo_logs.exceptions import Except, suppress_exception
 from mo_logs import Log, machine_metadata
 from mo_dots import wrap, unwrap, coalesce
 from mo_math import Math
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from mo_threads.signal import Signal
 from mo_threads import Thread
 from mo_threads.till import Till
@@ -30,7 +30,7 @@ from mo_times.durations import SECOND, Duration
 
 
 class Queue(object):
-    @use_settings
+    @override
     def __init__(
         self,
         name,

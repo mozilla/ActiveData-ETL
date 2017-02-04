@@ -29,7 +29,7 @@ from mo_logs.strings import outdent
 from mo_math import Math
 from mo_dots import coalesce, wrap, listwrap, unwrap
 from pyLibrary import convert
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from pyLibrary.queries import jx
 from pyLibrary.sql import SQL
 
@@ -44,7 +44,7 @@ class MySQL(object):
     Parameterize SQL by name rather than by position.  Return records as objects
     rather than tuples.
     """
-    @use_settings
+    @override
     def __init__(
         self,
         host,
@@ -352,7 +352,7 @@ class MySQL(object):
         self.execute(content, param)
 
     @staticmethod
-    @use_settings
+    @override
     def execute_sql(
         host,
         username,
@@ -404,7 +404,7 @@ class MySQL(object):
             )
 
     @staticmethod
-    @use_settings
+    @override
     def execute_file(
         filename,
         host,

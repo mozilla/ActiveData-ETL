@@ -29,7 +29,7 @@ from pyLibrary.env import http
 from mo_json.typed_encoder import json2typed
 from mo_math import Math
 from mo_math.randoms import Random
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from pyLibrary.queries import jx
 from mo_threads import ThreadedQueue
 from mo_threads import Till
@@ -61,7 +61,7 @@ class Index(Features):
     IF ANY YET.
 
     """
-    @use_settings
+    @override
     def __init__(
         self,
         index,  # NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
@@ -482,7 +482,7 @@ known_clusters = {}
 
 class Cluster(object):
 
-    @use_settings
+    @override
     def __new__(cls, host, port=9200, settings=None):
         if not isinstance(port, int):
             Log.error("port must be integer")
@@ -494,7 +494,7 @@ class Cluster(object):
         known_clusters[(host, port)] = cluster
         return cluster
 
-    @use_settings
+    @override
     def __init__(self, host, port=9200, explore_metadata=True, settings=None):
         """
         settings.explore_metadata == True - IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
@@ -512,7 +512,7 @@ class Cluster(object):
         self.path = settings.host + ":" + unicode(settings.port)
         self.get_metadata()
 
-    @use_settings
+    @override
     def get_or_create_index(
         self,
         index,
@@ -554,7 +554,7 @@ class Cluster(object):
         ], "index")
         return indexes.last()
 
-    @use_settings
+    @override
     def get_index(self, index, type=None, alias=None, read_only=True, settings=None):
         """
         TESTS THAT THE INDEX EXISTS BEFORE RETURNING A HANDLE
@@ -609,7 +609,7 @@ class Cluster(object):
         ])
         return output
 
-    @use_settings
+    @override
     def create_index(
         self,
         index,
@@ -914,7 +914,7 @@ def _scrub(r):
 
 
 class Alias(Features):
-    @use_settings
+    @override
     def __init__(
         self,
         alias,  # NAME OF THE ALIAS
@@ -1108,9 +1108,8 @@ def parse_properties(parent_index_name, parent_name, esProperties):
             child_columns = parse_properties(index_name, column_name, property.properties)
             columns.extend(child_columns)
             columns.append(Column(
-                table=index_name,
+                names={index_name: column_name},
                 es_index=index_name,
-                name=column_name,
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type="source" if property.enabled == False else "object"
@@ -1146,9 +1145,8 @@ def parse_properties(parent_index_name, parent_name, esProperties):
 
         if property.type in ["string", "boolean", "integer", "date", "long", "double"]:
             columns.append(Column(
-                table=index_name,
                 es_index=index_name,
-                name=column_name,
+                names={"index_name": column_name},
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type=property.type
@@ -1166,7 +1164,7 @@ def parse_properties(parent_index_name, parent_name, esProperties):
             columns.append(Column(
                 table=index_name,
                 es_index=index_name,
-                name=column_name,
+                names={index_name: column_name},
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type="source" if property.enabled==False else "object"

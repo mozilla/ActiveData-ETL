@@ -23,7 +23,7 @@ from pyLibrary import jsons
 from mo_logs.exceptions import Except, suppress_exception
 from mo_logs import Log
 from mo_dots import wrap, coalesce, Data, set_default
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from mo_threads import Thread, Lock
 from mozillapulse.consumers import GenericConsumer
 
@@ -32,7 +32,7 @@ count=0
 
 
 class Consumer(Thread):
-    @use_settings
+    @override
     def __init__(
         self,
         exchange,  # name of the Pulse exchange
@@ -137,7 +137,7 @@ class Publisher(object):
     Mimic GenericPublisher https://github.com/bhearsum/mozillapulse/blob/master/mozillapulse/publishers.py
     """
 
-    @use_settings
+    @override
     def __init__(
         self,
         exchange,  # name of the Pulse exchange

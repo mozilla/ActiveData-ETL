@@ -19,7 +19,7 @@ from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.env import elasticsearch
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from pyLibrary.queries import jx
 
 MAX_RECORD_LENGTH = 400000
@@ -30,7 +30,7 @@ class RolloverIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    @use_settings
+    @override
     def __init__(self, rollover_field, rollover_interval, rollover_max, queue_size=10000, batch_size=5000, settings=None):
         """
         :param rollover_field: the FIELD with a timestamp to use for determining which index to push to

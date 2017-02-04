@@ -18,12 +18,11 @@ from datetime import date, timedelta, datetime
 from decimal import Decimal
 from types import NoneType
 
-from mo_logs import Except, strings, suppress_exception, Log
-from mo_logs.strings import expand_template
-from mo_times.dates import Date
-from mo_times.durations import Duration
 from mo_dots import FlatList, NullType, Data, wrap_leaves, wrap
 from mo_dots.objects import DataObject
+from mo_logs import Except, strings, suppress_exception, Log
+from mo_logs.strings import expand_template
+from mo_times import Date, Duration
 
 _get = object.__getattribute__
 
@@ -65,6 +64,8 @@ def replace(match):
 
 
 def quote(value):
+    if value==None:
+        return ""
     return "\"" + ESCAPE.sub(replace, value) + "\""
 
 

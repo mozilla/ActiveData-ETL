@@ -33,7 +33,7 @@ PARTITION = {"uid", "set", "boolean"}  # DIMENSIONS WITH CLEAR PARTS
 
 
 class Domain(object):
-    __slots__ = ["name", "type", "value", "key", "label", "end", "isFacet", "where", "dimension", "primitive"]
+    __slots__ = ["name", "type", "value", "key", "label", "end", "isFacet", "where", "dimension", "primitive", "limit"]
 
     def __new__(cls, **desc):
         if cls == Domain:
@@ -51,6 +51,7 @@ class Domain(object):
         self.name = coalesce(desc.name, desc.type)
         self.isFacet = coalesce(desc.isFacet, False)
         self.dimension = Null
+        self.limit = desc.limit
 
     def _set_slots_to_null(self, cls):
         """

@@ -21,7 +21,7 @@ from mo_dots import wrap, listwrap
 from mo_dots import Data
 from mo_dots.lists import FlatList
 from pyLibrary.env import elasticsearch, http
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from pyLibrary.queries import jx, containers, Schema
 from pyLibrary.queries.containers import Container
 from pyLibrary.queries.dimensions import Dimension
@@ -51,7 +51,7 @@ class FromES(Container):
         else:
             return Container.__new__(cls)
 
-    @use_settings
+    @override
     def __init__(
         self,
         host,

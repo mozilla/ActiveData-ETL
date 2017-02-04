@@ -24,7 +24,7 @@ from pyLibrary import convert
 from mo_logs import Log
 from mo_dots import wrap, Null, coalesce, unwrap
 from pyLibrary.env.big_data import safe_size, MAX_STRING_SIZE, GzipLines, LazyLines, ibytes2ilines, scompressed2ibytes
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from mo_times.dates import Date
 from mo_times.timer import Timer
 
@@ -60,7 +60,7 @@ class File(object):
 
 
 class Connection(object):
-    @use_settings
+    @override
     def __init__(
         self,
         aws_access_key_id=None,  # CREDENTIAL
@@ -110,7 +110,7 @@ class Bucket(object):
     ALL KEYS ARE DIGITS, SEPARATED BY DOT (.) COLON (:)
     """
 
-    @use_settings
+    @override
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET

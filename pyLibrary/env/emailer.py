@@ -21,11 +21,11 @@ from email.mime.text import MIMEText
 from mo_logs import Log
 from mo_dots import listwrap
 from mo_dots import coalesce
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 
 
 class Emailer:
-    @use_settings
+    @override
     def __init__(
         self,
         from_address,
