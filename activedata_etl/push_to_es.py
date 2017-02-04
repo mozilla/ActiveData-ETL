@@ -174,7 +174,7 @@ def main():
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                cluster.create_index(settings=es_settings)
+                cluster.create_index(kwargs=es_settings)
                 Log.alert("Done.  Exiting.")
                 return
 
@@ -190,7 +190,7 @@ def main():
                             bucket=bucket.name
                         ))
         else:
-            main_work_queue = aws.Queue(settings=settings.work_queue)
+            main_work_queue = aws.Queue(kwargs=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
@@ -204,7 +204,7 @@ def main():
                     rollover_max=w.rollover.max,
                     queue_size=coalesce(w.queue_size, 1000),
                     batch_size=unwrap(w.batch_size),
-                    settings=w.elasticsearch
+                    kwargs=w.elasticsearch
                 ),
                 bucket=s3.Bucket(w.source),
                 settings=w

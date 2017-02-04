@@ -33,7 +33,7 @@ def get_branches(hg, branches, use_cache=True, kwargs=None):
     if not kwargs.branches or not use_cache:
         found_branches = _get_branches_from_hg(hg)
 
-        es = elasticsearch.Cluster(settings=branches).get_or_create_index(settings=branches)
+        es = elasticsearch.Cluster(kwargs=branches).get_or_create_index(kwargs=branches)
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in found_branches)
         es.flush()
@@ -41,7 +41,7 @@ def get_branches(hg, branches, use_cache=True, kwargs=None):
 
     # TRY ES
     try:
-        es = elasticsearch.Cluster(settings=branches).get_index(settings=branches)
+        es = elasticsearch.Cluster(kwargs=branches).get_index(kwargs=branches)
         query = {
             "query": {"match_all": {}},
             "size": 20000
@@ -193,7 +193,7 @@ def main():
 
         branches = _get_branches_from_hg(settings.hg)
 
-        es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
+        es = elasticsearch.Cluster(kwargs=settings.hg.branches).get_or_create_index(kwargs=settings.hg.branches)
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")

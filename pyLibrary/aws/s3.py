@@ -66,12 +66,12 @@ class Connection(object):
         aws_access_key_id=None,  # CREDENTIAL
         aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        settings=None
+        kwargs=None
     ):
-        self.settings = settings
+        self.settings = kwargs
 
         try:
-            if not settings.region:
+            if not kwargs.region:
                 self.connection = boto.connect_s3(
                     aws_access_key_id=unwrap(self.settings.aws_access_key_id),
                     aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
@@ -119,15 +119,15 @@ class Bucket(object):
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
-        settings=None
+        kwargs=None
     ):
-        self.settings = settings
+        self.settings = kwargs
         self.connection = None
         self.bucket = None
-        self.key_format = _scrub_key(settings.key_format)
+        self.key_format = _scrub_key(kwargs.key_format)
 
         try:
-            self.connection = Connection(settings).connection
+            self.connection = Connection(kwargs).connection
             self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
         except Exception, e:
             Log.error("Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e)

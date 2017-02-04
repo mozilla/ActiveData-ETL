@@ -55,7 +55,7 @@ class MySQL(object):
         schema=None,
         preamble=None,
         readonly=False,
-        settings=None
+        kwargs=None
     ):
         """
         OVERRIDE THE settings.schema WITH THE schema PARAMETER
@@ -72,7 +72,7 @@ class MySQL(object):
         """
         all_db.append(self)
 
-        self.settings = settings
+        self.settings = kwargs
 
         if preamble == None:
             self.preamble = ""
@@ -360,25 +360,25 @@ class MySQL(object):
         sql,
         schema=None,
         param=None,
-        settings=None
+        kwargs=None
     ):
         """EXECUTE MANY LINES OF SQL (FROM SQLDUMP FILE, MAYBE?"""
-        settings.schema = coalesce(settings.schema, settings.database)
+        kwargs.schema = coalesce(kwargs.schema, kwargs.database)
 
         if param:
-            with MySQL(settings) as temp:
+            with MySQL(kwargs) as temp:
                 sql = expand_template(sql, temp.quote_param(param))
 
         # MWe have no way to execute an entire SQL file in bulk, so we
         # have to shell out to the commandline client.
         args = [
             "mysql",
-            "-h{0}".format(settings.host),
-            "-u{0}".format(settings.username),
-            "-p{0}".format(settings.password)
+            "-h{0}".format(kwargs.host),
+            "-u{0}".format(kwargs.username),
+            "-p{0}".format(kwargs.password)
         ]
-        if settings.schema:
-            args.append("{0}".format(settings.schema))
+        if kwargs.schema:
+            args.append("{0}".format(kwargs.schema))
 
         try:
             proc = subprocess.Popen(
@@ -413,16 +413,16 @@ class MySQL(object):
         schema=None,
         param=None,
         ignore_errors=False,
-        settings=None
+        kwargs=None
     ):
         # MySQLdb provides no way to execute an entire SQL file in bulk, so we
         # have to shell out to the commandline client.
         sql = File(filename).read()
         if ignore_errors:
             with suppress_exception:
-                MySQL.execute_sql(sql=sql, param=param, settings=settings)
+                MySQL.execute_sql(sql=sql, param=param, kwargs=kwargs)
         else:
-            MySQL.execute_sql(sql=sql, param=param, settings=settings)
+            MySQL.execute_sql(sql=sql, param=param, kwargs=kwargs)
 
     def _execute_backlog(self):
         if not self.backlog: return

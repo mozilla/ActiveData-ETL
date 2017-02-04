@@ -38,22 +38,22 @@ class Queue(object):
         aws_access_key_id=None,
         aws_secret_access_key=None,
         debug=False,
-        settings=None
+        kwargs=None
     ):
-        self.settings = settings
+        self.settings = kwargs
         self.pending = []
 
-        if settings.region not in [r.name for r in sqs.regions()]:
-            Log.error("Can not find region {{region}} in {{regions}}", region=settings.region, regions=[r.name for r in sqs.regions()])
+        if kwargs.region not in [r.name for r in sqs.regions()]:
+            Log.error("Can not find region {{region}} in {{regions}}", region=kwargs.region, regions=[r.name for r in sqs.regions()])
 
         conn = sqs.connect_to_region(
-            region_name=unwrap(settings.region),
-            aws_access_key_id=unwrap(settings.aws_access_key_id),
-            aws_secret_access_key=unwrap(settings.aws_secret_access_key),
+            region_name=unwrap(kwargs.region),
+            aws_access_key_id=unwrap(kwargs.aws_access_key_id),
+            aws_secret_access_key=unwrap(kwargs.aws_secret_access_key),
         )
-        self.queue = conn.get_queue(settings.name)
+        self.queue = conn.get_queue(kwargs.name)
         if self.queue == None:
-            Log.error("Can not find queue with name {{queue}} in region {{region}}", queue=settings.name, region=settings.region)
+            Log.error("Can not find queue with name {{queue}} in region {{region}}", queue=kwargs.name, region=kwargs.region)
 
     def __enter__(self):
         return self

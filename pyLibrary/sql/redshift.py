@@ -31,8 +31,8 @@ class Redshift(object):
 
 
     @override
-    def __init__(self, host, user, password, database=None, port=5439, settings=None):
-        self.settings=settings
+    def __init__(self, host, user, password, database=None, port=5439, kwargs=None):
+        self.settings=kwargs
         self.locker = Lock()
         self.connection = None
 

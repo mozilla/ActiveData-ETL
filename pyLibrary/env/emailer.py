@@ -36,9 +36,9 @@ class Emailer:
         subject="catchy title",
         port=465,
         use_ssl=1,
-        settings=None
+        kwargs=None
     ):
-        self.settings = settings
+        self.settings = kwargs
         self.server = None
 
     def __enter__(self):

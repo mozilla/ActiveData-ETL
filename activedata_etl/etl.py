@@ -374,7 +374,7 @@ def get_container(settings):
                     return e[1]
 
 
-            es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
+            es = elasticsearch.Cluster(kwargs=settings).get_or_create_index(kwargs=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)
             setattr(output, "keys", lambda prefix: set())
 

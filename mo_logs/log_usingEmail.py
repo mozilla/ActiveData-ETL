@@ -39,7 +39,7 @@ class StructuredLogger_usingEmail(StructuredLogger):
         use_ssl=1,
         log_type="email",
         max_interval=HOUR,
-        settings=None
+        kwargs=None
     ):
         """
         SEND WARNINGS AND ERRORS VIA EMAIL
@@ -57,12 +57,12 @@ class StructuredLogger_usingEmail(StructuredLogger):
         }
 
         """
-        assert settings.log_type == "email", "Expecing settings to be of type 'email'"
-        self.settings = settings
+        assert kwargs.log_type == "email", "Expecing settings to be of type 'email'"
+        self.settings = kwargs
         self.accumulation = []
         self.next_send = Date.now() + MINUTE
         self.locker = Lock()
-        self.settings.max_interval = Duration(settings.max_interval)
+        self.settings.max_interval = Duration(kwargs.max_interval)
 
     def write(self, template, params):
         with self.locker:

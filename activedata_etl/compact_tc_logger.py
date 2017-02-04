@@ -91,7 +91,7 @@ def loop_all(bucket, please_stop):
 def main():
     try:
         settings = startup.read_settings()
-        bucket = s3.Bucket(settings=settings.source)
+        bucket = s3.Bucket(kwargs=settings.source)
 
         Log.alert(" BE SURE TO \"exit\", OTHERWISE YOU WILL HAVE DATA LOSS")
         Thread.run("loop", loop_all, bucket)

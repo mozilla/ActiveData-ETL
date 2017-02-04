@@ -57,7 +57,7 @@ def late_import():
 
 class Table_usingSQLite(Container):
     @override
-    def __init__(self, name, db=None, uid=GUID, exists=False, settings=None):
+    def __init__(self, name, db=None, uid=GUID, exists=False, kwargs=None):
         """
         :param name: NAME FOR THIS TABLE
         :param db: THE DB TO USE

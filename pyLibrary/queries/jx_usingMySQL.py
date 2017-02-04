@@ -42,12 +42,12 @@ class MySQL(object):
         schema=None,
         preamble=None,
         readonly=False,
-        settings=None
+        kwargs=None
     ):
         from pyLibrary.sql.mysql import MySQL
 
-        self.settings = settings
-        self._db = MySQL(settings)
+        self.settings = kwargs
+        self._db = MySQL(kwargs)
 
     def __data__(self):
         settings = self.settings.copy()

@@ -44,10 +44,10 @@ class StructuredLogger_usingSES(StructuredLogger):
         aws_access_key_id=None,
         aws_secret_access_key=None,
         log_type="ses",
-        settings=None
+        kwargs=None
     ):
-        assert settings.log_type == "ses", "Expecing settings to be of type 'ses'"
-        self.settings = settings
+        assert kwargs.log_type == "ses", "Expecing settings to be of type 'ses'"
+        self.settings = kwargs
         self.accumulation = []
         self.next_send = Date.now() + MINUTE
         self.locker = Lock()

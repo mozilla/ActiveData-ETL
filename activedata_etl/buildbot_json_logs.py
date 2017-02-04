@@ -75,7 +75,7 @@ def parse_day(settings, p, force=False):
     Log.note("Consider #{{num}}: {{url}}", url=day_url, num=day_num)
 
     destination = s3.Bucket(settings.destination)
-    notify = Queue(settings=settings.notify)
+    notify = Queue(kwargs=settings.notify)
 
     if force:
         with suppress_exception:

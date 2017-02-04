@@ -32,18 +32,18 @@ LOG_STRING_LENGTH = 2000
 
 class StructuredLogger_usingElasticSearch(StructuredLogger):
     @override
-    def __init__(self, host, index, type="log", max_size=1000, batch_size=100, settings=None):
+    def __init__(self, host, index, type="log", max_size=1000, batch_size=100, kwargs=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
-        self.es = Cluster(settings).get_or_create_index(
+        self.es = Cluster(kwargs).get_or_create_index(
             schema=mo_json.json2value(value2json(SCHEMA), leaves=True),
             limit_replicas=True,
             tjson=True,
-            settings=settings
+            kwargs=kwargs
         )
         self.batch_size = batch_size
-        self.es.add_alias(coalesce(settings.alias, settings.index))
+        self.es.add_alias(coalesce(kwargs.alias, kwargs.index))
         self.queue = Queue("debug logs to es", max=max_size, silent=True)
         self.es.settings.retry.times = coalesce(self.es.settings.retry.times, 3)
         self.es.settings.retry.sleep = Duration(coalesce(self.es.settings.retry.sleep, MINUTE))

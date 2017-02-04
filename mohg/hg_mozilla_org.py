@@ -79,7 +79,7 @@ class HgMozillaOrg(object):
             self.es = None
             return
 
-        self.es = elasticsearch.Cluster(settings=repo).get_or_create_index(settings=repo)
+        self.es = elasticsearch.Cluster(kwargs=repo).get_or_create_index(kwargs=repo)
         self.es.add_alias()
         try:
             self.es.set_refresh_interval(seconds=1)

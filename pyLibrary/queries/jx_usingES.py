@@ -64,19 +64,19 @@ class FromES(Container):
         timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
         consistency="one",  # ES WRITE CONSISTENCY (https://www.elastic.co/guide/en/elasticsearch/reference/1.7/docs-index_.html#index-consistency)
         typed=None,
-        settings=None
+        kwargs=None
     ):
         Container.__init__(self, None)
         if not containers.config.default:
-            containers.config.default.settings = settings
-        self.settings = settings
+            containers.config.default.settings = kwargs
+        self.settings = kwargs
         self.name = coalesce(name, alias, index)
         if read_only:
-            self._es = elasticsearch.Alias(alias=coalesce(alias, index), settings=settings)
+            self._es = elasticsearch.Alias(alias=coalesce(alias, index), kwargs=kwargs)
         else:
-            self._es = elasticsearch.Cluster(settings=settings).get_index(read_only=read_only, settings=settings)
+            self._es = elasticsearch.Cluster(kwargs=kwargs).get_index(read_only=read_only, kwargs=kwargs)
 
-        self.meta = FromESMetadata(settings=settings)
+        self.meta = FromESMetadata(kwargs=kwargs)
         self.settings.type = self._es.settings.type
         self.edges = Data()
         self.worker = None

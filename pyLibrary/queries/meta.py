@@ -57,7 +57,7 @@ class FromESMetadata(Schema):
             return singlton
 
     @override
-    def __init__(self, host, index, alias=None, name=None, port=9200, settings=None):
+    def __init__(self, host, index, alias=None, name=None, port=9200, kwargs=None):
         global _elasticsearch
         if hasattr(self, "settings"):
             return
@@ -65,9 +65,9 @@ class FromESMetadata(Schema):
         from pyLibrary.queries.containers.list_usingPythonList import ListContainer
         from pyLibrary.env import elasticsearch as _elasticsearch
 
-        self.settings = settings
+        self.settings = kwargs
         self.default_name = coalesce(name, alias, index)
-        self.default_es = _elasticsearch.Cluster(settings=settings)
+        self.default_es = _elasticsearch.Cluster(kwargs=kwargs)
         self.todo = Queue("refresh metadata", max=100000, unique=True)
 
         self.es_metadata = Null
@@ -579,7 +579,8 @@ class Table(DataClass("Table", [
 Column = DataClass(
     "Column",
     [
-        "names",
+        "table",
+        "name",
         "es_column",
         "es_index",
         # "es_type",
