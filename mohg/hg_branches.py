@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 
 from BeautifulSoup import BeautifulSoup
+from mo_kwargs import override
 
 from mo_collections import UniqueIndex
 from mo_dots import Data, set_default
@@ -27,9 +28,9 @@ EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 OLD_BRANCH = DAY
 
 
-@use_settings
-def get_branches(hg, branches, use_cache=True, settings=None):
-    if not settings.branches or not use_cache:
+@override
+def get_branches(hg, branches, use_cache=True, kwargs=None):
+    if not kwargs.branches or not use_cache:
         found_branches = _get_branches_from_hg(hg)
 
         es = elasticsearch.Cluster(settings=branches).get_or_create_index(settings=branches)
@@ -50,7 +51,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
         # IF IT IS TOO OLD, THEN PULL FROM HG
         oldest = Date(MAX(docs.etl.timestamp))
         if oldest == None or Date.now() - oldest > OLD_BRANCH:
-            return get_branches(use_cache=False, settings=settings)
+            return get_branches(use_cache=False, kwargs=kwargs)
 
         try:
             return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
@@ -58,14 +59,14 @@ def get_branches(hg, branches, use_cache=True, settings=None):
             Log.error("Bad branch in ES index", cause=e)
     except Exception, e:
         if "Can not find index " in e:
-            return get_branches(use_cache=False, settings=settings)
+            return get_branches(use_cache=False, kwargs=kwargs)
         Log.error("problem getting branches", cause=e)
 
 
-@use_settings
-def _get_branches_from_hg(settings):
+@override
+def _get_branches_from_hg(kwarg):
     # GET MAIN PAGE
-    response = http.get(settings.url)
+    response = http.get(kwarg.url)
     doc = BeautifulSoup(response.all_content)
 
     all_repos = doc("table")[1]
@@ -73,7 +74,7 @@ def _get_branches_from_hg(settings):
     for i, r in enumerate(all_repos("tr")):
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = _get_single_branch_from_hg(settings, name, dir.lstrip("/"))
+        b = _get_single_branch_from_hg(kwarg, name, dir.lstrip("/"))
         branches.extend(b)
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))

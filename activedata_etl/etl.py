@@ -23,6 +23,8 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
+from mo_kwargs import override
+
 import mo_dots
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
@@ -32,7 +34,6 @@ from mo_logs.exceptions import suppress_exception
 from mo_dots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
@@ -63,7 +64,7 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-    @use_settings
+    @override
     def __init__(
         self,
         name,
@@ -72,14 +73,14 @@ class ETL(Thread):
         resources,
         please_stop,
         wait_forever=False,
-        settings=None
+        kwargs=None
     ):
         # FIND THE WORKERS METHODS
-        settings.workers = []
+        kwargs.workers = []
         for w in workers:
             w = deepcopy(w)
 
-            for existing_worker in settings.workers:
+            for existing_worker in kwargs.workers:
                 try:
                     fuzzytestcase.assertAlmostEqual(existing_worker.source, w.source)
                     fuzzytestcase.assertAlmostEqual(existing_worker.transformer, w.transformer)
@@ -99,14 +100,14 @@ class ETL(Thread):
                     w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
-                settings.workers.append(w)
+                kwargs.workers.append(w)
 
             w._notify = []
             for notify in listwrap(w.notify):
                 w._notify.append(aws.Queue(notify))
 
         self.resources = resources
-        self.settings = settings
+        self.settings = kwargs
         if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue)
         else:
@@ -421,7 +422,7 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
+        hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
             hg=hg
         )
@@ -433,7 +434,7 @@ def main():
                 work_queue=settings.work_queue,
                 resources=resources,
                 workers=settings.workers,
-                settings=settings.param,
+                kwargs=settings.param,
                 please_stop=stopper
             )
 
@@ -476,7 +477,7 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(settings=settings.hg)
+    hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
         hg=hg
     )
@@ -486,7 +487,7 @@ def etl_one(settings):
         name="ETL Loop Test",
         work_queue=queue,
         workers=settings.workers,
-        settings=settings.param,
+        kwargs=settings.param,
         resources=resources,
         please_stop=stopper
     )

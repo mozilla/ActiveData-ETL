@@ -13,6 +13,8 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
+from mo_kwargs import override
+
 from mo_dots import set_default, Null, coalesce, unwraplist
 from mo_logs import Log, strings
 from mo_logs.exceptions import Explanation, assert_no_exception, Except
@@ -26,7 +28,7 @@ from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.env import http, elasticsearch
-from pyLibrary.meta import use_settings, cache
+from pyLibrary.meta import cache
 from pyLibrary.queries import jx
 
 _hg_branches = None
@@ -56,7 +58,7 @@ class HgMozillaOrg(object):
     USE ES AS A FASTER CACHE FOR THE SAME
     """
 
-    @use_settings
+    @override
     def __init__(
         self,
         hg=None,        # CONNECT TO hg
@@ -64,16 +66,16 @@ class HgMozillaOrg(object):
         branches=None,  # CONNECTION INFO FOR ES CACHE
         use_cache=False,   # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
         timeout=30 * SECOND,
-        settings=None
+        kwargs=None
     ):
         if not _hg_branches:
             _late_imports()
 
-        self.settings = settings
+        self.settings = kwargs
         self.timeout = Duration(timeout)
 
         if branches == None:
-            self.branches = _hg_branches.get_branches(settings=settings)
+            self.branches = _hg_branches.get_branches(settings=kwargs)
             self.es = None
             return
 
@@ -84,7 +86,7 @@ class HgMozillaOrg(object):
         except Exception:
             pass
 
-        self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=settings)
+        self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=kwargs)
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound-en-US", "value": {

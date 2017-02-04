@@ -9,23 +9,23 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_dots import Null, listwrap
-from pyLibrary import aws
-from mo_logs import Log, Except
-from pyLibrary.meta import use_settings
-from pyLibrary.queries import jx
-from pyLibrary.queries.expressions import jx_expression
-from pyLibrary.thread.signal import Signal
+from mo_kwargs import override
+
+from mo_dots import listwrap
+from mo_logs import Log
+from mo_threads import Signal
 from mo_threads import Thread
 from mo_times.dates import Date
+from pyLibrary import aws
+from pyLibrary.queries import jx
 
 DEBUG = True
 
 class S3Cache(object):
 
-    @use_settings
-    def __init__(self, db, bucket, key_format, settings):
-        self.bucket = aws.s3.Bucket(settings)
+    @override
+    def __init__(self, db, bucket, key_format, kwargs):
+        self.bucket = aws.s3.Bucket(kwargs)
         self.db = db
         details = self.db.query("PRAGMA table_info(files)")
         if not details.data:
@@ -40,7 +40,7 @@ class S3Cache(object):
                 "   CONSTRAINT pk PRIMARY KEY (bucket, name)"
                 ")"
             )
-        self.settings = settings
+        self.settings = kwargs
         self.up_to_date = Signal()
         if key_format.startswith("t."):
             suffix = db.quote_value(key_format[3])
