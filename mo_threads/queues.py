@@ -22,11 +22,11 @@ from datetime import datetime, timedelta
 from time import time
 
 from mo_dots import coalesce, Null
-
 from mo_threads.lock import Lock
 from mo_threads.signal import Signal
-from mo_threads.threads import Thread, THREAD_STOP
+from mo_threads.threads import Thread, THREAD_STOP, THREAD_TIMEOUT
 from mo_threads.till import Till
+from mo_times.durations import SECOND
 
 _convert = None
 _Except = None
@@ -54,8 +54,6 @@ def _late_import():
     _ = _Except
     _ = _CProfiler
     _ = _Log
-
-
 
 
 class Queue(object):
@@ -167,7 +165,7 @@ class Queue(object):
         if timeout != None:
             time_to_stop_waiting = now + timeout
         else:
-            time_to_stop_waiting = None
+            time_to_stop_waiting = Null
 
         if self.next_warning < now:
             self.next_warning = now + wait_time
@@ -176,7 +174,7 @@ class Queue(object):
             if now > time_to_stop_waiting:
                 if not _Log:
                     _late_import()
-                _Log.error(Thread.TIMEOUT)
+                _Log.error(THREAD_TIMEOUT)
 
             if self.silent:
                 self.lock.wait(Till(till=time_to_stop_waiting))
