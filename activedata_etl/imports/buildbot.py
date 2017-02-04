@@ -13,13 +13,13 @@ from __future__ import unicode_literals
 import ast
 import re
 
-from pyDots import wrap, Data, coalesce, set_default, unwraplist, listwrap
+from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
 from pyLibrary import convert
-from MoLogs.exceptions import suppress_exception
-from MoLogs import Log, strings
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, strings
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date, unicode2Date
+from mo_math import Math
+from mo_times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 

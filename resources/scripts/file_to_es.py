@@ -14,10 +14,10 @@ from __future__ import unicode_literals
 import hashlib
 
 from pyLibrary import convert, jsons
-from MoLogs import Log
+from mo_logs import Log
 from pyLibrary.env import elasticsearch
-from pyLibrary.env.files import File
-from pyLibrary.thread.threads import Thread
+from mo_files import File
+from mo_threads import Thread
 
 es_config = jsons.ref.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
 

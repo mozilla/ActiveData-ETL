@@ -12,8 +12,8 @@ from __future__ import unicode_literals
 import requests
 
 from pyLibrary import convert
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 def main():

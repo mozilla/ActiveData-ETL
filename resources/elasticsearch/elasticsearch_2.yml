@@ -7,6 +7,7 @@ node.data: true
 script.inline: on
 script.indexed: on
 
+cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.enable: none
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
 cluster.routing.allocation.node_concurrent_recoveries: 1
@@ -31,7 +32,6 @@ index.translog.interval: 60s
 index.translog.flush_threshold_size: 1gb
 
 indices.memory.index_buffer_size: 20%
-indices.fielddata.cache.expire: 20m
 indices.recovery.concurrent_streams: 1
 indices.recovery.max_bytes_per_sec: 1000mb
 
@@ -44,4 +44,3 @@ http.timeout: 600
 
 threadpool.bulk.queue_size: 3000
 threadpool.index.queue_size: 1000
-

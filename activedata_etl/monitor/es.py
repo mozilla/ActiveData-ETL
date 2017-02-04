@@ -12,9 +12,9 @@ from __future__ import unicode_literals
 import requests
 
 from pyLibrary import convert
-from MoLogs import startup, constants
-from MoLogs.exceptions import suppress_exception
-from MoLogs import Log, machine_metadata
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, machine_metadata
 
 with suppress_exception:
     # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP

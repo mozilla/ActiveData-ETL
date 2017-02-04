@@ -12,20 +12,19 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
-from pyDots import coalesce, unwrap, Data, wrap
+from mo_dots import coalesce, unwrap, Data, wrap
+from mo_logs import Log, machine_metadata
+from mo_logs import startup, constants
+from mo_logs.exceptions import Explanation, WarnOnException
+from mo_math import MAX
+from mo_math.randoms import Random
+from mo_threads import Process, Thread, Signal, Queue
+from mo_threads import Till
+from mo_times.timer import Timer
 from pyLibrary import queries, aws
 from pyLibrary.aws import s3
-from MoLogs import startup, constants
-from MoLogs.exceptions import Explanation, WarnOnException
-from MoLogs import Log, machine_metadata
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.maths import Math
-from pyLibrary.maths.randoms import Random
-from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, Signal, Queue
-from pyLibrary.thread.till import Till
-from pyLibrary.times.timer import Timer
 
 split = {}
 empty_bucket_complaint_sent = False
@@ -95,7 +94,7 @@ def splitter(work_queue, please_stop):
                 bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
-                rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
+                rate=num_keys / MAX([extend_time.duration.seconds, 0.01])
             )
 
 
@@ -175,7 +174,7 @@ def main():
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                cluster.create_index(settings=es_settings)
+                cluster.create_index(kwargs=es_settings)
                 Log.alert("Done.  Exiting.")
                 return
 
@@ -191,7 +190,7 @@ def main():
                             bucket=bucket.name
                         ))
         else:
-            main_work_queue = aws.Queue(settings=settings.work_queue)
+            main_work_queue = aws.Queue(kwargs=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
@@ -205,7 +204,7 @@ def main():
                     rollover_max=w.rollover.max,
                     queue_size=coalesce(w.queue_size, 1000),
                     batch_size=unwrap(w.batch_size),
-                    settings=w.elasticsearch
+                    kwargs=w.elasticsearch
                 ),
                 bucket=s3.Bucket(w.source),
                 settings=w

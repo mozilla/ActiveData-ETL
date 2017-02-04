@@ -67,6 +67,10 @@
 					"type": "object",
 					"dynamic": true,
 					"properties": {
+//						"id": {
+//							"type":"string",
+//							"index": "not_analyzed"
+//						},
 						"artifacts": {
 							"type": "nested"
 						},

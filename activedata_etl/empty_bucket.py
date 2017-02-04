@@ -10,10 +10,10 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import key2etl, etl2path
-from pyDots import unwrap
+from mo_dots import unwrap
 from pyLibrary.aws import s3
-from MoLogs import startup
-from MoLogs import Log
+from mo_logs import startup
+from mo_logs import Log
 from pyLibrary.queries import jx
 
 

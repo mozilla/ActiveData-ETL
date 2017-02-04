@@ -1,8 +1,8 @@
 from pyLibrary.aws import s3
-from MoLogs import startup, constants
-from MoLogs import Log
-from pyLibrary.maths.randoms import Random
-from pyLibrary.thread.threads import Thread
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_math.randoms import Random
+from mo_threads import Thread
 
 
 def summarize(settings):

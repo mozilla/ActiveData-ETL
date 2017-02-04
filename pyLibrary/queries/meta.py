@@ -15,19 +15,22 @@ import itertools
 from copy import copy
 from itertools import product
 
-from MoLogs import Log
-from pyDots import coalesce, set_default, Null, literal_field, split_field, join_field, ROOT_PATH
-from pyDots import wrap
-from pyDots import Data
-from pyLibrary.meta import use_settings, DataClass
+from mo_logs import Log
+from mo_threads import Lock, THREAD_STOP
+from mo_threads import Queue
+from mo_threads import Thread
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import HOUR, MINUTE
+from mo_times.timer import Timer
+from mo_dots import Data
+from mo_dots import coalesce, set_default, Null, literal_field, split_field, join_field, ROOT_PATH
+from mo_dots import wrap
+from mo_kwargs import override
+from pyLibrary.meta import DataClass
 from pyLibrary.queries import jx, Schema
 from pyLibrary.queries.containers import STRUCT, Container
 from pyLibrary.queries.query import QueryOp
-from pyLibrary.thread.threads import Queue, Thread, Lock
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import HOUR, MINUTE
-from pyLibrary.times.timer import Timer
 
 _elasticsearch = None
 
@@ -53,8 +56,8 @@ class FromESMetadata(Schema):
             singlton = object.__new__(cls)
             return singlton
 
-    @use_settings
-    def __init__(self, host, index, alias=None, name=None, port=9200, settings=None):
+    @override
+    def __init__(self, host, index, alias=None, name=None, port=9200, kwargs=None):
         global _elasticsearch
         if hasattr(self, "settings"):
             return
@@ -62,9 +65,9 @@ class FromESMetadata(Schema):
         from pyLibrary.queries.containers.list_usingPythonList import ListContainer
         from pyLibrary.env import elasticsearch as _elasticsearch
 
-        self.settings = settings
+        self.settings = kwargs
         self.default_name = coalesce(name, alias, index)
-        self.default_es = _elasticsearch.Cluster(settings=settings)
+        self.default_es = _elasticsearch.Cluster(kwargs=kwargs)
         self.todo = Queue("refresh metadata", max=100000, unique=True)
 
         self.es_metadata = Null
@@ -389,7 +392,7 @@ class FromESMetadata(Schema):
                 Log.warning("Could not get {{col.table}}.{{col.es_column}} info", col=c, cause=e)
 
     def monitor(self, please_stop):
-        please_stop.on_go(lambda: self.todo.add(Thread.STOP))
+        please_stop.on_go(lambda: self.todo.add(THREAD_STOP))
         while not please_stop:
             try:
                 if not self.todo:
@@ -411,7 +414,7 @@ class FromESMetadata(Schema):
                             if DEBUG:
                                 Log.note("no more metatdata to update")
 
-                column = self.todo.pop(Till(timeout=10*MINUTE))
+                column = self.todo.pop(Till(seconds=(10*MINUTE).seconds))
                 if column:
                     if DEBUG:
                         Log.note("update {{table}}.{{column}}", table=column.table, column=column.es_column)
@@ -432,10 +435,10 @@ class FromESMetadata(Schema):
 
     def not_monitor(self, please_stop):
         Log.alert("metadata scan has been disabled")
-        please_stop.on_go(lambda: self.todo.add(Thread.STOP))
+        please_stop.on_go(lambda: self.todo.add(THREAD_STOP))
         while not please_stop:
             c = self.todo.pop()
-            if c == Thread.STOP:
+            if c == THREAD_STOP:
                 break
 
             if not c.last_updated or c.last_updated >= Date.now()-TOO_OLD:
@@ -562,9 +565,6 @@ def metadata_tables():
     )
 
 
-
-
-
 class Table(DataClass("Table", [
     "name",
     "url",
@@ -579,22 +579,20 @@ class Table(DataClass("Table", [
 Column = DataClass(
     "Column",
     [
-        "name",
         "table",
+        "name",
         "es_column",
         "es_index",
         # "es_type",
         "type",
         {"name": "useSource", "default": False},
         {"name": "nested_path", "nulls": True},  # AN ARRAY OF PATHS (FROM DEEPEST TO SHALLOWEST) INDICATING THE JSON SUB-ARRAYS
-        {"name": "relative", "nulls": True},
         {"name": "count", "nulls": True},
         {"name": "cardinality", "nulls": True},
         {"name": "partitions", "nulls": True},
         {"name": "last_updated", "nulls": True}
     ]
 )
-
 
 
 class ColumnList(Container):

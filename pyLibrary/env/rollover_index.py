@@ -8,18 +8,19 @@
 #
 from __future__ import unicode_literals
 
-from MoLogs import Log, strings
-from MoLogs.exceptions import suppress_exception
-from pyDots import coalesce, wrap, Null
+import mo_json
+from mo_dots import coalesce, wrap, Null
+from mo_logs import Log, strings
+from mo_logs.exceptions import suppress_exception
+from mo_math.randoms import Random
+from mo_times.dates import Date, unicode2Date, unix2Date
+from mo_times.durations import Duration
+from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.aws.s3 import strip_extension
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths.randoms import Random
-from pyLibrary.meta import use_settings
+from mo_kwargs import override
 from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date, unicode2Date, unix2Date
-from pyLibrary.times.durations import Duration
-from pyLibrary.times.timer import Timer
 
 MAX_RECORD_LENGTH = 400000
 
@@ -29,21 +30,21 @@ class RolloverIndex(object):
     MIMIC THE elasticsearch.Index, WITH EXTRA keys() FUNCTION
     AND THREADED QUEUE AND SPLIT DATA BY
     """
-    @use_settings
-    def __init__(self, rollover_field, rollover_interval, rollover_max, queue_size=10000, batch_size=5000, settings=None):
+    @override
+    def __init__(self, rollover_field, rollover_interval, rollover_max, queue_size=10000, batch_size=5000, kwargs=None):
         """
         :param rollover_field: the FIELD with a timestamp to use for determining which index to push to
         :param rollover_interval: duration between roll-over to new index
         :param rollover_max: remove old indexes, do not add old records
         :param queue_size: number of documents to queue in memory
         :param batch_size: number of documents to push at once
-        :param settings: plus additional ES settings
+        :param kwargs: plus additional ES settings
         :return:
         """
-        self.settings = settings
+        self.settings = kwargs
         self.rollover_field = jx.get(rollover_field)
-        self.rollover_interval = self.settings.rollover_interval = Duration(settings.rollover_interval)
-        self.rollover_max = self.settings.rollover_max = Duration(settings.rollover_max)
+        self.rollover_interval = self.settings.rollover_interval = Duration(kwargs.rollover_interval)
+        self.rollover_max = self.settings.rollover_max = Duration(kwargs.rollover_max)
         self.known_queues = {}  # MAP DATE TO INDEX
         self.cluster = elasticsearch.Cluster(self.settings)
 
@@ -54,7 +55,7 @@ class RolloverIndex(object):
     def _get_queue(self, row):
         row = wrap(row)
         if row.json:
-            row.value, row.json = convert.json2value(row.json), None
+            row.value, row.json = mo_json.json2value(row.json), None
         timestamp = Date(self.rollover_field(wrap(row).value))
         if timestamp == None or timestamp < Date.today() - self.rollover_max:
             return Null
@@ -75,20 +76,20 @@ class RolloverIndex(object):
                     best = c
             if not best or rounded_timestamp > best.date:
                 if rounded_timestamp < wrap(candidates[-1]).date:
-                    es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
+                    es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, kwargs=self.settings)
                 else:
                     try:
-                        es = self.cluster.create_index(create_timestamp=rounded_timestamp, settings=self.settings)
+                        es = self.cluster.create_index(create_timestamp=rounded_timestamp, kwargs=self.settings)
                         es.add_alias(self.settings.index)
                     except Exception, e:
                         if "IndexAlreadyExistsException" not in e:
                             Log.error("Problem creating index", cause=e)
                         return self._get_queue(row)  # TRY AGAIN
             else:
-                es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, settings=self.settings)
+                es = elasticsearch.Index(read_only=False, alias=best.alias, index=best.index, kwargs=self.settings)
 
             with suppress_exception:
-                es.set_refresh_interval(seconds=60 * 10, timeout=5)
+                es.set_refresh_interval(seconds=60 * 5, timeout=5)
 
             self._delete_old_indexes(candidates)
 
@@ -218,12 +219,12 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
         if found:
             suite_json = '{' + found + "}"
             if suite_json:
-                suite = convert.json2value(suite_json)
+                suite = mo_json.json2value(suite_json)
                 suite = convert.value2json(coalesce(suite.fullname, suite.name))
                 line = line.replace(suite_json, suite)
 
     if rownum == 0:
-        value = convert.json2value(line)
+        value = mo_json.json2value(line)
         if len(line) > MAX_RECORD_LENGTH:
             _shorten(value, source)
         _id, value = _fix(value)
@@ -234,12 +235,12 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
                 Log.error("Expecting etl.id==0")
             return row, True
     elif len(line) > MAX_RECORD_LENGTH:
-        value = convert.json2value(line)
+        value = mo_json.json2value(line)
         _shorten(value, source)
         _id, value = _fix(value)
         row = {"id": _id, "value": value}
     elif line.find('"resource_usage":') != -1:
-        value = convert.json2value(line)
+        value = mo_json.json2value(line)
         _id, value = _fix(value)
         row = {"id": _id, "value": value}
     else:

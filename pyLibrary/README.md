@@ -15,15 +15,15 @@ Module `meta`
 
 **Description**
 
-`@use_settings` will decorate a function to accept a `settings` parameter which is just like `**kwargs`, but the named parameters can override the properties in `settings`, rather than raise duplicate keyname exceptions.
+`@override` will decorate a function to accept a `settings` parameter which is just like `**kwargs`, but the named parameters can override the properties in `settings`, rather than raise duplicate keyname exceptions.
 
 
 **Example**
 
-We decorate the `login()` function with `@use_settings`. In this case, `username` is a required parameter, and `password` will default to `None`. The settings parameter should always default to `None` so that it's not required.
+We decorate the `login()` function with `@override`. In this case, `username` is a required parameter, and `password` will default to `None`. The settings parameter should always default to `None` so that it's not required.
 
 ```python
-		@use_settings
+		@override
 		def login(username, password=None, settings=None):
 			pass
 ```
@@ -66,7 +66,7 @@ for each of the components being injected, can result in some spectacularly
 complex system configuration. One way to reduce the complexity is to use
 configuration templates that contain useful defaults, and simply overwrite
 the properties that need to be changed for the new configuration.
-`@use_settings` has been created to provide this templating system for Python
+`@override` has been created to provide this templating system for Python
 function calls (primarily class constructors).
 
 
@@ -83,7 +83,7 @@ The creation of this function was motivated by the desire to extend Python's
 `format()` function with more features and replace the [formatting mini language](https://docs.python.org/2/library/string.html#formatspec),
 because it appears to be Perl-inspired line noise.
 
-    	MoLogs.strings.expand_template(template, value)
+    	mo_logs.strings.expand_template(template, value)
 
 A simple function that replaces variables in `template` with the properties
 found in `value`. Variables are indicated by the double moustaches;
@@ -94,7 +94,7 @@ of complex properties; converted to JSON. Further string formatting can be
 performed by feeding properties to functions using the pipe (`|`) symbol:
 
 ```python
-    >>> from MoLogs.strings import expand_template
+    >>> from mo_logs.strings import expand_template
     >>> total = 123.45
     >>> some_list = [10, 11, 14, 80]
 
@@ -109,7 +109,7 @@ performed by feeding properties to functions using the pipe (`|`) symbol:
             [10, 11, 14, 80]
 ```
 
-Look into the [`MoLogs.strings.py`](https://github.com/klahnakoski/pyLibrary/blob/dev/MoLogs/strings.py) to see a full list of transformation
+Look into the [`mo_logs.strings.py`](https://github.com/klahnakoski/pyLibrary/blob/dev/mo_logs/strings.py) to see a full list of transformation
 functions.
 
 Variables are not limited to simple names: You may use dot (`.`) to specify

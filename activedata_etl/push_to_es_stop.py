@@ -14,11 +14,11 @@ from fabric.api import settings as fabric_settings
 from fabric.operations import sudo
 from fabric.state import env
 
-from pyDots import unwrap, wrap
-from pyDots.objects import datawrap
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 @aws_retry

@@ -14,10 +14,10 @@ from __future__ import unicode_literals
 
 from pyLibrary import aws
 from pyLibrary.aws.s3 import Bucket
-from MoLogs import startup
-from MoLogs import Log
+from mo_logs import startup
+from mo_logs import Log
 from pyLibrary.queries import jx
-from pyLibrary.times.timer import Timer
+from mo_times.timer import Timer
 
 
 def list_s3(settings, filter):

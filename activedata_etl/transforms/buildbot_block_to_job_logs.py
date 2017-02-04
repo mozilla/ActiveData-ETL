@@ -13,15 +13,15 @@ from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
-from pyDots import Data, set_default
+from mo_dots import Data, set_default
 from pyLibrary import convert
-from MoLogs.exceptions import Except
-from MoLogs import Log
+from mo_logs.exceptions import Except
+from mo_logs import Log
 from pyLibrary.env import elasticsearch, http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import MONTH
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.durations import MONTH
+from mo_times.timer import Timer
 
 _ = convert
 DEBUG = False

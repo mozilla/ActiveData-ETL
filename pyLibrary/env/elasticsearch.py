@@ -15,24 +15,26 @@ import re
 from collections import Mapping
 from copy import deepcopy
 
-from MoLogs import Log, strings
-from MoLogs.exceptions import Except
-from MoLogs.strings import utf82unicode
-from pyDots import coalesce, Null, Data, set_default, join_field, split_field, listwrap, literal_field, \
+import mo_json
+from mo_logs import Log, strings
+from mo_logs.exceptions import Except
+from mo_logs.strings import utf82unicode
+from mo_threads import Lock
+from mo_dots import coalesce, Null, Data, set_default, join_field, split_field, listwrap, literal_field, \
     ROOT_PATH
-from pyDots import wrap
-from pyDots.lists import FlatList
+from mo_dots import wrap
+from mo_dots.lists import FlatList
 from pyLibrary import convert
 from pyLibrary.env import http
-from pyLibrary.jsons.typed_encoder import json2typed
-from pyLibrary.maths import Math
-from pyLibrary.maths.randoms import Random
-from pyLibrary.meta import use_settings
+from mo_json.typed_encoder import json2typed
+from mo_math import Math
+from mo_math.randoms import Random
+from mo_kwargs import override
 from pyLibrary.queries import jx
-from pyLibrary.thread.threads import ThreadedQueue, Lock
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_threads import ThreadedQueue
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
@@ -59,7 +61,7 @@ class Index(Features):
     IF ANY YET.
 
     """
-    @use_settings
+    @override
     def __init__(
         self,
         index,  # NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
@@ -72,7 +74,7 @@ class Index(Features):
         consistency="one",  # ES WRITE CONSISTENCY (https://www.elastic.co/guide/en/elasticsearch/reference/1.7/docs-index_.html#index-consistency)
         debug=False,  # DO NOT SHOW THE DEBUG STATEMENTS
         cluster=None,
-        settings=None
+        kwargs=None
     ):
         if index==None:
             Log.error("not allowed")
@@ -81,17 +83,17 @@ class Index(Features):
 
         self.cluster_state = None
         self.debug = debug
-        self.settings = settings
+        self.settings = kwargs
         if cluster:
             self.cluster = cluster
         else:
-            self.cluster = Cluster(settings)
+            self.cluster = Cluster(kwargs)
 
         try:
             full_index = self.get_index(index)
             if full_index and alias==None:
-                settings.alias = settings.index
-                settings.index = full_index
+                kwargs.alias = kwargs.index
+                kwargs.index = full_index
             if full_index==None:
                 Log.error("not allowed")
             if type == None:
@@ -387,7 +389,7 @@ class Index(Features):
                 **kwargs
             )
 
-            result = convert.json2value(utf82unicode(response.all_content))
+            result = mo_json.json2value(utf82unicode(response.all_content))
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.all_content)
@@ -399,7 +401,7 @@ class Index(Features):
                 **kwargs
             )
 
-            result = convert.json2value(utf82unicode(response.all_content))
+            result = mo_json.json2value(utf82unicode(response.all_content))
             if not result.acknowledged:
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.all_content)
@@ -480,8 +482,8 @@ known_clusters = {}
 
 class Cluster(object):
 
-    @use_settings
-    def __new__(cls, host, port=9200, settings=None):
+    @override
+    def __new__(cls, host, port=9200, kwargs=None):
         if not isinstance(port, int):
             Log.error("port must be integer")
         cluster = known_clusters.get((host, port))
@@ -492,8 +494,8 @@ class Cluster(object):
         known_clusters[(host, port)] = cluster
         return cluster
 
-    @use_settings
-    def __init__(self, host, port=9200, explore_metadata=True, settings=None):
+    @override
+    def __init__(self, host, port=9200, explore_metadata=True, kwargs=None):
         """
         settings.explore_metadata == True - IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
         settings.timeout == NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
@@ -501,16 +503,16 @@ class Cluster(object):
         if hasattr(self, "settings"):
             return
 
-        self.settings = settings
+        self.settings = kwargs
         self.cluster_state = None
         self._metadata = None
         self.metadata_locker = Lock()
-        self.debug = settings.debug
+        self.debug = kwargs.debug
         self.version = None
-        self.path = settings.host + ":" + unicode(settings.port)
+        self.path = kwargs.host + ":" + unicode(kwargs.port)
         self.get_metadata()
 
-    @use_settings
+    @override
     def get_or_create_index(
         self,
         index,
@@ -519,26 +521,26 @@ class Cluster(object):
         limit_replicas=None,
         read_only=False,
         tjson=False,
-        settings=None
+        kwargs=None
     ):
-        best = self._get_best(settings)
+        best = self._get_best(kwargs)
         if not best:
-            output = self.create_index(settings=settings, schema=schema, limit_replicas=limit_replicas)
+            output = self.create_index(kwargs=kwargs, schema=schema, limit_replicas=limit_replicas)
             return output
         elif best.alias != None:
-            settings.alias = best.alias
-            settings.index = best.index
-        elif settings.alias == None:
-            settings.alias = settings.index
-            settings.index = best.index
+            kwargs.alias = best.alias
+            kwargs.index = best.index
+        elif kwargs.alias == None:
+            kwargs.alias = kwargs.index
+            kwargs.index = best.index
 
-        index = settings.index
+        index = kwargs.index
         meta = self.get_metadata()
         columns = parse_properties(index, ".", meta.indices[index].mappings.values()[0].properties)
         if len(columns)!=0:
-            settings.tjson = tjson or any(c.name.endswith("$value") for c in columns)
+            kwargs.tjson = tjson or any(c.name.endswith("$value") for c in columns)
 
-        return Index(settings)
+        return Index(kwargs)
 
     def _get_best(self, settings):
         from pyLibrary.queries import jx
@@ -552,8 +554,8 @@ class Cluster(object):
         ], "index")
         return indexes.last()
 
-    @use_settings
-    def get_index(self, index, type=None, alias=None, read_only=True, settings=None):
+    @override
+    def get_index(self, index, type=None, alias=None, read_only=True, kwargs=None):
         """
         TESTS THAT THE INDEX EXISTS BEFORE RETURNING A HANDLE
         """
@@ -561,26 +563,26 @@ class Cluster(object):
             # GET EXACT MATCH, OR ALIAS
             aliases = self.get_aliases()
             if index in aliases.index:
-                return Index(settings)
+                return Index(kwargs)
             if index in aliases.alias:
                 match = [a for a in aliases if a.alias == index][0]
-                settings.alias = match.alias
-                settings.index = match.index
-                return Index(settings)
-            Log.error("Can not find index {{index_name}}", index_name=settings.index)
+                kwargs.alias = match.alias
+                kwargs.index = match.index
+                return Index(kwargs)
+            Log.error("Can not find index {{index_name}}", index_name=kwargs.index)
         else:
             # GET BEST MATCH, INCLUDING PROTOTYPE
-            best = self._get_best(settings)
+            best = self._get_best(kwargs)
             if not best:
-                Log.error("Can not find index {{index_name}}", index_name=settings.index)
+                Log.error("Can not find index {{index_name}}", index_name=kwargs.index)
 
             if best.alias != None:
-                settings.alias = best.alias
-                settings.index = best.index
-            elif settings.alias == None:
-                settings.alias = settings.index
-                settings.index = best.index
-            return Index(settings)
+                kwargs.alias = best.alias
+                kwargs.index = best.index
+            elif kwargs.alias == None:
+                kwargs.alias = kwargs.index
+                kwargs.index = best.index
+            return Index(kwargs)
 
     def get_alias(self, alias):
         """
@@ -592,7 +594,7 @@ class Cluster(object):
             settings = self.settings.copy()
             settings.alias = alias
             settings.index = alias
-            return Index(read_only=True, settings=settings)
+            return Index(read_only=True, kwargs=settings)
         Log.error("Can not find any index with alias {{alias_name}}",  alias_name= alias)
 
     def get_prototype(self, alias):
@@ -607,7 +609,7 @@ class Cluster(object):
         ])
         return output
 
-    @use_settings
+    @override
     def create_index(
         self,
         index,
@@ -617,24 +619,24 @@ class Cluster(object):
         limit_replicas=None,
         read_only=False,
         tjson=False,
-        settings=None
+        kwargs=None
     ):
         if not alias:
-            alias = settings.alias = settings.index
-            index = settings.index = proto_name(alias, create_timestamp)
+            alias = kwargs.alias = kwargs.index
+            index = kwargs.index = proto_name(alias, create_timestamp)
 
-        if settings.alias == index:
+        if kwargs.alias == index:
             Log.error("Expecting index name to conform to pattern")
 
-        if settings.schema_file:
+        if kwargs.schema_file:
             Log.error('schema_file attribute not supported.  Use {"$ref":<filename>} instead')
 
         if schema == None:
             Log.error("Expecting a schema")
         elif isinstance(schema, basestring):
-            schema = convert.json2value(schema, leaves=True)
+            schema = mo_json.json2value(schema, leaves=True)
         else:
-            schema = convert.json2value(convert.value2json(schema), leaves=True)
+            schema = mo_json.json2value(convert.value2json(schema), leaves=True)
 
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
@@ -664,7 +666,7 @@ class Cluster(object):
             Till(seconds=1).wait()
         Log.alert("Made new index {{index|quote}}", index=index)
 
-        es = Index(settings=settings)
+        es = Index(kwargs=kwargs)
         return es
 
     def delete_index(self, index_name):
@@ -687,7 +689,7 @@ class Cluster(object):
             response = http.delete(url)
             if response.status_code != 200:
                 Log.error("Expecting a 200, got {{code}}", code=response.status_code)
-            details = convert.json2value(utf82unicode(response.content))
+            details = mo_json.json2value(utf82unicode(response.content))
             if self.debug:
                 Log.note("delete response {{response}}", response=details)
             return response
@@ -755,7 +757,7 @@ class Cluster(object):
                 Log.error(response.reason.decode("latin1") + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
             if self.debug:
                 Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
-            details = convert.json2value(utf82unicode(response.content))
+            details = mo_json.json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
@@ -787,7 +789,7 @@ class Cluster(object):
                 Log.error(response.reason+": "+response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
-            details = wrap(convert.json2value(utf82unicode(response.all_content)))
+            details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -804,7 +806,7 @@ class Cluster(object):
                 Log.error(response.reason + ": " + response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
-            details = wrap(convert.json2value(utf82unicode(response.all_content)))
+            details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -820,7 +822,7 @@ class Cluster(object):
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
             if response.all_content:
-                details = wrap(convert.json2value(utf82unicode(response.all_content)))
+                details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
                 if details.error:
                     Log.error(details.error)
                 return details
@@ -912,7 +914,7 @@ def _scrub(r):
 
 
 class Alias(Features):
-    @use_settings
+    @override
     def __init__(
         self,
         alias,  # NAME OF THE ALIAS
@@ -920,15 +922,15 @@ class Alias(Features):
         explore_metadata=True,  # IF PROBING THE CLUSTER FOR METADATA IS ALLOWED
         debug=False,
         timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
-        settings=None
+        kwargs=None
     ):
         self.debug = debug
         if self.debug:
-            Log.alert("Elasticsearch debugging on {{index|quote}} is on",  index= settings.index)
+            Log.alert("Elasticsearch debugging on {{index|quote}} is on",  index= kwargs.index)
         if alias == None:
             Log.error("Alias can not be None")
-        self.settings = settings
-        self.cluster = Cluster(settings)
+        self.settings = kwargs
+        self.cluster = Cluster(kwargs)
 
         if type == None:
             if not explore_metadata:
@@ -1106,9 +1108,8 @@ def parse_properties(parent_index_name, parent_name, esProperties):
             child_columns = parse_properties(index_name, column_name, property.properties)
             columns.extend(child_columns)
             columns.append(Column(
-                table=index_name,
+                names={index_name: column_name},
                 es_index=index_name,
-                name=column_name,
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type="source" if property.enabled == False else "object"
@@ -1144,9 +1145,8 @@ def parse_properties(parent_index_name, parent_name, esProperties):
 
         if property.type in ["string", "boolean", "integer", "date", "long", "double"]:
             columns.append(Column(
-                table=index_name,
                 es_index=index_name,
-                name=column_name,
+                names={"index_name": column_name},
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type=property.type
@@ -1164,7 +1164,7 @@ def parse_properties(parent_index_name, parent_name, esProperties):
             columns.append(Column(
                 table=index_name,
                 es_index=index_name,
-                name=column_name,
+                names={index_name: column_name},
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type="source" if property.enabled==False else "object"

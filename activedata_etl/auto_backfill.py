@@ -12,18 +12,18 @@ from __future__ import unicode_literals
 import sys
 
 from activedata_etl.imports.s3_cache import S3Cache
-from pyDots import Data
+from mo_dots import Data
 from pyLibrary import aws, convert
-from MoLogs import startup, constants
-from MoLogs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 from pyLibrary.env import http
 from pyLibrary.queries import jx
 from pyLibrary.sql.sqlite import Sqlite
-from pyLibrary.thread.threads import Thread
-from pyLibrary.thread.till import Till
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import Duration
-from pyLibrary.times.timer import Timer
+from mo_threads import Thread
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import Duration
+from mo_times.timer import Timer
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 RUN_TIME = 10 * 60
@@ -34,7 +34,7 @@ QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
 def backfill_recent(cache, settings, index_queue, please_stop):
     db_filename = cache + "." + settings.source.bucket + ".sqlite"
     db = Sqlite(db_filename)
-    bucket = S3Cache(db=db, settings=settings.source)
+    bucket = S3Cache(db=db, kwargs=settings.source)
     prime_id = settings.rollover.field
     backfill = Data(total=0)
     too_old = (Date.now().floor(Duration(settings.rollover.interval)) - Duration(settings.rollover.max))
@@ -58,7 +58,8 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         result = db.query(
             " SELECT " +
             "    substr(name, 1, " + unicode(len(prefix) + 1) + ") as prefix," +
-            "    count(1) as number " +
+            "    count(1) as number, " +
+            "    avg(last_modified) as `avg` " +
             " FROM files " +
             " WHERE substr(name, 1, " + unicode(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
@@ -68,10 +69,16 @@ def backfill_recent(cache, settings, index_queue, please_stop):
 
         # TODO: PULL THE SAME COUNTS FROM ES, BUT GROUPBY ON _id IS BROKEN
 
-        for prefix2, count in list(reversed(sorted(result.data, key=lambda d: d[0]))):
+        for prefix2, count, timestamp in list(reversed(sorted(result.data, key=lambda d: d[2]))):
             if count < MAX_SIZE:
                 fill_holes(prefix2, please_stop)
             else:
+                Log.note(
+                    "Decimate prefix={{prefix|quote}}, count={{count}}, timestamp={{timestamp|datetime}}",
+                    prefix=prefix2,
+                    timestamp=timestamp,
+                    count=count
+                )
                 decimate(prefix2, please_stop)
 
     def fill_holes(prefix, please_stop):
@@ -122,7 +129,8 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         backfill.total += len(keys) - len(invalid)
 
     timeout = Till(seconds=RUN_TIME)
-    decimate("", please_stop)
+    if not settings.backfill.disabled:
+        decimate("", please_stop)
     (timeout | bucket.up_to_date).wait()
     Log.note("done")
 

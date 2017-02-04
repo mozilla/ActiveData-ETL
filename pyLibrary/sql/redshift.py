@@ -18,21 +18,21 @@ import psycopg2
 from psycopg2.extensions import adapt
 
 from pyLibrary import convert
-from MoLogs.exceptions import suppress_exception
-from MoLogs import Log
-from pyLibrary.meta import use_settings
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log
+from mo_kwargs import override
 from pyLibrary.queries import jx
 from pyLibrary.sql import SQL
-from MoLogs.strings import expand_template
-from pyLibrary.thread.threads import Lock
+from mo_logs.strings import expand_template
+from mo_threads import Lock
 
 
 class Redshift(object):
 
 
-    @use_settings
-    def __init__(self, host, user, password, database=None, port=5439, settings=None):
-        self.settings=settings
+    @override
+    def __init__(self, host, user, password, database=None, port=5439, kwargs=None):
+        self.settings=kwargs
         self.locker = Lock()
         self.connection = None
 
@@ -164,9 +164,8 @@ PG_TYPES = {
 
 
 class Closer(object):
-
     def __init__(self, resource):
-        self.resource=resource
+        self.resource = resource
 
     def __enter__(self):
         return self

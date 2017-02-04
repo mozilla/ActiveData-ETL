@@ -13,18 +13,18 @@ from collections import Mapping
 
 import requests
 
-from MoLogs import Log, machine_metadata, strings
-from MoLogs.exceptions import suppress_exception, Except
+from mo_logs import Log, machine_metadata, strings
+from mo_logs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from pyDots import set_default, Data, unwraplist, listwrap, wrap
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
 from pyLibrary import convert
 from pyLibrary.env import http
-from pyLibrary.maths import Math
-from pyLibrary.testing.fuzzytestcase import assertAlmostEqual
-from pyLibrary.times.dates import Date
+from mo_math import Math
+from mo_testing.fuzzytestcase import assertAlmostEqual
+from mo_times.dates import Date
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -33,7 +33,7 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/_search"
+ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/task/_search"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -218,6 +218,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     run_id = consume(tc_message, "runId")
     output.task.run = _normalize_task_run(task.runs[run_id])
     output.task.runs = map(_normalize_task_run, consume(task, "runs"))
+    output.task.reboot = consume(task, "payload.reboot")
 
     output.task.scheduler.id = consume(task, "schedulerId")
     output.task.scopes = consume(task, "scopes")
@@ -239,7 +240,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     consume(task, "payload.routes")
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
-    output.task.signing.cert = consume(task, "payload.signing_cert"),
+    output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
     output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
@@ -456,14 +457,19 @@ def set_build_info(source_key, normalized, task, env, resources):
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
             build_task.task.artifacts = None
+            build_task.task.command = None
             build_task.task.env = None
             build_task.task.scopes = None
             build_task.task.runs = None
             build_task.task.routes = None
+            build_task.task.tags = None
             build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
             set_default(normalized.build, {"build": build_task})
+
+
+MISSING_BUILDS = set()
 
 
 def get_build_task(source_key, normalized_task):
@@ -475,13 +481,14 @@ def get_build_task(source_key, normalized_task):
     # "type":"opt",
     # "revision":"571286200177ae7ddfa1893c6b42853b60f2e81e"
 
-    build_task_id = strings.between(normalized_task.build.url, "task/", "/")
+    build_task_id = listwrap(coalesce(strings.between(normalized_task.build.url, "task/", "/"), normalized_task.task.dependencies))
     if not build_task_id:
-        Log.error("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+        Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
+        return None
     response = http.post_json(
         ACTIVEDATA_TASK_URL,
         data={
-            "query": {"filtered": {"filter": {"term": {
+            "query": {"filtered": {"filter": {"terms": {
                 "task.id": build_task_id
             }}}},
             "from": 0,
@@ -489,21 +496,25 @@ def get_build_task(source_key, normalized_task):
         },
         retry={"times": 3, "sleep": 3}
     )
-    if not response.hits.hits:
-        Log.warning(
-            "Could not find any build task {{build}} for test {{task}} in {{key}}",
-            task=normalized_task.task.id,
-            build=build_task_id,
-            key=source_key
-        )
+
+    candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
+    if not candidates:
+        if not any(b in MISSING_BUILDS for b in build_task_id):
+            Log.warning(
+                "Could not find any build task {{build}} for test {{task}} in {{key}}",
+                task=normalized_task.task.id,
+                build=build_task_id,
+                key=source_key
+            )
+            MISSING_BUILDS.update(build_task_id)
         return None
 
-    if len(response.hits.hits) > 1:
+    if len(candidates) > 1:
         Log.warning("Found too many builds for {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
 
-    candidate = response.hits.hits[0]
-    if candidate.build.revision12 != normalized_task.build.revision12:
+    candidate = candidates[0]
+    if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",
             task=normalized_task.task.id,
