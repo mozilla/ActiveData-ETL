@@ -10,22 +10,23 @@ from __future__ import unicode_literals
 
 from math import log10
 
+from mo_kwargs import override
+
 from activedata_etl import etl2key, key2etl
 from activedata_etl.reset import Version
+from mo_collections import UniqueIndex
 from mo_dots import wrap
+from mo_logs import Log
+from mo_math import Math
+from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
-from mo_logs import Log
-from mo_math import Math
-from pyLibrary.meta import use_settings
-from mo_collections import UniqueIndex
-from mo_times.timer import Timer
 
 
 class S3Bucket(object):
 
-    @use_settings
+    @override
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
@@ -34,10 +35,10 @@ class S3Bucket(object):
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
-        settings=None
+        kwargs=None
     ):
-        self.bucket = s3.Bucket(settings)
-        self.settings = settings
+        self.bucket = s3.Bucket(kwargs)
+        self.settings = kwargs
 
     def __getattr__(self, item):
         return getattr(self.bucket, item)

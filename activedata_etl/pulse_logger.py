@@ -134,7 +134,7 @@ def main():
                     synch.source_key = last_item._meta.count + 1
 
                 context = [
-                    pulse.Consumer(settings=s, target=None, target_queue=queue, start=synch.source_key)
+                    pulse.Consumer(kwargs=s, target=None, target_queue=queue, start=synch.source_key)
                     for s in settings.source
                 ]
 

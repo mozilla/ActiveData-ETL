@@ -21,13 +21,12 @@ from collections import deque
 from datetime import datetime, timedelta
 from time import time
 
+from mo_dots import coalesce, Null
 from mo_threads.lock import Lock
 from mo_threads.signal import Signal
-from mo_threads.threads import Thread, THREAD_STOP
+from mo_threads.threads import Thread, THREAD_STOP, THREAD_TIMEOUT
 from mo_threads.till import Till
-from mo_times.dates import Date
 from mo_times.durations import SECOND
-from mo_dots import coalesce, Null
 
 _convert = None
 _Except = None
@@ -57,8 +56,6 @@ def _late_import():
     _ = _Log
 
 
-
-
 class Queue(object):
     """
      SIMPLE MESSAGE QUEUE, multiprocessing.Queue REQUIRES SERIALIZATION, WHICH
@@ -79,7 +76,7 @@ class Queue(object):
         self.keep_running = True
         self.lock = Lock("lock for queue " + name)
         self.queue = deque()
-        self.next_warning = Date.now()  # FOR DEBUGGING
+        self.next_warning = time()  # FOR DEBUGGING
 
     def __iter__(self):
         while self.keep_running:
@@ -162,13 +159,13 @@ class Queue(object):
         """
         EXPECT THE self.lock TO BE HAD, WAITS FOR self.queue TO HAVE A LITTLE SPACE
         """
-        wait_time = 5 * SECOND
+        wait_time = 5
 
-        now = Date.now()
+        now = time()
         if timeout != None:
             time_to_stop_waiting = now + timeout
         else:
-            time_to_stop_waiting = None
+            time_to_stop_waiting = Null
 
         if self.next_warning < now:
             self.next_warning = now + wait_time
@@ -177,14 +174,14 @@ class Queue(object):
             if now > time_to_stop_waiting:
                 if not _Log:
                     _late_import()
-                _Log.error(Thread.TIMEOUT)
+                _Log.error(THREAD_TIMEOUT)
 
             if self.silent:
                 self.lock.wait(Till(till=time_to_stop_waiting))
             else:
                 self.lock.wait(Till(timeout=wait_time))
                 if len(self.queue) > self.max:
-                    now = Date.now()
+                    now = time()
                     if self.next_warning < now:
                         self.next_warning = now + wait_time
                         _Log.alert(

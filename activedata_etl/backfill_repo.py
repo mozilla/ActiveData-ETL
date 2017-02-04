@@ -149,7 +149,7 @@ def getall(hg, es, please_stop):
 def backfill_repo(settings, please_stop):
     global current_revision
     hg = HgMozillaOrg(settings)
-    es = FromES(settings=settings.repo)
+    es = FromES(kwargs=settings.repo)
 
     frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     frontier |= get_frontier(hg)

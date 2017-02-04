@@ -225,13 +225,15 @@ class ListContainer(Container):
     def __len__(self):
         return len(self.data)
 
+
 def get_schema_from_list(frum):
     """
     SCAN THE LIST FOR COLUMN TYPES
     """
     columns = {}
     _get_schema_from_list(frum, columns, prefix=[], nested_path=ROOT_PATH, name_to_column=columns)
-    return Schema(columns.values())
+    return Schema(table_name=".", columns=columns.values())
+
 
 def _get_schema_from_list(frum, columns, prefix, nested_path, name_to_column):
     """

@@ -34,7 +34,7 @@ QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
 def backfill_recent(cache, settings, index_queue, please_stop):
     db_filename = cache + "." + settings.source.bucket + ".sqlite"
     db = Sqlite(db_filename)
-    bucket = S3Cache(db=db, settings=settings.source)
+    bucket = S3Cache(db=db, kwargs=settings.source)
     prime_id = settings.rollover.field
     backfill = Data(total=0)
     too_old = (Date.now().floor(Duration(settings.rollover.interval)) - Duration(settings.rollover.max))

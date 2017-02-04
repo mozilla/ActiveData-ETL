@@ -31,12 +31,12 @@ def diff(settings, please_stop=None):
         settings.range.min = coalesce(settings.start, 0)
 
     # SHOULD WE PUSH?
-    work_queue = aws.Queue(settings=settings.work_queue)
+    work_queue = aws.Queue(kwargs=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), settings=settings.elasticsearch)
+    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), kwargs=settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
     if settings.git:

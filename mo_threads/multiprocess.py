@@ -6,32 +6,33 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
 import subprocess
+
+from mo_dots import set_default, unwrap, get_module
+from mo_logs import Log
+from mo_logs.exceptions import Except
 
 from mo_threads.lock import Lock
 from mo_threads.queues import Queue
 from mo_threads.signal import Signal
 from mo_threads.threads import Thread, THREAD_STOP
-from mo_dots import set_default, unwrap
-from pyLibrary import convert
-from mo_logs.exceptions import Except
-from mo_logs import Log
 
 DEBUG = True
 
+string2quote = get_module("mo_json").quote
 
 class Process(object):
     def __init__(self, name, params, cwd=None, env=None, debug=False, shell=False, bufsize=-1):
         self.name = name
-        self.service_stopped = Signal("stopped signal for " + convert.string2quote(name))
-        self.stdin = Queue("stdin for process " + convert.string2quote(name), silent=True)
-        self.stdout = Queue("stdout for process " + convert.string2quote(name), silent=True)
-        self.stderr = Queue("stderr for process " + convert.string2quote(name), silent=True)
+        self.service_stopped = Signal("stopped signal for " + string2quote(name))
+        self.stdin = Queue("stdin for process " + string2quote(name), silent=True)
+        self.stdout = Queue("stdout for process " + string2quote(name), silent=True)
+        self.stderr = Queue("stderr for process " + string2quote(name), silent=True)
 
         try:
             self.debug = debug or DEBUG
@@ -136,3 +137,5 @@ class Process(object):
                 return
 
             Log.warning("Failure to kill process {{process|quote}}", process=self.name, cause=ee)
+
+
