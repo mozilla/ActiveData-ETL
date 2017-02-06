@@ -517,14 +517,29 @@ def toString(val):
     elif isinstance(val, timedelta):
         duration = val.total_seconds()
         return _unicode(round(duration, 3)) + " seconds"
+    elif isinstance(val, _unicode):
+        return val
+    elif isinstance(val, str):
+        try:
+            return val.decode('utf8')
+        except Exception, _:
+            pass
 
-    try:
-        return _unicode(val)
-    except Exception, e:
-        if not _Log:
-            _late_import()
+        try:
+            return val.decode('latin1')
+        except Exception, e:
+            if not _Log:
+                _late_import()
 
-        _Log.error(unicode(type(val)) + " type can not be converted to unicode", e)
+            _Log.error(unicode(type(val)) + " type can not be converted to unicode", cause=e)
+    else:
+        try:
+            return _unicode(val)
+        except Exception, e:
+            if not _Log:
+                _late_import()
+
+            _Log.error(unicode(type(val)) + " type can not be converted to unicode", cause=e)
 
 
 def edit_distance(s1, s2):
