@@ -35,7 +35,7 @@ _Log = None
 DEBUG = False
 
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
-DEFAULT_WAIT_TIME = timedelta(minutes=10)
+DEFAULT_WAIT_TIME = 10 * 60  # SECONDS
 
 datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
 
