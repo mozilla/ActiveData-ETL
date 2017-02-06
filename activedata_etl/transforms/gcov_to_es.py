@@ -9,12 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import json
 import os
 import shutil
-from zipfile import ZipFile, BadZipfile
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
+from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
@@ -30,14 +29,12 @@ from pyLibrary.thread.threads import Thread, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
-from pyLibrary.debugs import startup, constants
-
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 ENABLE_LCOV = True
-WINDOWS_TEMP_DIR = "c:/msys64/tmp"
-MSYS2_TEMP_DIR = "/tmp"
+WINDOWS_TEMP_DIR = "c:/msys64/tmp/ccov"
+MSYS2_TEMP_DIR = "/tmp/ccov"
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -90,7 +87,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -179,89 +176,82 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     return keys
 
-#
-# def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
-#     """
-#     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
-#     The lcov results are then processed and converted to the standard ccov format.
-#     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
-#     """
-#     keys = []
-#     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
-#
-#     if os.name == "nt":
-#         tmpdir = WINDOWS_TEMP_DIR + "/" + Random.hex(10)
-#     else:
-#         tmpdir = mkdtemp()
-#     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-#
-#     ccov = File(tmpdir + '/ccov')
-#     ccov.delete()
-#     out = File(tmpdir + "/out")
-#     out.delete()
-#
-#     try:
-#         Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-#         gcda_file = download_file(gcda_artifact.url)
-#
-#         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-#         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
-#     except BadZipfile:
-#         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
-#         return []
-#
-#     parent_etl = task_cluster_record.etl
-#     artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-#     files = artifacts
-#
-#     # chop some not-needed, and verbose, properties from tc record
-#     task_cluster_record.etl = None
-#     task_cluster_record.action.timings = None
-#     task_cluster_record.action.etl = None
-#     task_cluster_record.task.artifacts = None
-#     task_cluster_record.task.runs = None
-#
-#     records = []
-#
-#     for file_obj in files: #not true loop as only ever one file
-#         remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-#
-#         Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-#         _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-#
-#         etl_key = etl2key(file_etl)
-#         keys.append(etl_key)
-#         Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-#
-#         gcno_file = download_file(file_obj.url)
-#
-#         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-#         ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
-#jo,,oul
-#         with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-#             lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
-#
-#             Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-#
-#             def count_generator():
-#                 count = 0
-#                 while True:
-#                     yield count
-#                     count += 1
-#             counter = count_generator().next
-#
-#             for index, obj in enumerate(lcov_coverage):
-#                 if index != 0:
-#                     process_source_file(file_etl, counter, obj, task_cluster_record, records)
-#
-#             remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-#
-#     shutil.rmtree(tmpdir)
-#
-#     with Timer("writing {{num}} records to s3", {"num": len(records)}):
-#         destination.extend(records, overwrite=True)
-#
-#     return keys
+
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+    """
+    Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
+    The lcov results are then processed and converted to the standard ccov format.
+    TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
+    """
+    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
+
+    tmpdir = mkdtemp()
+    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
+
+    ccov = File(tmpdir + '/ccov').delete()
+    out = File(tmpdir + "/out").delete()
+
+    try:
+        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
+        gcda_file = download_file(gcda_artifact.url)
+
+        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
+    except BadZipfile:
+        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+        return []
+
+    parent_etl = task_cluster_record.etl
+    file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+
+    # chop some not-needed, and verbose, properties from tc record
+    task_cluster_record.etl = None
+    task_cluster_record.action.timings = None
+    task_cluster_record.action.etl = None
+    task_cluster_record.task.artifacts = None
+    task_cluster_record.task.runs = None
+
+    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+
+    Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+    _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
+
+    etl_key = etl2key(file_etl)
+    Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+
+    gcno_file = download_file(file_obj.url)
+
+    Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+    ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+
+    process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
+    File(tmpdir).delete()
+
+    keys = [etl_key]
+    return keys
+
+
+def process_directory(source_dir, destination, task_cluster_record, file_etl):
+    records = []
+    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
+        lcov_coverage = run_lcov_on_directory(source_dir)
+
+        Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
+
+        def count_generator():
+            count = 0
+            while True:
+                yield count
+                count += 1
+
+        counter = count_generator().next
+
+        for index, obj in enumerate(lcov_coverage):
+            process_source_file(file_etl, counter, obj, task_cluster_record, records)
+
+    with Timer("writing {{num}} records to s3", {"num": len(records)}):
+        destination.extend(records, overwrite=True)
+
 
 def group_to_gcno_artifacts(group_id):
     """
@@ -272,30 +262,20 @@ def group_to_gcno_artifacts(group_id):
     :return: task json object for the found task. None if no task was found.
     """
 
-    data = http.post_json(ACTIVE_DATA_QUERY, json={
+    result = http.post_json(ACTIVE_DATA_QUERY, json={
         "from": "task.task.artifacts",
         "where": {"and": [
             {"eq": {"task.group.id": group_id}},
             {"regex": {"name": ".*gcno.*"}}
         ]},
         "limit": 100,
-        "select": ["task.id", "url"]
+        "select": [{"name": "task_id", "value": "task.id"}, "url"],
+        "format": "list"
     })
 
-    values = data.data.values()
-
-    results = []
-
-    for i in range(len(values[0])):
-        # Note: values is sensitive to select order
-        # Currently bug in pyLibrary Dict and can't
-        # retrieve the task.id member (TODO)
-        results.append(wrap({
-            'task_id': values[1][i],
-            'url': values[0][i]
-        }))
-
-    return results
+    if len(result.data) != 1:
+        Log.error("not expected")
+    return result.data[0]
 
 
 def run_lcov_on_directory(directory_path):
@@ -305,66 +285,49 @@ def run_lcov_on_directory(directory_path):
     :return: queue with files
     """
     if os.name == 'nt':
-        directory = File(directory_path)
-        output = Queue("lcov artifacts")
-        children = directory.children
-        locker = Lock()
-        expected = [len(children)]
-        for subdir in children:
-            filename = "output." + subdir.name + ".txt"
-            linux_source_dir = subdir.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-            windows_dest_file = File.new_instance(directory, filename)
-            linux_dest_file = windows_dest_file.abspath.replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+        filename = "output.txt"
+        File(WINDOWS_TEMP_DIR).delete()
+        windows_dest_dir = File.new_instance(WINDOWS_TEMP_DIR, File(directory_path).name).delete()
+        windows_dest_file = File.new_instance(WINDOWS_TEMP_DIR, filename).delete()
+        File.copy(directory_path, windows_dest_dir)
 
-            env = os.environ.copy()
-            env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
-            env[b"MSYSTEM"] = b"MINGW64"
+        linux_source_dir = windows_dest_dir.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
+        linux_dest_file = windows_dest_file.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
 
-            proc = Process(
-                "lcov: " + linux_dest_file,
-                [
-                    # "start",
-                    # "/W",
-                    "c:\\msys64\\usr\\bin\\mintty",
-                    # "-i",
-                    # "/msys2.ico",
-                    "/usr/bin/bash",
-                    "--login",
-                    "-c",
-                    # "C:\msys64\msys2_shell.cmd",
-                    # "-mingw64",
-                    # "-c",
-                    "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
-                ],
-                cwd="C:\\msys64",
-                env=env
-                # shell=True
-            ) if ENABLE_LCOV else Null
 
-            def closure_wrap(_dest_file, _proc):
-                def is_done():
-                    # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
-                    # POLL THE FILE UNTIL IT STOPS CHANGING
-                    while not _dest_file.exists:
-                        Thread.sleep(seconds=1)
-                    while True:
-                        expiry = _dest_file.timestamp + 60
-                        now = Date.now().unix
-                        if now >= expiry:
-                            break
-                        Thread.sleep(seconds=expiry - now)
+        env = os.environ.copy()
+        env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
+        env[b"MSYSTEM"] = b"MINGW64"
 
-                    output.add(_dest_file)
-                    with locker:
-                        expected[0] -= 1
-                        Log.note("{{dir}} is done.  REMAINING {{num}}", dir=_dest_file.name, num=expected[0])
-                        if not expected[0]:
-                            output.add(Thread.STOP)
-                Log.note("added proc {{name}} for dir {{dir}}", name=_proc.name, dir=_dest_file.name)
-                _proc.service_stopped.on_go(is_done)
-            closure_wrap(windows_dest_file, proc)
+        proc = Process(
+            "lcov: " + linux_dest_file,
+            [
+                "c:\\msys64\\usr\\bin\\mintty",
+                "/usr/bin/bash",
+                "--login",
+                "-c",
+                "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
+            ],
+            cwd="C:\\msys64",
+            env=env
+            # shell=True
+        ) if ENABLE_LCOV else Null
 
-        return output
+        # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
+        # POLL THE FILE UNTIL IT STOPS CHANGING
+        proc.service_stopped.wait_for_go()
+        while not windows_dest_file.exists:
+            Thread.sleep(seconds=1)
+        while True:
+            expiry = windows_dest_file.timestamp + 20  # assume done after 20seconds of inactivity
+            now = Date.now().unix
+            if now >= expiry:
+                break
+            Thread.sleep(seconds=expiry - now)
+
+        with open(windows_dest_file.abspath, "rb") as stream:
+            results = parse_lcov_coverage(stream)
+        return results
     else:
         fdevnull = open(os.devnull, 'w')
 
@@ -501,33 +464,3 @@ def remove_files_recursively(root_directory, file_extension):
             if file.endswith(full_ext):
                 os.remove(os.path.join(root, file))
 
-#
-# def main():
-#
-#     try:
-#         settings = startup.read_settings(defs=[
-#             {
-#                 "name": ["--id", "--key"],
-#                 "help": "id(s) to process.  Use \"..\" for a range.",
-#                 "type": str,
-#                 "dest": "id",
-#                 "required": False
-#             }
-#         ])
-#         constants.set(settings.constants)
-#         Log.start(settings.debug)
-#         resources = None
-#         please_stop = False
-#         source_key = '/home/melissa/UCOSP/ccovtest'
-#         source_test = open('/home/melissa/UCOSP/ccovtest')
-#         destination = '/home/melissa/UCOSP/transformed'
-#         process(source_key, source_test, destination, resources, please_stop)
-#     except Exception, e:
-#         Log.error("Problem with etl", e)
-#     finally:
-#         Log.stop()
-#         source_test.close()
-#         # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
-#
-# if __name__ == "__main__":
-#     main()

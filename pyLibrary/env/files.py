@@ -25,14 +25,21 @@ class File(object):
     ASSUMES ALL FILE CONTENT IS UTF8 ENCODED STRINGS
     """
 
+    def __new__(cls, filename, buffering=2 ** 14, suffix=None):
+        if isinstance(filename, File):
+            return filename
+        else:
+            return object.__new__(cls)
+
     def __init__(self, filename, buffering=2 ** 14, suffix=None):
         """
         YOU MAY SET filename TO {"path":p, "key":k} FOR CRYPTO FILES
         """
         if filename == None:
             from pyLibrary.debugs.logs import Log
-
             Log.error("File must be given a filename")
+        elif isinstance(filename, File):
+            return
         elif isinstance(filename, basestring):
             self.key = None
             if filename.startswith("~"):
@@ -186,7 +193,7 @@ class File(object):
         except Exception, e:
             from pyLibrary.debugs.logs import Log
 
-            Log.error("Problem reading file {{filename}}", self.abspath)
+            Log.error("Problem reading file {{filename}}", filename=self.abspath, cause=e)
 
     def write_bytes(self, content):
         if not self.parent.exists:
@@ -345,4 +352,12 @@ class File(object):
 
     @classmethod
     def copy(cls, from_, to_):
+        _copy(File(from_), File(to_))
+
+
+def _copy(from_, to_):
+    if from_.is_directory():
+        for c in os.listdir(from_.abspath):
+            _copy(File.new_instance(from_, c), File.new_instance(to_, c))
+    else:
         File.new_instance(to_).write_bytes(File.new_instance(from_).read_bytes())
