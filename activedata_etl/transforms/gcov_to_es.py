@@ -81,6 +81,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    break # break after performing lcov locally
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
         except Exception as e:
@@ -113,9 +114,9 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         Log.note('Loading local gcda zip file') # local directory
         #gcda_file = download_file(gcda_artifact.url)
         gcda_file = 'tests/resources/ccov/code-coverage.zip'
-        #os.path.join('%s/ccov' % tmpdir, 'closures.gcda')
+
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-        ZipFile(gcda_file).extractall('tests/resources/ccov/testExt')  #'%s/ccov' % tmpdir
+        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)  #'%s/ccov' % tmpdir
     except BadZipfile:
         Log.note('Bad zip file for gcda artifact')
         return []
@@ -146,10 +147,10 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         gcno_file = "tests/resources/ccov/code-coverage-g.zip"
         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir) #don't need to extract as not a zip
 
-        ZipFile(gcno_file).extractall('tests/resources/ccov/testExt')
+        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir) # 'tests/resources/ccov/testExt
 
         with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-            lcov_coverage = run_lcov_on_directory('tests/resources/ccov/server')
+            lcov_coverage = run_lcov_on_directory('tests/resources/ccov/server')  #tests/resources/ccov/server
 
             Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
 
@@ -236,7 +237,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 #
 #         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
 #         ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
-#
+#jo,,oul
 #         with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
 #             lcov_coverage = run_lcov_on_directory('%s/ccov' % tmpdir)
 #
