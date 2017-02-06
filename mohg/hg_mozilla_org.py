@@ -75,7 +75,7 @@ class HgMozillaOrg(object):
         self.timeout = Duration(timeout)
 
         if branches == None:
-            self.branches = _hg_branches.get_branches(settings=kwargs)
+            self.branches = _hg_branches.get_branches(kwargs=kwargs)
             self.es = None
             return
 
@@ -86,7 +86,7 @@ class HgMozillaOrg(object):
         except Exception:
             pass
 
-        self.branches = _hg_branches.get_branches(use_cache=use_cache, settings=kwargs)
+        self.branches = _hg_branches.get_branches(use_cache=use_cache, kwargs=kwargs)
 
         # TO ESTABLISH DATA
         self.es.add({"id": "b3649fd5cd7a-mozilla-inbound-en-US", "value": {
@@ -191,7 +191,7 @@ class HgMozillaOrg(object):
             if not b:
                 Log.error("can not find branch ({{branch}}, {{locale}})", branch=lower_name, locale=locale)
         if Date.now() - Date(b.etl.timestamp) > _OLD_BRANCH:
-            self.branches = _hg_branches.get_branches(use_cache=True, settings=self.settings)
+            self.branches = _hg_branches.get_branches(use_cache=True, kwargs=self.settings)
 
         url = found_revision.branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + found_revision.changeset.id
         Log.note(

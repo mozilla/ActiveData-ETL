@@ -579,8 +579,8 @@ class Table(DataClass("Table", [
 Column = DataClass(
     "Column",
     [
-        "table",
-        "name",
+        # "table",
+        "names",
         "es_column",
         "es_index",
         # "es_type",

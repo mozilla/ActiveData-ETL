@@ -456,6 +456,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         build_task = get_build_task(source_key, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
             build_task.task.env = None
@@ -466,7 +467,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
-            set_default(normalized.build, {"build": build_task})
+            set_default(normalized.build, build_task)
 
 
 MISSING_BUILDS = set()

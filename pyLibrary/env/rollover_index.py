@@ -13,6 +13,7 @@ from mo_dots import coalesce, wrap, Null
 from mo_logs import Log, strings
 from mo_logs.exceptions import suppress_exception
 from mo_math.randoms import Random
+from mo_threads import Lock
 from mo_times.dates import Date, unicode2Date, unix2Date
 from mo_times.durations import Duration
 from mo_times.timer import Timer
@@ -42,6 +43,7 @@ class RolloverIndex(object):
         :return:
         """
         self.settings = kwargs
+        self.locker = Lock("lock for rollover_index")
         self.rollover_field = jx.get(rollover_field)
         self.rollover_interval = self.settings.rollover_interval = Duration(kwargs.rollover_interval)
         self.rollover_max = self.settings.rollover_max = Duration(kwargs.rollover_max)
@@ -61,7 +63,8 @@ class RolloverIndex(object):
             return Null
 
         rounded_timestamp = timestamp.floor(self.rollover_interval)
-        queue = self.known_queues.get(rounded_timestamp.unix)
+        with self.locker:
+            queue = self.known_queues.get(rounded_timestamp.unix)
         if queue == None:
             candidates = jx.run({
                 "from": self.cluster.get_aliases(),
@@ -92,8 +95,9 @@ class RolloverIndex(object):
                 es.set_refresh_interval(seconds=60 * 5, timeout=5)
 
             self._delete_old_indexes(candidates)
-
-            queue = self.known_queues[rounded_timestamp.unix] = es.threaded_queue(max_size=self.settings.queue_size, batch_size=self.settings.batch_size, silent=True)
+            threaded_queue = es.threaded_queue(max_size=self.settings.queue_size, batch_size=self.settings.batch_size, silent=True)
+            with self.locker:
+                queue = self.known_queues[rounded_timestamp.unix] = threaded_queue
         return queue
 
     def _delete_old_indexes(self, candidates):
@@ -107,7 +111,8 @@ class RolloverIndex(object):
                     Log.warning("could not delete index {{index}}", index=c.index, cause=e)
         for t, q in list(self.known_queues.items()):
             if unix2Date(t) + self.rollover_interval < Date.today() - self.rollover_max:
-                del self.known_queues[t]
+                with self.locker:
+                    del self.known_queues[t]
 
         pass
 
