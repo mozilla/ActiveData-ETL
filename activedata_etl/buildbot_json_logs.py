@@ -58,7 +58,7 @@ def random(settings):
 
 
 def parse_day(settings, p, force=False):
-    locker=Lock("uploads")
+    locker = Lock("uploads")
     threads = set()
 
 

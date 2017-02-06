@@ -33,7 +33,6 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/task/_search"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -453,9 +452,10 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     # FIND BUILD TASK
     if treeherder.jobKind == 'test':
-        build_task = get_build_task(source_key, normalized)
+        build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
             build_task.task.env = None
@@ -466,13 +466,13 @@ def set_build_info(source_key, normalized, task, env, resources):
             build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
-            set_default(normalized.build, {"build": build_task})
+            set_default(normalized.build, build_task)
 
 
 MISSING_BUILDS = set()
 
 
-def get_build_task(source_key, normalized_task):
+def get_build_task(source_key, resources, normalized_task):
     # "revision12":"571286200177",
     # "url":"https://queue.taskcluster.net/v1/task/J4jnKgKAQieAhwvSQBKa3Q/artifacts/public/build/target.tar.bz2",
     # "platform":"linux64",
@@ -486,7 +486,7 @@ def get_build_task(source_key, normalized_task):
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
     response = http.post_json(
-        ACTIVEDATA_TASK_URL,
+        resources.local_es_node + "/task/task/_search",
         data={
             "query": {"filtered": {"filter": {"terms": {
                 "task.id": build_task_id
@@ -500,7 +500,7 @@ def get_build_task(source_key, normalized_task):
     candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
     if not candidates:
         if not any(b in MISSING_BUILDS for b in build_task_id):
-            Log.warning(
+            Log.alert(
                 "Could not find any build task {{build}} for test {{task}} in {{key}}",
                 task=normalized_task.task.id,
                 build=build_task_id,

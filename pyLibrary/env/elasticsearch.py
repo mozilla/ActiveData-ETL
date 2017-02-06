@@ -538,7 +538,7 @@ class Cluster(object):
         meta = self.get_metadata()
         columns = parse_properties(index, ".", meta.indices[index].mappings.values()[0].properties)
         if len(columns)!=0:
-            kwargs.tjson = tjson or any(c.name.endswith("$value") for c in columns)
+            kwargs.tjson = tjson or any(c.names[best.index].endswith("$value") for c in columns)
 
         return Index(kwargs)
 
@@ -1094,9 +1094,8 @@ def parse_properties(parent_index_name, parent_name, esProperties):
                 c.nested_path = [column_name] + c.nested_path
             columns.extend(self_columns)
             columns.append(Column(
-                table=index_name,
                 es_index=index_name,
-                name=column_name,
+                names={index_name: column_name},
                 es_column=column_name,
                 type="nested",
                 nested_path=ROOT_PATH
@@ -1146,7 +1145,7 @@ def parse_properties(parent_index_name, parent_name, esProperties):
         if property.type in ["string", "boolean", "integer", "date", "long", "double"]:
             columns.append(Column(
                 es_index=index_name,
-                names={"index_name": column_name},
+                names={index_name: column_name},
                 es_column=column_name,
                 nested_path=ROOT_PATH,
                 type=property.type
@@ -1162,7 +1161,6 @@ def parse_properties(parent_index_name, parent_name, esProperties):
                 ))
         elif property.enabled == None or property.enabled == False:
             columns.append(Column(
-                table=index_name,
                 es_index=index_name,
                 names={index_name: column_name},
                 es_column=column_name,

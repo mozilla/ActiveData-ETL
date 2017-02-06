@@ -19,13 +19,14 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
+	"local_es_node":"http://activedata.allizom.org:9200",
 	"hg": {
 		"use_cache": true,
 		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -38,7 +39,7 @@
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://localhost",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",

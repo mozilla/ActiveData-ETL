@@ -34,8 +34,8 @@ _CProfiler = None
 _Log = None
 DEBUG = False
 
-MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
-DEFAULT_WAIT_TIME = timedelta(minutes=10)
+# MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
+DEFAULT_WAIT_TIME = 10 * 60  # SECONDS
 
 datetime.strptime('2012-01-01', '%Y-%m-%d')  # http://bugs.python.org/issue7980
 
@@ -100,7 +100,7 @@ class Queue(object):
                 self.keep_running = False
                 return
 
-            self._wait_for_queue_space(timeout=None)
+            self._wait_for_queue_space(timeout=timeout)
             if self.keep_running:
                 if self.unique:
                     if value not in self.queue:

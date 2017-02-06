@@ -13,13 +13,14 @@ from __future__ import unicode_literals
 
 import hashlib
 
-from pyLibrary import convert, jsons
-from mo_logs import Log
-from pyLibrary.env import elasticsearch
+import mo_json_config
 from mo_files import File
-from mo_threads import Thread
+from mo_logs import Log
+from mo_threads import THREAD_STOP
+from pyLibrary import convert
+from pyLibrary.env import elasticsearch
 
-es_config = jsons.ref.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
+es_config = mo_json_config.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
 
 es_config.host = "http://activedata.allizom.org"
 
@@ -32,4 +33,4 @@ for f in dir_.children:
     for line in convert.utf82unicode(f.read_bytes()).splitlines():
         queue.add({"id": hashlib.md5(line).hexdigest(), "json": line})
 
-queue.add(Thread.STOP)
+queue.add(THREAD_STOP)
