@@ -33,7 +33,6 @@ MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
 STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
 ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-ACTIVEDATA_TASK_URL = "http://activedata.allizom.org:9200/task/task/_search"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -453,7 +452,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     # FIND BUILD TASK
     if treeherder.jobKind == 'test':
-        build_task = get_build_task(source_key, normalized)
+        build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
             build_task._id = None
@@ -473,7 +472,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 MISSING_BUILDS = set()
 
 
-def get_build_task(source_key, normalized_task):
+def get_build_task(source_key, resources, normalized_task):
     # "revision12":"571286200177",
     # "url":"https://queue.taskcluster.net/v1/task/J4jnKgKAQieAhwvSQBKa3Q/artifacts/public/build/target.tar.bz2",
     # "platform":"linux64",
@@ -487,7 +486,7 @@ def get_build_task(source_key, normalized_task):
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return None
     response = http.post_json(
-        ACTIVEDATA_TASK_URL,
+        resources.local_es_node + "/task/task/_search",
         data={
             "query": {"filtered": {"filter": {"terms": {
                 "task.id": build_task_id

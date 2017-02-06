@@ -424,7 +424,8 @@ def main():
 
         hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
-            hg=hg
+            hg=hg,
+            local_es_node=settings.local_es_node
         )
 
         stopper = Signal()
@@ -479,7 +480,8 @@ def etl_one(settings):
 
     hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
-        hg=hg
+        hg=hg,
+        local_es_node=settings.local_es_node
     )
 
     stopper = Signal("main stop signal")
