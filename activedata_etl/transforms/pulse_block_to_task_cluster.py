@@ -501,7 +501,7 @@ def get_build_task(source_key, normalized_task):
     candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
     if not candidates:
         if not any(b in MISSING_BUILDS for b in build_task_id):
-            Log.warning(
+            Log.alert(
                 "Could not find any build task {{build}} for test {{task}} in {{key}}",
                 task=normalized_task.task.id,
                 build=build_task_id,
