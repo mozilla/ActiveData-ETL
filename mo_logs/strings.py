@@ -524,7 +524,7 @@ def toString(val):
         if not _Log:
             _late_import()
 
-        _Log.error(str(type(val)) + " type can not be converted to unicode", e)
+        _Log.error(unicode(type(val)) + " type can not be converted to unicode", e)
 
 
 def edit_distance(s1, s2):
