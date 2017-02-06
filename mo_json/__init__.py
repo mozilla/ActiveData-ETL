@@ -13,14 +13,16 @@ from __future__ import unicode_literals
 
 import math
 import re
+
 from collections import Mapping
+
 from datetime import date, timedelta, datetime
 from decimal import Decimal
 from types import NoneType
 
 from mo_dots import FlatList, NullType, Data, wrap_leaves, wrap, Null
 from mo_dots.objects import DataObject
-from mo_logs import Except, strings, suppress_exception, Log
+from mo_logs import Except, strings, Log
 from mo_logs.strings import expand_template
 from mo_times import Date, Duration
 
@@ -296,10 +298,10 @@ def datetime2unix(d):
     try:
         if d == None:
             return None
-        elif isinstance(d, datetime.datetime):
-            epoch = datetime.datetime(1970, 1, 1)
-        elif isinstance(d, datetime.date):
-            epoch = datetime.date(1970, 1, 1)
+        elif isinstance(d, datetime):
+            epoch = datetime(1970, 1, 1)
+        elif isinstance(d, date):
+            epoch = date(1970, 1, 1)
         else:
             Log.error("Can not convert {{value}} of type {{type}}",  value= d,  type= d.__class__)
 
