@@ -77,7 +77,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
-                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    keys.extend(process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                     break # break after performing lcov locally
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
@@ -109,8 +109,8 @@ def process_gcda_artifact_test(source_key, resources, destination, etl_header_ge
 
     try:
         Log.note('Loading local gcda zip file') # local directory
-        #gcda_file = download_file(gcda_artifact.url)
-        gcda_file = 'tests/resources/ccov/code-coverage.zip'
+        gcda_file = download_file(gcda_artifact.url)
+       # gcda_file = 'tests/resources/ccov/code-coverage.zip'
 
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)  #'%s/ccov' % tmpdir
@@ -140,8 +140,8 @@ def process_gcda_artifact_test(source_key, resources, destination, etl_header_ge
         etl_key = etl2key(file_etl)
         keys.append(etl_key)
         Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-        #gcno_file = download_file(file_obj.url)
-        gcno_file = "tests/resources/ccov/code-coverage-g.zip"
+        gcno_file = download_file(file_obj.url)
+       # gcno_file = "tests/resources/ccov/code-coverage-g.zip"
         Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir) #don't need to extract as not a zip
 
         ZipFile(gcno_file).extractall('%s/ccov' % tmpdir) # 'tests/resources/ccov/testExt
@@ -193,13 +193,14 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     try:
         Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-        gcda_file = '/tests/resources/ccov/code-coverage.zip' # download_file(gcda_artifact.url)
+        gcda_file = download_file(gcda_artifact.url)
 
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
     except BadZipfile:
         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
         return []
+
 
     parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
@@ -219,7 +220,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     etl_key = etl2key(file_etl)
     Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
-    gcno_file = 'code-coverage-g.zip' #download_file(file_obj.url)
+    gcno_file = download_file(file_obj.url)
 
     Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
@@ -249,8 +250,8 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         for index, obj in enumerate(lcov_coverage):
             process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
-   # with Timer("writing {{num}} records to s3", {"num": len(records)}):
-       # destination.extend(records, overwrite=True)
+    with Timer("writing {{num}} records to s3", {"num": len(records)}):
+        destination.extend(records, overwrite=True)
 
 
 def group_to_gcno_artifacts(group_id):
