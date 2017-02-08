@@ -313,7 +313,6 @@ class File(object):
     def __bool__(self):
         return self.__nonzero__()
 
-
     def __nonzero__(self):
         """
         USED FOR FILE EXISTENCE TESTING
@@ -329,6 +328,8 @@ class File(object):
     def copy(cls, from_, to_):
         _copy(File(from_), File(to_))
 
+    def __unicode__(self):
+        return self.abspath
 
 def _copy(from_, to_):
     if from_.is_directory():
