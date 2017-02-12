@@ -122,11 +122,16 @@ sudo /usr/local/bin/pip install ecdsa
 sudo /usr/local/bin/pip install fabric
 sudo /usr/local/bin/pip install -r requirements.txt
 
-
 # RUN IT
 chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
+#INSTALL TREEHERDER EXTRACT
+cd ~
+git clone https://github.com/klahnakoski/MySQL-to-S3.git
+cd ~/MySQL-to-S3
+git checkout master
+sudo /usr/local/bin/pip install -r requirments.txt
 
 # CRON JOBS
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh

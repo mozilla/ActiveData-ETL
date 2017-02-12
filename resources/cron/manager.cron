@@ -4,4 +4,5 @@
 8,18,28,38,48,58 * * * * /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 1,11,21,31,41,51 * * * * /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
 2 7,19 * * * /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
+2,12,22,32,42,52 * * * * /home/ec2-user/MySQL-to-S3/resources/scripts/treeherder_extract.sh
 
