@@ -425,8 +425,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         source_key,
         consume(task, "tags.build_props.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
-        consume(task, "payload.properties.repo_path").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
+        consume(task, "payload.properties.repo_path").split("/")[-1],
         env.MH_BRANCH
     )
     normalized.build.revision12 = normalized.build.revision[0:12]
