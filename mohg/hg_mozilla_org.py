@@ -13,16 +13,16 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
-from mo_kwargs import override
-
 from mo_dots import set_default, Null, coalesce, unwraplist
+from mo_kwargs import override
 from mo_logs import Log, strings
 from mo_logs.exceptions import Explanation, assert_no_exception, Except
 from mo_math.randoms import Random
-from mo_threads import Thread, Lock, Queue
+from mo_threads import Thread, Lock, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import SECOND, Duration, HOUR
+
 from mohg.repos.changesets import Changeset
 from mohg.repos.pushs import Push
 from mohg.repos.revisions import Revision
@@ -300,7 +300,7 @@ class HgMozillaOrg(object):
         output = []
         queue = Queue("branches", max=2000)
         queue.extend(self.branches)
-        queue.add(Thread.STOP)
+        queue.add(THREAD_STOP)
 
         problems = []
         def _find(please_stop):
@@ -340,7 +340,6 @@ class HgMozillaOrg(object):
         if match:
             return int(match[0])
         return None
-
 
 
 def _trim(url):
