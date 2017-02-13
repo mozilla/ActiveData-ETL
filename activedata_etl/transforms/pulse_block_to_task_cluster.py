@@ -425,7 +425,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         source_key,
         consume(task, "tags.build_props.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
-        env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
+        env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
         env.MH_BRANCH
     )
