@@ -77,6 +77,29 @@
 		"type": "join"
 	},
 	{
+		"name": "treeherder to normalized",
+		"source": {
+			"bucket": "active-data-treeherder-jobs",
+			"public": true,
+			"key_format": "a.b",
+			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"destination": {
+			"bucket": "active-data-treeherder-normalized",
+			"public": true,
+			"key_format": "a.b",
+			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"notify": [
+			{
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			}
+		],
+		"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
+		"type": "join"
+	},
+	{
 		"name": "tc_pulse to TC Normalized",
 		"source": {
 			"bucket": "active-data-task-cluster-logger",
