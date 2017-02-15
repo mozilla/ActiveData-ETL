@@ -21,14 +21,20 @@ from pyLibrary.debugs import startup
 class TestGcovS3(unittest.TestCase):
     def test_parsing(self):
 
-        settings = startup.read_settings(filename="settings/codecoverage/etl.json")
-        # s3_bucket.S3Bucket(settings.workers[0].destination)
+        settings = startup.read_settings(filename="resources/settings/codecoverage/etl.json")
+        destination = s3_bucket.S3Bucket(settings.workers[0].destination)
 
-        gcov_to_es.process_directory(
-            source_dir="tests/resources/ccov/atk",
-            destination= s3_bucket.S3Bucket(settings.workers[0].destination),
-            task_cluster_record=Null,
-            file_etl=Null
-        )
+        # read from "results/ccov/gcov_parsing_result.txt"
+        # to create a list of records
+
+        destination.extend(records, overwrite=True)
+
+        # gcov_to_es.process_directory(
+        #     source_dir="tests/resources/ccov/atk",
+        #     destination= s3_bucket.S3Bucket(settings.workers[0].destination),
+        #     task_cluster_record=Null,
+        #     file_etl=Null
+        # )
 
         # check that S3 expand worked and the data was written to the S3 bucket
+        # check etl keys from test file and make sure they are in S3 .find_keys()
