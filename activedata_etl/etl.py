@@ -163,8 +163,10 @@ class ETL(Thread):
                 )
 
                 # TESTING
-                #testkey = action._destination.bucket.read_bytes('tc.524925:52491741.40.0')
-                #print(testkey)
+                #f = open('tests/resources/ccov/testextend.txt', "a")
+                #testkey = action._destination.bucket.read_lines('tc.524925:52491741.40.0')
+                #f.write("\n".join(str(x) for x in testkey))
+                #f.close()
                 # TESTING
 
                 if action.transform_type == "bulk":
