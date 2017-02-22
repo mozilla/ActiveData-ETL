@@ -84,6 +84,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         except Exception as e:
             import traceback
             Log.note(traceback.format_exc())
+    Log.note("---Out of For Loop---")
     return keys
 
 

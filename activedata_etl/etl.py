@@ -45,6 +45,7 @@ from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 
+from pyLibrary import convert
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -112,6 +113,7 @@ class ETL(Thread):
             self.work_queue = work_queue
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
+        Log.note("--- finished ETL transform thread ---")
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -153,11 +155,17 @@ class ETL(Thread):
                     source_key = source.key
 
                 Log.note(
-                    "Execute {{action}} on bucket={{source}} key={{key}}",
+                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{actt}}",
                     action=action.name,
                     source=source_block.bucket,
-                    key=source_key
+                    key=source_key,
+                    actt=action._destination.bucket.name
                 )
+
+                # TESTING
+                #testkey = action._destination.bucket.read_bytes('tc.524925:52491741.40.0')
+                #print(testkey)
+                # TESTING
 
                 if action.transform_type == "bulk":
                     old_keys = set()
@@ -165,11 +173,12 @@ class ETL(Thread):
                     old_keys = action._destination.keys(prefix=source_block.key)
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
-
+                Log.note("finished gcov transformation")
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
+                    Log.note("---check key length---")
                     pass  # ok
                 elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
@@ -184,6 +193,7 @@ class ETL(Thread):
 
                 for n in action._notify:
                     for k in new_keys:
+                        Log.note("--- For loop for keys ---")
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
@@ -255,6 +265,7 @@ class ETL(Thread):
                     destination=coalesce(action.destination.name, action.destination.index),
                     cause=e
                 )
+        Log.note("------finished calling etl------")
         return True
 
     def loop(self, please_stop):
