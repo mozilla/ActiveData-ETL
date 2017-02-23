@@ -27,19 +27,9 @@ DEBUG = True
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
-
-    etl_header = convert.json2value(lines[0])
-
-    # FIX ETL IDS
-    e = etl_header
-    while e:
-        if isinstance(e.id, basestring):
-            e.id = int(e.id.split(":")[0])
-        e = e.source
-
+    etl_header = convert.json2value(lines[0]).etl
     bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources, source_key=source_key)
-    unittest_log = lines[2:]
-    return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
+    return process_unittest(source_key, etl_header, bb_summary, lines, destination, please_stop=please_stop)
 
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):

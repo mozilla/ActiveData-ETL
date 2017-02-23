@@ -179,6 +179,11 @@ class File(object):
             else:
                 return content
 
+    def read_lines(self, encoding="utf8"):
+        with open(self._filename, "rb") as f:
+            for line in f:
+                yield line.decode(encoding).rstrip()
+
     def read_json(self, encoding="utf8"):
         content = self.read(encoding=encoding)
         value = get_module("mo_json").json2value(content, flexible=True, leaves=True)
