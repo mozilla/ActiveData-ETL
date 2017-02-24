@@ -151,7 +151,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         except Exception, e:
             if TRY_AGAIN_LATER in e:
                 raise e
-            Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
+            Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
@@ -370,13 +370,20 @@ def _normalize_run(source_key, normalized, task, env):
         consume(task, "tags.test-type")
     )
 
+    if test == None:
+        fullname = None
+    elif flavor == None:
+        fullname = test
+    else:
+        fullname = test + "-" + flavor
+
     set_default(
         normalized,
         {"run": {
             "key": consume(task, "payload.buildername"),
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
-            "suite": {"name": test, "flavor": flavor, "fullname": test + ("-" + flavor if flavor else "")},
+            "suite": {"name": test, "flavor": flavor, "fullname": fullname},
             "chunk": chunk,
             "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
