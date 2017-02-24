@@ -9,15 +9,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_times import Date
-from pyLibrary.queries import jx
-
 import mo_json_config
-from mo_logs import startup, constants, Log
+from mo_files import File
+from mo_logs import Log
+from mo_times import Date
 from pyLibrary import convert
 from pyLibrary.aws import s3, Queue
-
-from mo_files import File
+from pyLibrary.queries import jx
 
 START, STOP = 560253, 560325
 NUM = STOP - START
@@ -38,6 +36,7 @@ def work(settings):
         s3_file = bucket.get_key("tc." + unicode(id))
         local_file = File("~/" + unicode(id) + ".json")
         # local_file.write(s3_file.read())
+        Log.note("process file {{file}}", file=local_file.abspath)
         for line in local_file.read_lines():
             m = convert.json2value(line)
             id = m.status.taskId
@@ -55,6 +54,7 @@ def work(settings):
         key = "tc." + unicode(id)
         file = bucket.get_key(key)
         file.write_lines(map(convert.value2json, messages))
+        Log.note("write to {{key}}", key=key)
         done.add({
             "bucket": "active-data-task-cluster-logger",
             "date/time": Date.now().format(),

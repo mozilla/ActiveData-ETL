@@ -359,6 +359,7 @@ def _normalize_run(source_key, normalized, task, env):
         consume(task, "payload.properties.THIS_CHUNK"),
         chunk
     )
+    test = coalesce_w_conflict_detection(test, consume(task, "tag.test-type"))
 
     set_default(
         normalized,
