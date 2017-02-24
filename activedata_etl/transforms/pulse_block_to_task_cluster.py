@@ -229,6 +229,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
     output.task.manifest.update = consume(task, "payload.update_manifest")
     output.task.beetmove.task_id = coalesce_w_conflict_detection(
+        source_key,
         consume(task, "payload.taskid_to_beetmove"),
         consume(task, "payload.properties.taskid_to_beetmove")
     )
@@ -238,7 +239,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
     output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
-    output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
+    output.task.parent.id = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "parent_task_id"),
+        consume(task, "payload.properties.parent_task_id")
+    )
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
 
@@ -359,7 +364,11 @@ def _normalize_run(source_key, normalized, task, env):
         consume(task, "payload.properties.THIS_CHUNK"),
         chunk
     )
-    test = coalesce_w_conflict_detection(test, consume(task, "tag.test-type"))
+    test = coalesce_w_conflict_detection(
+        source_key,
+        test,
+        consume(task, "tag.test-type")
+    )
 
     set_default(
         normalized,
@@ -403,6 +412,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "name": consume(task, "extra.build_name"),
             "product": build_product,
             "platform": coalesce_w_conflict_detection(
+                source_key,
                 task.extra.treeherder.build.platform,
                 task.extra.treeherder.machine.platform
             ),
@@ -588,6 +598,8 @@ def verify_tag(source_key, task_id, t):
 
 
 def coalesce_w_conflict_detection(source_key, *args):
+    if len(args)<2:
+        Log.error("bad call to coalesce, expecting source_key as first parameter")
     output = None
     for a in args:
         if a == None:
