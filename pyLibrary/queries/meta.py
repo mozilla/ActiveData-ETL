@@ -554,8 +554,7 @@ def metadata_tables():
             ]
         ]+[
             Column(
-                table="meta.tables",
-                name="timestamp",
+                names={"meta.tables": "timestamp"},
                 es_index=None,
                 es_column="timestamp",
                 type="integer",
@@ -580,7 +579,7 @@ Column = DataClass(
     "Column",
     [
         # "table",
-        "names",
+        "names",  # MAP FROM TABLE NAME TO COLUMN NAME (ONE COLUMN CAN HAVE MULTIPLE NAMES)
         "es_column",
         "es_index",
         # "es_type",

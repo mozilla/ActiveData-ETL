@@ -32,6 +32,7 @@ STRUCTURED_LOG_ENDINGS = [
 ]
 NOT_STRUCTURED_LOGS = [
     ".apk",
+    "/awsy_raw.log",
     "/buildbot_properties.json",
     "/log_raw.log",
     "/talos_raw.log",

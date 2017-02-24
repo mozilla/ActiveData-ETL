@@ -289,7 +289,7 @@ class URL(object):
 
             if value.startswith("file://") or value.startswith("//"):
                 # urlparse DOES NOT WORK IN THESE CASES
-                scheme, suffix = value.split("//")
+                scheme, suffix = value.split("//", 2)
                 self.scheme = scheme.rstrip(":")
                 parse(self, suffix, 0, 1)
                 self.query = wrap(url_param2value(self.query))
@@ -303,6 +303,7 @@ class URL(object):
                 self.fragment = output.fragment
         except Exception, e:
             Log.error("problem parsing {{value}} to URL", value=value, cause=e)
+
     def __nonzero__(self):
         if self.scheme or self.host or self.port or self.path or self.query or self.fragment:
             return True

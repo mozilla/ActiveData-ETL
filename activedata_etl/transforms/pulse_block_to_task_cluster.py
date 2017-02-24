@@ -212,7 +212,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.retries.total = consume(task, "retries")
     output.task.routes = consume(task, "routes")
 
-    run_id = consume(tc_message, "runId")
+    run_id = coalesce(consume(tc_message, "runId"), len(task.runs) - 1)
     output.task.run = _normalize_task_run(task.runs[run_id])
     output.task.runs = map(_normalize_task_run, consume(task, "runs"))
     output.task.reboot = consume(task, "payload.reboot")

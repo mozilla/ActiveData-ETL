@@ -24,4 +24,7 @@ def minimize_task(task):
     task.repo.changeset.files = None
     task.task.artifacts = None
     task.task.runs = None
-
+    task.task.env = None
+    task.task.scope = None
+    task.task.routes = None
+    task.build.task = {"id": task.build.task.id}
