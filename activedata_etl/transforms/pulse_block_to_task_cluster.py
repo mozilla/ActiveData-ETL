@@ -367,7 +367,7 @@ def _normalize_run(source_key, normalized, task, env):
     test = coalesce_w_conflict_detection(
         source_key,
         test,
-        consume(task, "tag.test-type")
+        consume(task, "tags.test-type")
     )
 
     set_default(
