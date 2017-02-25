@@ -228,10 +228,13 @@ class ETL(Thread):
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
-                        self.work_queue.add(Data(
-                            bucket=action.destination.bucket,
-                            key=k
-                        ))
+                        now = Date.now()
+                        self.work_queue.add({
+                            "bucket": action.destination.bucket,
+                            "key": k,
+                            "timestamp": now.unix,
+                            "date/time": now.format()
+                        })
             except Exception, e:
                 if "Key {{key}} does not exist" in e:
                     err = Log.warning

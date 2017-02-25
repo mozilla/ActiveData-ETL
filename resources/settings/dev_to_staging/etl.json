@@ -26,7 +26,7 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -39,7 +39,7 @@
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://localhost",
+			"host": "http://activedata.allizom.org",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
@@ -74,6 +74,29 @@
 			"limit_replicas": true
 		},
 		"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
+		"type": "join"
+	},
+	{
+		"name": "treeherder to normalized",
+		"source": {
+			"bucket": "active-data-treeherder-jobs",
+			"public": true,
+			"key_format": "a.b",
+			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"destination": {
+			"bucket": "active-data-treeherder-normalized",
+			"public": true,
+			"key_format": "a.b",
+			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"notify": [
+			{
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			}
+		],
+		"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
 		"type": "join"
 	},
 	{

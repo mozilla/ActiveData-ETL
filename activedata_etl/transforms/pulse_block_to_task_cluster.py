@@ -99,9 +99,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             try:
                 artifacts = normalized.task.artifacts = http.get_json(strings.expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
             except Exception, e:
-                # e = Except.wrap(e)
-                # if "<title>Application Error | Heroku</title>" in e:
-                Log.error(TRY_AGAIN_LATER, "Can not get artifacts for task " + task_id, cause=e)
+                Log.error(TRY_AGAIN_LATER, reason="Can not get artifacts for task " + task_id, cause=e)
 
             for a in artifacts:
                 a.url = strings.expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
@@ -153,7 +151,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         except Exception, e:
             if TRY_AGAIN_LATER in e:
                 raise e
-            Log.warning("TaskCluster line not processed: {{line|quote}}", line=line, cause=e)
+            Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
@@ -214,7 +212,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.retries.total = consume(task, "retries")
     output.task.routes = consume(task, "routes")
 
-    run_id = consume(tc_message, "runId")
+    run_id = coalesce(consume(tc_message, "runId"), len(task.runs) - 1)
     output.task.run = _normalize_task_run(task.runs[run_id])
     output.task.runs = map(_normalize_task_run, consume(task, "runs"))
     output.task.reboot = consume(task, "payload.reboot")
@@ -231,6 +229,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.manifest.task_id = consume(task, "payload.taskid_of_manifest")
     output.task.manifest.update = consume(task, "payload.update_manifest")
     output.task.beetmove.task_id = coalesce_w_conflict_detection(
+        source_key,
         consume(task, "payload.taskid_to_beetmove"),
         consume(task, "payload.properties.taskid_to_beetmove")
     )
@@ -240,7 +239,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
     output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
-    output.task.parent.id = coalesce_w_conflict_detection(consume(task, "parent_task_id"), consume(task, "payload.properties.parent_task_id"))
+    output.task.parent.id = coalesce_w_conflict_detection(
+        source_key,
+        consume(task, "parent_task_id"),
+        consume(task, "payload.properties.parent_task_id")
+    )
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
 
@@ -361,6 +364,18 @@ def _normalize_run(source_key, normalized, task, env):
         consume(task, "payload.properties.THIS_CHUNK"),
         chunk
     )
+    test = coalesce_w_conflict_detection(
+        source_key,
+        test,
+        consume(task, "tags.test-type")
+    )
+
+    if test == None:
+        fullname = None
+    elif flavor == None:
+        fullname = test
+    else:
+        fullname = test + "-" + flavor
 
     set_default(
         normalized,
@@ -368,7 +383,7 @@ def _normalize_run(source_key, normalized, task, env):
             "key": consume(task, "payload.buildername"),
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
-            "suite": {"name": test, "flavor": flavor, "fullname": test + ("-" + flavor if flavor else "")},
+            "suite": {"name": test, "flavor": flavor, "fullname": fullname},
             "chunk": chunk,
             "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
@@ -404,6 +419,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "name": consume(task, "extra.build_name"),
             "product": build_product,
             "platform": coalesce_w_conflict_detection(
+                source_key,
                 task.extra.treeherder.build.platform,
                 task.extra.treeherder.machine.platform
             ),
@@ -427,8 +443,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         source_key,
         consume(task, "tags.build_props.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
+        env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
-        env.GECKO_HEAD_REPOSITORY.split("/")[-2],   # will look like "https://hg.mozilla.org/try/"
         env.MH_BRANCH
     )
     normalized.build.revision12 = normalized.build.revision[0:12]
@@ -589,6 +605,8 @@ def verify_tag(source_key, task_id, t):
 
 
 def coalesce_w_conflict_detection(source_key, *args):
+    if len(args)<2:
+        Log.error("bad call to coalesce, expecting source_key as first parameter")
     output = None
     for a in args:
         if a == None:

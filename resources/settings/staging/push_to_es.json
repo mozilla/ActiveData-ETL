@@ -6,6 +6,36 @@
 	},
 	"workers": [
 		{
+			"name": "treeherder",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": "action.start_time",
+				"interval": "3month",
+				"max": "2year"
+			},
+			"sample_only": [
+			],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "treeherder",
+				"type": "th_job",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/treeherder.json"
+				},
+				"debug": false,
+				"limit_replicas": true
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-treeherder-normalized",
+				"key_format": "a.b"
+			}
+		},
+		{
 			"name": "unit",
 			"batch_size": 100,
 			"skip": 0,
@@ -33,6 +63,10 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-test-result",
 				"key_format": "t.a:b.c"
+			},
+			"backfill":{
+				"prime_key": "etl.source.source.id",
+				"source_key": "etl.source.source.source.source.code"
 			}
 		},
 		{
@@ -62,6 +96,11 @@
 				"bucket": "active-data-perf",
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b.c"
+			},
+			"backfill":{
+				"ignore_key": "etl.source.id",
+				"prime_key": "etl.source.source.source.id",
+				"source_key": "etl.source.source.source.source.source.code"
 			}
 		},
 		{
@@ -90,6 +129,11 @@
 				"bucket": "active-data-jobs",
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "a.b"
+			},
+			"backfill":{
+				"prime_key": "etl.source.source.id", // "etl.source.id"],
+				"source": null,
+				"source_key": null
 			}
 		},
 		{
