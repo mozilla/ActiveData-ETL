@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_math import Math
 from pyLibrary.env import elasticsearch
 
 from activedata_etl import etl2key, key2etl
@@ -26,6 +27,7 @@ MAX_THREADS = 5
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
+
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -89,6 +91,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.job.id = consume(raw_job, "id")
     new_treeherder.job.coalesced_to_guid = consume(raw_job, "coalesced_to_guid")
 
+    # BUILD
     new_treeherder.build.branch = coalesce_w_conflict_detection(
         consume(raw_job, "repository"),
         consume(raw_job, "signature.repository")
@@ -120,7 +123,12 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         consume(raw_job, "signature.build_system_type")
     else:
         Log.error("Know nothing about build_system_type=={{type}}", type=raw_treeherder.job.signature.build_system_type)
-    new_treeherder.run.machine.name = consume(raw_job, "machine.name")
+
+    # RUN MACHINE
+    new_treeherder.run.machine.name = machine_name = consume(raw_job, "machine.name")
+    split_name = machine_name.split("-")
+    if Math.is_integer(split_name[-1]):
+        new_treeherder.run.machine.pool = "-".join(split_name[:-1])
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
     new_treeherder.run.machine.architecture = consume(raw_job, "signature.machine_architecture")
     new_treeherder.run.machine.platform = coalesce_w_conflict_detection(
@@ -128,6 +136,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         consume(raw_job, "signature.machine_platform")
     )
 
+    # ACTION
     new_treeherder.action.start_time = consume(raw_job, "start_time")
     new_treeherder.action.end_time = consume(raw_job, "end_time")
     new_treeherder.action.request_time = consume(raw_job, "submit_time")
@@ -195,8 +204,10 @@ def pull_details(source_key, details, new_treeherder):
         elif d.title == "buildbot_request_id":
             new_treeherder.run.buildbot.id = d.value
         elif d.title == "Inspect Task":
-            if d.url.startswith("https://queue.taskcluster.net/"):
+            if d.url.startswith("https://tools.taskcluster.net/task-inspector/#"):
                 new_treeherder.run.taskcluster.id = strings.between(d.url, "https://tools.taskcluster.net/task-inspector/#", "/")
+            else:
+                Log.warning("Can not extract task for ket {{key}} from {{url}}", key=source_key, url=d.url)
         elif d.title == "CPU idle":
             new_treeherder.stats.cpu_idle = float(d.value.split("(")[0].replace(",", ""))
         elif d.title == "CPU user":
@@ -225,12 +236,13 @@ def pull_details(source_key, details, new_treeherder):
                 pass
             elif any(map(d.value.startswith, ["linker max vsize: ", "num_ctors: "])):
                 new_treeherder.stats.linker_max_vsize = int(d.value.split(":")[1].strip())
-            elif any(map(d.value.startswith, ["marionette: ", "--setenv=", "The following arguments ", "--this-chunk", "Tests will be run from the following files:", "gaia_revlink: "])):
+            elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
             else:
                 # try:
                 #     title, value = convert.json2value("{"+d.value+"}").items(0)
                 #     pull_details()
+                KNOWN_VALUES.append(d.value)
                 Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)
         else:
             Log.warning("can not process detail with title of {{title}}", title=d.title)
@@ -254,3 +266,6 @@ def coalesce_w_conflict_detection(source_key, *args):
 def consume(props, key):
     output, props[key] = props[key], None
     return output
+
+
+KNOWN_VALUES = ["marionette: ", "--", "The following arguments ", "Tests will be run from the following files:", "gaia_revlink: "]

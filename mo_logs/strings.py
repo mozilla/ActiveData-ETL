@@ -332,6 +332,8 @@ def comma(value):
 
 
 def quote(value):
+    if value == None:
+        return ""
     return _json.dumps(value)
 
 
