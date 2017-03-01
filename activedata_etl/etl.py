@@ -177,6 +177,11 @@ class ETL(Thread):
                 # calling transformer currently
                 # transformer called with keys from 173 and 175
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
+
+                # instead of keys being generated from this call and artifact will be
+                # add artifact to SQS message
+                # then when popped will start second transformation > which will generate keys
+
                 Log.note("finished gcov transformation")
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
@@ -196,7 +201,7 @@ class ETL(Thread):
 
                 for n in action._notify:
                     for k in new_keys:
-                        # Currently where SQS is being used
+                        # is currently where SQS is being used?
                         # 
                         now = Date.now()
                         n.add({

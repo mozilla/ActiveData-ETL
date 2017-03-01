@@ -79,6 +79,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 if artifact.name.find("gcda") != -1:
                     # add to SQS instead of processing artifact.
                     # return to etl? - etl is where SQS is dispatched, return artifact so that artifact may be in "resources"
+                    # added to work_queue? other queue _notify
                     # n.add({ "bucket":action.source_block.bucket.name
                     # "key": k
                     # "timestamp": time
@@ -88,6 +89,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # check in source bucket and key pair if resource gcda artifact is there
                     # when pulled off the queue call proces_gcda_artifact with artifact from SQS message as passed artifact
                     # how to fill other variables from etl as etl is in charge of accessing the queue?
+                    # use action._notify to start second part of transformation?
+
+                    # use list_queue to check that message was put on queue
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
