@@ -163,10 +163,10 @@ class ETL(Thread):
                 )
 
                 # TESTING
-                #f = open('tests/resources/ccov/testextend.txt', "a")
-                #testkey = action._destination.bucket.read_lines('tc.524925:52491741.40.0')
-                #f.write("\n".join(str(x) for x in testkey))
-                #f.close()
+                f = open('tests/resources/ccov/testextend.txt', "a")
+                #testkey = action._destination.bucket.read_lines('tc.567377:56736863.80.0')
+                f.write("\n".join(action._destination.bucket.read_lines('tc.567377:56736863.80.0')))
+                f.close()
                 # TESTING
 
                 if action.transform_type == "bulk":
@@ -174,13 +174,14 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
+                # calling transformer currently
+                # transformer called with keys from 173 and 175
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
                 Log.note("finished gcov transformation")
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
-                    Log.note("---check key length---")
                     pass  # ok
                 elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
@@ -195,7 +196,8 @@ class ETL(Thread):
 
                 for n in action._notify:
                     for k in new_keys:
-                        Log.note("--- For loop for keys ---")
+                        # Currently where SQS is being used
+                        # 
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,

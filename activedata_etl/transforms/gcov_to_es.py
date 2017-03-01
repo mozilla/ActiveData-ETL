@@ -77,8 +77,18 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
+                    # add to SQS instead of processing artifact.
+                    # return to etl? - etl is where SQS is dispatched, return artifact so that artifact may be in "resources"
+                    # n.add({ "bucket":action.source_block.bucket.name
+                    # "key": k
+                    # "timestamp": time
+                    # "date": now
+                    # "resource": artifact })
+                    # use source bucket as bucket for SQS as that will be the bucket that the gcda and gcno artifact will be pulled from
+                    # check in source bucket and key pair if resource gcda artifact is there
+                    # when pulled off the queue call proces_gcda_artifact with artifact from SQS message as passed artifact
+                    # how to fill other variables from etl as etl is in charge of accessing the queue?
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
-                    break # break after performing lcov locally
                 elif artifact.name.find("resource-usage") != -1:
                     Log.note("-- BREAK --")
         except Exception as e:
@@ -184,6 +194,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     The lcov results are then processed and converted to the standard ccov format.
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
+    # Second part of CCOV transformation from SQS
     Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     tmpdir = mkdtemp()
@@ -195,7 +206,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     try:
         Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
         gcda_file = download_file(gcda_artifact.url)
-        #gcda_file = 'tests/resources/ccov/code-coverage.zip'
+
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
     except BadZipfile:
@@ -226,6 +237,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
+    # where actual transform is performed and written to S3
     process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
     File(tmpdir).delete()
 
@@ -234,6 +246,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
+    # call lcov, parse lcov into readable json and write to S3
+
     records = []
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
         lcov_coverage = run_lcov_on_directory(source_dir)
