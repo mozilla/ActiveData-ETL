@@ -15,41 +15,75 @@
 	"buckets": ["activedata-codecoverage"],
 	"workers":[
 		{
-			"name": "unit",
+			"name": "reprocess treeherder",
 			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
-				"field": "build.date",
-				"interval": "week",
-				"max": "5week"
+				"field": "action.start_time",
+				"interval": "3month",
+				"max": "2year"
 			},
 			"sample_only": [
 			],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
 				"port": 9200,
-				"index": "unittest",
-				"type": "test_result",
+				"index": "treeherder",
+				"type": "th_job",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
-					"$ref": "//../../schema/test_results.json"
+					"$ref": "//../../schema/treeherder.json"
 				},
-				"debug": true,
-				"limit_replicas": false
+				"debug": false,
+				"limit_replicas": true
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result",
-				"key_format": "t.a:b.c",
-				"min_primary": ["tc.470000","bb.140000"]
+				"bucket": "active-data-treeherder-jobs",
+				"key_format": "a.b"
 			},
-			"backfill":{
-				"disabled": false,
+			"backfill": {
 				"prime_key": "etl.source.source.id",
-				"source_key": "etl.source.source.source.source.code"
+				"source_key": null
 			}
 		},
+//		{
+//			"name": "unit",
+//			"batch_size": 1000,
+//			"skip": 0,
+//			"rollover":{
+//				"field": "build.date",
+//				"interval": "week",
+//				"max": "5week"
+//			},
+//			"sample_only": [
+//			],
+//			"elasticsearch": {
+//				"host": "http://activedata.allizom.org",
+//				"port": 9200,
+//				"index": "unittest",
+//				"type": "test_result",
+//				"timeout": 300,
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"schema": {
+//					"$ref": "//../../schema/test_results.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-test-result",
+//				"key_format": "t.a:b.c",
+//				"min_primary": ["tc.470000","bb.140000"]
+//			},
+//			"backfill":{
+//				"disabled": false,
+//				"prime_key": "etl.source.source.id",
+//				"source_key": "etl.source.source.source.source.code"
+//			}
+//		},
 //		{
 //			"name":"perf",
 //			"rollover":{
@@ -85,106 +119,106 @@
 //				"source_key": "etl.source.source.source.source.source.code"
 //			}
 //		},
-		{
-			"name":"jobs",
-			"rollover": {
-				"field": {"coalesce":["build.date", "action.request_time"]},
-				"interval": "3month",
-				"max":"2year"
-			},
-			"batch_size": 500,
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
-				"port": 9200,
-				"index": "jobs",
-				"type": "job",
-				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-				"schema": {
-					"$ref": "//../../schema/jobs.json"
-				},
-				"debug": true,
-				"limit_replicas": false
-			},
-			"source": {
-				"bucket": "active-data-jobs",
-				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "a.b"
-			},
-			"backfill":{
-				"disabled": false,
-				"prime_key": "etl.source.source.id", // "etl.source.id"],
-				"source": null,
-				"source_key": null
-			}
-		},
-		{
-			"name":"code coverage",
-			"skip": 0.0,
-			"queue_size": 2000,
-			"batch_size": 1000,
-			"rollover": {
-				"field": "repo.push.date",
-				"interval": "day",
-				"max": "10day"
-			},
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
-				"port": 9200,
-				"index": "coverage",
-				"type": "code_coverage",
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/code_coverage.json"
-				},
-				"debug": true,
-				"limit_replicas": false
-			},
-			"backfill": {
-				"disabled": false
-			},
-			"source": {
-				"bucket": "active-data-codecoverage",
-				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b.c.d"
-			}
-		},
-		{
-			"name": "task",
-			"queue_size": 2000,
-			"batch_size": 1000,
-			"rollover": {
-				"field": "task.created",
-				"interval": "3month",
-				"max": "9month"
-			},
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
-				"port": 9200,
-				"index": "task",
-				"type": "task",
-				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-				"schema": {
-					"$ref": "//../../schema/task_cluster.json"
-				},
-				"debug": true,
-				"limit_replicas": false
-			},
-			"backfill": {
-				"disabled": false
-			},
-			"source": {
-				"bucket": "active-data-task-cluster-normalized",
-				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b",
-				"min_primary": ["tc.470000"]
-			}
-		}
+//		{
+//			"name":"jobs",
+//			"rollover": {
+//				"field": {"coalesce":["build.date", "action.request_time"]},
+//				"interval": "3month",
+//				"max":"2year"
+//			},
+//			"batch_size": 500,
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://activedata.allizom.org",
+//				"port": 9200,
+//				"index": "jobs",
+//				"type": "job",
+//				"timeout": 300,
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"schema": {
+//					"$ref": "//../../schema/jobs.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"bucket": "active-data-jobs",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "a.b"
+//			},
+//			"backfill":{
+//				"disabled": false,
+//				"prime_key": "etl.source.source.id", // "etl.source.id"],
+//				"source": null,
+//				"source_key": null
+//			}
+//		},
+//		{
+//			"name":"code coverage",
+//			"skip": 0.0,
+//			"queue_size": 2000,
+//			"batch_size": 1000,
+//			"rollover": {
+//				"field": "repo.push.date",
+//				"interval": "day",
+//				"max": "10day"
+//			},
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://activedata.allizom.org",
+//				"port": 9200,
+//				"index": "coverage",
+//				"type": "code_coverage",
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../../schema/code_coverage.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": false
+//			},
+//			"backfill": {
+//				"disabled": false
+//			},
+//			"source": {
+//				"bucket": "active-data-codecoverage",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "t.a:b.c.d"
+//			}
+//		},
+//		{
+//			"name": "task",
+//			"queue_size": 2000,
+//			"batch_size": 1000,
+//			"rollover": {
+//				"field": "task.created",
+//				"interval": "3month",
+//				"max": "9month"
+//			},
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://activedata.allizom.org",
+//				"port": 9200,
+//				"index": "task",
+//				"type": "task",
+//				"timeout": 300,
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"schema": {
+//					"$ref": "//../../schema/task_cluster.json"
+//				},
+//				"debug": true,
+//				"limit_replicas": false
+//			},
+//			"backfill": {
+//				"disabled": false
+//			},
+//			"source": {
+//				"bucket": "active-data-task-cluster-normalized",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "t.a:b",
+//				"min_primary": ["tc.470000"]
+//			}
+//		}
 	],
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
