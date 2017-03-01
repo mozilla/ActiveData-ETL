@@ -103,17 +103,18 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify))
+                w._notify.append(aws.Queue(notify)) # notify queue
 
         self.resources = resources
         self.settings = settings
         if isinstance(work_queue, Mapping):
-            self.work_queue = aws.Queue(work_queue)
+            self.work_queue = aws.Queue(work_queue) # work queue
         else:
             self.work_queue = work_queue
 
+        # loop called whitch pulls work off of the work_queue
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
-        Log.note("--- finished ETL transform thread ---")
+
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -163,10 +164,10 @@ class ETL(Thread):
                 )
 
                 # TESTING
-                f = open('tests/resources/ccov/testextend.txt', "a")
+                #f = open('tests/resources/ccov/testextend.txt', "a")
                 #testkey = action._destination.bucket.read_lines('tc.567377:56736863.80.0')
-                f.write("\n".join(action._destination.bucket.read_lines('tc.567377:56736863.80.0')))
-                f.close()
+                #f.write("\n".join(action._destination.bucket.read_lines('tc.567377:56736863.80.0')))
+                #f.close()
                 # TESTING
 
                 if action.transform_type == "bulk":
@@ -177,6 +178,14 @@ class ETL(Thread):
                 # calling transformer currently
                 # transformer called with keys from 173 and 175
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
+
+                now = Date.now()
+                n.add({"bucket": action.source_block.bucket.name,
+                        "key": k,
+                        "timestamp":now.unix,
+                        "date": now.format(),
+                        "resource": artifact })
+
 
                 # instead of keys being generated from this call and artifact will be
                 # add artifact to SQS message
@@ -202,7 +211,8 @@ class ETL(Thread):
                 for n in action._notify:
                     for k in new_keys:
                         # is currently where SQS is being used?
-                        #
+                        
+                        # added to notify queue
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
