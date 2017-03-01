@@ -202,7 +202,7 @@ class ETL(Thread):
                 for n in action._notify:
                     for k in new_keys:
                         # is currently where SQS is being used?
-                        # 
+                        #
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
