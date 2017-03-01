@@ -81,7 +81,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # return to etl? - etl is where SQS is dispatched, return artifact so that artifact may be in "resources"
                     # added to work_queue? other queue _notify
                     # n.add({ "bucket":action.source_block.bucket.name
-                    # "key": k
+                    # "key": source_key
                     # "timestamp": time
                     # "date": now
                     # "resource": artifact })
