@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 import os
 import shutil
+import json
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
@@ -238,8 +239,6 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
         lcov_coverage = run_lcov_on_directory(source_dir)
 
-        Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-
         def count_generator():
             count = 0
             while True:
@@ -248,7 +247,8 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
 
         counter = count_generator().next
 
-        for index, obj in enumerate(lcov_coverage):
+        for json_str in lcov_coverage:
+            obj = json.loads(json_str)
             process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
@@ -333,10 +333,8 @@ def run_lcov_on_directory(directory_path):
     else:
         fdevnull = open(os.devnull, 'w')
 
-        proc = Popen(['lcov', '--capture', '--directory', directory_path, '--output-file', '-'], stdout=PIPE, stderr=fdevnull)
-        results = parse_lcov_coverage(proc.stdout)
-
-        return results
+        proc = Popen(['grcov', directory_path], stdout=PIPE, stderr=fdevnull)
+        return proc.stdout
 
 
 def download_file(url):
