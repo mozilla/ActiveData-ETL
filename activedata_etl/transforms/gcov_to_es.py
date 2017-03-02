@@ -287,48 +287,9 @@ def run_lcov_on_directory(directory_path):
     :return: queue with files
     """
     if os.name == 'nt':
-        filename = "output.txt"
-        File(WINDOWS_TEMP_DIR).delete()
-        windows_dest_dir = File.new_instance(WINDOWS_TEMP_DIR, File(directory_path).name).delete()
-        windows_dest_file = File.new_instance(WINDOWS_TEMP_DIR, filename).delete()
-        File.copy(directory_path, windows_dest_dir)
-
-        linux_source_dir = windows_dest_dir.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-        linux_dest_file = windows_dest_file.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-
-
-        env = os.environ.copy()
-        env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
-        env[b"MSYSTEM"] = b"MINGW64"
-
-        proc = Process(
-            "lcov: " + linux_dest_file,
-            [
-                "c:\\msys64\\usr\\bin\\mintty",
-                "/usr/bin/bash",
-                "--login",
-                "-c",
-                "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
-            ],
-            cwd="C:\\msys64",
-            env=env
-            # shell=True
-        ) if ENABLE_LCOV else Null
-
-        # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
-        # POLL THE FILE UNTIL IT STOPS CHANGING
-        proc.service_stopped.wait_for_go()
-        while not windows_dest_file.exists:
-            Thread.sleep(seconds=1)
-        while True:
-            expiry = windows_dest_file.timestamp + 20  # assume done after 20seconds of inactivity
-            now = Date.now().unix
-            if now >= expiry:
-                break
-            Thread.sleep(seconds=expiry - now)
-
-        with open(windows_dest_file.abspath, "rb") as stream:
-            results = parse_lcov_coverage(stream)
+        grcov = File("./resources/binaries/grcov.exe").abspath
+        with Process("grcov:" +directory_path, [grcov, directory_path], env={"RUST_BACKTRACE": "full"}, debug=True) as proc:
+            results = parse_lcov_coverage(proc.stdout)
         return results
     else:
         fdevnull = open(os.devnull, 'w')
