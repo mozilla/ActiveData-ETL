@@ -67,6 +67,12 @@ class Process(object):
         for c in child_threads:
             c.join()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.join()
+
     def remove_child(self, child):
         with self.thread_locker:
             self.children.remove(child)

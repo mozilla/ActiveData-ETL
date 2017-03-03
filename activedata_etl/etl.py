@@ -162,13 +162,6 @@ class ETL(Thread):
                     actt=action._destination.bucket.name
                 )
 
-                # TESTING
-                #f = open('tests/resources/ccov/testextend.txt', "a")
-                #testkey = action._destination.bucket.read_lines('tc.524925:52491741.40.0')
-                #f.write("\n".join(str(x) for x in testkey))
-                #f.close()
-                # TESTING
-
                 if action.transform_type == "bulk":
                     old_keys = set()
                 else:
@@ -180,7 +173,6 @@ class ETL(Thread):
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
-                    Log.note("---check key length---")
                     pass  # ok
                 elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
                     pass  # ok
@@ -195,7 +187,6 @@ class ETL(Thread):
 
                 for n in action._notify:
                     for k in new_keys:
-                        Log.note("--- For loop for keys ---")
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
@@ -267,7 +258,6 @@ class ETL(Thread):
                     destination=coalesce(action.destination.name, action.destination.index),
                     cause=e
                 )
-        Log.note("------finished calling etl------")
         return True
 
     def loop(self, please_stop):

@@ -79,105 +79,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
-                    break # break after performing lcov locally
-                elif artifact.name.find("resource-usage") != -1:
-                    Log.note("-- BREAK --")
         except Exception as e:
             import traceback
             Log.note(traceback.format_exc())
-    Log.note("---Out of For Loop---")
     return keys
-
-
-def process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
-    """
-    Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
-    The lcov results are then processed and converted to the standard ccov format.
-    TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
-    """
-    keys = []
-    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
-
-    if os.name == "nt":
-        tmpdir = WINDOWS_TEMP_DIR + "/" + Random.hex(10)
-    else:
-        tmpdir = mkdtemp()
-    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-
-    ccov = File(tmpdir + '/ccov')
-    ccov.delete()
-    out = File(tmpdir + "/out")
-    out.delete()
-
-    try:
-        Log.note('Loading local gcda zip file') # local directory
-       # gcda_file = download_file(gcda_artifact.url)
-        gcda_file = 'tests/resources/ccov/code-coverage.zip'
-        Log.note('Bad file {{z}}', z=ZipFile(gcda_file).testzip())
-        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)  #'%s/ccov' % tmpdir
-    except BadZipfile:
-        Log.note('Bad zip file for gcda artifact')
-        return []
-
-    parent_etl = task_cluster_record.etl
-   # artifacts = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-   # files = artifacts
-
-    # chop some not-needed, and verbose, properties from tc record
-    task_cluster_record.etl = None
-    task_cluster_record.action.timings = None
-    task_cluster_record.action.etl = None
-    task_cluster_record.task.artifacts = None
-    task_cluster_record.task.runs = None
-
-    records = []
-
-    for letter in 'f':
-        remove_files_recursively('%s/ccov' % tmpdir, 'gcno') #local directory
-
-        Log.note('Downloading gcno artifact')
-        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-
-        etl_key = etl2key(file_etl)
-        keys.append(etl_key)
-        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-       # gcno_file = download_file(file_obj.url)
-        gcno_file = "tests/resources/ccov/code-coverage-g.zip"
-        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir) #don't need to extract as not a zip
-
-        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir) # 'tests/resources/ccov/testExt
-
-        with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": '%s/ccov' % tmpdir}):
-            lcov_coverage = run_lcov_on_directory('tests/resources/ccov/server')  #tests/resources/ccov/server
-
-            Log.note('Extracted {{num_records}} records', num_records=len(lcov_coverage))
-
-            def count_generator():
-                count = 0
-                while True:
-                    yield count
-                    count += 1
-            counter = count_generator().next
-
-            for index, obj in enumerate(lcov_coverage):
-                if index != 0:
-                    process_source_file(file_etl, counter, obj, task_cluster_record, records)
-                    Log.note("----------testing 2---------")
-            Log.note("----------testing 3---------")
-            remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-
-    shutil.rmtree(tmpdir)
-
-    f = open('tests/resources/ccov/testExt/destTest.txt', "a")
-    with Timer("writing {{num}} records to s3", {"num": len(records)}):
-        f.write("\n".join(str(x) for x in records))
-    f.close()
-       # destination.extend(records, overwrite=True)
-
-
-    return keys
-
 
 def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
@@ -287,48 +192,9 @@ def run_lcov_on_directory(directory_path):
     :return: queue with files
     """
     if os.name == 'nt':
-        filename = "output.txt"
-        File(WINDOWS_TEMP_DIR).delete()
-        windows_dest_dir = File.new_instance(WINDOWS_TEMP_DIR, File(directory_path).name).delete()
-        windows_dest_file = File.new_instance(WINDOWS_TEMP_DIR, filename).delete()
-        File.copy(directory_path, windows_dest_dir)
-
-        linux_source_dir = windows_dest_dir.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-        linux_dest_file = windows_dest_file.abspath.lower().replace(WINDOWS_TEMP_DIR, MSYS2_TEMP_DIR)
-
-
-        env = os.environ.copy()
-        env[b"WD"] = b"C:\\msys64\\usr\\bin\\"
-        env[b"MSYSTEM"] = b"MINGW64"
-
-        proc = Process(
-            "lcov: " + linux_dest_file,
-            [
-                "c:\\msys64\\usr\\bin\\mintty",
-                "/usr/bin/bash",
-                "--login",
-                "-c",
-                "lcov --capture --directory " + linux_source_dir + " --output-file " + linux_dest_file + " 2>/dev/null"
-            ],
-            cwd="C:\\msys64",
-            env=env
-            # shell=True
-        ) if ENABLE_LCOV else Null
-
-        # PROCESS APPEARS TO STOP, BUT IT IS STILL RUNNING
-        # POLL THE FILE UNTIL IT STOPS CHANGING
-        proc.service_stopped.wait_for_go()
-        while not windows_dest_file.exists:
-            Thread.sleep(seconds=1)
-        while True:
-            expiry = windows_dest_file.timestamp + 20  # assume done after 20seconds of inactivity
-            now = Date.now().unix
-            if now >= expiry:
-                break
-            Thread.sleep(seconds=expiry - now)
-
-        with open(windows_dest_file.abspath, "rb") as stream:
-            results = parse_lcov_coverage(stream)
+        grcov = File("./resources/binaries/grcov.exe").abspath
+        with Process("grcov:" +directory_path, [grcov, directory_path], env={"RUST_BACKTRACE": "full"}, debug=True) as proc:
+            results = parse_lcov_coverage(proc.stdout)
         return results
     else:
         fdevnull = open(os.devnull, 'w')
