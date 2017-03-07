@@ -29,7 +29,7 @@ class TestGcov(unittest.TestCase):
         )
 
         lines = File(destination_file).read().split("\n")
-        self.assertEqual(len(lines), 83, "Expecting 83 lines (last one is empty)")
+        self.assertEqual(len(lines), 82, "Expecting 82 lines (last one is empty)")
 
 
 
