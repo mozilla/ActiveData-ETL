@@ -218,12 +218,12 @@ def download_file(url):
 def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     obj = wrap(obj)
 
-    # get the test name. Just use the test file name at the moment
-    # TODO: change this when needed
+    # use the suite name and chunk to specify which test was run
     try:
-        test_name = unwraplist(obj.testUrl).split("/")[-1]
+        test_suite = task_cluster_record.run.suite.name
+        test_chunk = task_cluster_record.run.chunk
     except Exception, e:
-        raise Log.error("can not get testUrl from coverage object", cause=e)
+        raise Log.error("Can not get test name and chunk from task cluster record", cause=e)
 
     # turn obj.covered (a list) into a set for use later
     file_covered = set(obj.covered)
@@ -256,8 +256,8 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
         new_record = set_default(
             {
                 "test": {
-                    "name": test_name,
-                    "url": obj.testUrl
+                    "suite": test_suite,
+                    "chunk": test_chunk,
                 },
                 "source": {
                     "file": file_info,
@@ -288,8 +288,8 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     new_record = set_default(
         {
             "test": {
-                "name": test_name,
-                "url": obj.testUrl
+                "suite": test_suite,
+                "chunk": test_chunk,
             },
             "source": {
                 "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
