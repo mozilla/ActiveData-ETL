@@ -29,7 +29,7 @@ from pyLibrary.collections import MIN
 from pyLibrary.debugs import startup, constants
 from pyLibrary.debugs.exceptions import suppress_exception
 from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap
+from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap, set_default
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import use_settings
@@ -44,6 +44,7 @@ from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+from activedata_etl.look_at_queue import list_queue
 
 from pyLibrary import convert
 
@@ -103,16 +104,16 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify)) # notify queue
+                w._notify.append(aws.Queue(notify)) # notify tells which queue to put in
 
         self.resources = resources
         self.settings = settings
         if isinstance(work_queue, Mapping):
-            self.work_queue = aws.Queue(work_queue) # work queue
+            self.work_queue = aws.Queue(work_queue) # work queue created
         else:
             self.work_queue = work_queue
 
-        # loop called whitch pulls work off of the work_queue
+        # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
 
         self.start()
@@ -122,6 +123,7 @@ class ETL(Thread):
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
         """
+        # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
@@ -156,17 +158,17 @@ class ETL(Thread):
                     source_key = source.key
 
                 Log.note(
-                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{actt}}",
+                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{dest}}",
                     action=action.name,
                     source=source_block.bucket,
                     key=source_key,
-                    actt=action._destination.bucket.name
+                    dest=action._destination.bucket.name
                 )
 
                 # TESTING
-                #f = open('tests/resources/ccov/testextend.txt', "a")
+                #f = open('tests/resources/ccov/testextend2.txt', "a")
                 #testkey = action._destination.bucket.read_lines('tc.567377:56736863.80.0')
-                #f.write("\n".join(action._destination.bucket.read_lines('tc.567377:56736863.80.0')))
+                #f.write("\n".join(action._destination.bucket.read_lines('tc.567361:56735263.25.0')))
                 #f.close()
                 # TESTING
 
@@ -177,19 +179,29 @@ class ETL(Thread):
 
                 # calling transformer currently
                 # transformer called with keys from 173 and 175
-                new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
-
-                now = Date.now()
-                n.add({"bucket": action.source_block.bucket.name,
-                        "key": k,
-                        "timestamp":now.unix,
-                        "date": now.format(),
-                        "resource": artifact })
-
+                # transformer will return no keys or original key for first part of SQS split
+                # must set up resources
+                resources = set_default(
+                    {
+                        "todo":source_block,
+                        "work_queue":action._destination
+                    },
+                    self.resources
+                )
+                Log.note("Resources set: {{resource}}", resource=resources.todo)
+                new_keys = set(action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop))
 
                 # instead of keys being generated from this call and artifact will be
                 # add artifact to SQS message
                 # then when popped will start second transformation > which will generate keys
+
+
+                Log.note("Artifact urls: {{a}}", a=new_keys[0])
+                    #self.work_queue.add({
+                     #   "bucket": source_block.bucket,
+                     #   "key": source_key,
+                     #   "resources": artifact
+                   # })
 
                 Log.note("finished gcov transformation")
                 # VERIFY KEYS
@@ -209,10 +221,12 @@ class ETL(Thread):
                             action._destination.get_key(k)
 
                 for n in action._notify:
+                    break
                     for k in new_keys:
                         # is currently where SQS is being used?
-                        
-                        # added to notify queue
+
+                        # added to notify queue < notify is not a queue
+                        #
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
@@ -229,6 +243,7 @@ class ETL(Thread):
                 # for n in new_keys:
                 #     if not n.startswith(source_key):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
+
 
                 if not new_keys and old_keys:
                     Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
@@ -288,6 +303,13 @@ class ETL(Thread):
         return True
 
     def loop(self, please_stop):
+
+        # queue = aws.Queue(self.work_queue)
+        # for i in range(10):
+        #     content = queue.pop()
+        #     Log.note("\n{{content|json}}", content=content)
+        # queue.rollback()
+
         with self.work_queue:
             while not please_stop:
                 if self.settings.wait_forever:
@@ -317,7 +339,7 @@ class ETL(Thread):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                     self.work_queue.commit()
                     continue
-
+                list_queue("active-data-etl-dev", 10)
 
                 try:
                     is_ok = self._dispatch_work(todo)
