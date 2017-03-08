@@ -51,7 +51,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    Log.note("Begin searching for gcda artifacts in gcov_to_es")
+
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
         if please_stop:
@@ -79,6 +79,7 @@ def process(source_key, source, destination, resources, please_stop=None):
        # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
        #  Log.note("-- Enter Try --")
         try: # TODO rm
+            Log.note("Begin searching for gcda artifacts in gcov_to_es")
             for artifact in artifacts:
               #  Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:

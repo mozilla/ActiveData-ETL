@@ -199,9 +199,6 @@ class ETL(Thread):
                 # add artifact to SQS message
                 # then when popped will start second transformation > which will generate keys
 
-                #pop to check that there is something added to work queue
-                Log.note("SQS Message from queue {{msg}}", msg=resources.work_queue.pop(till=Date.now()))
-
 
                 Log.note("finished gcov transformation")
                 
@@ -304,12 +301,6 @@ class ETL(Thread):
         return True
 
     def loop(self, please_stop):
-
-        # queue = aws.Queue(self.work_queue)
-        # for i in range(10):
-        #     content = queue.pop()
-        #     Log.note("\n{{content|json}}", content=content)
-        # queue.rollback()
 
         with self.work_queue:
             while not please_stop:
@@ -498,10 +489,10 @@ def main():
 
 
 def etl_one(settings):
-    queue = Queue("temp work queue")
+    queue = aws.Queue(settings.work_queue)
     # where queue is first created/called
-    queue.__setattr__(b"commit", Null)
-    queue.__setattr__(b"rollback", Null)
+    #queue.__setattr__(b"commit", Null)
+    #queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
     already_in_queue = set()
