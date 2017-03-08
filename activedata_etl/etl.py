@@ -190,8 +190,11 @@ class ETL(Thread):
                     self.resources
                 )
 
+                Log.note("Length of work queue before gcov_to_es: {{l}}", l = self.work_queue.__len__())
+
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop))
 
+                Log.note("Length of work queue after gcov_to_es: {{l2}}", l2=self.work_queue.__len__())
                 # instead of keys being generated from this call and artifact will be
                 # add artifact to SQS message
                 # then when popped will start second transformation > which will generate keys
@@ -201,7 +204,7 @@ class ETL(Thread):
 
 
                 Log.note("finished gcov transformation")
-                break
+                
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))

@@ -51,6 +51,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
+    Log.note("Begin searching for gcda artifacts in gcov_to_es")
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
         if please_stop:
@@ -98,7 +99,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # use list_queue to check that message was put on queue
                     # transform should look for artifact url
 
-                    Log.note("Resources: \n{{bucket}}\n{{key}}\n{{resource}}\n{{work}}",    bucket=resources.todo.bucket,
+                    Log.note("Resources: {{bucket}}\n{{key}}\n{{resource}}\n{{work}}",    bucket=resources.todo.bucket,
                         key= resources.todo.key,
                         resource= artifact.url,
                              work = resources.work_queue)
@@ -121,7 +122,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         except Exception as e:
             import traceback
             Log.note(traceback.format_exc())
-    Log.note("---Out of For Loop---")
+    Log.note("Finish searching for gcda artifacts in gcov_to_es")
     return keys
 
 
