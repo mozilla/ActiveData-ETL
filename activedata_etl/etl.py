@@ -190,16 +190,18 @@ class ETL(Thread):
                     self.resources
                 )
 
-                Log.note("Work Queue length: {{len}}", self.work_queue.__len__())
-                Log.note("Resources set: {{resource}}", resource=resources.todo)
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop))
 
                 # instead of keys being generated from this call and artifact will be
                 # add artifact to SQS message
                 # then when popped will start second transformation > which will generate keys
 
+                #pop to check that there is something added to work queue
+                Log.note("SQS Message from queue {{msg}}", msg=resources.work_queue.pop(till=Date.now()))
+
 
                 Log.note("finished gcov transformation")
+                break
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
@@ -325,6 +327,7 @@ class ETL(Thread):
                         todo = self.work_queue.pop()
                     else:
                         todo = self.work_queue.pop(till=Date.now())
+                        Log.note("First item in Queue popped: {{t}}", t=todo)
                     if todo == None:
                         please_stop.go()
                         return

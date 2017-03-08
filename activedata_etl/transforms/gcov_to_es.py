@@ -109,9 +109,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "key": resources.todo.key,
                         "resources": artifact.url
                     })
-
+                    Log.note("Added gcda artifact to queue")
                     # for testing try to pop off of queue
-                    Log.note("SQS Message from queue {{msg}}", msg = resources.work_queue.pop(till=Date.now()))
+                    #Log.note("SQS Message from queue {{msg}}", msg = resources.work_queue.pop(till=Date.now()))
 
 
                     #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
@@ -122,8 +122,6 @@ def process(source_key, source, destination, resources, please_stop=None):
             import traceback
             Log.note(traceback.format_exc())
     Log.note("---Out of For Loop---")
-    for art in gcda_artifact:
-        Log.note("Artifact: {{b}}", b=art)
     return keys
 
 
