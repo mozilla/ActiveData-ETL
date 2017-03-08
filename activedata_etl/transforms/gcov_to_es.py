@@ -71,11 +71,13 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.error("unexpected JSON decoding problem", cause=e)
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
-        Log.note("-- Enter Try --")
+        gcda_artifact = []
+
+       # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+       #  Log.note("-- Enter Try --")
         try: # TODO rm
             for artifact in artifacts:
-                Log.note("{{name}}", name=artifact.name)
+              #  Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
                     # add to SQS instead of processing artifact.
                     # return to etl? - etl is where SQS is dispatched, return artifact so that artifact may be in "resources"
@@ -84,7 +86,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # "key": source_key
                     # "timestamp": time
                     # "date": now
-                    # "resource": artifact })
+                    # "resource": artifact << mus be the URL -> artifact.url })
                     # use source bucket as bucket for SQS as that will be the bucket that the gcda and gcno artifact will be pulled from
                     # check in source bucket and key pair if resource gcda artifact is there
                     # when pulled off the queue call proces_gcda_artifact with artifact from SQS message as passed artifact
@@ -92,14 +94,21 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # use action._notify to start second part of transformation?
 
                     # use list_queue to check that message was put on queue
-                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    # transform should look for artifact url
+                    # add artifact.url to list for message
+                    gcda_artifact.append(artifact.url)
+                    Log.note("gcda artifact: {{art}}", art = gcda_artifact[0])
+                    #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
-                    Log.note("-- BREAK --")
+                    break
+               #     Log.note("-- BREAK --")
         except Exception as e:
             import traceback
             Log.note(traceback.format_exc())
     Log.note("---Out of For Loop---")
-    return keys
+    for art in gcda_artifact:
+        Log.note("Artifact: {{b}}", b=art)
+    return gcda_artifact
 
 
 def process_gcda_artifact_test(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
