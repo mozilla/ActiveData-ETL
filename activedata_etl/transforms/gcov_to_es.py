@@ -96,8 +96,11 @@ def process(source_key, source, destination, resources, please_stop=None):
                     # use list_queue to check that message was put on queue
                     # transform should look for artifact url
                     # add artifact.url to list for message
+
                     gcda_artifact.append(artifact.url)
-                    Log.note("gcda artifact: {{art}}", art = gcda_artifact[0])
+                    Log.note("gcda artifact: {{arturl}}", arturl=artifact.url)
+                    resources.work_queue.add()
+
                     #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
                     break

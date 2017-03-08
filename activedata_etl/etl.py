@@ -303,6 +303,12 @@ class ETL(Thread):
 
     def loop(self, please_stop):
 
+        queue = aws.Queue(self.work_queue)
+        for i in range(10):
+            content = queue.pop()
+            Log.note("\n{{content|json}}", content=content)
+        queue.rollback()
+
         with self.work_queue:
             while not please_stop:
                 if self.settings.wait_forever:
