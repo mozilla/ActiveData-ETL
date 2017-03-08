@@ -112,7 +112,7 @@ class ETL(Thread):
             self.work_queue = aws.Queue(work_queue) # work queue created
         else:
             self.work_queue = work_queue
-
+        Log.note("Work queue {{s}}", s=work_queue)
         # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
 
@@ -180,14 +180,17 @@ class ETL(Thread):
                 # calling transformer currently
                 # transformer called with keys from 173 and 175
                 # transformer will return no keys or original key for first part of SQS split
+
                 # must set up resources
                 resources = set_default(
                     {
                         "todo":source_block,
-                        "work_queue":action._destination
+                        "work_queue": self.work_queue
                     },
                     self.resources
                 )
+
+                Log.note("Work Queue length: {{len}}", self.work_queue.__len__())
                 Log.note("Resources set: {{resource}}", resource=resources.todo)
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop))
 
@@ -195,13 +198,6 @@ class ETL(Thread):
                 # add artifact to SQS message
                 # then when popped will start second transformation > which will generate keys
 
-
-                Log.note("Artifact urls: {{a}}", a=new_keys[0])
-                    #self.work_queue.add({
-                     #   "bucket": source_block.bucket,
-                     #   "key": source_key,
-                     #   "resources": artifact
-                   # })
 
                 Log.note("finished gcov transformation")
                 # VERIFY KEYS
@@ -312,6 +308,7 @@ class ETL(Thread):
 
         with self.work_queue:
             while not please_stop:
+                Log.note("Work_queue: {{q}}", q=self.work_queue)
                 if self.settings.wait_forever:
                     todo = None
                     while not please_stop and not todo:
@@ -323,6 +320,7 @@ class ETL(Thread):
                         break  # please_stop MUST HAVE BEEN TRIGGERED
 
                 else:
+                    # using --key= so will not be an aws.Queue, instead it will be a local queue
                     if isinstance(self.work_queue, aws.Queue):
                         todo = self.work_queue.pop()
                     else:
@@ -339,7 +337,7 @@ class ETL(Thread):
                     Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                     self.work_queue.commit()
                     continue
-                list_queue("active-data-etl-dev", 10)
+                #list_queue("active-data-etl-dev", 10)
 
                 try:
                     is_ok = self._dispatch_work(todo)
@@ -495,12 +493,14 @@ def main():
 
 def etl_one(settings):
     queue = Queue("temp work queue")
+    # where queue is first created/called
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
     already_in_queue = set()
     for w in settings.workers:
+        # get workers (in this case will always be gcov_to_es.py)
         source = get_container(w.source)
         # source.settings.fast_forward = True
         if id(source) in already_in_queue:
@@ -524,6 +524,7 @@ def etl_one(settings):
             Log.warning("Problem", cause=e)
 
     hg = HgMozillaOrg(settings=settings.hg)
+    #where resources is first created/called
     resources = Dict(
         hg=hg
     )

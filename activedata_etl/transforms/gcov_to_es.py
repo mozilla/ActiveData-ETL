@@ -71,7 +71,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.error("unexpected JSON decoding problem", cause=e)
         artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
 
-        gcda_artifact = []
+        # should check if resources.todo has a gcda artifact > would be in 'resources'
+        # if todo does have a resources message then we already have a gcda artifact
+        # call keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, resources.todo.resources))
 
        # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
        #  Log.note("-- Enter Try --")
@@ -95,18 +97,22 @@ def process(source_key, source, destination, resources, please_stop=None):
 
                     # use list_queue to check that message was put on queue
                     # transform should look for artifact url
-                    # add artifact.url to list for message
 
-                    Log.note("Resources: {{bucket}}\n{{key}}\n{{resource}}\n{{work}}",    bucket=resources.todo.bucket,
+                    Log.note("Resources: \n{{bucket}}\n{{key}}\n{{resource}}\n{{work}}",    bucket=resources.todo.bucket,
                         key= resources.todo.key,
                         resource= artifact.url,
                              work = resources.work_queue)
+
                     # want to add gcda artifacts into work_queue
                     resources.work_queue.add({
                         "bucket": resources.todo.bucket,
                         "key": resources.todo.key,
                         "resources": artifact.url
                     })
+
+                    # for testing try to pop off of queue
+                    Log.note("SQS Message from queue {{msg}}", msg = resources.work_queue.pop(till=Date.now()))
+
 
                     #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
                 elif artifact.name.find("resource-usage") != -1:
