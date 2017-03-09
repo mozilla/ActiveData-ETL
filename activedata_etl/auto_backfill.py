@@ -163,7 +163,7 @@ def main():
             t.join()
         sys.stdout.write("main done\n")
         Log.note("main done")
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

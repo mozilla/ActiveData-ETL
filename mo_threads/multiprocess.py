@@ -57,7 +57,7 @@ class Process(object):
                 Thread.run(self.name + " stderr", self._reader, "stderr", service.stderr, self.stderr, please_stop=self.service_stopped, parent_thread=self),
                 Thread.run(self.name + " waiter", self._monitor, parent_thread=self),
             ]
-        except Exception, e:
+        except Exception as e:
             Log.error("Can not call", e)
 
         if self.debug:
@@ -143,7 +143,7 @@ class Process(object):
     def _kill(self):
         try:
             self.service.kill()
-        except Exception, e:
+        except Exception as e:
             ee = Except.wrap(e)
             if 'The operation completed successfully' in ee:
                 return

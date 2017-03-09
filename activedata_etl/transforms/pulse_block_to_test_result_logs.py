@@ -106,7 +106,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             key=dest_key,
                             url=url
                         )
-            except Exception, e:
+            except Exception as e:
                 Log.error("Problem processing {{name}} = {{url}}", name=name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:

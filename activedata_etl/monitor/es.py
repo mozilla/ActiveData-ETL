@@ -40,7 +40,7 @@ def main():
             Log.warning("ES gave a bad response. NO ACTION TAKEN.\n{{response|json|indent}}", response=data)
         else:
             Log.note("Good response")
-    except Exception, e:
+    except Exception as e:
         Log.warning("Problem with call to ES at {{machine}}.  NO ACTION TAKEN", machine=machine_metadata, cause=e)
     finally:
         Log.stop()

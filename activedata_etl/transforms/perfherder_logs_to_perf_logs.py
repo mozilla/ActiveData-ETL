@@ -123,7 +123,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 key = source_key + "." + unicode(i)
                 records.append({"id": key, "value": p})
                 i += 1
-        except Exception, e:
+        except Exception as e:
             if TRY_AGAIN_LATER:
                 Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
 
@@ -312,7 +312,7 @@ def transform(source_key, perfherder, resources):
             num=len(new_records)
         )
         return new_records
-    except Exception, e:
+    except Exception as e:
         Log.error("Transformation failure on id={{uid}}", {"uid": source_key}, e)
 
 
@@ -388,7 +388,7 @@ def stats(source_key, given_values, test, suite):
             "samples": clean_values,
             "rejects": rejects
         }
-    except Exception, e:
+    except Exception as e:
         Log.warning("can not reduce series to moments", e)
         return {}
 

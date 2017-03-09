@@ -84,7 +84,7 @@ class StructuredLogger_usingSES(StructuredLogger):
                 conn.close()
             self.next_send = Date.now() + WAIT_TO_SEND_MORE
             self.accumulation = []
-        except Exception, e:
+        except Exception as e:
             self.next_send = Date.now() + WAIT_TO_SEND_MORE
             Log.warning("Could not send", e)
 

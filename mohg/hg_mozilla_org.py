@@ -153,7 +153,7 @@ class HgMozillaOrg(object):
             try:
                 docs = self.es.search(query).hits.hits
                 break
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 if "NodeNotConnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
@@ -256,7 +256,7 @@ class HgMozillaOrg(object):
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
         try:
             return _get_url(url, branch, **kwargs)
-        except Exception, e:
+        except Exception as e:
             pass
 
         try:

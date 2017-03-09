@@ -69,7 +69,7 @@ class S3Bucket(object):
                 try:
                     v = key_prefix(k.name)
                     maxi = max(maxi, v)
-                except Exception, e:
+                except Exception as e:
                     self.bucket.bucket.delete_key(k.name)
             return maxi
 
@@ -97,7 +97,7 @@ class S3Bucket(object):
             try:
                 content = self.bucket.read_lines(key)
                 old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
-            except Exception, e:
+            except Exception as e:
                 Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
                 old_docs = UniqueIndex(keys="etl.id")

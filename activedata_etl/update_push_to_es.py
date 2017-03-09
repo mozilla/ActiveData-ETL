@@ -168,7 +168,7 @@ def main():
                 Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
                 _refresh_indexer()
-            except Exception, e:
+            except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
                     insance_id=i.id,
@@ -176,7 +176,7 @@ def main():
                     ip=i.ip_address,
                     cause=e
                 )
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

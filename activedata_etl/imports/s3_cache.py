@@ -150,7 +150,7 @@ class S3Cache(object):
                     for d in data
                 )
             )
-        except Exception, e:
+        except Exception as e:
             if "UNIQUE constraint failed" in e:
                 if len(data) == 1:
                     return  # TODO: P

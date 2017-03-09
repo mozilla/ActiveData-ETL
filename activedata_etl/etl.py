@@ -85,7 +85,7 @@ class ETL(Thread):
                     fuzzytestcase.assertAlmostEqual(existing_worker.source, w.source)
                     fuzzytestcase.assertAlmostEqual(existing_worker.transformer, w.transformer)
                     # SAME SOURCE AND TRANSFORMER, MERGE THE destinations
-                except Exception, e:
+                except Exception as e:
                     continue
                 destination = get_container(w.destination)
                 existing_worker._destination = Split(existing_worker._destination, destination)
@@ -235,7 +235,7 @@ class ETL(Thread):
                             "timestamp": now.unix,
                             "date/time": now.format()
                         })
-            except Exception, e:
+            except Exception as e:
                 if "Key {{key}} does not exist" in e:
                     err = Log.warning
                 elif "multiple keys in {{bucket}}" in e:
@@ -301,7 +301,7 @@ class ETL(Thread):
                             self.work_queue.commit()
                         else:
                             self.work_queue.rollback()
-                    except Exception, e:
+                    except Exception as e:
                         # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
                         if "Shutdown detected." in e:
                             continue
@@ -343,7 +343,7 @@ class ETL(Thread):
                                 key=todo.key,
                                 cause=e
                             )
-        except Exception, e:
+        except Exception as e:
             Log.warning("Failure in the ETL loop", cause=e)
             raise e
 
@@ -444,7 +444,7 @@ def main():
 
         aws.capture_termination_signal(stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
@@ -472,7 +472,7 @@ def etl_one(settings):
                         bucket=w.source.bucket,
                         key=k
                     ))
-        except Exception, e:
+        except Exception as e:
             if "Key {{key}} does not exist" in e:
                 already_in_queue.add(id(source))
                 queue.add(Data(

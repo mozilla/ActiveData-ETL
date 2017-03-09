@@ -50,7 +50,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     try:
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
-    except Exception, e:
+    except Exception as e:
         e = Except.wrap(e)
         if "EOF occurred in violation of protocol" in e:
             Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
@@ -136,7 +136,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
 
             if log.subtest:
                 accumulator.last_subtest = log.time
-        except Exception, e:
+        except Exception as e:
             e= Except.wrap(e)
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
@@ -331,7 +331,7 @@ class LogSummary(Data):
         try:
             for t in tests:
                 self.stats.status[t.status.lower()] += 1
-        except Exception, e:
+        except Exception as e:
             Log.error("problem", e)
 
         self.stats.ok = sum(1 for t in tests if t.ok)

@@ -46,7 +46,7 @@ def _upgrade():
         if python_dll.read_bytes() != sqlite_dll.read_bytes():
             backup = sqlite_dll.backup()
             File.copy(python_dll, sqlite_dll)
-    except Exception, e:
+    except Exception as e:
         Log.warning("could not upgrade python's sqlite", cause=e)
 
 
@@ -141,7 +141,7 @@ class Sqlite(DB):
                 full_path = file.abspath
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
-            except Exception, e:
+            except Exception as e:
                 if not _load_extension_warning_sent:
                     _load_extension_warning_sent = True
                     Log.warning("Could not load {{file}}}, doing without. (no SQRT for you!)", file=full_path, cause=e)
@@ -169,7 +169,7 @@ class Sqlite(DB):
                             if DEBUG and result.data:
                                 text = convert.table2csv(list(result.data))
                                 Log.note("Result:\n{{data}}", data=text)
-                        except Exception, e:
+                        except Exception as e:
                             e = Except.wrap(e)
                             result.exception = Except(ERROR, "Problem with\n{{command|indent}}", command=command, cause=e)
                         finally:
@@ -178,7 +178,7 @@ class Sqlite(DB):
                         try:
                             self.db.execute(command)
                             self.db.commit()
-                        except Exception, e:
+                        except Exception as e:
                             e = Except.wrap(e)
                             e.cause = Except(
                                 type=ERROR,
@@ -187,7 +187,7 @@ class Sqlite(DB):
                             )
                             Log.warning("Failure to execute", cause=e)
 
-        except Exception, e:
+        except Exception as e:
             Log.error("Problem with sql thread", e)
         finally:
             if DEBUG:

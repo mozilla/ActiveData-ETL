@@ -152,7 +152,7 @@ def indent(value, prefix=u"\t", indent=None):
         suffix = value[len(content):]
         lines = content.splitlines()
         return prefix + (u"\n" + prefix).join(lines) + suffix
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Problem with indent of value (" + e.message + u")\n" + _unicode(toString(value)))
 
 
@@ -165,7 +165,7 @@ def outdent(value):
             if trim > 0:
                 num = min(num, len(l) - len(l.lstrip()))
         return u"\n".join([l[num:] for l in lines])
-    except Exception, e:
+    except Exception as e:
         if not _Log:
             _late_import()
 
@@ -446,7 +446,7 @@ def _simple_expand(template, seq):
                     val = globals()[func_name](val)
             val = toString(val)
             return val
-        except Exception, e:
+        except Exception as e:
             try:
                 if e.message.find("is not JSON serializable"):
                     # WORK HARDER
@@ -510,7 +510,7 @@ def toString(val):
 
         try:
             return val.decode('latin1')
-        except Exception, e:
+        except Exception as e:
             if not _Log:
                 _late_import()
 
@@ -518,7 +518,7 @@ def toString(val):
     else:
         try:
             return _unicode(val)
-        except Exception, e:
+        except Exception as e:
             if not _Log:
                 _late_import()
 
@@ -621,7 +621,7 @@ def utf82unicode(value):
     """
     try:
         return value.decode("utf8")
-    except Exception, e:
+    except Exception as e:
         if not _Log:
             _late_import()
 

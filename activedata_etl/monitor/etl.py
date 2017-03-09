@@ -38,7 +38,7 @@ def main():
                 return
             sudo("supervisorctl restart etl")
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with checking for ETL updates", e)
     finally:
         Log.stop()

@@ -53,9 +53,9 @@ def get_branches(hg, branches, use_cache=True, kwargs=None):
 
         try:
             return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
-        except Exception, e:
+        except Exception as e:
             Log.error("Bad branch in ES index", cause=e)
-    except Exception, e:
+    except Exception as e:
         if "Can not find index " in e:
             return get_branches(use_cache=False, kwargs=kwargs)
         Log.error("problem getting branches", cause=e)
@@ -195,7 +195,7 @@ def main():
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

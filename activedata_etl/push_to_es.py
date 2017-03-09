@@ -103,7 +103,7 @@ def safe_splitter(work_queue, please_stop):
         try:
             with WarnOnException("Indexing records"):
                 splitter(work_queue, please_stop)
-        except Exception, e:
+        except Exception as e:
             Log.warning("problem", cause=e)
 
 
@@ -128,7 +128,7 @@ def shutdown_local_es_node():
     finally:
         try:
             proc.join()
-        except Exception, e:
+        except Exception as e:
             Log.warning("could not shutdown es", cause=e)
 
 
@@ -229,7 +229,7 @@ def main():
         Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
         Log.note("Shutdown")
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

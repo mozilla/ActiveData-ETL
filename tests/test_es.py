@@ -53,7 +53,7 @@ class TestES(unittest.TestCase):
                 self.assertEqual(result["hits"]["hits"][0]["_id"], ID, "Should not happen; expecting data to exists before test is run")
                 print("Data exists, ready to test")
                 break
-            except Exception, e:
+            except Exception as e:
                 print("waiting for data")
 
         query = {

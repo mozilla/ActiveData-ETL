@@ -86,7 +86,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                 output.append(data)
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
-            except Exception, e:
+            except Exception as e:
                 Log.warning("Problem processing {{url}}", url=pulse_record.payload.logurl, cause=e)
                 data.etl.error = "Text log unreachable"
                 output.append(data)

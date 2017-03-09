@@ -78,7 +78,7 @@ class AllThread(object):
                 response = t.join()
                 if "exception" in response:
                     exceptions.append(response["exception"])
-        except Exception, e:
+        except Exception as e:
             _Log.warning("Problem joining", e)
 
         if exceptions:
@@ -121,7 +121,7 @@ class MainThread(object):
                 _Log.note("Stopping thread {{name|quote}}", name=c.name)
             try:
                 c.stop()
-            except Exception, e:
+            except Exception as e:
                 join_errors.append(e)
 
         for c in children:
@@ -129,7 +129,7 @@ class MainThread(object):
                 _Log.note("Joining on thread {{name|quote}}", name=c.name)
             try:
                 c.join()
-            except Exception, e:
+            except Exception as e:
                 join_errors.append(e)
 
             if DEBUG and c.name:
@@ -201,7 +201,7 @@ class Thread(object):
         try:
             self.thread = thread.start_new_thread(Thread._run, (self,))
             return self
-        except Exception, e:
+        except Exception as e:
             _Log.error("Can not start thread", e)
 
     def stop(self):
@@ -220,7 +220,7 @@ class Thread(object):
     def remove_child(self, child):
         try:
             self.children.remove(child)
-        except Exception, e:
+        except Exception as e:
             # happens when multiple joins on same thread
             pass
 
@@ -240,7 +240,7 @@ class Thread(object):
                 else:
                     with self.synch_lock:
                         self.end_of_thread = Null
-            except Exception, e:
+            except Exception as e:
                 e = _Except.wrap(e)
                 with self.synch_lock:
                     self.end_of_thread = Data(exception=e)
@@ -258,7 +258,7 @@ class Thread(object):
                             if DEBUG:
                                 sys.stdout.write(b"Stopping thread " + str(c.name) + b"\n")
                             c.stop()
-                        except Exception, e:
+                        except Exception as e:
                             _Log.warning("Problem stopping thread {{thread}}", thread=c.name, cause=e)
 
                     for c in children:
@@ -266,7 +266,7 @@ class Thread(object):
                             if DEBUG:
                                 sys.stdout.write(b"Joining on thread " + str(c.name) + b"\n")
                             c.join()
-                        except Exception, e:
+                        except Exception as e:
                             _Log.warning("Problem joining thread {{thread}}", thread=c.name, cause=e)
                         finally:
                             if DEBUG:
@@ -279,7 +279,7 @@ class Thread(object):
                     with ALL_LOCK:
                         del ALL[self.id]
 
-                except Exception, e:
+                except Exception as e:
                     if DEBUG:
                         _Log.warning("problem with thread {{name|quote}}", cause=e, name=self.name)
                 finally:
@@ -388,7 +388,7 @@ class Thread(object):
 def _stop_main_thread():
     try:
         MAIN_THREAD.stop()
-    except Exception, e:
+    except Exception as e:
         e = _Except.wrap(e)
         _Log.warning("Problem with threads", cause=e)
     sys.exit(0)
@@ -411,7 +411,7 @@ def _wait_for_exit(please_stop):
             (Till(seconds=3) | please_stop).wait()
         try:
             line = sys.stdin.readline()
-        except Exception, e:
+        except Exception as e:
             _Except.wrap(e)
             if "Bad file descriptor" in e:
                 _wait_for_interrupt(please_stop)
