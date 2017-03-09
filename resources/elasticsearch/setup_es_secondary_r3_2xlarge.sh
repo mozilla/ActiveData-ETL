@@ -122,7 +122,7 @@ cd ~/ActiveData-ETL
 git checkout primary
 
 # COPY CONFIG FILE TO ES DIR
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_secondary.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_2.yml /usr/local/elasticsearch/config/elasticsearch.yml
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY

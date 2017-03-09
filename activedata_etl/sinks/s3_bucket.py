@@ -7,25 +7,26 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
 from math import log10
 
+from mo_kwargs import override
+
+from activedata_etl import etl2key, key2etl
+from activedata_etl.reset import Version
+from mo_collections import UniqueIndex
+from mo_dots import wrap
+from mo_logs import Log
+from mo_math import Math
+from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, literal_field
-from pyLibrary.maths import Math
-from pyLibrary.meta import use_settings
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.testing import fuzzytestcase
-from pyLibrary.times.timer import Timer
-from activedata_etl import etl2key, key2etl
-from activedata_etl.reset import Version
 
 
 class S3Bucket(object):
 
-    @use_settings
+    @override
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
@@ -34,10 +35,10 @@ class S3Bucket(object):
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
-        settings=None
+        kwargs=None
     ):
-        self.bucket = s3.Bucket(settings)
-        self.settings = settings
+        self.bucket = s3.Bucket(kwargs)
+        self.settings = kwargs
 
     def __getattr__(self, item):
         return getattr(self.bucket, item)
@@ -68,7 +69,7 @@ class S3Bucket(object):
                 try:
                     v = key_prefix(k.name)
                     maxi = max(maxi, v)
-                except Exception, e:
+                except Exception as e:
                     self.bucket.bucket.delete_key(k.name)
             return maxi
 
@@ -96,7 +97,7 @@ class S3Bucket(object):
             try:
                 content = self.bucket.read_lines(key)
                 old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
-            except Exception, e:
+            except Exception as e:
                 Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
                 old_docs = UniqueIndex(keys="etl.id")

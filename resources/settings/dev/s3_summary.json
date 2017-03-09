@@ -3,7 +3,7 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"constants":{
-		"pyLibrary.thread.threads.DEBUG":false
+		"mo_threads.DEBUG":false
 	},
 	"debug": {
 		"trace": true,

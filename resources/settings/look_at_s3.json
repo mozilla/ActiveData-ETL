@@ -4,8 +4,9 @@
 			"key": "69560"
 		}
 	},
+	"file":"tc.573933",
 	"source": {
-		"bucket": "active-data-pulse-beta",
+		"bucket": "active-data-codecoverage-dev",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"debug": {

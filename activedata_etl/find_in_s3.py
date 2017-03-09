@@ -6,13 +6,13 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
+from __future__ import unicode_literals
 
+from pyLibrary import convert
 from pyLibrary.aws.s3 import Connection
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from mo_logs import startup
+from mo_logs import Log
 from pyLibrary.queries import jx
 
 
@@ -38,7 +38,7 @@ def main():
             data = source.read_bytes(k)
             if convert.ascii2unicode(data).find("2e2834fa7ecd8d3bb1ad49ec981fdb89eb4df95e18") >= 0:
                 Log.note("Found at {{key}}", key=k)
-        except Exception, e:
+        except Exception as e:
             Log.warning("Problem with {{key}}", key=k, cause=e)
         finally:
             Log.stop()

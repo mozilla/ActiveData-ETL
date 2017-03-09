@@ -1,10 +1,8 @@
-import boto
-from pympler.summary import summarize
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.maths.randoms import Random
-from pyLibrary.thread.threads import Thread
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_math.randoms import Random
+from mo_threads import Thread
 
 
 def summarize(settings):
@@ -41,7 +39,7 @@ try:
     constants.set(settings.constants)
     Log.start(settings.debug)
     summarize(settings)
-except Exception, e:
+except Exception as e:
     Log.error("Problem with summary", e)
 finally:
     Log.stop()

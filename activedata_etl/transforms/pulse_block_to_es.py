@@ -15,10 +15,10 @@ from activedata_etl.transforms import TRY_AGAIN_LATER
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
 from mohg.repos.changesets import Changeset
 from mohg.repos.revisions import Revision
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.debugs.profiles import Profiler
-from pyLibrary.dot import Dict, Null, coalesce
+from mo_dots import Data, Null
+from pyLibrary import convert
+from mo_logs import Log, strings
+from mo_logs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
@@ -31,7 +31,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     keys = []
     records = []
-    stats = Dict()
+    stats = Data()
     for i, line in enumerate(lines):
         if please_stop:
             Log.error("Unexpected request to stop")
@@ -59,7 +59,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             key = etl2key(record.etl)
             keys.append(key)
             records.append({"id": key, "value": record})
-        except Exception, e:
+        except Exception as e:
             if TRY_AGAIN_LATER:
                 Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
@@ -78,7 +78,7 @@ def scrub_pulse_record(source_key, i, line, stats):
             return None
         pulse_record = convert.json2value(line)
         return pulse_record
-    except Exception, e:
+    except Exception as e:
         Log.warning(
             "Line {{index}}: Problem with line for key {{key}}\n{{line}}",
             line=line,
@@ -89,7 +89,7 @@ def scrub_pulse_record(source_key, i, line, stats):
 
 
 def transform_buildbot(source_key, other, resources):
-    output = Dict()
+    output = Data()
 
     if other.what == "This is a heartbeat":
         return output
@@ -101,7 +101,7 @@ def transform_buildbot(source_key, other, resources):
         locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
             output.repo = resources.hg.get_revision(rev, locale)
-        except Exception, e:
+        except Exception as e:
             if "release-mozilla-esr" in e or "release-comm-esr" in e:
                 # TODO: FIX PROBLEM WHERE, FOR SOME REASON, WE CAN NOT FIND THE REVISIONS FOR ESR
                 pass

@@ -14,11 +14,11 @@ from fabric.api import settings as fabric_settings
 from fabric.operations import sudo
 from fabric.state import env
 
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 @aws_retry
@@ -29,7 +29,7 @@ def _get_managed_instances(ec2_conn, name):
     for res in reservations:
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 
@@ -45,11 +45,13 @@ def _config_fabric(connect, instance):
 
 def _stop_indexer():
     with fabric_settings(warn_only=True):
+        # sudo("supervisorctl stop es")
         sudo("supervisorctl stop push_to_es")
 
 
 def _start_indexer():
     with fabric_settings(warn_only=True):
+        # sudo("supervisorctl start es")
         sudo("supervisorctl start push_to_es")
 
 
@@ -69,10 +71,13 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            _config_fabric(settings.fabric, i)
-            Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _stop_indexer()
-    except Exception, e:
+            try:
+                _config_fabric(settings.fabric, i)
+                Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                _stop_indexer()
+            except Exception as e:
+                Log.warning("Problem with stopping", e)
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

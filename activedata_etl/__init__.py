@@ -10,11 +10,9 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from pyLibrary import strings
+from mo_dots import wrap, coalesce
+from mo_logs import Log, strings
 from pyLibrary.aws import s3
-from pyLibrary.collections import reverse
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, coalesce
 from pyLibrary.queries import jx
 
 
@@ -69,7 +67,7 @@ def _parse_key(elements):
     if isinstance(elements, basestring):
         try:
             return {"id": format_id(elements)}
-        except Exception, e:
+        except Exception as e:
             Log.error("problem", e)
     if isinstance(elements, list) and len(elements) == 1:
         if isinstance(elements[0], basestring):
@@ -124,7 +122,7 @@ def etl2path(etl):
                 etl = etl.source
             etl = etl.source
         return jx.reverse(path)
-    except Exception, e:
+    except Exception as e:
         Log.error("Can not get path {{etl}}", etl=etl, cause=e)
 
 

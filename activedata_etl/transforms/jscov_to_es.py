@@ -10,14 +10,15 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
+from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
+from mo_dots import wrap, unwraplist, set_default
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, unwraplist, set_default
+from mo_logs import Log, machine_metadata
 from pyLibrary.env import http
-from pyLibrary.jsons import stream
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_json import stream
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
@@ -47,7 +48,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         try:
             task_cluster_record = convert.json2value(msg_line)
-        except Exception, e:
+        except Exception as e:
             if "JSON string is only whitespace" in e:
                 continue
             else:
@@ -55,15 +56,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
-
-        # chop some not-needed, and verbose, properties from tc record
-        task_cluster_record.etl = None
-        task_cluster_record.action.timings = None
-        task_cluster_record.action.etl = None
-        task_cluster_record.task.artifacts = None
-        task_cluster_record.task.runs = None
-        task_cluster_record.task.tags = None
-        task_cluster_record.task.env = None
+        minimize_task(task_cluster_record)
 
         for artifact in artifacts:
             # we're only interested in jscov files, at lease at the moment
@@ -107,7 +100,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             task_cluster_record,
                             records
                         )
-                    except Exception, e:
+                    except Exception as e:
                         Log.warning(
                             "Error processing test {{test_url}} and source file {{source}}",
                             test_url=obj.get("testUrl"),
@@ -130,7 +123,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     # TODO: change this when needed
     try:
         test_name = unwraplist(obj.testUrl).split("/")[-1]
-    except Exception, e:
+    except Exception as e:
         raise Log.error("can not get testUrl from coverage object", cause=e)
 
     # turn obj.covered (a list) into a set for use later

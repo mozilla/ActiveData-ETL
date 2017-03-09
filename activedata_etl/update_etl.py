@@ -6,25 +6,26 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
+
+import datetime
 
 from boto import ec2 as boto_ec2
-import datetime
 from boto.ec2 import cloudwatch
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
-from pyLibrary.queries.unique_index import UniqueIndex
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_collections import UniqueIndex
 
 
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([dictwrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
     return output
 
 
@@ -37,7 +38,7 @@ def _get_managed_instances(ec2_conn, name):
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
                 instance.request = requests[instance.id]
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 
@@ -62,6 +63,7 @@ def _refresh_etl(instance, settings, conn):
             Log.note("No change required")
             if cpu_percent > 70:
                 return
+            Log.note("Low CPU implies problem, restarting anyway")
         sudo("supervisorctl restart all")
 
 
@@ -104,10 +106,10 @@ def main():
         for i in instances:
             try:
                 _refresh_etl(i, settings, cw)
-            except Exception, e:
+            except Exception as e:
                 ec2_conn.terminate_instances([i.id])
-                Log.warning("Problem resetting {{instance}}, terminated", instance=i.id, cause=e)
-    except Exception, e:
+                Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

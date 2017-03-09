@@ -10,12 +10,12 @@
 from __future__ import unicode_literals
 from __future__ import division
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict
+from mo_logs import Log
+from mo_dots import Data
 from pyLibrary.env.big_data import GzipLines
-from pyLibrary.env.files import File
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from pyLibrary.times.timer import Timer
+from mo_files import File
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_times.timer import Timer
 from activedata_etl.transforms import verify_blobber_file
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
@@ -37,7 +37,7 @@ class TestEtlSpeed(FuzzyTestCase):
 
         source_key = "51586_5124145.52"
         content = File("tests/resources/51586_5124145.52.json.gz").read_bytes()
-        source = Dict(read_lines=lambda: GzipLines(content))
+        source = Data(read_lines=lambda: GzipLines(content))
         with Accumulator(File("tests/results/51586_5124145.52.json")) as destination:
             with Timer("ETL file"):
                 process_unittest_in_s3(source_key, source, destination, please_stop=None)

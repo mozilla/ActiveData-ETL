@@ -8,16 +8,16 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, Null
-from pyLibrary.env import http, elasticsearch
-from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
-from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from activedata_etl.transforms import EtlHeadGenerator
+from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from mo_dots import Data, wrap, coalesce, Null
+from pyLibrary import convert
+from mo_logs import Log, strings
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 DEBUG = False
 
@@ -40,7 +40,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     CONVERT pulse_block INTO PERFHERDER, IF ANY
     """
     etl_head_gen = EtlHeadGenerator(source_key)
-    stats = Dict()
+    stats = Data()
     counter = 0
 
     output = set()
@@ -106,7 +106,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                     continue
                 seen, all_perf = extract_perfherder(response.get_all_lines(flexible=True), etl_file, etl_head_gen, please_stop, pulse_record)
-            except Exception, e:
+            except Exception as e:
                 Log.error("Problem processing {{url}}", url=log_url, cause=e)
             finally:
                 try:
@@ -172,6 +172,6 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload
                 all_perf.extend(perf.suites)
-    except Exception, e:
+    except Exception as e:
         Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
     return perfherder_exists, all_perf

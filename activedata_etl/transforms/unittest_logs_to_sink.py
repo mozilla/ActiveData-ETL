@@ -11,35 +11,25 @@ from __future__ import unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
+from mo_dots import Data, wrap, coalesce, set_default, literal_field
+from mo_json import scrub
+from mo_logs import Log, strings
+from mo_logs.exceptions import Except
+from mo_math import Math, MAX, MIN
+from mo_times.dates import Date
+from mo_times.durations import DAY
+from mo_times.timer import Timer
+from pyLibrary import convert
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.jsons import scrub
-from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
-from pyLibrary.times.timer import Timer
 
 DEBUG = True
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
-
-    etl_header = convert.json2value(lines[0])
-
-    # FIX ETL IDS
-    e = etl_header
-    while e:
-        if isinstance(e.id, basestring):
-            e.id = int(e.id.split(":")[0])
-        e = e.source
-
+    etl_header = convert.json2value(lines[0]).etl
     bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources, source_key=source_key)
-    unittest_log = lines[2:]
-    return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
+    return process_unittest(source_key, etl_header, bb_summary, lines, destination, please_stop=please_stop)
 
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
@@ -60,7 +50,10 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     try:
         with timer:
             summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
-    except Exception, e:
+    except Exception as e:
+        e = Except.wrap(e)
+        if "EOF occurred in violation of protocol" in e:
+            Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
         Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
         summary = None
 
@@ -129,8 +122,8 @@ def accumulate_logs(source_key, url, lines, please_stop):
             log = convert.json2value(line)
             last_line_was_json = True
             log.time = log.time / 1000
-            accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
-            accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
+            accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])
+            accumulator.stats.end_time = MAX([accumulator.stats.end_time, log.time])
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
@@ -143,11 +136,9 @@ def accumulate_logs(source_key, url, lines, please_stop):
 
             if log.subtest:
                 accumulator.last_subtest = log.time
-        except Exception, e:
+        except Exception as e:
             e= Except.wrap(e)
-            if "Can not decode JSON" in e:
-                Log.error(TRY_AGAIN_LATER, reason="Bad JSON", cause=e)
-            elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
+            if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
 
             prefix = strings.limit(line, 500)
@@ -178,11 +169,11 @@ def accumulate_logs(source_key, url, lines, please_stop):
     return output
 
 
-class LogSummary(Dict):
+class LogSummary(Data):
     def __init__(self, url):
-        Dict.__init__(self)
-        self.tests = Dict()
-        self.logs = Dict()
+        Data.__init__(self)
+        self.tests = Data()
+        self.logs = Data()
         self.last_subtest = None
         self.url = url
 
@@ -192,7 +183,7 @@ class LogSummary(Dict):
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[literal_field(log.test)] = Dict(
+        self.tests[literal_field(log.test)] = Data(
             test=log.test,
             start_time=log.time
         )
@@ -219,7 +210,7 @@ class LogSummary(Dict):
         test = self.tests[literal_field(log.test)]
         test.stats.action.test_status += 1
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
@@ -281,7 +272,7 @@ class LogSummary(Dict):
         self.logs[test_name] += [log]
         test = self.tests[test_name]
         if not test:
-            self.tests[test_name] = test = Dict(
+            self.tests[test_name] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 crash=True,
@@ -302,7 +293,7 @@ class LogSummary(Dict):
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
@@ -340,7 +331,7 @@ class LogSummary(Dict):
         try:
             for t in tests:
                 self.stats.status[t.status.lower()] += 1
-        except Exception, e:
+        except Exception as e:
             Log.error("problem", e)
 
         self.stats.ok = sum(1 for t in tests if t.ok)

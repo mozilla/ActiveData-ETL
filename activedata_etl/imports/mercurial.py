@@ -8,28 +8,24 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from datetime import timedelta
 import os
 import subprocess
 import urllib
-from pyLibrary.env import elasticsearch
+from datetime import timedelta
 
-from pyLibrary.sql.sql import find_holes
+from mo_dots import coalesce, wrap
+from mo_files import File
+from mo_logs import Log
+from mo_logs.strings import between
+from mo_times.timer import Timer
 from pyLibrary import convert
-from pyLibrary.debugs import startup
-from pyLibrary.maths.randoms import Random
-from pyLibrary.sql.mysql import MySQL
-from pyLibrary.env.files import File
-from pyLibrary.debugs.logs import Log
+from pyLibrary.env import elasticsearch
 from pyLibrary.queries import jx
-from pyLibrary.strings import between
-from pyLibrary.dot import coalesce, wrap
-from pyLibrary.thread.multithread import Multithread
-from pyLibrary.times.timer import Timer
-
+from pyLibrary.sql.mysql import MySQL
+from pyLibrary.sql.sql import find_holes
 
 DEBUG = True
 
@@ -146,7 +142,7 @@ def get_changesets(date_range=None, revision_range=None, repo=None):
                                 "return_code": proc.returncode
                             })
                         return
-                except Exception, e:
+                except Exception as e:
                     Log.error("Problem getting another line", e)
 
                 if line.strip() == "":
@@ -196,7 +192,7 @@ def get_changesets(date_range=None, revision_range=None, repo=None):
                 }
                 doc = elasticsearch.scrub(doc)
                 yield doc
-        except Exception, e:
+        except Exception as e:
             if isinstance(e, ValueError) and e.message.startswith("need more than "):
                 Log.error("Problem iterating through log ({{message}})", {
                     "message": line
@@ -256,29 +252,7 @@ def update_repo(repo, settings):
 
 
 
-        except Exception, e:
+        except Exception as e:
             Log.warning("Failure to pull from {{repos.name}}", {"repos": repo}, e)
-
-
-def main():
-    settings = startup.read_settings()
-    Log.start(settings.debug)
-    try:
-        with Multithread(update_repo, threads=10, outbound=False) as multi:
-            for repo in Random.combination(settings.param.repos):
-                multi.execute([{"repos": repo, "settings": settings}])
-    finally:
-        Log.stop()
-
-
-main()
-
-
-# hg log -v -l 20 --template "{date}\t{node}\t{rev}\t{author|urlescape}\t{branches}\t{files}\t{file_adds}\t{file_dels}\t{parents}\t{tags}\t{desc|urlescape}\n"
-#
-#
-#
-#
-# hg log -v -l 20 --style "C:\Users\klahnakoski\git\datazilla-alerts\tests\resources\hg\changeset.template"
 
 

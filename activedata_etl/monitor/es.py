@@ -6,17 +6,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 import requests
 
-from pyLibrary import convert, aws
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict
-
+from pyLibrary import convert
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, machine_metadata
 
 with suppress_exception:
     # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP
@@ -42,7 +40,7 @@ def main():
             Log.warning("ES gave a bad response. NO ACTION TAKEN.\n{{response|json|indent}}", response=data)
         else:
             Log.note("Good response")
-    except Exception, e:
+    except Exception as e:
         Log.warning("Problem with call to ES at {{machine}}.  NO ACTION TAKEN", machine=machine_metadata, cause=e)
     finally:
         Log.stop()

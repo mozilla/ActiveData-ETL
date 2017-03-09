@@ -13,10 +13,10 @@ from __future__ import unicode_literals
 import requests
 
 from activedata_etl.transforms.jscov_to_es import process_source_file
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, Dict
-from pyLibrary.jsons import stream
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_logs import Log
+from mo_dots import Null, Data
+from mo_json import stream
+from mo_testing.fuzzytestcase import FuzzyTestCase
 
 
 class TestCoverage(FuzzyTestCase):
@@ -30,6 +30,6 @@ class TestCoverage(FuzzyTestCase):
         for source_file_index, obj in enumerate(stream.parse(_stream, [], ["."])):
             if source_file_index==0:
                 continue  # VERSION LINE
-            process_source_file(Dict(), obj, Null, Null, Null, Null, records)
+            process_source_file(Data(), obj, Null, Null, Null, Null, records)
         Log.note("{{records|json}}", records=records)
 

@@ -12,8 +12,8 @@ from __future__ import unicode_literals
 import requests
 
 from pyLibrary import convert
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
             data=b'{"index":{"_id": "491:66300.10"}}\n' + convert.unicode2utf8(convert.value2json(data)) + b"\n"
         )
         Log.note(response.content)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with insert", e)
     finally:
         Log.stop()

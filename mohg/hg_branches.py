@@ -8,33 +8,30 @@
 #
 from __future__ import unicode_literals
 
-from copy import copy
-
 from BeautifulSoup import BeautifulSoup
+from mo_collections import UniqueIndex
+from mo_dots import Data, set_default
+from mo_kwargs import override
+from mo_logs import Log
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_math import MAX
+from mo_times.dates import Date
+from mo_times.durations import SECOND, DAY
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, set_default
-from pyLibrary.env import elasticsearch, http
-from pyLibrary.maths import Math
-from pyLibrary.meta import use_settings
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND, DAY
 from mohg.hg_mozilla_org import DEFAULT_LOCALE
-
+from pyLibrary.env import elasticsearch, http
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 OLD_BRANCH = DAY
 
 
-@use_settings
-def get_branches(hg, branches, use_cache=True, settings=None):
-    if not settings.branches or not use_cache:
+@override
+def get_branches(hg, branches, use_cache=True, kwargs=None):
+    if not kwargs.branches or not use_cache:
         found_branches = _get_branches_from_hg(hg)
 
-        es = elasticsearch.Cluster(settings=branches).get_or_create_index(settings=branches)
+        es = elasticsearch.Cluster(kwargs=branches).get_or_create_index(kwargs=branches)
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in found_branches)
         es.flush()
@@ -42,7 +39,7 @@ def get_branches(hg, branches, use_cache=True, settings=None):
 
     # TRY ES
     try:
-        es = elasticsearch.Cluster(settings=branches).get_index(settings=branches)
+        es = elasticsearch.Cluster(kwargs=branches).get_index(kwargs=branches)
         query = {
             "query": {"match_all": {}},
             "size": 20000
@@ -50,24 +47,24 @@ def get_branches(hg, branches, use_cache=True, settings=None):
 
         docs = es.search(query).hits.hits._source
         # IF IT IS TOO OLD, THEN PULL FROM HG
-        oldest = Date(Math.MAX(docs.etl.timestamp))
-        if Date.now() - oldest > OLD_BRANCH:
-            return get_branches(use_cache=False, settings=settings)
+        oldest = Date(MAX(docs.etl.timestamp))
+        if oldest == None or Date.now() - oldest > OLD_BRANCH:
+            return get_branches(use_cache=False, kwargs=kwargs)
 
         try:
             return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
-        except Exception, e:
+        except Exception as e:
             Log.error("Bad branch in ES index", cause=e)
-    except Exception, e:
+    except Exception as e:
         if "Can not find index " in e:
-            return get_branches(use_cache=False, settings=settings)
+            return get_branches(use_cache=False, kwargs=kwargs)
         Log.error("problem getting branches", cause=e)
 
 
-@use_settings
-def _get_branches_from_hg(settings):
+@override
+def _get_branches_from_hg(kwarg):
     # GET MAIN PAGE
-    response = http.get(settings.url)
+    response = http.get(kwarg.url)
     doc = BeautifulSoup(response.all_content)
 
     all_repos = doc("table")[1]
@@ -75,7 +72,7 @@ def _get_branches_from_hg(settings):
     for i, r in enumerate(all_repos("tr")):
         dir, name = [v.text.strip() for v in r("td")]
 
-        b = _get_single_branch_from_hg(settings, name, dir.lstrip("/"))
+        b = _get_single_branch_from_hg(kwarg, name, dir.lstrip("/"))
         branches.extend(b)
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
@@ -134,7 +131,7 @@ def _get_single_branch_from_hg(settings, description, dir):
                 continue
 
             name, desc, last_used = [c.text for c in columns][0:3]
-            detail = Dict(
+            detail = Data(
                 name=name.lower(),
                 locale=DEFAULT_LOCALE,
                 parent_name=description,
@@ -194,11 +191,11 @@ def main():
 
         branches = _get_branches_from_hg(settings.hg)
 
-        es = elasticsearch.Cluster(settings=settings.hg.branches).get_or_create_index(settings=settings.hg.branches)
+        es = elasticsearch.Cluster(kwargs=settings.hg.branches).get_or_create_index(kwargs=settings.hg.branches)
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
