@@ -142,7 +142,7 @@ def get_changesets(date_range=None, revision_range=None, repo=None):
                                 "return_code": proc.returncode
                             })
                         return
-                except Exception, e:
+                except Exception as e:
                     Log.error("Problem getting another line", e)
 
                 if line.strip() == "":
@@ -192,7 +192,7 @@ def get_changesets(date_range=None, revision_range=None, repo=None):
                 }
                 doc = elasticsearch.scrub(doc)
                 yield doc
-        except Exception, e:
+        except Exception as e:
             if isinstance(e, ValueError) and e.message.startswith("need more than "):
                 Log.error("Problem iterating through log ({{message}})", {
                     "message": line
@@ -252,7 +252,7 @@ def update_repo(repo, settings):
 
 
 
-        except Exception, e:
+        except Exception as e:
             Log.warning("Failure to pull from {{repos.name}}", {"repos": repo}, e)
 
 

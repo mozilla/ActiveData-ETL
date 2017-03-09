@@ -48,7 +48,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         try:
             task_cluster_record = convert.json2value(msg_line)
-        except Exception, e:
+        except Exception as e:
             if "JSON string is only whitespace" in e:
                 continue
             else:
@@ -100,7 +100,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             task_cluster_record,
                             records
                         )
-                    except Exception, e:
+                    except Exception as e:
                         Log.warning(
                             "Error processing test {{test_url}} and source file {{source}}",
                             test_url=obj.get("testUrl"),
@@ -123,7 +123,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     # TODO: change this when needed
     try:
         test_name = unwraplist(obj.testUrl).split("/")[-1]
-    except Exception, e:
+    except Exception as e:
         raise Log.error("can not get testUrl from coverage object", cause=e)
 
     # turn obj.covered (a list) into a set for use later

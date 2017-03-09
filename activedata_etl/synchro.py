@@ -77,7 +77,7 @@ class SynchState(object):
                         Log.error("Another instance of pulse_logger is running!")
                     Log.note("No activity, still waiting...")
                 Log.note("No activity detected!  Resuming...")
-        except Exception, e:
+        except Exception as e:
             Log.error("Can not start", e)
 
         self._start()
@@ -116,7 +116,7 @@ class SynchState(object):
                 continue
             try:
                 self.ping()
-            except Exception, e:
+            except Exception as e:
                 Log.warning("synchro.py could not ping", e)
         Log.note("pinger stopped")
 

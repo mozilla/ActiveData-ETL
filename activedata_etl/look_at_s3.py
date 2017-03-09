@@ -16,6 +16,7 @@ from pyLibrary import aws
 from pyLibrary.aws.s3 import Bucket
 from mo_logs import startup
 from mo_logs import Log
+from pyLibrary.convert import json2value
 from pyLibrary.queries import jx
 from mo_times.timer import Timer
 
@@ -41,6 +42,16 @@ def list_s3(settings, filter):
         Log.note("{{content}}", content=bucket.read(filtered[0].key))
 
 
+def list_file_contents(settings, key):
+    bucket = Bucket(settings)
+    for k in bucket.keys(key):
+        for line in bucket.read_lines(key=k):
+            try:
+                Log.note("{{data}}", data=json2value(line))
+            except Exception as e:
+                Log.warning("bad line {{line}}", line=line, cause=e)
+
+
 def list_queue(settings, num=10):
     queue = aws.Queue(settings)
     for i in range(num):
@@ -53,9 +64,12 @@ def main():
     try:
         settings = startup.read_settings()
         Log.start(settings.debug)
-        list_s3(settings.source, settings.filter)
-    except Exception, e:
-        Log.error("Problem with etl", e)
+        if settings.file:
+            list_file_contents(settings.source, settings.file)
+        else:
+            list_s3(settings.source, settings.filter)
+    except Exception as e:
+        Log.error("Problem with etl", cause=e)
     finally:
         Log.stop()
 

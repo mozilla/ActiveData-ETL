@@ -83,7 +83,7 @@ def main():
         )
         Log.start()
         work(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with getting old data", e)
     finally:
         Log.stop()

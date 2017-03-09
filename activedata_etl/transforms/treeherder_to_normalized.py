@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalize(source_key, resources, raw_treeherder, normalized)
             normalized = elasticsearch.scrub(normalized)
             output.append(normalized)
-        except Exception, e:
+        except Exception as e:
             if TRY_AGAIN_LATER in e:
                 raise e
             Log.warning("Treeherder line for key {{key}} not processed: {{line|quote}}", key=source_key, line=line, cause=e)

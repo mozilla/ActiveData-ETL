@@ -88,7 +88,7 @@ class StructuredLogger_usingEmail(StructuredLogger):
                     )
             self.next_send = Date.now() + self.settings.max_interval
             self.accumulation = []
-        except Exception, e:
+        except Exception as e:
             self.next_send = Date.now() + self.settings.max_interval
             Log.warning("Could not send", e)
 

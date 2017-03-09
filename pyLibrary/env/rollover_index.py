@@ -86,7 +86,7 @@ class RolloverIndex(object):
                     try:
                         es = self.cluster.create_index(create_timestamp=rounded_timestamp, kwargs=self.settings)
                         es.add_alias(self.settings.index)
-                    except Exception, e:
+                    except Exception as e:
                         if "IndexAlreadyExistsException" not in e:
                             Log.error("Problem creating index", cause=e)
                         return self._get_queue(row)  # TRY AGAIN
@@ -109,7 +109,7 @@ class RolloverIndex(object):
                 # Log.warning("Will delete {{index}}", index=c.index)
                 try:
                     self.cluster.delete_index(c.index)
-                except Exception, e:
+                except Exception as e:
                     Log.warning("could not delete index {{index}}", index=c.index, cause=e)
         for t, q in list(self.known_queues.items()):
             if unix2Date(t) + self.rollover_interval < Date.today() - self.rollover_max:
@@ -201,7 +201,7 @@ class RolloverIndex(object):
 
                         if please_stop:
                             break
-            except Exception, e:
+            except Exception as e:
                 done_copy = None
                 Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
 

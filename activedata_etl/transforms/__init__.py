@@ -106,7 +106,7 @@ def verify_blobber_file(line_number, name, url):
 
         try:
             logs = response.all_lines
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log"):
                 Log.error(
                     "Line {{line}}: {{name}} = {{url}} is NOT structured log",
@@ -146,7 +146,7 @@ def verify_blobber_file(line_number, name, url):
                 try:
                     total += len(convert.json2value(blobber_line))
                     count += 1
-                except Exception, e:
+                except Exception as e:
                     if DEBUG:
                         Log.note("Not JSON: {{line}}",
                             name= name,
@@ -161,7 +161,7 @@ def verify_blobber_file(line_number, name, url):
                 TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
                 Log.error("No JSON lines found")
 
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log") and "No JSON lines found" not in e:
                 Log.error(
                     "Line {{line}}: {{name}} is NOT structured log",

@@ -106,7 +106,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                     continue
                 seen, all_perf = extract_perfherder(response.get_all_lines(flexible=True), etl_file, etl_head_gen, please_stop, pulse_record)
-            except Exception, e:
+            except Exception as e:
                 Log.error("Problem processing {{url}}", url=log_url, cause=e)
             finally:
                 try:
@@ -172,6 +172,6 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload
                 all_perf.extend(perf.suites)
-    except Exception, e:
+    except Exception as e:
         Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
     return perfherder_exists, all_perf

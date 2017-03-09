@@ -98,7 +98,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             # get the artifact list for the taskId
             try:
                 artifacts = normalized.task.artifacts = http.get_json(strings.expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
-            except Exception, e:
+            except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="Can not get artifacts for task " + task_id, cause=e)
 
             for a in artifacts:
@@ -107,7 +107,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 if a.name.endswith("/live.log"):
                     try:
                         read_actions(source_key, normalized, a.url)
-                    except Exception, e:
+                    except Exception as e:
                         if "could not connect" in e and normalized.task.run.status != "completed":  # in ["deadline-exceeded"]:
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
                             pass
@@ -138,7 +138,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             if normalized.task.id in seen_tasks:
                 try:
                     assertAlmostEqual([tc_message, task, artifacts], seen_tasks[normalized.task.id], places=11)
-                except Exception, e:
+                except Exception as e:
                     Log.error("Not expected", cause=e)
             else:
                 tc_message._meta = None
@@ -148,7 +148,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 seen_tasks[normalized.task.id] = [tc_message, task, artifacts]
 
             output.append(normalized)
-        except Exception, e:
+        except Exception as e:
             if TRY_AGAIN_LATER in e:
                 raise e
             Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
@@ -163,7 +163,7 @@ def read_actions(source_key, normalized, url):
     try:
         all_log_lines = http.get(url).get_all_lines(encoding=None)
         normalized.action = process_tc_live_log(all_log_lines, url, normalized)
-    except Exception, e:
+    except Exception as e:
         e = Except.wrap(e)
         if "Read timed out" in e:
             Log.error(TRY_AGAIN_LATER, reason="read timeout")
@@ -263,7 +263,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             output.task.artifacts = artifacts
         else:
             output.task.artifacts = unwraplist(_object_to_array(artifacts, "name"))
-    except Exception, e:
+    except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
     try:
@@ -271,7 +271,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         cmd = consume(task, "payload.cmd")
         command = [cc for c in (command if command else cmd) for cc in listwrap(c)]   # SOMETIMES A LIST OF LISTS
         output.task.command = " ".join(map(convert.string2quote, map(unicode.strip, command)))
-    except Exception, e:
+    except Exception as e:
         Log.error("problem", cause=e)
 
     set_build_info(source_key, output, task, env, resources)
@@ -635,7 +635,7 @@ def _object_to_array(value, key_name, value_name=None):
             return unwraplist([set_default(v, {key_name: k}) for k, v in value.items()])
         else:
             return unwraplist([{key_name: k, value_name: v} for k, v in value.items()])
-    except Exception, e:
+    except Exception as e:
         Log.error("unexpected", cause=e)
 
 

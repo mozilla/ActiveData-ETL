@@ -172,7 +172,7 @@ def get_all_s3(in_es, in_range, settings):
                 #     continue
 
                 in_s3.append(p)
-            except Exception, e:
+            except Exception as e:
                 Log.note("delete key? {{key|quote}}", key=q)
 
         if prefix == "":
@@ -203,7 +203,7 @@ def main():
         Log.start(settings.debug)
 
         diff(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

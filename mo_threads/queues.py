@@ -90,7 +90,7 @@ class Queue(object):
                     break
                 if value is not None:
                     yield value
-        except Exception, e:
+        except Exception as e:
             _Log.warning("Tell me about what happened here", e)
 
         if not self.silent:
@@ -338,7 +338,7 @@ class ThreadedQueue(Queue):
                     elif item is not None:
                         _buffer.append(item)
 
-                except Exception, e:
+                except Exception as e:
                     e = _Except.wrap(e)
                     if error_target:
                         try:
@@ -363,7 +363,7 @@ class ThreadedQueue(Queue):
                             push_to_queue()
                             last_push = now = time()
 
-                except Exception, e:
+                except Exception as e:
                     e = _Except.wrap(e)
                     if error_target:
                         try:

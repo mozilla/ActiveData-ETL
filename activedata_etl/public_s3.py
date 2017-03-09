@@ -38,7 +38,7 @@ def main():
                         readable = True
             if not readable:
                 key.make_public()
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

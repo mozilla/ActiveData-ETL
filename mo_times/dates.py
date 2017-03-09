@@ -70,7 +70,7 @@ class Date(object):
     def format(self, format="%Y-%m-%d %H:%M:%S"):
         try:
             return unix2datetime(self.unix).strftime(format)
-        except Exception, e:
+        except Exception as e:
             from mo_logs import Log
 
             Log.error("Can not format {{value}} with {{format}}", value=unix2datetime(self.unix), format=format, cause=e)
@@ -243,7 +243,7 @@ def parse(*args):
                 output = unix2Date(datetime2unix(datetime(*args)))
 
         return output
-    except Exception, e:
+    except Exception as e:
         from mo_logs import Log
 
         Log.error("Can not convert {{args}} to Date", args=args, cause=e)
@@ -341,7 +341,7 @@ def unicode2Date(value, format=None):
             if format.endswith("%S.%f") and "." not in value:
                 value += ".000"
             return unix2Date(datetime2unix(datetime.strptime(value, format)))
-        except Exception, e:
+        except Exception as e:
             from mo_logs import Log
 
             Log.error("Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
@@ -422,7 +422,7 @@ def datetime2unix(value):
         else:
             from mo_logs import Log
             Log.error("Can not convert {{value}} of type {{type}}", value=value, type=value.__class__)
-    except Exception, e:
+    except Exception as e:
         from mo_logs import Log
         Log.error("Can not convert {{value}}", value=value, cause=e)
 

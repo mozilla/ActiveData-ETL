@@ -69,7 +69,7 @@ def jx_expression(expr):
 
     try:
         items = expr.items()
-    except Exception, e:
+    except Exception as e:
         Log.error("programmer error expr = {{value|quote}}", value=expr, cause=e)
 
     for item in items:
@@ -2757,7 +2757,7 @@ def simplify_esfilter(esfilter):
 
         output.isNormal = None
         return output
-    except Exception, e:
+    except Exception as e:
         from mo_logs import Log
 
         Log.unexpected("programmer error", cause=e)

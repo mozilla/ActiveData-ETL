@@ -82,7 +82,7 @@ def loop_all(bucket, please_stop):
                 continue
             try:
                 compact(bucket.get_key(unicode(k)))
-            except Exception, e:
+            except Exception as e:
                 Log.warning("could not process", cause=e)
     finally:
         queue.add(Thread.STOP)
@@ -99,7 +99,7 @@ def main():
 
         Thread.wait_for_shutdown_signal(allow_exit=True)
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with compaction", e)
     finally:
         Log.stop()

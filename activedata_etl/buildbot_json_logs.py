@@ -40,7 +40,7 @@ def parse_to_s3(settings):
     for path in paths:
         try:
             parse_day(settings, path, settings.force)
-        except Exception, e:
+        except Exception as e:
             day = Date(string2datetime(path[7:17], format="%Y-%m-%d"))
             day_num = int((day - REFERENCE_DATE) / DAY)
 
@@ -53,7 +53,7 @@ def random(settings):
         path = Random.sample(paths[1::], 1)[0]
         try:
             parse_day(settings, path, force=True)
-        except Exception, e:
+        except Exception as e:
             Log.warning("problem with {{path}}", path=path, cause=e)
 
 
@@ -115,7 +115,7 @@ def parse_day(settings, p, force=False):
             try:
                 d.etl = row_etl
                 parsed.append(convert.value2json(d))
-            except Exception, e:
+            except Exception as e:
                 d = {"etl": row_etl}
                 parsed.append(convert.value2json(d))
                 Log.warning("problem in {{path}}", path=day_url, cause=e)

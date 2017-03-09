@@ -53,7 +53,7 @@ def main():
             Log.note("delete {{num}} keys", num=len(kk))
             bucket.delete_keys(kk)
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with compaction", e)
     finally:
         Log.stop()

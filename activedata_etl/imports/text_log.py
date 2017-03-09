@@ -74,7 +74,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
         try:
             log_line = log_ascii.decode('utf8', "ignore").strip()
-        except Exception, e:
+        except Exception as e:
             if not DEBUG:
                 Log.warning("Really bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
             continue
@@ -131,7 +131,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 elif key == "Worker Type":
                     task_record.run.machine.tc_worker_type = value
                 continue
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 process_head = False
                 if "need more than 1 value to unpack" not in e:
@@ -192,7 +192,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             t.order = i
         action.timings = new_build_times
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     action.start_time = start_time
@@ -246,7 +246,7 @@ def process_text_log(all_log_lines, from_url):
 
         try:
             log_line = log_ascii.decode('utf8', "ignore").strip()
-        except Exception, e:
+        except Exception as e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
             continue
@@ -282,7 +282,7 @@ def process_text_log(all_log_lines, from_url):
                 else:
                     data[key] = value
                 continue
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
@@ -378,7 +378,7 @@ def process_text_log(all_log_lines, from_url):
             t.order = i
         data.timings = new_build_times
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     data.end_time = end_time
@@ -582,7 +582,7 @@ class BuilderLines(object):
                 return timestamp, self.last_elapse_time, "", message, parts, done, status
             desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
 
-        except Exception, e:
+        except Exception as e:
             Log.warning("Can not split log line: {{line|quote}}", line=line, cause=e)
             return None
 

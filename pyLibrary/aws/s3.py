@@ -81,7 +81,7 @@ class Connection(object):
                     aws_access_key_id=unwrap(self.settings.aws_access_key_id),
                     aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
                 )
-        except Exception, e:
+        except Exception as e:
             Log.error("Problem connecting to S3", e)
 
     def __enter__(self):
@@ -128,7 +128,7 @@ class Bucket(object):
         try:
             self.connection = Connection(kwargs).connection
             self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
-        except Exception, e:
+        except Exception as e:
             Log.error("Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e)
 
 
@@ -157,7 +157,7 @@ class Bucket(object):
             if full_key == None:
                 return
             self.bucket.delete_key(full_key)
-        except Exception, e:
+        except Exception as e:
             self.get_meta(key, conforming=False)
             raise e
 
@@ -191,7 +191,7 @@ class Bucket(object):
                         if favorite and not perfect:
                             too_many = True
                         favorite = m
-                except Exception, e:
+                except Exception as e:
                     error = e
 
             if too_many:
@@ -204,7 +204,7 @@ class Bucket(object):
             if not perfect and error:
                 Log.error("Problem with key request", error)
             return coalesce(perfect, favorite)
-        except Exception, e:
+        except Exception as e:
             Log.error(READ_ERROR+" can not read {{key}} from {{bucket}}", key=key, bucket=self.bucket.name, cause=e)
 
     def keys(self, prefix=None, delimiter=None):
@@ -249,7 +249,7 @@ class Bucket(object):
 
         try:
             json = safe_size(source)
-        except Exception, e:
+        except Exception as e:
             Log.error(READ_ERROR, e)
 
         if json == None:
@@ -325,7 +325,7 @@ class Bucket(object):
 
             if self.settings.public:
                 storage.set_acl('public-read')
-        except Exception, e:
+        except Exception as e:
             Log.error(
                 "Problem writing {{bytes}} bytes to {{key}} in {{bucket}}",
                 key=key,
@@ -361,7 +361,7 @@ class Bucket(object):
                     buff.seek(0)
                     storage.set_contents_from_file(buff)
                 break
-            except Exception, e:
+            except Exception as e:
                 Log.warning("could not push data to s3", cause=e)
                 retry -= 1
 
