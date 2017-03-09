@@ -168,7 +168,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 count += 1
                 yield res
 
-        destination.extend_simple(etl2key(file_etl), generator())
+        destination.write_lines(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):
