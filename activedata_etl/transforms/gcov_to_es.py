@@ -18,9 +18,9 @@ from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
-from mo_dots import wrap, set_default
+from mo_dots import set_default
 from mo_files import File
-from mo_json import json2value
+from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process
 from mo_times import Timer, Date
@@ -121,24 +121,45 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
-    records = []
+    # use the suite name and chunk to specify which test was run
+    try:
+        test_suite = task_cluster_record.run.suite.name
+        test_chunk = task_cluster_record.run.chunk
+    except Exception, e:
+        raise Log.error("Can not get test name and chunk from task cluster record", cause=e)
+
+    new_record = set_default(
+        {
+            "test": {
+                "suite": test_suite,
+                "chunk": test_chunk,
+            },
+            "source": "%PLACEHOLDER%",
+            "etl": {
+                "id": "%PLACEHOLDER_ID%",
+                "source": file_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            }
+        },
+        task_cluster_record
+    )
+
+    json_with_placeholders = value2json(new_record)
+
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
         lcov_coverage = run_lcov_on_directory(source_dir)
 
-        def count_generator():
+        def generator():
             count = 0
-            while True:
-                yield count
+            for json_str in lcov_coverage:
+                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.replace("\n", ""))
+                res = res.replace("\"%PLACEHOLDER_ID%\"", str(count))
                 count += 1
+                yield res
 
-        counter = count_generator().next
-
-        for json_str in lcov_coverage:
-            obj = json2value(json_str)
-            process_source_file(file_etl, counter, obj, task_cluster_record, records)
-
-    with Timer("writing {{num}} records to s3", {"num": len(records)}):
-        destination.extend(records, overwrite=True)
+        destination.extend_simple(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):
@@ -194,107 +215,6 @@ def download_file(url):
         stream.close()
 
     return tempfile
-
-
-def process_source_file(parent_etl, count, obj, task_cluster_record, records):
-    obj = wrap(obj)
-
-    # use the suite name and chunk to specify which test was run
-    try:
-        test_suite = task_cluster_record.run.suite.name
-        test_chunk = task_cluster_record.run.chunk
-    except Exception, e:
-        raise Log.error("Can not get test name and chunk from task cluster record", cause=e)
-
-    # turn obj.covered (a list) into a set for use later
-    file_covered = set(obj.covered)
-
-    # file-level info
-    file_info = wrap({
-        "name": obj.sourceFile,
-        "covered": [{"line": c} for c in obj.covered],
-        "uncovered": obj.uncovered,
-        "total_covered": len(obj.covered),
-        "total_uncovered": len(obj.uncovered),
-        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
-    })
-
-    # orphan lines (i.e. lines without a method), initialized to all lines
-    orphan_covered = set(obj.covered)
-    orphan_uncovered = set(obj.uncovered)
-
-    # iterate through the methods of this source file
-    # a variable to count the number of lines so far for this source file
-    for method_name, method_lines in obj.methods.iteritems():
-        all_method_lines = set(method_lines)
-        method_covered = all_method_lines & file_covered
-        method_uncovered = all_method_lines - method_covered
-        method_percentage_covered = len(method_covered) / len(all_method_lines)
-
-        orphan_covered = orphan_covered - method_covered
-        orphan_uncovered = orphan_uncovered - method_uncovered
-
-        new_record = set_default(
-            {
-                "test": {
-                    "suite": test_suite,
-                    "chunk": test_chunk,
-                },
-                "source": {
-                    "file": file_info,
-                    "method": {
-                        "name": method_name,
-                        "covered": [{"line": c} for c in method_covered],
-                        "uncovered": method_uncovered,
-                        "total_covered": len(method_covered),
-                        "total_uncovered": len(method_uncovered),
-                        "percentage_covered": method_percentage_covered,
-                    }
-                },
-                "etl": {
-                    "id": count(),
-                    "source": parent_etl,
-                    "type": "join",
-                    "machine": machine_metadata,
-                    "timestamp": Date.now()
-                }
-            },
-            task_cluster_record
-        )
-        key = etl2key(new_record.etl)
-        records.append({"id": key, "value": new_record})
-
-    # a record for all the lines that are not in any method
-    # every file gets one because we can use it as canonical representative
-    new_record = set_default(
-        {
-            "test": {
-                "suite": test_suite,
-                "chunk": test_chunk,
-            },
-            "source": {
-                "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
-                "file": file_info,
-                "method": {
-                    "covered": [{"line": c} for c in orphan_covered],
-                    "uncovered": orphan_uncovered,
-                    "total_covered": len(orphan_covered),
-                    "total_uncovered": len(orphan_uncovered),
-                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-                }
-            },
-            "etl": {
-                "id": count(),
-                "source": parent_etl,
-                "type": "join",
-                "machine": machine_metadata,
-                "timestamp": Date.now()
-            },
-        },
-        task_cluster_record
-    )
-    key = etl2key(new_record.etl)
-    records.append({"id": key, "value": new_record})
 
 
 def remove_files_recursively(root_directory, file_extension):
