@@ -10,8 +10,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
-import shutil
-import json
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
@@ -19,23 +17,17 @@ from zipfile import ZipFile, BadZipfile
 from activedata_etl import etl2key
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Null, unwraplist, set_default
+from mo_dots import wrap, set_default
+from mo_files import File
+from mo_json import json2value
+from mo_logs import Log, machine_metadata
+from mo_threads import Process
+from mo_times import Timer, Date
 from pyLibrary.env import http
-from pyLibrary.env.files import File
-from pyLibrary.maths.randoms import Random
-from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, Queue, Lock
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
-ENABLE_LCOV = True
-WINDOWS_TEMP_DIR = "c:/msys64/tmp/ccov"
-MSYS2_TEMP_DIR = "/tmp/ccov"
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -58,7 +50,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         try:
-            task_cluster_record = convert.json2value(msg_line)
+            task_cluster_record = json2value(msg_line)
             # SCRUB PROPERTIES WE DO NOT WANT
             task_cluster_record.action.timings = None
             task_cluster_record.action.etl = None
@@ -83,6 +75,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             import traceback
             Log.note(traceback.format_exc())
     return keys
+
 
 def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
@@ -153,7 +146,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         counter = count_generator().next
 
         for json_str in lcov_coverage:
-            obj = json.loads(json_str)
+            obj = json2value(json_str)
             process_source_file(file_etl, counter, obj, task_cluster_record, records)
 
     with Timer("writing {{num}} records to s3", {"num": len(records)}):
