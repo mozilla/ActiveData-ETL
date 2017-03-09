@@ -15,6 +15,7 @@ from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
+from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from mo_dots import wrap, set_default
@@ -51,12 +52,6 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         try:
             task_cluster_record = json2value(msg_line)
-            # SCRUB PROPERTIES WE DO NOT WANT
-            task_cluster_record.action.timings = None
-            task_cluster_record.action.etl = None
-            task_cluster_record.task.runs = None
-            task_cluster_record.task.tags = None
-            task_cluster_record.task.env = None
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
@@ -101,16 +96,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
         return []
 
-
     parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-
-    # chop some not-needed, and verbose, properties from tc record
-    task_cluster_record.etl = None
-    task_cluster_record.action.timings = None
-    task_cluster_record.action.etl = None
-    task_cluster_record.task.artifacts = None
-    task_cluster_record.task.runs = None
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
@@ -125,6 +112,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
+    minimize_task(task_cluster_record)
     process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
     File(tmpdir).delete()
 
