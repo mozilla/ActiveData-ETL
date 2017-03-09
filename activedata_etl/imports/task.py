@@ -25,6 +25,7 @@ def minimize_task(task):
     task.task.artifacts = None
     task.task.runs = None
     task.task.env = None
-    task.task.scope = None
+    task.task.scopes = None
     task.task.routes = None
+    task.task.command = None
     task.build.task = {"id": task.build.task.id}

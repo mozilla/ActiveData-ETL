@@ -45,9 +45,9 @@ def list_s3(settings, filter):
 def list_file_contents(settings, key):
     bucket = Bucket(settings)
     for k in bucket.keys(key):
-        for line in bucket.read_lines(key=k):
+        for i, line in enumerate(bucket.read_lines(key=k)):
             try:
-                Log.note("{{data}}", data=json2value(line))
+                Log.note("{{data}} {{i}}", i=i, data=json2value(line))
             except Exception as e:
                 Log.warning("bad line {{line}}", line=line, cause=e)
 
