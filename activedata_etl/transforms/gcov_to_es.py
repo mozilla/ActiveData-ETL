@@ -64,9 +64,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         minimize_task(task_cluster_record)
 
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
-        Log.note("-- Enter Try --")
         for artifact in artifacts:
-            try: # TODO rm
+            try:
                 if artifact.name.find("gcda") != -1:
                     Log.note("artifact {{name}}", name=artifact.name)
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
@@ -203,7 +202,7 @@ def run_lcov_on_directory(directory_path):
     else:
         fdevnull = open(os.devnull, 'w')
 
-        proc = Popen(['grcov', directory_path], stdout=PIPE, stderr=fdevnull)
+        proc = Popen(['./grcov', directory_path], stdout=PIPE, stderr=fdevnull)
         return proc.stdout
 
 
