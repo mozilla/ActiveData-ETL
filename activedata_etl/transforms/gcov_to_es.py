@@ -207,7 +207,7 @@ def run_lcov_on_directory(directory_path):
     else:
         fdevnull = open(os.devnull, 'w')
 
-        proc = Popen(['"./resources/binaries/grcov', directory_path], stdout=PIPE, stderr=fdevnull)
+        proc = Popen(['grcov', directory_path], stdout=PIPE, stderr=fdevnull)
         return proc.stdout
 
 
