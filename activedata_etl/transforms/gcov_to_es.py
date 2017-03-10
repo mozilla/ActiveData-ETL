@@ -163,7 +163,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         def generator():
             count = 0
             for json_str in lcov_coverage:
-                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.replace("\n", ""))
+                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.rstrip("\n"))
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
                 yield res
