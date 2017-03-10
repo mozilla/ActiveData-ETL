@@ -34,9 +34,10 @@ NOT_STRUCTURED_LOGS = [
     ".apk",
     "/awsy_raw.log",
     "/buildbot_properties.json",
-    "/log_raw.log",
-    "/talos_raw.log",
     "/buildprops.json",
+    "/chain_of_trust.log"
+    "/chainOfTrust.json.asc",
+    "/talos_raw.log",
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
@@ -45,9 +46,12 @@ NOT_STRUCTURED_LOGS = [
     "/log_fatal.log",
     "/log_info.log",
     "/log_warning.log",
+    "/manifest.json",
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    "/properties.json",
+    "/log_raw.log",
     "/localconfig.json",
     "/talos_critical.log",
     "/talos_error.log",
@@ -99,6 +103,8 @@ def verify_blobber_file(line_number, name, url):
     :return:  RETURNS BYTES **NOT** UNICODE
     """
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
+        return None, 0
+    if name.startswith("jscov_") and name.endswith(".json"):
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
