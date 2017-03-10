@@ -57,22 +57,25 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
-        artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
+
+        parent_etl = task_cluster_record.etl
+        artifacts = task_cluster_record.task.artifacts
+        # chop some not-needed, and verbose, properties from tc record
+        minimize_task(task_cluster_record)
 
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
         Log.note("-- Enter Try --")
-        try: # TODO rm
-            for artifact in artifacts:
+        for artifact in artifacts:
+            try: # TODO rm
                 if artifact.name.find("gcda") != -1:
                     Log.note("artifact {{name}}", name=artifact.name)
-                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
-        except Exception as e:
-            import traceback
-            Log.note(traceback.format_exc())
+                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
+            except Exception as e:
+                Log.warning("Failed to process {{artifact}}", artifact=artifact.url, cause=e)
     return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -96,7 +99,6 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
         return []
 
-    parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
@@ -154,12 +156,12 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         def generator():
             count = 0
             for json_str in lcov_coverage:
-                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.replace("\n", ""))
-                res = res.replace("\"%PLACEHOLDER_ID%\"", str(count))
+                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
+                res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
                 yield res
 
-        destination.extend_simple(etl2key(file_etl), generator())
+        destination.write_lines(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):

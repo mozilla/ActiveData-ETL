@@ -40,9 +40,9 @@ class Destination(object):
         self.filename = filename
         self.count = 0
 
-    def extend_simple(self, key, values):
+    def write_lines(self, key, lines):
         archive = gzip.GzipFile(self.filename, mode='w')
-        for l in values:
+        for l in lines:
             archive.write(l.encode("utf8"))
             archive.write(b"\n")
             self.count += 1
