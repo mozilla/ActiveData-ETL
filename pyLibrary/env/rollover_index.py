@@ -211,7 +211,7 @@ class RolloverIndex(object):
             else:
                 queue.add(done_copy)
 
-        Log.note("{{num}} keys from {{keys|json}} added", num=num_keys, key=keys)
+        Log.note("{{num}} keys from {{key|json}} added", num=num_keys, key=keys)
         return num_keys
 
 
