@@ -10,8 +10,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
-import shutil
-import json
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
@@ -21,12 +19,10 @@ from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Null, unwraplist, set_default
+from pyLibrary.dot import set_default
 from pyLibrary.env import http
 from pyLibrary.env.files import File
-from pyLibrary.maths.randoms import Random
 from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, Queue, Lock
 from pyLibrary.times.dates import Date
 from pyLibrary.times.timer import Timer
 
@@ -83,6 +79,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             import traceback
             Log.note(traceback.format_exc())
     return keys
+
 
 def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
     """
@@ -220,7 +217,7 @@ def run_lcov_on_directory(directory_path):
     else:
         fdevnull = open(os.devnull, 'w')
 
-        proc = Popen(['grcov', directory_path], stdout=PIPE, stderr=fdevnull)
+        proc = Popen(['"./resources/binaries/grcov', directory_path], stdout=PIPE, stderr=fdevnull)
         return proc.stdout
 
 
