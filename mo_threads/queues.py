@@ -358,10 +358,10 @@ class ThreadedQueue(Queue):
 
                 try:
                     if len(_buffer) >= batch_size or next_push:
-                        next_push = Till(till=now + period)
                         if _buffer:
                             push_to_queue()
                             last_push = now = time()
+                        next_push = Till(till=now + period)
 
                 except Exception as e:
                     e = _Except.wrap(e)
