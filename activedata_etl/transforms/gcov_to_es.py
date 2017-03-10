@@ -15,6 +15,7 @@ from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
+from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
@@ -55,18 +56,16 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         try:
             task_cluster_record = convert.json2value(msg_line)
-            # SCRUB PROPERTIES WE DO NOT WANT
-            task_cluster_record.action.timings = None
-            task_cluster_record.action.etl = None
-            task_cluster_record.task.runs = None
-            task_cluster_record.task.tags = None
-            task_cluster_record.task.env = None
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
             else:
                 Log.error("unexpected JSON decoding problem", cause=e)
-        artifacts, task_cluster_record.task.artifacts = task_cluster_record.task.artifacts, None
+
+        parent_etl = task_cluster_record.etl
+        artifacts = task_cluster_record.task.artifacts
+        # chop some not-needed, and verbose, properties from tc record
+        minimize_task(task_cluster_record)
 
         Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
         Log.note("-- Enter Try --")
@@ -74,14 +73,14 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts:
                 Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
-                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                    keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
         except Exception as e:
             import traceback
             Log.note(traceback.format_exc())
     return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -105,16 +104,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
         return []
 
-
-    parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-
-    # chop some not-needed, and verbose, properties from tc record
-    task_cluster_record.etl = None
-    task_cluster_record.action.timings = None
-    task_cluster_record.action.etl = None
-    task_cluster_record.task.artifacts = None
-    task_cluster_record.task.runs = None
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
@@ -170,12 +160,12 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         def generator():
             count = 0
             for json_str in lcov_coverage:
-                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.replace("\n", ""))
-                res = res.replace("\"%PLACEHOLDER_ID%\"", str(count))
+                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
+                res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
                 yield res
 
-        destination.extend_simple(etl2key(file_etl), generator())
+        destination.write_lines(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):
