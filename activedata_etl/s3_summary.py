@@ -39,7 +39,7 @@ try:
     constants.set(settings.constants)
     Log.start(settings.debug)
     summarize(settings)
-except Exception, e:
+except Exception as e:
     Log.error("Problem with summary", e)
 finally:
     Log.stop()

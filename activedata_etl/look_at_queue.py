@@ -37,7 +37,7 @@ def main():
         })
         Log.start(settings.debug)
         list_queue(settings.source, settings.args.num)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

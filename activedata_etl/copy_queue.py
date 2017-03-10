@@ -35,7 +35,7 @@ def main():
         settings = startup.read_settings()
         Log.start(settings.debug)
         copy_queue(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

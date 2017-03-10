@@ -59,7 +59,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             key = etl2key(record.etl)
             keys.append(key)
             records.append({"id": key, "value": record})
-        except Exception, e:
+        except Exception as e:
             if TRY_AGAIN_LATER:
                 Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
             Log.warning("Problem with pulse payload {{pulse|json}}", pulse=pulse_record.payload, cause=e)
@@ -78,7 +78,7 @@ def scrub_pulse_record(source_key, i, line, stats):
             return None
         pulse_record = convert.json2value(line)
         return pulse_record
-    except Exception, e:
+    except Exception as e:
         Log.warning(
             "Line {{index}}: Problem with line for key {{key}}\n{{line}}",
             line=line,
@@ -101,7 +101,7 @@ def transform_buildbot(source_key, other, resources):
         locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
             output.repo = resources.hg.get_revision(rev, locale)
-        except Exception, e:
+        except Exception as e:
             if "release-mozilla-esr" in e or "release-comm-esr" in e:
                 # TODO: FIX PROBLEM WHERE, FOR SOME REASON, WE CAN NOT FIND THE REVISIONS FOR ESR
                 pass

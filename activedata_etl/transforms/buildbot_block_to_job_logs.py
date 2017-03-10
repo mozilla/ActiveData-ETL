@@ -39,7 +39,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         buildbot_data = convert.json2value(buildbot_line)
         try:
             data = bb.parse(buildbot_data.builds)
-        except Exception, e:
+        except Exception as e:
             Log.error(
                 "Can not parse\n{{details|json|indent}}",
                 details=buildbot_data,
@@ -52,7 +52,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 if a.name == "resource-usage.json":
                     data.resource_usage = normalize_resource_usage(a.url)
                     break
-        except Exception, e:
+        except Exception as e:
             Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
 
         if data.action.start_time < TOO_OLD:
@@ -65,7 +65,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 branch={"name": data.build.branch, "locale": data.build.locale}
             )
             data.repo = resources.hg.get_revision(rev)
-        except Exception, e:
+        except Exception as e:
             if data.action.start_time > Date.today()-MONTH:
                 # ONLY SEND WARNING IF IT IS RECENT
                 send = Log.warning
@@ -129,7 +129,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                 output.append(elasticsearch.scrub(data))
                 Log.note("Found builder record for id={{id}}", id=etl2key(data.etl))
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)  # SO `in` OPERATOR WORKS
                 if "Problem with calculating durations" in e:
                     Log.error("Prioritized error", cause=e)

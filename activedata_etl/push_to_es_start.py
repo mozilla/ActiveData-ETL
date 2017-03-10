@@ -52,7 +52,7 @@ def _stop_indexer():
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
-        sudo("supervisorctl restart push_to_es")
+        sudo("supervisorctl start push_to_es")
 
 
 def main():
@@ -75,9 +75,9 @@ def main():
                 _config_fabric(settings.fabric, i)
                 Log.note("Start indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _start_indexer()
-            except Exception, e:
+            except Exception as e:
                 Log.warning("Problem with stopping", e)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

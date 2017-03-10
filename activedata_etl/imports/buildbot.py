@@ -82,7 +82,7 @@ class BuildbotTranslator(object):
             ratio = RATIO_PATTERN.match(buildername.split("_")[-1])
             if ratio:
                 output.action.step = ratio.groups()[0]
-        except Exception, e:
+        except Exception as e:
             Log.error("problem in\n{{data|json}}", data=data, cause=e)
 
         # SCRIPT
@@ -168,7 +168,7 @@ class BuildbotTranslator(object):
                     {"name": name, "url": url}
                     for name, url in files.items()
                 ]
-        except Exception, e:
+        except Exception as e:
             Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=blobber_files, cause=e)
 
         # PRODUCT
@@ -299,7 +299,7 @@ class BuildbotTranslator(object):
                         return Data()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
-            except Exception, e:
+            except Exception as e:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=buildername, data=data, cause=e)
 
             for t in BUILD_TYPES:

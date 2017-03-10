@@ -38,7 +38,7 @@ def main():
             data = source.read_bytes(k)
             if convert.ascii2unicode(data).find("2e2834fa7ecd8d3bb1ad49ec981fdb89eb4df95e18") >= 0:
                 Log.note("Found at {{key}}", key=k)
-        except Exception, e:
+        except Exception as e:
             Log.warning("Problem with {{key}}", key=k, cause=e)
         finally:
             Log.stop()

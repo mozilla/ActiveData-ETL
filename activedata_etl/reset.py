@@ -100,7 +100,7 @@ def main():
                     "date/time": now.format()
                 })
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

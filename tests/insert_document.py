@@ -27,7 +27,7 @@ def main():
             data=b'{"index":{"_id": "491:66300.10"}}\n' + convert.unicode2utf8(convert.value2json(data)) + b"\n"
         )
         Log.note(response.content)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with insert", e)
     finally:
         Log.stop()

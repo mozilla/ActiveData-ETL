@@ -1,13 +1,12 @@
 cluster.name: active-data
 node.zone: primary
 node.name: 4
-node.master: false
+node.master: true
 node.data: true
 
 script.inline: on
 script.indexed: on
 
-cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.enable: none
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
 cluster.routing.allocation.node_concurrent_recoveries: 1

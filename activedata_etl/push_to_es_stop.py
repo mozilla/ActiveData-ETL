@@ -75,9 +75,9 @@ def main():
                 _config_fabric(settings.fabric, i)
                 Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _stop_indexer()
-            except Exception, e:
+            except Exception as e:
                 Log.warning("Problem with stopping", e)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

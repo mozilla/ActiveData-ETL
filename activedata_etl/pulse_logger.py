@@ -94,14 +94,14 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                     bucket=bucket.name,
                     key=full_key
                 )
-            except Exception, e:
+            except Exception as e:
                 queue.rollback()
                 if not queue.closed:
                     Log.warning("Problem writing {{key}} to S3", key=full_key, cause=e)
 
             if please_stop:
                 break
-    except Exception, e:
+    except Exception as e:
         Log.warning("Problem in the log loop", cause=e)
     finally:
         if work_queue != None:
@@ -147,7 +147,7 @@ def main():
                 Log.note("write shutdown state to S3")
                 synch.shutdown()
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
@@ -162,7 +162,7 @@ class ExitStack(object):
         for i, c in enumerate(self.context):
             try:
                 c.__enter__()
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 for ii in range(i):
                     try:

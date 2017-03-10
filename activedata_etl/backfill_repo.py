@@ -138,7 +138,7 @@ def getall(hg, es, please_stop):
                     "where": {"eq": {"changeset.id": id}}
                 })
                 return
-            except Exception, e:
+            except Exception as e:
                 errors += [e]
 
         Log.error("Can not seem to markup changeset as scanned", cause=errors)
@@ -167,7 +167,7 @@ def backfill_repo(settings, please_stop):
             try:
                 rev = hg.get_revision(current_revision)
                 frontier.remove(rev)
-            except Exception, e:
+            except Exception as e:
                 Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
                 getall(hg, es, please_stop)
     finally:
@@ -187,7 +187,7 @@ def main():
         stopper = Signal()
         Thread.run("backfill repo", backfill_repo, settings.hg, please_stop=stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
