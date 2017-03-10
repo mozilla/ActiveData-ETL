@@ -63,8 +63,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         Log.note("-- Enter Try --")
         try: # TODO rm
             for artifact in artifacts:
-                Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
+                    Log.note("artifact {{name}}", name=artifact.name)
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
         except Exception as e:
             import traceback
