@@ -31,8 +31,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -45,8 +44,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -68,8 +66,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one",
-				// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -77,6 +74,29 @@
 				"limit_replicas": true
 			},
 			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
+			"type": "join"
+		},
+			{
+			"name": "treeherder to normalized",
+			"source": {
+				"bucket": "active-data-treeherder-jobs",
+				"public": true,
+				"key_format": "a.b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-treeherder-normalized",
+				"public": true,
+				"key_format": "a.b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
 			"type": "join"
 		},
 		{
