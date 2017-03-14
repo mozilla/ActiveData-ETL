@@ -44,7 +44,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    etl_header_gen = EtlHeadGenerator(source_key)
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
         if please_stop:
@@ -60,17 +59,17 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
-        # chop some not-needed, and verbose, properties from tc record
-        minimize_task(task_cluster_record)
 
-        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+        if DEBUG:
+            Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+        etl_header_gen = EtlHeadGenerator(source_key)
         for artifact in artifacts:
             try:
                 if artifact.name.find("gcda") != -1:
                     Log.note("artifact {{name}}", name=artifact.name)
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
             except Exception as e:
-                Log.warning("Failed to process {{artifact}}", artifact=artifact.url, cause=e)
+                Log.warning("grcov Failed to process {{artifact}}", artifact=artifact.url, cause=e)
     return keys
 
 
@@ -122,18 +121,11 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
-    # use the suite name and chunk to specify which test was run
-    try:
-        test_suite = task_cluster_record.run.suite.name
-        test_chunk = task_cluster_record.run.chunk
-    except Exception, e:
-        raise Log.error("Can not get test name and chunk from task cluster record", cause=e)
-
     new_record = set_default(
         {
             "test": {
-                "suite": test_suite,
-                "chunk": test_chunk,
+                "suite": task_cluster_record.run.suite.name,
+                "chunk": task_cluster_record.run.chunk
             },
             "source": "%PLACEHOLDER%",
             "etl": {
@@ -158,6 +150,10 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
+                try:
+                    json2value(res)
+                except Exception as e:
+                    Log.error("grcov did not result in JSON", cause=e)
                 yield res
 
         destination.write_lines(etl2key(file_etl), generator())
@@ -196,7 +192,7 @@ def run_lcov_on_directory(directory_path):
     """
     if os.name == 'nt':
         grcov = File("./resources/binaries/grcov.exe").abspath
-        with Process("grcov:" +directory_path, [grcov, directory_path], env={"RUST_BACKTRACE": "full"}, debug=True) as proc:
+        with Process("grcov:" +directory_path, [grcov, directory_path], env={b"RUST_BACKTRACE": b"full"}, debug=True) as proc:
             results = parse_lcov_coverage(proc.stdout)
         return results
     else:

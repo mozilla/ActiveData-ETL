@@ -207,9 +207,11 @@ class ETL(Thread):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
+                    Log.warning(
+                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
                     continue
                 elif not new_keys:
                     Log.alert(
