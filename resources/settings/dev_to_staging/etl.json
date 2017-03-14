@@ -31,8 +31,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -45,8 +44,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -68,8 +66,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one",
-				// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -275,23 +272,9 @@
 	],
 	"debug": {
 		"trace": true,
-		"cprofile": {
-			"enabled": false,
-			"filename": "./results/profile.tab"
-		},
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"log_type": "elasticsearch",
-				"host": "http://localhost",
-				"index": "debug",
-				"type": "etl",
-				"retry": {
-					"times": 3,
-					"sleep": "minute"
-				}
 			},
 			{
 				"log_type": "ses",
