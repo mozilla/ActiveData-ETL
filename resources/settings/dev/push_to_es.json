@@ -7,6 +7,36 @@
 	},
 	"workers":[
 		{
+			"name": "fx_test",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": "result.start_time",
+				"interval": "3month",
+				"max": "2year"
+			},
+			"sample_only": [
+			],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "fx-test",
+				"type": "test_result",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/fx_test.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-fx-test-normalized",
+				"key_format": "a.b"
+			}
+		},
+		{
 			"name": "treeherder",
 			"batch_size": 1000,
 			"skip": 0,

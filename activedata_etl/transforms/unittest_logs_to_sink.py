@@ -178,7 +178,9 @@ class LogSummary(Data):
         self.url = url
 
     def suite_start(self, log):
-        pass
+        for k, v in log.items():
+            if k not in ["action", "tests", "time"]:
+                setattr(self, k, v)
 
     def test_start(self, log):
         if isinstance(log.test, list):

@@ -28,4 +28,5 @@ def minimize_task(task):
     task.task.scopes = None
     task.task.routes = None
     task.task.command = None
+    task.task.tags = None
     task.build.task = {"id": task.build.task.id}
