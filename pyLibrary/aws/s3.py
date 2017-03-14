@@ -22,7 +22,7 @@ from boto.s3.connection import Location
 
 from mo_dots import wrap, Null, coalesce, unwrap, Data
 from mo_kwargs import override
-from mo_logs import Log
+from mo_logs import Log, Except
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
@@ -353,6 +353,7 @@ class Bucket(object):
                 archive.write(l.encode("utf8"))
                 archive.write(b"\n")
                 count += 1
+
         archive.close()
         file_length = buff.tell()
 
@@ -364,7 +365,10 @@ class Bucket(object):
                     storage.set_contents_from_file(buff)
                 break
             except Exception as e:
+                e = Except.wrap(e)
                 Log.warning("could not push data to s3", cause=e)
+                if 'Access Denied' in e:
+                    break
                 retry -= 1
 
         if self.settings.public:
