@@ -175,7 +175,7 @@ class RolloverIndex(object):
         queue = None
         pending = []  # FOR WHEN WE DO NOT HAVE QUEUE YET
         for key in keys:
-            timer = Timer("key")
+            timer = Timer("Process {{key}}", param={"key": key})
             try:
                 with timer:
                     for rownum, line in enumerate(source.read_lines(strip_extension(key))):
@@ -211,7 +211,7 @@ class RolloverIndex(object):
             else:
                 queue.add(done_copy)
 
-        Log.note("{{num}} keys from {{keys|json}} added", num=num_keys, key=keys)
+        Log.note("{{num}} keys from {{key|json}} added", num=num_keys, key=keys)
         return num_keys
 
 

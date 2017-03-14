@@ -208,6 +208,7 @@
 	},
 	"debug": {
 		"trace":true,
+		"cprofile":true,
 		"log": [
 			{
 				"log_type": "console"

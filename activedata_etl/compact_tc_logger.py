@@ -16,7 +16,7 @@ from mo_logs import startup
 from mo_logs import Log
 from mo_math.randoms import Random
 from pyLibrary.queries import jx
-from mo_threads import Queue, Thread
+from mo_threads import Queue, Thread, THREAD_STOP
 
 known_tasks = set()
 queue = Queue("packer", max=20)
@@ -85,7 +85,7 @@ def loop_all(bucket, please_stop):
             except Exception as e:
                 Log.warning("could not process", cause=e)
     finally:
-        queue.add(Thread.STOP)
+        queue.add(THREAD_STOP)
 
 
 def main():

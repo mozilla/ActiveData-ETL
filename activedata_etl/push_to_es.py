@@ -18,7 +18,7 @@ from mo_logs import startup, constants
 from mo_logs.exceptions import Explanation, WarnOnException
 from mo_math import MAX
 from mo_math.randoms import Random
-from mo_threads import Process, Thread, Signal, Queue
+from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.timer import Timer
 from pyLibrary import queries, aws
@@ -36,7 +36,7 @@ def splitter(work_queue, please_stop):
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
             for k, v in split.items():
-                v.add(Thread.STOP)
+                v.add(THREAD_STOP)
             return
         if pair == None:
             # ADD BACKFILLING HERE
