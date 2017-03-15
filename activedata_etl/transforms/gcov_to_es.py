@@ -20,7 +20,7 @@ from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
 from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import wrap, Null, unwraplist, set_default
+from pyLibrary.dot import wrap, Null, unwraplist, set_default, Dict
 from pyLibrary.env import http
 from pyLibrary.env.files import File
 from pyLibrary.maths.randoms import Random
@@ -54,10 +54,11 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
     # try:
-    #     artifact = resources.todo.resources
-    #     Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
+    #     if resources.todo.resources.message != None:
+    #         Log.note("Trying out linking part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=resources.todo.resources.message)
+    #         keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, resources.todo.resources.taskcluster, resources.todo.resources.message))
+    #         return keys
     #
-    #     #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
     # except Exception as e:
     #     Log.note("Did not work :(")
 
@@ -85,14 +86,14 @@ def process(source_key, source, destination, resources, please_stop=None):
         # if todo does have a resources message then we already have a gcda artifact
         # call keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, resources.todo.resources))
 
+        Log.note("Task Cluster ID: {{idid}}", idid=resources.todo.message)
         try:
-            gcda_id = resources.taskcluster
-            Log.note("Get Task Cluster ID {{gcdaa}}", gcdaa=gcda_id)
-            if gcda_id == task_cluster_record._id:
-                artifact = resources.message
+            if resources.todo.taskcluster == task_cluster_record._id:
+                artifact = resources.todo.message
                 Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
 
                 keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+                return keys
         except Exception as e:
             Log.note("Did not work :(")
             import traceback
@@ -128,12 +129,13 @@ def process(source_key, source, destination, resources, please_stop=None):
                         work = task_cluster_record._id)# task_cluster_record)
 
                     # want to add gcda artifacts into work_queue
-                    resources.work_queue.add({
+
+                    resources.work_queue.add(Dict({
                         "bucket": resources.todo.bucket,
-                        "key": resources.todo.key,
-                        "resources": artifact.url
-                        #"resources.taskcluster": task_cluster_record._id
-                    })
+                        "key": source_key,
+                        "message": artifact.url,
+                        "taskcluster": task_cluster_record._id
+                    }))
                     Log.note("Added gcda artifact to queue")
                     # for testing try to pop off of queue
                     #Log.note("SQS Message from queue {{msg}}", msg = resources.work_queue.pop(till=Date.now()))

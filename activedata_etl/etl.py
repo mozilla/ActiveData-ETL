@@ -184,10 +184,10 @@ class ETL(Thread):
                 # must set up resources
                 resources = set_default(
                     {
-                        "todo":source_block,
-                        "work_queue": self.work_queue,
-                        "message": "http://queue.taskcluster.net/v1/task/HC1WFS9zRyulV2R0aNyAoQ/artifacts/public/test_info//code-coverage-gcda.zip",
-                        "taskcluster": "tc.569601:56959263.71"
+                        "todo": source_block,
+                        "work_queue": self.work_queue
+                        #"message": "http://queue.taskcluster.net/v1/task/HC1WFS9zRyulV2R0aNyAoQ/artifacts/public/test_info//code-coverage-gcda.zip",
+                        #"taskcluster": "tc.569601:56959263.71"
                     },
                     self.resources
                 )
@@ -338,6 +338,7 @@ class ETL(Thread):
                 #list_queue("active-data-etl-dev", 10)
 
                 try:
+                    Log.note("Todo is a: {{diction}}", diction= type(todo))
                     is_ok = self._dispatch_work(todo)
                     if is_ok:
                         self.work_queue.commit()
