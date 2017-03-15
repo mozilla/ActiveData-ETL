@@ -185,7 +185,9 @@ class ETL(Thread):
                 resources = set_default(
                     {
                         "todo":source_block,
-                        "work_queue": self.work_queue
+                        "work_queue": self.work_queue,
+                        "message": "http://queue.taskcluster.net/v1/task/HC1WFS9zRyulV2R0aNyAoQ/artifacts/public/test_info//code-coverage-gcda.zip",
+                        "taskcluster": "tc.569601:56959263.71"
                     },
                     self.resources
                 )
@@ -219,7 +221,6 @@ class ETL(Thread):
                             action._destination.get_key(k)
 
                 for n in action._notify:
-                    break
                     for k in new_keys:
                         # is currently where SQS is being used?
 
@@ -489,10 +490,10 @@ def main():
 
 
 def etl_one(settings):
-    queue = aws.Queue(settings.work_queue)
+    queue = Queue("temp work queue")
     # where queue is first created/called
-    #queue.__setattr__(b"commit", Null)
-    #queue.__setattr__(b"rollback", Null)
+    queue.__setattr__(b"commit", Null)
+    queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
     already_in_queue = set()

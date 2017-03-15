@@ -52,6 +52,15 @@ def process(source_key, source, destination, resources, please_stop=None):
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
 
+
+    # try:
+    #     artifact = resources.todo.resources
+    #     Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
+    #
+    #     #keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+    # except Exception as e:
+    #     Log.note("Did not work :(")
+
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
         if please_stop:
@@ -76,10 +85,23 @@ def process(source_key, source, destination, resources, please_stop=None):
         # if todo does have a resources message then we already have a gcda artifact
         # call keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, resources.todo.resources))
 
-       # Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+        try:
+            gcda_id = resources.taskcluster
+            Log.note("Get Task Cluster ID {{gcdaa}}", gcdaa=gcda_id)
+            if gcda_id == task_cluster_record._id:
+                artifact = resources.message
+                Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
+
+                keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+        except Exception as e:
+            Log.note("Did not work :(")
+            import traceback
+            Log.note(traceback.format_exc())
+
+        #Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record._id, num=len(artifacts))
        #  Log.note("-- Enter Try --")
         try: # TODO rm
-            Log.note("Begin searching for gcda artifacts in gcov_to_es")
+           # Log.note("Begin searching for gcda artifacts in gcov_to_es")
             for artifact in artifacts:
               #  Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
@@ -103,13 +125,14 @@ def process(source_key, source, destination, resources, please_stop=None):
                     Log.note("Resources: {{bucket}}\n{{key}}\n{{resource}}\n{{work}}",    bucket=resources.todo.bucket,
                         key= resources.todo.key,
                         resource= artifact.url,
-                             work = resources.work_queue)
+                        work = task_cluster_record._id)# task_cluster_record)
 
                     # want to add gcda artifacts into work_queue
                     resources.work_queue.add({
                         "bucket": resources.todo.bucket,
                         "key": resources.todo.key,
                         "resources": artifact.url
+                        #"resources.taskcluster": task_cluster_record._id
                     })
                     Log.note("Added gcda artifact to queue")
                     # for testing try to pop off of queue
@@ -224,7 +247,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     TODO this needs to coordinate new ccov json files to add to the s3 bucket. Return?
     """
     # Second part of CCOV transformation from SQS
-    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
+    # gcda_artifact will be the URL to the gcda file
+   # Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     tmpdir = mkdtemp()
     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
@@ -233,19 +257,22 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     out = File(tmpdir + "/out").delete()
 
     try:
-        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-        gcda_file = download_file(gcda_artifact.url)
+        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact)
+        gcda_file = download_file(gcda_artifact)
 
         Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
         ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
     except BadZipfile:
-        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact)
         return []
 
+    # How to pass taskcluster record? only need task_cluster_record.etl and .task.group.id
+    # pass task.id to resources and have resources find the corresponding taskcluster record?
+    #
 
     parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-
+    Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
     # chop some not-needed, and verbose, properties from tc record
     task_cluster_record.etl = None
     task_cluster_record.action.timings = None
@@ -256,8 +283,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
     Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-    _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-
+    _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact)
+   # Log.note("Task CLuster ETL info: {{etltc}}", etltc=file_etl)
     etl_key = etl2key(file_etl)
     Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
