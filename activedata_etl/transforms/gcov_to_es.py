@@ -151,7 +151,8 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
                 try:
-                    json2value(res)
+                    if DEBUG:
+                        json2value(res)
                 except Exception as e:
                     Log.error("grcov did not result in JSON", cause=e)
                 yield res

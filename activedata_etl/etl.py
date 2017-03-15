@@ -170,7 +170,6 @@ class ETL(Thread):
                     old_keys = action._destination.keys(prefix=source_block.key)
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
-                Log.note("finished gcov transformation")
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
