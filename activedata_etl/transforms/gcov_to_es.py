@@ -150,11 +150,11 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
-                try:
-                    if DEBUG:
+                if DEBUG:
+                    try:
                         json2value(res)
-                except Exception as e:
-                    Log.error("grcov did not result in JSON", cause=e)
+                    except Exception as e:
+                        Log.error("grcov did not result in JSON", cause=e)
                 yield res
 
         destination.write_lines(etl2key(file_etl), generator())
