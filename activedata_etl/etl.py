@@ -47,6 +47,7 @@ from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 
+from pyLibrary import convert
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -114,6 +115,7 @@ class ETL(Thread):
             self.work_queue = work_queue
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
+        Log.note("--- finished ETL transform thread ---")
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -155,10 +157,11 @@ class ETL(Thread):
                     source_key = source.key
 
                 Log.note(
-                    "Execute {{action}} on bucket={{source}} key={{key}}",
+                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{actt}}",
                     action=action.name,
                     source=source_block.bucket,
-                    key=source_key
+                    key=source_key,
+                    actt=action._destination.bucket.name
                 )
 
                 if action.transform_type == "bulk":
@@ -167,7 +170,6 @@ class ETL(Thread):
                     old_keys = action._destination.keys(prefix=source_block.key)
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
-
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
@@ -204,9 +206,11 @@ class ETL(Thread):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 if not new_keys and old_keys:
-                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
+                    Log.warning(
+                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
                     continue
                 elif not new_keys:
                     Log.alert(

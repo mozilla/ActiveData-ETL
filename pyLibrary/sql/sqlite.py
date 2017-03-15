@@ -14,21 +14,21 @@ from __future__ import unicode_literals
 
 import re
 import sqlite3
-from collections import Mapping
-
 import sys
+from collections import Mapping
 
 from mo_dots import Data, coalesce
 from mo_files import File
 from mo_logs import Log
-from mo_logs.exceptions import Except, extract_stack, ERROR, _extract_traceback
+from mo_logs.exceptions import Except, extract_stack, ERROR
 from mo_math.stats import percentile
 from mo_threads import Queue, Signal, Thread
+from mo_times import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.sql import DB, SQL
 
-DEBUG = True
+DEBUG = False
 DEBUG_INSERT = False
 
 _load_extension_warning_sent = False
@@ -61,7 +61,7 @@ class Sqlite(DB):
     def __init__(self, filename=None, db=None):
         """
         :param db:  Optional, wrap a sqlite db in a thread
-        :return: Multithread save database
+        :return: Multithread-safe database
         """
         if not _upgraded:
             _upgrade()
@@ -148,11 +148,7 @@ class Sqlite(DB):
 
         try:
             while not please_stop:
-                if DEBUG:
-                    Log.note("begin pop")
                 command, result, signal, trace = self.queue.pop(till=please_stop)
-                if DEBUG:
-                    Log.note("done pop")
 
                 if DEBUG_INSERT and command.strip().lower().startswith("insert"):
                     Log.note("Running command\n{{command|indent}}", command=command)
@@ -188,7 +184,8 @@ class Sqlite(DB):
                             Log.warning("Failure to execute", cause=e)
 
         except Exception as e:
-            Log.error("Problem with sql thread", e)
+            if not please_stop:
+                Log.error("Problem with sql thread", e)
         finally:
             if DEBUG:
                 Log.note("Database is closed")
@@ -206,6 +203,8 @@ class Sqlite(DB):
             return "."
         elif isinstance(value, basestring):
             return "'" + value.replace("'", "''") + "'"
+        elif isinstance(value, Date):
+            return unicode(value.unix)
         elif value == None:
             return "NULL"
         elif value is True:

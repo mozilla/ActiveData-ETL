@@ -31,8 +31,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/branch.json"
 			},
@@ -45,8 +44,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},
@@ -68,8 +66,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one",
-				// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -232,28 +229,28 @@
 			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
-		//		{
-		//			"name": "gcov to codecoverage",
-		//			"source": {
-		//				"bucket": "active-data-task-cluster-normalized",
-		//				"key_format": "t.a:b",
-		//				"$ref": "file://~/codecoverage.json#aws_credentials"
-		//			},
-		//			"destination": {
-		//				"$ref": "file://~/codecoverage.json#aws_credentials",
-		//				"bucket": "active-data-codecoverage-dev",
-		//				"public": true,
-		//				"key_format": "t.a:b.c.d"
-		//			},
-		//			"notify": {
-		//				"name": "active-data-index-dev",
-		//				"$ref": "file://~/codecoverage.json#aws_credentials"
-		//			},
-		//			"transformer": "activedata_etl.transforms.gcov_to_es.process",
-		//			"type": "join"
-		//		},
 		{
-			"name": "tc_normalized to codecoverage",
+			"name": "gcov to codecoverage",
+			"source": {
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage",
+				"public": true,
+				"key_format": "t.a:b.c.d"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.gcov_to_es.process",
+			"type": "join"
+		},
+		{
+			"name": "jscov to codecoverage",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
@@ -275,28 +272,17 @@
 	],
 	"debug": {
 		"trace": true,
-		"cprofile": {
-			"enabled": false,
-			"filename": "./results/profile.tab"
-		},
 		"log": [
 			{
 				"log_type": "console"
 			},
 			{
-				"log_type": "elasticsearch",
-				"host": "http://localhost",
-				"index": "debug",
-				"type": "etl",
-				"retry": {
-					"times": 3,
-					"sleep": "minute"
-				}
-			},
-			{
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
+				"cc":[
+//					{"to_address":"mcastelluccio@mozilla.com", "contains":["grcov"]}
+				],
 				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
