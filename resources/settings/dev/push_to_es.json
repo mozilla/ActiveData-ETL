@@ -32,7 +32,7 @@
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-fx-test-normalized",
+				"bucket": "active-data-fx-test-normalized-dev",
 				"key_format": "a.b"
 			}
 		},
