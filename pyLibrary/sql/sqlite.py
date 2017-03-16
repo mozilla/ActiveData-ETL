@@ -72,6 +72,7 @@ class Sqlite(DB):
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
         self.worker = Thread.run("sqlite db thread", self._worker)
         self.get_trace = DEBUG
+        self.upgrade = upgrade
 
     def _enhancements(self):
         def regex(pattern, value):
@@ -140,7 +141,7 @@ class Sqlite(DB):
                 trace = extract_stack(0)[0]
                 if os.name == 'nt':
                     file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
-                else:
+                elif self.upgrade:
                     file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions")
                 full_path = file.abspath
                 self.db.enable_load_extension(True)
