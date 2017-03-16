@@ -1,6 +1,6 @@
 {
 	"source": {
-		"name": "active-data-fx-test",
+		"name": "net-mozaws-stage-fx-test-activedata",
 		"url": "https://s3.amazonaws.com/net-mozaws-stage-fx-test-activedata"
 	},
 	"destination": {
