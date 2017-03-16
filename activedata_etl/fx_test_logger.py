@@ -107,9 +107,10 @@ def loop(settings):
 def main():
     try:
         settings = startup.read_settings()
-        constants.set(settings.constants)
-        Log.start(settings.debug)
-        loop(settings)
+        with startup.SingleInstance(flavor_id=settings.args.filename):
+            constants.set(settings.constants)
+            Log.start(settings.debug)
+            loop(settings)
     except Exception as e:
         Log.error("Problem with logging", cause=e)
     finally:
