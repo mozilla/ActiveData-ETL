@@ -12,6 +12,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
 import re
 import sqlite3
 import sys
@@ -58,12 +59,12 @@ class Sqlite(DB):
 
     canonical = None
 
-    def __init__(self, filename=None, db=None):
+    def __init__(self, filename=None, db=None, upgrade=True):
         """
         :param db:  Optional, wrap a sqlite db in a thread
         :return: Multithread-safe database
         """
-        if not _upgraded:
+        if upgrade and not _upgraded:
             _upgrade()
 
         self.filename = filename
@@ -71,6 +72,7 @@ class Sqlite(DB):
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
         self.worker = Thread.run("sqlite db thread", self._worker)
         self.get_trace = DEBUG
+        self.upgrade = upgrade
 
     def _enhancements(self):
         def regex(pattern, value):
@@ -137,7 +139,10 @@ class Sqlite(DB):
             full_path = File.new_instance(library_loc, "vendor/sqlite/libsqlitefunctions.so").abspath
             try:
                 trace = extract_stack(0)[0]
-                file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
+                if os.name == 'nt':
+                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
+                elif self.upgrade:
+                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions")
                 full_path = file.abspath
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")

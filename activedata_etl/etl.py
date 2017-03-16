@@ -170,6 +170,24 @@ class ETL(Thread):
                     old_keys = action._destination.keys(prefix=source_block.key)
 
                 new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
+
+                if not new_keys and old_keys:
+                    Log.warning(
+                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+                elif new_keys == None:
+                    new_keys = set()
+                elif len(new_keys) == 0:
+                    Log.alert(
+                        "Expecting some new keys after processing {{source_key}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
@@ -199,26 +217,9 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # DUE TO BUGS THIS INVARIANT IS NOW BROKEN
-                # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
-                # for n in new_keys:
-                #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
-
-                if not new_keys and old_keys:
-                    Log.warning(
-                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
-                        old_keys=old_keys,
-                        source_key=source_key
-                    )
-                    continue
-                elif not new_keys:
-                    Log.alert(
-                        "Expecting some new keys after processing {{source_key}}",
-                        old_keys=old_keys,
-                        source_key=source_key
-                    )
-                    continue
+                for n in new_keys:
+                    if not n.startswith(source_key):
+                        Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
 
                 delete_me = old_keys - new_keys
                 if delete_me:

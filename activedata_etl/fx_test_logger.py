@@ -37,7 +37,10 @@ def loop(settings):
     destination = s3.Bucket(settings.destination)
     notify = aws.Queue(settings.notify)
 
-    db = Sqlite(filename="./results/" + "s3." + settings.source.name + ".sqlite")
+    db = Sqlite(
+        filename="./results/" + "s3." + settings.source.name + ".sqlite",
+        upgrade=False
+    )
     make_db(db)
 
     # FILL SQLITE
@@ -46,7 +49,7 @@ def loop(settings):
         Log.note("scanning {{num}} files in {{source}}", num=100, source=source.url)
         result = db.query("SELECT filename, timestamp FROM content WHERE filename in (" + ",".join(map(db.quote_value, cs.key)) + ")")
         existing = [d[0] for d in result.data]
-        if len(result.data) - len(existing):
+        if len(cs) - len(existing):
             db.execute(
                 "INSERT INTO content(filename, timestamp) VALUES " +
                 ",".join("(" + db.quote_value(c.key) + "," + db.quote_value(Date(c.lastmodified)) + ")" for c in cs if c.key not in existing)
@@ -56,6 +59,9 @@ def loop(settings):
                 dirty.append(c.key)
                 db.execute("UPDATE content SET timestamp=" + db.quote_value(c.lastmodified) + " WHERE filename=" + db.quote_value(c.key))
 
+    latest_timestamp = Date(db.query("SELECT MAX(timestamp) FROM content").data[0][0])
+    Log.note("Last known file is {{timestamp}}", timestamp=latest_timestamp)
+
     result = db.query(
         "SELECT filename, key1, key2, timestamp" +
         " FROM content" +
@@ -64,6 +70,7 @@ def loop(settings):
     )
     data = wrap([{k: d[i] for i, k in enumerate(result.header)} for d in result.data])
 
+    Log.note("{{num}} new files found", num=len(data))
     maxi = {}
     for d in data:
         Log.note("Update record {{filename}}", filename=d.filename)
@@ -100,11 +107,12 @@ def loop(settings):
 def main():
     try:
         settings = startup.read_settings()
-        constants.set(settings.constants)
-        Log.start(settings.debug)
-        loop(settings)
+        with startup.SingleInstance(flavor_id=settings.args.filename):
+            constants.set(settings.constants)
+            Log.start(settings.debug)
+            loop(settings)
     except Exception as e:
-        Log.error("Problem with logging", cause=e)
+        Log.warning("Problem with logging", cause=e)
     finally:
         Log.stop()
         MAIN_THREAD.stop()
