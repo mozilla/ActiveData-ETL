@@ -11,7 +11,6 @@ git clone https://github.com/klahnakoski/ActiveData-ETL.git
 cd /home/ec2-user/ActiveData-ETL/
 git checkout fx-test-logger
 
-# PIP INSTALL DID NOT WORK!?!?!?! >:|
 sudo python27 /usr/local/lib/python2.7/site-packages/pip/__init__.py install requests
 sudo python27 /usr/local/lib/python2.7/site-packages/pip/__init__.py install boto
 sudo python27 /usr/local/lib/python2.7/site-packages/pip/__init__.py install BeautifulSoup
