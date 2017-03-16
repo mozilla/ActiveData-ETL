@@ -112,7 +112,7 @@ def main():
             Log.start(settings.debug)
             loop(settings)
     except Exception as e:
-        Log.error("Problem with logging", cause=e)
+        Log.warning("Problem with logging", cause=e)
     finally:
         Log.stop()
         MAIN_THREAD.stop()
