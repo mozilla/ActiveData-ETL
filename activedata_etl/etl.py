@@ -156,12 +156,13 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
+                destination_name = coalesce(action.destination.bucket, action.destination.host + "/" + action.destination.index)
                 Log.note(
-                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{actt}}",
+                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{dest}}",
                     action=action.name,
                     source=source_block.bucket,
                     key=source_key,
-                    actt=action._destination.bucket.name
+                    dest=destination_name
                 )
 
                 if action.transform_type == "bulk":
@@ -217,9 +218,9 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                for n in new_keys:
-                    if not n.startswith(source_key):
-                        Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
+                # for n in new_keys:
+                #     if not n.startswith(source_key):
+                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", new_key=n, source_key=source_key)
 
                 delete_me = old_keys - new_keys
                 if delete_me:
