@@ -18,7 +18,6 @@ sudo python27 /usr/local/lib/python2.7/site-packages/pip/__init__.py install Bea
 
 echo '{"aws_credentials":{"region":"us-west-2"}}' > /home/ec2-user/private.json
 
-
-
+sudo -i
 echo "10 * * * * /home/ec2-user/MySQL-to-S3/resources/scripts/fx-test-logger.sh" > /var/spool/cron/ec2-user
-
+exit
