@@ -139,13 +139,15 @@ class Sqlite(DB):
             full_path = File.new_instance(library_loc, "vendor/sqlite/libsqlitefunctions.so").abspath
             try:
                 trace = extract_stack(0)[0]
-                if os.name == 'nt':
-                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
-                elif self.upgrade:
-                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions")
-                full_path = file.abspath
-                self.db.enable_load_extension(True)
-                self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
+                if self.upgrade:
+                    if os.name == 'nt':
+                        file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
+                    else:
+                        file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions")
+
+                    full_path = file.abspath
+                    self.db.enable_load_extension(True)
+                    self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
             except Exception as e:
                 if not _load_extension_warning_sent:
                     _load_extension_warning_sent = True
