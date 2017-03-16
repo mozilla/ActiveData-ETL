@@ -37,7 +37,10 @@ def loop(settings):
     destination = s3.Bucket(settings.destination)
     notify = aws.Queue(settings.notify)
 
-    db = Sqlite(filename="./results/" + "s3." + settings.source.name + ".sqlite")
+    db = Sqlite(
+        filename="./results/" + "s3." + settings.source.name + ".sqlite",
+        upgrade=False
+    )
     make_db(db)
 
     # FILL SQLITE

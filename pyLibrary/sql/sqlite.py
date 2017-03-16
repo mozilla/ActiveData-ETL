@@ -58,12 +58,12 @@ class Sqlite(DB):
 
     canonical = None
 
-    def __init__(self, filename=None, db=None):
+    def __init__(self, filename=None, db=None, upgrade=True):
         """
         :param db:  Optional, wrap a sqlite db in a thread
         :return: Multithread-safe database
         """
-        if not _upgraded:
+        if upgrade and not _upgraded:
             _upgrade()
 
         self.filename = filename
