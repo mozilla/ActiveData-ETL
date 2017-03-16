@@ -70,7 +70,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
             except Exception as e:
                 Log.warning("grcov Failed to process {{artifact}}", artifact=artifact.url, cause=e)
-    return keys
+    if not keys:
+        return None
+    else:
+        return keys
 
 
 def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
@@ -150,10 +153,11 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
-                try:
-                    json2value(res)
-                except Exception as e:
-                    Log.error("grcov did not result in JSON", cause=e)
+                if DEBUG:
+                    try:
+                        json2value(res)
+                    except Exception as e:
+                        Log.error("grcov did not result in JSON", cause=e)
                 yield res
 
         destination.write_lines(etl2key(file_etl), generator())

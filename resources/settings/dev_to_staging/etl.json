@@ -54,6 +54,29 @@
 	},
 	"workers": [
 		{
+			"name": "fx_test to normalized",
+			"source": {
+				"bucket": "active-data-fx-test",
+				"public": true,
+				"key_format": "a.b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-fx-test-normalized",
+				"public": true,
+				"key_format": "a.b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"transformer": "activedata_etl.transforms.fx_test_to_normalized.process",
+			"type": "join"
+		},
+		{
 			"name": "Buildbot Pulse to ES",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",

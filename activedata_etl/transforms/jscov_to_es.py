@@ -113,7 +113,10 @@ def process(source_key, source, destination, resources, please_stop=None):
             with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": key}):
                 destination.extend(records, overwrite=True)
 
-    return keys
+    if not keys:
+        return None
+    else:
+        return keys
 
 
 def process_source_file(parent_etl, count, obj, task_cluster_record, records):
