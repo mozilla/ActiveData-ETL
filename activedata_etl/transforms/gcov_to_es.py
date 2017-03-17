@@ -52,15 +52,19 @@ def process(source_key, source, destination, resources, please_stop=None):
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
 
+    try:
+        if resources.todo.taskcluster != None:
+            artifact = resources.todo.message
+            task_cluster_record = resources.todo.taskcluste
+           # Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
 
-    # try:
-    #     if resources.todo.resources.message != None:
-    #         Log.note("Trying out linking part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=resources.todo.resources.message)
-    #         keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, resources.todo.resources.taskcluster, resources.todo.resources.message))
-    #         return keys
-    #
-    # except Exception as e:
-    #     Log.note("Did not work :(")
+            keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record,
+                                              artifact))
+            return keys
+    except Exception as e:
+        Log.note("Did not work :(")
+        import traceback
+        Log.note(traceback.format_exc())
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
@@ -87,17 +91,17 @@ def process(source_key, source, destination, resources, please_stop=None):
         # call keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, resources.todo.resources))
 
         Log.note("Task Cluster ID: {{idid}}", idid=resources.todo.message)
-        try:
-            if resources.todo.taskcluster == task_cluster_record._id:
-                artifact = resources.todo.message
-                Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
-
-                keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
-                return keys
-        except Exception as e:
-            Log.note("Did not work :(")
-            import traceback
-            Log.note(traceback.format_exc())
+        # try:
+        #     if resources.todo.taskcluster == task_cluster_record._id:
+        #         artifact = resources.todo.message
+        #         Log.note("Trying out second part of SQS split, gcda artifact: {{gcdaa}}", gcdaa=artifact)
+        #
+        #         keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact))
+        #         return keys
+        # except Exception as e:
+        #     Log.note("Did not work :(")
+        #     import traceback
+        #     Log.note(traceback.format_exc())
 
         #Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record._id, num=len(artifacts))
        #  Log.note("-- Enter Try --")
