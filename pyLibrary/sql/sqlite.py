@@ -12,23 +12,24 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
 import re
 import sqlite3
-from collections import Mapping
-
 import sys
+from collections import Mapping
 
 from mo_dots import Data, coalesce
 from mo_files import File
 from mo_logs import Log
-from mo_logs.exceptions import Except, extract_stack, ERROR, _extract_traceback
+from mo_logs.exceptions import Except, extract_stack, ERROR
 from mo_math.stats import percentile
 from mo_threads import Queue, Signal, Thread
+from mo_times import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.sql import DB, SQL
 
-DEBUG = True
+DEBUG = False
 DEBUG_INSERT = False
 
 _load_extension_warning_sent = False
@@ -58,12 +59,12 @@ class Sqlite(DB):
 
     canonical = None
 
-    def __init__(self, filename=None, db=None):
+    def __init__(self, filename=None, db=None, upgrade=True):
         """
         :param db:  Optional, wrap a sqlite db in a thread
-        :return: Multithread save database
+        :return: Multithread-safe database
         """
-        if not _upgraded:
+        if upgrade and not _upgraded:
             _upgrade()
 
         self.filename = filename
@@ -71,6 +72,7 @@ class Sqlite(DB):
         self.queue = Queue("sql commands")   # HOLD (command, result, signal) PAIRS
         self.worker = Thread.run("sqlite db thread", self._worker)
         self.get_trace = DEBUG
+        self.upgrade = upgrade
 
     def _enhancements(self):
         def regex(pattern, value):
@@ -137,7 +139,10 @@ class Sqlite(DB):
             full_path = File.new_instance(library_loc, "vendor/sqlite/libsqlitefunctions.so").abspath
             try:
                 trace = extract_stack(0)[0]
-                file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
+                if os.name == 'nt':
+                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions.so")
+                elif self.upgrade:
+                    file = File.new_instance(trace["file"], "../../vendor/sqlite/libsqlitefunctions")
                 full_path = file.abspath
                 self.db.enable_load_extension(True)
                 self.db.execute("SELECT load_extension(" + self.quote_value(full_path) + ")")
@@ -148,11 +153,7 @@ class Sqlite(DB):
 
         try:
             while not please_stop:
-                if DEBUG:
-                    Log.note("begin pop")
                 command, result, signal, trace = self.queue.pop(till=please_stop)
-                if DEBUG:
-                    Log.note("done pop")
 
                 if DEBUG_INSERT and command.strip().lower().startswith("insert"):
                     Log.note("Running command\n{{command|indent}}", command=command)
@@ -188,7 +189,8 @@ class Sqlite(DB):
                             Log.warning("Failure to execute", cause=e)
 
         except Exception as e:
-            Log.error("Problem with sql thread", e)
+            if not please_stop:
+                Log.error("Problem with sql thread", e)
         finally:
             if DEBUG:
                 Log.note("Database is closed")
@@ -206,6 +208,8 @@ class Sqlite(DB):
             return "."
         elif isinstance(value, basestring):
             return "'" + value.replace("'", "''") + "'"
+        elif isinstance(value, Date):
+            return unicode(value.unix)
         elif value == None:
             return "NULL"
         elif value is True:

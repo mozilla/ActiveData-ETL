@@ -47,6 +47,7 @@ from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 
+from pyLibrary import convert
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -114,6 +115,7 @@ class ETL(Thread):
             self.work_queue = work_queue
 
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
+        Log.note("--- finished ETL transform thread ---")
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -154,11 +156,13 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
+                destination_name = coalesce(action.destination.bucket, action.destination.host + "/" + action.destination.index)
                 Log.note(
-                    "Execute {{action}} on bucket={{source}} key={{key}}",
+                    "Execute {{action}} on bucket={{source}} key={{key}} to destination={{dest}}",
                     action=action.name,
                     source=source_block.bucket,
-                    key=source_key
+                    key=source_key,
+                    dest=destination_name
                 )
 
                 if action.transform_type == "bulk":
@@ -166,7 +170,26 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
+                new_keys = action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop)
+
+                if not new_keys and old_keys:
+                    Log.warning(
+                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+                elif new_keys == None:
+                    new_keys = set()
+                elif len(new_keys) == 0:
+                    Log.alert(
+                        "Expecting some new keys after processing {{source_key}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+                else:
+                    new_keys = set(new_keys)
 
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
@@ -197,24 +220,9 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # DUE TO BUGS THIS INVARIANT IS NOW BROKEN
-                # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
                 # for n in new_keys:
                 #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
-
-                if not new_keys and old_keys:
-                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
-                    continue
-                elif not new_keys:
-                    Log.alert(
-                        "Expecting some new keys after processing {{source_key}}",
-                        old_keys=old_keys,
-                        source_key=source_key
-                    )
-                    continue
+                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", new_key=n, source_key=source_key)
 
                 delete_me = old_keys - new_keys
                 if delete_me:
