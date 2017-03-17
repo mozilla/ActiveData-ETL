@@ -17,7 +17,7 @@ from zipfile import ZipFile, BadZipfile
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import EtlHeadGenerator
+from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from mo_dots import set_default
 from mo_files import File
 from mo_json import json2value, value2json
@@ -184,7 +184,7 @@ def group_to_gcno_artifacts(group_id):
     })
 
     if len(result.data) != 1:
-        Log.error("got {{num}} gcno artifacts, not expected", num=len(result.data))
+        Log.error(TRY_AGAIN_LATER, reason="got " + unicode(len(result.data)) + " gcno artifacts for task group " + group_id + ", not expected")
     return result.data[0]
 
 
