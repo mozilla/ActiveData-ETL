@@ -170,7 +170,7 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = set(action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop))
+                new_keys = action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop)
 
                 if not new_keys and old_keys:
                     Log.warning(
@@ -188,6 +188,8 @@ class ETL(Thread):
                         source_key=source_key
                     )
                     continue
+                else:
+                    new_keys = set(new_keys)
 
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
