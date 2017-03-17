@@ -184,7 +184,7 @@ def group_to_gcno_artifacts(group_id):
     })
 
     if len(result.data) != 1:
-        Log.error("not expected")
+        Log.error("got {{num}} gcno artifacts, not expected", num=len(result.data))
     return result.data[0]
 
 
