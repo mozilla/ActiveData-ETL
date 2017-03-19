@@ -13,12 +13,12 @@ from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from mo_dots import wrap, unwraplist, set_default
-from pyLibrary import convert
-from mo_logs import Log, machine_metadata
-from pyLibrary.env import http
 from mo_json import stream
+from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary import convert
+from pyLibrary.env import http
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
