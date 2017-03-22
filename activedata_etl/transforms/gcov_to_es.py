@@ -75,12 +75,12 @@ def process(source_key, source, destination, resources, please_stop=None):
         try: # TODO rm
            # Log.note("Begin searching for gcda artifacts in gcov_to_es")
             for artifact in artifacts:
-                Log.note("{{name}}", name=artifact.name)
+               # Log.note("{{name}}", name=artifact.name)
                 if artifact.name.find("gcda") != -1:
                     # add to SQS instead of processing artifact.
                     # want to add gcda artifacts into work_queue
 
-                    try:
+                    if resources.todo.message != None:
                         if resources.todo.message == artifact.url:
                             Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
 
@@ -88,16 +88,14 @@ def process(source_key, source, destination, resources, please_stop=None):
                                                               task_cluster_record,
                                                               artifact))
                             return keys
-                        else:
-                            resources.work_queue.add(Dict({
-                                "bucket": resources.todo.bucket,
-                                "key": source_key,
-                                "message": artifact.url
+                    else:
+                        resources.work_queue.add(Dict({
+                           "bucket": resources.todo.bucket,
+                            "key": source_key,
+                            "message": artifact.url
                             }))
 
-                            Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
-                    except Exception as e:
-                        Log.note("Could not process gcda artifact")
+                        Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
 
                 elif artifact.name.find("resource-usage") != -1:
                     break
