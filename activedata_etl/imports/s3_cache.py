@@ -69,8 +69,6 @@ class S3Cache(object):
         self.up_to_date.go()
 
 
-
-
     def _top_up(self, prefix, selector):
         def update(prefix, bucket, please_stop):
             if prefix:
