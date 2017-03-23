@@ -55,6 +55,17 @@
 				}
 			],
 			"properties": {
+				"test": {
+					"type": "object",
+					"dynamic": true,
+					"properties": {
+						"url": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						}
+					}
+				},
 				"source": {
 					"type": "object",
 					"dynamic": true,

@@ -56,10 +56,20 @@ class S3Cache(object):
                 {"prefix": "", "selector": selector}
             ]
 
+        result = db.query("SELECT sum(size) FROM files")
+        Log.note("{{source}} has {{num|comma}} bytes of data", source=bucket, num=result.data[0][0])
+
         threads = [self._top_up(**p) for p in prefixes]
         for t in threads:
             t.join()
+
+        result = db.query("SELECT sum(size) FROM files")
+        Log.note("{{source}} has {{num|comma}} bytes of data", source=bucket, num=result[0][0])
+
         self.up_to_date.go()
+
+
+
 
     def _top_up(self, prefix, selector):
         def update(prefix, bucket, please_stop):
