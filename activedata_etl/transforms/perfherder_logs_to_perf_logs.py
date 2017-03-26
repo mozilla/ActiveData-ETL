@@ -132,8 +132,11 @@ def process(source_key, source, destination, resources, please_stop=None):
     if not records:
         Log.warning("No perfherder records are found in {{key}}", key=source_key)
 
-    destination.extend(records)
-    return [source_key]
+    try:
+        destination.extend(records)
+        return [source_key]
+    except Exception as e:
+        Log.error("could not add documents when processing key {{key}}", key=source_key, cause=e)
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
