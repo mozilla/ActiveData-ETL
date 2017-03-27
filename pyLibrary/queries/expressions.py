@@ -1314,7 +1314,6 @@ class NeOp(Expression):
         return OrOp("or", [self.lhs.missing(), self.rhs.missing()])
 
 
-
 class NotOp(Expression):
     def __init__(self, op, term):
         Expression.__init__(self, op, term)
@@ -1324,10 +1323,16 @@ class NotOp(Expression):
         return "!(" + self.term.to_ruby() + ")"
 
     def to_python(self, not_null=False, boolean=False):
-        return "not (" + self.term.to_python() + ")"
+        return "not (" + self.term.to_python() + " == None)"
 
     def to_sql(self, schema, not_null=False, boolean=False):
-        return wrap([{"name": ".", "sql": {"b": "NOT (" + self.term.to_sql(schema).b + ")"}}])
+        sql = self.term.to_sql(schema)[0].sql
+        return wrap([{"name": ".", "sql": {
+            "0": "1",
+            "b": "NOT (" + sql.b + ")",
+            "n": "(" + sql.n + " IS NULL)",
+            "s": "(" + sql.s + " IS NULL)"
+        }}])
 
     def vars(self):
         return self.term.vars()
@@ -2264,6 +2269,7 @@ class RightOp(Expression):
         else:
             return OrOp(None, [self.value.missing(), self.length.missing()])
 
+
 class NotRightOp(Expression):
     has_simple_form = True
 
@@ -2286,7 +2292,7 @@ class NotRightOp(Expression):
     def to_python(self, not_null=False, boolean=False):
         v = self.value.to_python()
         l = self.length.to_python()
-        return "None if " + v + " == None or " + l + " == None else " + v + "[0:max(0, len("+v+")-(" + l + "))]"
+        return "None if " + v + " == None or " + l + " == None else " + v + "[0:max(0, len(" + v + ")-(" + l + "))]"
 
     def to_sql(self, schema, not_null=False, boolean=False):
         v = self.value.to_sql(schema, not_null=True)[0].sql.s
@@ -2294,7 +2300,6 @@ class NotRightOp(Expression):
         l = "max(0, length("+v+")-max(0, "+r+"))"
         expr = "substr(" + v + ", 1, " + l + ")"
         return wrap([{"name": ".", "sql": {"s": expr}}])
-
 
     def __data__(self):
         if isinstance(self.value, Variable) and isinstance(self.length, Literal):
@@ -2783,7 +2788,7 @@ def normalize_esfilter(esfilter):
 
 def _normalize(esfilter):
     """
-    TODO: DO NOT USE Dicts, WE ARE SPENDING TOO MUCH TIME WRAPPING/UNWRAPPING
+    TODO: DO NOT USE Data, WE ARE SPENDING TOO MUCH TIME WRAPPING/UNWRAPPING
     REALLY, WE JUST COLLAPSE CASCADING `and` AND `or` FILTERS
     """
     if esfilter is TRUE_FILTER or esfilter is FALSE_FILTER or esfilter.isNormal:
