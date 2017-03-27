@@ -136,7 +136,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.extend(records)
         return [source_key]
     except Exception as e:
-        Log.error("could not add documents when processing key {{key}}", key=source_key, cause=e)
+        Log.error("Could not add {{num} documents when processing key {{key}}", key=source_key, num=len(records), cause=e)
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
