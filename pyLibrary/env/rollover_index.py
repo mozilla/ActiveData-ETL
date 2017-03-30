@@ -192,6 +192,8 @@ class RolloverIndex(object):
                             queue = self._get_queue(row)
                             if queue == None:
                                 pending.append(row)
+                                if len(pending) > 1000:
+                                    Log.error("first 1000 (key={{key}}) records have no indication what index to put data", key=keys[0])
                                 continue
                             if pending:
                                 queue.extend(pending)
