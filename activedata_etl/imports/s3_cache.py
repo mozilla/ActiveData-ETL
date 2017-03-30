@@ -65,7 +65,7 @@ class S3Cache(object):
             t.join()
 
         result = db.query("SELECT sum(size) FROM files")
-        Log.note("{{source}} has {{num|comma}} bytes of data", source=bucket, num=result[0][0])
+        Log.note("{{source}} has {{num|comma}} bytes of data", source=bucket, num=result.data[0][0])
 
         self.up_to_date.go()
 

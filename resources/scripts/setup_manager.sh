@@ -84,7 +84,7 @@ git clone https://github.com/klahnakoski/MoDataSubmission.git
 cd /home/ec2-user/MoDataSubmission
 git checkout master
 git pull origin master
-sudo pip install -r requirements.txt
+sudo /usr/local/bin/pip install -r requirements.txt
 sudo -i
 export PYTHONPATH=.
 export HOME=/home/ec2-user
