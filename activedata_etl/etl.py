@@ -185,15 +185,15 @@ class ETL(Thread):
 
                 new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
 
-                if not new_keys and old_keys:
+                if new_keys == None:
+                    new_keys = set()
+                elif not new_keys and old_keys:
                     Log.warning(
                         "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys=old_keys,
                         source_key=source_key
                     )
                     continue
-                elif new_keys == None:
-                    new_keys = set()
                 elif len(new_keys) == 0:
                     Log.alert(
                         "Expecting some new keys after processing {{source_key}}",
@@ -235,12 +235,8 @@ class ETL(Thread):
 
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    if action.destination.bucket == "ekyle-test-result":
-                        for k in delete_me:
-                            action._destination.delete_key(k)
-                    else:
-                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
-                        # for k in delete_me:
+                    Log.warning("delete keys?\n{{list}}", list=sorted(delete_me))
+
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
