@@ -9,12 +9,12 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from pyLibrary import aws
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
+from mo_logs import startup
+from mo_logs import Log
 
 
 def list_queue(settings, num):
@@ -37,7 +37,7 @@ def main():
         })
         Log.start(settings.debug)
         list_queue(settings.source, settings.args.num)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

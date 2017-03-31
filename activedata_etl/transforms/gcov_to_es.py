@@ -17,8 +17,8 @@ from zipfile import ZipFile, BadZipfile
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
-from mo_dots import set_default
+from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_dots import set_default, Data
 from mo_files import File
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
@@ -75,16 +75,21 @@ def process(source_key, source, destination, resources, please_stop=None):
                         if resources.todo.message == artifact.url:
                             Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
 
-                            keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen,
-                                                              task_cluster_record,
-                                                              artifact))
+                            keys.extend(process_gcda_artifact(
+                                source_key,
+                                resources,
+                                destination,
+                                parent_etl,
+                                task_cluster_record,
+                                artifact
+                            ))
                             return keys
                     else:
                         resources.work_queue.add(Data({
-                           "bucket": resources.todo.bucket,
+                            "bucket": resources.todo.bucket,
                             "key": source_key,
                             "message": artifact.url
-                            }))
+                        }))
 
                         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
 

@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_testing.fuzzytestcase import FuzzyTestCase
 
 false = False
 true = True

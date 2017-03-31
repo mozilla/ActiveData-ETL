@@ -7,12 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
-from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import MINUTE
 
+from pyLibrary import convert
+from mo_logs import Log
+from mo_threads import Thread
+from mo_threads import Till
+from mo_times.dates import Date
+from mo_times.durations import MINUTE
 
 PING_PERIOD = MINUTE
 WAIT_FOR_ACTIVITY = PING_PERIOD * 2
@@ -56,7 +57,7 @@ class SynchState(object):
                 resume_time = Date(last_run.timestamp) + WAIT_FOR_ACTIVITY
                 Log.note("Shutdown not detected, waiting until {{time}} to see if existing pulse_logger is running...",  time= resume_time)
                 while resume_time > Date.now():
-                    Thread.sleep(seconds=10)
+                    (Till(seconds=10)).wait()
                     json = self.synch.read()
                     if json == None:
                         Log.note("{{synchro_key}} disappeared!  Starting over.",  synchro_key= SYNCHRONIZATION_KEY)
@@ -76,7 +77,7 @@ class SynchState(object):
                         Log.error("Another instance of pulse_logger is running!")
                     Log.note("No activity, still waiting...")
                 Log.note("No activity detected!  Resuming...")
-        except Exception, e:
+        except Exception as e:
             Log.error("Can not start", e)
 
         self._start()
@@ -108,14 +109,14 @@ class SynchState(object):
     def _pinger(self, please_stop):
         Log.note("pinger started")
         while not please_stop:
-            Thread.sleep(till=self.ping_time + PING_PERIOD, please_stop=please_stop)
-            if please_stop:  #EXIT EARLY, OTHERWISE WE MAY OVERWRITE THE shutdown
+            (Till(self.ping_time + PING_PERIOD) | please_stop).wait()
+            if please_stop:  # EXIT EARLY, OTHERWISE WE MAY OVERWRITE THE shutdown
                 break
             if Date.now() < self.ping_time + PING_PERIOD:
                 continue
             try:
                 self.ping()
-            except Exception, e:
+            except Exception as e:
                 Log.warning("synchro.py could not ping", e)
         Log.note("pinger stopped")
 

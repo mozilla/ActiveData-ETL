@@ -7,11 +7,11 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary.dot import Dict
+from mo_dots import Data
 
 
-class Push(Dict):
+class Push(Data):
     pass

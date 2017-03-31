@@ -7,8 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
 from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
 
 
 class DummySink(object):

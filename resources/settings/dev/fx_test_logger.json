@@ -1,0 +1,45 @@
+{
+	"source": {
+		"name": "active-data-fx-test",
+		"url": "https://s3.amazonaws.com/net-mozaws-stage-fx-test-activedata"
+	},
+	"destination": {
+		"bucket": "active-data-fx-test",
+		"public": true,    // default = false
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"notify": {
+		"name": "active-data-etl-dev",
+		"$ref": "file://~/private.json#aws_credentials"
+	},
+	"constants":{
+		"pyLibrary.sql.sqlite.DEBUG_INSERT": false,
+		"pyLibrary.sql.sqlite.DEBUG": false,
+		"pyLibrary.env.http.default_headers":{"from": "Dave Hunt <dhunt@mozilla.com>"}
+	},
+	"debug":{
+		"trace": true,
+        "cprofile":{
+	        "enabled": false,
+	        "filename": "./results/cprofile.tab"
+        },
+		"log":[
+			{"log_type":"console"},
+			{
+				"class" : "logging.handlers.RotatingFileHandler",
+				"filename" : "./results/logs/pulse_logger.log",
+				"maxBytes" : 10000000,
+				"backupCount" : 10,
+				"encoding" : "utf8"
+			},
+			{
+				"log_type":"ses",
+				"from_address": "klahnakoski@mozilla.com",
+				"to_address": "klahnakoski@mozilla.com",
+				"subject": "[ALERT][DEV]Problem in FX Test Logger",
+				"$ref":"file://~/private.json#aws_credentials"
+
+			}
+		]
+	}
+}

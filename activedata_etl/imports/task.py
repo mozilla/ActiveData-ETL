@@ -18,14 +18,24 @@ def minimize_task(task):
     :return: altered object
     """
 
-    task.etl = None
     task.action.timings = None
     task.action.etl = None
+    task.build.build = None
+    task.build.task = {"id": task.build.task.id}
+    task.etl = None
     task.repo.changeset.files = None
     task.task.artifacts = None
-    task.task.runs = None
+    task.task.created = None
+    task.task.command = None
     task.task.env = None
-    task.task.scope = None
+    task.task.expires = None
+    task.task.retries = None
     task.task.routes = None
+    task.task.run = None
+    task.task.runs = None
+    task.task.scopes = None
     task.task.tags = None
-    task.build.task = {"id": task.build.task.id}
+
+
+
+

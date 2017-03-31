@@ -32,8 +32,7 @@ class TestGcov(unittest.TestCase):
 
         self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))
 
-import zlib
-import io
+
 class Destination(object):
 
     def __init__(self, filename):

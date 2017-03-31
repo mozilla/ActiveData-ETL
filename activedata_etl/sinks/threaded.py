@@ -7,7 +7,8 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary.thread.threads import ThreadedQueue
+
+from mo_threads import ThreadedQueue
 
 
 class Threaded(object):

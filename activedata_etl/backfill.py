@@ -9,22 +9,19 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import os
-from math import log10
-
+from mo_dots import coalesce, wrap
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
-from pyLibrary.maths import Math
+from mo_math import Math, MAX, MIN
 from pyLibrary.queries import jx
 from pyLibrary.queries.expressions import jx_expression
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 
 def diff(settings, please_stop=None):
@@ -34,17 +31,17 @@ def diff(settings, please_stop=None):
         settings.range.min = coalesce(settings.start, 0)
 
     # SHOULD WE PUSH?
-    work_queue = aws.Queue(settings=settings.work_queue)
+    work_queue = aws.Queue(kwargs=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), settings=settings.elasticsearch)
+    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), kwargs=settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"not": {"prefix": {"etl.revision": rev}}}
+        es_filter = {"prefix": {"etl.revision": rev[0:12]}}
     else:
         es_filter = {"match_all": {}}
 
@@ -52,7 +49,7 @@ def diff(settings, please_stop=None):
     in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
-        max_in_es = Math.MAX(in_es)
+        max_in_es = MAX(in_es)
         _min = coalesce(settings.range.min, 0)
         _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
         in_range = set(range(_min, _max))
@@ -67,8 +64,8 @@ def diff(settings, please_stop=None):
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to {{queue}}",
         num=len(remaining_in_s3),
-        min=Math.MIN(remaining_in_s3),
-        max=Math.MAX(remaining_in_s3),
+        min=MIN(remaining_in_s3),
+        max=MAX(remaining_in_s3),
         queue=work_queue.name
     )
 
@@ -138,11 +135,11 @@ def get_all_in_es(es, in_range, es_filter, field):
 
 def get_all_s3(in_es, in_range, settings):
     in_s3 = []
-    min_range = coalesce(Math.MIN(in_range), 0)
+    min_range = coalesce(MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
-    max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es)])
-    extra_digits = Math.ceiling(Math.log10(Math.MIN([max_allowed-settings.range.min, limit])))
+    max_allowed = MAX([settings.range.max, MAX(in_es)])
+    extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
     prefix = unicode(max(in_range - in_es))[:-extra_digits]
@@ -175,7 +172,7 @@ def get_all_s3(in_es, in_range, settings):
                 #     continue
 
                 in_s3.append(p)
-            except Exception, e:
+            except Exception as e:
                 Log.note("delete key? {{key|quote}}", key=q)
 
         if prefix == "":
@@ -206,7 +203,7 @@ def main():
         Log.start(settings.debug)
 
         diff(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

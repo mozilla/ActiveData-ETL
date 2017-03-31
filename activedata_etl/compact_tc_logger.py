@@ -9,14 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from activedata_etl import key2etl
 from pyLibrary import convert
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
-from pyLibrary.maths.randoms import Random
+from mo_logs import startup
+from mo_logs import Log
+from mo_math.randoms import Random
 from pyLibrary.queries import jx
-from pyLibrary.thread.threads import Queue, Thread
-from activedata_etl import key2etl
+from mo_threads import Queue, Thread, THREAD_STOP
 
 known_tasks = set()
 queue = Queue("packer", max=20)
@@ -82,16 +82,16 @@ def loop_all(bucket, please_stop):
                 continue
             try:
                 compact(bucket.get_key(unicode(k)))
-            except Exception, e:
+            except Exception as e:
                 Log.warning("could not process", cause=e)
     finally:
-        queue.add(Thread.STOP)
+        queue.add(THREAD_STOP)
 
 
 def main():
     try:
         settings = startup.read_settings()
-        bucket = s3.Bucket(settings=settings.source)
+        bucket = s3.Bucket(kwargs=settings.source)
 
         Log.alert(" BE SURE TO \"exit\", OTHERWISE YOU WILL HAVE DATA LOSS")
         Thread.run("loop", loop_all, bucket)
@@ -99,7 +99,7 @@ def main():
 
         Thread.wait_for_shutdown_signal(allow_exit=True)
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with compaction", e)
     finally:
         Log.stop()

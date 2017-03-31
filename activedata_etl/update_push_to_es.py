@@ -6,8 +6,8 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
@@ -15,19 +15,19 @@ from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
-from pyLibrary.env.files import File
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread
+from mo_logs import startup, constants
+from mo_logs import Log
+from mo_files import File
+from mo_collections import UniqueIndex
+from mo_threads import Till
+
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([dictwrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
     return output
 
 
@@ -41,7 +41,7 @@ def _get_managed_instances(ec2_conn, name):
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
                 instance.request = requests[instance.id]
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 
@@ -60,7 +60,7 @@ def _start_es():
     with hide('output'):
         with fabric_settings(warn_only=True):
             run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-    Thread.sleep(seconds=5)
+    (Till(seconds=5)).wait()
 
     File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
     with cd("/home/ec2-user/"):
@@ -98,8 +98,28 @@ def _es_up():
         _start_es()
         return
 
+def _disable_oom_on_es():
+    with cd("/home/ec2-user"):
+        run("mkdir -p temp")
+    with cd("/home/ec2-user/temp"):
+        processes = sudo("ps -eo pid,command | grep java")
+        candidates = [
+            line
+            for line in processes.split("\n")
+            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch") != -1
+        ]
+        if not candidates:
+            Log.error("Expecting to find some hint of Elasticsearch running")
+        elif len(candidates) > 1:
+            Log.error("Fond more than one Elasticsearch running, not sure what to do")
+
+        pid = candidates[0].split(" ")[0].strip()
+        run("echo -16 > oom_adj")
+        sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
+
 
 def _refresh_indexer():
+    _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
@@ -144,10 +164,19 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _config_fabric(settings.fabric, i)
-            _refresh_indexer()
-    except Exception, e:
+            try:
+                Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                _config_fabric(settings.fabric, i)
+                _refresh_indexer()
+            except Exception as e:
+                Log.warning(
+                    "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
+                    insance_id=i.id,
+                    name=i.tags["Name"],
+                    ip=i.ip_address,
+                    cause=e
+                )
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

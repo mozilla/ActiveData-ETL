@@ -9,7 +9,7 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_testing.fuzzytestcase import FuzzyTestCase
 from activedata_etl import key2etl, etl2key
 
 

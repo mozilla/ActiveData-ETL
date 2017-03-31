@@ -7,12 +7,13 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary.dot import Dict
+from __future__ import unicode_literals
+
+from mo_dots import Data
 
 
-class Revision(Dict):
+class Revision(Data):
 
     def __hash__(self):
         return hash((self.branch.name.lower(), self.changeset.id[:12]))

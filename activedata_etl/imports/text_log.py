@@ -13,14 +13,14 @@ import re
 from copy import copy
 
 from activedata_etl.imports import buildbot
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap, DictList, Null, Dict, unwrap
-from pyLibrary.maths import Math
+from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
+from pyLibrary import convert
+from mo_logs.exceptions import Except
+from mo_logs import Log, strings
+from mo_math import Math, MAX, MIN
 from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date, unicode2Date
-from pyLibrary.times.durations import SECOND, MINUTE, HOUR, DAY
+from mo_times.dates import Date, unicode2Date
+from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 
 DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
@@ -53,13 +53,14 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     """
 
     process_head = True
-    action = Dict()
+    action = Data()
     action.timings = []
 
     start_time = None
     end_time = None
 
-    task_steps = Dict()
+    harness_steps = {}
+    task_steps = Data()
 
     new_mozharness_line = NewHarnessLines()
 
@@ -73,29 +74,29 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
         try:
             log_line = log_ascii.decode('utf8', "ignore").strip()
-        except Exception, e:
+        except Exception as e:
             if not DEBUG:
                 Log.warning("Really bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
             continue
 
         try:
             prefix = strings.between(log_line, "[", "]")
-            if prefix:
+            if prefix and log_line.startswith("[" + prefix):
                 prefix_words = prefix.split(' ')
                 tc_timestamp = Date(' '.join(prefix_words[1:]))
                 step_name = prefix_words[0]
                 curr_line = log_line[len(prefix) + 3:]
 
-                start_time = Math.min(start_time, tc_timestamp)
-                end_time = Math.max(end_time, tc_timestamp)
+                start_time = MIN([start_time, tc_timestamp])
+                end_time = MAX([end_time, tc_timestamp])
 
                 task_step = task_steps[step_name]
                 if not task_step:
-                    task_step = task_steps[step_name] = Dict()
+                    task_step = task_steps[step_name] = Data()
                     task_step.step = step_name
                     action.timings.append(task_step)
                 task_step.start_time = Math.min(task_step.start_time, tc_timestamp)
-                task_step.end_time = Math.max(task_step.end_time, tc_timestamp)
+                task_step.end_time = MAX([task_step.end_time, tc_timestamp])
             else:
                 # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
                 process_head = False
@@ -130,7 +131,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 elif key == "Worker Type":
                     task_record.run.machine.tc_worker_type = value
                 continue
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 process_head = False
                 if "need more than 1 value to unpack" not in e:
@@ -139,19 +140,37 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
+            timestamp, mode, result, harness_step_name = mozharness_says
 
-            task_step.children += [{
-                "step": harness_step,
-                "mode": mode,
-                "start_time": timestamp
-            }]
+            step_name = "mozharness"
+            task_step = task_steps[step_name]
+            if not task_step:
+                task_step = task_steps[step_name] = Data()
+                task_step.step = step_name
+                action.timings.append(task_step)
+
+            start_time = MIN([start_time, timestamp])
+            end_time = MAX([end_time, timestamp])
+            task_step.start_time = Math.min(task_step.start_time, timestamp)
+            task_step.end_time = MAX([task_step.end_time, timestamp])
+
+            harness_step = harness_steps.get(harness_step_name)
+            if not harness_step:
+                harness_step = harness_steps[harness_step_name] = {
+                    "step": harness_step_name,
+                    "mode": mode,
+                    "start_time": timestamp
+                }
+                task_step.children += [harness_step]
+            else:
+                harness_step['result'] = result
+                harness_step['end_time'] = timestamp
 
     try:
         fix_overlap(action.timings)
         fix_times(action.timings, start_time, end_time)
 
-        new_build_times = DictList()
+        new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
         for b in action.timings:
             new_build_times.append(b)
@@ -173,7 +192,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             t.order = i
         action.timings = new_build_times
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     action.start_time = start_time
@@ -184,8 +203,6 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
     action.etl.total_bytes = total_bytes
     return action
-
-
 
 
 def process_text_log(all_log_lines, from_url):
@@ -204,7 +221,8 @@ def process_text_log(all_log_lines, from_url):
     """
 
     process_head = True
-    data = Dict()
+    data = Data()
+    harness_steps = {}
     data.timings = []
 
     start_time = None
@@ -228,7 +246,7 @@ def process_text_log(all_log_lines, from_url):
 
         try:
             log_line = log_ascii.decode('utf8', "ignore").strip()
-        except Exception, e:
+        except Exception as e:
             if not DEBUG:
                 Log.warning("Bad log line ignored while processing {{url}}\n{{line}}", url=from_url, line=log_ascii, cause=e)
             continue
@@ -264,7 +282,7 @@ def process_text_log(all_log_lines, from_url):
                 else:
                     data[key] = value
                 continue
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 builder_says = builder_line.match(start_time, curr_line, next_line)
                 if not builder_says:
@@ -277,7 +295,7 @@ def process_text_log(all_log_lines, from_url):
             process_head = False
             timestamp, elapsed, builder_raw_step_name, command, parts, done, status = builder_says
 
-            end_time = Math.max(end_time, timestamp)
+            end_time = MAX([end_time, timestamp])
 
             if done:
                 if builder_step.raw_step == builder_raw_step_name:
@@ -309,29 +327,35 @@ def process_text_log(all_log_lines, from_url):
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
-            end_time = Math.max(end_time, timestamp)
+            timestamp, mode, result, harness_step_name = mozharness_says
+            end_time = MAX([end_time, timestamp])
 
-            builder_step.children += [{
-                "step": harness_step,
-                "mode": mode,
-                "start_time": timestamp
-            }]
+            if not result:
+                harness_step = harness_steps[harness_step_name] = {
+                    "step": harness_step_name,
+                    "mode": mode,
+                    "start_time": timestamp
+                }
+                builder_step.children += [harness_step]
+            else:
+                harness_step = harness_steps[harness_step_name]
+                harness_step['result'] = result
+                harness_step['end_time'] = timestamp
 
         mozharness_says = old_mozharness_line.match(from_url, end_time, prev_line, curr_line, next_line)
         if mozharness_says:
-            timestamp, mode, harness_step = mozharness_says
-            end_time = Math.max(end_time, timestamp)
+            timestamp, mode, harness_step_name = mozharness_says
+            end_time = MAX([end_time, timestamp])
 
             builder_step.children += [{
-                "step": harness_step,
+                "step": harness_step_name,
                 "mode": mode,
                 "start_time": timestamp
             }]
 
     try:
         fix_times(data.timings.builder, start_time, end_time)
-        new_build_times = DictList()
+        new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
         for b in data.timings:
             new_build_times.append(b)
@@ -354,7 +378,7 @@ def process_text_log(all_log_lines, from_url):
             t.order = i
         data.timings = new_build_times
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with calculating durations from {{url}}", url=from_url, cause=e)
 
     data.end_time = end_time
@@ -365,7 +389,6 @@ def process_text_log(all_log_lines, from_url):
 
     data.etl.total_bytes = total_bytes
     return data
-
 
 
 
@@ -384,6 +407,7 @@ class NewHarnessLines(object):
     def __init__(self):
         self.time_zone = None
         self.time_skew = None
+        self.last_seen = None
 
     def match(self, source, last_timestamp, curr_line):
         """
@@ -398,6 +422,7 @@ class NewHarnessLines(object):
         012345678901234567890123456789012345678901234567890123456789
         [mozharness: 2016-07-11 21:35:08.2927233Z] Finished run-tests step (success)
 
+        12:23:12     INFO - [mozharness: 2016-11-10 20:23:12.172233Z] Finished run-tests step (success)
         """
 
         if not NEW_MOZLOG_STEP.match(curr_line):
@@ -406,22 +431,27 @@ class NewHarnessLines(object):
         match = NEW_MOZLOG_START_STEP.match(curr_line)
         if match:
             _utc_time, mode, message = match.group(1, 2, 3)
+            timestamp = self.utc_to_timestamp(_utc_time, last_timestamp)
             mode = mode.strip().lower()
-        else:
-            for p in NEW_MOZLOG_END_STEP:
-                match = p.match(curr_line)
-                if match:
-                    _utc_time, message, mode = match.group(1, 2, 3)
-                    break
-            else:
-                Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
-                return None
+            if DEBUG:
+                Log.note("{{line}}", line=curr_line)
+            return timestamp, mode, None, message
 
-            # SOME MOZHARNESS STEPS HAVE A SUMMARY, IGNORE THEM
-            return None
+        for p in NEW_MOZLOG_END_STEP:
+            match = p.match(curr_line)
+            if match:
+                _utc_time, message, result = match.group(1, 2, 3)
+                timestamp = self.utc_to_timestamp(_utc_time, last_timestamp)
+                result = result.strip().lower()
+                return timestamp, None, result, message
+        Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
+        return None
 
+    def utc_to_timestamp(self, _utc_time, last_timestamp):
         timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
-        if timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+        if last_timestamp == None:
+            last_timestamp = timestamp
+        elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
             Log.error("not expected")
         if self.time_zone is None:
             self.time_skew = last_timestamp - timestamp
@@ -429,10 +459,8 @@ class NewHarnessLines(object):
             if DEBUG:
                 Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         timestamp += self.time_zone
-
-        if DEBUG:
-            Log.note("{{line}}", line=curr_line)
-        return timestamp, mode, message
+        self.last_seen = MAX([timestamp, self.last_seen])
+        return timestamp
 
 
 OLD_MOZLOG_STEP = re.compile(r"(\d\d:\d\d:\d\d)     INFO - ##### (Running|Skipping) (.*) step.")
@@ -554,7 +582,7 @@ class BuilderLines(object):
                 return timestamp, self.last_elapse_time, "", message, parts, done, status
             desc, stats, _time = "(".join(parts[:-2]), parts[-2], parts[-1]
 
-        except Exception, e:
+        except Exception as e:
             Log.warning("Can not split log line: {{line|quote}}", line=line, cause=e)
             return None
 
@@ -729,16 +757,16 @@ def fix_times(times, start_time, end_time):
     for i, t in enumerate(times):
         if t.start_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS STARTED
-            t.start_time = Math.min(Math.MIN(t.children.start_time), Math.MIN(t.children.end_time), time)
-        time = Math.max(t.start_time, t.end_time, time)
+            t.start_time = MIN([MIN(t.children.start_time), MIN(t.children.end_time), time])
+        time = MAX([t.start_time, t.end_time, time])
 
     # EVERY TIME NOW HAS A start_time
     time = end_time
     for t in jx.reverse(times):
         if t.end_time == None:
             # FIND BEST EVIDENCE OF WHEN THIS ENDED (LOTS OF CANCELLED JOBS)
-            t.end_time = Math.max(Math.MAX(t.children.start_time), Math.MAX(t.children.end_time), time, t.start_time)
-        t.duration = Math.max(time, t.end_time) - t.start_time
+            t.end_time = MAX([MAX(t.children.start_time), MAX(t.children.end_time), time, t.start_time])
+        t.duration = MAX([time, t.end_time]) - t.start_time
         if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
             t.duration+=HOUR
         if t.duration==None or t.duration < 0:

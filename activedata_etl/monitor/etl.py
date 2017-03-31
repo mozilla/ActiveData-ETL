@@ -6,17 +6,15 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
-import boto
-from boto.ec2 import cloudwatch
+from __future__ import unicode_literals
 
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 def _config_fabric(connect):
@@ -40,7 +38,7 @@ def main():
                 return
             sudo("supervisorctl restart etl")
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with checking for ETL updates", e)
     finally:
         Log.stop()

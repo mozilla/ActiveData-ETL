@@ -7,20 +7,19 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-import ast
+from __future__ import unicode_literals
 
+import ast
 import re
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist, listwrap
+from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
+from pyLibrary import convert
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, strings
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
-from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date, unicode2Date
+from mo_math import Math
+from mo_times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
@@ -32,7 +31,7 @@ class BuildbotTranslator(object):
 
     def parse(self, data):
         data = wrap(data)
-        output = Dict()
+        output = Data()
 
         if data.build.times:
             if len(data.build.times) != 2:
@@ -41,7 +40,7 @@ class BuildbotTranslator(object):
             data = data.build
 
         if isinstance(data.properties, list):
-            props = data.properties = Dict(**{a: b for a, b, c in data.properties})
+            props = data.properties = Data(**{a: b for a, b, c in data.properties})
         else:
             props = data.properties.copy()
 
@@ -83,7 +82,7 @@ class BuildbotTranslator(object):
             ratio = RATIO_PATTERN.match(buildername.split("_")[-1])
             if ratio:
                 output.action.step = ratio.groups()[0]
-        except Exception, e:
+        except Exception as e:
             Log.error("problem in\n{{data|json}}", data=data, cause=e)
 
         # SCRIPT
@@ -169,7 +168,7 @@ class BuildbotTranslator(object):
                     {"name": name, "url": url}
                     for name, url in files.items()
                 ]
-        except Exception, e:
+        except Exception as e:
             Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=blobber_files, cause=e)
 
         # PRODUCT
@@ -243,7 +242,7 @@ class BuildbotTranslator(object):
                 "jetpack-(.*)-{{platform}}-{{type}}",
                 {
                     "platform": raw_platform,
-                    "type": unwraplist(list(set(output.build.type)))
+                    "type": unwraplist(list(set(listwrap(output.build.type))))
                 }
             ), buildername)
 
@@ -261,7 +260,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR INGNORED, ALREADY SENT
             set_default(output, KNOWN_PLATFORM[raw_platform])
         elif buildername.endswith("nightly"):
             output.build.trigger = "nightly"
@@ -297,10 +296,10 @@ class BuildbotTranslator(object):
                         self.unknown_platforms += [raw_platform]
                         Log.error("Test platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                     else:
-                        return Dict()  # ERROR INGNORED, ALREADY SENT
+                        return Data()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
-            except Exception, e:
+            except Exception as e:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=buildername, data=data, cause=e)
 
             for t in BUILD_TYPES:
@@ -333,7 +332,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR INGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -356,11 +355,11 @@ def consume(props, key):
 
 
 def verify(output, data):
-    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
-    output.build.type = unwraplist(list(set(listwrap(output.build.type))))
-    output.build.tags = unwraplist(list(set(output.build.tags)))
+    output.run.type = list(set(listwrap(output.run.type)))
+    output.build.type = list(set(listwrap(output.build.type)))
+    output.build.tags = list(set(output.build.tags))
 
-    if "e10s" in data.properties.buildername.lower() and output.run.type != 'e10s':
+    if "e10s" in data.properties.buildername.lower() and 'e10s' not in output.run.type:
         Log.error("Did not pickup e10s in\n{{data|json}}", data=data)
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)
@@ -410,7 +409,7 @@ def normalize_other(other):
     """
     the buildbot properties are unlimited in their number of keys
     """
-    known = Dict()
+    known = Data()
     unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
@@ -424,7 +423,7 @@ def normalize_other(other):
         if k not in unknown_properties:
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
-        if isinstance(v, (list, dict, Dict)):
+        if isinstance(v, (list, dict, Data)):
             unknown.append({"name": unicode(k), "value": convert.value2json(v)})
         elif Math.is_number(v):
             unknown.append({"name": unicode(k), "value": convert.value2number(v)})
@@ -464,7 +463,7 @@ known_properties = {
     "uploadFiles"
 }
 
-unknown_properties=Dict()
+unknown_properties=Data()
 
 
 test_modes = {

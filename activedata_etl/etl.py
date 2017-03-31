@@ -37,6 +37,7 @@ from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.queries import jx
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
+from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import SECOND
 from activedata_etl import key2etl
@@ -232,10 +233,6 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # for n in new_keys:
-                #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
-
                 delete_me = old_keys - new_keys
                 if delete_me:
                     if action.destination.bucket == "ekyle-test-result":
@@ -301,7 +298,7 @@ class ETL(Thread):
                         if isinstance(self.work_queue, aws.Queue):
                             todo = self.work_queue.pop()
                         else:
-                            todo = self.work_queue.pop(till=Date.now().unix)
+                            todo = self.work_queue.pop(till=Till(till=Date.now().unix))
                             Log.note("First item in Queue popped: {{t}}", t=todo)
                         if todo == None:
                             please_stop.go()

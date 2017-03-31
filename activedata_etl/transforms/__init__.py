@@ -10,13 +10,12 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from pyLibrary import convert
-from pyLibrary import strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, literal_field
+from mo_logs import Log, strings
+from mo_dots import wrap, Data, literal_field
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_times.dates import Date
+from mo_times.timer import Timer
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -33,10 +32,12 @@ STRUCTURED_LOG_ENDINGS = [
 ]
 NOT_STRUCTURED_LOGS = [
     ".apk",
+    "/awsy_raw.log",
     "/buildbot_properties.json",
-    "/log_raw.log",
-    "/talos_raw.log",
     "/buildprops.json",
+    "/chain_of_trust.log"
+    "/chainOfTrust.json.asc",
+    "/talos_raw.log",
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
@@ -45,9 +46,12 @@ NOT_STRUCTURED_LOGS = [
     "/log_fatal.log",
     "/log_info.log",
     "/log_warning.log",
+    "/manifest.json",
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    "/properties.json",
+    "/log_raw.log",
     "/localconfig.json",
     "/talos_critical.log",
     "/talos_error.log",
@@ -72,7 +76,7 @@ NOT_STRUCTURED_LOGS = [
     ".xml.sha1",
     ".xml",
     ]
-TOO_MANY_NON_JSON_LINES = Dict()
+TOO_MANY_NON_JSON_LINES = Data()
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -100,13 +104,15 @@ def verify_blobber_file(line_number, name, url):
     """
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
+    if name.find("/jscov_") >= 0 and name.endswith(".json"):
+        return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
         response = http.get(url)
 
         try:
             logs = response.all_lines
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log"):
                 Log.error(
                     "Line {{line}}: {{name}} = {{url}} is NOT structured log",
@@ -146,7 +152,7 @@ def verify_blobber_file(line_number, name, url):
                 try:
                     total += len(convert.json2value(blobber_line))
                     count += 1
-                except Exception, e:
+                except Exception as e:
                     if DEBUG:
                         Log.note("Not JSON: {{line}}",
                             name= name,
@@ -161,7 +167,7 @@ def verify_blobber_file(line_number, name, url):
                 TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
                 Log.error("No JSON lines found")
 
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log") and "No JSON lines found" not in e:
                 Log.error(
                     "Line {{line}}: {{name}} is NOT structured log",

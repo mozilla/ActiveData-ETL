@@ -10,12 +10,12 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from pyLibrary.aws import s3
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, listwrap, Dict, wrap
+from mo_logs import Log
+from mo_dots import Null, listwrap, Data, wrap
 from pyLibrary.env import http
-from pyLibrary.jsons import ref
-from pyLibrary.maths.randoms import Random
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_json import ref
+from mo_math.randoms import Random
+from mo_testing.fuzzytestcase import FuzzyTestCase
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs, EtlHeadGenerator
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import stats
@@ -35,36 +35,36 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         def dummy(a, b):
             return Null, Null
-        seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Dict(next=dummy), Null, Null)
+        seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Data(next=dummy), Null, Null)
         Log.note("{{output}}", output=all_perf)
 
 
     def test_capture(self):
         source_key = u'213657:13240348'
-        source = s3.Bucket(bucket="active-data-pulse-beta", settings=self.settings.aws).get_key(source_key)
-        dest_bucket = S3Bucket(bucket="active-data-perfherder-beta", settings=self.settings.aws)
+        source = s3.Bucket(bucket="active-data-pulse-beta", kwargs=self.settings.aws).get_key(source_key)
+        dest_bucket = S3Bucket(bucket="active-data-perfherder-beta", kwargs=self.settings.aws)
         resources = Null
         pulse_block_to_perfherder_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
     def test_perfherder_transform_a(self):
         source_key = u'241125:24077577'
-        source = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws).get_key(source_key)
-        dest_bucket = S3Bucket(bucket="active-data-perf-dev", settings=self.settings.aws)
+        source = s3.Bucket(bucket="active-data-perfherder", kwargs=self.settings.aws).get_key(source_key)
+        dest_bucket = S3Bucket(bucket="active-data-perf-dev", kwargs=self.settings.aws)
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
     def test_perfherder_transform_b(self):
         source_key = u'300042:29969274.1'
-        source = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws).get_key(source_key)
-        dest_bucket = S3Bucket(bucket="active-data-perf-dev", settings=self.settings.aws)
+        source = s3.Bucket(bucket="active-data-perfherder", kwargs=self.settings.aws).get_key(source_key)
+        dest_bucket = S3Bucket(bucket="active-data-perf-dev", kwargs=self.settings.aws)
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
 
     def test_perfherder_transform_c(self):
         source_key = u'307827:30747788.7'
-        source = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws).get_key(source_key)
-        dest_bucket = S3Bucket(bucket="active-data-perf-dev", settings=self.settings.aws)
+        source = s3.Bucket(bucket="active-data-perfherder", kwargs=self.settings.aws).get_key(source_key)
+        dest_bucket = S3Bucket(bucket="active-data-perf-dev", kwargs=self.settings.aws)
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
 
@@ -85,14 +85,14 @@ class TestBuildbotLogs(FuzzyTestCase):
         perfherder_logs_to_perf_logs.process("dummy", wrap_as_bucket([data]), Null, Null, Null)
 
     def test_many_perfherder_transform(self):
-        bucket = s3.Bucket(bucket="active-data-perfherder", settings=self.settings.aws)
+        bucket = s3.Bucket(bucket="active-data-perfherder", kwargs=self.settings.aws)
         all_keys = (k.name.replace(".json.gz", "") for k in bucket.bucket.list(prefix="30"))
         for k in all_keys:
             if not Random.range(0, 10) == 0:
                 continue
 
             source_key = k
-            dest_bucket = S3Bucket(bucket="active-data-perf-dev", settings=self.settings.aws)
+            dest_bucket = S3Bucket(bucket="active-data-perf-dev", kwargs=self.settings.aws)
             resources = Null
             perfherder_logs_to_perf_logs.process(source_key, bucket.get_key(source_key), dest_bucket, resources, please_stop=None)
 
@@ -110,4 +110,4 @@ class TestBuildbotLogs(FuzzyTestCase):
 def wrap_as_bucket(data):
     def read_lines():
         return data
-    return Dict(read_lines=read_lines)
+    return Data(read_lines=read_lines)
