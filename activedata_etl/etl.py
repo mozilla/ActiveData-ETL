@@ -23,21 +23,22 @@ from collections import Mapping
 from copy import deepcopy
 import sys
 
-from pyLibrary import aws, dot, strings
+from mo_kwargs import override
+
+import mo_dots
+from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
-from pyLibrary.collections import MIN
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, listwrap, Dict, Null, wrap, set_default
+from mo_math import MIN
+from mo_logs import Log, startup, constants, strings
+from mo_logs.exceptions import suppress_exception
+from mo_dots import coalesce, listwrap, Data, Null, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.meta import use_settings
 from pyLibrary.queries import jx
-from pyLibrary.testing import fuzzytestcase
-from pyLibrary.thread.threads import Thread, Signal, Queue, Lock
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import SECOND
+from mo_testing import fuzzytestcase
+from mo_threads import Thread, Signal, Queue, Lock
+from mo_times.dates import Date
+from mo_times.durations import SECOND
 from activedata_etl import key2etl
 from mohg.hg_mozilla_org import HgMozillaOrg
 from activedata_etl.sinks.dummy_sink import DummySink
@@ -61,7 +62,7 @@ class ConcatSources(object):
 
 
 class ETL(Thread):
-    @use_settings
+    @override
     def __init__(
         self,
         name,
@@ -70,26 +71,26 @@ class ETL(Thread):
         resources,
         please_stop,
         wait_forever=False,
-        settings=None
+        kwargs=None
     ):
         # FIND THE WORKERS METHODS
-        settings.workers = []
+        kwargs.workers = []
         for w in workers:
             w = deepcopy(w)
 
-            for existing_worker in settings.workers:
+            for existing_worker in kwargs.workers:
                 try:
                     fuzzytestcase.assertAlmostEqual(existing_worker.source, w.source)
                     fuzzytestcase.assertAlmostEqual(existing_worker.transformer, w.transformer)
                     # SAME SOURCE AND TRANSFORMER, MERGE THE destinations
-                except Exception, e:
+                except Exception as e:
                     continue
                 destination = get_container(w.destination)
                 existing_worker._destination = Split(existing_worker._destination, destination)
                 break
             else:
                 t_name = w.transformer
-                w._transformer = dot.get_attr(sys.modules, t_name)
+                w._transformer = mo_dots.get_attr(sys.modules, t_name)
                 if not w._transformer:
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
@@ -97,14 +98,14 @@ class ETL(Thread):
                     w._transformer = w._transformer.__new__()
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
-                settings.workers.append(w)
+                kwargs.workers.append(w)
 
             w._notify = []
             for notify in listwrap(w.notify):
                 w._notify.append(aws.Queue(notify)) # notify tells which queue to put in
 
         self.resources = resources
-        self.settings = settings
+        self.settings = kwargs
         if isinstance(work_queue, Mapping):
             self.work_queue = aws.Queue(work_queue) # work queue created
         else:
@@ -112,7 +113,7 @@ class ETL(Thread):
         Log.note("Work queue {{s}}", s=work_queue)
         # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
-
+        Log.note("--- finished ETL transform thread ---")
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -154,12 +155,13 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
+                destination_name = coalesce(action.destination.bucket, action.destination.host + "/" + action.destination.index)
                 Log.note(
                     "Execute {{action}} on bucket={{source}} key={{key}} to destination={{dest}}",
                     action=action.name,
                     source=source_block.bucket,
                     key=source_key,
-                    dest=action._destination.bucket.name
+                    dest=destination_name
                 )
 
                 if action.transform_type == "bulk":
@@ -172,27 +174,34 @@ class ETL(Thread):
                 # transformer will return no keys or original key for first part of SQS split
 
                 # must set up resources
-                resources = set_default(
+                resources = mo_dots.set_default(
                     {
                         "todo": source_block,
                         "work_queue": self.work_queue
-                        #"message": "http://queue.taskcluster.net/v1/task/HC1WFS9zRyulV2R0aNyAoQ/artifacts/public/test_info//code-coverage-gcda.zip",
-                        #"taskcluster": "tc.569601:56959263.71"
                     },
                     self.resources
                 )
 
-                Log.note("Length of work queue before gcov_to_es: {{l}}", l = self.work_queue.__len__())
+                new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
 
-                new_keys = set(action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop))
-
-                Log.note("Length of work queue after gcov_to_es: {{l2}}", l2=self.work_queue.__len__())
-                # instead of keys being generated from this call and artifact will be
-                # add artifact to SQS message
-                # then when popped will start second transformation > which will generate keys
-
-
-                Log.note("finished gcov transformation")
+                if not new_keys and old_keys:
+                    Log.warning(
+                        "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+                elif new_keys == None:
+                    new_keys = set()
+                elif len(new_keys) == 0:
+                    Log.alert(
+                        "Expecting some new keys after processing {{source_key}}",
+                        old_keys=old_keys,
+                        source_key=source_key
+                    )
+                    continue
+                else:
+                    new_keys = set(new_keys)
 
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
@@ -223,25 +232,9 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # DUE TO BUGS THIS INVARIANT IS NOW BROKEN
-                # TODO: FIGURE OUT HOW TO FIX THIS (CHANGE NAME OF THE SOURCE BLOCK KEY?)
                 # for n in new_keys:
                 #     if not n.startswith(source_key):
                 #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})",  new_key= n,  source_key= source_key)
-
-
-                if not new_keys and old_keys:
-                    Log.warning("Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
-                        old_keys= old_keys,
-                        source_key= source_key)
-                    continue
-                elif not new_keys:
-                    Log.alert(
-                        "Expecting some new keys after processing {{source_key}}",
-                        old_keys=old_keys,
-                        source_key=source_key
-                    )
-                    continue
 
                 delete_me = old_keys - new_keys
                 if delete_me:
@@ -255,11 +248,14 @@ class ETL(Thread):
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
                     for k in old_keys | new_keys:
-                        self.work_queue.add(Dict(
-                            bucket=action.destination.bucket,
-                            key=k
-                        ))
-            except Exception, e:
+                        now = Date.now()
+                        self.work_queue.add({
+                            "bucket": action.destination.bucket,
+                            "key": k,
+                            "timestamp": now.unix,
+                            "date/time": now.format()
+                        })
+            except Exception as e:
                 if "Key {{key}} does not exist" in e:
                     err = Log.warning
                 elif "multiple keys in {{bucket}}" in e:
@@ -287,90 +283,92 @@ class ETL(Thread):
         return True
 
     def loop(self, please_stop):
+        try:
+            with self.work_queue:
+                while not please_stop:
+                    if self.settings.wait_forever:
+                        todo = None
+                        while not please_stop and not todo:
+                            if isinstance(self.work_queue, aws.Queue):
+                                todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
+                            else:
+                                todo = self.work_queue.pop()
+                        if not todo:
+                            break  # please_stop MUST HAVE BEEN TRIGGERED
 
-        with self.work_queue:
-            while not please_stop:
-                Log.note("Work_queue: {{q}}", q=self.work_queue)
-                if self.settings.wait_forever:
-                    todo = None
-                    while not please_stop and not todo:
+                    else:
+                        # using --key= so will not be an aws.Queue, instead it will be a local queue
                         if isinstance(self.work_queue, aws.Queue):
-                            todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
-                        else:
                             todo = self.work_queue.pop()
-                    if not todo:
-                        break  # please_stop MUST HAVE BEEN TRIGGERED
+                        else:
+                            todo = self.work_queue.pop(till=Date.now().unix)
+                            Log.note("First item in Queue popped: {{t}}", t=todo)
+                        if todo == None:
+                            please_stop.go()
+                            return
 
-                else:
-                    # using --key= so will not be an aws.Queue, instead it will be a local queue
-                    if isinstance(self.work_queue, aws.Queue):
-                        todo = self.work_queue.pop()
-                    else:
-                        todo = self.work_queue.pop(till=Date.now())
-                        Log.note("First item in Queue popped: {{t}}", t=todo)
                     if todo == None:
-                        please_stop.go()
-                        return
-
-                if todo == None:
-                    Log.warning("Should never happen")
-                    continue
-
-                if isinstance(todo, unicode):
-                    Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
-                    self.work_queue.commit()
-                    continue
-                #list_queue("active-data-etl-dev", 10)
-
-                try:
-                    Log.note("Todo is a: {{diction}}", diction= type(todo))
-                    is_ok = self._dispatch_work(todo)
-                    if is_ok:
-                        self.work_queue.commit()
-                    else:
-                        self.work_queue.rollback()
-                except Exception, e:
-                    # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
-                    if "Shutdown detected." in e:
+                        Log.warning("Should never happen")
                         continue
 
-                    previous_attempts = coalesce(todo.previous_attempts, 0)
-                    todo.previous_attempts = previous_attempts + 1
-
-                    if previous_attempts < coalesce(self.settings.min_attempts, 3):
-                        # SILENT
-                        try:
-                            self.work_queue.add(todo)
-                            self.work_queue.commit()
-                        except Exception, f:
-                            # UNEXPECTED PROBLEM!!!
-                            self.work_queue.rollback()
-                            Log.warning("Could not annotate todo", cause=[f, e])
-                    elif previous_attempts > 10:
-                        #GIVE UP
-                        Log.warning(
-                            "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
-                            tries=todo.previous_attempts,
-                            key=todo.key,
-                            cause=e
-                        )
+                    if isinstance(todo, unicode):
+                        Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                         self.work_queue.commit()
-                    else:
-                        # COMPLAIN
-                        try:
-                            self.work_queue.add(todo)
-                            self.work_queue.commit()
-                        except Exception, f:
-                            # UNEXPECTED PROBLEM!!!
-                            self.work_queue.rollback()
-                            Log.warning("Could not annotate todo", cause=[f, e])
+                        continue
 
-                        Log.warning(
-                            "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
-                            tries=todo.previous_attempts,
-                            key=todo.key,
-                            cause=e
-                        )
+
+                    try:
+                        Log.note("Todo is a: {{diction}}", diction= type(todo))
+                        is_ok = self._dispatch_work(todo)
+                        if is_ok:
+                            self.work_queue.commit()
+                        else:
+                            self.work_queue.rollback()
+                    except Exception as e:
+                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
+                        if "Shutdown detected." in e:
+                            continue
+
+                        previous_attempts = coalesce(todo.previous_attempts, 0)
+                        todo.previous_attempts = previous_attempts + 1
+
+                        if previous_attempts < coalesce(self.settings.min_attempts, 3):
+                            # SILENT
+                            try:
+                                self.work_queue.add(todo)
+                                self.work_queue.commit()
+                            except Exception, f:
+                                # UNEXPECTED PROBLEM!!!
+                                self.work_queue.rollback()
+                                Log.warning("Could not annotate todo", cause=[f, e])
+                        elif previous_attempts > 10:
+                            #GIVE UP
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
+                                tries=todo.previous_attempts,
+                                key=todo.key,
+                                cause=e
+                            )
+                            self.work_queue.commit()
+                        else:
+                            # COMPLAIN
+                            try:
+                                self.work_queue.add(todo)
+                                self.work_queue.commit()
+                            except Exception, f:
+                                # UNEXPECTED PROBLEM!!!
+                                self.work_queue.rollback()
+                                Log.warning("Could not annotate todo", cause=[f, e])
+
+                            Log.warning(
+                                "After {{tries}} attempts, still could not process {{key}}.  Returned back to work queue.",
+                                tries=todo.previous_attempts,
+                                key=todo.key,
+                                cause=e
+                            )
+        except Exception as e:
+            Log.warning("Failure in the ETL loop", cause=e)
+            raise e
 
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
@@ -402,7 +400,7 @@ def get_container(settings):
                     return e[1]
 
 
-            es = elasticsearch.Cluster(settings=settings).get_or_create_index(settings=settings)
+            es = elasticsearch.Cluster(kwargs=settings).get_or_create_index(kwargs=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)
             setattr(output, "keys", lambda prefix: set())
 
@@ -450,9 +448,10 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=True, settings=settings.hg)
-        resources = Dict(
-            hg=hg
+        hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
+        resources = Data(
+            hg=hg,
+            local_es_node=settings.local_es_node
         )
 
         stopper = Signal()
@@ -462,17 +461,17 @@ def main():
                 work_queue=settings.work_queue,
                 resources=resources,
                 workers=settings.workers,
-                settings=settings.param,
+                kwargs=settings.param,
                 please_stop=stopper
             )
 
         aws.capture_termination_signal(stopper)
         Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
-        # write_profile(Dict(filename="startup.tab"), [pstats.Stats(cprofiler)])
+        # write_profile(Data(filename="startup.tab"), [pstats.Stats(cprofiler)])
 
 
 def etl_one(settings):
@@ -494,23 +493,23 @@ def etl_one(settings):
                 keys = source.keys(i)
                 for k in keys:
                     already_in_queue.add(k)
-                    queue.add(Dict(
+                    queue.add(Data(
                         bucket=w.source.bucket,
                         key=k
                     ))
-        except Exception, e:
+        except Exception as e:
             if "Key {{key}} does not exist" in e:
                 already_in_queue.add(id(source))
-                queue.add(Dict(
+                queue.add(Data(
                     bucket=w.source.bucket,
                     key=settings.args.id
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(settings=settings.hg)
-    #where resources is first created/called
-    resources = Dict(
-        hg=hg
+    hg = HgMozillaOrg(kwargs=settings.hg)
+    resources = Data(
+        hg=hg,
+        local_es_node=settings.local_es_node
     )
 
     stopper = Signal("main stop signal")
@@ -518,11 +517,10 @@ def etl_one(settings):
         name="ETL Loop Test",
         work_queue=queue,
         workers=settings.workers,
-        settings=settings.param,
+        kwargs=settings.param,
         resources=resources,
         please_stop=stopper
     )
-
     Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 

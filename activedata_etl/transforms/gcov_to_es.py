@@ -17,22 +17,18 @@ from zipfile import ZipFile, BadZipfile
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import EtlHeadGenerator
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import set_default, Dict
+from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
+from mo_dots import set_default
+from mo_files import File
+from mo_json import json2value, value2json
+from mo_logs import Log, machine_metadata
+from mo_threads import Process
+from mo_times import Timer, Date
 from pyLibrary.env import http
-from pyLibrary.env.files import File
-from pyLibrary.thread.multiprocess import Process
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
-ENABLE_LCOV = True
-WINDOWS_TEMP_DIR = "c:/msys64/tmp/ccov"
-MSYS2_TEMP_DIR = "/tmp/ccov"
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -48,14 +44,13 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    etl_header_gen = EtlHeadGenerator(source_key)
     for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
         # Enter once collected artifacts
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
         try:
-            task_cluster_record = convert.json2value(msg_line)
+            task_cluster_record = json2value(msg_line)
         except Exception, e:
             if "JSON string is only whitespace" in e:
                 continue
@@ -67,8 +62,8 @@ def process(source_key, source, destination, resources, please_stop=None):
         # chop some not-needed, and verbose, properties from tc record
         minimize_task(task_cluster_record)
 
-        Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
-        Log.note("-- Enter Try --")
+        if DEBUG:
+            Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
         try: # TODO rm
             for artifact in artifacts:
                 # Log.note("{{name}}", name=artifact.name)
@@ -85,7 +80,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                                                               artifact))
                             return keys
                     else:
-                        resources.work_queue.add(Dict({
+                        resources.work_queue.add(Data({
                            "bucket": resources.todo.bucket,
                             "key": source_key,
                             "message": artifact.url
@@ -99,7 +94,10 @@ def process(source_key, source, destination, resources, please_stop=None):
             import traceback
             Log.note(traceback.format_exc())
     Log.note("Finish searching for gcda artifacts in gcov_to_es")
-    return keys
+    if not keys:
+        return None
+    else:
+        return keys
 
 
 def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
@@ -110,7 +108,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     """
     # Second part of CCOV transformation from SQS
     # gcda_artifact will be the URL to the gcda file
-   # Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
+    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     tmpdir = mkdtemp()
     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
@@ -150,6 +148,7 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
     # where actual transform is performed and written to S3
+    minimize_task(task_cluster_record)
     process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
     File(tmpdir).delete()
 
@@ -158,18 +157,11 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
-    # use the suite name and chunk to specify which test was run
-    try:
-        test_suite = task_cluster_record.run.suite.name
-        test_chunk = task_cluster_record.run.chunk
-    except Exception, e:
-        raise Log.error("Can not get test name and chunk from task cluster record", cause=e)
-
     new_record = set_default(
         {
             "test": {
-                "suite": test_suite,
-                "chunk": test_chunk,
+                "suite": task_cluster_record.run.suite.name,
+                "chunk": task_cluster_record.run.chunk
             },
             "source": "%PLACEHOLDER%",
             "etl": {
@@ -183,7 +175,7 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         task_cluster_record
     )
 
-    json_with_placeholders = convert.value2json(new_record)
+    json_with_placeholders = value2json(new_record)
 
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
         lcov_coverage = run_lcov_on_directory(source_dir)
@@ -194,6 +186,11 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
                 res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
                 res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
                 count += 1
+                if DEBUG:
+                    try:
+                        json2value(res)
+                    except Exception as e:
+                        Log.error("grcov did not result in JSON", cause=e)
                 yield res
 
         destination.write_lines(etl2key(file_etl), generator())
@@ -220,7 +217,7 @@ def group_to_gcno_artifacts(group_id):
     })
 
     if len(result.data) != 1:
-        Log.error("not expected")
+        Log.error(TRY_AGAIN_LATER, reason="got " + unicode(len(result.data)) + " gcno artifacts for task group " + group_id + ", not expected")
     return result.data[0]
 
 
@@ -232,13 +229,13 @@ def run_lcov_on_directory(directory_path):
     """
     if os.name == 'nt':
         grcov = File("./resources/binaries/grcov.exe").abspath
-        with Process("grcov:" +directory_path, [grcov, directory_path], env={"RUST_BACKTRACE": "full"}, debug=True) as proc:
+        with Process("grcov:" +directory_path, [grcov, directory_path], env={b"RUST_BACKTRACE": b"full"}, debug=True) as proc:
             results = parse_lcov_coverage(proc.stdout)
         return results
     else:
         fdevnull = open(os.devnull, 'w')
 
-        proc = Popen(['grcov', directory_path], stdout=PIPE, stderr=fdevnull)
+        proc = Popen(['./grcov', directory_path], stdout=PIPE, stderr=fdevnull)
         return proc.stdout
 
 
