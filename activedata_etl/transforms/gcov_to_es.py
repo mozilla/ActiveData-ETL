@@ -66,39 +66,38 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
         try: # TODO rm
             for artifact in artifacts:
-                # Log.note("{{name}}", name=artifact.name)
-                if artifact.name.find("gcda") != -1:
+                if artifact.name.find("gcda") == -1:
+                    continue
+
+                if resources.todo.message == artifact.url:
                     # add to SQS instead of processing artifact.
                     # want to add gcda artifacts into work_queue
+                    if DEBUG:
+                        Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
 
-                    if resources.todo.message != None:
-                        if resources.todo.message == artifact.url:
-                            Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
+                    keys.extend(process_gcda_artifact(
+                        source_key,
+                        resources,
+                        destination,
+                        parent_etl,
+                        task_cluster_record,
+                        artifact
+                    ))
+                    return keys
+                else:
+                    resources.work_queue.add(Data({
+                        "bucket": resources.todo.bucket,
+                        "key": source_key,
+                        "message": artifact.url
+                    }))
 
-                            keys.extend(process_gcda_artifact(
-                                source_key,
-                                resources,
-                                destination,
-                                parent_etl,
-                                task_cluster_record,
-                                artifact
-                            ))
-                            return keys
-                    else:
-                        resources.work_queue.add(Data({
-                            "bucket": resources.todo.bucket,
-                            "key": source_key,
-                            "message": artifact.url
-                        }))
-
+                    if DEBUG:
                         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
-
-                elif artifact.name.find("resource-usage") != -1:
-                    break
         except Exception as e:
             Log.warning("problem processing artifacts", cause=e)
 
-    Log.note("Finish searching for gcda artifacts in gcov_to_es")
+    if DEBUG:
+        Log.note("Finish searching for gcda artifacts in gcov_to_es")
     if not keys:
         return None
     else:
@@ -113,7 +112,8 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     """
     # Second part of CCOV transformation from SQS
     # gcda_artifact will be the URL to the gcda file
-    Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
+    if DEBUG:
+        Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
     tmpdir = mkdtemp()
     Log.note('Using temp dir: {{dir}}', dir=tmpdir)
@@ -137,19 +137,23 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     parent_etl = task_cluster_record.etl
     file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-    Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
+    if DEBUG:
+        Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
 
     remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-    Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+    if DEBUG:
+        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
     _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
 
     etl_key = etl2key(file_etl)
-    Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+    if DEBUG:
+        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
     gcno_file = download_file(file_obj.url)
 
-    Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+    if DEBUG:
+        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
     ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
     # where actual transform is performed and written to S3
