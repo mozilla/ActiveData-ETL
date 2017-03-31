@@ -6,6 +6,36 @@
 	},
 	"workers":[
 		{
+			"name": "fx_test",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": "result.start_time",
+				"interval": "3month",
+				"max": "2year"
+			},
+			"sample_only": [
+			],
+			"elasticsearch": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "fx-test",
+				"type": "test_result",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/fx_test.json"
+				},
+				"debug": true,
+				"limit_replicas": true
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-fx-test-normalized",
+				"key_format": "a.b"
+			}
+		},
+		{
 			"name": "treeherder",
 			"batch_size": 1000,
 			"skip": 0,
@@ -44,11 +74,12 @@
 			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
-				"field": "build.date",
+				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
 				"interval": "week",
 				"max": "5week"
 			},
 			"sample_only": [
+				"try"
 			],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
@@ -76,13 +107,13 @@
 		{
 			"name":"perf",
 			"rollover":{
-				"field": "build.date",
+				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
 				"interval": "year",
 				"max":"2year"
 			},
 			"batch_size": 1000,
 			"queue_size": 2000,
-			"sample_only": [],
+			"sample_only": ["try"],
 			"elasticsearch": {
 				"host": "http://activedata.allizom.org",
 				"port": 9200,
@@ -143,8 +174,8 @@
 		{
 			"name":"code coverage",
 			"skip": 0.0,
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
@@ -208,7 +239,7 @@
 	},
 	"debug": {
 		"trace":true,
-		"cprofile":true,
+		"cprofile":false,
 		"log": [
 			{
 				"log_type": "console"
