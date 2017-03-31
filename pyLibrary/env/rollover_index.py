@@ -216,6 +216,8 @@ class RolloverIndex(object):
         if done_copy:
             if queue == None:
                 done_copy()
+            elif queue is DATA_TOO_OLD:
+                done_copy()
             else:
                 queue.add(done_copy)
 
