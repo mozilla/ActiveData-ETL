@@ -96,8 +96,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                 elif artifact.name.find("resource-usage") != -1:
                     break
         except Exception as e:
-            import traceback
-            Log.note(traceback.format_exc())
+            Log.warning("problem processing artifacts", cause=e)
+
     Log.note("Finish searching for gcda artifacts in gcov_to_es")
     if not keys:
         return None
