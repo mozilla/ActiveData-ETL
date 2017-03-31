@@ -69,7 +69,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     Log.note("artifact {{name}}", name=artifact.name)
                     keys.extend(process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, artifact, parent_etl))
             except Exception as e:
-                Log.warning("grcov Failed to process {{artifact}}", artifact=artifact.url, cause=e)
+                Log.warning("Failed to process gcda artifact {{artifact}}", artifact=artifact.url, cause=e)
     if not keys:
         return None
     else:
