@@ -15,6 +15,7 @@ from tempfile import NamedTemporaryFile, mkdtemp
 from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
+from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import EtlHeadGenerator
 from pyLibrary import convert
@@ -101,7 +102,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact):
+def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.

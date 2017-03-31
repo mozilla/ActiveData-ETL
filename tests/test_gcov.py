@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import unittest
+import gzip
 
 from activedata_etl.transforms import gcov_to_es
 from pyLibrary import convert
@@ -19,28 +20,30 @@ from pyLibrary.env.files import File
 
 class TestGcov(unittest.TestCase):
     def test_parsing(self):
-        destination_file = "results/ccov/gcov_parsing_result.txt"
+        destination = Destination("results/ccov/gcov_parsing_result.json.gz")
 
         gcov_to_es.process_directory(
             source_dir="tests/resources/ccov/atk",
-            destination=Destination("results/ccov/gcov_parsing_result.txt"),
+            # source_dir="/home/marco/Documenti/FD/mozilla-central/build-cov-gcc",
+            destination=destination,
             task_cluster_record=Null,
             file_etl=Null
         )
 
-        lines = File(destination_file).read().split("\n")
-        self.assertEqual(len(lines), 83, "Expecting 83 lines (last one is empty)")
+        self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))
 
-
-
+import zlib
+import io
 class Destination(object):
 
     def __init__(self, filename):
-        self.file = File(filename)
+        self.filename = filename
+        self.count = 0
 
-    def extend(self, values, overwrite=False):
-        if overwrite:
-            self.file.write("\n".join(map(convert.value2json, values)) + "\n")
-        else:
-            self.file.append("\n".join(map(convert.value2json, values)) + "\n")
-
+    def write_lines(self, key, lines):
+        archive = gzip.GzipFile(self.filename, mode='w')
+        for l in lines:
+            archive.write(l.encode("utf8"))
+            archive.write(b"\n")
+            self.count += 1
+        archive.close()

@@ -44,9 +44,6 @@ from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
-from activedata_etl.look_at_queue import list_queue
-
-from pyLibrary import convert
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -165,13 +162,6 @@ class ETL(Thread):
                     dest=action._destination.bucket.name
                 )
 
-                # TESTING
-                #f = open('tests/resources/ccov/testextend2.txt', "a")
-                #testkey = action._destination.bucket.read_lines('tc.567377:56736863.80.0')
-                #f.write("\n".join(action._destination.bucket.read_lines('tc.567361:56735263.25.0')))
-                #f.close()
-                # TESTING
-
                 if action.transform_type == "bulk":
                     old_keys = set()
                 else:
@@ -203,7 +193,7 @@ class ETL(Thread):
 
 
                 Log.note("finished gcov transformation")
-                
+
                 # VERIFY KEYS
                 etls = map(key2etl, new_keys)
                 etl_ids = jx.sort(set(wrap(etls).id))
@@ -222,10 +212,6 @@ class ETL(Thread):
 
                 for n in action._notify:
                     for k in new_keys:
-                        # is currently where SQS is being used?
-
-                        # added to notify queue < notify is not a queue
-                        #
                         now = Date.now()
                         n.add({
                             "bucket": action._destination.bucket.name,
@@ -298,7 +284,6 @@ class ETL(Thread):
                     destination=coalesce(action.destination.name, action.destination.index),
                     cause=e
                 )
-        Log.note("------finished calling etl------")
         return True
 
     def loop(self, please_stop):

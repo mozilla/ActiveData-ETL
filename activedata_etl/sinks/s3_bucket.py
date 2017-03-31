@@ -85,6 +85,9 @@ class S3Bucket(object):
 
         return set(parts.keys())
 
+    def write_lines(self, key, lines):
+        self.bucket.write_lines(key, lines)
+
     def _extend(self, key, documents, overwrite=False):
         if overwrite:
             self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
