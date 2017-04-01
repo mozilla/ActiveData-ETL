@@ -460,29 +460,25 @@ def main():
 
 
 def etl_one(settings):
-    queue = Queue("temp work queue")
+    queue = Queue("temp work queue", max=2**32)
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
-    already_in_queue = set()
     for w in settings.workers:
         source = get_container(w.source)
         # source.settings.fast_forward = True
-        if id(source) in already_in_queue:
-            continue
         try:
             for i in parse_id_argument(settings.args.id):
                 keys = source.keys(i)
+                Log.note("Add {{num}} keys for {{bucket}}", num=len(keys), bucket=w.source.bucket)
                 for k in keys:
-                    already_in_queue.add(k)
                     queue.add(Data(
                         bucket=w.source.bucket,
                         key=k
                     ))
         except Exception as e:
             if "Key {{key}} does not exist" in e:
-                already_in_queue.add(id(source))
                 queue.add(Data(
                     bucket=w.source.bucket,
                     key=settings.args.id
