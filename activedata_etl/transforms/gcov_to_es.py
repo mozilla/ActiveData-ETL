@@ -17,9 +17,9 @@ from zipfile import ZipFile, BadZipfile
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import set_default, Data
-from mo_files import File
+from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
+from mo_dots import set_default
+from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process
@@ -115,54 +115,52 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
     if DEBUG:
         Log.note("Processing gcda artifact {{artifact}}", artifact=gcda_artifact.name)
 
-    tmpdir = mkdtemp()
-    Log.note('Using temp dir: {{dir}}', dir=tmpdir)
+    with TempDirectory() as tmpdir:
+        Log.note('Using temp dir: {{dir}}', dir=tmpdir)
 
-    ccov = File(tmpdir + '/ccov').delete()
-    out = File(tmpdir + "/out").delete()
+        File.new_instance(tmpdir, 'ccov').delete()
+        File.new_instance(tmpdir, 'out').delete()
 
-    try:
-        Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-        gcda_file = download_file(gcda_artifact.url)
+        try:
+            Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
+            gcda_file = download_file(gcda_artifact.url)
 
-        Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-        ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
-    except BadZipfile:
-        Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
-        return []
+            Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
+            ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
+        except BadZipfile:
+            Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+            return []
 
-    # How to pass taskcluster record? only need task_cluster_record.etl and .task.group.id
-    # pass task.id to resources and have resources find the corresponding taskcluster record?
-    #
+        # How to pass taskcluster record? only need task_cluster_record.etl and .task.group.id
+        # pass task.id to resources and have resources find the corresponding taskcluster record?
+        #
 
-    parent_etl = task_cluster_record.etl
-    file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-    if DEBUG:
-        Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
+        parent_etl = task_cluster_record.etl
+        file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+        if DEBUG:
+            Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
 
-    remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
+        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
 
-    if DEBUG:
-        Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-    _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
+        if DEBUG:
+            Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
+        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
 
-    etl_key = etl2key(file_etl)
-    if DEBUG:
-        Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
+        etl_key = etl2key(file_etl)
+        if DEBUG:
+            Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
 
-    gcno_file = download_file(file_obj.url)
+        gcno_file = download_file(file_obj.url)
 
-    if DEBUG:
-        Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-    ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+        if DEBUG:
+            Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
+        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
 
-    # where actual transform is performed and written to S3
-    minimize_task(task_cluster_record)
-    process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
-    File(tmpdir).delete()
-
-    keys = [etl_key]
-    return keys
+        # where actual transform is performed and written to S3
+        minimize_task(task_cluster_record)
+        process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
+        keys = [etl_key]
+        return keys
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
