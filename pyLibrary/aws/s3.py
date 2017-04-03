@@ -367,7 +367,7 @@ class Bucket(object):
             except Exception as e:
                 e = Except.wrap(e)
                 retry -= 1
-                if retry == 0 or 'Access Denied' in e:
+                if retry == 0 or 'Access Denied' in e or "No space left on device" in e:
                     Log.error("could not push data to s3", cause=e)
                 else:
                     Log.warning("could not push data to s3", cause=e)
