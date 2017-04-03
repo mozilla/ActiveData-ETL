@@ -11,14 +11,14 @@ from __future__ import unicode_literals
 
 import os
 from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile, mkdtemp
+from tempfile import NamedTemporaryFile
 from zipfile import ZipFile, BadZipfile
 
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
-from mo_dots import set_default
+from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_dots import set_default, Data
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
@@ -64,6 +64,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         if DEBUG:
             Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
+
         try: # TODO rm
             for artifact in artifacts:
                 if artifact.name.find("gcda") == -1:
@@ -98,6 +99,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 
     if DEBUG:
         Log.note("Finish searching for gcda artifacts in gcov_to_es")
+
     if not keys:
         return None
     else:
@@ -124,7 +126,6 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
         try:
             Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
             gcda_file = download_file(gcda_artifact.url)
-
             Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
             ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
         except BadZipfile:

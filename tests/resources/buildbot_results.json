@@ -2,6 +2,139 @@
     {
         "action": {
             "buildbot_status": "success",
+            "end_time": 1490651199,
+            "job_number": 0,
+            "reason": "Created by BBB for task iHHC2ouJSi6oEe4snWuVpA",
+            "request_time": 1490651185,
+            "requests": [
+                {
+                    "request_id": 144318251,
+                    "timestamp": 1490651185
+                }
+            ],
+            "start_time": 1490651194,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-fennec_bncr_sub",
+            "product": "fennec",
+            "release": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+            "revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+            "revision12": "46d5fe92c82d",
+            "tags": [],
+            "type": [],
+            "version": "53.0b7"
+        },
+        "other": [
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fn_bncr_sub-0000000",
+            "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-fennec_bncr_sub",
+            "logurl": "https://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-fennec_bncr_sub-bm73-build1-build0.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-325",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1"},
+            "type": []
+        },
+        "tags": ["release"],
+        "task": {"id": "iHHC2ouJSi6oEe4snWuVpA"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1490882922,
+            "job_number": 0,
+            "reason": "Created by BBB for task UuwxOpsPRBKbjajq2VyBmA",
+            "request_time": 1490830211,
+            "requests": [
+                {
+                    "request_id": 144588464,
+                    "timestamp": 1490830211
+                }
+            ],
+            "start_time": 1490881658,
+            "type": ["test", "talos"]
+        },
+        "build": {
+            "branch": "try",
+            "locale": "en-US",
+            "name": "Ubuntu HW 12.04 x64 stylo",
+            "platform": "linux64",
+            "product": "firefox",
+            "release": "f6b3e59cfbb275ab5db27d543e6894ed011cf62d",
+            "revision": "f6b3e59cfbb275ab5db27d543e6894ed011cf62d",
+            "revision12": "f6b3e59cfbb2",
+            "tags": [],
+            "type": ["stylo"],
+            "url": "https://queue.taskcluster.net/v1/task/RgNul60HTl-7O4JtApjKNw/artifacts/public/build/target.tar.bz2"
+        },
+        "other": [
+            {
+                "name": "installer_path",
+                "value": "public/build/target.tar.bz2"
+            },
+            {
+                "name": "repository",
+                "value": "https://hg.mozilla.org/try/"
+            },
+            {
+                "name": "who",
+                "value": "evilpies@gmail.com"
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/test",
+            "builddir": "try_ubuntu64_hw_stylo_test-dromaeojs-e10s",
+            "master": "http://buildbot-master105.bb.releng.scl3.mozilla.com:8201/",
+            "slavebuilddir": "test",
+            "stage_platform": "linux64-stylo"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "perfherder-data.json",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/e5a17e0338c3729b5aca7912d25b99c81233e73bad6ea31d225c8ab2cd09d735b955e79f94a98335e1ccf39e956f9ed40e81f68b28322970a3484b9599503726"
+                },
+                {
+                    "name": "resource-usage.json",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/a581aefd87365c6bc5008681d82288717e47c75b81f878a58bdacc951efc84e50d740ecb286fa7c6bddb3b2107c2697c5bf0cfe90a9f1216bf6bda0955454de5"
+                },
+                {
+                    "name": "dromaeojs-e10s_errorsummary.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/3c18692396a5cc2a2ace57bdfaa84ef04744e71ef813c59fad8f897f6fb3aca0a2dadf13d617fd21dffd9a3c5a070bdeede86855e8bd2aa42e7e4ef113d50c7e"
+                },
+                {
+                    "name": "dromaeojs-e10s_raw.log",
+                    "url": "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/Try/sha512/413407dfb8a66e4a18e9da2d2eecf733c91c34bde8b14477d1dac69cf486e6e9dff5427b4779925b19f1626770f2a28f3cc1dd1996c5117bd5339333853b019a"
+                }
+            ],
+            "key": "Ubuntu HW 12.04 x64 stylo try talos dromaeojs-e10s",
+            "logurl": "https://archive.mozilla.org/pub/firefox/try-builds/evilpies@gmail.com-f6b3e59cfbb275ab5db27d543e6894ed011cf62d/try-linux64-stylo/try_ubuntu64_hw_stylo_test-dromaeojs-e10s-bm105-tests1-linux-build0.txt.gz",
+            "machine": {
+                "name": "talos-linux64-ix-027",
+                "os": "ubuntu",
+                "pool": "talos-linux64-ix"
+            },
+            "script": {"revision": "f6b3e59cfbb275ab5db27d543e6894ed011cf62d"},
+            "suite": "dromaeojs",
+            "type": ["e10s"]
+        },
+        "task": {"id": "UuwxOpsPRBKbjajq2VyBmA"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
             "end_time": 1477412805,
             "job_number": 5,
             "reason": "Created by BBB for task olkHXGt1QCuIn1iQ_PmTqw",
@@ -23,6 +156,8 @@
             "release": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
             "revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec",
             "revision12": "38cfded17052",
+            "tags": [],
+            "type": [],
             "version": "50.0b10"
         },
         "other": [
@@ -46,7 +181,8 @@
                 "name": "bld-linux64-spot-223",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec"}
+            "script": {"revision": "38cfded1705240c5d20baff4aef99bdd0a13bcec"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "olkHXGt1QCuIn1iQ_PmTqw"}
@@ -75,6 +211,8 @@
             "release": "7356baae8e736a6c9444bdd21562df806a39766b",
             "revision": "7356baae8e736a6c9444bdd21562df806a39766b",
             "revision12": "7356baae8e73",
+            "tags": [],
+            "type": [],
             "version": "49.0.2"
         },
         "other": [
@@ -98,7 +236,8 @@
                 "name": "bld-linux64-spot-475",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "7356baae8e736a6c9444bdd21562df806a39766b"}
+            "script": {"revision": "7356baae8e736a6c9444bdd21562df806a39766b"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "U-CJ_NIHQQi86pn7t7EMag"}
@@ -127,6 +266,8 @@
             "release": "b7adb2f10487f6f886e047670ba720a248edcb44",
             "revision": "b7adb2f10487f6f886e047670ba720a248edcb44",
             "revision12": "b7adb2f10487",
+            "tags": [],
+            "type": [],
             "version": "50.0b8"
         },
         "other": [
@@ -154,7 +295,8 @@
                 "name": "bld-linux64-spot-233",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "b7adb2f10487f6f886e047670ba720a248edcb44"}
+            "script": {"revision": "b7adb2f10487f6f886e047670ba720a248edcb44"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "JawA2fkSTveFmzv98Dq4aw"}
@@ -183,6 +325,8 @@
             "release": "70abfe99097824fd510544b188f24c588fd6d5a0",
             "revision": "70abfe99097824fd510544b188f24c588fd6d5a0",
             "revision12": "70abfe990978",
+            "tags": [],
+            "type": [],
             "version": "50.0b6"
         },
         "other": [
@@ -206,7 +350,8 @@
                 "name": "bld-linux64-spot-223",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"}
+            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "JQNPowFwSjGBJCfyMiuP_A"}
@@ -235,6 +380,8 @@
             "release": "70abfe99097824fd510544b188f24c588fd6d5a0",
             "revision": "70abfe99097824fd510544b188f24c588fd6d5a0",
             "revision12": "70abfe990978",
+            "tags": [],
+            "type": [],
             "version": "50.0b6"
         },
         "other": [
@@ -258,7 +405,8 @@
                 "name": "bld-linux64-spot-411",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"}
+            "script": {"revision": "70abfe99097824fd510544b188f24c588fd6d5a0"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "vYLB3w0zS0Wo_7ruP2zgvg"}
@@ -278,7 +426,8 @@
             "release": "b10e33df895b",
             "revision": "b10e33df895b",
             "revision12": "b10e33df895b",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "version": "45.4.0"
         },
         "other": [],
@@ -289,7 +438,8 @@
                 "name": "b-2008-spot-075",
                 "pool": "b-2008-spot"
             },
-            "timestamp": 1475107962
+            "timestamp": 1475107962,
+            "type": []
         },
         "tags": ["release"]
     },
@@ -315,6 +465,8 @@
             "name": "release-mozilla-release-fennec_tag_source",
             "product": "fennec",
             "release": "8101fcb08286",
+            "tags": [],
+            "type": [],
             "version": "41.0.2"
         },
         "other": [
@@ -348,7 +500,8 @@
             "script": {
                 "revision": "8101fcb08286",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -377,7 +530,8 @@
             "release": "production",
             "revision": "7a1b3004e2562e6d316fb2023a7221c188879855",
             "revision12": "7a1b3004e256",
-            "type": "pgo",
+            "tags": [],
+            "type": ["pgo"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-win64-pgo/1443990639/firefox-44.0a1.en-US.win64.zip"
         },
         "other": [
@@ -438,7 +592,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -466,7 +621,8 @@
             "release": "production",
             "revision": "948d0056d9c289a1d83bff6c7b6c83f20060f7c5",
             "revision12": "948d0056d9c2",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator/emulator.tar.gz"
         },
         "other": [],
@@ -510,7 +666,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -538,7 +695,8 @@
             "release": "production",
             "revision": "948d0056d9c289a1d83bff6c7b6c83f20060f7c5",
             "revision12": "948d0056d9c2",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator-debug/emulator.tar.gz"
         },
         "other": [
@@ -587,7 +745,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest-debug"
+            "suite": "mochitest-debug",
+            "type": []
         }
     },
     {
@@ -615,6 +774,7 @@
             "release": "7f187d6f0b0c",
             "revision": "9073efe623aa9521d31a1c59b4d691226f9672f3",
             "revision12": "9073efe623aa",
+            "tags": [],
             "type": ["debug", "leak test"]
         },
         "other": [],
@@ -634,7 +794,8 @@
             "script": {
                 "revision": "7f187d6f0b0c",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -662,7 +823,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/fVKmELvWSMSCpwS4R8m9ng/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64.tar.bz2"
         },
         "other": [
@@ -703,7 +865,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -731,7 +894,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/jjfaWp6lT_SI2uBwy8H3JA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.apk"
         },
         "other": [],
@@ -775,7 +939,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "xpcshell"
+            "suite": "xpcshell",
+            "type": []
         }
     },
     {
@@ -803,7 +968,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/jjfaWp6lT_SI2uBwy8H3JA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.apk"
         },
         "other": [],
@@ -847,7 +1013,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -875,7 +1042,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/0rgaHXgbQKWuXotnqsTMvQ/artifacts/public/build/firefox-44.0a1.en-US.linux-i686.tar.bz2"
         },
         "other": [
@@ -916,7 +1084,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest-devtools-chrome"
+            "suite": "mochitest-devtools-chrome",
+            "type": []
         }
     },
     {
@@ -944,7 +1113,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/ELWFSIQfRqeavysa1XpFUA/artifacts/public/build/fennec-44.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -993,7 +1163,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "plain-reftest"
+            "suite": "plain-reftest",
+            "type": []
         }
     },
     {
@@ -1021,7 +1192,8 @@
             "release": "production",
             "revision": "dd86cda2ed75733fb6a60c2a2ac6c46711265f17",
             "revision12": "dd86cda2ed75",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/m5JEp8BLSTut22LR35aLQQ/artifacts/public/build/firefox-44.0a1.en-US.win64.zip"
         },
         "other": [
@@ -1061,7 +1233,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -1089,7 +1262,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/RJYRHoeWTZC56hTszs8ytA/artifacts/public/build/firefox-44.0a1.en-US.mac64.dmg"
         },
         "other": [
@@ -1118,7 +1292,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "reftest"
+            "suite": "reftest",
+            "type": []
         }
     },
     {
@@ -1146,6 +1321,7 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
+            "tags": [],
             "type": ["opt", "asan"],
             "url": "https://queue.taskcluster.net/v1/task/BaGzc7fwSW-bBWnB8juixg/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64-asan.tar.bz2"
         },
@@ -1172,7 +1348,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "jittest"
+            "suite": "jittest",
+            "type": []
         }
     },
     {
@@ -1200,7 +1377,8 @@
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
             "revision12": "4f2b721570e9",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/ZU0ouysgSNKByDe-pmzXOg/artifacts/public/build/firefox-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -1235,7 +1413,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -1262,6 +1441,7 @@
             "product": "thunderbird",
             "revision": "885094269cfbaf8dd49a9bae22bc97d01059526f",
             "revision12": "885094269cfb",
+            "tags": [],
             "type": ["debug", "leak test"]
         },
         "other": [
@@ -1300,7 +1480,8 @@
                 "name": "bld-lion-r5-010",
                 "os": "lion 10.7",
                 "pool": "bld-lion-r5"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -1323,7 +1504,9 @@
             "locale": "en-US",
             "platform": "macosx64",
             "product": "fuzzing",
-            "release": "7f187d6f0b0c"
+            "release": "7f187d6f0b0c",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -1342,7 +1525,8 @@
             "script": {
                 "revision": "7f187d6f0b0c",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -1370,6 +1554,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/JF_RACrITwq_6QRoFo8wFg/artifacts/public/build/firefox-44.0a1.en-US.linux-x86_64.tar.bz2"
         },
         "other": [],
@@ -1395,7 +1581,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "g1",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -1423,7 +1609,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/y8jF4dggSQulb3nWGqf7oQ/artifacts/public/build/fennec-44.0a1.en-US.android-i386.apk"
         },
         "other": [],
@@ -1464,7 +1651,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "androidx86-set",
-            "type": "emulator"
+            "type": ["emulator"]
         }
     },
     {
@@ -1491,7 +1678,9 @@
             "product": "mobile",
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
-            "revision12": "360e120fb8d7"
+            "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -1526,7 +1715,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "remote-trobocheck2",
-            "type": "panda"
+            "type": ["panda"]
         }
     },
     {
@@ -1554,6 +1743,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/onNZDeJ0Tzu40MlUbR0EHg/artifacts/public/build/firefox-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -1579,7 +1770,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "dromaeojs",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -1607,6 +1798,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/uDfQv6grRb-_wsC3HotVxw/artifacts/public/build/firefox-44.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -1631,7 +1824,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "dromaeojs"
+            "suite": "dromaeojs",
+            "type": []
         }
     },
     {
@@ -1659,6 +1853,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/onNZDeJ0Tzu40MlUbR0EHg/artifacts/public/build/firefox-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -1683,7 +1879,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "g1"
+            "suite": "g1",
+            "type": []
         }
     },
     {
@@ -1711,6 +1908,8 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/t6Ar4zlNSVGOL5BuB1Gbhg/artifacts/public/build/firefox-44.0a1.en-US.mac.dmg"
         },
         "other": [],
@@ -1736,7 +1935,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "chromez",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -1764,7 +1963,8 @@
             "release": "production",
             "revision": "15f793b67b1a",
             "revision12": "15f793b67b1a",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-linux64_gecko/1444032239/en-US/b2g-37.0.en-US.linux-x86_64.tar.bz2"
         },
         "other": [],
@@ -1790,7 +1990,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "gaia-js-integration"
+            "suite": "gaia-js-integration",
+            "type": []
         }
     },
     {
@@ -1818,6 +2019,8 @@
             "release": "production",
             "revision": "ca319c5b2fcc",
             "revision12": "ca319c5b2fcc",
+            "tags": [],
+            "type": [],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/tmielczarek@mozilla.com-ca319c5b2fcc/try-win64/firefox-44.0a1.en-US.win64.zip"
         },
         "other": [
@@ -1846,7 +2049,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "chromez"
+            "suite": "chromez",
+            "type": []
         }
     },
     {
@@ -1874,7 +2078,8 @@
             "release": "production",
             "revision": "3d7532ce81ac571962abc3b99582fe7f5d685192",
             "revision12": "3d7532ce81ac",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/nightly/mozilla-central-emulator/2015/10/2015-10-04-15-02-11/emulator.tar.gz"
         },
         "other": [],
@@ -1918,7 +2123,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -1946,7 +2152,8 @@
             "release": "production",
             "revision": "948d0056d9c289a1d83bff6c7b6c83f20060f7c5",
             "revision12": "948d0056d9c2",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/try-builds/philip.chee@gmail.com-948d0056d9c2/try-emulator/emulator.tar.gz"
         },
         "other": [],
@@ -1990,7 +2197,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -2020,7 +2228,9 @@
             "release": "production",
             "revision": "3d7532ce81ac571962abc3b99582fe7f5d685192",
             "revision12": "3d7532ce81ac",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-win32_gecko/1443996131/b2g-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -2068,7 +2278,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -2096,7 +2307,9 @@
             "product": "firefox",
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
-            "revision12": "4f2b721570e9"
+            "revision12": "4f2b721570e9",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -2149,7 +2362,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2179,7 +2393,9 @@
             "release": "production",
             "revision": "3d7532ce81ac571962abc3b99582fe7f5d685192",
             "revision12": "3d7532ce81ac",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-win32_gecko/1443996131/b2g-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -2227,7 +2443,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -2255,7 +2472,9 @@
             "product": "firefox",
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
-            "revision12": "4f2b721570e9"
+            "revision12": "4f2b721570e9",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -2308,7 +2527,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2336,6 +2556,7 @@
             "release": "production",
             "revision": "9073efe623aa9521d31a1c59b4d691226f9672f3",
             "revision12": "9073efe623aa",
+            "tags": [],
             "type": ["debug", "leak test"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/firefox-44.0a1.en-US.win64.zip"
         },
@@ -2398,7 +2619,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2428,7 +2650,9 @@
             "release": "production",
             "revision": "3d7532ce81ac571962abc3b99582fe7f5d685192",
             "revision12": "3d7532ce81ac",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-win32_gecko/1443996131/b2g-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -2476,7 +2700,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -2504,7 +2729,9 @@
             "product": "firefox",
             "release": "production",
             "revision": "4f2b721570e9e894cfb94571efc07930221ddb85",
-            "revision12": "4f2b721570e9"
+            "revision12": "4f2b721570e9",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -2557,7 +2784,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2589,7 +2817,9 @@
             "release": "production",
             "revision": "4f2b721570e9",
             "revision12": "4f2b721570e9",
-            "trigger": "dep"
+            "tags": [],
+            "trigger": "dep",
+            "type": []
         },
         "other": [
             {
@@ -2640,7 +2870,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2668,6 +2899,7 @@
             "release": "production",
             "revision": "9073efe623aa9521d31a1c59b4d691226f9672f3",
             "revision12": "9073efe623aa",
+            "tags": [],
             "type": ["debug", "leak test"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/ash-win64-debug/1443998377/firefox-44.0a1.en-US.win64.zip"
         },
@@ -2730,7 +2962,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2757,6 +2990,7 @@
             "product": "firefox",
             "revision": "5d6ae6a10a0a4088822c5bd0f3630b587e0a6e52",
             "revision12": "5d6ae6a10a0a",
+            "tags": [],
             "type": ["debug", "leak test"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-beta-linux64-debug/1443998375/firefox-42.0.en-US.linux-x86_64.tar.bz2"
         },
@@ -2820,7 +3054,8 @@
                 "name": "bld-linux64-spot-377",
                 "os": "ubuntu",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2848,6 +3083,7 @@
             "release": "7f187d6f0b0c",
             "revision": "9073efe623aa9521d31a1c59b4d691226f9672f3",
             "revision12": "9073efe623aa",
+            "tags": [],
             "type": ["debug", "leak test"]
         },
         "other": [],
@@ -2867,7 +3103,8 @@
             "script": {
                 "revision": "7f187d6f0b0c",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2898,8 +3135,9 @@
             "release": "production",
             "revision": "9073efe623aa",
             "revision12": "9073efe623aa",
+            "tags": [],
             "trigger": "dep",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/ash-emulator-debug/20151004153940/emulator.tar.gz"
         },
         "other": [
@@ -2952,7 +3190,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -2984,7 +3223,9 @@
             "release": "production",
             "revision": "9073efe623aa",
             "revision12": "9073efe623aa",
-            "trigger": "dep"
+            "tags": [],
+            "trigger": "dep",
+            "type": []
         },
         "other": [
             {
@@ -3033,7 +3274,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3063,8 +3305,9 @@
             "release": "production",
             "revision": "2b6bf2244d7b49c80fbe04d3f5279283672e148e",
             "revision12": "2b6bf2244d7b",
+            "tags": [],
             "trigger": "build",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/try-builds/cpearce@mozilla.com-2b6bf2244d7b/try-win32_gecko-debug/b2g-44.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -3113,7 +3356,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3141,6 +3385,7 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
             "type": ["debug", "static analysis"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64-st-an-debug/1443999878/firefox-44.0a1.en-US.linux-x86_64.tar.bz2"
         },
@@ -3180,7 +3425,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3208,6 +3454,7 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
             "type": ["debug", "asan"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64-asan-debug/1443999878/firefox-44.0a1.en-US.linux-x86_64-asan.tar.bz2"
         },
@@ -3262,7 +3509,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3292,8 +3540,9 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
             "trigger": "build",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-macosx64_gecko-debug/1444001403/b2g-44.0a1.en-US.mac64.dmg"
         },
         "other": [],
@@ -3340,7 +3589,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3370,7 +3620,9 @@
             "release": "production",
             "revision": "360e120fb8d75647c0f762e1e22ec7c7b55c9e00",
             "revision12": "360e120fb8d7",
+            "tags": [],
             "trigger": "build",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-macosx64_gecko/1444001403/b2g-44.0a1.en-US.mac64.dmg"
         },
         "other": [],
@@ -3418,7 +3670,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3450,8 +3703,9 @@
             "release": "production",
             "revision": "360e120fb8d7",
             "revision12": "360e120fb8d7",
+            "tags": [],
             "trigger": "periodic",
-            "type": "debug"
+            "type": ["debug"]
         },
         "other": [
             {
@@ -3500,7 +3754,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3532,7 +3787,9 @@
             "release": "production",
             "revision": "360e120fb8d7",
             "revision12": "360e120fb8d7",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -3581,7 +3838,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3613,7 +3871,9 @@
             "release": "production",
             "revision": "360e120fb8d7",
             "revision12": "360e120fb8d7",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -3662,7 +3922,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3694,7 +3955,9 @@
             "release": "production",
             "revision": "360e120fb8d7",
             "revision12": "360e120fb8d7",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -3743,7 +4006,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3775,7 +4039,9 @@
             "release": "production",
             "revision": "360e120fb8d7",
             "revision12": "360e120fb8d7",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -3824,7 +4090,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3847,7 +4114,9 @@
             "locale": "en-US",
             "platform": "win64",
             "product": "fuzzing",
-            "release": "7f187d6f0b0c"
+            "release": "7f187d6f0b0c",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -3865,7 +4134,8 @@
             "script": {
                 "revision": "7f187d6f0b0c",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3888,7 +4158,9 @@
             "locale": "en-US",
             "platform": "mock",
             "product": "fuzzing",
-            "release": "7f187d6f0b0c"
+            "release": "7f187d6f0b0c",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -3906,7 +4178,8 @@
             "script": {
                 "revision": "7f187d6f0b0c",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -3934,6 +4207,7 @@
             "release": "production",
             "revision": "85bf2870f374adce8dfbb10527ad741a0116d3dc",
             "revision12": "85bf2870f374",
+            "tags": [],
             "type": ["debug", "static analysis"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/fx-team-macosx64-st-an-debug/1444002757/firefox-44.0a1.en-US.mac64.dmg"
         },
@@ -3972,7 +4246,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4000,7 +4275,8 @@
             "release": "production",
             "revision": "7248d74c4c5c4f07958b7176b2fd938966d6b814",
             "revision12": "7248d74c4c5c",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-9-debug/fennec-44.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -4085,7 +4361,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4113,7 +4390,8 @@
             "release": "production",
             "revision": "7248d74c4c5c4f07958b7176b2fd938966d6b814",
             "revision12": "7248d74c4c5c",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/try-builds/nnethercote@mozilla.com-7248d74c4c5c/try-android-api-11-debug/fennec-44.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -4201,7 +4479,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4233,7 +4512,9 @@
             "release": "production",
             "revision": "85bf2870f374",
             "revision12": "85bf2870f374",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -4282,7 +4563,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4313,7 +4595,9 @@
             "release": "production",
             "revision": "15f793b67b1a",
             "revision12": "15f793b67b1a",
+            "tags": [],
             "trigger": "dep",
+            "type": [],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g37_v2_2r-emulator-l/20151005010359/emulator.tar.gz"
         },
         "other": [
@@ -4366,7 +4650,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4398,7 +4683,9 @@
             "release": "3ef2559bba65",
             "revision": "c1fb4bf7b043",
             "revision12": "c1fb4bf7b043",
+            "tags": [],
             "trigger": "periodic",
+            "type": [],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-kk/20150125133006/emulator.tar.gz"
         },
         "other": [
@@ -4455,7 +4742,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4487,7 +4775,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -4541,7 +4831,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4573,8 +4864,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
+            "tags": [],
             "trigger": "periodic",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-emulator-kk-debug/20150125133010/emulator.tar.gz"
         },
         "other": [
@@ -4631,7 +4923,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4662,8 +4955,9 @@
             "release": "3ef2559bba65",
             "revision": "cd52e9f67e75",
             "revision12": "cd52e9f67e75",
+            "tags": [],
             "trigger": "dep",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb-debug/20150125135035/emulator.tar.gz"
         },
         "other": [
@@ -4720,7 +5014,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4747,8 +5042,9 @@
             "product": "b2g",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
             "trigger": "build",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-linux32_gecko-debug/1422224616/b2g-38.0a1.multi.linux-i686.tar.bz2"
         },
         "other": [
@@ -4809,7 +5105,8 @@
                 "aws_type": "r3.xlarge",
                 "name": "bld-linux64-spot-1070",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4836,8 +5133,9 @@
             "product": "b2g",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
             "trigger": "build",
-            "type": "debug",
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-linux64_gecko-debug/1422224616/b2g-38.0a1.multi.linux-x86_64.tar.bz2"
         },
         "other": [
@@ -4896,7 +5194,8 @@
                 "os": "b2g",
                 "pool": "bld-linux64-spot",
                 "type": "emulator"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -4923,7 +5222,9 @@
             "product": "b2g",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
             "trigger": "build",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-linux32_gecko/1422224616/b2g-38.0a1.multi.linux-i686.tar.bz2"
         },
         "other": [
@@ -4984,7 +5285,8 @@
                 "aws_type": "m3.xlarge",
                 "name": "bld-linux64-spot-315",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5016,7 +5318,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -5069,7 +5373,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5101,7 +5406,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -5155,7 +5462,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5187,7 +5495,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -5241,7 +5551,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5268,7 +5579,8 @@
             "product": "b2g",
             "revision": "9b4ff27a3fc0b57fa9bcb2a2932c7f71e5a75864",
             "revision12": "9b4ff27a3fc0",
-            "type": "mulet",
+            "tags": [],
+            "type": ["mulet"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/jyavenard@mozilla.com-9b4ff27a3fc0/try-linux64-mulet/firefox-38.0a1.en-US.linux-x86_64.tar.bz2"
         },
         "other": [
@@ -5339,7 +5651,8 @@
                 "name": "try-linux64-spot-079",
                 "os": "ubuntu",
                 "pool": "try-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5366,7 +5679,8 @@
             "product": "b2g",
             "revision": "6ff2bc5f6f0ca530b200fa39ea9806aab504065a",
             "revision12": "6ff2bc5f6f0c",
-            "type": "mulet",
+            "tags": [],
+            "type": ["mulet"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-win32-mulet/1422227730/firefox-38.0a1.en-US.win32.zip"
         },
         "other": [
@@ -5422,7 +5736,8 @@
                 "name": "b-2008-ix-0114",
                 "os": "winxp",
                 "pool": "b-2008-ix"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5461,7 +5776,9 @@
             "release": "3ef2559bba65",
             "revision": "49b107ba5bee",
             "revision12": "49b107ba5bee",
+            "tags": [],
             "trigger": "dep",
+            "type": [],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-emulator-jb/20150125152936/emulator.tar.gz"
         },
         "other": [
@@ -5518,7 +5835,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5558,7 +5876,9 @@
             "release": "3ef2559bba65",
             "revision": "49b107ba5bee",
             "revision12": "49b107ba5bee",
-            "trigger": "dep"
+            "tags": [],
+            "trigger": "dep",
+            "type": []
         },
         "other": [
             {
@@ -5611,7 +5931,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5639,6 +5960,8 @@
             "release": "3ef2559bba65",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
+            "type": [],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/1422224614/firefox-38.0a1.en-US.linux-i686.tar.bz2"
         },
         "other": [],
@@ -5663,7 +5986,8 @@
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "dromaeojs"
+            "suite": "dromaeojs",
+            "type": []
         }
     },
     {
@@ -5690,7 +6014,8 @@
             "product": "b2g",
             "revision": "bfde341687022b7280196e1f6bcc25849020642b",
             "revision12": "bfde34168702",
-            "type": "mulet",
+            "tags": [],
+            "type": ["mulet"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-inbound-macosx64-mulet/1422230251/firefox-38.0a1.en-US.mac64.dmg"
         },
         "other": [
@@ -5744,7 +6069,8 @@
                 "name": "bld-lion-r5-076",
                 "os": "macosx",
                 "pool": "bld-lion-r5"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -5770,7 +6096,9 @@
             "product": "b2g",
             "revision": "92d7abfe8ad79fd44ec0e85beeccb2faf8d374dc",
             "revision12": "92d7abfe8ad7",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-macosx64_gecko_localizer/1422230529/b2g-32.0.multi.mac64-localizer.dmg"
         },
         "other": [
@@ -5827,7 +6155,8 @@
             "machine": {
                 "name": "bld-lion-r5-083",
                 "pool": "bld-lion-r5"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -5854,7 +6183,9 @@
             "product": "b2g",
             "revision": "92d7abfe8ad79fd44ec0e85beeccb2faf8d374dc",
             "revision12": "92d7abfe8ad7",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-win32_gecko_localizer/1422230529/b2g-32.0.multi.win32-localizer.zip"
         },
         "other": [
@@ -5911,7 +6242,8 @@
             "machine": {
                 "name": "b-2008-ix-0123",
                 "pool": "b-2008-ix"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -5940,6 +6272,8 @@
             "release": "3ef2559bba65",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
+            "type": [],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-macosx64/1422224614/firefox-38.0a1.en-US.mac.dmg"
         },
         "other": [],
@@ -5964,7 +6298,8 @@
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "other-snow"
+            "suite": "other-snow",
+            "type": []
         }
     },
     {
@@ -5992,6 +6327,8 @@
             "release": "3ef2559bba65",
             "revision": "7f7f003696ad7bccde5ebcaf4cc122cc60e887f4",
             "revision12": "7f7f003696ad",
+            "tags": [],
+            "type": [],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-macosx64/1422224614/firefox-38.0a1.en-US.mac.dmg"
         },
         "other": [],
@@ -6016,7 +6353,8 @@
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "chromez"
+            "suite": "chromez",
+            "type": []
         }
     },
     {
@@ -6042,7 +6380,9 @@
             "product": "b2g",
             "revision": "fa91879c842853961a8da90185821384c0d87926",
             "revision12": "fa91879c8428",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux32_gecko_localizer/1422230526/b2g-38.0a1.multi.linux-i686-localizer.tar.bz2"
         },
         "other": [
@@ -6105,7 +6445,8 @@
                 "aws_type": "r3.xlarge",
                 "name": "bld-linux64-spot-1043",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6138,7 +6479,9 @@
             "release": "3ef2559bba65",
             "revision": "fa91879c8428",
             "revision12": "fa91879c8428",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -6199,7 +6542,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6226,7 +6570,9 @@
             "product": "b2g",
             "revision": "fa91879c842853961a8da90185821384c0d87926",
             "revision12": "fa91879c8428",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-central-linux64_gecko_localizer/1422230526/b2g-38.0a1.multi.linux-x86_64-localizer.tar.bz2"
         },
         "other": [
@@ -6289,7 +6635,8 @@
                 "aws_type": "r3.xlarge",
                 "name": "bld-linux64-spot-152",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6322,7 +6669,9 @@
             "release": "3ef2559bba65",
             "revision": "7d722a7c354f",
             "revision12": "7d722a7c354f",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -6379,7 +6728,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6412,7 +6762,9 @@
             "release": "3ef2559bba65",
             "revision": "7d722a7c354f",
             "revision12": "7d722a7c354f",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -6473,7 +6825,8 @@
             "script": {
                 "revision": "3ef2559bba65",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6550,7 +6903,9 @@
             "release": "09d664b407f1",
             "revision": "6299ba592af4",
             "revision12": "6299ba592af4",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -6613,7 +6968,8 @@
             "script": {
                 "revision": "09d664b407f1",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6646,7 +7002,9 @@
             "release": "09d664b407f1",
             "revision": "6299ba592af4",
             "revision12": "6299ba592af4",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -6705,7 +7063,8 @@
             "script": {
                 "revision": "09d664b407f1",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -6734,6 +7093,8 @@
             "release": "31b90b80ad98",
             "revision": "68a1aa8c33a21b47d58fbe42ab7ac2f0f4ced76d",
             "revision12": "68a1aa8c33a2",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-win64/1435784692/graphene-42.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -6771,7 +7132,8 @@
             "script": {
                 "revision": "31b90b80ad98",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -6799,6 +7161,8 @@
             "release": "31b90b80ad98",
             "revision": "68a1aa8c33a21b47d58fbe42ab7ac2f0f4ced76d",
             "revision12": "68a1aa8c33a2",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-win64/1435784692/graphene-42.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -6836,7 +7200,8 @@
             "script": {
                 "revision": "31b90b80ad98",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -6915,6 +7280,8 @@
             "platform": "linux32",
             "product": "firefox",
             "release": "c4415621aac0",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -6956,7 +7323,8 @@
             "script": {
                 "revision": "c4415621aac0",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -6984,6 +7352,8 @@
             "platform": "macosx64",
             "product": "firefox",
             "release": "c4415621aac0",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -7025,7 +7395,8 @@
             "script": {
                 "revision": "c4415621aac0",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -7051,6 +7422,8 @@
             "name": "release-mozilla-beta-firefox_almost_ready_for_release",
             "product": "firefox",
             "release": "FIREFOX_36_0b9_RELEASE",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -7067,7 +7440,8 @@
                 "name": "b-2008-ix-0094",
                 "pool": "b-2008-ix"
             },
-            "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
+            "script": {"revision": "FIREFOX_36_0b9_RELEASE"},
+            "type": []
         },
         "tags": ["release"]
     },
@@ -7093,6 +7467,8 @@
             "name": "release-mozilla-beta-firefox_ready_for_releasetest_testing",
             "product": "firefox",
             "release": "FIREFOX_36_0b9_RELEASE",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -7117,7 +7493,8 @@
                 "name": "b-2008-ix-0106",
                 "pool": "b-2008-ix"
             },
-            "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
+            "script": {"revision": "FIREFOX_36_0b9_RELEASE"},
+            "type": []
         },
         "tags": ["release"]
     },
@@ -7143,6 +7520,8 @@
             "name": "release-mozilla-beta-final_verification",
             "product": "firefox",
             "release": "FIREFOX_36_0b9_RELEASE",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -7184,7 +7563,8 @@
                 "name": "bld-linux64-spot-357",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "FIREFOX_36_0b9_RELEASE"}
+            "script": {"revision": "FIREFOX_36_0b9_RELEASE"},
+            "type": []
         },
         "tags": ["release"]
     },
@@ -7203,7 +7583,8 @@
             "locale": "en-US",
             "name": "b2g_emulator_vm",
             "platform": "b2g",
-            "type": "debug"
+            "tags": [],
+            "type": ["debug"]
         },
         "other": [],
         "properties": {"basedir": "/builds/slave/test"},
@@ -7214,7 +7595,8 @@
                 "os": "b2g",
                 "type": "emulator"
             },
-            "suite": "mochitest-debug"
+            "suite": "mochitest-debug",
+            "type": []
         }
     },
     {
@@ -7242,7 +7624,8 @@
             "release": "39c4444434fd",
             "revision": "721f359a2a42",
             "revision12": "721f359a2a42",
-            "type": "pgo",
+            "tags": [],
+            "type": ["pgo"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/gum-win32/1423828934/firefox-38.0a1.en-US.win32.zip"
         },
         "other": [
@@ -7272,7 +7655,8 @@
                 "revision": "39c4444434fd",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "g1"
+            "suite": "g1",
+            "type": []
         }
     },
     {
@@ -7297,6 +7681,8 @@
             "name": "release-mozilla-beta-update_shipping",
             "product": "firefox",
             "release": "d7b447dca47f",
+            "tags": [],
+            "type": [],
             "version": "36.0b9"
         },
         "other": [
@@ -7328,7 +7714,8 @@
             "script": {
                 "revision": "d7b447dca47f",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -7356,6 +7743,8 @@
             "product": "mobile",
             "revision": "5d83c055e2a92240d19e0c71af399d869e09d129",
             "revision12": "5d83c055e2a9",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android/1423859756/fennec-36.0.en-US.android-arm.apk"
         },
         "other": [
@@ -7430,7 +7819,8 @@
                 "name": "bld-linux64-spot-225",
                 "os": "android 2.3",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7457,7 +7847,8 @@
             "product": "mobile",
             "revision": "5d83c055e2a92240d19e0c71af399d869e09d129",
             "revision12": "5d83c055e2a9",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-beta-android-debug/1423859756/fennec-36.0.en-US.android-arm.apk"
         },
         "other": [
@@ -7532,7 +7923,8 @@
                 "name": "bld-linux64-spot-161",
                 "os": "android 2.3",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7558,7 +7950,8 @@
             "release": "50d57b37a8f9",
             "revision": "28cac29621e6e23316a0f677228071ae521e023e",
             "revision12": "28cac29621e6",
-            "type": "opt"
+            "tags": [],
+            "type": ["opt"]
         },
         "other": [],
         "properties": {
@@ -7577,7 +7970,8 @@
             "script": {
                 "revision": "50d57b37a8f9",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7603,7 +7997,8 @@
             "release": "50d57b37a8f9",
             "revision": "28cac29621e6e23316a0f677228071ae521e023e",
             "revision12": "28cac29621e6",
-            "type": "opt"
+            "tags": [],
+            "type": ["opt"]
         },
         "other": [],
         "properties": {
@@ -7622,7 +8017,8 @@
             "script": {
                 "revision": "50d57b37a8f9",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7648,7 +8044,8 @@
             "release": "50d57b37a8f9",
             "revision": "28cac29621e6e23316a0f677228071ae521e023e",
             "revision12": "28cac29621e6",
-            "type": "debug"
+            "tags": [],
+            "type": ["debug"]
         },
         "other": [],
         "properties": {
@@ -7668,7 +8065,8 @@
             "script": {
                 "revision": "50d57b37a8f9",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7695,7 +8093,9 @@
             "product": "b2g",
             "release": "production",
             "revision": "7489e6784a0ec2e046e0429c03c7319143d7477f",
-            "revision12": "7489e6784a0e"
+            "revision12": "7489e6784a0e",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -7718,7 +8118,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7745,7 +8146,9 @@
             "product": "b2g",
             "release": "production",
             "revision": "7489e6784a0ec2e046e0429c03c7319143d7477f",
-            "revision12": "7489e6784a0e"
+            "revision12": "7489e6784a0e",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -7768,7 +8171,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7795,7 +8199,9 @@
             "product": "b2g",
             "release": "production",
             "revision": "7489e6784a0ec2e046e0429c03c7319143d7477f",
-            "revision12": "7489e6784a0e"
+            "revision12": "7489e6784a0e",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -7818,7 +8224,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7845,7 +8252,9 @@
             "product": "b2g",
             "release": "production",
             "revision": "7489e6784a0ec2e046e0429c03c7319143d7477f",
-            "revision12": "7489e6784a0e"
+            "revision12": "7489e6784a0e",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -7868,7 +8277,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7895,7 +8305,9 @@
             "product": "b2g",
             "release": "94d72bb2ba9b",
             "revision": "a645579243fc1760f0e274502cfce97931a1fc25",
-            "revision12": "a645579243fc"
+            "revision12": "a645579243fc",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -7918,7 +8330,8 @@
             "script": {
                 "revision": "94d72bb2ba9b",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7944,6 +8357,7 @@
             "release": "da436987c292",
             "revision": "42d1d4d63c204329d1e293d1fba5521f17379afa",
             "revision12": "42d1d4d63c20",
+            "tags": [],
             "type": ["opt", "asan"]
         },
         "other": [],
@@ -7964,7 +8378,8 @@
             "script": {
                 "revision": "da436987c292",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -7992,7 +8407,8 @@
             "release": "production",
             "revision": "e68625783be0",
             "revision12": "e68625783be0",
-            "type": "tsan",
+            "tags": [],
+            "type": ["tsan"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/alicescarpa@gmail.com-e68625783be0/try-linux64-tsan/firefox-43.0a1.en-US.linux-x86_64-tsan.tar.bz2"
         },
         "other": [],
@@ -8037,7 +8453,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -8065,6 +8482,8 @@
             "release": "production",
             "revision": "97fa9f8114804cae30c90cb13102ec208e193849",
             "revision12": "97fa9f811480",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-mac/1441206031/graphene-43.0a1.en-US.mac64.dmg"
         },
         "other": [],
@@ -8103,7 +8522,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -8131,6 +8551,8 @@
             "release": "production",
             "revision": "97fa9f8114804cae30c90cb13102ec208e193849",
             "revision12": "97fa9f811480",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-win64/1441206031/horizon-43.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -8169,7 +8591,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -8194,6 +8617,8 @@
             "name": "release-mozilla-esr31-antivirus",
             "product": "firefox",
             "release": "b717cb3df2d6",
+            "tags": [],
+            "type": [],
             "version": "31.5.0esr"
         },
         "other": [
@@ -8218,7 +8643,8 @@
             "script": {
                 "revision": "b717cb3df2d6",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -8247,7 +8673,8 @@
             "release": "b32c28e6a39f",
             "revision": "6bdbe725837d18ec860022888ad41b91bc72d0f0",
             "revision12": "6bdbe725837d",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "http://pvtbuilds.pvt.build.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/cedar-emulator-kk/20150218063016/emulator.tar.gz"
         },
         "other": [],
@@ -8272,7 +8699,8 @@
                 "revision": "b32c28e6a39f",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "cppunit"
+            "suite": "cppunit",
+            "type": []
         }
     },
     {
@@ -8300,7 +8728,8 @@
             "release": "b87f4f965342",
             "revision": "86128ad9d00e",
             "revision12": "86128ad9d00e",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421913908/fennec-31.3.0esr.en-US.android-arm-armv6.apk"
         },
         "other": [
@@ -8337,7 +8766,8 @@
                 "revision": "b87f4f965342",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "plain-reftest"
+            "suite": "plain-reftest",
+            "type": []
         }
     },
     {
@@ -8365,6 +8795,8 @@
             "release": "560859d88ba8",
             "revision": "73dd7526d119c3a692173ad26e52177b5e751f42",
             "revision12": "73dd7526d119",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-mac/1432224020/graphene-41.0a1.en-US.mac64.dmg"
         },
         "other": [],
@@ -8401,7 +8833,8 @@
             "script": {
                 "revision": "560859d88ba8",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -8437,6 +8870,8 @@
             "release": "production",
             "revision": "77ecfd1da6e087d4654ad6ec5f46b7bf5a451502",
             "revision12": "77ecfd1da6e0",
+            "tags": [],
+            "type": [],
             "version": "44.0b9"
         },
         "other": [
@@ -8467,7 +8902,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "pLDT2YFzQimhkb-c0nLc-Q"}
@@ -8497,6 +8933,7 @@
             "release": "production",
             "revision": "66b9ff4bf038e091d2c9c6c908f15f5f220e3843",
             "revision12": "66b9ff4bf038",
+            "tags": [],
             "type": ["opt", "tsan"],
             "url": "https://queue.taskcluster.net/v1/task/iRiiu_E4T_SHQ3YNvgWm7w/artifacts/public/build/firefox-42.0a1.en-US.linux-x86_64-tsan.tar.bz2"
         },
@@ -8533,7 +8970,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -8558,6 +8996,8 @@
             "name": "release-mozilla-esr31-esr_final_verification",
             "product": "firefox",
             "release": "FIREFOX_31_8_0esr_RELEASE",
+            "tags": [],
+            "type": [],
             "version": "31.8.0esr"
         },
         "other": [
@@ -8595,7 +9035,8 @@
                 "name": "bld-linux64-spot-199",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "FIREFOX_31_8_0esr_RELEASE"}
+            "script": {"revision": "FIREFOX_31_8_0esr_RELEASE"},
+            "type": []
         },
         "tags": ["release"]
     },
@@ -8623,6 +9064,8 @@
             "platform": "macosx64",
             "product": "firefox",
             "release": "3fe61f3f95d8",
+            "tags": [],
+            "type": [],
             "version": "38.1.0esr"
         },
         "other": [
@@ -8664,7 +9107,8 @@
             "script": {
                 "revision": "3fe61f3f95d8",
                 "url": "https://hg.mozilla.org/build/tools"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -8693,6 +9137,8 @@
             "release": "production",
             "revision": "471c92647823",
             "revision12": "471c92647823",
+            "tags": [],
+            "type": [],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/tlee@mozilla.com-471c92647823/try-macosx64/firefox-44.0a1.en-US.mac.dmg"
         },
         "other": [
@@ -8722,7 +9168,7 @@
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
             "suite": "tp5o",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -8750,7 +9196,8 @@
             "release": "ed7cbf080ee6",
             "revision": "cffe5b159aef",
             "revision12": "cffe5b159aef",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/try-builds/gbrown@mozilla.com-cffe5b159aef/try-android-api-11-debug/fennec-40.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -8799,7 +9246,8 @@
                 "revision": "ed7cbf080ee6",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -8815,14 +9263,19 @@
         "build": {
             "branch": "try",
             "locale": "en-US",
-            "name": "linux64-br-haz_try_dep"
+            "name": "linux64-br-haz_try_dep",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
             "base_bundle_urls": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles",
             "basedir": "/builds/slave/l64-br-haz_try_dep-00000000000"
         },
-        "run": {"key": "linux64-br-haz_try_dep"}
+        "run": {
+            "key": "linux64-br-haz_try_dep",
+            "type": []
+        }
     },
     {
         "action": {
@@ -8841,7 +9294,9 @@
             "locale": "en-US",
             "name": "flame-kk",
             "platform": "flame",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -8854,7 +9309,10 @@
             "basedir": "/builds/slave/b2g_fx-team_flm-kk_dep-0000000",
             "builduid": "8d53f03ca94e4adcacaab2ddb3ca17b5"
         },
-        "run": {"key": "b2g_fx-team_flame-kk_periodic"}
+        "run": {
+            "key": "b2g_fx-team_flame-kk_periodic",
+            "type": []
+        }
     },
     {
         "action": {
@@ -8869,8 +9327,9 @@
             "branch": "mozilla-b2g32_v2_0",
             "locale": "en-US",
             "name": "emulator-jb-debug",
+            "tags": [],
             "trigger": "nightly",
-            "type": "debug"
+            "type": ["debug"]
         },
         "other": [],
         "properties": {
@@ -8879,7 +9338,8 @@
         },
         "run": {
             "key": "b2g_mozilla-b2g32_v2_0_emulator-jb-debug_nightly",
-            "machine": {"type": "emulator"}
+            "machine": {"type": "emulator"},
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -8904,6 +9364,8 @@
             "locale": "en-US",
             "name": "release-mozilla-beta-firefox_ready_for_release",
             "product": "firefox",
+            "tags": [],
+            "type": [],
             "version": "37.0b4"
         },
         "other": [
@@ -8919,7 +9381,8 @@
             "machine": {
                 "name": "bld-linux64-spot-413",
                 "pool": "bld-linux64-spot"
-            }
+            },
+            "type": []
         },
         "tags": ["release"]
     },
@@ -8948,7 +9411,8 @@
             "release": "d01ea393d804",
             "revision": "0a0caae8e447",
             "revision12": "0a0caae8e447",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android-api-11/1421379601/fennec-38.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -8983,7 +9447,8 @@
                 "revision": "d01ea393d804",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -9014,8 +9479,9 @@
             "release": "32a828351561",
             "revision": "206205dd8bd1",
             "revision12": "206205dd8bd1",
+            "tags": [],
             "trigger": "nonunified",
-            "type": "debug"
+            "type": ["debug"]
         },
         "other": [
             {
@@ -9069,7 +9535,8 @@
             "script": {
                 "revision": "32a828351561",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9096,6 +9563,8 @@
             "product": "mobile",
             "revision": "2eaca894da9d53ec33f846d50334dec8524bb8ad",
             "revision12": "2eaca894da9d",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/cedar-android-api-11/1421229156/fennec-38.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -9171,7 +9640,8 @@
                 "os": "android 3.0",
                 "pool": "bld-linux64-spot",
                 "type": "arm7"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9197,7 +9667,9 @@
             "product": "firefox",
             "release": "47a978501883",
             "revision": "33781a3a5201c2371d5d31eeaaaeb5f34a3aaced",
-            "revision12": "33781a3a5201"
+            "revision12": "33781a3a5201",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -9240,7 +9712,8 @@
             "script": {
                 "revision": "47a978501883",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9267,6 +9740,7 @@
             "release": "a1caf218cb3c",
             "revision": "2ef1c26d77d3f892e385b828f0694a41a3740006",
             "revision12": "2ef1c26d77d3",
+            "tags": [],
             "type": ["debug", "leak test"]
         },
         "other": [
@@ -9310,7 +9784,8 @@
             "script": {
                 "revision": "a1caf218cb3c",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9337,7 +9812,8 @@
             "product": "firefox",
             "revision": "c154ebe88de2ecd0bbd1d20d31c3e018fdbea79c",
             "revision12": "c154ebe88de2",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/firefox/try-builds/evilpies@gmail.com-c154ebe88de2/try-android-api-11-debug/fennec-38.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -9417,7 +9893,8 @@
                 "os": "android 3.0",
                 "pool": "try-linux64-spot",
                 "type": "arm7"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9444,6 +9921,7 @@
             "release": "a1caf218cb3c",
             "revision": "72d7ae169b094ee14e59053a8ad1bdfc8e9e423e",
             "revision12": "72d7ae169b09",
+            "tags": [],
             "type": ["debug", "leak test"]
         },
         "other": [
@@ -9486,7 +9964,8 @@
             "script": {
                 "revision": "a1caf218cb3c",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9512,7 +9991,9 @@
             "product": "firefox",
             "release": "2c8d6c49653b",
             "revision": "f27fe5bc8c2a53145173071032f710fa800b8739",
-            "revision12": "f27fe5bc8c2a"
+            "revision12": "f27fe5bc8c2a",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -9567,7 +10048,8 @@
             "script": {
                 "revision": "2c8d6c49653b",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9593,7 +10075,9 @@
             "product": "mobile",
             "revision": "b8d38bcec81218fec26cac5a1efe37d912bb0b81",
             "revision12": "b8d38bcec812",
+            "tags": [],
             "trigger": "nightly",
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1420186003/fennec-31.3.0esr.en-US.android-arm-armv6.apk"
         },
         "other": [
@@ -9672,7 +10156,8 @@
                 "os": "android 2.3",
                 "pool": "bld-linux64-spot",
                 "type": "arm7"
-            }
+            },
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -9700,6 +10185,8 @@
             "product": "mobile",
             "revision": "23a9280bf89c065f35b069cec124418b4b1bee1d",
             "revision12": "23a9280bf89c",
+            "tags": [],
+            "type": [],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-esr31-android-armv6/1421493600/fennec-31.3.0esr.en-US.android-arm-armv6.apk"
         },
         "other": [
@@ -9775,7 +10262,8 @@
                 "os": "android 2.3",
                 "pool": "bld-linux64-spot",
                 "type": "arm7"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9802,7 +10290,9 @@
             "product": "b2g",
             "revision": "70b8982a523d",
             "revision12": "70b8982a523d",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -9824,7 +10314,10 @@
             "builduid": "7ac16cc78b4e43fe9d095e8847c3ccff",
             "master": "http://buildbot-master77.srv.releng.use1.mozilla.com:8001/"
         },
-        "run": {"key": "b2g_mozilla-b2g34_v2_1_hamachi_eng_nightly"},
+        "run": {
+            "key": "b2g_mozilla-b2g34_v2_1_hamachi_eng_nightly",
+            "type": []
+        },
         "tags": ["nightly"]
     },
     {
@@ -9841,7 +10334,9 @@
             "locale": "en-US",
             "name": "win32_gecko",
             "platform": "b2g",
-            "trigger": "build"
+            "tags": [],
+            "trigger": "build",
+            "type": []
         },
         "other": [],
         "properties": {
@@ -9855,7 +10350,8 @@
             "machine": {
                 "os": "b2g",
                 "type": "emulator"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9872,7 +10368,9 @@
             "branch": "mozilla-central",
             "locale": "en-US",
             "name": "linux32_gecko_localizer",
-            "trigger": "nightly"
+            "tags": [],
+            "trigger": "nightly",
+            "type": []
         },
         "other": [
             {
@@ -9895,7 +10393,8 @@
         },
         "run": {
             "key": "b2g_mozilla-central_linux32_gecko_localizer nightly",
-            "machine": {"aws_type": "r3.xlarge"}
+            "machine": {"aws_type": "r3.xlarge"},
+            "type": []
         },
         "tags": ["nightly"]
     },
@@ -9922,7 +10421,9 @@
             "product": "firefox",
             "release": "80b67edbcbac",
             "revision": "0fe97445f711",
-            "revision12": "0fe97445f711"
+            "revision12": "0fe97445f711",
+            "tags": [],
+            "type": []
         },
         "other": [
             {
@@ -9948,7 +10449,8 @@
             "script": {
                 "revision": "80b67edbcbac",
                 "url": "https://hg.mozilla.org/users/nthomas_mozilla.com/mozharness-build-promotion"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -9964,7 +10466,9 @@
         "build": {
             "branch": "mozilla-inbound",
             "locale": "en-US",
-            "name": "linux64-br-haz_mozilla-inbound_dep"
+            "name": "linux64-br-haz_mozilla-inbound_dep",
+            "tags": [],
+            "type": []
         },
         "other": [],
         "properties": {
@@ -9972,7 +10476,10 @@
             "basedir": "/builds/slave/l64-br-haz_m-in_dep-0000000000",
             "builduid": "79d90a8282a34f5c808cc307805cb827"
         },
-        "run": {"key": "linux64-br-haz_mozilla-inbound_dep"}
+        "run": {
+            "key": "linux64-br-haz_mozilla-inbound_dep",
+            "type": []
+        }
     },
     {
         "action": {
@@ -9995,8 +10502,9 @@
             "platform": "flame",
             "revision": "92d7abfe8ad7",
             "revision12": "92d7abfe8ad7",
+            "tags": [],
             "trigger": "periodic",
-            "type": "debug"
+            "type": ["debug"]
         },
         "other": [
             {
@@ -10016,7 +10524,8 @@
         },
         "run": {
             "key": "b2g_mozilla-b2g32_v2_0_emulator-kk-debug_periodic",
-            "machine": {"type": "emulator"}
+            "machine": {"type": "emulator"},
+            "type": []
         }
     },
     {
@@ -10034,7 +10543,9 @@
             "locale": "en-US",
             "name": "nexus-5-l_eng",
             "platform": "nexus5",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -10047,7 +10558,10 @@
             "basedir": "/builds/slave/b2g_fx-team_n5-l_eng_dep-00000",
             "builduid": "0fc97f8f84a64bb397cbbc011a07bccd"
         },
-        "run": {"key": "b2g_fx-team_nexus-5-l_eng_periodic"}
+        "run": {
+            "key": "b2g_fx-team_nexus-5-l_eng_periodic",
+            "type": []
+        }
     },
     {
         "action": {
@@ -10066,7 +10580,9 @@
             "locale": "en-US",
             "name": "emulator-kk",
             "platform": "flame",
-            "trigger": "dep"
+            "tags": [],
+            "trigger": "dep",
+            "type": []
         },
         "other": [
             {
@@ -10081,7 +10597,8 @@
         },
         "run": {
             "key": "b2g_try_emulator-kk_dep",
-            "machine": {"type": "emulator"}
+            "machine": {"type": "emulator"},
+            "type": []
         }
     },
     {
@@ -10105,7 +10622,9 @@
             "platform": "nexus4",
             "revision": "93e8f2a8cffe",
             "revision12": "93e8f2a8cffe",
-            "trigger": "periodic"
+            "tags": [],
+            "trigger": "periodic",
+            "type": []
         },
         "other": [
             {
@@ -10123,7 +10642,10 @@
             "builduid": "d0fdad1cac564bfe8cd0fed5b0312695",
             "master": "http://buildbot-master70.bb.releng.use1.mozilla.com:8001/"
         },
-        "run": {"key": "b2g_mozilla-b2g37_v2_2_nexus-4_periodic"}
+        "run": {
+            "key": "b2g_mozilla-b2g37_v2_2_nexus-4_periodic",
+            "type": []
+        }
     },
     {
         "action": {
@@ -10139,15 +10661,19 @@
             "locale": "en-US",
             "name": "flame-kk_eng-debug",
             "platform": "flame",
+            "tags": [],
             "trigger": "periodic",
-            "type": "debug"
+            "type": ["debug"]
         },
         "other": [],
         "properties": {
             "base_bundle_urls": "https://ftp-ssl.mozilla.org/pub/mozilla.org/firefox/bundles",
             "basedir": "/builds/slave/b2g_b2g-in_flm-kk_eng-d_dep-00"
         },
-        "run": {"key": "b2g_b2g-inbound_flame-kk_eng-debug_periodic"}
+        "run": {
+            "key": "b2g_b2g-inbound_flame-kk_eng-debug_periodic",
+            "type": []
+        }
     },
     {
         "action": {
@@ -10174,6 +10700,8 @@
             "release": "production",
             "revision": "254e1fdb70f5f83eff87ef8a627774cb9c745cc3",
             "revision12": "254e1fdb70f5",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/nwiC3mS_SDiQ9RLmSWxU6Q/artifacts/public/build/firefox-46.0a1.en-US.mac.dmg"
         },
         "other": [],
@@ -10208,7 +10736,8 @@
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "g2"
+            "suite": "g2",
+            "type": []
         }
     },
     {
@@ -10234,6 +10763,8 @@
             "product": "firefox",
             "revision": "ab1fe3be773ba1f0d0f50cb473989bf3bfa0e6c3",
             "revision12": "ab1fe3be773b",
+            "tags": [],
+            "type": [],
             "version": "44.0b26"
         },
         "other": [
@@ -10261,7 +10792,8 @@
                 "name": "bld-linux64-spot-129",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"url": "https://hg.mozilla.org/build/mozharness"}
+            "script": {"url": "https://hg.mozilla.org/build/mozharness"},
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "T3UOeJ1HRsq2EKWD7QDi2Q"}
@@ -10290,6 +10822,8 @@
             "release": "production",
             "revision": "53f6e3a60916b82de924c8878249930453af9312",
             "revision12": "53f6e3a60916",
+            "tags": [],
+            "type": [],
             "version": "44.0b31"
         },
         "other": [
@@ -10320,7 +10854,8 @@
             "script": {
                 "revision": "production",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         },
         "tags": ["release"],
         "task": {"id": "BczAgDHfQdueE5rocPgjnQ"}
@@ -10350,7 +10885,8 @@
             "release": "d74069d5dd462cc11a684376c05cc890b4fddab4",
             "revision": "d74069d5dd462cc11a684376c05cc890b4fddab4",
             "revision12": "d74069d5dd46",
-            "type": "debug",
+            "tags": [],
+            "type": ["debug"],
             "url": "https://queue.taskcluster.net/v1/task/MjFW8neHS4iyt40OGawWOQ/artifacts/public/build/fennec-47.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -10391,7 +10927,8 @@
                 "revision": "d74069d5dd462cc11a684376c05cc890b4fddab4",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "crashtest"
+            "suite": "crashtest",
+            "type": []
         }
     },
     {
@@ -10423,7 +10960,8 @@
             "release": "70629f70db00dda83f3e4ecb7542fa44ba8ab2dc",
             "revision": "70629f70db00dda83f3e4ecb7542fa44ba8ab2dc",
             "revision12": "70629f70db00",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/ALI_CYrwRwa-z1Nv6EWNQA/artifacts/public/build/fennec-47.0a1.en-US.android-arm.apk"
         },
         "other": [],
@@ -10459,7 +10997,8 @@
                 "revision": "70629f70db00dda83f3e4ecb7542fa44ba8ab2dc",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "plain-reftest"
+            "suite": "plain-reftest",
+            "type": []
         }
     },
     {
@@ -10487,6 +11026,8 @@
             "release": "3c846803612848895bdbcbf3ad34f9920c6b5663",
             "revision": "3c846803612848895bdbcbf3ad34f9920c6b5663",
             "revision12": "3c8468036128",
+            "tags": [],
+            "type": [],
             "url": "http://archive.mozilla.org/pub/mobile/try-builds/wmccloskey@mozilla.com-3c846803612848895bdbcbf3ad34f9920c6b5663/try-android-api-15/fennec-47.0a1.en-US.android-arm.apk"
         },
         "other": [
@@ -10586,7 +11127,8 @@
             "script": {
                 "revision": "3c846803612848895bdbcbf3ad34f9920c6b5663",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -10614,7 +11156,8 @@
             "release": "2264bffd89ca",
             "revision": "1bd33f5447d2",
             "revision12": "1bd33f5447d2",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://ftp-ssl.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/mozilla-b2g32_v2_0-macosx64_gecko/1425168145/en-US/b2g-32.0.en-US.mac64.dmg"
         },
         "other": [
@@ -10650,7 +11193,8 @@
                 "revision": "2264bffd89ca",
                 "url": "https://hg.mozilla.org/build/mozharness"
             },
-            "suite": "gaia-ui-test"
+            "suite": "gaia-ui-test",
+            "type": []
         }
     },
     {
@@ -10678,6 +11222,7 @@
             "release": "4199fd72e38fa32d46d4680fef970feefc95fafa",
             "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
             "revision12": "4199fd72e38f",
+            "tags": [],
             "type": ["debug", "static analysis"]
         },
         "other": [
@@ -10706,7 +11251,8 @@
             "script": {
                 "revision": "4199fd72e38fa32d46d4680fef970feefc95fafa",
                 "url": "https://hg.mozilla.org/build/mozharness"
-            }
+            },
+            "type": []
         }
     },
     {
@@ -10734,6 +11280,8 @@
             "release": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10",
             "revision": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10",
             "revision12": "60bd274b9c7c",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/b0EIvSMRR2qll_34cv5jQA/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -10765,7 +11313,8 @@
                 "pool": "t-xp32-ix"
             },
             "script": {"revision": "60bd274b9c7c8bcb491111f38d1e7210c09b4c10"},
-            "suite": "chromez"
+            "suite": "chromez",
+            "type": []
         }
     },
     {
@@ -10793,7 +11342,8 @@
             "release": "9a9fe42b023a3cca14c6f2cce900870ea14e767c",
             "revision": "9a9fe42b023a3cca14c6f2cce900870ea14e767c",
             "revision12": "9a9fe42b023a",
-            "type": "pgo",
+            "tags": [],
+            "type": ["pgo"],
             "url": "https://queue.taskcluster.net/v1/task/G-gIchLdRVy9bbgOJpAnFw/artifacts/public/build/firefox-46.0.en-US.win32.zip"
         },
         "other": [],
@@ -10826,7 +11376,7 @@
             },
             "script": {"revision": "9a9fe42b023a3cca14c6f2cce900870ea14e767c"},
             "suite": "other",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -10854,6 +11404,8 @@
             "release": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6",
             "revision": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6",
             "revision12": "e93ebef962dd",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/Xnj4Lb_yRTKpfOU6jVkA0A/artifacts/public/build/firefox-48.0a1.en-US.linux-x86_64.tar.bz2"
         },
         "other": [],
@@ -10887,7 +11439,7 @@
             },
             "script": {"revision": "e93ebef962ddfc2eca2e98cb7b59651d009bb4c6"},
             "suite": "g1",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -10915,6 +11467,8 @@
             "release": "dadd3d52a252edd85975ff73ac404325d28598b2",
             "revision": "dadd3d52a252edd85975ff73ac404325d28598b2",
             "revision12": "dadd3d52a252",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/Lo-JGffqQRuWhtNIUKomqA/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -10946,7 +11500,8 @@
                 "pool": "t-w732-ix"
             },
             "script": {"revision": "dadd3d52a252edd85975ff73ac404325d28598b2"},
-            "suite": "other"
+            "suite": "other",
+            "type": []
         }
     },
     {
@@ -10974,7 +11529,8 @@
             "release": "2af63097a8a5bb362224e3cd05658a6f20d3bf45",
             "revision": "2af63097a8a5bb362224e3cd05658a6f20d3bf45",
             "revision12": "2af63097a8a5",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/Wpzb3ea_TBS9lfj38OJYnQ/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -11026,7 +11582,8 @@
                 "pool": "t-w732-spot"
             },
             "script": {"revision": "2af63097a8a5bb362224e3cd05658a6f20d3bf45"},
-            "suite": "mochitest"
+            "suite": "mochitest",
+            "type": []
         }
     },
     {
@@ -11062,6 +11619,8 @@
             "release": "a73c2b09380d2c708c5c6aebef59eaa394343477",
             "revision": "a73c2b09380d2c708c5c6aebef59eaa394343477",
             "revision12": "a73c2b09380d",
+            "tags": [],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/U0tkiDGpSMuj6Zq1ujMOqQ/artifacts/public/build/firefox-48.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -11094,7 +11653,7 @@
             },
             "script": {"revision": "a73c2b09380d2c708c5c6aebef59eaa394343477"},
             "suite": "dromaeojs",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     },
     {
@@ -11122,7 +11681,8 @@
             "release": "9017f4ff4b11f9105462b03f82763479588026e0",
             "revision": "9017f4ff4b11f9105462b03f82763479588026e0",
             "revision12": "9017f4ff4b11",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/M4GI_F46RxK6bhDLIw_ZiQ/artifacts/public/build/firefox-49.0a1.en-US.win32.zip"
         },
         "other": [],
@@ -11154,7 +11714,8 @@
                 "pool": "t-w732-spot"
             },
             "script": {"revision": "9017f4ff4b11f9105462b03f82763479588026e0"},
-            "suite": "mochitest-devtools-chrome"
+            "suite": "mochitest-devtools-chrome",
+            "type": []
         }
     },
     {
@@ -11182,6 +11743,7 @@
             "release": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
             "revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e",
             "revision12": "26946835ce5e",
+            "tags": [],
             "type": ["opt", "tsan"],
             "url": "https://queue.taskcluster.net/v1/task/J_CHXpmtTbOG_9zBwgjXMA/artifacts/public/build/firefox-50.0a1.en-US.linux-x86_64-tsan.tar.bz2"
         },
@@ -11210,7 +11772,8 @@
                 "type": "vm"
             },
             "script": {"revision": "26946835ce5ec4c8b4db0195ddd2139ed503df9e"},
-            "suite": "gtest"
+            "suite": "gtest",
+            "type": []
         }
     },
     {
@@ -11238,7 +11801,8 @@
             "release": "d9400e38d2d11b4faa0c085491dbf815540ef86f",
             "revision": "d9400e38d2d11b4faa0c085491dbf815540ef86f",
             "revision12": "d9400e38d2d1",
-            "type": "add-on",
+            "tags": [],
+            "type": ["add-on"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-linux64-add-on-devel/1468209386/firefox-48.0.en-US.linux-x86_64-add-on-devel.tar.bz2"
         },
         "other": [
@@ -11298,7 +11862,8 @@
                 "os": "ubuntu",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "d9400e38d2d11b4faa0c085491dbf815540ef86f"}
+            "script": {"revision": "d9400e38d2d11b4faa0c085491dbf815540ef86f"},
+            "type": []
         }
     },
     {
@@ -11326,7 +11891,8 @@
             "release": "5e6976a28642d4d159071e14fd3251d76b9c46fa",
             "revision": "5e6976a28642d4d159071e14fd3251d76b9c46fa",
             "revision12": "5e6976a28642",
-            "type": "add-on"
+            "tags": [],
+            "type": ["add-on"]
         },
         "other": [],
         "properties": {
@@ -11346,7 +11912,8 @@
                 "os": "ubuntu",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "5e6976a28642d4d159071e14fd3251d76b9c46fa"}
+            "script": {"revision": "5e6976a28642d4d159071e14fd3251d76b9c46fa"},
+            "type": []
         }
     },
     {
@@ -11374,7 +11941,8 @@
             "release": "e29236a2cb1019532749ae35f37266cbbba0c04c",
             "revision": "e29236a2cb1019532749ae35f37266cbbba0c04c",
             "revision12": "e29236a2cb10",
-            "type": "add-on",
+            "tags": [],
+            "type": ["add-on"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win64-add-on-devel/1468833234/firefox-48.0.en-US.win64-add-on-devel.zip"
         },
         "other": [
@@ -11431,7 +11999,8 @@
                 "os": "win7",
                 "pool": "b-2008-spot"
             },
-            "script": {"revision": "e29236a2cb1019532749ae35f37266cbbba0c04c"}
+            "script": {"revision": "e29236a2cb1019532749ae35f37266cbbba0c04c"},
+            "type": []
         }
     },
     {
@@ -11459,7 +12028,8 @@
             "release": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7",
             "revision": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7",
             "revision12": "020a2ed1718d",
-            "type": "add-on"
+            "tags": [],
+            "type": ["add-on"]
         },
         "other": [],
         "properties": {
@@ -11479,7 +12049,8 @@
                 "os": "ubuntu",
                 "pool": "bld-linux64-spot"
             },
-            "script": {"revision": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7"}
+            "script": {"revision": "020a2ed1718d0a7858270a38f3bb1bbaccde78a7"},
+            "type": []
         }
     },
     {
@@ -11507,7 +12078,8 @@
             "release": "ee43fafecf41",
             "revision": "ee43fafecf41",
             "revision12": "ee43fafecf41",
-            "type": "add-on",
+            "tags": [],
+            "type": ["add-on"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-macosx64-add-on-devel/1467294201/firefox-48.0.en-US.mac64-add-on-devel.dmg"
         },
         "other": [
@@ -11566,7 +12138,8 @@
                 "os": "lion 10.7",
                 "pool": "bld-lion-r5"
             },
-            "script": {"revision": "ee43fafecf41"}
+            "script": {"revision": "ee43fafecf41"},
+            "type": []
         }
     },
     {
@@ -11594,7 +12167,8 @@
             "release": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
             "revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8",
             "revision12": "274a291aa2c8",
-            "type": "add-on",
+            "tags": [],
+            "type": ["add-on"],
             "url": "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-beta-win32-add-on-devel/1467731364/firefox-48.0.en-US.win32-add-on-devel.zip"
         },
         "other": [
@@ -11656,7 +12230,8 @@
                 "os": "winxp",
                 "pool": "b-2008-spot"
             },
-            "script": {"revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8"}
+            "script": {"revision": "274a291aa2c85528ffeb988f0b1b0b61c12136b8"},
+            "type": []
         }
     },
     {
@@ -11686,7 +12261,8 @@
             "release": "b9761c230d46632d62256a1331586106e67ad763",
             "revision": "b9761c230d46632d62256a1331586106e67ad763",
             "revision12": "b9761c230d46",
-            "type": "opt",
+            "tags": [],
+            "type": ["opt"],
             "url": "https://queue.taskcluster.net/v1/task/Z0eUBcYHTkS-M77wO56y_w/artifacts/public/build/firefox-52.0a1.en-US.mac.dmg"
         },
         "other": [],
@@ -11723,7 +12299,7 @@
             },
             "script": {"revision": "b9761c230d46632d62256a1331586106e67ad763"},
             "suite": "web-platform-tests",
-            "type": "e10s"
+            "type": ["e10s"]
         }
     }
 ]

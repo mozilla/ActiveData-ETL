@@ -476,7 +476,6 @@ test_modes = {
 }
 
 BUILDER_NAMES = [
-
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -532,6 +531,7 @@ BUILDER_NAMES = [
     'linux64-br-haz_{{branch}}_dep',
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
+    'release-{{branch}}-{{product}}_bncr_sub',
     'release-{{branch}}-{{product}}_bouncer_aliases',
     'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_publish_balrog',
@@ -553,7 +553,8 @@ BUILD_TYPES = [
     "l10n",   # INTERNATIONALIZATION
     "leak test",
     "static analysis",
-    "ubsan",   #
+    "ccov",   # C/C++ CODE COVERAGE
+    "ubsan",  #
     "jsdcov"  # JAVASCRIPT CODE COVERAGE
 
 ]
@@ -600,6 +601,7 @@ TEST_PLATFORMS = {
     "Ubuntu TSAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
@@ -746,6 +748,7 @@ KNOWN_PLATFORM = {
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "ubuntu64_hw_stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type":["stylo"]}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-add-on-devel": {"build": {"platform": "win32", "type": ["add-on"]}},

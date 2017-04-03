@@ -14,6 +14,8 @@ import shutil
 from datetime import datetime
 
 import re
+from tempfile import mkdtemp
+
 from mo_dots import get_module, coalesce
 from mo_logs import Log
 
@@ -355,6 +357,21 @@ class File(object):
 
     def __unicode__(self):
         return self.abspath
+
+
+class TempDirectory(File):
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
+
+    def __init__(self):
+        File.__init__(self, mkdtemp())
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.delete()
+
 
 def _copy(from_, to_):
     if from_.is_directory():
