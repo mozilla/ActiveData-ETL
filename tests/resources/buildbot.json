@@ -1,5 +1,37 @@
 [
 	{
+	    "builder_id": 738405,
+	    "buildnumber": 0,
+	    "endtime": 1490651199,
+	    "id": 120964157,
+	    "master_id": 186,
+	    "properties": {
+	        "basedir": "/builds/slave/rel-m-beta-fn_bncr_sub-0000000",
+	        "branch": "mozilla-beta",
+	        "build_number": 1,
+	        "buildername": "release-mozilla-beta-fennec_bncr_sub",
+	        "buildnumber": 0,
+	        "log_url": "https://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-fennec_bncr_sub-bm73-build1-build0.txt.gz",
+	        "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/",
+	        "product": "fennec",
+	        "release_promotion": true,
+	        "repo_path": "releases/mozilla-beta",
+	        "request_ids": [144318251],
+	        "request_times": {"144318251": 1490651185},
+	        "revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+	        "script_repo_revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+	        "slavename": "bld-linux64-spot-325",
+	        "taskId": "iHHC2ouJSi6oEe4snWuVpA",
+	        "version": "53.0b7"
+	    },
+	    "reason": "Created by BBB for task iHHC2ouJSi6oEe4snWuVpA",
+	    "request_ids": [144318251],
+	    "requesttime": 1490651185,
+	    "result": 0,
+	    "slave_id": 6817,
+	    "starttime": 1490651194
+	},
+	{
 	    "builder_id": 738534,
 	    "buildnumber": 0,
 	    "endtime": 1490882922,

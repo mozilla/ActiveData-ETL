@@ -2,6 +2,57 @@
     {
         "action": {
             "buildbot_status": "success",
+            "end_time": 1490651199,
+            "job_number": 0,
+            "reason": "Created by BBB for task iHHC2ouJSi6oEe4snWuVpA",
+            "request_time": 1490651185,
+            "requests": [
+                {
+                    "request_id": 144318251,
+                    "timestamp": 1490651185
+                }
+            ],
+            "start_time": 1490651194,
+            "type": "build"
+        },
+        "build": {
+            "branch": "mozilla-beta",
+            "locale": "en-US",
+            "name": "release-mozilla-beta-fennec_bncr_sub",
+            "product": "fennec",
+            "release": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+            "revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1",
+            "revision12": "46d5fe92c82d",
+            "tags": [],
+            "type": [],
+            "version": "53.0b7"
+        },
+        "other": [
+            {
+                "name": "release_promotion",
+                "value": true
+            }
+        ],
+        "properties": {
+            "basedir": "/builds/slave/rel-m-beta-fn_bncr_sub-0000000",
+            "master": "http://buildbot-master73.bb.releng.usw2.mozilla.com:8001/"
+        },
+        "run": {
+            "key": "release-mozilla-beta-fennec_bncr_sub",
+            "logurl": "https://archive.mozilla.org/pub/mobile/tinderbox-builds/mozilla-beta-noarch/release-mozilla-beta-fennec_bncr_sub-bm73-build1-build0.txt.gz",
+            "machine": {
+                "name": "bld-linux64-spot-325",
+                "pool": "bld-linux64-spot"
+            },
+            "script": {"revision": "46d5fe92c82d36b922703faeb7dd3a17b5df55e1"},
+            "type": []
+        },
+        "tags": ["release"],
+        "task": {"id": "iHHC2ouJSi6oEe4snWuVpA"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
             "end_time": 1490882922,
             "job_number": 0,
             "reason": "Created by BBB for task UuwxOpsPRBKbjajq2VyBmA",

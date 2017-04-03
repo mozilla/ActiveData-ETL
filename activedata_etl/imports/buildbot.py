@@ -476,7 +476,6 @@ test_modes = {
 }
 
 BUILDER_NAMES = [
-
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -532,6 +531,7 @@ BUILDER_NAMES = [
     'linux64-br-haz_{{branch}}_dep',
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
+    'release-{{branch}}-{{product}}_bncr_sub',
     'release-{{branch}}-{{product}}_bouncer_aliases',
     'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_publish_balrog',
@@ -553,7 +553,8 @@ BUILD_TYPES = [
     "l10n",   # INTERNATIONALIZATION
     "leak test",
     "static analysis",
-    "ubsan",   #
+    "ccov",   # C/C++ CODE COVERAGE
+    "ubsan",  #
     "jsdcov"  # JAVASCRIPT CODE COVERAGE
 
 ]
