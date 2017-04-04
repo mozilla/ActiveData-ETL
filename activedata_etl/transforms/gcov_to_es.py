@@ -12,11 +12,10 @@ from __future__ import unicode_literals
 import os
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from zipfile import ZipFile, BadZipfile
+from zipfile import ZipFile
 
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
-from activedata_etl.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_dots import set_default, Data
 from mo_files import File, TempDirectory
@@ -62,17 +61,12 @@ def process(source_key, source, destination, resources, please_stop=None):
         # chop some not-needed, and verbose, properties from tc record
         minimize_task(task_cluster_record)
 
-        if DEBUG:
-            Log.note("{{id}}: {{num}} artifacts", id=task_cluster_record.task.id, num=len(artifacts))
-
-        try: # TODO rm
-            for artifact in artifacts:
-                if artifact.name.find("gcda") == -1:
-                    continue
-
-                if resources.todo.message == artifact.url:
-                    # add to SQS instead of processing artifact.
-                    # want to add gcda artifacts into work_queue
+        offset = 0
+        for artifact in artifacts:
+            if artifact.name.find("gcda") == -1:
+                continue
+            try:
+                if resources.todo.artifact_url == artifact.url:
                     if DEBUG:
                         Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
 
@@ -80,22 +74,27 @@ def process(source_key, source, destination, resources, please_stop=None):
                         source_key,
                         resources,
                         destination,
-                        parent_etl,
+                        artifact,
                         task_cluster_record,
-                        artifact
+                        parent_etl,
+                        offset
                     ))
                     return keys
                 else:
+                    # add to SQS instead of processing artifact.
+                    # want to add gcda artifacts into work_queue
                     resources.work_queue.add(Data({
                         "bucket": resources.todo.bucket,
                         "key": source_key,
-                        "message": artifact.url
+                        "artifact_url": artifact.url
                     }))
 
                     if DEBUG:
                         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
-        except Exception as e:
-            Log.warning("problem processing artifacts", cause=e)
+            except Exception as e:
+                Log.warning("problem processing artifacts", cause=e)
+            finally:
+                offset += 1
 
     if DEBUG:
         Log.note("Finish searching for gcda artifacts in gcov_to_es")
@@ -106,7 +105,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         return keys
 
 
-def process_gcda_artifact(source_key, resources, destination, etl_header_gen, task_cluster_record, gcda_artifact, parent_etl):
+def process_gcda_artifact(source_key, resources, destination, gcda_artifact, task_cluster_record, parent_etl, offset_etl):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -119,47 +118,40 @@ def process_gcda_artifact(source_key, resources, destination, etl_header_gen, ta
 
     with TempDirectory() as tmpdir:
         Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-
-        File.new_instance(tmpdir, 'ccov').delete()
-        File.new_instance(tmpdir, 'out').delete()
+        gcda_file = File.new_instance(tmpdir, "gcda.zip")
+        gcno_file = File.new_instance(tmpdir, "gcno.zip")
+        dest_dir = File.new_instance(tmpdir, "ccov").abspath
 
         try:
             Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
-            gcda_file = download_file(gcda_artifact.url)
-            Log.note('Extracting gcda files to {{dir}}/ccov', dir=tmpdir)
-            ZipFile(gcda_file).extractall('%s/ccov' % tmpdir)
-        except BadZipfile:
-            Log.note('Bad zip file for gcda artifact: {{url}}', url=gcda_artifact.url)
+            download_file(gcda_artifact.url, gcda_file)
+            Log.note('Extracting gcda files to {{dir}}', dir=dest_dir)
+            ZipFile(gcda_file).extractall(dest_dir)
+        except Exception as e:
+            Log.warning('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
 
-        # How to pass taskcluster record? only need task_cluster_record.etl and .task.group.id
-        # pass task.id to resources and have resources find the corresponding taskcluster record?
-        #
+        file_etl = Data(
+            id=offset_etl,
+            source=parent_etl,
+            url=gcda_artifact.url,
+            type="join"
+        )
 
-        parent_etl = task_cluster_record.etl
-        file_obj = group_to_gcno_artifacts(task_cluster_record.task.group.id)
-        if DEBUG:
-            Log.note("Task Cluster ID: {{tcid}}", tcid=task_cluster_record.task.group.id)
-
-        remove_files_recursively('%s/ccov' % tmpdir, 'gcno')
-
-        if DEBUG:
-            Log.note('Downloading gcno artifact {{file}}', file=file_obj.url)
-        _, file_etl = etl_header_gen.next(source_etl=parent_etl, url=gcda_artifact.url)
-
-        etl_key = etl2key(file_etl)
-        if DEBUG:
+        gcno_artifact = group_to_gcno_artifacts(task_cluster_record.task.group.id)
+        try:
+            Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
+            etl_key = etl2key(file_etl)
             Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
-
-        gcno_file = download_file(file_obj.url)
-
-        if DEBUG:
-            Log.note('Extracting gcno files to {{dir}}/ccov', dir=tmpdir)
-        ZipFile(gcno_file).extractall('%s/ccov' % tmpdir)
+            download_file(gcno_artifact.url, gcno_file)
+            Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
+            ZipFile(gcno_file).extractall(dest_dir)
+        except Exception as e:
+            Log.note('Problem with gcno artifact: {{url}}', url=gcno_artifact.url, cause=e)
+            return []
 
         # where actual transform is performed and written to S3
-        minimize_task(task_cluster_record)
-        process_directory('%s/ccov' % tmpdir, destination, task_cluster_record, file_etl)
+        process_directory(dest_dir, destination, task_cluster_record, file_etl)
         keys = [etl_key]
         return keys
 
@@ -236,10 +228,13 @@ def run_lcov_on_directory(directory_path):
     :return: queue with files
     """
     if os.name == 'nt':
-        grcov = File("./resources/binaries/grcov.exe").abspath
-        with Process("grcov:" +directory_path, [grcov, directory_path], env={b"RUST_BACKTRACE": b"full"}, debug=True) as proc:
-            results = parse_lcov_coverage(proc.stdout)
-        return results
+        def output():
+            grcov = File("./resources/binaries/grcov.exe").abspath
+            proc = Process("grcov:" +directory_path, [grcov, directory_path], env={b"RUST_BACKTRACE": b"full"}, debug=False)
+            for line in proc.stdout:
+                yield line
+            proc.join()
+        return output()
     else:
         fdevnull = open(os.devnull, 'w')
 
@@ -247,16 +242,14 @@ def run_lcov_on_directory(directory_path):
         return proc.stdout
 
 
-def download_file(url):
-    tempfile = NamedTemporaryFile(delete=False)
+def download_file(url, destination):
+    tempfile = file(destination.abspath, "w+b")
     stream = http.get(url).raw
     try:
         for b in iter(lambda: stream.read(8192), b""):
             tempfile.write(b)
     finally:
         stream.close()
-
-    return tempfile
 
 
 def remove_files_recursively(root_directory, file_extension):

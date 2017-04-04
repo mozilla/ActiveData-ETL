@@ -295,7 +295,6 @@ class ETL(Thread):
                             todo = self.work_queue.pop()
                         else:
                             todo = self.work_queue.pop(till=Till(till=Date.now().unix))
-                            Log.note("First item in Queue popped: {{t}}", t=todo)
                         if todo == None:
                             please_stop.go()
                             return
