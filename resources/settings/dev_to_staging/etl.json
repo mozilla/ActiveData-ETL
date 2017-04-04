@@ -269,6 +269,7 @@
 				"name": "active-data-index",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
+			"transform_type": "bulk",
 			"transformer": "activedata_etl.transforms.gcov_to_es.process",
 			"type": "join"
 		},
@@ -289,6 +290,7 @@
 				"name": "active-data-index",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
+			"transform_type": "bulk",
 			"transformer": "activedata_etl.transforms.jscov_to_es.process",
 			"type": "join"
 		}

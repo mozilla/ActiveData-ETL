@@ -153,7 +153,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     try:
         new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
     except Exception as e:
-        Log.warning("problem getting info on {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
     new_treeherder.repo.changeset.files = None
     new_treeherder.repo.changeset.description = strings.limit(new_treeherder.repo.changeset.description, 1000)
 

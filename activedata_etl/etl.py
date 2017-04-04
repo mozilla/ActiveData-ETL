@@ -47,8 +47,6 @@ from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 
-from pyLibrary import convert
-
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
 
@@ -105,15 +103,16 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify))
+                w._notify.append(aws.Queue(notify)) # notify tells which queue to put in
 
         self.resources = resources
         self.settings = kwargs
         if isinstance(work_queue, Mapping):
-            self.work_queue = aws.Queue(work_queue)
+            self.work_queue = aws.Queue(work_queue) # work queue created
         else:
             self.work_queue = work_queue
-
+        Log.note("Work queue {{s}}", s=work_queue)
+        # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         Log.note("--- finished ETL transform thread ---")
         self.start()
@@ -123,6 +122,7 @@ class ETL(Thread):
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
         """
+        # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
@@ -170,17 +170,30 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop)
+                # calling transformer currently
+                # transformer called with keys from 173 and 175
+                # transformer will return no keys or original key for first part of SQS split
 
-                if not new_keys and old_keys:
+                # must set up resources
+                resources = mo_dots.set_default(
+                    {
+                        "todo": source_block,
+                        "work_queue": self.work_queue
+                    },
+                    self.resources
+                )
+
+                new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+
+                if new_keys == None:
+                    new_keys = set()
+                elif not new_keys and old_keys:
                     Log.warning(
                         "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys=old_keys,
                         source_key=source_key
                     )
                     continue
-                elif new_keys == None:
-                    new_keys = set()
                 elif len(new_keys) == 0:
                     Log.alert(
                         "Expecting some new keys after processing {{source_key}}",
@@ -220,18 +233,10 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # for n in new_keys:
-                #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", new_key=n, source_key=source_key)
-
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    if action.destination.bucket == "ekyle-test-result":
-                        for k in delete_me:
-                            action._destination.delete_key(k)
-                    else:
-                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
-                        # for k in delete_me:
+                    Log.warning("delete keys?\n{{list}}", list=sorted(delete_me))
+
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
@@ -285,6 +290,7 @@ class ETL(Thread):
                             break  # please_stop MUST HAVE BEEN TRIGGERED
 
                     else:
+                        # using --key= so will not be an aws.Queue, instead it will be a local queue
                         if isinstance(self.work_queue, aws.Queue):
                             todo = self.work_queue.pop()
                         else:
@@ -304,6 +310,7 @@ class ETL(Thread):
 
 
                     try:
+                        Log.note("Todo is a: {{diction}}", diction= type(todo))
                         is_ok = self._dispatch_work(todo)
                         if is_ok:
                             self.work_queue.commit()
@@ -460,12 +467,14 @@ def main():
 
 
 def etl_one(settings):
+    # where queue is first created/called
     queue = Queue("temp work queue", max=2**32)
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
     for w in settings.workers:
+        # get workers (in this case will always be gcov_to_es.py)
         source = get_container(w.source)
         # source.settings.fast_forward = True
         try:
