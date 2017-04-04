@@ -118,8 +118,8 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 
     with TempDirectory() as tmpdir:
         Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-        gcda_file = File.new_instance(tmpdir, "gcda.zip")
-        gcno_file = File.new_instance(tmpdir, "gcno.zip")
+        gcda_file = File.new_instance(tmpdir, "gcda.zip").abspath
+        gcno_file = File.new_instance(tmpdir, "gcno.zip").abspath
         dest_dir = File.new_instance(tmpdir, "ccov").abspath
 
         try:
@@ -233,7 +233,7 @@ def run_lcov_on_directory(directory_path):
             proc = Process("grcov:" +directory_path, [grcov, directory_path], env={b"RUST_BACKTRACE": b"full"}, debug=False)
             for line in proc.stdout:
                 yield line
-            proc.join()
+            proc.join(raise_on_error=True)
         return output()
     else:
         fdevnull = open(os.devnull, 'w')
@@ -243,7 +243,7 @@ def run_lcov_on_directory(directory_path):
 
 
 def download_file(url, destination):
-    tempfile = file(destination.abspath, "w+b")
+    tempfile = file(destination, "w+b")
     stream = http.get(url).raw
     try:
         for b in iter(lambda: stream.read(8192), b""):
