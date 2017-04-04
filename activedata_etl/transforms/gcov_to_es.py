@@ -11,7 +11,6 @@ from __future__ import unicode_literals
 
 import os
 from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
@@ -92,7 +91,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if DEBUG:
                         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
             except Exception as e:
-                Log.warning("problem processing artifacts", cause=e)
+                Log.error("problem processing artifacts", cause=e)
             finally:
                 offset += 1
 
