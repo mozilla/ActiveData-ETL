@@ -91,7 +91,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if DEBUG:
                         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
             except Exception as e:
-                Log.error("problem processing artifacts", cause=e)
+                Log.error(TRY_AGAIN_LATER, reason="problem processing artifacts for key " + source_key, cause=e)
             finally:
                 offset += 1
 
@@ -127,7 +127,7 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             Log.note('Extracting gcda files to {{dir}}', dir=dest_dir)
             ZipFile(gcda_file).extractall(dest_dir)
         except Exception as e:
-            Log.warning('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
+            Log.error('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
 
         file_etl = Data(
@@ -146,7 +146,7 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
             ZipFile(gcno_file).extractall(dest_dir)
         except Exception as e:
-            Log.note('Problem with gcno artifact: {{url}}', url=gcno_artifact.url, cause=e)
+            Log.error('Problem with gcno artifact: {{url}}', url=gcno_artifact.url, cause=e)
             return []
 
         # where actual transform is performed and written to S3
@@ -216,7 +216,7 @@ def group_to_gcno_artifacts(group_id):
     })
 
     if len(result.data) != 1:
-        Log.error(TRY_AGAIN_LATER, reason="got " + unicode(len(result.data)) + " gcno artifacts for task group " + group_id + ", not expected")
+        Log.error("Got {{num}} gcno artifacts for task group {{group}}, not expected", num=len(result.data), group=group_id)
     return result.data[0]
 
 
