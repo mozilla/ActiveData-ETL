@@ -198,6 +198,7 @@ _option_map = {
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
+    "jsdcov": ["jsdcov"],
     "nostylo": ["nostylo"],
     "opt": ["opt"],
     "pgo": ["pgo"]

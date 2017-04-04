@@ -74,9 +74,9 @@ class S3Cache(object):
         def update(prefix, bucket, please_stop):
             if prefix:
                 result = self.db.query(
-                    "SELECT max(" + selector + ") as " + self.db.quote_column("max") +
-                    "FROM files " +
-                    "WHERE bucket=" + self.db.quote_value(bucket.name) +
+                    " SELECT max(" + selector + ") as " + self.db.quote_column("max") +
+                    " FROM files " +
+                    " WHERE bucket=" + self.db.quote_value(bucket.name) +
                     " AND substr(name, 1, " + unicode(len(prefix)) + ")=" + self.db.quote_value(prefix)
                 )
                 maximum = result.data[0][0]
@@ -92,9 +92,9 @@ class S3Cache(object):
                     biggest = prefix + "."
             else:
                 result = self.db.query(
-                    "SELECT max(" + selector + ") as " + self.db.quote_column("max") +
-                    "FROM files "
-                    "WHERE bucket=" + self.db.quote_value(bucket.name)
+                    " SELECT max(" + selector + ") as " + self.db.quote_column("max") +
+                    " FROM files "
+                    " WHERE bucket=" + self.db.quote_value(bucket.name)
                 )
                 maximum = result.data[0][0]
                 if maximum:
