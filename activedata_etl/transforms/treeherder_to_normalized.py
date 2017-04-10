@@ -153,7 +153,10 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     try:
         new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
     except Exception as e:
-        Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        if new_treeherder.build.branch == "bmo-master":
+            Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        else:
+            Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
     new_treeherder.repo.changeset.files = None
     new_treeherder.repo.changeset.description = strings.limit(new_treeherder.repo.changeset.description, 1000)
 
@@ -198,6 +201,7 @@ _option_map = {
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
+    "jsdcov": ["jsdcov"],
     "nostylo": ["nostylo"],
     "opt": ["opt"],
     "pgo": ["pgo"]
