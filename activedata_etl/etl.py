@@ -111,7 +111,7 @@ class ETL(Thread):
             self.work_queue = aws.Queue(work_queue) # work queue created
         else:
             self.work_queue = work_queue
-        Log.note("Work queue {{s}}", s=work_queue)
+
         # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         Log.note("--- finished ETL transform thread ---")
@@ -134,6 +134,13 @@ class ETL(Thread):
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
         else:
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
+
+        if source_block.artifact_url or not work_actions:
+            Log.warning(
+                "REMOVING RECORDS WITH artifact_url {{todo}}",
+                todo=source_block
+            )
+            return True
 
         if not work_actions:
             Log.note(
@@ -308,9 +315,8 @@ class ETL(Thread):
                         self.work_queue.commit()
                         continue
 
-
                     try:
-                        Log.note("Todo is a: {{diction}}", diction= type(todo))
+                        Log.note("TODO: {{todo}}", todo=todo)
                         is_ok = self._dispatch_work(todo)
                         if is_ok:
                             self.work_queue.commit()

@@ -61,35 +61,49 @@ def process(source_key, source, destination, resources, please_stop=None):
         minimize_task(task_cluster_record)
 
         offset = 0
+        keys = []
         for artifact in artifacts:
             if artifact.name.find("gcda") == -1:
                 continue
             try:
-                if resources.todo.artifact_url == artifact.url:
-                    if DEBUG:
-                        Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
+                if DEBUG:
+                    Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
 
-                    keys.extend(process_gcda_artifact(
-                        source_key,
-                        resources,
-                        destination,
-                        artifact,
-                        task_cluster_record,
-                        parent_etl,
-                        offset
-                    ))
-                    return keys
-                else:
-                    # add to SQS instead of processing artifact.
-                    # want to add gcda artifacts into work_queue
-                    resources.work_queue.add(Data({
-                        "bucket": resources.todo.bucket,
-                        "key": source_key,
-                        "artifact_url": artifact.url
-                    }))
+                keys.extend(process_gcda_artifact(
+                    source_key,
+                    resources,
+                    destination,
+                    artifact,
+                    task_cluster_record,
+                    parent_etl,
+                    offset
+                ))
 
-                    if DEBUG:
-                        Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
+                # if resources.todo.artifact_url == artifact.url:
+                #     if DEBUG:
+                #         Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
+                #
+                #     keys.extend(process_gcda_artifact(
+                #         source_key,
+                #         resources,
+                #         destination,
+                #         artifact,
+                #         task_cluster_record,
+                #         parent_etl,
+                #         offset
+                #     ))
+                #     return keys
+                # else:
+                #     # add to SQS instead of processing artifact.
+                #     # want to add gcda artifacts into work_queue
+                #     resources.work_queue.add(Data({
+                #         "bucket": resources.todo.bucket,
+                #         "key": source_key,
+                #         "artifact_url": artifact.url
+                #     }))
+                #
+                #     if DEBUG:
+                #         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="problem processing artifacts for key " + source_key, cause=e)
             finally:
