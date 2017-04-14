@@ -8,44 +8,33 @@
 #
 from __future__ import unicode_literals
 
-
-# import cProfile
-# import pstats
-#
-# cprofiler = cProfile.Profile()
-# cprofiler.enable()
-#
-
-# NEED TO BE NOTIFIED OF ID TO REPROCESS
-# NEED TO BE NOTIFIED OF RANGE TO REPROCESS
-# MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
+import sys
 from collections import Mapping
 from copy import deepcopy
-import sys
 
-from mo_kwargs import override
-
-import mo_dots
-from pyLibrary import aws
-from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
-from mo_math import MIN
-from mo_logs import Log, startup, constants, strings
-from mo_logs.exceptions import suppress_exception
+from activedata_etl import key2etl
 from mo_dots import coalesce, listwrap, Data, Null, wrap
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.queries import jx
+from mo_kwargs import override
+from mo_logs import Log, startup, constants, strings
+from mo_math import MIN
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
 from mo_threads import Till
-from mo_times.dates import Date
-from mo_times.durations import SECOND
-from activedata_etl import key2etl
-from mohg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary import aws
+
+import mo_dots
 from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+from mo_logs.exceptions import suppress_exception
+from mo_times.dates import Date
+from mo_times.durations import SECOND
+from mohg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
+from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
+from pyLibrary.queries import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -56,7 +45,7 @@ class ConcatSources(object):
     """
 
     def __init__(self, sources):
-        self.source = sources
+        self.sources = sources
 
     def read(self):
         return "\n".join(s.read() for s in self.sources)
@@ -335,7 +324,7 @@ class ETL(Thread):
                             try:
                                 self.work_queue.add(todo)
                                 self.work_queue.commit()
-                            except Exception, f:
+                            except Exception as f:
                                 # UNEXPECTED PROBLEM!!!
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])
@@ -353,7 +342,7 @@ class ETL(Thread):
                             try:
                                 self.work_queue.add(todo)
                                 self.work_queue.commit()
-                            except Exception, f:
+                            except Exception as f:
                                 # UNEXPECTED PROBLEM!!!
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])

@@ -510,7 +510,7 @@ def get_build_task(source_key, resources, normalized_task):
             "from": 0,
             "size": 10
         },
-        retry={"times": 3, "sleep": 3}
+        retry={"times": 3, "sleep": 15}
     )
 
     candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
