@@ -96,9 +96,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                 # else:
                 #     # add to SQS instead of processing artifact.
                 #     # want to add gcda artifacts into work_queue
+                #     now = Date.now()
                 #     resources.work_queue.add(Data({
                 #         "bucket": resources.todo.bucket,
                 #         "key": source_key,
+                #         "timestamp": now.unix,
+                #         "date/time": now.format(),
                 #         "artifact_url": artifact.url
                 #     }))
                 #
