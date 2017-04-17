@@ -51,6 +51,7 @@ KNOWN_PERFHERDER_TESTS = [
     "g3",
     "g4",
     "glterrain",
+    "glvideo",
     "installer size",
     "jittest.jittest.overall",
     "kraken",
