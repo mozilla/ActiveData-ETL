@@ -118,7 +118,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.tier = consume(raw_job, "tier")
     new_treeherder.run.result = consume(raw_job, "result")
     new_treeherder.run.state = consume(raw_job, "state")
-    if raw_treeherder.job.signature.build_system_type in ["taskcluster", "buildbot"]:
+    if raw_treeherder.job.signature.build_system_type in ["taskcluster", "buildbot", "fx-test-jenkins"]:
         consume(raw_job, "signature.build_system_type")
     else:
         Log.error("Know nothing about build_system_type=={{type}}", type=raw_treeherder.job.signature.build_system_type)
