@@ -10,14 +10,12 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
-from activedata_etl.imports.task import minimize_task
-from activedata_etl.transforms import EtlHeadGenerator
 from mo_dots import wrap, unwraplist, set_default
 from mo_json import stream
 from mo_logs import Log, machine_metadata
+
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary import convert
 from pyLibrary.env import http
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -26,97 +24,49 @@ ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{pa
 RETRY = {"times": 3, "sleep": 5}
 
 
-def process(source_key, source, destination, resources, please_stop=None):
-    """
-    This transform will turn a pulse message containing info about a jscov artifact on taskcluster
-    into a list of records of method coverages. Each record represents a method in a source file, given a test.
+def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
+    # fetch the artifact
+    response_stream = http.get(artifact.url).raw
+    records = []
+    with Timer("Processing {{ccov_file}}", param={"ccov_file": artifact.url}):
+        def count_generator():
+            count = 0
+            while True:
+                yield count
+                count += 1
 
-    :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
-    :param source: The source pulse messages, in a batch of (usually) 100
-    :param destination: The destination for the transformed data
-    :param resources: not used
-    :param please_stop: The stop signal to stop the current thread
-    :return: The list of keys of files in the destination bucket
-    """
-    keys = []
-    etl_header_gen = EtlHeadGenerator(source_key)
-    ccov_artifact_count = 0
+        counter = count_generator().next
 
-    for msg_line_index, msg_line in enumerate(list(source.read_lines())):
-        if please_stop:
-            Log.error("Shutdown detected. Stopping job ETL.")
+        for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+            if please_stop:
+                Log.error("Shutdown detected. Stopping job ETL.")
 
-        try:
-            task_cluster_record = convert.json2value(msg_line)
-        except Exception as e:
-            if "JSON string is only whitespace" in e:
-                continue
-            else:
-                Log.error("unexpected JSON decoding problem", cause=e)
-
-        parent_etl = task_cluster_record.etl
-        artifacts = task_cluster_record.task.artifacts
-        minimize_task(task_cluster_record)
-
-        for artifact in artifacts:
-            # we're only interested in jscov files, at lease at the moment
-            if "jscov" not in artifact.name:
+            if source_file_index == 0:
+                # this is not a jscov object but an object containing the version metadata
+                # TODO: this metadata should not be here
+                # TODO: this version info is not used right now. Make use of it later.
+                jscov_format_version = obj.get("version")
                 continue
 
-            # if ccov_artifact_count == 0:
-            #     # TEMP, WHILE WE MONITOR
-            #     Log.warning("Yea! Code Coverage for key {{key}} is being processed!\n{{ccov_file}} ", ccov_file=artifact.url, key=source_key)
-            ccov_artifact_count += 1
-            _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-
-            # fetch the artifact
-            response_stream = http.get(artifact.url).raw
-
-            records = []
-            with Timer("Processing {{ccov_file}}", param={"ccov_file": artifact.url}):
-                def count_generator():
-                    count = 0
-                    while True:
-                        yield count
-                        count += 1
-                counter = count_generator().next
-
-                for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
-                    if please_stop:
-                        Log.error("Shutdown detected. Stopping job ETL.")
-
-                    if source_file_index == 0:
-                        # this is not a jscov object but an object containing the version metadata
-                        # TODO: this metadata should not be here
-                        # TODO: this version info is not used right now. Make use of it later.
-                        jscov_format_version = obj.get("version")
-                        continue
-
-                    try:
-                        process_source_file(
-                            artifact_etl,
-                            counter,
-                            obj,
-                            task_cluster_record,
-                            records
-                        )
-                    except Exception as e:
-                        Log.warning(
-                            "Error processing test {{test_url}} and source file {{source}}",
-                            test_url=obj.get("testUrl"),
-                            source=obj.get("sourceFile"),
-                            cause=e
-                        )
-
-            key = etl2key(artifact_etl)
-            keys.append(key)
-            with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": key}):
-                destination.extend(records, overwrite=True)
-
-    if not keys:
-        return None
-    else:
-        return keys
+            try:
+                process_source_file(
+                    artifact_etl,
+                    counter,
+                    obj,
+                    task_cluster_record,
+                    records
+                )
+            except Exception as e:
+                Log.warning(
+                    "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
+                    key=source_key,
+                    test_url=obj.get("testUrl"),
+                    source=obj.get("sourceFile"),
+                    cause=e
+                )
+    with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": source_key}):
+        keys = destination.extend(records, overwrite=True)
+    return keys
 
 
 def process_source_file(parent_etl, count, obj, task_cluster_record, records):

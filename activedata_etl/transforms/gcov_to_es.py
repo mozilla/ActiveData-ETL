@@ -9,19 +9,18 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import os
 from subprocess import Popen, PIPE
 from zipfile import ZipFile
 
+import os
 from activedata_etl import etl2key
-from activedata_etl.imports.task import minimize_task
-from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import set_default, Data
+from mo_dots import set_default
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process
 from mo_times import Timer, Date
+
 from pyLibrary.env import http
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
@@ -29,99 +28,7 @@ RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 
 
-def process(source_key, source, destination, resources, please_stop=None):
-    """
-    This transform will turn a pulse message containing info about a gcov artifact (gcda or gcno file) on taskcluster
-    into a list of records of method coverages. Each record represents a method in a source file, given a test.
-
-    :param source_key: The key of the file containing the normalized task cluster messages
-    :param source: The file contents, a cr-delimited list of normalized task cluster messages
-    :param destination: The destination for the transformed data
-    :param resources: not used
-    :param please_stop: The stop signal to stop the current thread
-    :return: The list of keys of files in the destination bucket
-    """
-    keys = []
-    for msg_line_index, msg_line in enumerate(list(source.read_lines())): #readline() for local
-        # Enter once collected artifacts
-        if please_stop:
-            Log.error("Shutdown detected. Stopping job ETL.")
-
-        try:
-            task_cluster_record = json2value(msg_line)
-        except Exception, e:
-            if "JSON string is only whitespace" in e:
-                continue
-            else:
-                Log.error("unexpected JSON decoding problem", cause=e)
-
-        parent_etl = task_cluster_record.etl
-        artifacts = task_cluster_record.task.artifacts
-        # chop some not-needed, and verbose, properties from tc record
-        minimize_task(task_cluster_record)
-
-        offset = 0
-        keys = []
-        for artifact in artifacts:
-            if artifact.name.find("gcda") == -1:
-                continue
-            try:
-                if DEBUG:
-                    Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
-
-                keys.extend(process_gcda_artifact(
-                    source_key,
-                    resources,
-                    destination,
-                    artifact,
-                    task_cluster_record,
-                    parent_etl,
-                    offset
-                ))
-
-                # if resources.todo.artifact_url == artifact.url:
-                #     if DEBUG:
-                #         Log.note("Processing gcda artifact: {{gcdaa}}", gcdaa=artifact.url)
-                #
-                #     keys.extend(process_gcda_artifact(
-                #         source_key,
-                #         resources,
-                #         destination,
-                #         artifact,
-                #         task_cluster_record,
-                #         parent_etl,
-                #         offset
-                #     ))
-                #     return keys
-                # else:
-                #     # add to SQS instead of processing artifact.
-                #     # want to add gcda artifacts into work_queue
-                #     now = Date.now()
-                #     resources.work_queue.add(Data({
-                #         "bucket": resources.todo.bucket,
-                #         "key": source_key,
-                #         "timestamp": now.unix,
-                #         "date/time": now.format(),
-                #         "artifact_url": artifact.url
-                #     }))
-                #
-                #     if DEBUG:
-                #         Log.note("Added gcda artifact, {{gcdaa}} to work queue", gcdaa=artifact.url)
-            except Exception as e:
-                Log.error(TRY_AGAIN_LATER, reason="problem processing artifacts for key " + source_key, cause=e)
-            finally:
-                offset += 1
-
-    if DEBUG:
-        Log.note("Finish searching for gcda artifacts in gcov_to_es")
-
-    if not keys:
-        return None
-    else:
-        return keys
-
-
-def process_gcda_artifact(source_key, resources, destination, gcda_artifact, task_cluster_record, parent_etl, offset_etl):
+def process_gcda_artifact(source_key, resources, destination, gcda_artifact, task_cluster_record, artifact_etl, please_stop):
     """
     Processes a gcda artifact by downloading any gcno files for it and running lcov on them individually.
     The lcov results are then processed and converted to the standard ccov format.
@@ -147,32 +54,28 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             Log.error('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
 
-        file_etl = Data(
-            id=offset_etl,
-            source=parent_etl,
-            url=gcda_artifact.url,
-            type="join"
-        )
-
         gcno_artifact = group_to_gcno_artifacts(task_cluster_record.task.group.id)
         try:
             Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
-            etl_key = etl2key(file_etl)
+            etl_key = etl2key(artifact_etl)
             Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
             download_file(gcno_artifact.url, gcno_file)
             Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
             ZipFile(gcno_file).extractall(dest_dir)
         except Exception as e:
-            Log.error('Problem with gcno artifact: {{url}}', url=gcno_artifact.url, cause=e)
+            Log.error('Problem with gcno artifact: {{url}} for key {{key}}', key=source_key, url=gcno_artifact.url, cause=e)
             return []
 
         # where actual transform is performed and written to S3
-        process_directory(dest_dir, destination, task_cluster_record, file_etl)
+        process_directory(dest_dir, destination, task_cluster_record, artifact_etl)
         keys = [etl_key]
         return keys
 
 
 def process_directory(source_dir, destination, task_cluster_record, file_etl):
+
+    file_map = File.new_instance(source_dir, "linked-files-map.json").read_json()
+
     new_record = set_default(
         {
             "test": {
@@ -191,25 +94,20 @@ def process_directory(source_dir, destination, task_cluster_record, file_etl):
         task_cluster_record
     )
 
-    json_with_placeholders = value2json(new_record)
-
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
-        lcov_coverage = run_lcov_on_directory(source_dir)
 
         def generator():
             count = 0
+            lcov_coverage = run_lcov_on_directory(source_dir)
             for json_str in lcov_coverage:
-                res = json_with_placeholders.replace("\"%PLACEHOLDER%\"", json_str.decode('utf8').rstrip("\n"))
-                res = res.replace("\"%PLACEHOLDER_ID%\"", unicode(count))
+                source = json2value(json_str.decode("utf8"))
+                source.file.name = file_map.get(source.file.name, source.file.name)
+                new_record.source = source
+                new_record.etl.id = count
                 count += 1
-                if DEBUG:
-                    try:
-                        json2value(res)
-                    except Exception as e:
-                        Log.error("grcov did not result in JSON", cause=e)
-                yield res
+                yield value2json(new_record)
 
-        destination.write_lines(etl2key(file_etl), generator())
+    destination.write_lines(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):
@@ -267,18 +165,4 @@ def download_file(url, destination):
     finally:
         stream.close()
 
-
-def remove_files_recursively(root_directory, file_extension):
-    """
-    Removes files with the given file extension from a directory recursively.
-
-    :param root_directory: The directory to remove files from recursively
-    :param file_extension: The file extension files must match
-    """
-    full_ext = '.%s' % file_extension
-
-    for root, dirs, files in os.walk(root_directory):
-        for file in files:
-            if file.endswith(full_ext):
-                os.remove(os.path.join(root, file))
 
