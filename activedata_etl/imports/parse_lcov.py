@@ -104,6 +104,7 @@ def coco_format(details):
             "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
         }
     })
+
     return [source]
 
 
