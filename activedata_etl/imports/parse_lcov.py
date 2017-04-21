@@ -14,6 +14,9 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 import sys
 import json
 
+from mo_dots import wrap
+from mo_logs import Log
+
 
 def parse_lcov_coverage(stream):
     """
@@ -25,32 +28,29 @@ def parse_lcov_coverage(stream):
     sources = {}
 
     current_source = None
-
-    total_lines_covered = 0
-    total_lines_uncovered = 0
+    test_name = None
 
     for line in stream:
         line = line.strip()
 
         if line == 'end_of_record':
             current_source = None
+            test_name = None
         elif ':' in line:
-            colon_index = line.index(':')
-            cmd = line[0:colon_index]
-            data = line[colon_index + 1:]
+            cmd, data = line.split(":", 2)
 
             if cmd == 'TN':
-                test_name = data
+                test_name = data.strip()
             elif cmd == 'SF':
                 source_file = data
 
                 if source_file not in sources:
                     sources[source_file] = {
+                        'test': test_name if test_name else None,
                         'file': source_file,
                         'functions': {},
                         'lines_covered': set(),
-                        'lines_uncovered': set(),
-                        'line_execution_counts': {}
+                        'lines_uncovered': set()
                     }
 
                 current_source = sources[source_file]
@@ -63,42 +63,54 @@ def parse_lcov_coverage(stream):
             elif cmd == 'LH':
                 lines_hit = int(data)
             elif cmd == 'DA':
-                split = data.split(',')
-                line_number = int(split[0])
-                execution_count = int(split[1])
-
-                current_source['line_execution_counts'][line_number] = execution_count
-
+                line_number, execution_count = map(int, data.split(","))
                 if execution_count > 0:
                     current_source['lines_covered'].add(line_number)
-                    total_lines_covered += 1
                 else:
                     current_source['lines_uncovered'].add(line_number)
-                    total_lines_uncovered += 1
             elif cmd == 'FN':
-                split = data.split(',')
-                min_line = int(split[0])
-                function_name = split[1]
+                min_line, function_name = data.split(",", 2)
 
                 current_source['functions'][function_name] = {
-                    'start': min_line,
+                    'start': int(min_line),
                     'execution_count': 0
                 }
             elif cmd == 'FNDA':
-                split = data.split(',')
-                execution_count = int(split[0])
-                function_name = split[1]
-
-                if function_name not in current_source['functions']:
-                    # print('Unknown function %s for FNDA' % function_name)
-                    continue
-
-                current_source['functions'][function_name]['execution_count'] = execution_count
+                fn_execution_count, function_name = data.split(",", 2)
+                try:
+                    current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                except Exception as e:
+                    if fn_execution_count != "0":
+                        Log.warning("No mention of {{func}} until now", func=function_name, cause=e)
             else:
-                print('Unsupported cmd %s with data "%s"' % (cmd, data))
+                Log.error('Unsupported cmd {{cmd}} with data {{data}}', cmd=cmd, data=data)
+        else:
+            Log.error("unknown line {{line}}", line=line)
+    Log.note('done')
+    return coco_format(sources)
 
-    print('done')
 
+def coco_format(sources):
+    results = []
+    for details in sources.values():
+        # TODO: DO NOT IGNORE METHODS
+        file_info = wrap({
+            "language": "c/c++",
+            "is_file": True,
+            "file": {
+                "name": details['file'],
+                'covered': [{"line": c} for c in sorted(details["lines_covered"])],
+                'uncovered': sorted(details['lines_uncovered']),
+                "total_covered": len(details['lines_covered']),
+                "total_uncovered": len(details['lines_uncovered']),
+                "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
+            }
+        })
+        results.append(file_info)
+    return results
+
+
+def js_coverage_format(sources):
     results = []
     for key, value in sources.iteritems():
         lines_covered = sorted(value['lines_covered'])
@@ -128,7 +140,6 @@ def parse_lcov_coverage(stream):
 
         results.append(result)
 
-    # print('TOTALS L:%d/%d' % (total_lines_covered, total_lines_covered + total_lines_uncovered))
     return results
 
 if __name__ == '__main__':

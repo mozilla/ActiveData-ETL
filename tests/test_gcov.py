@@ -9,13 +9,12 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import unittest
 import gzip
+import unittest
+
+from mo_dots import Null
 
 from activedata_etl.transforms import gcov_to_es
-from pyLibrary import convert
-from pyLibrary.dot import Null
-from pyLibrary.env.files import File
 
 
 class TestGcov(unittest.TestCase):
@@ -23,6 +22,7 @@ class TestGcov(unittest.TestCase):
         destination = Destination("results/ccov/gcov_parsing_result.json.gz")
 
         gcov_to_es.process_directory(
+            "tc.0:0.0",
             source_dir="tests/resources/ccov/atk",
             # source_dir="/home/marco/Documenti/FD/mozilla-central/build-cov-gcc",
             destination=destination,
