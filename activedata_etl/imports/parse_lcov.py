@@ -41,12 +41,15 @@ def parse_lcov_coverage(stream):
 
             if cmd == 'TN':
                 test_name = data.strip()
+                if test_name:
+                    Log.warning("Test name found {{name}}", name=test_name)
+                else:
+                    test_name = None
             elif cmd == 'SF':
                 source_file = data
 
                 if source_file not in sources:
                     sources[source_file] = {
-                        'test': test_name if test_name else None,
                         'file': source_file,
                         'functions': {},
                         'lines_covered': set(),

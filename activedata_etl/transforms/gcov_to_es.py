@@ -5,7 +5,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Author: Tyler Blair (tblair@cs.dal.ca)
-#
+
 from __future__ import division
 from __future__ import unicode_literals
 
@@ -55,11 +55,10 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             Log.error('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
 
+
         gcno_artifact = group_to_gcno_artifacts(task_cluster_record.task.group.id)
         try:
             Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
-            etl_key = etl2key(artifact_etl)
-            Log.note('GCNO records will be attached to etl_key: {{etl_key}}', etl_key=etl_key)
             download_file(gcno_artifact.url, gcno_file)
             Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
             ZipFile(gcno_file).extractall(dest_dir)
@@ -69,6 +68,7 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 
         # where actual transform is performed and written to S3
         process_directory(source_key, dest_dir, destination, task_cluster_record, artifact_etl)
+        etl_key = etl2key(artifact_etl)
         keys = [etl_key]
         return keys
 
@@ -111,7 +111,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 count += 1
                 yield value2json(new_record)
 
-    destination.write_lines(etl2key(file_etl), generator())
+        destination.write_lines(etl2key(file_etl), generator())
 
 
 def group_to_gcno_artifacts(group_id):
