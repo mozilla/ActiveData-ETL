@@ -11,11 +11,11 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import requests
-
-from activedata_etl.transforms.jscov_to_es import process_source_file
-from mo_logs import Log
 from mo_dots import Null, Data
 from mo_json import stream
+from mo_logs import Log
+
+from activedata_etl.transforms.jscov_to_es import process_source_file
 from mo_testing.fuzzytestcase import FuzzyTestCase
 
 

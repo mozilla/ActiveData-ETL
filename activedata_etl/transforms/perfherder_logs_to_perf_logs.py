@@ -177,7 +177,7 @@ def transform(source_key, perfherder, resources):
             if suite_name == s:
                 break
             elif suite_name.startswith(s):
-                Log.warning("removing suite suffix of {{suffix|quote}}", suffix=suite_name[len(s)::])
+                Log.warning("removing suite suffix of {{suffix|quote}} for {{suite}}", suffix=suite_name[len(s)::], suite=suite_name)
                 suite_name = s
                 break
             elif suite_name.startswith("remote-" + s):

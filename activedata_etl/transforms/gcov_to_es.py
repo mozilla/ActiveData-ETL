@@ -27,6 +27,8 @@ from pyLibrary.env import http
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
+DEBUG_LCOV_FILE = None
+KNOWN_SOURCES = ["/home/worker/workspace/build/src/"]
 
 
 def process_gcda_artifact(source_key, resources, destination, gcda_artifact, task_cluster_record, artifact_etl, please_stop):
@@ -55,7 +57,6 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             Log.error('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
 
-
         gcno_artifact = group_to_gcno_artifacts(task_cluster_record.task.group.id)
         try:
             Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
@@ -76,9 +77,14 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl):
 
     try:
-        file_map = File.new_instance(source_dir, "linked-files-map.json").read_json()
-    except Exception:
-        Log.warning("Missing linked-files-map.json for key {{key}}", key=source_key)
+        data = File.new_instance(source_dir, "linked-files-map.json").read_json(flexible=False, leaves=False)
+        file_map = {}
+        for k, v in data.items():
+            name = k.split("/")[-1]
+            options = file_map.setdefault(name, [])
+            options.append((k, v))
+    except Exception as e:
+        Log.warning("Missing linked-files-map.json for key {{key}}", key=source_key, cause=e)
         file_map = {}
 
     new_record = set_default(
@@ -87,9 +93,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 "suite": task_cluster_record.run.suite.name,
                 "chunk": task_cluster_record.run.chunk
             },
-            "source": "%PLACEHOLDER%",
             "etl": {
-                "id": "%PLACEHOLDER_ID%",
                 "source": file_etl,
                 "type": "join",
                 "machine": machine_metadata,
@@ -100,16 +104,47 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
     )
 
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
-
         def generator():
+            known = set()
             count = 0
-            lcov_coverage = run_lcov_on_directory(source_dir)
+            map_used = 0
+            prefix_used = 0
+
+            if DEBUG_LCOV_FILE:
+                lcov_coverage = list(parse_lcov_coverage(DEBUG_LCOV_FILE.read_lines()))
+            elif os.name == 'nt':
+                # grcov DOES NOT SUPPORT WINDOWS YET
+                lcov_coverage = list(run_lcov_on_windows(source_dir))  # TODO: Remove list()
+            else:
+                lcov_coverage = run_grcov(source_dir)
+
             for source in lcov_coverage:
-                source.file.name = file_map.get(source.file.name, source.file.name)
+                old_name = source.file.name
+                short_name = old_name.split("/")[-1]
+                candidates = file_map.get(short_name)
+                if candidates:
+                    new_name = best_suffix(old_name, candidates)
+                    if new_name:
+                        source.file.name = new_name
+                        map_used += 1
+                else:
+                    for s in KNOWN_SOURCES:
+                        if old_name.startswith(s):
+                            source.file.name = old_name[len(s):]
+                            prefix_used +=1
+                            break
+                    else:
+                        if old_name not in known:
+                            known.add(old_name)
+                            Log.note("Can not translate {{path}}", path=old_name)
                 new_record.source = source
                 new_record.etl.id = count
                 count += 1
                 yield value2json(new_record)
+            if not map_used and file_map:
+                Log.warning("file map not used while processing {{key}}", key=source_key)
+            else:
+                Log.note("file_map used {{amount|percent}} of {{num}}", amount=map_used/count, num=count)
 
         destination.write_lines(etl2key(file_etl), generator())
 
@@ -139,17 +174,12 @@ def group_to_gcno_artifacts(group_id):
     return result.data[0]
 
 
-def run_lcov_on_directory(directory_path):
+def run_grcov(directory_path):
     """
-    Runs lcov on a directory.
     :param directory_path:
-    :return: queue with files
+    :return: generator of coverage docs
     """
-    if os.name == 'nt':
-        for cov in run_grcov_in_windows_on_directory(directory_path):
-            yield cov
-    else:
-        fdevnull = open(os.devnull, 'w')
+    with open(os.devnull, 'w') as fdevnull:
         proc = Popen(['./grcov', directory_path], stdout=PIPE, stderr=fdevnull)
         for json_str in proc.stdout:
             yield json2value(json_str.decode("utf8"))
@@ -165,7 +195,7 @@ def download_file(url, destination):
         stream.close()
 
 
-def run_grcov_in_windows_on_directory(directory_path):
+def run_lcov_on_windows(directory_path):
     WINDOWS_TEMP_DIR = "c:/msys64/tmp/ccov"
     MSYS2_TEMP_DIR = "/tmp/ccov"
 
@@ -184,7 +214,7 @@ def run_grcov_in_windows_on_directory(directory_path):
     env[b"MSYSTEM"] = b"MINGW64"
 
     proc = Process(
-        "grcov: " + linux_dest_file,
+        "lcov: " + linux_dest_file,
         [
             "c:\\msys64\\usr\\bin\\mintty",
             "/usr/bin/bash",
@@ -214,3 +244,14 @@ def run_grcov_in_windows_on_directory(directory_path):
         yield cov
 
 
+def best_suffix(a, candidates):
+    best = None
+    best_len = 0
+    for c, n in candidates:
+        c_len = len(os.path.commonprefix([a[::-1], c[::-1]]))
+        if c_len > best_len:
+            if c == a:
+                Log.note("Perfect match!")
+                return n
+            best = n
+    return best

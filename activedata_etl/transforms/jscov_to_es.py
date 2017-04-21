@@ -114,6 +114,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
                     "url": obj.testUrl
                 },
                 "source": {
+                    "language": "js",
                     "file": file_info,
                     "method": {
                         "name": method_name,
@@ -148,6 +149,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
             "source": {
                 "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
                 "file": file_info,
+                "language": "js",
                 "method": {
                     "covered": [{"line": c} for c in orphan_covered],
                     "uncovered": orphan_uncovered,

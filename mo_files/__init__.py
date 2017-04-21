@@ -17,7 +17,7 @@ import re
 from tempfile import mkdtemp
 
 from mo_dots import get_module, coalesce
-from mo_logs import Log
+from mo_logs import Log, Except
 
 
 class File(object):
@@ -190,9 +190,9 @@ class File(object):
             for line in f:
                 yield line.decode(encoding).rstrip()
 
-    def read_json(self, encoding="utf8"):
+    def read_json(self, encoding="utf8", flexible=True, leaves=True):
         content = self.read(encoding=encoding)
-        value = get_module("mo_json").json2value(content, flexible=True, leaves=True)
+        value = get_module("mo_json").json2value(content, flexible=flexible, leaves=leaves)
         abspath = self.abspath
         if os.sep == "\\":
             abspath = "/" + abspath.replace(os.sep, "/")
@@ -297,7 +297,8 @@ class File(object):
                 os.remove(self._filename)
             return self
         except Exception as e:
-            if e.strerror == "The system cannot find the path specified":
+            e = Except.wrap(e)
+            if "The system cannot find the path specified" in e:
                 return
             Log.error("Could not remove file", e)
 

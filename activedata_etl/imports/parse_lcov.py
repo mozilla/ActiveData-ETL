@@ -18,6 +18,8 @@ from mo_dots import wrap
 from mo_logs import Log
 
 
+DEBUG = False
+
 def parse_lcov_coverage(stream):
     """
     Parses lcov coverage from a stream
@@ -25,17 +27,17 @@ def parse_lcov_coverage(stream):
     :return:
     """
     # XXX BRDA, BRF, BFH not implemented because not used in the output
-    sources = {}
 
     current_source = None
-    test_name = None
+    done = set()
 
     for line in stream:
         line = line.strip()
 
         if line == 'end_of_record':
+            for source in coco_format(current_source):
+                yield source
             current_source = None
-            test_name = None
         elif ':' in line:
             cmd, data = line.split(":", 2)
 
@@ -43,20 +45,16 @@ def parse_lcov_coverage(stream):
                 test_name = data.strip()
                 if test_name:
                     Log.warning("Test name found {{name}}", name=test_name)
-                else:
-                    test_name = None
             elif cmd == 'SF':
                 source_file = data
-
-                if source_file not in sources:
-                    sources[source_file] = {
-                        'file': source_file,
-                        'functions': {},
-                        'lines_covered': set(),
-                        'lines_uncovered': set()
-                    }
-
-                current_source = sources[source_file]
+                if source_file in done:
+                    Log.error("Note expected to revisit a file")
+                current_source = {
+                    'file': source_file,
+                    'functions': {},
+                    'lines_covered': set(),
+                    'lines_uncovered': set()
+                }
             elif cmd == 'FNF':
                 functions_found = int(data)
             elif cmd == 'FNH':
@@ -84,33 +82,29 @@ def parse_lcov_coverage(stream):
                     current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
                 except Exception as e:
                     if fn_execution_count != "0":
-                        Log.warning("No mention of {{func}} until now", func=function_name, cause=e)
+                        if DEBUG:
+                            Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
             else:
                 Log.error('Unsupported cmd {{cmd}} with data {{data}}', cmd=cmd, data=data)
         else:
             Log.error("unknown line {{line}}", line=line)
-    Log.note('done')
-    return coco_format(sources)
 
 
-def coco_format(sources):
-    results = []
-    for details in sources.values():
-        # TODO: DO NOT IGNORE METHODS
-        file_info = wrap({
-            "language": "c/c++",
-            "is_file": True,
-            "file": {
-                "name": details['file'],
-                'covered': [{"line": c} for c in sorted(details["lines_covered"])],
-                'uncovered': sorted(details['lines_uncovered']),
-                "total_covered": len(details['lines_covered']),
-                "total_uncovered": len(details['lines_uncovered']),
-                "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
-            }
-        })
-        results.append(file_info)
-    return results
+def coco_format(details):
+    # TODO: DO NOT IGNORE METHODS
+    source = wrap({
+        "language": "c/c++",
+        "is_file": True,
+        "file": {
+            "name": details['file'],
+            'covered': [{"line": c} for c in sorted(details["lines_covered"])],
+            'uncovered': sorted(details['lines_uncovered']),
+            "total_covered": len(details['lines_covered']),
+            "total_uncovered": len(details['lines_uncovered']),
+            "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
+        }
+    })
+    return [source]
 
 
 def js_coverage_format(sources):

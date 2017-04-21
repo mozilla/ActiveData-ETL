@@ -15,6 +15,10 @@ import unittest
 from mo_dots import Null
 
 from activedata_etl.transforms import gcov_to_es
+from activedata_etl.transforms.gcov_to_es import process_directory
+from mo_files import File
+
+from mo_logs import constants
 
 
 class TestGcov(unittest.TestCase):
@@ -31,6 +35,13 @@ class TestGcov(unittest.TestCase):
         )
 
         self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))
+
+
+    def test_lcov_post_processing(self):
+        destination = Destination("results/ccov/lcov_parsing_result.json.gz")
+        constants.set({"activedata_etl": {"transforms": {"gcov_to_es": {"DEBUG_LCOV_FILE": File("results/ccov/lcov.txt")}}}})
+        source_dir = File("results/ccov")
+        process_directory(Null, source_dir, destination, Null, Null)
 
 
 class Destination(object):

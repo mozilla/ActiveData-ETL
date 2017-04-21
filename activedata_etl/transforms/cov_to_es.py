@@ -38,7 +38,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     """
     keys = []
     etl_header_gen = EtlHeadGenerator(source_key)
-    ccov_artifact_count = 0
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
@@ -57,9 +56,9 @@ def process(source_key, source, destination, resources, please_stop=None):
         minimize_task(task_cluster_record)
 
         for artifact in artifacts:
-            _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
             try:
                 if "jscov" in artifact.name:
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
                         Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
 
@@ -74,6 +73,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     )
                     keys.extend(keys)
                 elif "gcda" in artifact.name:
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
                         Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
 
@@ -86,13 +86,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-
-
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="problem processing artifacts for key " + source_key, cause=e)
-            finally:
-                ccov_artifact_count += 1
-
 
     if not keys:
         return None
