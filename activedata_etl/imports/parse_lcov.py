@@ -20,6 +20,7 @@ from mo_logs import Log
 
 DEBUG = False
 
+
 def parse_lcov_coverage(stream):
     """
     Parses lcov coverage from a stream

@@ -31,7 +31,8 @@ class TestGcov(unittest.TestCase):
             # source_dir="/home/marco/Documenti/FD/mozilla-central/build-cov-gcc",
             destination=destination,
             task_cluster_record=Null,
-            file_etl=Null
+            file_etl=Null,
+            False
         )
 
         self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))

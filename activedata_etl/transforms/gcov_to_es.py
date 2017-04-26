@@ -68,13 +68,13 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             return []
 
         # where actual transform is performed and written to S3
-        process_directory(source_key, dest_dir, destination, task_cluster_record, artifact_etl)
+        process_directory(source_key, dest_dir, destination, task_cluster_record, artifact_etl, please_stop)
         etl_key = etl2key(artifact_etl)
         keys = [etl_key]
         return keys
 
 
-def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl):
+def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl, please_stop):
 
     try:
         data = File.new_instance(source_dir, "linked-files-map.json").read_json(flexible=False, leaves=False)
@@ -114,7 +114,14 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 lcov_coverage = list(parse_lcov_coverage(DEBUG_LCOV_FILE.read_lines()))
             elif os.name == 'nt':
                 # grcov DOES NOT SUPPORT WINDOWS YET
-                lcov_coverage = list(run_lcov_on_windows(source_dir))  # TODO: Remove list()
+                while not please_stop:
+                    try:
+                        lcov_coverage = list(run_lcov_on_windows(source_dir))  # TODO: Remove list()
+                        break
+                    except Exception as e:
+                        if "Could not remove file" in e:
+                            continue
+                        raise e
             else:
                 lcov_coverage = run_grcov(source_dir)
 
@@ -130,6 +137,8 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 else:
                     for s in KNOWN_SOURCES:
                         if old_name.startswith(s):
+                            if DEBUG:
+                                Log.note("Not found in map: {{path}}", path=old_name)
                             source.file.name = old_name[len(s):]
                             prefix_used +=1
                             break

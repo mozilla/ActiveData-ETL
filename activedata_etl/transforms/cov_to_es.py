@@ -37,7 +37,6 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
-    etl_header_gen = EtlHeadGenerator(source_key)
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
@@ -54,6 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
         minimize_task(task_cluster_record)
+        etl_header_gen = EtlHeadGenerator(source_key)
 
         for artifact in artifacts:
             try:
