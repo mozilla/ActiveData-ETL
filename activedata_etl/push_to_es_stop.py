@@ -17,9 +17,11 @@ from fabric.state import env
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from pyLibrary.aws import aws_retry
-from mo_logs import startup, constants
+from mo_logs import startup, constants, strings
 from mo_logs import Log
 
+
+restart_es_count = 0
 
 @aws_retry
 def _get_managed_instances(ec2_conn, name):
@@ -45,14 +47,31 @@ def _config_fabric(connect, instance):
 
 def _stop_indexer():
     with fabric_settings(warn_only=True):
-        # sudo("supervisorctl stop es")
         sudo("supervisorctl stop push_to_es")
+        # sudo("supervisorctl stop es")
 
 
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
         sudo("supervisorctl start push_to_es")
+
+def _restart_es():
+    global restart_es_count
+    if not restart_es_count:
+        return
+
+    result = sudo("supervisorctl status")
+    for r in result.split("\n"):
+        try:
+            if r.startswith("es"):
+                days = int(strings.between(r, "uptime", "days").strip())
+                if days > 7:
+                    Log.alert("RESTART ES")
+                    sudo("supervisorctl restart es")
+                    restart_es_count -= 1
+        except Exception:
+            pass
 
 
 def main():
@@ -75,6 +94,7 @@ def main():
                 _config_fabric(settings.fabric, i)
                 Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _stop_indexer()
+                _restart_es()
             except Exception as e:
                 Log.warning("Problem with stopping", e)
     except Exception as e:

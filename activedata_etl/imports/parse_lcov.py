@@ -14,6 +14,12 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 import sys
 import json
 
+from mo_dots import wrap
+from mo_logs import Log
+
+
+DEBUG = False
+
 
 def parse_lcov_coverage(stream):
     """
@@ -22,38 +28,34 @@ def parse_lcov_coverage(stream):
     :return:
     """
     # XXX BRDA, BRF, BFH not implemented because not used in the output
-    sources = {}
 
     current_source = None
-
-    total_lines_covered = 0
-    total_lines_uncovered = 0
+    done = set()
 
     for line in stream:
         line = line.strip()
 
         if line == 'end_of_record':
+            for source in coco_format(current_source):
+                yield source
             current_source = None
         elif ':' in line:
-            colon_index = line.index(':')
-            cmd = line[0:colon_index]
-            data = line[colon_index + 1:]
+            cmd, data = line.split(":", 2)
 
             if cmd == 'TN':
-                test_name = data
+                test_name = data.strip()
+                if test_name:
+                    Log.warning("Test name found {{name}}", name=test_name)
             elif cmd == 'SF':
                 source_file = data
-
-                if source_file not in sources:
-                    sources[source_file] = {
-                        'file': source_file,
-                        'functions': {},
-                        'lines_covered': set(),
-                        'lines_uncovered': set(),
-                        'line_execution_counts': {}
-                    }
-
-                current_source = sources[source_file]
+                if source_file in done:
+                    Log.error("Note expected to revisit a file")
+                current_source = {
+                    'file': source_file,
+                    'functions': {},
+                    'lines_covered': set(),
+                    'lines_uncovered': set()
+                }
             elif cmd == 'FNF':
                 functions_found = int(data)
             elif cmd == 'FNH':
@@ -63,42 +65,51 @@ def parse_lcov_coverage(stream):
             elif cmd == 'LH':
                 lines_hit = int(data)
             elif cmd == 'DA':
-                split = data.split(',')
-                line_number = int(split[0])
-                execution_count = int(split[1])
-
-                current_source['line_execution_counts'][line_number] = execution_count
-
+                line_number, execution_count = map(int, data.split(","))
                 if execution_count > 0:
                     current_source['lines_covered'].add(line_number)
-                    total_lines_covered += 1
                 else:
                     current_source['lines_uncovered'].add(line_number)
-                    total_lines_uncovered += 1
             elif cmd == 'FN':
-                split = data.split(',')
-                min_line = int(split[0])
-                function_name = split[1]
+                min_line, function_name = data.split(",", 2)
 
                 current_source['functions'][function_name] = {
-                    'start': min_line,
+                    'start': int(min_line),
                     'execution_count': 0
                 }
             elif cmd == 'FNDA':
-                split = data.split(',')
-                execution_count = int(split[0])
-                function_name = split[1]
-
-                if function_name not in current_source['functions']:
-                    # print('Unknown function %s for FNDA' % function_name)
-                    continue
-
-                current_source['functions'][function_name]['execution_count'] = execution_count
+                fn_execution_count, function_name = data.split(",", 2)
+                try:
+                    current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                except Exception as e:
+                    if fn_execution_count != "0":
+                        if DEBUG:
+                            Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
             else:
-                print('Unsupported cmd %s with data "%s"' % (cmd, data))
+                Log.error('Unsupported cmd {{cmd}} with data {{data}}', cmd=cmd, data=data)
+        else:
+            Log.error("unknown line {{line}}", line=line)
 
-    print('done')
 
+def coco_format(details):
+    # TODO: DO NOT IGNORE METHODS
+    source = wrap({
+        "language": "c/c++",
+        "is_file": True,
+        "file": {
+            "name": details['file'],
+            'covered': [{"line": c} for c in sorted(details["lines_covered"])],
+            'uncovered': sorted(details['lines_uncovered']),
+            "total_covered": len(details['lines_covered']),
+            "total_uncovered": len(details['lines_uncovered']),
+            "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
+        }
+    })
+
+    return [source]
+
+
+def js_coverage_format(sources):
     results = []
     for key, value in sources.iteritems():
         lines_covered = sorted(value['lines_covered'])
@@ -128,7 +139,6 @@ def parse_lcov_coverage(stream):
 
         results.append(result)
 
-    # print('TOTALS L:%d/%d' % (total_lines_covered, total_lines_covered + total_lines_uncovered))
     return results
 
 if __name__ == '__main__':
