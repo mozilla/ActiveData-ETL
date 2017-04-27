@@ -270,7 +270,7 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transform_type": "bulk",
-			"transformer": "activedata_etl.transforms.jscov_to_es.process",
+			"transformer": "activedata_etl.transforms.cov_to_es.process",
 			"type": "join"
 		}
 	],
