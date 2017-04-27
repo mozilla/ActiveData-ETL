@@ -62,7 +62,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if DEBUG:
                         Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
 
-                    keys = process_jscov_artifact(
+                    keys.extend(process_jscov_artifact(
                         source_key,
                         resources,
                         destination,
@@ -70,8 +70,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact,
                         artifact_etl,
                         please_stop
-                    )
-                    keys.extend(keys)
+                    ))
                 elif "gcda" in artifact.name:
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
