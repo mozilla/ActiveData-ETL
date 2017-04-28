@@ -37,6 +37,8 @@ KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_em
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "basic_compositor_video",
+    "bloom_basic_ref",
+    "bloom_basic",
     "build times",
     "cart",
     "chromez",
