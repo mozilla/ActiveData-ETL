@@ -65,6 +65,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_no_auto_restore",
     "sessionrestore",
     "sccache cache_write_errors",
+    "sccache hit rate",
     "sccache requests_not_cacheable",
     "Stylo",
     "svgr",
