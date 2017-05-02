@@ -62,6 +62,7 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "sccache hit rate",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
     "sccache cache_write_errors",
