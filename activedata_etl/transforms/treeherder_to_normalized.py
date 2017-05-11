@@ -193,6 +193,7 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
 
 _option_map = {
     "addon": ["addon"],
+    "aarch64-debug": ["aarch64", "debug"],
     "arm-debug": ["arm", "debug"],
     "asan": ["asan"],
     "ccov": ["ccov"],
@@ -205,7 +206,7 @@ _option_map = {
     "make": ["make"],
     "nostylo": ["nostylo"],
     "opt": ["opt"],
-    "pgo": ["pgo"]
+    "pgo": ["pgo"],
 }
 
 
@@ -281,4 +282,11 @@ def consume(props, key):
     return output
 
 
-KNOWN_VALUES = ["marionette: ", "--", "The following arguments ", "Tests will be run from the following files:", "gaia_revlink: "]
+KNOWN_VALUES = [
+    "marionette: ",
+    "--",
+    "The following arguments ",
+    "Tests will be run from the following files:",
+    "gaia_revlink: ",
+    "Unknown: 1"
+]
