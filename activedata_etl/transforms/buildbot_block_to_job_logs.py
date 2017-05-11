@@ -55,9 +55,9 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         except Exception as e:
             Log.warning("Could not process resource-usage.json for key={{key}}", key=source_key, cause=e)
 
-        if data.action.start_time < TOO_OLD:
-            Log.warning("Do not try to process old buildbot logs")
-            return set()
+        # if data.action.start_time < TOO_OLD:
+        #     Log.warning("Do not try to process old buildbot logs")
+        #     return set()
 
         try:
             rev = Data(

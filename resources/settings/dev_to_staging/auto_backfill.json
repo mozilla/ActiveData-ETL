@@ -12,7 +12,6 @@
 
 
 	},
-	"buckets": ["activedata-codecoverage"],
 	"workers":[
 		{
 			"name": "reprocess treeherder",
@@ -186,39 +185,39 @@
 //				"key_format": "t.a:b.c.d"
 //			}
 //		},
-//		{
-//			"name": "task",
-//			"queue_size": 2000,
-//			"batch_size": 1000,
-//			"rollover": {
-//				"field": "task.created",
-//				"interval": "3month",
-//				"max": "9month"
-//			},
-//			"sample_only": [],
-//			"elasticsearch": {
-//				"host": "http://activedata.allizom.org",
-//				"port": 9200,
-//				"index": "task",
-//				"type": "task",
-//				"timeout": 300,
-//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-//				"schema": {
-//					"$ref": "//../../schema/task_cluster.json"
-//				},
-//				"debug": true,
-//				"limit_replicas": false
-//			},
-//			"backfill": {
-//				"disabled": false
-//			},
-//			"source": {
-//				"bucket": "active-data-task-cluster-normalized",
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"key_format": "t.a:b",
-//				"min_primary": ["tc.470000"]
-//			}
-//		}
+		{
+			"name": "task",
+			"queue_size": 2000,
+			"batch_size": 1000,
+			"rollover": {
+				"field": "task.created",
+				"interval": "3month",
+				"max": "9month"
+			},
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "task",
+				"type": "task",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/task_cluster.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"backfill": {
+				"disabled": false
+			},
+			"source": {
+				"bucket": "active-data-task-cluster-logger",
+				"$ref": "file://~/private.json#aws_credentials",
+				"key_format": "t.a:b",
+				"min_primary": ["tc.600000"]
+			}
+		}
 	],
 	"constants": {
 		"pyLibrary.env.http.default_headers": {

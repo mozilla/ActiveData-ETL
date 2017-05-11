@@ -118,7 +118,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.tier = consume(raw_job, "tier")
     new_treeherder.run.result = consume(raw_job, "result")
     new_treeherder.run.state = consume(raw_job, "state")
-    if raw_treeherder.job.signature.build_system_type in ["taskcluster", "buildbot"]:
+    if raw_treeherder.job.signature.build_system_type in ["taskcluster", "buildbot", "fx-test-jenkins", "fx-test-jenkins-dev"]:
         consume(raw_job, "signature.build_system_type")
     else:
         Log.error("Know nothing about build_system_type=={{type}}", type=raw_treeherder.job.signature.build_system_type)
@@ -146,10 +146,17 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.failure.classification = consume(raw_job, "failure_classification")
     new_treeherder.failure.notes = consume(raw_job, "job_note")
 
-    new_treeherder.repo = resources.hg.get_revision(wrap({
+    new_treeherder.repo = {
         "branch": {"name": new_treeherder.build.branch},
         "changeset": {"id": new_treeherder.build.revision}
-    }))
+    }
+    try:
+        new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
+    except Exception as e:
+        if new_treeherder.build.branch in ["bmo-master", "snippets-tests"]:
+            Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        else:
+            Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
     new_treeherder.repo.changeset.files = None
     new_treeherder.repo.changeset.description = strings.limit(new_treeherder.repo.changeset.description, 1000)
 
@@ -186,6 +193,7 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
 
 _option_map = {
     "addon": ["addon"],
+    "aarch64-debug": ["aarch64", "debug"],
     "arm-debug": ["arm", "debug"],
     "asan": ["asan"],
     "ccov": ["ccov"],
@@ -194,9 +202,11 @@ _option_map = {
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
+    "jsdcov": ["jsdcov"],
+    "make": ["make"],
     "nostylo": ["nostylo"],
     "opt": ["opt"],
-    "pgo": ["pgo"]
+    "pgo": ["pgo"],
 }
 
 
@@ -272,4 +282,11 @@ def consume(props, key):
     return output
 
 
-KNOWN_VALUES = ["marionette: ", "--", "The following arguments ", "Tests will be run from the following files:", "gaia_revlink: "]
+KNOWN_VALUES = [
+    "marionette: ",
+    "--",
+    "The following arguments ",
+    "Tests will be run from the following files:",
+    "gaia_revlink: ",
+    "Unknown: 1"
+]

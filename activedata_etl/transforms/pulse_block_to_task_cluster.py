@@ -510,7 +510,7 @@ def get_build_task(source_key, resources, normalized_task):
             "from": 0,
             "size": 10
         },
-        retry={"times": 3, "sleep": 3}
+        retry={"times": 3, "sleep": 15}
     )
 
     candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
@@ -525,11 +525,25 @@ def get_build_task(source_key, resources, normalized_task):
             MISSING_BUILDS.update(build_task_id)
         return None
 
+    candidate = candidates[-1]
     if len(candidates) > 1:
-        Log.warning("Found too many builds for {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
-        return None
+        etl, candidate.etl = candidate.etl, None
+        _id, candidate._id = candidate._id, None
+        for c in candidates[:-1:]:
+            try:
+                assertAlmostEqual(c, candidate)
+            except Exception as e:
+                Log.warning(
+                    "Found too many builds ({{num}}) with task id={{task}} in {{key}}",
+                    task=build_task_id,
+                    key=source_key,
+                    num=len(candidates),
+                    cause=e
+                )
+                return None
+        candidate.etl = etl
+        candidate._id = _id
 
-    candidate = candidates[0]
     if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",

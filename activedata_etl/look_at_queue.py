@@ -25,6 +25,24 @@ def list_queue(settings, num):
     queue.rollback()
 
 
+def scrub_queue(settings):
+    queue = aws.Queue(settings)
+
+    existing = set()
+
+    for i in range(120000):
+        content = queue.pop()
+        try:
+            if (content.key, content.bucket) not in existing:
+                existing.add((content.key, content.bucket))
+                queue.add(content)
+                Log.note("KEEP {{content|json}}", content=content)
+            else:
+                Log.note("remove {{content|json}}", content=content)
+        finally:
+            queue.commit()
+
+
 def main():
     try:
         settings = startup.read_settings(defs={
@@ -36,6 +54,7 @@ def main():
             "required": False
         })
         Log.start(settings.debug)
+        # scrub_queue(settings.source)
         list_queue(settings.source, settings.args.num)
     except Exception as e:
         Log.error("Problem with etl", e)

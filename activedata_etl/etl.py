@@ -8,46 +8,33 @@
 #
 from __future__ import unicode_literals
 
-
-# import cProfile
-# import pstats
-#
-# cprofiler = cProfile.Profile()
-# cprofiler.enable()
-#
-
-# NEED TO BE NOTIFIED OF ID TO REPROCESS
-# NEED TO BE NOTIFIED OF RANGE TO REPROCESS
-# MUST SEND CONSEQUENCE DOWN THE STREAM SO OTHERS CAN WORK ON IT
+import sys
 from collections import Mapping
 from copy import deepcopy
-import sys
 
-from mo_kwargs import override
-
-import mo_dots
-from pyLibrary import aws
-from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
-from mo_math import MIN
-from mo_logs import Log, startup, constants, strings
-from mo_logs.exceptions import suppress_exception
+from activedata_etl import key2etl
 from mo_dots import coalesce, listwrap, Data, Null, wrap
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.queries import jx
+from mo_kwargs import override
+from mo_logs import Log, startup, constants, strings
+from mo_math import MIN
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
 from mo_threads import Till
-from mo_times.dates import Date
-from mo_times.durations import SECOND
-from activedata_etl import key2etl
-from mohg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary import aws
+
+import mo_dots
 from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
-
-from pyLibrary import convert
+from mo_logs.exceptions import suppress_exception
+from mo_times.dates import Date
+from mo_times.durations import SECOND
+from mohg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
+from pyLibrary.env import elasticsearch
+from pyLibrary.env.rollover_index import RolloverIndex
+from pyLibrary.queries import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -58,7 +45,7 @@ class ConcatSources(object):
     """
 
     def __init__(self, sources):
-        self.source = sources
+        self.sources = sources
 
     def read(self):
         return "\n".join(s.read() for s in self.sources)
@@ -105,15 +92,16 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify))
+                w._notify.append(aws.Queue(notify)) # notify tells which queue to put in
 
         self.resources = resources
         self.settings = kwargs
         if isinstance(work_queue, Mapping):
-            self.work_queue = aws.Queue(work_queue)
+            self.work_queue = aws.Queue(work_queue) # work queue created
         else:
             self.work_queue = work_queue
 
+        # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
         Log.note("--- finished ETL transform thread ---")
         self.start()
@@ -123,6 +111,7 @@ class ETL(Thread):
         source_block POINTS TO THE bucket AND key TO PROCESS
         :return: False IF THERE IS NOTHING LEFT TO DO
         """
+        # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
         if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
@@ -134,6 +123,13 @@ class ETL(Thread):
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
         else:
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
+
+        if source_block.artifact_url or not work_actions:
+            Log.warning(
+                "REMOVING RECORDS WITH artifact_url {{todo}}",
+                todo=source_block
+            )
+            return True
 
         if not work_actions:
             Log.note(
@@ -170,17 +166,30 @@ class ETL(Thread):
                 else:
                     old_keys = action._destination.keys(prefix=source_block.key)
 
-                new_keys = action._transformer(source_key, source, action._destination, resources=self.resources, please_stop=self.please_stop)
+                # calling transformer currently
+                # transformer called with keys from 173 and 175
+                # transformer will return no keys or original key for first part of SQS split
 
-                if not new_keys and old_keys:
+                # must set up resources
+                resources = mo_dots.set_default(
+                    {
+                        "todo": source_block,
+                        "work_queue": self.work_queue
+                    },
+                    self.resources
+                )
+
+                new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+
+                if new_keys == None:
+                    new_keys = set()
+                elif not new_keys and old_keys:
                     Log.warning(
                         "Expecting some new keys after etl of {{source_key}}, especially since there were old ones\n{{old_keys}}",
                         old_keys=old_keys,
                         source_key=source_key
                     )
                     continue
-                elif new_keys == None:
-                    new_keys = set()
                 elif len(new_keys) == 0:
                     Log.alert(
                         "Expecting some new keys after processing {{source_key}}",
@@ -220,18 +229,10 @@ class ETL(Thread):
                 if action.transform_type == "bulk":
                     continue
 
-                # for n in new_keys:
-                #     if not n.startswith(source_key):
-                #         Log.error("Expecting new keys ({{new_key}}) to start with source key ({{source_key}})", new_key=n, source_key=source_key)
-
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    if action.destination.bucket == "ekyle-test-result":
-                        for k in delete_me:
-                            action._destination.delete_key(k)
-                    else:
-                        Log.note("delete keys?\n{{list}}", list=sorted(delete_me))
-                        # for k in delete_me:
+                    Log.warning("delete keys?\n{{list}}", list=sorted(delete_me))
+
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
                 if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
@@ -285,6 +286,7 @@ class ETL(Thread):
                             break  # please_stop MUST HAVE BEEN TRIGGERED
 
                     else:
+                        # using --key= so will not be an aws.Queue, instead it will be a local queue
                         if isinstance(self.work_queue, aws.Queue):
                             todo = self.work_queue.pop()
                         else:
@@ -302,8 +304,8 @@ class ETL(Thread):
                         self.work_queue.commit()
                         continue
 
-
                     try:
+                        Log.note("TODO: {{todo}}", todo=todo)
                         is_ok = self._dispatch_work(todo)
                         if is_ok:
                             self.work_queue.commit()
@@ -322,7 +324,7 @@ class ETL(Thread):
                             try:
                                 self.work_queue.add(todo)
                                 self.work_queue.commit()
-                            except Exception, f:
+                            except Exception as f:
                                 # UNEXPECTED PROBLEM!!!
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])
@@ -340,7 +342,7 @@ class ETL(Thread):
                             try:
                                 self.work_queue.add(todo)
                                 self.work_queue.commit()
-                            except Exception, f:
+                            except Exception as f:
                                 # UNEXPECTED PROBLEM!!!
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])
@@ -460,29 +462,27 @@ def main():
 
 
 def etl_one(settings):
-    queue = Queue("temp work queue")
+    # where queue is first created/called
+    queue = Queue("temp work queue", max=2**32)
     queue.__setattr__(b"commit", Null)
     queue.__setattr__(b"rollback", Null)
 
     settings.param.wait_forever = False
-    already_in_queue = set()
     for w in settings.workers:
+        # get workers (in this case will always be gcov_to_es.py)
         source = get_container(w.source)
         # source.settings.fast_forward = True
-        if id(source) in already_in_queue:
-            continue
         try:
             for i in parse_id_argument(settings.args.id):
                 keys = source.keys(i)
+                Log.note("Add {{num}} keys for {{bucket}}", num=len(keys), bucket=w.source.bucket)
                 for k in keys:
-                    already_in_queue.add(k)
                     queue.add(Data(
                         bucket=w.source.bucket,
                         key=k
                     ))
         except Exception as e:
             if "Key {{key}} does not exist" in e:
-                already_in_queue.add(id(source))
                 queue.add(Data(
                     bucket=w.source.bucket,
                     key=settings.args.id

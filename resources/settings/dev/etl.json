@@ -43,8 +43,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",
-			// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one",  // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"schema": {
 				"$ref": "//../../schema/revision.json"
 			},

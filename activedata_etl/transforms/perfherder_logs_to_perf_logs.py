@@ -37,6 +37,8 @@ KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_em
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "basic_compositor_video",
+    "bloom_basic_ref",
+    "bloom_basic",
     "build times",
     "cart",
     "chromez",
@@ -51,6 +53,7 @@ KNOWN_PERFHERDER_TESTS = [
     "g3",
     "g4",
     "glterrain",
+    "glvideo",
     "installer size",
     "jittest.jittest.overall",
     "kraken",
@@ -59,8 +62,12 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "sccache cache_write_errors",
+    "sccache hit rate",
+    "sccache requests_not_cacheable",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
+    "Stylo",
     "svgr",
     "tabpaint",
     "tart",
@@ -136,7 +143,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.extend(records)
         return [source_key]
     except Exception as e:
-        Log.error("Could not add {{num} documents when processing key {{key}}", key=source_key, num=len(records), cause=e)
+        Log.error("Could not add {{num}} documents when processing key {{key}}", key=source_key, num=len(records), cause=e)
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
@@ -173,7 +180,7 @@ def transform(source_key, perfherder, resources):
             if suite_name == s:
                 break
             elif suite_name.startswith(s):
-                Log.warning("removing suite suffix of {{suffix|quote}}", suffix=suite_name[len(s)::])
+                Log.warning("removing suite suffix of {{suffix|quote}} for {{suite}}", suffix=suite_name[len(s)::], suite=suite_name)
                 suite_name = s
                 break
             elif suite_name.startswith("remote-" + s):
