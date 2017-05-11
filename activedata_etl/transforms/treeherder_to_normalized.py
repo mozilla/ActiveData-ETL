@@ -288,5 +288,5 @@ KNOWN_VALUES = [
     "The following arguments ",
     "Tests will be run from the following files:",
     "gaia_revlink: ",
-    "Unknown: 1"
+    "Unknown: "
 ]

@@ -21,3 +21,4 @@ log.txt
 /activedata_etl/raptor.py
 /mohg/.svn
 /activedata_etl/imports/gcov.py
+/tests/resources/mochitest_chunk_2

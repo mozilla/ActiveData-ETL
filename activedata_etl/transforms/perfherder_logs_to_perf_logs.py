@@ -39,6 +39,7 @@ KNOWN_PERFHERDER_TESTS = [
     "basic_compositor_video",
     "bloom_basic_ref",
     "bloom_basic",
+    "compiler warnings",
     "build times",
     "cart",
     "chromez",
