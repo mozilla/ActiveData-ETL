@@ -188,7 +188,7 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
         elif o in ["e10s"]:
             new_treeherder.run.type += [o]
         else:
-            Log.warning("not known option {{option}} while processing {{key}}", key=source_key, option=o)
+            Log.warning("not known option {{option|quote}} while processing {{key}}", key=source_key, option=o)
 
 
 _option_map = {
