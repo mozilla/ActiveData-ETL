@@ -68,6 +68,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sccache requests_not_cacheable",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
+    "Strings",
     "Stylo",
     "svgr",
     "tabpaint",
