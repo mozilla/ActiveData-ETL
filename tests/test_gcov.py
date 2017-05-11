@@ -12,10 +12,10 @@ from __future__ import unicode_literals
 import gzip
 import unittest
 
-from mo_dots import Null
+from mo_dots import Null, Data, wrap
 
 from activedata_etl.transforms import gcov_to_es
-from activedata_etl.transforms.gcov_to_es import process_directory
+from activedata_etl.transforms.gcov_to_es import process_directory, process_gcda_artifact
 from mo_files import File
 
 from mo_logs import constants
@@ -32,7 +32,7 @@ class TestGcov(unittest.TestCase):
             destination=destination,
             task_cluster_record=Null,
             file_etl=Null,
-            False
+            please_stop=Null
         )
 
         self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))
@@ -43,6 +43,34 @@ class TestGcov(unittest.TestCase):
         constants.set({"activedata_etl": {"transforms": {"gcov_to_es": {"DEBUG_LCOV_FILE": File("results/ccov/lcov.txt")}}}})
         source_dir = File("results/ccov")
         process_directory(Null, source_dir, destination, Null, Null)
+
+    def test_mochitest_chunk_2_processing(self):
+        destination = Destination("results/mochitest_chunk_2/active_data.json.gz")
+        constants.set({"activedata_etl": {"transforms": {"gcov_to_es": {"DEBUG_LCOV_FILE": File("tests/resources/mochitest_chunk_2/lcov.txt")}}}})
+        source_dir = File("tests/resources/mochitest_chunk_2")
+        process_directory(
+            source_key=Null,
+            source_dir=source_dir,
+            destination=destination,
+            task_cluster_record=Null,
+            file_etl=Null,
+            please_stop=Null
+        )
+
+    def test_one_gcda_url(self):
+        key="tc.472127"
+        url="https://queue.taskcluster.net/v1/task/PNzAZrN7SUeKMK0_-wZr0Q/runs/0/artifacts/public/test_info//code-coverage-gcda.zip"
+        destination = Destination("results/ccov/lcov_parsing_result.json.gz")
+
+        process_gcda_artifact(
+            source_key=key,
+            resources=Null,
+            destination=destination,
+            gcda_artifact=Data(url=url),
+            task_cluster_record=wrap({"task":{"id": "PNzAZrN7SUeKMK0_-wZr0Q", "group": {"id": "bf1GXS-2Rj6JtIFfA632rQ"}}}),
+            artifact_etl=Null,
+            please_stop=Null
+        )
 
 
 class Destination(object):

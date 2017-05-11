@@ -37,7 +37,8 @@ def parse_lcov_coverage(stream):
 
         if line == 'end_of_record':
             for source in coco_format(current_source):
-                yield source
+                if source.file.total_covered:
+                    yield source
             current_source = None
         elif ':' in line:
             cmd, data = line.split(":", 2)

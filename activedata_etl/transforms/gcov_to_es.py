@@ -77,12 +77,14 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl, please_stop):
 
     try:
-        data = File.new_instance(source_dir, "linked-files-map.json").read_json(flexible=False, leaves=False)
         file_map = {}
-        for k, v in data.items():
-            name = k.split("/")[-1]
-            options = file_map.setdefault(name, [])
-            options.append((k, v))
+        linked_files = File.new_instance(source_dir, "linked-files-map.json")
+        if linked_files:
+            data = linked_files.read_json(flexible=False, leaves=False)
+            for k, v in data.items():
+                name = k.split("/")[-1]
+                options = file_map.setdefault(name, [])
+                options.append((k, v))
     except Exception as e:
         Log.warning("Missing linked-files-map.json for key {{key}}", key=source_key, cause=e)
         file_map = {}

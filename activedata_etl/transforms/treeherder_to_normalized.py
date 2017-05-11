@@ -202,6 +202,7 @@ _option_map = {
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
+    "make": ["make"],
     "nostylo": ["nostylo"],
     "opt": ["opt"],
     "pgo": ["pgo"]
