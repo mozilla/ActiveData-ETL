@@ -74,7 +74,7 @@ def backfill_recent(cache, settings, index_queue, please_stop):
                 fill_holes(prefix2, please_stop)
             else:
                 Log.note(
-                    "Decimate prefix={{prefix|quote}}, count={{count}}, timestamp={{timestamp|datetime}}",
+                    "Decimate prefix={{prefix|quote}}, count={{count}}, avg(timestamp)={{timestamp|datetime}}",
                     prefix=prefix2,
                     timestamp=timestamp,
                     count=count
