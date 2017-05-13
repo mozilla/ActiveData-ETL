@@ -178,7 +178,7 @@
 			"batch_size": 100,
 			"rollover": {
 				"field": "repo.push.date",
-				"interval": "day",
+				"interval": "week",
 				"max": "2week"
 			},
 			"sample_only": [],
