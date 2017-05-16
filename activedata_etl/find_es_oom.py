@@ -53,7 +53,7 @@ def _config_fabric(connect, instance):
     env.abort_exception = Log.error
 
 
-def _find_oom():
+def _find_oom(i):
     with TempDirectory() as temp:
         get("/data1/logs/es.log", temp.abspath)
         found_oom = False
@@ -66,8 +66,8 @@ def _find_oom():
                     timestamp = Date(strings.between(line, "[", "]").split(",")[0])
                     if timestamp:
                         found_oom = False
-                    if timestamp and timestamp > Date.now()-2*HOUR:
-                        Log.note("OOM: {{timestamp}}", timestamp=timestamp)
+                    if timestamp and timestamp > Date.now() - HOUR:
+                        Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                         _restart_es()
                         break
                 except Exception as e:
@@ -105,7 +105,7 @@ def main():
             try:
                 Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
-                _find_oom()
+                _find_oom(i)
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",

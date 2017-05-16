@@ -213,10 +213,11 @@ class RolloverIndex(object):
                             break
             except Exception as e:
                 if KEY_IS_WRONG_FORMAT in e:
+                    Log.warning("Could not process {{key}} becasue bad format. Never trying again.", key=key, cause=e)
                     pass
                 else:
+                    Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
                     done_copy = None
-                Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
 
         if done_copy:
             if queue == None:
