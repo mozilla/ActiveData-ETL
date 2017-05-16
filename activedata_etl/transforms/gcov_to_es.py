@@ -89,6 +89,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
         Log.warning("Missing linked-files-map.json for key {{key}}", key=source_key, cause=e)
         file_map = {}
 
+    file_id = etl2key(file_etl)
     new_record = set_default(
         {
             "test": {
@@ -150,6 +151,8 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                             Log.note("Can not translate {{path}}", path=old_name)
                 new_record.source = source
                 new_record.etl.id = count
+                new_record._id = file_id+"."+unicode(count)
+
                 count += 1
                 yield value2json(new_record)
             if not map_used and file_map:
@@ -157,7 +160,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
             else:
                 Log.note("file_map used {{amount|percent}} of {{num}}", amount=map_used/count, num=count)
 
-        destination.write_lines(etl2key(file_etl), generator())
+        destination.write_lines(file_id, generator())
 
 
 def group_to_gcno_artifacts(group_id):

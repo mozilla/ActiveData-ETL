@@ -19,6 +19,7 @@ from mo_logs import Log
 
 
 DEBUG = False
+EMIT_RECORDS_WITH_ZERO_COVERAGE = False
 
 
 def parse_lcov_coverage(stream):
@@ -37,7 +38,9 @@ def parse_lcov_coverage(stream):
 
         if line == 'end_of_record':
             for source in coco_format(current_source):
-                if source.file.total_covered:
+                if EMIT_RECORDS_WITH_ZERO_COVERAGE:
+                    yield source
+                elif source.file.total_covered:
                     yield source
             current_source = None
         elif ':' in line:
