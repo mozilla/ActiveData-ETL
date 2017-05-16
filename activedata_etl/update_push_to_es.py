@@ -165,13 +165,13 @@ def main():
 
         for i in instances:
             try:
-                Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
                 _refresh_indexer()
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
-                    insance_id=i.id,
+                    instance_id=i.id,
                     name=i.tags["Name"],
                     ip=i.ip_address,
                     cause=e

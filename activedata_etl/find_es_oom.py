@@ -55,9 +55,10 @@ def _config_fabric(connect, instance):
     env.abort_exception = Log.error
 
 
-def _find_oom(i):
+def _find_oom(instance):
     with TempDirectory() as temp:
         get("/data1/logs/es.log", temp.abspath)
+        last_restart_time = _get_es_restart_time(instance)
         found_oom = False
         for line in File.new_instance(temp, "es.log"):
             if "java.lang.OutOfMemoryError" in line:
@@ -68,20 +69,14 @@ def _find_oom(i):
                     oom_timestamp = Date(strings.between(line, "[", "]").split(",")[0])
                     if oom_timestamp:
                         found_oom = False
-                    if oom_timestamp and oom_timestamp > Date.now() - 24*HOUR:
-                        Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-                        _restart_es(oom_timestamp, i)
-                        break
+                    if oom_timestamp>last_restart_time:
+                        Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", timestamp=oom_timestamp, instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
+                        _restart_es(instance)
                 except Exception as e:
-                    pass
+                    Log.warning("not expected", cause=e)
 
 
-def _restart_es(oom_timestamp, instance):
-    global num_restarts
-
-    if num_restarts <= 0:
-        return
-
+def _get_es_restart_time(instance):
     now = Date.now()
     result = sudo("supervisorctl status")
     for r in result.split("\n"):
@@ -90,16 +85,21 @@ def _restart_es(oom_timestamp, instance):
                 days = int(coalesce(strings.between(r, "uptime ", " days"), "0"))
                 duration = sum((b*int(a) for a, b in zip(strings.right(r.strip(), 8).split(":"), [HOUR, MINUTE, SECOND])), ZERO)
                 last_restart_time = now-days*DAY-duration
-
-                if oom_timestamp > last_restart_time:
-                    Log.warning("RESTART ES {{instance_id}} ({{name}}) at {{ip}}", insance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
-                    num_restarts -= 1
-                    sudo("supervisorctl restart es")
-                    return
-                else:
-                    Log.note("instance has already restarted")
-        except Exception as e:
+                return last_restart_time
+        except Exception:
             pass
+
+
+def _restart_es(instance):
+    global num_restarts
+
+    if num_restarts <= 0:
+        return
+
+    Log.warning("Restart ES because of OoM: {{instance_id}} ({{name}}) at {{ip}}", instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
+    num_restarts -= 1
+    # sudo("supervisorctl restart es")
+
 
 def main():
     try:
@@ -122,13 +122,13 @@ def main():
                 return
 
             try:
-                Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
                 _find_oom(i)
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
-                    insance_id=i.id,
+                    instance_id=i.id,
                     name=i.tags["Name"],
                     ip=i.ip_address,
                     cause=e
