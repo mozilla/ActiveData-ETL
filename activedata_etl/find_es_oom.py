@@ -13,15 +13,17 @@ from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo
 from fabric.state import env
 from mo_collections import UniqueIndex
-from mo_dots import unwrap, wrap
+from mo_dots import unwrap, wrap, coalesce
 from mo_files import File, TempDirectory
 from mo_logs import Log, strings
 from mo_logs import startup, constants
+from mo_times.durations import SECOND, ZERO
 
 from mo_dots.objects import datawrap
-from mo_times import Date, HOUR
+from mo_times import Date, HOUR, Duration, DAY, MINUTE
 from pyLibrary.aws import aws_retry
 
+num_restarts = 1
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
@@ -63,27 +65,40 @@ def _find_oom(i):
                 found_oom = True
             if found_oom:
                 try:
-                    timestamp = Date(strings.between(line, "[", "]").split(",")[0])
-                    if timestamp:
+                    oom_timestamp = Date(strings.between(line, "[", "]").split(",")[0])
+                    if oom_timestamp:
                         found_oom = False
-                    if timestamp and timestamp > Date.now() - HOUR:
+                    if oom_timestamp and oom_timestamp > Date.now() - 24*HOUR:
                         Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-                        _restart_es()
+                        _restart_es(oom_timestamp, i)
                         break
                 except Exception as e:
                     pass
 
 
-def _restart_es():
+def _restart_es(oom_timestamp, instance):
+    global num_restarts
+
+    if num_restarts <= 0:
+        return
+
+    now = Date.now()
     result = sudo("supervisorctl status")
     for r in result.split("\n"):
         try:
             if r.startswith("es"):
-                days = int(strings.between(r, "uptime", "days").strip())
-                if days > 1:
-                    Log.alert("RESTART ES")
-                    # sudo("supervisorctl restart es")
-        except Exception:
+                days = int(coalesce(strings.between(r, "uptime ", " days"), "0"))
+                duration = sum((b*int(a) for a, b in zip(strings.right(r.strip(), 8).split(":"), [HOUR, MINUTE, SECOND])), ZERO)
+                last_restart_time = now-days*DAY-duration
+
+                if oom_timestamp > last_restart_time:
+                    Log.warning("RESTART ES {{instance_id}} ({{name}}) at {{ip}}", insance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
+                    num_restarts -= 1
+                    sudo("supervisorctl restart es")
+                    return
+                else:
+                    Log.note("instance has already restarted")
+        except Exception as e:
             pass
 
 def main():
@@ -102,6 +117,10 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
+            if num_restarts <= 0:
+                Log.note("No more restarts, exiting")
+                return
+
             try:
                 Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
