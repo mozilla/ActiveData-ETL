@@ -76,29 +76,29 @@
 //			"transformer": "activedata_etl.transforms.fx_test_to_normalized.process",
 //			"type": "join"
 //		},
-//		{
-//			"name": "Buildbot Pulse to ES",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-pulse",
-//				"key_format": "t.a:b"
-//			},
-//			"destination": {
-//				"host": "http://activedata.allizom.org",
-//				"port": 9200,
-//				"index": "pulse",
-//				"type": "pulse_log",
-//				"timeout": 300,
-//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-//				"schema": {
-//					"$ref": "//../../schema/pulse_logs.json"
-//				},
-//				"debug": false,
-//				"limit_replicas": true
-//			},
-//			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
-//			"type": "join"
-//		},
+		{
+			"name": "Buildbot Pulse to ES",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse",
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "pulse",
+				"type": "pulse_log",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/pulse_logs.json"
+				},
+				"debug": false,
+				"limit_replicas": true
+			},
+			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
+			"type": "join"
+		},
 //		{
 //			"name": "treeherder to normalized",
 //			"source": {
@@ -191,67 +191,67 @@
 //			"type": "join",
 //			"transform_type": "bulk"
 //		},
-//		{
-//			"name": "bbb2jobs",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-buildbot",
-//				"key_format": "a.b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-jobs",
-//				"public": true,
-//				"key_format": "a.b"
-//			},
-//			"notify": {
-//				"name": "active-data-index",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
-//			"type": "join",
-//			"transform_type": "bulk"
-//		},
-//		{
-//			"name": "perfherder2perf",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-perfherder",
-//				"key_format": "t.a:b.c"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-perf",
-//				"public": true,
-//				"key_format": "t.a:b.c"
-//			},
-//			"notify": {
-//				"name": "active-data-index",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
-//			"type": "join"
-//		},
-//		{
-//			"name": "pulse2test_result",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-pulse",
-//				"key_format": "t.a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-test-result",
-//				"public": true,
-//				"key_format": "t.a:b.c"
-//			},
-//			"notify": {
-//				"name": "active-data-index",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
-//			"type": "join"
-//		},
+		{
+			"name": "bbb2jobs",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-buildbot",
+				"key_format": "a.b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-jobs",
+				"public": true,
+				"key_format": "a.b"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "perfherder2perf",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder",
+				"key_format": "t.a:b.c"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perf",
+				"public": true,
+				"key_format": "t.a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
+			"type": "join"
+		},
+		{
+			"name": "pulse2test_result",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-pulse",
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-test-result",
+				"public": true,
+				"key_format": "t.a:b.c"
+			},
+			"notify": {
+				"name": "active-data-index",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
+			"type": "join"
+		},
 		{
 			"name": "codecoverage",
 			"source": {

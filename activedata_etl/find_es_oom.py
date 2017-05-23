@@ -72,8 +72,8 @@ def _find_oom(instance):
                     if oom_timestamp>last_restart_time:
                         Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", timestamp=oom_timestamp, instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
                         _restart_es(instance)
-                except Exception as e:
-                    Log.warning("not expected", cause=e)
+                except Exception:
+                    pass
 
 
 def _get_es_restart_time(instance):
@@ -98,7 +98,7 @@ def _restart_es(instance):
 
     Log.warning("Restart ES because of OoM: {{instance_id}} ({{name}}) at {{ip}}", instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
     num_restarts -= 1
-    # sudo("supervisorctl restart es")
+    sudo("supervisorctl restart es")
 
 
 def main():
