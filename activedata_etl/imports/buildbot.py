@@ -782,7 +782,8 @@ KNOWN_PLATFORM = {
     "xp-ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "xp_ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
-    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
+    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "yosemite_r7_devedition": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
 }
 
 
