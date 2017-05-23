@@ -603,6 +603,7 @@ TEST_PLATFORMS = {
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
+    "Ubuntu HW 12.04 x64 stylo-sequential": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo", "sequential"]}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
