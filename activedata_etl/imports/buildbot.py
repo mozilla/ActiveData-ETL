@@ -813,7 +813,8 @@ ALLOWED_PRODUCTS = [
     "mobile",
     "spidermonkey",
     "thunderbird",
-    "xulrunner"
+    "xulrunner",
+    "devedition"
 ]
 
 
