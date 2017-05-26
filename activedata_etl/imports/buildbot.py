@@ -776,6 +776,7 @@ KNOWN_PLATFORM = {
     "win64-rev2": {"build": {"platform": "win64"}},
     "win7-ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win7_ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "win7_ix_devedition":  {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win8": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win8_64": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win8_64_devedition": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64", "type":["devedition"]}},
