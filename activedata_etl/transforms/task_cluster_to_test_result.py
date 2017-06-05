@@ -45,6 +45,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping early")
 
         task = convert.json2value(line)
+        etl = task.etl
         artifacts = task.task.artifacts
         minimize_task(task)
 
@@ -55,7 +56,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 continue  # ARTIFACT IS GONE
             lines, num_bytes = verify_blobber_file(j, a.name, a.url)
             if lines:
-                dest_key, dest_etl = etl_header_gen.next(task.etl, a.name)
+                dest_key, dest_etl = etl_header_gen.next(etl, a.name)
                 dest_etl.machine = machine_metadata
                 dest_etl.url = a.url
                 process_unittest(dest_key, dest_etl, task, lines, destination, please_stop=please_stop)
