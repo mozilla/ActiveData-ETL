@@ -101,7 +101,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
                 # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
                 process_head = False
                 curr_line = log_line
-        except Exception, _:
+        except Exception as _:
             # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
             process_head = False
             curr_line = log_line

@@ -317,6 +317,8 @@ def _normalize_run(source_key, normalized, task, env):
     if "-e10s" in metadata_name:
         metadata_name = metadata_name.replace("-e10s", "")
         run_type += ["e10s"]
+    elif "e10s" in metadata_name:
+        Log.error("not expected")
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
@@ -438,6 +440,10 @@ def set_build_info(source_key, normalized, task, env, resources):
             "channel": consume(task, "payload.properties.channels")
         }}
     )
+
+    if normalized.build.platform.endswith("-ccov"):
+        normalized.build.platform = normalized.build.platform.split("-")[0]
+        normalized.build.type += ["ccov"]
 
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,

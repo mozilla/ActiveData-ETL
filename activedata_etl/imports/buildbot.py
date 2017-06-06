@@ -618,6 +618,7 @@ TEST_PLATFORMS = {
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "Windows 8 64-bit DevEdition": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64", "type": ["devedition"]}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
+    "Windows 10 64-bit DevEdition": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64", "type": ["devedition"]}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
     "WINNT 5.2 add-on-devel": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64", "type": ["add-on"]}},
     "WINNT 6.1 x86-64": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
