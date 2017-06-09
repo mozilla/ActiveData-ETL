@@ -156,7 +156,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 count += 1
                 yield value2json(new_record)
             if not map_used and file_map:
-                Log.warning("file map not used while processing {{key}}", key=source_key)
+                Log.warning("file map not used while processing task {{task}} for key {{key}}", key=source_key, task=task_cluster_record.id)
             else:
                 Log.note("file_map used {{amount|percent}} of {{num}}", amount=map_used/count, num=count)
 
