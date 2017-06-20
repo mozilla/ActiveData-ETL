@@ -129,6 +129,9 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 lcov_coverage = run_grcov(source_dir)
 
             for source in lcov_coverage:
+                if source.file.total_covered == 0:
+                    continue
+
                 old_name = source.file.name
                 short_name = old_name.split("/")[-1]
                 candidates = file_map.get(short_name)
@@ -155,6 +158,10 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
 
                 count += 1
                 yield value2json(new_record)
+
+            if count == 0:
+                Log.warning("no coverage found in gcda file")
+
             if not map_used and file_map:
                 Log.warning("file map not used while processing task {{task}} for key {{key}}", key=source_key, task=task_cluster_record.id)
             else:
