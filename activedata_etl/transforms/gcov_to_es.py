@@ -9,7 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from subprocess import Popen, PIPE
 from zipfile import ZipFile
 
 import os
@@ -18,7 +17,7 @@ from mo_dots import set_default
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
-from mo_threads import Process, Till, Thread
+from mo_threads import Process, Till
 from mo_times import Timer, Date
 
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
@@ -27,7 +26,7 @@ from pyLibrary.env import http
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
-DEBUG_GRCOV = True
+DEBUG_GRCOV = False
 DEBUG_LCOV_FILE = None
 KNOWN_SOURCES = ["/home/worker/workspace/build/src/"]
 
