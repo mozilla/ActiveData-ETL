@@ -118,6 +118,8 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 new_record.etl.id = count
                 new_record._id = file_id + "." + unicode(count)
                 count += 1
+                if DEBUG and count % 10000:
+                    Log.note("Processed {{num}} coverage records", num=count)
                 yield value2json(new_record)
 
         destination.write_lines(file_id, generator())
