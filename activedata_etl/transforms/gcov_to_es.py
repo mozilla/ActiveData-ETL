@@ -95,7 +95,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
         task_cluster_record
     )
 
-    with Timer("Processing gcno/gcda in {{temp_dir}} for key {key}}", param={"temp_dir": tmpdir, "key": source_key}):
+    with Timer("Processing gcno/gcda in {{temp_dir}} for key {{key}}", param={"temp_dir": tmpdir, "key": source_key}):
         def generator():
             count = 0
 
