@@ -63,7 +63,7 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
             return []
 
         # where actual transform is performed and written to S3
-        process_directory(source_key, dest_dir, destination, task_cluster_record, artifact_etl, please_stop)
+        process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, task_cluster_record, artifact_etl, please_stop)
         etl_key = etl2key(artifact_etl)
         keys = [etl_key]
         return keys
@@ -95,7 +95,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
         task_cluster_record
     )
 
-    with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
+    with Timer("Processing gcno/gcda in {{temp_dir}} for key {key}}", param={"temp_dir": tmpdir, "key": source_key}):
         def generator():
             count = 0
 
