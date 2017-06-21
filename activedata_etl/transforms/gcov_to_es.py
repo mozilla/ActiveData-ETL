@@ -18,7 +18,7 @@ from mo_dots import set_default
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
-from mo_threads import Process, Till
+from mo_threads import Process, Till, Thread
 from mo_times import Timer, Date
 
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
@@ -27,6 +27,7 @@ from pyLibrary.env import http
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
+DEBUG_GRCOV = True
 DEBUG_LCOV_FILE = None
 KNOWN_SOURCES = ["/home/worker/workspace/build/src/"]
 
@@ -195,17 +196,6 @@ def group_to_gcno_artifacts(group_id):
     return result.data[0]
 
 
-def run_grcov(directory_path):
-    """
-    :param directory_path:
-    :return: generator of coverage docs
-    """
-    with open(os.devnull, 'w') as fdevnull:
-        proc = Popen(['./grcov', directory_path], stdout=PIPE, stderr=fdevnull)
-        for json_str in proc.stdout:
-            yield json2value(json_str.decode("utf8"))
-
-
 def download_file(url, destination):
     tempfile = file(destination, "w+b")
     stream = http.get(url).raw
@@ -214,6 +204,43 @@ def download_file(url, destination):
             tempfile.write(b)
     finally:
         stream.close()
+
+
+def run_grcov(directory_path):
+    """
+    :param directory_path:
+    :return: generator of coverage docs
+    """
+    proc = Process("grcov runner", ['./grcov', directory_path, '-p', '/home/worker/workspace/build/src/'])
+    with proc:
+        for json_str in proc.stdout:
+            if DEBUG_GRCOV:
+                Log.note("{{line}}", line=json_str.decode("utf8"))
+            yield json2value(json_str.decode("utf8"))
+
+    err_acc = list(proc.stderr)
+    if err_acc:
+        Log.warning("grcov error\n{{lines|indent}}", lines=err_acc)
+
+
+def run_lcov_on_linux(directory_path):
+    """
+    Runs lcov on a directory.
+    :param directory_path:
+    :return: array of parsed coverage artifacts (files)
+    """
+
+    def output():
+        proc = Process("lcov runner", ['lcov', '--capture', '--directory', directory_path, '--output-file', '-'])
+        with proc:
+            for line in proc.stdout:
+                yield line
+
+        err_acc = list(proc.stderr)
+        if err_acc:
+            Log.warning("lcov error\n{{lines|indent}}", lines=err_acc)
+
+    return parse_lcov_coverage(output())
 
 
 def run_lcov_on_windows(directory_path):
