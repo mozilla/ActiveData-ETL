@@ -153,7 +153,8 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 new_record.etl.id = count
                 new_record._id = file_id+"."+unicode(count)
 
-                count += 1
+                if source.file.total_covered > 0:
+                    count += 1
                 yield value2json(new_record)
 
             if count == 0:
