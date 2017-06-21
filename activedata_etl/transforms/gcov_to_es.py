@@ -124,7 +124,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
                 new_record._id = file_id + "." + unicode(count)
                 count += 1
                 if DEBUG and (count % 10000 == 0):
-                    Log.note("Processed {{num}} coverage records\n{{example|json}}", num=count, example=new_record)
+                    Log.note("Processed {{num}} coverage records\n{{example|json}}", num=count, example=value2json(new_record))
                 yield value2json(new_record)
 
         destination.write_lines(file_id, generator())
