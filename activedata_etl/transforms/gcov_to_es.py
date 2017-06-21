@@ -25,6 +25,7 @@ from pyLibrary.env import http
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
+IGNORE_ZERO_COVERAGE = True
 DEBUG = True
 DEBUG_GRCOV = False
 DEBUG_LCOV_FILE = None
@@ -111,6 +112,8 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 lcov_coverage = run_grcov(source_dir)
 
             for source in lcov_coverage:
+                if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
+                    continue
                 new_record.source = source
                 new_record.etl.id = count
                 new_record._id = file_id + "." + unicode(count)
