@@ -28,7 +28,6 @@ RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 DEBUG_GRCOV = False
 DEBUG_LCOV_FILE = None
-KNOWN_SOURCES = ["/home/worker/workspace/build/src/"]
 
 
 def process_gcda_artifact(source_key, resources, destination, gcda_artifact, task_cluster_record, artifact_etl, please_stop):
@@ -75,20 +74,6 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 
 
 def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl, please_stop):
-
-    try:
-        file_map = {}
-        linked_files = File.new_instance(source_dir, "linked-files-map.json")
-        if linked_files:
-            data = linked_files.read_json(flexible=False, leaves=False)
-            for k, v in data.items():
-                name = k.split("/")[-1]
-                options = file_map.setdefault(name, [])
-                options.append((k, v))
-    except Exception as e:
-        Log.warning("Missing linked-files-map.json for key {{key}}", key=source_key, cause=e)
-        file_map = {}
-
     file_id = etl2key(file_etl)
     new_record = set_default(
         {
@@ -108,10 +93,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
 
     with Timer("Processing LCOV directory {{lcov_directory}}", param={"lcov_directory": source_dir}):
         def generator():
-            known = set()
             count = 0
-            map_used = 0
-            prefix_used = 0
 
             if DEBUG_LCOV_FILE:
                 lcov_coverage = list(parse_lcov_coverage(DEBUG_LCOV_FILE.read_lines()))
@@ -129,41 +111,11 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 lcov_coverage = run_grcov(source_dir)
 
             for source in lcov_coverage:
-                old_name = source.file.name
-                short_name = old_name.split("/")[-1]
-                candidates = file_map.get(short_name)
-                if candidates:
-                    new_name = best_suffix(old_name, candidates)
-                    if new_name:
-                        source.file.name = new_name
-                        map_used += 1
-                else:
-                    for s in KNOWN_SOURCES:
-                        if old_name.startswith(s):
-                            if DEBUG:
-                                Log.note("Not found in map: {{path}}", path=old_name)
-                            source.file.name = old_name[len(s):]
-                            prefix_used +=1
-                            break
-                    else:
-                        if old_name not in known:
-                            known.add(old_name)
-                            Log.note("Can not translate {{path}}", path=old_name)
                 new_record.source = source
                 new_record.etl.id = count
-                new_record._id = file_id+"."+unicode(count)
-
-                if source.file.total_covered > 0:
-                    count += 1
+                new_record._id = file_id + "." + unicode(count)
+                count += 1
                 yield value2json(new_record)
-
-            if count == 0:
-                Log.warning("no coverage found in gcda file")
-
-            if not map_used and file_map:
-                Log.warning("file map not used while processing task {{task}} for key {{key}}", key=source_key, task=task_cluster_record.id)
-            else:
-                Log.note("file_map used {{amount|percent}} of {{num}}", amount=map_used/count, num=count)
 
         destination.write_lines(file_id, generator())
 
