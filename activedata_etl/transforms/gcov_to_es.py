@@ -148,13 +148,14 @@ def group_to_gcno_artifacts(group_id):
             {"eq": {"task.group.id": group_id}},
             {"regex": {"name": ".*gcno.*"}}
         ]},
-        "limit": 100,
         "select": [{"name": "task_id", "value": "task.id"}, "url"],
+        "sort": {"task.run.start_time": "desc"},
+        "limit": 100,
         "format": "list"
     })
 
     if len(result.data) != 1:
-        Log.error("Got {{num}} gcno artifacts for task group {{group}}, not expected", num=len(result.data), group=group_id)
+        Log.warning("Got {{num}} gcno artifacts for task group {{group}}, not expected", num=len(result.data), group=group_id)
     return result.data[0]
 
 
