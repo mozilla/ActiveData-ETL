@@ -46,13 +46,10 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
         Log.note('Using temp dir: {{dir}}', dir=tmpdir)
         gcda_file = File.new_instance(tmpdir, "gcda.zip").abspath
         gcno_file = File.new_instance(tmpdir, "gcno.zip").abspath
-        dest_dir = File.new_instance(tmpdir, "ccov").abspath
 
         try:
             Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
             download_file(gcda_artifact.url, gcda_file)
-            Log.note('Extracting gcda files to {{dir}}', dir=dest_dir)
-            ZipFile(gcda_file).extractall(dest_dir)
         except Exception as e:
             Log.error('Problem with gcda artifact: {{url}}', url=gcda_artifact.url, cause=e)
             return []
@@ -61,8 +58,6 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
         try:
             Log.note('Downloading gcno artifact {{file}}', file=gcno_artifact.url)
             download_file(gcno_artifact.url, gcno_file)
-            Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
-            ZipFile(gcno_file).extractall(dest_dir)
         except Exception as e:
             Log.error('Problem with gcno artifact: {{url}} for key {{key}}', key=source_key, url=gcno_artifact.url, cause=e)
             return []
@@ -74,7 +69,15 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
         return keys
 
 
-def process_directory(source_key, source_dir, destination, task_cluster_record, file_etl, please_stop):
+def unzip_files(gcno_file, gcda_file, dest_dir):
+    Log.note('Extracting gcno files to {{dir}}', dir=dest_dir)
+    ZipFile(gcno_file).extractall(dest_dir)
+    Log.note('Extracting gcda files to {{dir}}', dir=dest_dir)
+    ZipFile(gcda_file).extractall(dest_dir)
+
+
+def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, task_cluster_record, file_etl, please_stop):
+
     file_id = etl2key(file_etl)
     new_record = set_default(
         {
@@ -100,16 +103,18 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 lcov_coverage = list(parse_lcov_coverage(DEBUG_LCOV_FILE.read_lines()))
             elif os.name == 'nt':
                 # grcov DOES NOT SUPPORT WINDOWS YET
+                dest_dir = File.new_instance(tmpdir, "ccov").abspath
+                unzip_files(gcno_file, gcda_file, dest_dir)
                 while not please_stop:
                     try:
-                        lcov_coverage = list(run_lcov_on_windows(source_dir))  # TODO: Remove list()
+                        lcov_coverage = list(run_lcov_on_windows(dest_dir))  # TODO: Remove list()
                         break
                     except Exception as e:
                         if "Could not remove file" in e:
                             continue
                         raise e
             else:
-                lcov_coverage = run_grcov(source_dir)
+                lcov_coverage = run_grcov(gcno_file, gcda_file)
 
             for source in lcov_coverage:
                 if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
@@ -118,7 +123,7 @@ def process_directory(source_key, source_dir, destination, task_cluster_record, 
                 new_record.etl.id = count
                 new_record._id = file_id + "." + unicode(count)
                 count += 1
-                if DEBUG and count % 10000 == 0:
+                if DEBUG and (count % 10000 == 0):
                     Log.note("Processed {{num}} coverage records", num=count)
                 yield value2json(new_record)
 
@@ -160,12 +165,12 @@ def download_file(url, destination):
         stream.close()
 
 
-def run_grcov(directory_path):
+def run_grcov(gcno_file, gcda_file):
     """
     :param directory_path:
     :return: generator of coverage docs
     """
-    proc = Process("grcov runner", ['./grcov', directory_path, '-p', '/home/worker/workspace/build/src/'])
+    proc = Process("grcov runner", ['./grcov', gcno_file, gcda_file, '-p', '/home/worker/workspace/build/src/'])
     with proc:
         for json_str in proc.stdout:
             if DEBUG_GRCOV:
@@ -190,9 +195,9 @@ def run_lcov_on_linux(directory_path):
             for line in proc.stdout:
                 yield line
 
-        err_acc = list(proc.stderr)
-        if err_acc:
-            Log.warning("lcov error\n{{lines|indent}}", lines=err_acc)
+            err_acc = list(proc.stderr)
+            if err_acc:
+                Log.warning("lcov error\n{{lines|indent}}", lines=err_acc)
 
     return parse_lcov_coverage(output())
 
