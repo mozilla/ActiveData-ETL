@@ -86,7 +86,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         please_stop
                     ))
             except Exception as e:
-                Log.error(TRY_AGAIN_LATER, reason="problem processing artifacts for key " + source_key, cause=e)
+                Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
 
     if not keys:
         return None
