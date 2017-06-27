@@ -174,6 +174,10 @@ def run_grcov(gcno_file, gcda_file):
     :param directory_path:
     :return: generator of coverage docs
     """
+
+    # TODO: REMOVE OLD GRCOV TEMP FILES
+
+
     proc = Process("grcov runner", ['./grcov', gcno_file, gcda_file, '-p', '/home/worker/workspace/build/src/'])
     with proc:
         for json_str in proc.stdout:

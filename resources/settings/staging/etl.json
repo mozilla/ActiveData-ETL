@@ -252,27 +252,27 @@
 			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
-		{
-			"name": "codecoverage",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage",
-				"public": true,
-				"key_format": "t.a:b.c.d"
-			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transform_type": "bulk",
-			"transformer": "activedata_etl.transforms.cov_to_es.process",
-			"type": "join"
-		}
+//		{
+//			"name": "codecoverage",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-task-cluster-normalized",
+//				"key_format": "t.a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-codecoverage",
+//				"public": true,
+//				"key_format": "t.a:b.c.d"
+//			},
+//			"notify": {
+//				"name": "active-data-index",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transform_type": "bulk",
+//			"transformer": "activedata_etl.transforms.cov_to_es.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,
