@@ -174,8 +174,8 @@
 			"batch_size": 100,
 			"rollover": {
 				"field": "repo.push.date",
-				"interval": "week",
-				"max": "2week"
+				"interval": "day",
+				"max": "7day"
 			},
 			"sample_only": [],
 			"elasticsearch": {
