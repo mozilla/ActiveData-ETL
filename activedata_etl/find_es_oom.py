@@ -73,6 +73,7 @@ def _find_oom(instance):
                         # IT IS GOOD TO BOUNCE A ES NODE IF IT HAS HAD A OOM
                         Log.note("OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}", timestamp=oom_timestamp, instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address)
                         _restart_es(instance)
+                        return
                 except Exception:
                     pass
 

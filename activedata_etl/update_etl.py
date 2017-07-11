@@ -56,7 +56,9 @@ def _refresh_etl(instance, settings, conn):
     cpu_percent = get_cpu(conn, instance)
     Log.note("Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}", instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address, cpu=cpu_percent/100)
 
+
     _config_fabric(settings.fabric, instance)
+    sudo("rm -fr /tmp/grcov*")
     with cd("~/ActiveData-ETL/"):
         result = run("git pull origin etl")
         if result.find("Already up-to-date.") != -1:
@@ -117,3 +119,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
