@@ -15,6 +15,7 @@ from pyLibrary import convert
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.gcov_to_es import process_gcda_artifact
+from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 
 DEBUG = True
@@ -71,12 +72,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-                elif "gcda" in artifact.name:
+                elif "grcov" in artifact.name:
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing grcov artifact: {{url}}", url=artifact.url)
 
-                    keys.extend(process_gcda_artifact(
+                    keys.extend(process_grcov_artifact(
                         source_key,
                         resources,
                         destination,
@@ -85,6 +86,20 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
+                # elif "gcda" in artifact.name:
+                #     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                #     if DEBUG:
+                #         Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
+                #
+                #     keys.extend(process_gcda_artifact(
+                #         source_key,
+                #         resources,
+                #         destination,
+                #         artifact,
+                #         task_cluster_record,
+                #         artifact_etl,
+                #         please_stop
+                #     ))
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
 
