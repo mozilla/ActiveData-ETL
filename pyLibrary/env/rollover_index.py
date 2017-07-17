@@ -191,7 +191,6 @@ class RolloverIndex(object):
                         row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
                         if row == None:
                             continue
-                        num_keys += 1
 
                         if queue == None:
                             queue = self._get_queue(row)
@@ -207,6 +206,7 @@ class RolloverIndex(object):
                                 queue.extend(pending)
                                 pending = []
 
+                        num_keys += 1
                         queue.add(row)
 
                         if please_stop:

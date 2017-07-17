@@ -221,7 +221,7 @@ def main():
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}", num=len(main_work_queue))
+                Log.note("Remaining in SQS: {{num}}", num=len(main_work_queue))
                 (please_stop | Till(seconds=10)).wait()
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
