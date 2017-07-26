@@ -103,6 +103,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
 
+    if DEBUG:
+        Log.note("Done processing coverage artifacts")
     if not keys:
         return None
     else:
