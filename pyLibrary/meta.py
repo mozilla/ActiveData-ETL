@@ -376,7 +376,7 @@ class extenstion_method(object):
 
 class MemorySample(object):
 
-    def __init__(self, description, debug=True, **parameters):
+    def __init__(self, description, debug=False, **parameters):
         self.debug = debug
         if debug:
             try:
@@ -402,7 +402,7 @@ class MemorySample(object):
                 gc.collect()
                 end_memory = self.process.memory_info()
                 net_memory = end_memory.rss-self.start_memory.rss
-                if end_memory > 1000*1000*1000 or net_memory > 100 * 1000 * 1000:
+                if net_memory > 100 * 1000 * 1000:
                     Log.warning(
                         "MEMORY WARNING (+{{net_memory|comma}}bytes): "+self.description,
                         default_params=self.params,
@@ -413,7 +413,17 @@ class MemorySample(object):
                     from pympler import muppy
                     sum1 = sorted(summary.summarize(muppy.get_objects()), key=lambda r: -r[2])[:30]
                     Log.warning("{{data}}", data=sum1)
-                    pass
+                elif end_memory > 1000*1000*1000:
+                    Log.warning(
+                        "MEMORY WARNING (over {{end_memory|comma}}bytes): "+self.description,
+                        default_params=self.params,
+                        end_memory=end_memory
+                    )
+
+                    from pympler import summary
+                    from pympler import muppy
+                    sum1 = sorted(summary.summarize(muppy.get_objects()), key=lambda r: -r[2])[:30]
+                    Log.warning("{{data}}", data=sum1)
 
             except Exception as e:
                 Log.warning("problem in memory measure", cause=e)
