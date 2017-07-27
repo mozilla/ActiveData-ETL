@@ -143,16 +143,3 @@ chmod u+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
 sudo rm /var/spool/cron/ec2-user
 sudo cp /home/ec2-user/ActiveData-ETL/resources/cron/manager.cron /var/spool/cron/ec2-user
-
-
-
-
-
-
-
-
-
-
-
-
-

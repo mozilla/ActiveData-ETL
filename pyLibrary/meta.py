@@ -11,6 +11,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
+import psutil
+import gc
+
 from types import FunctionType
 
 import mo_json
@@ -368,3 +372,36 @@ class extenstion_method(object):
             setattr(self.value, func.__name__, func)
             return func
 
+
+class MemorySample(object):
+
+    def __init__(self, description, debug=True, **parameters):
+        self.debug = debug
+        if debug:
+            try:
+                self.description = description
+                self.params = parameters
+                self.start_memory = None
+                self.process = psutil.Process(os.getpid())
+            except Exception as e:
+                Log.warning("problem in memory measure", cause=e)
+
+    def __enter__(self):
+        if self.debug:
+            try:
+                gc.collect()
+                self.start_memory = self.process.memory_info()
+            except Exception as e:
+                Log.warning("problem in memory measure", cause=e)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.debug:
+            try:
+                gc.collect()
+                end_memory = self.process.memory_info()
+                net_memory = end_memory.rss-self.start_memory.rss
+                if net_memory > 100 * 1000 * 1000:
+                    Log.warning("MEMORY WARNING (+{{net_memory|comma}}): "+self.description, default_params=self.params, net_memory=net_memory)
+            except Exception as e:
+                Log.warning("problem in memory measure", cause=e)
