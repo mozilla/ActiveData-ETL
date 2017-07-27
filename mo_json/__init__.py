@@ -26,6 +26,9 @@ from mo_logs import Except, strings, Log
 from mo_logs.strings import expand_template
 from mo_times import Date, Duration
 
+
+FIND_LOOPS = True
+
 _get = object.__getattribute__
 
 
@@ -85,10 +88,15 @@ def scrub(value):
     """
     REMOVE/REPLACE VALUES THAT CAN NOT BE JSON-IZED
     """
-    return _scrub(value, set())
+    return _scrub(value, set(), [])
 
 
-def _scrub(value, is_done):
+def _scrub(value, is_done, stack):
+    if FIND_LOOPS:
+        _id = id(value)
+        if _id in stack:
+            Log.error("loop in JSON")
+        stack = stack + [_id]
     type_ = value.__class__
 
     if type_ in (NoneType, NullType):
@@ -118,7 +126,7 @@ def _scrub(value, is_done):
     elif type_ is Decimal:
         return float(value)
     elif type_ is Data:
-        return _scrub(_get(value, '_dict'), is_done)
+        return _scrub(_get(value, '_dict'), is_done, stack)
     elif isinstance(value, Mapping):
         _id = id(value)
         if _id in is_done:
@@ -134,7 +142,7 @@ def _scrub(value, is_done):
                 k = unicode(k)
             else:
                 Log.error("keys must be strings")
-            v = _scrub(v, is_done)
+            v = _scrub(v, is_done, stack)
             if v != None or isinstance(v, Mapping):
                 output[k] = v
 
@@ -143,7 +151,7 @@ def _scrub(value, is_done):
     elif type_ in (tuple, list, FlatList):
         output = []
         for v in value:
-            v = _scrub(v, is_done)
+            v = _scrub(v, is_done, stack)
             output.append(v)
         return output
     elif type_ is type:
@@ -155,7 +163,7 @@ def _scrub(value, is_done):
             return True
     elif hasattr(value, '__data__'):
         try:
-            return _scrub(value.__data__(), is_done)
+            return _scrub(value.__data__(), is_done, stack)
         except Exception as e:
             Log.error("problem with calling __json__()", e)
     elif hasattr(value, 'co_code') or hasattr(value, "f_locals"):
@@ -163,16 +171,18 @@ def _scrub(value, is_done):
     elif hasattr(value, '__iter__'):
         output = []
         for v in value:
-            v = _scrub(v, is_done)
+            v = _scrub(v, is_done, stack)
             output.append(v)
         return output
     elif hasattr(value, '__call__'):
         return repr(value)
     else:
-        return _scrub(DataObject(value), is_done)
+        return _scrub(DataObject(value), is_done, stack)
 
 
 def value2json(obj, pretty=False, sort_keys=False):
+    if FIND_LOOPS:
+        obj = scrub(obj)
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
@@ -184,7 +194,7 @@ def value2json(obj, pretty=False, sort_keys=False):
         try:
             json = pypy_json_encode(obj)
             return json
-        except Exception, _:
+        except Exception as _:
             pass
         Log.error("Can not encode into JSON: {{value}}", value=repr(obj), cause=e)
 
