@@ -402,7 +402,7 @@ class MemorySample(object):
                 gc.collect()
                 end_memory = self.process.memory_info()
                 net_memory = end_memory.rss-self.start_memory.rss
-                if net_memory > 100 * 1000 * 1000:
+                if end_memory > 1000*1000*1000 or net_memory > 100 * 1000 * 1000:
                     Log.warning(
                         "MEMORY WARNING (+{{net_memory|comma}}bytes): "+self.description,
                         default_params=self.params,
