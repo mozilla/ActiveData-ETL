@@ -15,6 +15,7 @@ import os
 import psutil
 import gc
 
+from pyLibrary.queries import jx
 from types import FunctionType
 
 import mo_json
@@ -402,6 +403,17 @@ class MemorySample(object):
                 end_memory = self.process.memory_info()
                 net_memory = end_memory.rss-self.start_memory.rss
                 if net_memory > 100 * 1000 * 1000:
-                    Log.warning("MEMORY WARNING (+{{net_memory|comma}}bytes): "+self.description, default_params=self.params, net_memory=net_memory)
+                    Log.warning(
+                        "MEMORY WARNING (+{{net_memory|comma}}bytes): "+self.description,
+                        default_params=self.params,
+                        net_memory=net_memory
+                    )
+
+                    from pympler import summary
+                    from pympler import muppy
+                    sum1 = sorted(summary.summarize(muppy.get_objects()), key=lambda r: -r[2])[:30]
+                    Log.warning("{{data}}", data=sum1)
+                    pass
+
             except Exception as e:
                 Log.warning("problem in memory measure", cause=e)
