@@ -376,7 +376,7 @@ class extenstion_method(object):
 
 class MemorySample(object):
 
-    def __init__(self, description, debug=False, **parameters):
+    def __init__(self, description, debug=True, **parameters):
         self.debug = debug
         if debug:
             try:
