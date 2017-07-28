@@ -391,7 +391,7 @@ class MemorySample(object):
         if self.debug:
             try:
                 gc.collect()
-                self.start_memory = self.process.memory_info()
+                self.start_memory = self.process.memory_info().rss
             except Exception as e:
                 Log.warning("problem in memory measure", cause=e)
         return self
@@ -400,11 +400,11 @@ class MemorySample(object):
         if self.debug:
             try:
                 gc.collect()
-                end_memory = self.process.memory_info()
-                net_memory = end_memory.rss-self.start_memory.rss
+                end_memory = self.process.memory_info().rss
+                net_memory = end_memory-self.start_memory
                 if net_memory > 100 * 1000 * 1000:
                     Log.warning(
-                        "MEMORY WARNING (+{{net_memory|comma}}bytes): "+self.description,
+                        "MEMORY WARNING (additional {{net_memory|comma}}bytes): "+self.description,
                         default_params=self.params,
                         net_memory=net_memory
                     )
