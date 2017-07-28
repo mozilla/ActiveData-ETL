@@ -58,7 +58,7 @@ def _refresh_etl(instance, settings, conn):
 
 
     _config_fabric(settings.fabric, instance)
-    sudo("pip install pympler")
+    # sudo("pip install pympler")
     sudo("rm -fr /tmp/grcov*")
     with cd("~/ActiveData-ETL/"):
         result = run("git pull origin etl")
