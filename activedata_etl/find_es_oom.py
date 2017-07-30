@@ -23,7 +23,7 @@ from mo_dots.objects import datawrap
 from mo_times import Date, HOUR, Duration, DAY, MINUTE
 from pyLibrary.aws import aws_retry
 
-num_restarts = 1
+num_restarts = 2
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
