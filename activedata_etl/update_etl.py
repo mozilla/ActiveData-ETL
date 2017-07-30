@@ -58,12 +58,13 @@ def _refresh_etl(instance, settings, conn):
 
 
     _config_fabric(settings.fabric, instance)
+    # sudo("pip install pympler")
     sudo("rm -fr /tmp/grcov*")
     with cd("~/ActiveData-ETL/"):
         result = run("git pull origin etl")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
-            if cpu_percent > 70:
+            if cpu_percent > 50:
                 return
             Log.note("Low CPU implies problem, restarting anyway")
         sudo("supervisorctl restart all")

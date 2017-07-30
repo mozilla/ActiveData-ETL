@@ -38,6 +38,7 @@ KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "basic_compositor_video",
     "bloom_basic_ref",
+    "bloom_basic_singleton",
     "bloom_basic",
     "compiler warnings",
     "build times",
