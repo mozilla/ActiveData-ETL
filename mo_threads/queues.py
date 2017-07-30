@@ -22,6 +22,8 @@ from datetime import datetime
 from time import time
 
 from mo_dots import coalesce, Null
+
+from mo_logs import Log
 from mo_threads.lock import Lock
 from mo_threads.signal import Signal
 from mo_threads.threads import Thread, THREAD_STOP, THREAD_TIMEOUT
@@ -164,6 +166,9 @@ class Queue(object):
         EXPECT THE self.lock TO BE HAD, WAITS FOR self.queue TO HAVE A LITTLE SPACE
         """
         wait_time = 5
+
+        if DEBUG and len(self.queue) > 1 * 1000 * 1000:
+            Log.warning("Queue {{name}} has over a million items")
 
         now = time()
         if timeout != None:

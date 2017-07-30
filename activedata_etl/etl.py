@@ -34,6 +34,7 @@ from mohg.hg_mozilla_org import HgMozillaOrg
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
+from pyLibrary.meta import MemorySample
 from pyLibrary.queries import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -179,7 +180,8 @@ class ETL(Thread):
                     self.resources
                 )
 
-                new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+                with MemorySample("processing {{action}} for {{source}} ", action=action.name, source=source_key):
+                    new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
 
                 if new_keys == None:
                     new_keys = set()

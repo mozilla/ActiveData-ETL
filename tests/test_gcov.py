@@ -12,17 +12,19 @@ from __future__ import unicode_literals
 import gzip
 import unittest
 
+from activedata_etl import key2etl
 from mo_dots import Null, Data, wrap
+from mo_files import File
+from mo_logs import constants
 
+from activedata_etl.imports import parse_lcov
 from activedata_etl.transforms import gcov_to_es
 from activedata_etl.transforms.gcov_to_es import process_directory, process_gcda_artifact
-from mo_files import File
-
-from mo_logs import constants
 
 
 class TestGcov(unittest.TestCase):
     def test_parsing(self):
+        parse_lcov.EMIT_RECORDS_WITH_ZERO_COVERAGE = True
         destination = Destination("results/ccov/gcov_parsing_result.json.gz")
 
         gcov_to_es.process_directory(
@@ -31,11 +33,11 @@ class TestGcov(unittest.TestCase):
             # source_dir="/home/marco/Documenti/FD/mozilla-central/build-cov-gcc",
             destination=destination,
             task_cluster_record=Null,
-            file_etl=Null,
+            file_etl=key2etl("tc.123:12345.45.0"),
             please_stop=Null
         )
 
-        self.assertEqual(destination.count, 81, "Expecting 81 records, got " + str(destination.count))
+        self.assertEqual(destination.count, 174, "Expecting 174 records, got " + str(destination.count))
 
 
     def test_lcov_post_processing(self):

@@ -73,7 +73,7 @@ def main():
         for i in instances:
             try:
                 _config_fabric(settings.fabric, i)
-                Log.note("Start indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                Log.note("Start indexing {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _start_indexer()
             except Exception as e:
                 Log.warning("Problem with stopping", e)
