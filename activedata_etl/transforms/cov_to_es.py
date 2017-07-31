@@ -55,10 +55,12 @@ def process(source_key, source, destination, resources, please_stop=None):
         artifacts = task_cluster_record.task.artifacts
         minimize_task(task_cluster_record)
         etl_header_gen = EtlHeadGenerator(source_key)
+        coverage_artifact_exists = False
 
         for artifact in artifacts:
             try:
                 if "jscov" in artifact.name:
+                    coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
                         Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
@@ -73,6 +75,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         please_stop
                     ))
                 elif "grcov" in artifact.name:
+                    coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
                         Log.note("Processing grcov artifact: {{url}}", url=artifact.url)
@@ -87,6 +90,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         please_stop
                     ))
                 # elif "gcda" in artifact.name:
+                #     coverage_artifact_exists = True
                 #     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                 #     if DEBUG:
                 #         Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
@@ -103,7 +107,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
 
-    if DEBUG:
+    if DEBUG and coverage_artifact_exists:
         Log.note("Done processing coverage artifacts")
     if not keys:
         return None

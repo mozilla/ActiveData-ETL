@@ -89,19 +89,13 @@
 							"dynamic": true,
 							"properties": {
 								"covered": {
-									"type": "nested",
-									"dynamic": "false",
-									"properties": {
-										"line": {
-											"index": "not_analyzed",
-											"type": "integer",
-											"doc_values": true
-										}
-									}
+									"index": "not_analyzed",
+									"type": "string",
+									"doc_values": true
 								},
 								"uncovered": {
 									"index": "not_analyzed",
-									"type": "integer",
+									"type": "string",
 									"doc_values": true
 								}
 							}
@@ -111,19 +105,13 @@
 							"dynamic": true,
 							"properties": {
 								"covered": {
-									"type": "nested",
-									"dynamic": "false",
-									"properties": {
-										"line": {
-											"index": "not_analyzed",
-											"type": "integer",
-											"doc_values": true
-										}
-									}
+									"index": "not_analyzed",
+									"type": "string",
+									"doc_values": true
 								},
 								"uncovered": {
 									"index": "not_analyzed",
-									"type": "integer",
+									"type": "string",
 									"doc_values": true
 								}
 							}

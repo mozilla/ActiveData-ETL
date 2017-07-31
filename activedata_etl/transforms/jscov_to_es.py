@@ -85,8 +85,8 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
     # file-level info
     file_info = wrap({
         "name": obj.sourceFile,
-        "covered": [{"line": c} for c in obj.covered],
-        "uncovered": obj.uncovered,
+        "covered": sorted(obj.covered),
+        "uncovered": sorted(obj.uncovered),
         "total_covered": len(obj.covered),
         "total_uncovered": len(obj.uncovered),
         "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
@@ -118,8 +118,8 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
                     "file": file_info,
                     "method": {
                         "name": method_name,
-                        "covered": [{"line": c} for c in method_covered],
-                        "uncovered": method_uncovered,
+                        "covered": sorted(method_covered),
+                        "uncovered": sorted(method_uncovered),
                         "total_covered": len(method_covered),
                         "total_uncovered": len(method_uncovered),
                         "percentage_covered": method_percentage_covered,
@@ -151,8 +151,8 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
                 "file": file_info,
                 "language": "js",
                 "method": {
-                    "covered": [{"line": c} for c in orphan_covered],
-                    "uncovered": orphan_uncovered,
+                    "covered": sorted(orphan_covered),
+                    "uncovered": sorted(orphan_uncovered),
                     "total_covered": len(orphan_covered),
                     "total_uncovered": len(orphan_uncovered),
                     "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
