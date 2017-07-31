@@ -102,7 +102,7 @@ def coco_format(details):
         "is_file": True,
         "file": {
             "name": details['file'],
-            'covered': [{"line": c} for c in sorted(details["lines_covered"])],
+            'covered': sorted(details["lines_covered"]),
             'uncovered': sorted(details['lines_uncovered']),
             "total_covered": len(details['lines_covered']),
             "total_uncovered": len(details['lines_uncovered']),
