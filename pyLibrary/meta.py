@@ -11,10 +11,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-import os
-import psutil
-import gc
-
 from pyLibrary.queries import jx
 from types import FunctionType
 
@@ -376,10 +372,14 @@ class extenstion_method(object):
 
 class MemorySample(object):
 
-    def __init__(self, description, debug=True, **parameters):
+    def __init__(self, description, debug=False, **parameters):
         self.debug = debug
         if debug:
             try:
+                import os
+                import psutil
+                import gc
+
                 self.description = description
                 self.params = parameters
                 self.start_memory = None
