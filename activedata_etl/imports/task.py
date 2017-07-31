@@ -35,7 +35,7 @@ def minimize_task(task):
     task.task.runs = None
     task.task.scopes = None
     task.task.tags = None
-    task.task.sigining = None
+    task.task.signing = None
     task.task.features= None
     task.task.image = None
 
