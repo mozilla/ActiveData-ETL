@@ -10,6 +10,8 @@
 """
 Parses an lcov-generated coverage file and converts it to the JSON format used by other coverage outputs.
 """
+from __future__ import division
+from __future__ import unicode_literals
 
 import sys
 import json
