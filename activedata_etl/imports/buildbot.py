@@ -200,6 +200,8 @@ class BuildbotTranslator(object):
 
         if 'release' in buildername:
             output.tags += ['release']
+        if 'devedition' in buildername.lower():
+            output.tags += ['devedition']
         if buildername.endswith("nightly"):
             output.tags += ["nightly"]
 
@@ -332,7 +334,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Data()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR IGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -605,6 +607,7 @@ TEST_PLATFORMS = {
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
     "Ubuntu HW 12.04 x64 stylo-sequential": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo", "sequential"]}},
+    "Ubuntu HW 12.04 x64 devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
@@ -752,13 +755,13 @@ KNOWN_PLATFORM = {
     "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
-    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
-    "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
-    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "ubuntu64_hw_devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
     "ubuntu64_hw_stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
     "ubuntu64_hw_styloseq": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo", "sequential"]}},
+    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
+    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-add-on-devel": {"build": {"platform": "win32", "type": ["add-on"]}},
@@ -810,6 +813,7 @@ ALLOWED_PLATFORMS = [
 ALLOWED_PRODUCTS = [
     None,
     "b2g",
+    "devedition",
     "fennec",
     "firefox",
     "fuzzing",
@@ -817,8 +821,7 @@ ALLOWED_PRODUCTS = [
     "mobile",
     "spidermonkey",
     "thunderbird",
-    "xulrunner",
-    "devedition"
+    "xulrunner"
 ]
 
 

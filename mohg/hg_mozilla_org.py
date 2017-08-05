@@ -262,7 +262,7 @@ class HgMozillaOrg(object):
         try:
             (Till(seconds=5)).wait()
             return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-        except Exception, f:
+        except Exception as f:
             pass
 
         path = url.split("/")
