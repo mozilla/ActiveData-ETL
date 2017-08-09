@@ -117,7 +117,7 @@ def _get_single_branch_from_hg(settings, description, dir):
     output = []
     try:
         all_branches = doc("table")[0]
-    except Exception, _:
+    except Exception:
         return []
 
     for i, b in enumerate(all_branches("tr")):

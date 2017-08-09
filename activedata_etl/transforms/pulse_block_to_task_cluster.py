@@ -444,6 +444,9 @@ def set_build_info(source_key, normalized, task, env, resources):
     if normalized.build.platform.endswith("-ccov"):
         normalized.build.platform = normalized.build.platform.split("-")[0]
         normalized.build.type += ["ccov"]
+    if normalized.build.platform.endswith("-jsdcov"):
+        normalized.build.platform = normalized.build.platform.split("-")[0]
+        normalized.build.type += ["ccov"]
 
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
