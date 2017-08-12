@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo
 from fabric.state import env
+from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce
 from mo_files import File, TempDirectory
@@ -23,7 +24,7 @@ from mo_dots.objects import datawrap
 from mo_times import Date, HOUR, Duration, DAY, MINUTE
 from pyLibrary.aws import aws_retry
 
-num_restarts = 2
+num_restarts = 100
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
@@ -37,7 +38,7 @@ def _get_managed_instances(ec2_conn, name):
     reservations = ec2_conn.get_all_instances()
 
     output = []
-    for res in reservations:
+    for res in reversed(sorted(reservations, key=lambda r: r.instances[0].tags.get('Name', ''))):
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
                 instance.request = requests[instance.id]
