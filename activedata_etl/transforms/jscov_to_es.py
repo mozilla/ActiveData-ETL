@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from activedata_etl import etl2key
 from mo_dots import wrap, unwraplist, set_default
 from mo_json import stream

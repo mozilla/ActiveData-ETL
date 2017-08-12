@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, hide

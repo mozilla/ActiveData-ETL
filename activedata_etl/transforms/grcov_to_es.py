@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
@@ -73,7 +74,7 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                                 continue
                             new_record.source = source
                             new_record.etl.id = count
-                            new_record._id = file_id + "." + unicode(count)
+                            new_record._id = file_id + "." + text_type(count)
                             count += 1
                             if DEBUG and (count % 10000 == 0):
                                 Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))

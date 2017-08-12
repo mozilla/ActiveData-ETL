@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest

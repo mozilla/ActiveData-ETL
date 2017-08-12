@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 from pyLibrary import convert
 
 

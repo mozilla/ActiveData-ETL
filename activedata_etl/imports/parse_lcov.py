@@ -13,6 +13,7 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 import sys
 import json
 

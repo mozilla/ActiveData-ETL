@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 import sys
 from collections import Mapping
 from copy import deepcopy
@@ -144,7 +145,7 @@ class ETL(Thread):
 
         for action in work_actions:
             try:
-                source_key = unicode(source_keys[0])
+                source_key = text_type(source_keys[0])
                 if len(source_keys) > 1:
                     multi_source = action._source
                     source = ConcatSources([multi_source.get_key(k) for k in source_keys])
@@ -301,7 +302,7 @@ class ETL(Thread):
                         Log.warning("Should never happen")
                         continue
 
-                    if isinstance(todo, unicode):
+                    if isinstance(todo, text_type):
                         Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                         self.work_queue.commit()
                         continue
@@ -446,7 +447,7 @@ def main():
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
             ETL(
-                name="ETL Loop " + unicode(i),
+                name="ETL Loop " + text_type(i),
                 work_queue=settings.work_queue,
                 resources=resources,
                 workers=settings.workers,
@@ -516,7 +517,7 @@ def parse_id_argument(id):
     if id.find("..") >= 0:
         #range of ids
         min_, max_ = map(int, map(strings.trim, id.split("..")))
-        return map(unicode, range(min_, max_ + 1))
+        return map(text_type, range(min_, max_ + 1))
     else:
         return [id]
 

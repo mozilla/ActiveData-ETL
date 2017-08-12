@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from mo_threads.threads import MAIN_THREAD
 
 from mo_dots import wrap
@@ -86,7 +87,7 @@ def loop(settings):
             d.key2 = maxi[day]
             maxi[day] += 1
 
-        full_key = unicode(d.key1) + "." + unicode(d.key2)
+        full_key = text_type(d.key1) + "." + text_type(d.key2)
         destination.write_lines(key=full_key, lines=source.read_lines(d.filename))
         notify.add({
             "bucket": destination.bucket.name,

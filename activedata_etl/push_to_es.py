@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument

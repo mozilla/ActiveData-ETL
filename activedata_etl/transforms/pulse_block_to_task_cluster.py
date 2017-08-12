@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from collections import Mapping
 
 import requests
@@ -270,7 +271,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         command = consume(task, "payload.command")
         cmd = consume(task, "payload.cmd")
         command = [cc for c in (command if command else cmd) for cc in listwrap(c)]   # SOMETIMES A LIST OF LISTS
-        output.task.command = " ".join(map(convert.string2quote, map(unicode.strip, command)))
+        output.task.command = " ".join(map(convert.string2quote, map(text_type.strip, command)))
     except Exception as e:
         Log.error("problem", cause=e)
 
@@ -566,8 +567,8 @@ def get_tags(source_key, task_id, task, parent=None):
     tags = []
     # SPECIAL CASES
     platforms = consume(task, "payload.properties.platforms")
-    if isinstance(platforms, unicode):
-        platforms = map(unicode.strip, platforms.split(","))
+    if isinstance(platforms, text_type):
+        platforms = map(text_type.strip, platforms.split(","))
         tags.append({"name": "platforms", "value": platforms})
     link = consume(task, "payload.link")
     if link:
@@ -601,13 +602,13 @@ def get_tags(source_key, task_id, task, parent=None):
                     for tt in get_tags(source_key, task_id, Data(tags=v), parent=t['name']):
                         clean_tags.append(tt)
                     continue
-                elif not isinstance(v, unicode):
+                elif not isinstance(v, text_type):
                     v = convert.value2json(v)
-            # elif all(isinstance(vv, (unicode, float, int)) for vv in v):
+            # elif all(isinstance(vv, (text_type, float, int)) for vv in v):
             #     pass  # LIST OF PRIMITIVES IS OK
             else:
                 v = convert.value2json(v)
-        elif not isinstance(v, unicode):
+        elif not isinstance(v, text_type):
             v = convert.value2json(v)
         t["value"] = v
         verify_tag(source_key, task_id, t)
@@ -617,7 +618,7 @@ def get_tags(source_key, task_id, task, parent=None):
 
 
 def verify_tag(source_key, task_id, t):
-    if not isinstance(t["value"], unicode):
+    if not isinstance(t["value"], text_type):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
         Log.warning("unknown task tag {{tag|quote}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t["name"])

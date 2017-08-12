@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from tempfile import TemporaryFile
 
 from mo_dots import Data
@@ -66,7 +67,7 @@ def parse_day(settings, p, force=False):
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - REFERENCE_DATE) / DAY)
     day_url = settings.source.url + p
-    key0 = unicode(day_num) + ".0"
+    key0 = text_type(day_num) + ".0"
 
     if day < EARLIEST_CONSIDERATION_DATE or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
@@ -125,7 +126,7 @@ def parse_day(settings, p, force=False):
             first = parsed
             continue
 
-        key = unicode(day_num) + "." + unicode(group_number)
+        key = text_type(day_num) + "." + text_type(group_number)
 
         def upload(key, lines, please_stop):
             try:
@@ -151,7 +152,7 @@ def parse_day(settings, p, force=False):
         Log.error("How did this happen?")
 
     # WRITE FIRST BLOCK
-    key0 = unicode(day_num) + ".0"
+    key0 = text_type(day_num) + ".0"
     destination.write_lines(key=key0, lines=first)
     notify.add({"key": key0, "bucket": destination.name, "timestamp": Date.now()})
 

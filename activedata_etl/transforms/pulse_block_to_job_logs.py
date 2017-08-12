@@ -9,6 +9,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 from activedata_etl import etl2key, key2etl
 from activedata_etl.imports.text_log import process_text_log
 from activedata_etl.transforms import EtlHeadGenerator

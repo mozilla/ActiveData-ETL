@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from mo_dots import Data, wrap, coalesce, set_default, literal_field
@@ -88,7 +89,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         })
     else:
         for i, t in enumerate(summary.tests):
-            key = source_key + "." + unicode(i)
+            key = source_key + "." + text_type(i)
             new_keys.append(key)
 
             new_data.append({

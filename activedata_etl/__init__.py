@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 from collections import Mapping
 
 from mo_dots import wrap, coalesce
@@ -57,7 +58,7 @@ def format_id(value):
     try:
         return int(value)
     except Exception:
-        return unicode(value)
+        return text_type(value)
 
 
 def _parse_key(elements):
@@ -89,7 +90,7 @@ def etl2key(etl):
     source = etl
     seq = []
     while source:
-        seq.append(unicode(format_id(coalesce(source.id, source.code))))
+        seq.append(text_type(format_id(coalesce(source.id, source.code))))
         if source.type == "join":
             seq.append(".")
         else:

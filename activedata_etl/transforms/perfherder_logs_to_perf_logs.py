@@ -10,6 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 import datetime
 from copy import copy
 from math import sqrt
@@ -138,7 +139,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "revision": get_git_revision(),
                     "timestamp": Date.now()
                 }
-                key = source_key + "." + unicode(i)
+                key = source_key + "." + text_type(i)
                 records.append({"id": key, "value": p})
                 i += 1
         except Exception as e:
@@ -237,7 +238,7 @@ def transform(source_key, perfherder, resources):
                             {"result": set_default(
                                 stats(source_key, sub_replicates, subtest.name, suite_name),
                                 {
-                                    "test": unicode(subtest.name) + "." + unicode(g),
+                                    "test": text_type(subtest.name) + "." + text_type(g),
                                     "ordering": i,
                                     "unit": subtest.unit,
                                     "lower_is_better": subtest.lowerIsBetter
@@ -276,7 +277,7 @@ def transform(source_key, perfherder, resources):
                             {"result": set_default(
                                 stats(source_key, sub_replicates, test_name, suite_name),
                                 {
-                                    "test": unicode(test_name) + "." + unicode(g),
+                                    "test": text_type(test_name) + "." + text_type(g),
                                     "ordering": i
                                 }
                             )},
@@ -378,7 +379,7 @@ def stats(source_key, given_values, test, suite):
         if given_values == None:
             return None
 
-        rejects = unwraplist([unicode(v) for v in given_values if Math.is_nan(v) or not Math.is_finite(v)])
+        rejects = unwraplist([text_type(v) for v in given_values if Math.is_nan(v) or not Math.is_finite(v)])
         clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)])
 
         z = ZeroMoment.new_instance(clean_values)

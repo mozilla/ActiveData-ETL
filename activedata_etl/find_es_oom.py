@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo
 from fabric.state import env

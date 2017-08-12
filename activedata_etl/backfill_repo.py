@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 from mo_dots import listwrap, unwrap, wrap, wrap_leaves
 from mo_logs import startup, constants

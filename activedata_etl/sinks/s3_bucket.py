@@ -8,6 +8,7 @@
 #
 from __future__ import unicode_literals
 
+from future import text_type
 from math import log10
 
 from mo_kwargs import override
@@ -49,11 +50,11 @@ class S3Bucket(object):
 
     def find_keys(self, start, count, filter=None):
         digits = int(Math.ceiling(log10(count - 1)))
-        prefix = unicode(start)[:-digits]
+        prefix = text_type(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
-        min_ = Version(unicode(start))
-        max_ = Version(unicode(start+count))
+        min_ = Version(text_type(start))
+        max_ = Version(text_type(start+count))
         output = [m.key for m in metas if min_ <= Version(m.key) < max_]
 
         return set(output)

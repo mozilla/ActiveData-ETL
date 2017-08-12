@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 from mo_dots import coalesce, wrap
 from pyLibrary import aws
 from pyLibrary.aws import s3
@@ -71,7 +72,7 @@ def diff(settings, please_stop=None):
 
     source_prefix = coalesce(settings.source.prefix, "")
     for i, p in enumerate(remaining_in_s3):
-        all_keys = source_bucket.keys(source_prefix + unicode(p))
+        all_keys = source_bucket.keys(source_prefix + text_type(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
         with Timer("insert into aws sqs", silent=len(all_keys) == 1):
             work_queue.extend([
@@ -142,7 +143,7 @@ def get_all_s3(in_es, in_range, settings):
     extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
-    prefix = unicode(max(in_range - in_es))[:-extra_digits]
+    prefix = text_type(max(in_range - in_es))[:-extra_digits]
     prefix_max = int(prefix + ("999999999999"[:extra_digits]))
     while prefix != "0" and len(in_s3) < limit and min_range <= prefix_max:
         # EVERYTHING FROM S3
@@ -177,7 +178,7 @@ def get_all_s3(in_es, in_range, settings):
 
         if prefix == "":
             break
-        prefix = unicode(int(prefix) - 1)
+        prefix = text_type(int(prefix) - 1)
         prefix_max = int(prefix + ("999999999999"[:extra_digits]))
 
     in_s3 = jx.reverse(jx.sort(in_s3))[:limit:]

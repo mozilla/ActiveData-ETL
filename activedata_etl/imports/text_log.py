@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future import text_type
 import re
 from copy import copy
 
@@ -571,7 +572,7 @@ class BuilderLines(object):
             return None
 
         try:
-            parts = map(unicode.strip, line[10:-10].split("("))
+            parts = map(text_type.strip, line[10:-10].split("("))
             if parts[0].startswith("master_lag:"):
                 return None
             if parts[0] == "Skipped":
