@@ -20,7 +20,7 @@ from mo_kwargs import override
 from mo_threads import Thread, Queue, Till, THREAD_STOP
 from mo_times import MINUTE, Duration
 from pyLibrary.env.elasticsearch import Cluster
-from pyLibrary.queries import jx
+from jx_python import jx
 
 from mo_logs import Log, strings
 from mo_logs.exceptions import suppress_exception
@@ -32,7 +32,7 @@ LOG_STRING_LENGTH = 2000
 
 class StructuredLogger_usingElasticSearch(StructuredLogger):
     @override
-    def __init__(self, host, index, type="log", max_size=1000, batch_size=100, kwargs=None):
+    def __init__(self, host, index, port=9200, type="log", max_size=1000, batch_size=100, kwargs=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
