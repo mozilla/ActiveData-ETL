@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 class Split(object):
     """
     SEND SAME DATA TO TWO DIFFERENT SINKS

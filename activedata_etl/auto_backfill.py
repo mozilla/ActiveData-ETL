@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 import sys
 
 from activedata_etl.imports.s3_cache import S3Cache

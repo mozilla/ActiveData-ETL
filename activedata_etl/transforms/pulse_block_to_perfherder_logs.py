@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from activedata_etl import etl2key
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record

@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from math import log10
 
 from mo_kwargs import override

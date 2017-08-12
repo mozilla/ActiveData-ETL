@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 from mo_dots import set_default, coalesce, listwrap
 from pyLibrary import aws

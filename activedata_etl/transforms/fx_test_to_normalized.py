@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from activedata_etl import key2etl, etl2key
 from activedata_etl.transforms.unittest_logs_to_sink import accumulate_logs
 from mo_dots import Data, wrap, set_default

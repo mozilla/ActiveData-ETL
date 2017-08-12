@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from activedata_etl import etl2key
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.imports.resource_usage import normalize_resource_usage

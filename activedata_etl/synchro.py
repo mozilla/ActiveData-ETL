@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from pyLibrary import convert
 from mo_logs import Log
 from mo_threads import Thread

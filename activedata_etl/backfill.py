@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future import text_type
+from future.utils import text_type
 from mo_dots import coalesce, wrap
 from pyLibrary import aws
 from pyLibrary.aws import s3

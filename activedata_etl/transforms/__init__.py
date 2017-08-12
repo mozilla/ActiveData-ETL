@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from future import text_type
+from future.utils import text_type
 from pyLibrary import convert
 from mo_logs import Log, strings
 from mo_dots import wrap, Data, literal_field
