@@ -23,7 +23,7 @@ from mo_logs.strings import between
 from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.env import elasticsearch
-from pyLibrary.queries import jx
+from jx_python import jx
 from pyLibrary.sql.mysql import MySQL
 from pyLibrary.sql.sql import find_holes
 

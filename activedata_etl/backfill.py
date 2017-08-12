@@ -18,8 +18,8 @@ from mo_logs import Log
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
 from mo_math import Math, MAX, MIN
-from pyLibrary.queries import jx
-from pyLibrary.queries.expressions import jx_expression
+from jx_python import jx
+from jx_base.expressions import jx_expression
 from mo_times.dates import Date
 from mo_times.timer import Timer
 

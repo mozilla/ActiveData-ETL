@@ -29,7 +29,7 @@ from mohg.repos.revisions import Revision
 from pyLibrary import convert
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.meta import cache
-from pyLibrary.queries import jx
+from jx_python import jx
 
 _hg_branches = None
 _OLD_BRANCH = None

@@ -17,7 +17,7 @@ from mo_threads import Signal
 from mo_threads import Thread
 from mo_times.dates import Date
 from pyLibrary import aws
-from pyLibrary.queries import jx
+from jx_python import jx
 
 DEBUG = True
 

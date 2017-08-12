@@ -25,7 +25,7 @@ from mo_threads import Lock
 from mo_times.dates import Date
 from pyLibrary import convert
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.queries import jx
+from jx_python import jx
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000

@@ -14,7 +14,7 @@ from mo_dots import unwrap
 from pyLibrary.aws import s3
 from mo_logs import startup
 from mo_logs import Log
-from pyLibrary.queries import jx
+from jx_python import jx
 
 
 def main():

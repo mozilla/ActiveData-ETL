@@ -15,7 +15,7 @@ from pyLibrary.aws import s3
 from mo_logs import startup
 from mo_logs import Log
 from mo_math.randoms import Random
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_threads import Queue, Thread, THREAD_STOP
 
 known_tasks = set()

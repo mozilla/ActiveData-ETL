@@ -17,7 +17,7 @@ from pyLibrary.aws.s3 import Bucket
 from mo_logs import startup
 from mo_logs import Log
 from pyLibrary.convert import json2value
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_times.timer import Timer
 
 

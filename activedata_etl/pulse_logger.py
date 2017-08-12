@@ -19,7 +19,7 @@ from mo_logs import startup, constants
 from mo_logs.exceptions import Except
 from mo_logs import Log
 from pyLibrary.env import pulse
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_threads import Thread
 from mo_times.dates import Date
 

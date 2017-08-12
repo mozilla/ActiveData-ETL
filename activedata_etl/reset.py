@@ -16,7 +16,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws.s3 import Connection, key_prefix
-from pyLibrary.queries import jx
+from jx_python import jx
 
 
 def main():

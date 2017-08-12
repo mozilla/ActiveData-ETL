@@ -13,7 +13,7 @@ from collections import Mapping
 from mo_dots import wrap, coalesce
 from mo_logs import Log, strings
 from pyLibrary.aws import s3
-from pyLibrary.queries import jx
+from jx_python import jx
 
 
 def key2etl(key):

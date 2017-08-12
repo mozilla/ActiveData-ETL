@@ -121,6 +121,7 @@ def _disable_oom_on_es():
 def _refresh_indexer():
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
+        sudo("pip install -r requirements.txt")
         result = run("git pull origin push-to-es")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")

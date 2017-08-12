@@ -18,7 +18,7 @@ from pyLibrary import convert
 from mo_logs.exceptions import Except
 from mo_logs import Log, strings
 from mo_math import Math, MAX, MIN
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 

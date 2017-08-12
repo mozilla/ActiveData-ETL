@@ -17,7 +17,7 @@ from pyLibrary import aws, convert
 from mo_logs import startup, constants
 from mo_logs import Log
 from pyLibrary.env import http
-from pyLibrary.queries import jx
+from jx_python import jx
 from pyLibrary.sql.sqlite import Sqlite
 from mo_threads import Thread
 from mo_threads import Till

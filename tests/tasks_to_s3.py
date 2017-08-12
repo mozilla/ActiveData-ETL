@@ -15,7 +15,7 @@ from mo_logs import Log
 from mo_times import Date
 from pyLibrary import convert
 from pyLibrary.aws import s3, Queue
-from pyLibrary.queries import jx
+from jx_python import jx
 
 START, STOP = 560253, 560325
 NUM = STOP - START

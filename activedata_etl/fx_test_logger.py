@@ -17,7 +17,7 @@ from mo_math import Math
 from mo_times import Date, DAY
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.queries import jx
+from jx_python import jx
 from pyLibrary.sql.sqlite import Sqlite
 
 ZERO_DAY = Date("1 jan 2015")

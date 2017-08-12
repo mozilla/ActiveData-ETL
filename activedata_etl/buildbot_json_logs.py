@@ -27,7 +27,7 @@ from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
-from pyLibrary.queries import jx
+from jx_python import jx
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)

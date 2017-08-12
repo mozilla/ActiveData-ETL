@@ -35,7 +35,7 @@ from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
-from pyLibrary.queries import jx
+from jx_python import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
