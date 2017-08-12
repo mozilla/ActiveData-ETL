@@ -13,7 +13,10 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+from future.utils import text_type
 from mo_dots import zip as dict_zip, get_logger, wrap
+
+from mo_logs import Except
 
 
 def override(func):
@@ -88,8 +91,9 @@ def override(func):
                 # PULL kwargs OUT INTO PARAMS
                 packed = params_pack(params, kwargs, dict_zip(params, args), defaults)
                 return func(**packed)
-        except TypeError, e:
-            if e.message.find("takes at least") >= 0:
+        except TypeError as e:
+            e = Except.wrap(e)
+            if e.message.startswith(func.func_name) and "takes at least" in e:
                 missing = [p for p in params if str(p) not in packed]
                 get_logger().error(
                     "Problem calling {{func_name}}:  Expecting parameter {{missing}}",
@@ -97,7 +101,7 @@ def override(func):
                     missing=missing,
                     stack_depth=1
                 )
-            get_logger().error("Unexpected", e)
+            get_logger().error("Error dispatching call", e)
     return wrapper
 
 
@@ -107,7 +111,7 @@ def params_pack(params, *args):
         if a == None:
             continue
         for k, v in a.items():
-            k = unicode(k)
+            k = text_type(k)
             if k in settings:
                 continue
             settings[k] = v

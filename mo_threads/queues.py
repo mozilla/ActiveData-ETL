@@ -22,12 +22,9 @@ from datetime import datetime
 from time import time
 
 from mo_dots import coalesce, Null
+from mo_threads import Lock, Signal, Thread, THREAD_STOP, THREAD_TIMEOUT, Till
 
 from mo_logs import Log
-from mo_threads.lock import Lock
-from mo_threads.signal import Signal
-from mo_threads.threads import Thread, THREAD_STOP, THREAD_TIMEOUT
-from mo_threads.till import Till
 
 _convert = None
 _Except = None
@@ -351,7 +348,7 @@ class ThreadedQueue(Queue):
                     if error_target:
                         try:
                             error_target(e, _buffer)
-                        except Exception, f:
+                        except Exception as f:
                             _Log.warning(
                                 "`error_target` should not throw, just deal",
                                 name=name,
@@ -376,7 +373,7 @@ class ThreadedQueue(Queue):
                     if error_target:
                         try:
                             error_target(e, _buffer)
-                        except Exception, f:
+                        except Exception as f:
                             _Log.warning(
                                 "`error_target` should not throw, just deal",
                                 name=name,
@@ -405,7 +402,7 @@ class ThreadedQueue(Queue):
             #     sizes = wrap([{"id":i["id"], "size":len(convert.value2json(i))} for i in self.queue if isinstance(i, Mapping)])
             #     size=sum(sizes.size)
             #     if size>50000000:
-            #         from pyLibrary.queries import jx
+            #         from jx_python import jx
             #
             #         biggest = jx.sort(sizes, "size").last().id
             #         _Log.note("Big record {{id}}", id=biggest)

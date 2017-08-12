@@ -44,7 +44,7 @@ class StructuredLogger_usingThreadedStream(StructuredLogger):
 
         if use_UTF8:
             def utf8_appender(value):
-                if isinstance(value, unicode):
+                if isinstance(value, text_type):
                     value = value.encode('utf8')
                 self.stream.write(value)
 
@@ -106,12 +106,13 @@ def time_delta_pusher(please_stop, appender, queue, interval):
                     expanded = expand_template(log.get("template"), log.get("params"))
                     lines.append(expanded)
             except Exception as e:
-                Log.warning("Trouble formatting logs", cause=e)
+                location = log.get('params', {}).get('location', {})
+                Log.warning("Trouble formatting log from {{location}}", location=location, cause=e)
                 # SWALLOW ERROR, GOT TO KEEP RUNNING
         try:
             appender(u"\n".join(lines) + u"\n")
         except Exception as e:
-            sys.stderr.write(b"Trouble with appender: " + str(e.message) + b"\n")
-            # SWALLOW ERROR, GOT TO KEEP RUNNNIG
+            sys.stderr.write(b"Trouble with appender: " + str(e.__class__.__name__) + b"\n")
+            # SWALLOW ERROR, MUST KEEP RUNNING
 
 
