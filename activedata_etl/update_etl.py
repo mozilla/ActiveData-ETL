@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 import datetime
 
 from boto import ec2 as boto_ec2

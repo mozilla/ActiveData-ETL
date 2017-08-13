@@ -9,13 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from activedata_etl import key2etl
 from pyLibrary import convert
 from pyLibrary.aws import s3
 from mo_logs import startup
 from mo_logs import Log
 from mo_math.randoms import Random
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_threads import Queue, Thread, THREAD_STOP
 
 known_tasks = set()
@@ -60,7 +61,7 @@ def writer(bucket, please_stop):
 
 def write_file(acc, bucket, files, g):
     key_num = START - g
-    key = unicode(key_num) + ":" + unicode(int(key_num / 10) * 1000 + RANDOM)
+    key = text_type(key_num) + ":" + text_type(int(key_num / 10) * 1000 + RANDOM)
     Log.note("Write new file {{file}}", file=key)
     etl = key2etl(key)
     for a in acc:
@@ -81,7 +82,7 @@ def loop_all(bucket, please_stop):
             if k > START:
                 continue
             try:
-                compact(bucket.get_key(unicode(k)))
+                compact(bucket.get_key(text_type(k)))
             except Exception as e:
                 Log.warning("could not process", cause=e)
     finally:

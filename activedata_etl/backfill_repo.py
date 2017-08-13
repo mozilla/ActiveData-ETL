@@ -8,13 +8,14 @@
 #
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 from mo_dots import listwrap, unwrap, wrap, wrap_leaves
 from mo_logs import startup, constants
 from mo_logs import Log
 from pyLibrary.env import elasticsearch
 from mo_math import Math
-from pyLibrary.queries.jx_usingES import FromES
+from jx_elasticsearch.es17 import FromES
 from mo_collections import UniqueIndex
 from mo_threads import Thread, Signal
 from mo_threads import Till

@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env

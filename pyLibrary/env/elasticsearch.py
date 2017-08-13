@@ -15,6 +15,8 @@ import re
 from collections import Mapping
 from copy import deepcopy
 
+from future.utils import text_type
+
 import mo_json
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
@@ -30,7 +32,7 @@ from mo_json.typed_encoder import json2typed
 from mo_math import Math
 from mo_math.randoms import Random
 from mo_kwargs import override
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_threads import ThreadedQueue
 from mo_threads import Till
 from mo_times.dates import Date
@@ -380,7 +382,7 @@ class Index(Features):
         if seconds <= 0:
             interval = -1
         else:
-            interval = unicode(seconds) + "s"
+            interval = text_type(seconds) + "s"
 
         if self.cluster.version.startswith("0.90."):
             response = self.cluster.put(
@@ -510,7 +512,7 @@ class Cluster(object):
         self.metadata_locker = Lock()
         self.debug = kwargs.debug
         self.version = None
-        self.path = kwargs.host + ":" + unicode(kwargs.port)
+        self.path = kwargs.host + ":" + text_type(kwargs.port)
         self.get_metadata()
 
     @override
@@ -539,12 +541,12 @@ class Cluster(object):
         meta = self.get_metadata()
         columns = parse_properties(index, ".", meta.indices[index].mappings.values()[0].properties)
         if len(columns) != 0:
-            kwargs.tjson = tjson or any(c.names["."].endswith("$value") for c in columns)
+            kwargs.tjson = tjson or any(c.names["."].find(".$") != -1 for c in columns)
 
         return Index(kwargs)
 
     def _get_best(self, settings):
-        from pyLibrary.queries import jx
+        from jx_python import jx
         aliases = self.get_aliases()
         indexes = jx.sort([
             a
@@ -671,7 +673,7 @@ class Cluster(object):
         return es
 
     def delete_index(self, index_name):
-        if not isinstance(index_name, unicode):
+        if not isinstance(index_name, text_type):
             Log.error("expecting an index name")
 
         if self.debug:
@@ -685,7 +687,7 @@ class Cluster(object):
                 data={"actions": [{"remove": a} for a in aliases]}
             )
 
-        url = self.settings.host + ":" + unicode(self.settings.port) + "/" + index_name
+        url = self.settings.host + ":" + text_type(self.settings.port) + "/" + index_name
         try:
             response = http.delete(url)
             if response.status_code != 200:
@@ -734,7 +736,7 @@ class Cluster(object):
         return self._metadata
 
     def post(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        url = self.settings.host + ":" + text_type(self.settings.port) + path
 
         try:
             wrap(kwargs).headers["Accept-Encoding"] = "gzip,deflate"
@@ -783,7 +785,7 @@ class Cluster(object):
                 Log.error("Problem with call to {{url}}" + suggestion, url=url, cause=e)
 
     def delete(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        url = self.settings.host + ":" + text_type(self.settings.port) + path
         try:
             response = http.delete(url, **kwargs)
             if response.status_code not in [200]:
@@ -798,7 +800,7 @@ class Cluster(object):
             Log.error("Problem with call to {{url}}", url=url, cause=e)
 
     def get(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        url = self.settings.host + ":" + text_type(self.settings.port) + path
         try:
             if self.debug:
                 Log.note("GET {{url}}", url=url)
@@ -815,7 +817,7 @@ class Cluster(object):
             Log.error("Problem with call to {{url}}", url=url, cause=e)
 
     def head(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        url = self.settings.host + ":" + text_type(self.settings.port) + path
         try:
             response = http.head(url, **kwargs)
             if response.status_code not in [200]:
@@ -833,7 +835,7 @@ class Cluster(object):
             Log.error("Problem with call to {{url}}",  url= url, cause=e)
 
     def put(self, path, **kwargs):
-        url = self.settings.host + ":" + unicode(self.settings.port) + path
+        url = self.settings.host + ":" + text_type(self.settings.port) + path
 
         if self.debug:
             sample = kwargs["data"][:300]
@@ -942,6 +944,8 @@ class Alias(Features):
                     [(name, Null) for name, i in alias_list.items() if self.settings.index==name]
                 )
                 full_name = jx.sort(candidates, 0).last()[0]
+                if not full_name:
+                    Log.error("No index by name of {{name}}", name=self.settings.index)
                 mappings = self.cluster.get("/" + full_name + "/_mapping")[full_name]
             else:
                 mappings = self.cluster.get("/"+self.settings.index+"/_mapping")[self.settings.index]
@@ -1080,7 +1084,7 @@ def parse_properties(parent_index_name, parent_name, esProperties):
     """
     RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
     """
-    from pyLibrary.queries.meta import Column
+    from jx_python.meta import Column
 
     columns = FlatList()
     for name, property in esProperties.items():

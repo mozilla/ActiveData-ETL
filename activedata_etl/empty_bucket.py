@@ -9,12 +9,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from activedata_etl import key2etl, etl2path
 from mo_dots import unwrap
 from pyLibrary.aws import s3
 from mo_logs import startup
 from mo_logs import Log
-from pyLibrary.queries import jx
+from jx_python import jx
 
 
 def main():

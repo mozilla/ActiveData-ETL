@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 import re
 from copy import copy
 
@@ -18,7 +19,7 @@ from pyLibrary import convert
 from mo_logs.exceptions import Except
 from mo_logs import Log, strings
 from mo_math import Math, MAX, MIN
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 
@@ -571,7 +572,7 @@ class BuilderLines(object):
             return None
 
         try:
-            parts = map(unicode.strip, line[10:-10].split("("))
+            parts = map(text_type.strip, line[10:-10].split("("))
             if parts[0].startswith("master_lag:"):
                 return None
             if parts[0] == "Skipped":

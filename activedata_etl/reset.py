@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from activedata_etl import key2etl, etl2path
 from mo_files import File
 from mo_logs import Log, startup, strings
@@ -16,7 +17,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws.s3 import Connection, key_prefix
-from pyLibrary.queries import jx
+from jx_python import jx
 
 
 def main():
@@ -152,10 +153,10 @@ class Version(object):
         return b".".join(str(p) for p in self.path)
 
     def __unicode__(self):
-        return ".".join(unicode(p) for p in self.path)
+        return ".".join(text_type(p) for p in self.path)
 
     def __data__(self):
-        return "\".".join(unicode(p) for p in self.path) + "\""
+        return "\".".join(text_type(p) for p in self.path) + "\""
 
 
 def comparePath(a, b):

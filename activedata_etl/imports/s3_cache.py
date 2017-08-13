@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from mo_kwargs import override
 
 from mo_dots import listwrap
@@ -17,7 +18,7 @@ from mo_threads import Signal
 from mo_threads import Thread
 from mo_times.dates import Date
 from pyLibrary import aws
-from pyLibrary.queries import jx
+from jx_python import jx
 
 DEBUG = True
 
@@ -77,7 +78,7 @@ class S3Cache(object):
                     " SELECT max(" + selector + ") as " + self.db.quote_column("max") +
                     " FROM files " +
                     " WHERE bucket=" + self.db.quote_value(bucket.name) +
-                    " AND substr(name, 1, " + unicode(len(prefix)) + ")=" + self.db.quote_value(prefix)
+                    " AND substr(name, 1, " + text_type(len(prefix)) + ")=" + self.db.quote_value(prefix)
                 )
                 maximum = result.data[0][0]
                 for mp in listwrap(self.settings.min_primary):
@@ -87,7 +88,7 @@ class S3Cache(object):
                             maximum = mini
 
                 if maximum:
-                    biggest = prefix + "." + unicode(maximum)
+                    biggest = prefix + "." + text_type(maximum)
                 else:
                     biggest = prefix + "."
             else:
@@ -98,7 +99,7 @@ class S3Cache(object):
                 )
                 maximum = result.data[0][0]
                 if maximum:
-                    biggest = unicode(maximum)
+                    biggest = text_type(maximum)
                 else:
                     biggest = None
             bad_count = 0

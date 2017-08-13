@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 from mo_dots import set_default, coalesce, listwrap
 from pyLibrary import aws
@@ -19,7 +20,7 @@ from mo_logs import startup, constants
 from mo_logs.exceptions import Except
 from mo_logs import Log
 from pyLibrary.env import pulse
-from pyLibrary.queries import jx
+from jx_python import jx
 from mo_threads import Thread
 from mo_times.dates import Date
 
@@ -43,9 +44,9 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             )
 
             if settings.destination.key_prefix:
-                full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+                full_key = settings.destination.key_prefix + "." + text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
             else:
-                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+                full_key = text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
             try:
                 output = [
                     set_default(

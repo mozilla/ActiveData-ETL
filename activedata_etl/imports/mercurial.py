@@ -11,6 +11,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 import os
 import subprocess
 import urllib
@@ -23,7 +24,7 @@ from mo_logs.strings import between
 from mo_times.timer import Timer
 from pyLibrary import convert
 from pyLibrary.env import elasticsearch
-from pyLibrary.queries import jx
+from jx_python import jx
 from pyLibrary.sql.mysql import MySQL
 from pyLibrary.sql.sql import find_holes
 
@@ -109,12 +110,12 @@ def get_changesets(date_range=None, revision_range=None, repo=None):
             if date_range.min == None:
                 drange = ">0 0"
             else:
-                drange = ">" + unicode(convert.datetime2unix(date_range.min)) + " 0"
+                drange = ">" + text_type(convert.datetime2unix(date_range.min)) + " 0"
         else:
             if date_range.min == None:
-                drange = "<" + unicode(convert.datetime2unix(date_range.max) - 1) + " 0"
+                drange = "<" + text_type(convert.datetime2unix(date_range.max) - 1) + " 0"
             else:
-                drange = unicode(convert.datetime2unix(date_range.min)) + " 0 to " + unicode(convert.datetime2unix(date_range.max) - 1) + " 0"
+                drange = text_type(convert.datetime2unix(date_range.min)) + " 0 to " + text_type(convert.datetime2unix(date_range.max) - 1) + " 0"
 
         args.extend(["--date", drange])
 

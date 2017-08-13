@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, hide
@@ -126,6 +127,7 @@ def _refresh_indexer():
             Log.note("No change required")
         else:
             # RESTART ANYWAY, SO WE USE LATEST INDEX
+            sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_to_es")
 

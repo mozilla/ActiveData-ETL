@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from mo_threads.threads import MAIN_THREAD
 
 from mo_dots import wrap
@@ -17,7 +18,7 @@ from mo_math import Math
 from mo_times import Date, DAY
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.queries import jx
+from jx_python import jx
 from pyLibrary.sql.sqlite import Sqlite
 
 ZERO_DAY = Date("1 jan 2015")
@@ -86,7 +87,7 @@ def loop(settings):
             d.key2 = maxi[day]
             maxi[day] += 1
 
-        full_key = unicode(d.key1) + "." + unicode(d.key2)
+        full_key = text_type(d.key1) + "." + text_type(d.key2)
         destination.write_lines(key=full_key, lines=source.read_lines(d.filename))
         notify.add({
             "bucket": destination.bucket.name,

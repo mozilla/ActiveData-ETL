@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+from future.utils import text_type
 from pyLibrary import convert
 from mo_logs import Log, strings
 from mo_dots import wrap, Data, literal_field
@@ -203,7 +204,7 @@ class EtlHeadGenerator(object):
     ):
         num = self.next_id
         self.next_id = num + 1
-        dest_key = self.source_key + "." + unicode(num)
+        dest_key = self.source_key + "." + text_type(num)
 
         dest_etl = wrap({
             "id": num,

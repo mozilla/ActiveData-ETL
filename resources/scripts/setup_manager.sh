@@ -61,10 +61,10 @@ cd /home/ec2-user/SpotManager/
 git checkout manager
 sudo /usr/local/bin/pip install -r requirements.txt
 
-# INSTALL ActiveData
+# INSTALL CodeCoverage post processing
 cd  /home/ec2-user
-git clone https://github.com/klahnakoski/ActiveData.git
-cd /home/ec2-user/ActiveData/
+git clone https://github.com/klahnakoski/coco-diff.git
+cd /home/ec2-user/coco-diff/
 git checkout manager
 sudo /usr/local/bin/pip install -r requirements.txt
 
@@ -137,7 +137,7 @@ sudo /usr/local/bin/pip install -r requirments.txt
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
-chmod u+x /home/ec2-user/ActiveData/resources/scripts/run_codecoverage.sh
+chmod u+x /home/ec2-user/coco-diff/resources/scripts/post_etl.sh
 chmod u+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)

@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from mohg.hg_mozilla_org import HgMozillaOrg
 
 hg = HgMozillaOrg()

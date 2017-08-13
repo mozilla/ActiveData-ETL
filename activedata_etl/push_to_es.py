@@ -21,7 +21,8 @@ from mo_math.randoms import Random
 from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.timer import Timer
-from pyLibrary import queries, aws
+from jx_base import container
+from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
@@ -153,7 +154,7 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        queries.config.default = {
+        container.config.default = {
             "type": "elasticsearch",
             "settings": settings.elasticsearch.copy()
         }

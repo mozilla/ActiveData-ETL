@@ -12,6 +12,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 from pyLibrary import aws
 from mo_logs import startup
 from mo_logs import Log

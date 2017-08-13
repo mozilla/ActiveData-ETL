@@ -10,6 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from future.utils import text_type
 import ast
 import re
 
@@ -426,15 +427,15 @@ def normalize_other(other):
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
         if isinstance(v, (list, dict, Data)):
-            unknown.append({"name": unicode(k), "value": convert.value2json(v)})
+            unknown.append({"name": text_type(k), "value": convert.value2json(v)})
         elif Math.is_number(v):
-            unknown.append({"name": unicode(k), "value": convert.value2number(v)})
+            unknown.append({"name": text_type(k), "value": convert.value2number(v)})
         elif v in [True, "true", "True"]:
-            unknown.append({"name": unicode(k), "value": True})
+            unknown.append({"name": text_type(k), "value": True})
         elif v in [False, "false", "False"]:
-            unknown.append({"name": unicode(k), "value": False})
-        elif isinstance(v, unicode):
-            unknown.append({"name": unicode(k), "value": v})
+            unknown.append({"name": text_type(k), "value": False})
+        elif isinstance(v, text_type):
+            unknown.append({"name": text_type(k), "value": v})
         else:
             Log.error("Do not know how to handle type {{type}}", type=v.__class__.__name__)
 

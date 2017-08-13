@@ -1,3 +1,4 @@
+future
 BeautifulSoup
 boto
 requests
