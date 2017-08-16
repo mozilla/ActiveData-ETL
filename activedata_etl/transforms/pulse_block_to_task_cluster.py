@@ -731,6 +731,7 @@ KNOWN_TAGS = {
     "build_product",
     "build_props.branch",
     "build_props.build_number",
+    "build_props.release_eta",
     "build_props.locales",
     "build_props.mozharness_changeset",
     "build_props.partials",

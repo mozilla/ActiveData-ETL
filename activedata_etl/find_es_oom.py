@@ -9,20 +9,18 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo
 from fabric.state import env
-from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce
 from mo_files import File, TempDirectory
 from mo_logs import Log, strings
 from mo_logs import startup, constants
-from mo_times.durations import SECOND, ZERO
+from mo_times import Date, HOUR, DAY, MINUTE
 
 from mo_dots.objects import datawrap
-from mo_times import Date, HOUR, Duration, DAY, MINUTE
+from mo_times.durations import SECOND, ZERO
 from pyLibrary.aws import aws_retry
 
 num_restarts = 100

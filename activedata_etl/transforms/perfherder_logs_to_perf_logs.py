@@ -91,6 +91,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tp5o_scroll",
     "tp5o_webext",
     "tp5o",
+    "tp6_google",
     "tpaint",
     "tps",
     "tresize",
