@@ -43,6 +43,8 @@ def parse_lcov_coverage(stream):
             for source in coco_format(current_source):
                 if source.total_covered>10000:
                     Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.total_covered)
+                if source.total_uncovered>10000:
+                    Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.total_uncovered)
                 if EMIT_RECORDS_WITH_ZERO_COVERAGE:
                     yield source
                 elif source.file.total_covered:
