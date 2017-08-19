@@ -694,7 +694,9 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
+    "chain",
     "CHANNEL",
+    "contact",
     "context",
     "created",
     "deadline",
@@ -717,6 +719,8 @@ PAYLOAD_PROPERTIES = {
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
+    "stage-product",
+    "summary",
     "supersederUrl",
     "template_key",
     "THIS_CHUNK",
@@ -765,6 +769,8 @@ KNOWN_TAGS = {
     "data.head.sha",
     "data.head.user.email",
     "description",
+
+    "en_us_installer_binary_url",
 
     "funsize.partials",
     "funsize.partials.branch",
