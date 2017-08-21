@@ -127,7 +127,9 @@ mkdir /home/ec2-user/esShardBalancer/logs
 chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
-#INSTALL TREEHERDER EXTRACT
+# INSTALL TREEHERDER EXTRACT
+# REQUIRES A ./output/treeherder_last_run.json FILE
+# REQUIRES CONFIG
 cd ~
 git clone https://github.com/klahnakoski/MySQL-to-S3.git
 cd ~/MySQL-to-S3

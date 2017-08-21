@@ -467,11 +467,8 @@ def set_build_info(source_key, normalized, task, env, resources):
     if treeherder:
         for l, v in treeherder.leaves():
             normalized.treeherder[l] = v
-    normalized.treeherder.jobKind = coalesce_w_conflict_detection(
-        source_key,
-        normalized.treeherder.jobKind,
-        consume(task, "tags.kind")
-    )
+
+    normalized.task.kind = consume(task, "tags.kind")
 
     for k, v in BUILD_TYPES.items():
         if treeherder.collection[k]:
