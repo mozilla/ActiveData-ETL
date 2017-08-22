@@ -545,11 +545,11 @@ def get_build_task(source_key, resources, normalized_task):
             MISSING_BUILDS.update(build_task_id)
         return None
 
-    candidate = candidates[-1]
+    candidate = candidates.last()
     if len(candidates) > 1:
         etl, candidate.etl = candidate.etl, None
         _id, candidate._id = candidate._id, None
-        for c in candidates[:-1:]:
+        for c in candidates.not_right(1):
             try:
                 assertAlmostEqual(c, candidate)
             except Exception as e:
