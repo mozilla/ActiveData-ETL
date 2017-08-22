@@ -9,14 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import etl2key, key2etl
-from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_dots import Data, listwrap, wrap, set_default
 from mo_logs import Log, machine_metadata, strings
 from mo_math import Math
-from mo_times.dates import Date
 from pyLibrary import convert
+
+from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_times.dates import Date
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_git_revision
 

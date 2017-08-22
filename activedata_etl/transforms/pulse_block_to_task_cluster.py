@@ -546,23 +546,22 @@ def get_build_task(source_key, resources, normalized_task):
         return None
 
     candidate = candidates.last()
-    if len(candidates) > 1:
-        etl, candidate.etl = candidate.etl, None
-        _id, candidate._id = candidate._id, None
-        for c in candidates.not_right(1):
-            try:
-                assertAlmostEqual(c, candidate)
-            except Exception as e:
-                Log.warning(
-                    "Found too many builds ({{num}}) with task id={{task}} in {{key}}",
-                    task=build_task_id,
-                    key=source_key,
-                    num=len(candidates),
-                    cause=e
-                )
-                return None
-        candidate.etl = etl
-        candidate._id = _id
+    # if len(candidates) > 1:
+    #     etl, candidate.etl = candidate.etl, None
+    #     _id, candidate._id = candidate._id, None
+    #     for c in candidates.not_right(1):
+    #         try:
+    #             assertAlmostEqual(c, candidate)
+    #         except Exception as e:
+    #             Log.warning(
+    #                 "Found too many builds ({{num}}) with task id={{task}} in {{key}}, choosing last",
+    #                 task=build_task_id,
+    #                 key=source_key,
+    #                 num=len(candidates),
+    #                 cause=e
+    #             )
+    #     candidate.etl = etl
+    #     candidate._id = _id
 
     if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
