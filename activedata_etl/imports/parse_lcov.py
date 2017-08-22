@@ -13,16 +13,16 @@ Parses an lcov-generated coverage file and converts it to the JSON format used b
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
-import sys
 import json
+import sys
 
 from mo_dots import wrap
 from mo_logs import Log
 
-
 DEBUG = False
+DEBUG_LINE_LIMIT = False
 EMIT_RECORDS_WITH_ZERO_COVERAGE = False
+LINE_LIMIT = 10000
 
 
 def parse_lcov_coverage(stream):
@@ -41,10 +41,14 @@ def parse_lcov_coverage(stream):
 
         if line == 'end_of_record':
             for source in coco_format(current_source):
-                if source.total_covered>10000:
-                    Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.total_covered)
-                if source.total_uncovered>10000:
-                    Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.total_uncovered)
+                if source.file.total_covered > LINE_LIMIT:
+                    if DEBUG_LINE_LIMIT:
+                        Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.file.total_covered)
+                    continue
+                if source.file.total_uncovered > LINE_LIMIT:
+                    if DEBUG_LINE_LIMIT:
+                        Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.file.total_uncovered)
+                    continue
                 if EMIT_RECORDS_WITH_ZERO_COVERAGE:
                     yield source
                 elif source.file.total_covered:

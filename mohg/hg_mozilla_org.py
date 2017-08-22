@@ -314,7 +314,7 @@ class HgMozillaOrg(object):
                         with locker:
                             output.append(b)
                         Log.note("{{revision}} found at {{url}}", url=url, revision=revision)
-                except Exception, f:
+                except Exception as f:
                     problems.append(f)
 
         threads = []
@@ -350,7 +350,7 @@ def _get_url(url, branch, **kwargs):
     with Explanation("get push from {{url}}", url=url):
         response = http.get(url, **kwargs)
         data = convert.json2value(response.content.decode("utf8"))
-        if isinstance(data, basestring) and data.startswith("unknown revision"):
+        if isinstance(data, (unicode, str)) and data.startswith("unknown revision"):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
         return data

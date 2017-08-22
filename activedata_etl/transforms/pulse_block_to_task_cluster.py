@@ -13,6 +13,7 @@ from future.utils import text_type
 from collections import Mapping
 
 import requests
+from jx_python import jx
 
 from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import suppress_exception, Except
@@ -525,7 +526,14 @@ def get_build_task(source_key, resources, normalized_task):
         retry={"times": 3, "sleep": 15}
     )
 
-    candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
+    candidates = jx.sort(
+        [
+            h._source
+            for h in response.hits.hits
+            if h._source.treeherder.jobKind == "build"
+        ],
+        "run.start_time"
+    )
     if not candidates:
         if not any(b in MISSING_BUILDS for b in build_task_id):
             Log.alert(

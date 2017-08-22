@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from future.utils import text_type
 from activedata_etl import etl2key
 from mo_dots import wrap, unwraplist, set_default
-from mo_json import stream
+from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 
 from mo_times.dates import Date
@@ -26,51 +26,52 @@ RETRY = {"times": 3, "sleep": 5}
 
 
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
-    # fetch the artifact
-    response_stream = http.get(artifact.url).raw
-    records = []
-    with Timer("Processing {{ccov_file}}", param={"ccov_file": artifact.url}):
-        def count_generator():
-            count = 0
-            while True:
-                yield count
-                count += 1
+    def count_generator():
+        count = 0
+        while True:
+            yield count
+            count += 1
 
-        counter = count_generator().next
+    def generator():
+        response_stream = http.get(artifact.url).raw
+        with Timer("Processing {{jscov_file}}", param={"jscov_file": artifact.url}):
+            counter = count_generator().next
 
-        for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
-            if please_stop:
-                Log.error("Shutdown detected. Stopping job ETL.")
+            for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
+                if please_stop:
+                    Log.error("Shutdown detected. Stopping job ETL.")
 
-            if source_file_index == 0:
-                # this is not a jscov object but an object containing the version metadata
-                # TODO: this metadata should not be here
-                # TODO: this version info is not used right now. Make use of it later.
-                jscov_format_version = obj.get("version")
-                continue
+                if source_file_index == 0:
+                    # this is not a jscov object but an object containing the version metadata
+                    # TODO: this metadata should not be here
+                    # TODO: this version info is not used right now. Make use of it later.
+                    jscov_format_version = obj.get("version")
+                    continue
 
-            try:
-                process_source_file(
-                    artifact_etl,
-                    counter,
-                    obj,
-                    task_cluster_record,
-                    records
-                )
-            except Exception as e:
-                Log.warning(
-                    "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
-                    key=source_key,
-                    test_url=obj.get("testUrl"),
-                    source=obj.get("sourceFile"),
-                    cause=e
-                )
-    with Timer("writing {{num}} records to s3 for key {{key}}", param={"num": len(records), "key": source_key}):
-        keys = destination.extend(records, overwrite=True)
+                try:
+                    for d in process_source_file(
+                        artifact_etl,
+                        counter,
+                        obj,
+                        task_cluster_record
+                    ):
+                        yield d
+                except Exception as e:
+                    Log.warning(
+                        "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
+                        key=source_key,
+                        test_url=obj.get("testUrl"),
+                        source=obj.get("sourceFile"),
+                        cause=e
+                    )
+
+    key = etl2key(artifact_etl)
+    destination.write_lines(key, (value2json(d) for d in generator()))
+    keys = [key]
     return keys
 
 
-def process_source_file(parent_etl, count, obj, task_cluster_record, records):
+def process_source_file(parent_etl, count, obj, task_cluster_record):
     obj = wrap(obj)
 
     # get the test name. Just use the test file name at the moment
@@ -137,7 +138,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
             task_cluster_record
         )
         key = etl2key(new_record.etl)
-        records.append({"id": key, "value": new_record})
+        yield {"id": key, "value": new_record}
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
@@ -170,4 +171,4 @@ def process_source_file(parent_etl, count, obj, task_cluster_record, records):
         task_cluster_record
     )
     key = etl2key(new_record.etl)
-    records.append({"id": key, "value": new_record})
+    yield {"id": key, "value": new_record}

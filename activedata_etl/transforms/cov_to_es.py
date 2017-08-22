@@ -9,13 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from mo_logs import Log
 from pyLibrary import convert
 
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
-from activedata_etl.transforms.gcov_to_es import process_gcda_artifact
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 
@@ -61,6 +59,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         for artifact in artifacts:
             try:
                 if "jscov" in artifact.name:
+                    pass
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
