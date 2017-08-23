@@ -57,8 +57,8 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     action = Data()
     action.timings = []
 
-    start_time = None
-    end_time = None
+    start_time = task_record.task.run.start_time
+    end_time = task_record.task.run.end_time
 
     harness_steps = {}
     task_steps = Data()
