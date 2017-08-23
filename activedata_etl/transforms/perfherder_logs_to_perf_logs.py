@@ -79,6 +79,7 @@ KNOWN_PERFHERDER_TESTS = [
     "Strings",
     "Stylo",
     "svgr",
+    "svgr-stylo",
     "tabpaint",
     "tart",
     "TestStandardURL",
