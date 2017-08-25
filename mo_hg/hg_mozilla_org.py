@@ -245,7 +245,7 @@ class HgMozillaOrg(object):
             })
             json_push = response.hits.hits[0]._source.push
             return json_push
-        except Exception as e:
+        except Exception:
             pass
 
         url = branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + changeset_id
@@ -254,10 +254,11 @@ class HgMozillaOrg(object):
                 "Reading pushlog from {{url}}",
                 url=url,
                 changeset=changeset_id
-
             )
             data = self._get_and_retry(url, branch)
-            pushes= [
+            # QUEUE UP THE OTHER CHANGESETS IN THE PUSH
+            self.todo.add((branch, [c.node for cs in data.values().changesets for c in cs]))
+            pushes = [
                 Push(id=int(index), date=_push.date, user=_push.user)
                 for index, _push in data.items()
             ]
@@ -407,14 +408,22 @@ class HgMozillaOrg(object):
                 json_diff = response.hits.hits[0]._source.changeset.diff
                 if json_diff:
                     return json_diff
-            except Exception as e:
+            except Exception:
                 pass
 
-            url = expand_template(GET_DIFF, {"location": revision.branch.url, "rev": changeset_id[0:12]})
-            with Explanation("get unified diff from {{url}}", url=url, debug=DEBUG):
+            url = expand_template(GET_DIFF, {"location": revision.branch.url, "rev": changeset_id})
+            if DEBUG:
+                Log.note("get unified diff from {{url}}", url=url)
+            try:
                 response = http.get(url)
                 diff = response.content.decode("utf8", "replace")
-                return diff_to_json(diff)
+                json_diff = diff_to_json(diff)
+                if json_diff:
+                    return json_diff
+            except Exception as e:
+                Log.warning("could not get unified diff", cause=e)
+
+            return [{"new": f, "old": f} for f in revision.changeset.files]
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
