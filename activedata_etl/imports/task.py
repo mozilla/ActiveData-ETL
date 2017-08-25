@@ -11,6 +11,9 @@ from __future__ import unicode_literals
 
 from future.utils import text_type
 
+from mo_hg.hg_mozilla_org import minimize_repo
+
+
 def minimize_task(task):
     """
     task objects are a little large, scrub them of some of the
@@ -18,13 +21,13 @@ def minimize_task(task):
     :param task: task cluster normalized object
     :return: altered object
     """
+    minimize_repo(task.repo)
 
     task.action.timings = None
     task.action.etl = None
     task.build.build = None
     task.build.task = {"id": task.build.task.id}
     task.etl = None
-    task.repo.changeset.files = None
     task.task.artifacts = None
     task.task.created = None
     task.task.command = None

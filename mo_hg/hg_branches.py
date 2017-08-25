@@ -19,7 +19,7 @@ from mo_math import MAX
 from mo_times.dates import Date
 from mo_times.durations import SECOND, DAY
 
-from mohg.hg_mozilla_org import DEFAULT_LOCALE
+from mo_hg.hg_mozilla_org import DEFAULT_LOCALE
 from pyLibrary.env import elasticsearch, http
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
@@ -27,37 +27,34 @@ OLD_BRANCH = DAY
 
 
 @override
-def get_branches(hg, branches, use_cache=True, kwargs=None):
-    if not kwargs.branches or not use_cache:
-        found_branches = _get_branches_from_hg(hg)
-
-        es = elasticsearch.Cluster(kwargs=branches).get_or_create_index(kwargs=branches)
-        es.add_alias()
-        es.extend({"id": b.name + " " + b.locale, "value": b} for b in found_branches)
-        es.flush()
-        return found_branches
-
+def get_branches(hg, branches, kwargs=None):
     # TRY ES
     try:
-        es = elasticsearch.Cluster(kwargs=branches).get_index(kwargs=branches)
+        es = elasticsearch.Cluster(kwargs=branches).get_index(kwargs=branches, read_only=False)
+
         query = {
             "query": {"match_all": {}},
             "size": 20000
         }
 
-        docs = es.search(query).hits.hits._source
+        found_branches = es.search(query).hits.hits._source
         # IF IT IS TOO OLD, THEN PULL FROM HG
-        oldest = Date(MAX(docs.etl.timestamp))
+        oldest = Date(MAX(found_branches.etl.timestamp))
         if oldest == None or Date.now() - oldest > OLD_BRANCH:
-            return get_branches(use_cache=False, kwargs=kwargs)
+            found_branches = _get_branches_from_hg(hg)
+            es.extend({"id": b.name + " " + b.locale, "value": b} for b in found_branches)
+            es.flush()
 
         try:
-            return UniqueIndex(["name", "locale"], data=docs, fail_on_dup=False)
+            return UniqueIndex(["name", "locale"], data=found_branches, fail_on_dup=False)
         except Exception as e:
             Log.error("Bad branch in ES index", cause=e)
     except Exception as e:
         if "Can not find index " in e:
-            return get_branches(use_cache=False, kwargs=kwargs)
+            set_default(branches, {"schema": branches_schema})
+            es = elasticsearch.Cluster(kwargs=branches).get_or_create_index(kwargs=branches)
+            es.add_alias()
+            return get_branches(kwargs=kwargs)
         Log.error("problem getting branches", cause=e)
 
 
@@ -180,6 +177,57 @@ def _get_single_branch_from_hg(settings, description, dir):
             output.append(detail)
 
     return output
+
+
+branches_schema = {
+    "settings": {
+        "index.number_of_replicas": 1,
+        "index.number_of_shards": 1
+    },
+    "mappings": {
+        "branch": {
+            "_source": {
+                "compress": False
+            },
+            "_all": {
+                "enabled": False
+            },
+            "dynamic_templates": [
+                {
+                    "default_ids": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "string"
+                        },
+                        "match": "id"
+                    }
+                },
+                {
+                    "default_strings": {
+                        "mapping": {
+                            "index": "not_analyzed",
+                            "type": "string"
+                        },
+                        "match_mapping_type": "string",
+                        "match": "*"
+                    }
+                }
+            ],
+            "properties": {
+                "name": {
+                    "index": "not_analyzed",
+                    "type": "string",
+                    "store": True
+                },
+                "description": {
+                    "index": "analyzed",
+                    "type": "string",
+                    "store": True
+                }
+            }
+        }
+    }
+}
 
 
 def main():

@@ -9,16 +9,16 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import etl2key
+from mo_dots import Data, Null
+from mo_logs import Log, strings
+from pyLibrary import convert
+
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mohg.hg_mozilla_org import DEFAULT_LOCALE
-from mohg.repos.changesets import Changeset
-from mohg.repos.revisions import Revision
-from mo_dots import Data, Null
-from pyLibrary import convert
-from mo_logs import Log, strings
+from mo_hg.hg_mozilla_org import DEFAULT_LOCALE, minimize_repo
+from mo_hg.repos.changesets import Changeset
+from mo_hg.repos.revisions import Revision
 from mo_logs.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 
@@ -102,6 +102,7 @@ def transform_buildbot(source_key, other, resources):
         locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
             output.repo = resources.hg.get_revision(rev, locale)
+            minimize_repo(output.repo)
         except Exception as e:
             if "release-mozilla-esr" in e or "release-comm-esr" in e:
                 # TODO: FIX PROBLEM WHERE, FOR SOME REASON, WE CAN NOT FIND THE REVISIONS FOR ESR

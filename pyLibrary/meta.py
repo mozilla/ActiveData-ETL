@@ -151,7 +151,7 @@ def wrap_function(cache_store, func_):
             now = Date.now()
             try:
                 _cache = getattr(self, attr_name)
-            except Exception, _:
+            except Exception:
                 _cache = {}
                 setattr(self, attr_name, _cache)
 

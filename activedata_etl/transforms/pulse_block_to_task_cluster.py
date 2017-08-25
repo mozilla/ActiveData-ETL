@@ -16,6 +16,8 @@ import requests
 from jx_python import jx
 
 from mo_logs import Log, machine_metadata, strings
+
+from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
@@ -462,6 +464,7 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     if normalized.build.revision:
         normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
+        minimize_repo(normalized.repo)
         normalized.build.date = normalized.repo.push.date
 
     treeherder = consume(task, "extra.treeherder")
@@ -484,6 +487,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            minimize_repo(build_task.repo)
+
             build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
@@ -492,7 +497,6 @@ def set_build_info(source_key, normalized, task, env, resources):
             build_task.task.runs = None
             build_task.task.routes = None
             build_task.task.tags = None
-            build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
             set_default(normalized.build, build_task)

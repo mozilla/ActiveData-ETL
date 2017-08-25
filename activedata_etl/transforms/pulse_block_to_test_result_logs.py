@@ -16,6 +16,8 @@ from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from mo_dots import Data
 from pyLibrary import convert
 from mo_logs import Log, machine_metadata
+
+from mo_hg.hg_mozilla_org import minimize_repo
 from pyLibrary.env import http
 from mo_threads import Signal
 from mo_times.timer import Timer
@@ -54,7 +56,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             continue
 
         buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources)
-        buildbot_summary.repo.changeset.files = None
+        minimize_repo(buildbot_summary.repo)
         if DEBUG or DEBUG_SHOW_LINE:
             Log.note(
                 "Source {{key}}, line {{line}}, buildid = {{buildid}}",

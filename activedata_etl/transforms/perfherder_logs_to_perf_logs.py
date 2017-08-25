@@ -21,6 +21,8 @@ from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
 from mo_logs import Log
 from mo_math import MIN, MAX, Math
+
+from mo_hg.hg_mozilla_org import minimize_repo
 from mo_math.stats import ZeroMoment2Stats, ZeroMoment
 from mo_threads import Lock
 from mo_times.dates import Date
@@ -166,7 +168,7 @@ def process(source_key, source, destination, resources, please_stop=None):
 def transform(source_key, perfherder, resources):
     try:
         buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
-        buildbot.repo.changeset.files = None
+        minimize_repo(buildbot.repo)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:

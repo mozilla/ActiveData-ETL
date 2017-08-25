@@ -16,6 +16,7 @@ from mo_math import Math
 from pyLibrary import convert
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_hg.hg_mozilla_org import minimize_repo
 from mo_times.dates import Date
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_git_revision
@@ -154,12 +155,11 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     try:
         new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
     except Exception as e:
-        if new_treeherder.build.branch in ["bmo-master", "snippets-tests"]:
+        if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests"]:
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
-    new_treeherder.repo.changeset.files = None
-    new_treeherder.repo.changeset.description = strings.limit(new_treeherder.repo.changeset.description, 1000)
+    minimize_repo(new_treeherder.repo)
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 

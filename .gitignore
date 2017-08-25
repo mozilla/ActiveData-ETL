@@ -2,7 +2,7 @@
 /*.json
 /*.iml
 /pyLibrary/.svn
-/mohg/.svn
+/mo_hg/.svn
 /pyLibrary/*.pyc
 /vendor
 /results
@@ -19,7 +19,7 @@ log.txt
 /mozillapulse/.svn
 /resources/settings/raptor_settings.json
 /activedata_etl/raptor.py
-/mohg/.svn
+/mo_hg/.svn
 /activedata_etl/imports/gcov.py
 /tests/resources/mochitest_chunk_2
 /resources/binaries/jre-8u131-linux-x64.rpm
