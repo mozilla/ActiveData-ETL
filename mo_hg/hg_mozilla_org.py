@@ -24,7 +24,7 @@ from mo_math.randoms import Random
 from mo_threads import Thread, Lock, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.dates import Date
-from mo_times.durations import SECOND, Duration, HOUR, MINUTE, MONTH
+from mo_times.durations import SECOND, Duration, HOUR, MINUTE, MONTH, DAY
 from pyLibrary import convert
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.meta import cache
@@ -53,7 +53,8 @@ DEFAULT_LOCALE = "en-US"
 DEBUG = True
 DAEMON_DEBUG = True
 DAEMON_INTERVAL = 30*SECOND
-MAX_TODO_AGE = MONTH
+DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
+MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 
 GET_DIFF = "{{location}}/raw-rev/{{rev}}"
 GET_FILE = "{{location}}/raw-file/{{rev}}{{path}}"
@@ -108,14 +109,18 @@ class HgMozillaOrg(object):
 
     def _daemon(self, please_stop):
         while not please_stop:
-            with Explanation("getting extra revision", debug=DAEMON_DEBUG):
+            with Explanation("looking for work"):
                 branch, revisions = self.todo.pop(till=please_stop)
+                if branch.name in DAEMON_DO_NO_SCAN:
+                    continue
                 revisions = set(revisions)
 
                 # FIND THE REVSIONS ON THIS BRANCH
                 for r in list(revisions):
                     with Explanation("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r, debug=DAEMON_DEBUG):
                         rev = self.get_revision(Revision(branch=branch, changeset={"id": r}))
+                        if DAEMON_DEBUG:
+                            Log.note("date {{date|datetime}}", date=rev.push.date)
                         revisions.discard(r)
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION

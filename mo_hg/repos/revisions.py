@@ -94,7 +94,29 @@ revision_schema = {
                             "properties": {
                                 "changes": {
                                     "type": "nested",
-                                    "dynamic": "true"
+                                    "dynamic": True,
+                                    "properties": {
+                                        "new": {
+                                            "type": "object",
+                                            "dynamic": True,
+                                            "properties": {
+                                                "content": {
+                                                    "type": "string",
+                                                    "index": "no"
+                                                }
+                                            }
+                                        },
+                                        "old": {
+                                            "type": "object",
+                                            "dynamic": True,
+                                            "properties": {
+                                                "content": {
+                                                    "type": "string",
+                                                    "index": "no"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                             }
