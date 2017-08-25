@@ -24,7 +24,7 @@ from mo_math.randoms import Random
 from mo_threads import Thread, Lock, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.dates import Date
-from mo_times.durations import SECOND, Duration, HOUR, MINUTE
+from mo_times.durations import SECOND, Duration, HOUR, MINUTE, MONTH
 from pyLibrary import convert
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.meta import cache
@@ -51,6 +51,9 @@ def _late_imports():
 
 DEFAULT_LOCALE = "en-US"
 DEBUG = True
+DAEMON_DEBUG = True
+DAEMON_INTERVAL = 30*SECOND
+MAX_TODO_AGE = MONTH
 
 GET_DIFF = "{{location}}/raw-rev/{{rev}}"
 GET_FILE = "{{location}}/raw-file/{{rev}}{{path}}"
@@ -105,18 +108,15 @@ class HgMozillaOrg(object):
 
     def _daemon(self, please_stop):
         while not please_stop:
-            with Explanation("getting extra revision", debug=DEBUG):
+            with Explanation("getting extra revision", debug=DAEMON_DEBUG):
                 branch, revisions = self.todo.pop(till=please_stop)
                 revisions = set(revisions)
 
                 # FIND THE REVSIONS ON THIS BRANCH
                 for r in list(revisions):
-                    Log.note("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r)
-                    try:
-                        self.get_revision(Revision(branch=branch, changeset={"id": r}))
+                    with Explanation("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r, debug=DAEMON_DEBUG):
+                        rev = self.get_revision(Revision(branch=branch, changeset={"id": r}))
                         revisions.discard(r)
-                    except Exception as _:
-                        pass
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION
                 for r in list(revisions):
@@ -139,8 +139,9 @@ class HgMozillaOrg(object):
         output = self._get_from_elasticsearch(revision, locale=locale)
         if output:
             Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=output.branch.name, locale=locale, revision=output.changeset.id)
-            self.todo.add((output.branch, listwrap(output.parents)))
-            self.todo.add((output.branch, listwrap(output.children)))
+            if output.push.date >= Date.now()-MAX_TODO_AGE:
+                self.todo.add((output.branch, listwrap(output.parents)))
+                self.todo.add((output.branch, listwrap(output.children)))
             return output
 
         found_revision = copy(revision)
@@ -404,8 +405,9 @@ class HgMozillaOrg(object):
             except Exception as e:
                 pass
 
-            with Explanation("get unified diff for {{revision|left(12)}}", revision=changeset_id, debug=DEBUG):
-                response = http.get(expand_template(GET_DIFF, {"location": revision.branch.url, "rev": changeset_id}))
+            url = expand_template(GET_DIFF, {"location": revision.branch.url, "rev": changeset_id[0:12]})
+            with Explanation("get unified diff from {{url}}", url=url, debug=DEBUG):
+                response = http.get(url)
                 diff = response.content.decode("utf8", "replace")
                 return diff_to_json(diff)
         return inner(revision.changeset.id)

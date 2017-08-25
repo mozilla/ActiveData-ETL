@@ -11,7 +11,9 @@ from __future__ import unicode_literals
 
 import re
 
-from mo_logs import Log
+from mo_logs import Log, strings
+
+MAX_CONTENT_LENGTH = 500  # SOME "lines" FOR CODE ARE REALLY TOO LONG
 
 GET_DIFF = "{{location}}/rev/{{rev}}"
 GET_FILE = "{{location}}/file/{{rev}}{{path}}"
@@ -75,9 +77,9 @@ def diff_to_json(unified_diff):
                     break
                 d = line[0]
                 if d == '+':
-                    changes.append({"new": {"line": int(c[0]), "content": line[1:]}})
+                    changes.append({"new": {"line": int(c[0]), "content": strings.limit(line[1:], MAX_CONTENT_LENGTH)}})
                 elif d == '-':
-                    changes.append({"old": {"line": int(c[1]), "content": line[1:]}})
+                    changes.append({"old": {"line": int(c[1]), "content": strings.limit(line[1:], MAX_CONTENT_LENGTH)}})
                 try:
                     c = MOVE[d](c)
                 except Exception as e:
