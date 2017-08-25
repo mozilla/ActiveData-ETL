@@ -75,9 +75,9 @@ def main():
                     "$ref": "file://~/private.json#aws_credentials"
                 },
                 "queue": {
-               		"name":"active-data-etl",
-               		"$ref": "file://~/private.json#aws_credentials"
-               	}
+                    "name": "active-data-etl",
+                    "$ref": "file://~/private.json#aws_credentials"
+                }
             },
             "file://settings.json"
         )

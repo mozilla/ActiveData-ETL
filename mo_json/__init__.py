@@ -86,14 +86,14 @@ def float2json(value):
         Log.error("not expected", e)
 
 
-def scrub(value):
+def scrub(value, keep_whitespace=True):
     """
     REMOVE/REPLACE VALUES THAT CAN NOT BE JSON-IZED
     """
-    return _scrub(value, set(), [])
+    return _scrub(value, set(), [], keep_whitespace=keep_whitespace)
 
 
-def _scrub(value, is_done, stack):
+def _scrub(value, is_done, stack, keep_whitespace):
     if FIND_LOOPS:
         _id = id(value)
         if _id in stack:
@@ -106,7 +106,10 @@ def _scrub(value, is_done, stack):
     elif type_ is text_type:
         value_ = value.strip()
         if value_:
-            return value_
+            if keep_whitespace:
+                return value
+            else:
+                return value_
         else:
             return None
     elif type_ is float:
@@ -128,7 +131,7 @@ def _scrub(value, is_done, stack):
     elif type_ is Decimal:
         return float(value)
     elif type_ is Data:
-        return _scrub(_get(value, '_dict'), is_done, stack)
+        return _scrub(_get(value, '_dict'), is_done, stack, keep_whitespace=keep_whitespace)
     elif isinstance(value, Mapping):
         _id = id(value)
         if _id in is_done:
@@ -144,7 +147,7 @@ def _scrub(value, is_done, stack):
                 k = text_type(k)
             else:
                 Log.error("keys must be strings")
-            v = _scrub(v, is_done, stack)
+            v = _scrub(v, is_done, stack, keep_whitespace=keep_whitespace)
             if v != None or isinstance(v, Mapping):
                 output[k] = v
 
@@ -153,7 +156,7 @@ def _scrub(value, is_done, stack):
     elif type_ in (tuple, list, FlatList):
         output = []
         for v in value:
-            v = _scrub(v, is_done, stack)
+            v = _scrub(v, is_done, stack, keep_whitespace=keep_whitespace)
             output.append(v)
         return output
     elif type_ is type:
@@ -164,10 +167,10 @@ def _scrub(value, is_done, stack):
         else:
             return True
     elif not isinstance(value, Except) and isinstance(value, Exception):
-        return _scrub(Except.wrap(value), is_done)
+        return _scrub(Except.wrap(value), is_done, stack, keep_whitespace=keep_whitespace)
     elif hasattr(value, '__data__'):
         try:
-            return _scrub(value.__data__(), is_done, stack)
+            return _scrub(value.__data__(), is_done, stack, keep_whitespace=keep_whitespace)
         except Exception as e:
             Log.error("problem with calling __json__()", e)
     elif hasattr(value, 'co_code') or hasattr(value, "f_locals"):
@@ -175,18 +178,25 @@ def _scrub(value, is_done, stack):
     elif hasattr(value, '__iter__'):
         output = []
         for v in value:
-            v = _scrub(v, is_done, stack)
+            v = _scrub(v, is_done, stack, keep_whitespace=keep_whitespace)
             output.append(v)
         return output
     elif hasattr(value, '__call__'):
         return repr(value)
     else:
-        return _scrub(DataObject(value), is_done, stack)
+        return _scrub(DataObject(value), is_done, stack, keep_whitespace=keep_whitespace)
 
 
-def value2json(obj, pretty=False, sort_keys=False):
+def value2json(obj, pretty=False, sort_keys=False, keep_whitespace=True):
+    """
+    :param obj:  THE VALUE TO TURN INTO JSON 
+    :param pretty: True TO MAKE A MULTI-LINE PRETTY VERSION
+    :param sort_keys: True TO SORT KEYS
+    :param keep_whitespace: False TO strip() THE WHITESPACE IN THE VALUES
+    :return: 
+    """
     if FIND_LOOPS:
-        obj = scrub(obj)
+        obj = scrub(obj, keep_whitespace=keep_whitespace)
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:

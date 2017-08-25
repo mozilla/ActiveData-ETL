@@ -9,8 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
-
 from mo_hg.hg_mozilla_org import minimize_repo
 
 

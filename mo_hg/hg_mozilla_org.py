@@ -110,7 +110,13 @@ class HgMozillaOrg(object):
     def _daemon(self, please_stop):
         while not please_stop:
             with Explanation("looking for work"):
-                branch, revisions = self.todo.pop(till=please_stop)
+                try:
+                    branch, revisions = self.todo.pop(till=please_stop)
+                except Exception as e:
+                    if please_stop:
+                        break
+                    else:
+                        raise e
                 if branch.name in DAEMON_DO_NO_SCAN:
                     continue
                 revisions = set(revisions)

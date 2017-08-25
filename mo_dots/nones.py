@@ -163,9 +163,7 @@ class NullType(object):
             output = NullType(output, p)
         return output
 
-    def __getattribute__(self, key):
-        if key == b"__class__":
-            return NullType
+    def __getattr__(self, key):
         key = key.decode('utf8')
 
         d = _get(self, "__dict__")
