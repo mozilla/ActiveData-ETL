@@ -67,8 +67,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 changeset={"id": data.build.revision},
                 branch={"name": data.build.branch, "locale": data.build.locale}
             )
-            data.repo = resources.hg.get_revision(rev)
-            minimize_repo(data.repo)
+            data.repo = minimize_repo(resources.hg.get_revision(rev))
         except Exception as e:
             if data.action.start_time > Date.today()-MONTH:
                 # ONLY SEND WARNING IF IT IS RECENT

@@ -11,7 +11,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-from copy import copy
+from copy import copy, deepcopy
 
 import mo_threads
 from future.utils import text_type, binary_type
@@ -423,7 +423,7 @@ class HgMozillaOrg(object):
             except Exception as e:
                 Log.warning("could not get unified diff", cause=e)
 
-            return [{"new": f, "old": f} for f in revision.changeset.files]
+            return [{"new": {"name": f}, "old": {"name": f}} for f in revision.changeset.files]
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
@@ -446,12 +446,15 @@ def _get_url(url, branch, **kwargs):
 
 
 def minimize_repo(repo):
-    repo.changeset.files = None
-    repo.changeset.diff = None
-    repo.changeset.description = strings.limit(repo.changeset.description, 1000)
-    repo.etl = None
-    repo.branch.last_used = None
-    repo.branch.description = None
-    repo.branch.etl = None
-    repo.children = None
-    repo.parents = None
+    output = deepcopy(repo)
+    output.changeset.files = None
+    output.changeset.diff = None
+    output.changeset.description = strings.limit(output.changeset.description, 1000)
+    output.etl = None
+    output.branch.last_used = None
+    output.branch.description = None
+    output.branch.etl = None
+    output.parent_name = None
+    output.children = None
+    output.parents = None
+    return output

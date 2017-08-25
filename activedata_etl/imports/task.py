@@ -21,7 +21,7 @@ def minimize_task(task):
     :param task: task cluster normalized object
     :return: altered object
     """
-    minimize_repo(task.repo)
+    task.repo = minimize_repo(task.repo)
 
     task.action.timings = None
     task.action.etl = None

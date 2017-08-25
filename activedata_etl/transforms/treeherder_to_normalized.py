@@ -153,14 +153,12 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         "changeset": {"id": new_treeherder.build.revision}
     }
     try:
-        new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
+        new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
     except Exception as e:
         if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests", "go-bouncer"]:
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
-    minimize_repo(new_treeherder.repo)
-
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
     consume(raw_job, "push")

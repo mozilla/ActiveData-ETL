@@ -101,8 +101,7 @@ def transform_buildbot(source_key, other, resources):
         rev = Revision(branch={"name": output.build.branch}, changeset=Changeset(id=output.build.revision))
         locale = output.build.locale.replace("en-US", DEFAULT_LOCALE)
         try:
-            output.repo = resources.hg.get_revision(rev, locale)
-            minimize_repo(output.repo)
+            output.repo = minimize_repo(resources.hg.get_revision(rev, locale))
         except Exception as e:
             if "release-mozilla-esr" in e or "release-comm-esr" in e:
                 # TODO: FIX PROBLEM WHERE, FOR SOME REASON, WE CAN NOT FIND THE REVISIONS FOR ESR

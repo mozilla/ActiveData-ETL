@@ -463,8 +463,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
     if normalized.build.revision:
-        normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
-        minimize_repo(normalized.repo)
+        normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
         normalized.build.date = normalized.repo.push.date
 
     treeherder = consume(task, "extra.treeherder")
@@ -487,8 +486,6 @@ def set_build_info(source_key, normalized, task, env, resources):
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
-            minimize_repo(build_task.repo)
-
             build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
@@ -762,6 +759,7 @@ KNOWN_TAGS = {
 
     "chunks.current",
     "chunks.total",
+    "CI",
     "crater.crateName",
     "crater.toolchain.customSha",
     "crater.crateVers",
