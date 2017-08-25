@@ -26,7 +26,7 @@ class Revision(Data):
 revision_schema = {
     "settings": {
         "index.number_of_replicas": 1,
-        "index.number_of_shards": 3
+        "index.number_of_shards": 12
     },
     "mappings": {
         "revision": {

@@ -155,7 +155,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     try:
         new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
     except Exception as e:
-        if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests"]:
+        if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests", "go-bouncer"]:
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
