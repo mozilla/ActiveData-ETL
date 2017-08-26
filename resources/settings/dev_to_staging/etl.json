@@ -42,7 +42,7 @@
 			"type": "revision",
 			"timeout": 300,
 			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"debug": true,
+			"debug": false,
 			"limit_replicas": false
 		}
 	},
