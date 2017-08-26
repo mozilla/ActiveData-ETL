@@ -1,4 +1,5 @@
 future
+ujson
 BeautifulSoup
 boto
 requests

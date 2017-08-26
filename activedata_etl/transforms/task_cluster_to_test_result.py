@@ -9,13 +9,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_dots import listwrap
+from mo_json import json2value
+from mo_logs import Log, machine_metadata
+
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
-from mo_dots import listwrap
-from pyLibrary import convert
-from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 
 DEBUG = False
@@ -45,7 +45,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 
-        task = convert.json2value(line)
+        task = json2value(line)
         etl = task.etl
         artifacts = task.task.artifacts
         minimize_task(task)

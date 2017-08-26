@@ -8,25 +8,23 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import etl2key
+from mo_dots import Data, set_default
+from mo_json import json2value
+from mo_logs import Log
+
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
-from mo_dots import Data, set_default
-from pyLibrary import convert
-
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs.exceptions import Except
-from mo_logs import Log
-from pyLibrary.env import elasticsearch, http
-from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
 from mo_times.durations import MONTH
 from mo_times.timer import Timer
+from pyLibrary.env import elasticsearch, http
+from pyLibrary.env.git import get_git_revision
 
-_ = convert
 DEBUG = False
 TOO_OLD = (Date.today() - 3 * MONTH).unix
 
@@ -39,7 +37,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping job ETL.")
 
-        buildbot_data = convert.json2value(buildbot_line)
+        buildbot_data = json2value(buildbot_line)
         try:
             data = bb.parse(buildbot_data.builds)
         except Exception as e:

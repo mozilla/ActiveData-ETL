@@ -234,6 +234,8 @@ def _assign_to_null(obj, path, value, force=True):
     force=False IF YOU PREFER TO use setDefault()
     """
     try:
+        if obj is Null:
+            return
         if isinstance(obj, NullType):
             d = _get(obj, "__dict__")
             o = d["_obj"]

@@ -17,6 +17,8 @@ from mo_dots import Data
 from pyLibrary import aws, convert
 from mo_logs import startup, constants
 from mo_logs import Log
+
+from mo_json import value2json
 from pyLibrary.env import http
 from jx_python import jx
 from pyLibrary.sql.sqlite import Sqlite
@@ -29,7 +31,7 @@ from mo_times.timer import Timer
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 RUN_TIME = 10 * 60
 MAX_SIZE = 10000
-QUOTED_INVALID = Sqlite().quote_value(convert.value2json("invalid"))
+QUOTED_INVALID = Sqlite().quote_value(value2json("invalid"))
 
 
 def backfill_recent(cache, settings, index_queue, please_stop):

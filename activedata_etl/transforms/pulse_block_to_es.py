@@ -11,8 +11,8 @@ from __future__ import unicode_literals
 
 from activedata_etl import etl2key
 from mo_dots import Data, Null
+from mo_json import json2value
 from mo_logs import Log, strings
-from pyLibrary import convert
 
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms import TRY_AGAIN_LATER
@@ -77,7 +77,7 @@ def scrub_pulse_record(source_key, i, line, stats):
         line = strings.strip(line)
         if not line:
             return None
-        pulse_record = convert.json2value(line)
+        pulse_record = json2value(line)
         return pulse_record
     except Exception as e:
         Log.warning(

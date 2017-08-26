@@ -15,7 +15,7 @@ import ast
 import re
 
 from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs.exceptions import suppress_exception
 from mo_logs import Log, strings
 from pyLibrary.env import elasticsearch
@@ -138,7 +138,7 @@ class BuildbotTranslator(object):
             output.action.repack = coalesce(consume(props, "repack"), True)
             locales = consume(props, "locales")
             try:
-                output.build.locales = convert.json2value(locales).keys()
+                output.build.locales = json2value(locales).keys()
             except Exception:
                 output.build.locales = locales.split(",")
 
@@ -162,7 +162,7 @@ class BuildbotTranslator(object):
         try:
             if blobber_files:
                 try:
-                    files = convert.json2value(blobber_files)
+                    files = json2value(blobber_files)
                 except Exception:
                     files = blobber_files
                 output.run.files = [
@@ -403,7 +403,7 @@ def unquote(value):
         return ast.literal_eval(value)
 
     with suppress_exception:
-        return convert.json2value(value)
+        return json2value(value)
 
     return value
 
@@ -427,7 +427,7 @@ def normalize_other(other):
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
         if isinstance(v, (list, dict, Data)):
-            unknown.append({"name": text_type(k), "value": convert.value2json(v)})
+            unknown.append({"name": text_type(k), "value": value2json(v)})
         elif Math.is_number(v):
             unknown.append({"name": text_type(k), "value": convert.value2number(v)})
         elif v in [True, "true", "True"]:

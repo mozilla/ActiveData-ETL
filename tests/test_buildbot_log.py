@@ -49,9 +49,9 @@ class TestBuildbotLogs(FuzzyTestCase):
 
         translator = BuildbotTranslator()
 
-        builds = convert.json2value(File("tests/resources/buildbot.json").read(), flexible=True)
+        builds = json2value(File("tests/resources/buildbot.json").read(), flexible=True)
         if COMPARE_TO_EXPECTED:
-            expected = convert.json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
+            expected = json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
         else:
             expected = []
 
@@ -77,7 +77,7 @@ class TestBuildbotLogs(FuzzyTestCase):
             Log.error("parsing problems", cause=failures)
 
         if not COMPARE_TO_EXPECTED:
-            File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
+            File("tests/resources/buildbot_results.json").write(value2json(results, pretty=True))
 
     def test_by_key_day(self):
         day = 634

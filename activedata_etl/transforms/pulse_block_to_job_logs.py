@@ -9,20 +9,18 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import etl2key, key2etl
+from mo_dots import Data, wrap, coalesce
+from mo_logs import Log
+
 from activedata_etl.imports.text_log import process_text_log
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
-from mo_dots import Data, wrap, coalesce
-from pyLibrary import convert
-from mo_logs import Log
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 
-_ = convert
 DEBUG = False
 
 

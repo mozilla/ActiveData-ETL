@@ -21,6 +21,7 @@ from decimal import Decimal
 from math import floor
 from repr import Repr
 
+from ujson import dumps as ujson_dumps
 from future.utils import text_type
 from mo_logs import Except
 from mo_logs.strings import utf82unicode
@@ -97,7 +98,7 @@ def pypy_json_encode(value, pretty=False):
         _dealing_with_problem = True
         try:
             return pretty_json(value)
-        except Exception, f:
+        except Exception as f:
             Log.error("problem serializing object", f)
         finally:
             _dealing_with_problem = False
@@ -136,6 +137,22 @@ class cPythonJSONEncoder(object):
             e = Except.wrap(e)
             Log.warning("problem serializing {{type}}", type=_repr(value), cause=e)
             raise e
+
+
+def ujson_encode(value, pretty=False):
+    if pretty:
+        return pretty_json(value)
+
+    try:
+        scrubbed = scrub(value)
+        return ujson_dumps(scrubbed, ensure_ascii=False, sort_keys=True).decode('utf8')
+    except Exception as e:
+        from mo_logs.exceptions import Except
+        from mo_logs import Log
+
+        e = Except.wrap(e)
+        Log.warning("problem serializing {{type}}", type=_repr(value), cause=e)
+        raise e
 
 
 def _value2json(value, _buffer):
@@ -430,7 +447,7 @@ def problem_serializing(value, e=None):
 
     try:
         rep = _repr(value)
-    except Exception, _:
+    except Exception as _:
         rep = None
 
     if rep == None:
@@ -510,6 +527,7 @@ def _repr(obj):
 if use_pypy:
     json_encoder = pypy_json_encode
 else:
-    json_encoder = cPythonJSONEncoder().encode
+    json_encoder = ujson_encode
+    # json_encoder = cPythonJSONEncoder().encode
 
 

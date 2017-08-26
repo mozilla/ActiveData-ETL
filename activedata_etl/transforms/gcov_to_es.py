@@ -9,11 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from zipfile import ZipFile
 
 import os
 from activedata_etl import etl2key
+from future.utils import text_type
 from mo_dots import set_default
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json

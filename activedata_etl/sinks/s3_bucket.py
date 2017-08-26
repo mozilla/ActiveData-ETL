@@ -20,7 +20,7 @@ from mo_dots import wrap
 from mo_logs import Log
 from mo_math import Math
 from mo_times.timer import Timer
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
 
@@ -92,7 +92,7 @@ class S3Bucket(object):
 
     def _extend(self, key, documents, overwrite=False):
         if overwrite:
-            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
+            self.bucket.write_lines(key, (value2json(d) for d in documents))
             return
 
         meta = self.bucket.get_meta(key)
@@ -100,7 +100,7 @@ class S3Bucket(object):
             documents = UniqueIndex(keys="etl.id", data=documents)
             try:
                 content = self.bucket.read_lines(key)
-                old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
+                old_docs = UniqueIndex(keys="etl.id", data=map(json2value, content))
             except Exception as e:
                 Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
@@ -116,7 +116,7 @@ class S3Bucket(object):
             if residual:
                 documents = documents | residual
 
-        self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
+        self.bucket.write_lines(key, (value2json(d) for d in documents))
 
     def add(self, dco):
         Log.error("Not supported")

@@ -8,17 +8,18 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import etl2key
+from future.utils import text_type
+from mo_dots import Data, wrap, coalesce, Null
+from mo_json import json2value, utf82unicode
+from mo_logs import Log, strings
+
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
-from mo_dots import Data, wrap, coalesce, Null
-from pyLibrary import convert
-from mo_logs import Log, strings
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = False
 
@@ -158,7 +159,7 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
                 continue
 
             log_line = strings.strip(log_line[s + len(prefix):])
-            perf = convert.json2value(convert.utf82unicode(log_line))
+            perf = json2value(utf82unicode(log_line))
 
             if "TALOS" in prefix:
                 for t in perf:

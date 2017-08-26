@@ -12,12 +12,12 @@ from __future__ import unicode_literals
 from mo_dots import Data
 from mo_logs import Log, machine_metadata
 from mo_threads import Signal
-from pyLibrary import convert
 
 from activedata_etl.transforms import EtlHeadGenerator, verify_blobber_file
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from mo_hg.hg_mozilla_org import minimize_repo
+from mo_logs.strings import utf82unicode
 from mo_times.timer import Timer
 from pyLibrary.env import http
 
@@ -43,7 +43,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     for e in existing_keys:
         destination.delete_key(e)
 
-    all_lines = list(enumerate(convert.utf82unicode(source.read()).split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
+    all_lines = list(enumerate(utf82unicode(source.read()).split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
     for i, line in all_lines:
         if fast_forward:
             continue

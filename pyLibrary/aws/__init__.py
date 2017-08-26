@@ -68,7 +68,7 @@ class Queue(object):
     def add(self, message):
         message = wrap(message)
         m = Message()
-        m.set_body(convert.value2json(message))
+        m.set_body(value2json(message))
         self.queue.write(m)
 
     @property

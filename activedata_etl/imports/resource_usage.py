@@ -28,7 +28,7 @@ def normalize_resource_usage(url):
     content = response.content
     if not content.strip():
         return None
-    usage = convert.json2value(convert.utf82unicode(content))
+    usage = json2value(convert.utf82unicode(content))
 
     output = Data()
     output.meta.version = usage.version

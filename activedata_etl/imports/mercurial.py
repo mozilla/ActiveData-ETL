@@ -22,7 +22,7 @@ from mo_files import File
 from mo_logs import Log
 from mo_logs.strings import between
 from mo_times.timer import Timer
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.env import elasticsearch
 from jx_python import jx
 from pyLibrary.sql.mysql import MySQL

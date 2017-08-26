@@ -149,7 +149,8 @@ class HgMozillaOrg(object):
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         output = self._get_from_elasticsearch(revision, locale=locale)
         if output:
-            Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=output.branch.name, locale=locale, revision=output.changeset.id)
+            if DEBUG:
+                Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=output.branch.name, locale=locale, revision=output.changeset.id)
             if output.push.date >= Date.now()-MAX_TODO_AGE:
                 self.todo.add((output.branch, listwrap(output.parents)))
                 self.todo.add((output.branch, listwrap(output.children)))
@@ -199,7 +200,8 @@ class HgMozillaOrg(object):
 
         for attempt in range(3):
             try:
-                docs = self.es.search(query).hits.hits
+                with self.es_locker:
+                    docs = self.es.search(query).hits.hits
                 break
             except Exception as e:
                 e = Except.wrap(e)
@@ -239,17 +241,18 @@ class HgMozillaOrg(object):
     def _get_push(self, branch, changeset_id):
         try:
             # ALWAYS TRY ES FIRST
-            response = self.es.search({
-                "query": {"filtered": {
-                    "query": {"match_all": {}},
-                    "filter": {"and": [
-                        {"term": {"branch.name": branch.name}},
-                        {"prefix": {"changeset.id": changeset_id[0:12]}}
-                    ]}
-                }},
-                "size": 1
-            })
-            json_push = response.hits.hits[0]._source.push
+            with self.es_locker:
+                response = self.es.search({
+                    "query": {"filtered": {
+                        "query": {"match_all": {}},
+                        "filter": {"and": [
+                            {"term": {"branch.name": branch.name}},
+                            {"prefix": {"changeset.id": changeset_id[0:12]}}
+                        ]}
+                    }},
+                    "size": 1
+                })
+                json_push = response.hits.hits[0]._source.push
             return json_push
         except Exception:
             pass
@@ -402,16 +405,17 @@ class HgMozillaOrg(object):
         def inner(changeset_id):
             try:
                 # ALWAYS TRY ES FIRST
-                response = self.es.search({
-                    "query": {"filtered": {
-                        "query": {"match_all": {}},
-                        "filter": {"and": [
-                            {"prefix": {"changeset.id": changeset_id[0:12]}}
-                        ]}
-                    }},
-                    "size": 1
-                })
-                json_diff = response.hits.hits[0]._source.changeset.diff
+                with self.es_locker:
+                    response = self.es.search({
+                        "query": {"filtered": {
+                            "query": {"match_all": {}},
+                            "filter": {"and": [
+                                {"prefix": {"changeset.id": changeset_id[0:12]}}
+                            ]}
+                        }},
+                        "size": 1
+                    })
+                    json_diff = response.hits.hits[0]._source.changeset.diff
                 if json_diff:
                     return json_diff
             except Exception:
@@ -444,7 +448,7 @@ def _trim(url):
 def _get_url(url, branch, **kwargs):
     with Explanation("get push from {{url}}", url=url, debug=DEBUG):
         response = http.get(url, **kwargs)
-        data = convert.json2value(response.content.decode("utf8"))
+        data = json2value(response.content.decode("utf8"))
         if isinstance(data, (text_type, str)) and data.startswith("unknown revision"):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
@@ -460,7 +464,7 @@ def minimize_repo(repo):
     output.branch.last_used = None
     output.branch.description = None
     output.branch.etl = None
-    output.parent_name = None
+    output.branch.parent_name = None
     output.children = None
     output.parents = None
     return output

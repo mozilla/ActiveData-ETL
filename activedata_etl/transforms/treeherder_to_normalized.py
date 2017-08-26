@@ -11,9 +11,9 @@ from __future__ import unicode_literals
 
 from activedata_etl import etl2key, key2etl
 from mo_dots import Data, listwrap, wrap, set_default
+from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings
 from mo_math import Math
-from pyLibrary import convert
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_hg.hg_mozilla_org import minimize_repo
@@ -38,7 +38,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
-            raw_treeherder = convert.json2value(line)
+            raw_treeherder = json2value(line)
             etl_source = consume(raw_treeherder, "etl")
             if etl_source.source.source.id <= 687:
                 etl_source = wrap({"source": key2etl(source_key)})
@@ -253,7 +253,7 @@ def pull_details(source_key, details, new_treeherder):
                 pass
             else:
                 # try:
-                #     title, value = convert.json2value("{"+d.value+"}").items(0)
+                #     title, value = json2value("{"+d.value+"}").items(0)
                 #     pull_details()
                 KNOWN_VALUES.append(d.value)
                 Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)

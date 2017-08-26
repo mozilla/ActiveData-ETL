@@ -9,26 +9,26 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from collections import Mapping
 
 import requests
-from jx_python import jx
-
-from mo_logs import Log, machine_metadata, strings
-
-from mo_hg.hg_mozilla_org import minimize_repo
-from mo_logs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
+from future.utils import text_type
+from jx_python import jx
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
+from mo_json import json2value, value2json
+from mo_logs import Log, machine_metadata, strings
+from mo_math import Math
+
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
-from pyLibrary import convert
-from pyLibrary.env import http
-from mo_math import Math
+from mo_hg.hg_mozilla_org import minimize_repo
+from mo_logs.exceptions import suppress_exception, Except
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
+from pyLibrary import convert
+from pyLibrary.env import http
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -53,7 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
-            tc_message = convert.json2value(line)
+            tc_message = json2value(line)
             task_id = consume(tc_message, "status.taskId")
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
@@ -464,6 +464,8 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     if normalized.build.revision:
         normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
+        if not normalized.repo:
+            Log.error("No repo found for {{rev}}", rev=normalized.build.revision)
         normalized.build.date = normalized.repo.push.date
 
     treeherder = consume(task, "extra.treeherder")
@@ -616,13 +618,13 @@ def get_tags(source_key, task_id, task, parent=None):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, text_type):
-                    v = convert.value2json(v)
+                    v = value2json(v)
             # elif all(isinstance(vv, (text_type, float, int)) for vv in v):
             #     pass  # LIST OF PRIMITIVES IS OK
             else:
-                v = convert.value2json(v)
+                v = value2json(v)
         elif not isinstance(v, text_type):
-            v = convert.value2json(v)
+            v = value2json(v)
         t["value"] = v
         verify_tag(source_key, task_id, t)
         clean_tags.append(t)
