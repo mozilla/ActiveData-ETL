@@ -237,7 +237,9 @@ class RolloverIndex(object):
 
 
 def fix(rownum, line, source, sample_only_filter, sample_size):
-    if strings.between(line, '"_id": "', '"').startswith("tc.97") or strings.between(line, '"_id": "', '"').startswith("96"):
+    _id = coalesce(strings.between(line, '"_id": "', '"'), strings.between(line, '"_id":"', '"'))  # AVOID DECODING JSON
+
+    if _id.startswith("tc.97"):
         # AUG 24, 25 2017 - included full diff with repo; too big to index
         try:
             data = json2value(line)
@@ -249,23 +251,27 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
             repo.branch.parent_name = None
             repo.children = None
             repo.parents = None
-            if repo.changeset.diff:
+            if repo.changeset.diff or data.build.repo.changeset.diff:
                 Log.error("no diff allowed")
             else:
                 assertAlmostEqual(minimize_repo(repo), repo)
         except Exception:
             data.repo = minimize_repo(repo)
+            data.build.repo = minimize_repo(data.build.repo)
             line = value2json(data)
+    else:
+        pass
 
     # ES SCHEMA IS STRICTLY TYPED, USE "code" FOR TEXT IDS
     line = line.replace('{"id": "bb"}', '{"code": "bb"}').replace('{"id": "tc"}', '{"code": "tc"}')
+    line = line.replace('{"id":"bb"}', '{"code":"bb"}').replace('{"id":"tc"}', '{"code":"tc"}')
 
     # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
     if source.name.startswith("active-data-test-result"):
         # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
-        found = strings.between(line, '"suite": {', '}')
-        if found:
-            suite_json = '{' + found + "}"
+        found = coalesce(strings.between(line, '"suite": {"', '}'), strings.between(line, '"suite":{"', '}'))
+        if found != None:
+            suite_json = '{"' + found + '}'
             if suite_json:
                 suite = json2value(suite_json)
                 suite = value2json(coalesce(suite.fullname, suite.name))
@@ -300,7 +306,6 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
         row = {"id": _id, "value": value}
     else:
         # FAST
-        _id = strings.between(line, "\"_id\": \"", "\"")  # AVOID DECODING JSON
         row = {"id": _id, "json": line}
 
     return row, False

@@ -11,28 +11,29 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-from copy import copy, deepcopy
+from collections import Mapping
+from copy import copy
 
-import mo_threads
 from future.utils import text_type, binary_type
-from mo_dots import set_default, Null, coalesce, unwraplist, listwrap
+from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
+from mo_json import json2value
 from mo_kwargs import override
 from mo_logs import Log, strings, machine_metadata
-from mo_logs.exceptions import Explanation, assert_no_exception, Except
-from mo_logs.strings import expand_template
-from mo_math.randoms import Random
 from mo_threads import Thread, Lock, Queue, THREAD_STOP
 from mo_threads import Till
-from mo_times.dates import Date
-from mo_times.durations import SECOND, Duration, HOUR, MINUTE, MONTH, DAY
-from pyLibrary import convert
-from pyLibrary.env import http, elasticsearch
-from pyLibrary.meta import cache
 
+import mo_threads
 from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
+from mo_logs.exceptions import Explanation, assert_no_exception, Except
+from mo_logs.strings import expand_template
+from mo_math.randoms import Random
+from mo_times.dates import Date
+from mo_times.durations import SECOND, Duration, HOUR, MINUTE, DAY
+from pyLibrary.env import http, elasticsearch
+from pyLibrary.meta import cache
 
 _hg_branches = None
 _OLD_BRANCH = None
@@ -134,7 +135,7 @@ class HgMozillaOrg(object):
                     self._find_revision(r)
 
     @cache(duration=HOUR, lock=True)
-    def get_revision(self, revision, locale=None):
+    def get_revision(self, revision, locale=None, get_diff=False):
         """
         EXPECTING INCOMPLETE revision OBJECT
         RETURNS revision
@@ -149,6 +150,8 @@ class HgMozillaOrg(object):
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         output = self._get_from_elasticsearch(revision, locale=locale)
         if output:
+            if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
+                output.changeset.diff = None
             if DEBUG:
                 Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=output.branch.name, locale=locale, revision=output.changeset.id)
             if output.push.date >= Date.now()-MAX_TODO_AGE:
@@ -410,7 +413,7 @@ class HgMozillaOrg(object):
                         "query": {"filtered": {
                             "query": {"match_all": {}},
                             "filter": {"and": [
-                                {"prefix": {"changeset.id": changeset_id[0:12]}}
+                                {"prefix": {"changeset.id": changeset_id}}
                             ]}
                         }},
                         "size": 1
@@ -455,16 +458,40 @@ def _get_url(url, branch, **kwargs):
         return data
 
 
+
+
 def minimize_repo(repo):
-    output = deepcopy(repo)
-    output.changeset.files = None
-    output.changeset.diff = None
+    # output = set_default({}, _exclude_from_repo, repo)
+    output = wrap(_copy_but(repo, _exclude_from_repo))
     output.changeset.description = strings.limit(output.changeset.description, 1000)
-    output.etl = None
-    output.branch.last_used = None
-    output.branch.description = None
-    output.branch.etl = None
-    output.branch.parent_name = None
-    output.children = None
-    output.parents = None
     return output
+
+
+_exclude_from_repo = Data()  # A STRUCTURE TO
+for k in [
+    "changeset.files",
+    "changeset.diff",
+    "etl",
+    "branch.last_used",
+    "branch.description",
+    "branch.etl",
+    "branch.parent_name",
+    "children",
+    "parents"
+]:
+    _exclude_from_repo[k] = True
+_exclude_from_repo = _exclude_from_repo
+
+
+def _copy_but(value, exclude):
+    output = {}
+    for k, v in value.items():
+        e = exclude.get(k, {})
+        if e!=True:
+            if isinstance(v, Mapping):
+                v2 = _copy_but(v, e)
+                if v2 != None:
+                    output[k] = v2
+            elif v != None:
+                output[k] = v
+    return output if output else None

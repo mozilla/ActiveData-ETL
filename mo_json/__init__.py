@@ -29,7 +29,7 @@ from mo_logs.strings import expand_template
 from mo_times import Date, Duration
 
 
-FIND_LOOPS = True
+FIND_LOOPS = False
 
 _get = object.__getattribute__
 
@@ -115,21 +115,21 @@ def _scrub(value, is_done, stack, keep_whitespace):
     elif type_ is float:
         if math.isnan(value) or math.isinf(value):
             return None
-        return value
+        return _scrub_float(value)
     elif type_ in (int, long, bool):
         return value
     elif type_ in (date, datetime):
-        return float(datetime2unix(value))
+        return _scrub_float(datetime2unix(value))
     elif type_ is timedelta:
         return value.total_seconds()
     elif type_ is Date:
-        return float(value.unix)
+        return _scrub_float(value.unix)
     elif type_ is Duration:
-        return float(value.seconds)
+        return _scrub_float(value.seconds)
     elif type_ is str:
         return utf82unicode(value)
     elif type_ is Decimal:
-        return float(value)
+        return _scrub_float(value)
     elif type_ is Data:
         return _scrub(_get(value, '_dict'), is_done, stack, keep_whitespace=keep_whitespace)
     elif isinstance(value, Mapping):
@@ -185,6 +185,16 @@ def _scrub(value, is_done, stack, keep_whitespace):
         return repr(value)
     else:
         return _scrub(DataObject(value), is_done, stack, keep_whitespace=keep_whitespace)
+
+
+def _scrub_float(value):
+    d = float(value)
+    i_d = int(d)
+    if float(i_d) == d:
+        return i_d
+    else:
+        return d
+
 
 
 def value2json(obj, pretty=False, sort_keys=False, keep_whitespace=True):

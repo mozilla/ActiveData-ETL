@@ -488,6 +488,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            build_task.repo = minimize_repo(build_task.repo)
             build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
