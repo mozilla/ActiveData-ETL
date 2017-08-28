@@ -12,7 +12,7 @@ from activedata_etl import etl2path
 from activedata_etl import key2etl
 from jx_python import jx
 from mo_dots import coalesce, wrap, Null
-from mo_json import json2value, value2json
+from mo_json import json2value, value2json, CAN_NOT_DECODE_JSON
 from mo_kwargs import override
 from mo_logs import Log, strings
 from mo_threads import Lock
@@ -215,7 +215,10 @@ class RolloverIndex(object):
                             break
             except Exception as e:
                 if KEY_IS_WRONG_FORMAT in e:
-                    Log.warning("Could not process {{key}} becasue bad format. Never trying again.", key=key, cause=e)
+                    Log.warning("Could not process {{key}} because bad format. Never trying again.", key=key, cause=e)
+                    pass
+                elif CAN_NOT_DECODE_JSON in e:
+                    Log.warning("Could not process {{key}} because of bad JSON. Never trying again.", key=key, cause=e)
                     pass
                 else:
                     Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
@@ -256,7 +259,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
             else:
                 assertAlmostEqual(minimize_repo(repo), repo)
         except Exception as e:
-            if "Can not decode JSON" in e:
+            if CAN_NOT_DECODE_JSON in e:
                 raise e
             data.repo = minimize_repo(repo)
             data.build.repo = minimize_repo(data.build.repo)

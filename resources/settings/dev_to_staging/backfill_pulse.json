@@ -1,6 +1,6 @@
 {
 	"no_checks": true,
-	"range": {"min":54602, "max":55838},
+	"range": {"min":272000, "max":273000},
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-index",

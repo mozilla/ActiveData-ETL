@@ -30,6 +30,7 @@ from mo_times import Date, Duration
 
 
 FIND_LOOPS = False
+CAN_NOT_DECODE_JSON = "Can not decode JSON"
 
 _get = object.__getattribute__
 
@@ -309,7 +310,7 @@ def json2value(json_string, params=Null, flexible=False, leaves=False):
             if len(sample) > 43:
                 sample = sample[:43] + "..."
 
-            Log.error("Can not decode JSON at:\n\t" + sample + "\n\t" + pointer + "\n")
+            Log.error(CAN_NOT_DECODE_JSON + " at:\n\t" + sample + "\n\t" + pointer + "\n")
 
         base_str = strings.limit(json_string, 1000).encode('utf8')
         hexx_str = bytes2hex(base_str, " ")
@@ -317,7 +318,7 @@ def json2value(json_string, params=Null, flexible=False, leaves=False):
             char_str = " " + "  ".join((c.decode("latin1") if ord(c) >= 32 else ".") for c in base_str)
         except Exception as e:
             char_str = " "
-        Log.error("Can not decode JSON:\n" + char_str + "\n" + hexx_str + "\n", e)
+        Log.error(CAN_NOT_DECODE_JSON + ":\n" + char_str + "\n" + hexx_str + "\n", e)
 
 
 def bytes2hex(value, separator=" "):
