@@ -9,19 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 import re
 from copy import copy
 
-from activedata_etl.imports import buildbot
+from future.utils import text_type
+from jx_python import jx
 from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
-from mo_json import json2value, value2json
-from mo_logs.exceptions import Except
 from mo_logs import Log, strings
 from mo_math import Math, MAX, MIN
-from jx_python import jx
+
+from activedata_etl.imports import buildbot
+from mo_logs.exceptions import Except
 from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
+from pyLibrary.convert import quote2string
 
 DEBUG = True
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
@@ -696,7 +697,7 @@ def parse_command_line(line):
             while True:
                 if c == "'":
                     value += c
-                    output.append(convert.quote2string(value))
+                    output.append(quote2string(value))
                     value = ""
                     break
                 elif c == "\\":
