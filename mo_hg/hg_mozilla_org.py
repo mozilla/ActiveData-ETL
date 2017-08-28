@@ -157,7 +157,8 @@ class HgMozillaOrg(object):
             if output.push.date >= Date.now()-MAX_TODO_AGE:
                 self.todo.add((output.branch, listwrap(output.parents)))
                 self.todo.add((output.branch, listwrap(output.children)))
-            return output
+            if output.push.date:
+                return output
 
         found_revision = copy(revision)
         if isinstance(found_revision.branch, (text_type, binary_type)):
@@ -178,6 +179,8 @@ class HgMozillaOrg(object):
             self.branches = _hg_branches.get_branches(kwargs=self.settings)
 
         push = self._get_push(found_revision.branch, found_revision.changeset.id)
+        if not push:
+            Log.error("did not get push!")
 
         url = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
         with Explanation("get revision from {{url}}", url=url, debug=DEBUG):
@@ -185,6 +188,7 @@ class HgMozillaOrg(object):
             output = self._normalize_revision(raw_rev, found_revision, push)
             self.todo.add((output.branch, listwrap(output.parents)))
             self.todo.add((output.branch, listwrap(output.children)))
+
             return output
 
     def _get_from_elasticsearch(self, revision, locale=None):
@@ -256,7 +260,8 @@ class HgMozillaOrg(object):
                     "size": 1
                 })
                 json_push = response.hits.hits[0]._source.push
-            return json_push
+            if json_push:
+                return json_push
         except Exception:
             pass
 
