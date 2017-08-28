@@ -25,6 +25,7 @@ from mo_times.timer import Timer
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
+ACCESS_DENIED = "Access Denied to {{url}}"
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
@@ -55,9 +56,11 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     except Exception as e:
         e = Except.wrap(e)
         if "EOF occurred in violation of protocol" in e:
-            Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
-        Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
-        summary = None
+            raise Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
+        elif ACCESS_DENIED in e and  buildbot_summary.task.state in ["exception"]:
+            summary = Null
+        else:
+            raise Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
 
     buildbot_summary.etl = {
         "id": 0,
@@ -143,8 +146,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 content = "\n".join(lines)
                 if "<Code>AccessDenied</Code>" in content:
-                    Log.warning("Access Denied to {{url}}", url=accumulator.url)
-                    return Null
+                    Log.error(ACCESS_DENIED, url=accumulator.url)
                 else:
                     Log.error(TRY_AGAIN_LATER, reason="Remote content is not ready")
             prefix = strings.limit(line, 500)
