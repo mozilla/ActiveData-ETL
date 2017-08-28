@@ -853,7 +853,7 @@ KNOWN_TAGS = {
     "objective",
     "owner",
     "partial_versions",
-    "partials", 
+    "partials",
     "payload.dry_run",
     "platforms",
     "signed_installer_url",

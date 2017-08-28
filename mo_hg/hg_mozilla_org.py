@@ -15,21 +15,21 @@ from collections import Mapping
 from copy import copy
 
 from future.utils import text_type, binary_type
-from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
-from mo_json import json2value
-from mo_kwargs import override
-from mo_logs import Log, strings, machine_metadata
-from mo_threads import Thread, Lock, Queue, THREAD_STOP
-from mo_threads import Till
 
 import mo_threads
+from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
 from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
-from mo_logs.exceptions import Explanation, assert_no_exception, Except
+from mo_json import json2value
+from mo_kwargs import override
+from mo_logs import Log, strings, machine_metadata
+from mo_logs.exceptions import Explanation, assert_no_exception, Except, suppress_exception
 from mo_logs.strings import expand_template
 from mo_math.randoms import Random
+from mo_threads import Thread, Lock, Queue, THREAD_STOP
+from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import SECOND, Duration, HOUR, MINUTE, DAY
 from pyLibrary.env import http, elasticsearch
@@ -98,11 +98,12 @@ class HgMozillaOrg(object):
         self.es = elasticsearch.Cluster(kwargs=repo).get_or_create_index(kwargs=repo)
 
         def setup_es(please_stop):
-            self.es.add_alias()
-            try:
+            with suppress_exception:
+                self.es.add_alias()
+
+            with suppress_exception:
                 self.es.set_refresh_interval(seconds=1)
-            except Exception:
-                pass
+
         Thread.run("setup_es", setup_es)
         self.branches = _hg_branches.get_branches(kwargs=kwargs)
 
@@ -406,8 +407,8 @@ class HgMozillaOrg(object):
 
     def _get_json_diff_from_hg(self, revision):
         """
-        :param revision: INCOMPLETE REVISION OBJECT 
-        :return: 
+        :param revision: INCOMPLETE REVISION OBJECT
+        :return:
         """
         @cache(duration=MINUTE, lock=True)
         def inner(changeset_id):
