@@ -32,6 +32,7 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
+    "perfherder-data.json",
     ".apk",
     "/awsy_raw.log",
     "/buildbot_properties.json",
@@ -94,7 +95,6 @@ class Transform(object):
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError
-
 
 def verify_blobber_file(line_number, name, url):
     """

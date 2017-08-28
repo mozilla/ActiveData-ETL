@@ -179,7 +179,6 @@ def transform(source_key, perfherder, resources):
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
                 if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
-                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
                         uid=source_key,
@@ -188,6 +187,7 @@ def transform(source_key, perfherder, resources):
                         perfherder=perfherder,
                         option=option
                     )
+                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                 suite_name = suite_name.replace("-" + option, "")
         buildbot.run.type = list(set(buildbot.run.type + listwrap(perfherder.extraOptions)))
 

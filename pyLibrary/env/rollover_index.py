@@ -255,7 +255,9 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
                 Log.error("no diff allowed")
             else:
                 assertAlmostEqual(minimize_repo(repo), repo)
-        except Exception:
+        except Exception as e:
+            if "Can not decode JSON" in e:
+                raise e
             data.repo = minimize_repo(repo)
             data.build.repo = minimize_repo(data.build.repo)
             line = value2json(data)

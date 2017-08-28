@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             continue
 
         buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources)
-        buildbot_summary.repo = minimize_repo(buildbot_summary.repo)
+        # buildbot_summary.repo = minimize_repo(buildbot_summary.repo)
         if DEBUG or DEBUG_SHOW_LINE:
             Log.note(
                 "Source {{key}}, line {{line}}, buildid = {{buildid}}",
