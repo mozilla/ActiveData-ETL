@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from future.utils import text_type
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs import Log, strings
 from mo_dots import wrap, Data, literal_field
 from pyLibrary.env import http
@@ -151,7 +151,7 @@ def verify_blobber_file(line_number, name, url):
                     continue
 
                 try:
-                    total += len(convert.json2value(blobber_line))
+                    total += len(json2value(blobber_line))
                     count += 1
                 except Exception as e:
                     if DEBUG:

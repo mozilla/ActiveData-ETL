@@ -26,9 +26,6 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"schema": {
-				"$ref": "//../../schema/revision.json"
-			},
 			"debug": false,
 			"limit_replicas": false
 		},
@@ -38,9 +35,6 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"schema": {
-				"$ref": "//../../schema/branch.json"
-			},
 			"debug": false,
 			"limit_replicas": true
 		}

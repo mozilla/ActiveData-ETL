@@ -9,23 +9,26 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from collections import Mapping
 
 import requests
-
-from mo_logs import Log, machine_metadata, strings
-from mo_logs.exceptions import suppress_exception, Except
 from activedata_etl import etl2key
+from future.utils import text_type
+from jx_python import jx
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
+from mo_json import json2value, value2json
+from mo_logs import Log, machine_metadata, strings
+from mo_math import Math
+
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
-from pyLibrary import convert
-from pyLibrary.env import http
-from mo_math import Math
+from mo_hg.hg_mozilla_org import minimize_repo
+from mo_logs.exceptions import suppress_exception, Except
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
+from pyLibrary import convert
+from pyLibrary.env import http
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -50,7 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
-            tc_message = convert.json2value(line)
+            tc_message = json2value(line)
             task_id = consume(tc_message, "status.taskId")
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
@@ -445,6 +448,9 @@ def set_build_info(source_key, normalized, task, env, resources):
     if normalized.build.platform.endswith("-ccov"):
         normalized.build.platform = normalized.build.platform.split("-")[0]
         normalized.build.type += ["ccov"]
+    if normalized.build.platform.endswith("-jsdcov"):
+        normalized.build.platform = normalized.build.platform.split("-")[0]
+        normalized.build.type += ["jsdcov"]
 
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
@@ -457,13 +463,17 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
     if normalized.build.revision:
-        normalized.repo = resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}))
+        normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
+        if not normalized.repo:
+            Log.error("No repo found for {{rev}}", rev=normalized.build.revision)
         normalized.build.date = normalized.repo.push.date
 
     treeherder = consume(task, "extra.treeherder")
     if treeherder:
         for l, v in treeherder.leaves():
             normalized.treeherder[l] = v
+
+    normalized.task.kind = consume(task, "tags.kind")
 
     for k, v in BUILD_TYPES.items():
         if treeherder.collection[k]:
@@ -478,6 +488,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
             Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            build_task.repo = minimize_repo(build_task.repo)
             build_task._id = None
             build_task.task.artifacts = None
             build_task.task.command = None
@@ -486,7 +497,6 @@ def set_build_info(source_key, normalized, task, env, resources):
             build_task.task.runs = None
             build_task.task.routes = None
             build_task.task.tags = None
-            build_task.repo.changeset.files = None
             build_task.action.timings = None
             build_task.etl = None
             set_default(normalized.build, build_task)
@@ -520,7 +530,14 @@ def get_build_task(source_key, resources, normalized_task):
         retry={"times": 3, "sleep": 15}
     )
 
-    candidates = [h._source for h in response.hits.hits if h._source.treeherder.jobKind=="build"]
+    candidates = jx.sort(
+        [
+            h._source
+            for h in response.hits.hits
+            if h._source.treeherder.jobKind == "build"
+        ],
+        "run.start_time"
+    )
     if not candidates:
         if not any(b in MISSING_BUILDS for b in build_task_id):
             Log.alert(
@@ -532,24 +549,23 @@ def get_build_task(source_key, resources, normalized_task):
             MISSING_BUILDS.update(build_task_id)
         return None
 
-    candidate = candidates[-1]
-    if len(candidates) > 1:
-        etl, candidate.etl = candidate.etl, None
-        _id, candidate._id = candidate._id, None
-        for c in candidates[:-1:]:
-            try:
-                assertAlmostEqual(c, candidate)
-            except Exception as e:
-                Log.warning(
-                    "Found too many builds ({{num}}) with task id={{task}} in {{key}}",
-                    task=build_task_id,
-                    key=source_key,
-                    num=len(candidates),
-                    cause=e
-                )
-                return None
-        candidate.etl = etl
-        candidate._id = _id
+    candidate = candidates.last()
+    # if len(candidates) > 1:
+    #     etl, candidate.etl = candidate.etl, None
+    #     _id, candidate._id = candidate._id, None
+    #     for c in candidates.not_right(1):
+    #         try:
+    #             assertAlmostEqual(c, candidate)
+    #         except Exception as e:
+    #             Log.warning(
+    #                 "Found too many builds ({{num}}) with task id={{task}} in {{key}}, choosing last",
+    #                 task=build_task_id,
+    #                 key=source_key,
+    #                 num=len(candidates),
+    #                 cause=e
+    #             )
+    #     candidate.etl = etl
+    #     candidate._id = _id
 
     if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
         Log.warning(
@@ -603,13 +619,13 @@ def get_tags(source_key, task_id, task, parent=None):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, text_type):
-                    v = convert.value2json(v)
+                    v = value2json(v)
             # elif all(isinstance(vv, (text_type, float, int)) for vv in v):
             #     pass  # LIST OF PRIMITIVES IS OK
             else:
-                v = convert.value2json(v)
+                v = value2json(v)
         elif not isinstance(v, text_type):
-            v = convert.value2json(v)
+            v = value2json(v)
         t["value"] = v
         verify_tag(source_key, task_id, t)
         clean_tags.append(t)
@@ -686,7 +702,9 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
+    "chain",
     "CHANNEL",
+    "contact",
     "context",
     "created",
     "deadline",
@@ -709,6 +727,8 @@ PAYLOAD_PROPERTIES = {
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
+    "stage-product",
+    "summary",
     "supersederUrl",
     "template_key",
     "THIS_CHUNK",
@@ -728,6 +748,7 @@ KNOWN_TAGS = {
     "build_product",
     "build_props.branch",
     "build_props.build_number",
+    "build_props.release_eta",
     "build_props.locales",
     "build_props.mozharness_changeset",
     "build_props.partials",
@@ -741,6 +762,7 @@ KNOWN_TAGS = {
 
     "chunks.current",
     "chunks.total",
+    "CI",
     "crater.crateName",
     "crater.toolchain.customSha",
     "crater.crateVers",
@@ -756,6 +778,8 @@ KNOWN_TAGS = {
     "data.head.sha",
     "data.head.user.email",
     "description",
+
+    "en_us_installer_binary_url",
 
     "funsize.partials",
     "funsize.partials.branch",

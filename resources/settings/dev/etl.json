@@ -31,9 +31,6 @@
 			"type": "branch",
 			"timeout": 300,
 			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"schema": {
-				"$ref": "//../../schema/branch.json"
-			},
 			"debug": false,
 			"limit_replicas": true
 		},
@@ -44,9 +41,6 @@
 			"type": "revision",
 			"timeout": 300,
 			"consistency": "one",  // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"schema": {
-				"$ref": "//../../schema/revision.json"
-			},
 			"debug": false,
 			"limit_replicas": true
 		}

@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from future.utils import text_type
 import requests
 
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
 from mo_logs import Log, machine_metadata
@@ -34,7 +34,7 @@ def main():
             "http://localhost:9200/unittest/_search",
             data='{"fields":["etl.id"],"query": {"match_all": {}},"from": 0,"size": 1}'
         )
-        data = convert.json2value(convert.utf82unicode(result.content))
+        data = json2value(convert.utf82unicode(result.content))
 
         if data._shards.failed > 0 or result.status_code != 200:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART

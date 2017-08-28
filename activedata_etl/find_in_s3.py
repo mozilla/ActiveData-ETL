@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.aws.s3 import Connection
 from mo_logs import startup
 from mo_logs import Log

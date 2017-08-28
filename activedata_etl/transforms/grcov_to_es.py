@@ -9,10 +9,10 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
+from future.utils import text_type
 from mo_dots import set_default
 from mo_files import TempFile
 from mo_json import value2json
@@ -21,7 +21,7 @@ from mo_times import Timer, Date
 
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from pyLibrary.env import http
-from pyLibrary.env.big_data import compressed_bytes2ibytes, ibytes2ilines, scompressed2ibytes
+from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True

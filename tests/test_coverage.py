@@ -32,7 +32,7 @@ class TestCoverage(FuzzyTestCase):
         for source_file_index, obj in enumerate(stream.parse(_stream, [], ["."])):
             if source_file_index==0:
                 continue  # VERSION LINE
-            process_source_file(Data(), obj, Null, Null, Null, Null, records)
+            records = list(process_source_file(Data(), obj, Null, Null, Null, Null)
         Log.note("{{records|json}}", records=records)
 
     def test_read_coverage(self):

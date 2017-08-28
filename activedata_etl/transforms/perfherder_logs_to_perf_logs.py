@@ -10,23 +10,24 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 import datetime
 from copy import copy
 from math import sqrt
 
+from future.utils import text_type
+from jx_python import jx
+from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
+from mo_json import json2value
+from mo_logs import Log
+from mo_math import MIN, MAX, Math
+from mo_threads import Lock
+
 import mo_math
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
-from mo_logs import Log
-from mo_math import MIN, MAX, Math
 from mo_math.stats import ZeroMoment2Stats, ZeroMoment
-from mo_threads import Lock
 from mo_times.dates import Date
-from pyLibrary import convert
 from pyLibrary.env.git import get_git_revision
-from jx_python import jx
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000
@@ -91,6 +92,10 @@ KNOWN_PERFHERDER_TESTS = [
     "tp5o_scroll",
     "tp5o_webext",
     "tp5o",
+    "tp6_amazon",
+    "tp6_facebook",
+    "tp6_google",
+    "tp6_youtube",
     "tpaint",
     "tps",
     "tresize",
@@ -122,7 +127,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     for line in lines:
         perfherder_record = None
         try:
-            perfherder_record = convert.json2value(line)
+            perfherder_record = json2value(line)
             if not perfherder_record:
                 continue
             etl_source = perfherder_record.etl
@@ -162,7 +167,6 @@ def process(source_key, source, destination, resources, please_stop=None):
 def transform(source_key, perfherder, resources):
     try:
         buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
-        buildbot.repo.changeset.files = None
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:

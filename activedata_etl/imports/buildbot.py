@@ -15,7 +15,7 @@ import ast
 import re
 
 from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs.exceptions import suppress_exception
 from mo_logs import Log, strings
 from pyLibrary.env import elasticsearch
@@ -129,7 +129,7 @@ class BuildbotTranslator(object):
             output.build.date = Date(consume(props, "builddate"))
             if not output.build.date:
                 output.build.date = unicode2Date(output.build.id, "%Y%m%d%H%M%S")
-        except Exception, _:
+        except Exception as _:
             output.build.id = "<error>"
 
         # LOCALE
@@ -138,7 +138,7 @@ class BuildbotTranslator(object):
             output.action.repack = coalesce(consume(props, "repack"), True)
             locales = consume(props, "locales")
             try:
-                output.build.locales = convert.json2value(locales).keys()
+                output.build.locales = json2value(locales).keys()
             except Exception:
                 output.build.locales = locales.split(",")
 
@@ -162,7 +162,7 @@ class BuildbotTranslator(object):
         try:
             if blobber_files:
                 try:
-                    files = convert.json2value(blobber_files)
+                    files = json2value(blobber_files)
                 except Exception:
                     files = blobber_files
                 output.run.files = [
@@ -201,6 +201,8 @@ class BuildbotTranslator(object):
 
         if 'release' in buildername:
             output.tags += ['release']
+        if 'devedition' in buildername.lower():
+            output.tags += ['devedition']
         if buildername.endswith("nightly"):
             output.tags += ["nightly"]
 
@@ -333,7 +335,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Data()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR IGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -401,7 +403,7 @@ def unquote(value):
         return ast.literal_eval(value)
 
     with suppress_exception:
-        return convert.json2value(value)
+        return json2value(value)
 
     return value
 
@@ -425,7 +427,7 @@ def normalize_other(other):
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
         if isinstance(v, (list, dict, Data)):
-            unknown.append({"name": text_type(k), "value": convert.value2json(v)})
+            unknown.append({"name": text_type(k), "value": value2json(v)})
         elif Math.is_number(v):
             unknown.append({"name": text_type(k), "value": convert.value2number(v)})
         elif v in [True, "true", "True"]:
@@ -537,6 +539,7 @@ BUILDER_NAMES = [
     'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_publish_balrog',
     'release-{{branch}}-{{product}}_mark_as_shipped',
+    'release-{{branch}}-{{product}}_schedule_publishing_in_balrog',
     'release-{{branch}}-{{product}}_updates',
     'release-{{branch}}-{{product}}_version_bump',
     'release-{{branch}}-{{product}}_uptake_monitoring',
@@ -603,8 +606,10 @@ TEST_PLATFORMS = {
     "Ubuntu TSAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "Ubuntu HW 12.04 x64 qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
     "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
     "Ubuntu HW 12.04 x64 stylo-sequential": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo", "sequential"]}},
+    "Ubuntu HW 12.04 x64 devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
@@ -752,13 +757,14 @@ KNOWN_PLATFORM = {
     "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
-    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
-    "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
-    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "ubuntu64_hw_devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
+    "ubuntu64_hw_qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
     "ubuntu64_hw_stylo": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo"]}},
     "ubuntu64_hw_styloseq": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["stylo", "sequential"]}},
+    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
+    "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-add-on-devel": {"build": {"platform": "win32", "type": ["add-on"]}},
@@ -810,6 +816,7 @@ ALLOWED_PLATFORMS = [
 ALLOWED_PRODUCTS = [
     None,
     "b2g",
+    "devedition",
     "fennec",
     "firefox",
     "fuzzing",
@@ -817,8 +824,7 @@ ALLOWED_PRODUCTS = [
     "mobile",
     "spidermonkey",
     "thunderbird",
-    "xulrunner",
-    "devedition"
+    "xulrunner"
 ]
 
 

@@ -231,7 +231,7 @@ class FromES(Container):
                 for s in scripts:
                     updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
                     updates.append(s)
-            content = ("\n".join(convert.value2json(c) for c in updates) + "\n").encode('utf-8')
+            content = ("\n".join(value2json(c) for c in updates) + "\n").encode('utf-8')
             response = self._es.cluster.post(
                 self._es.path + "/_bulk",
                 data=content,

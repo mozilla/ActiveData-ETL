@@ -10,6 +10,12 @@ sudo yum -y install python27
 sudo easy_install pip
 sudo pip install --upgrade pip
 
+# SIMPLE PLACE FOR LOGS
+mkdir ~/logs
+mkdir ~/logs/monit_emails
+cd /
+sudo ln -s /home/ec2-user/logs logs
+
 
 # BUILDBOT PROCESSING REQUIRES THE FOLLOWING POLICY
 #{
@@ -93,12 +99,6 @@ nohup python27 modatasubmission/app.py --settings=resources/config/prod.json &
 disown -h
 exit
 
-# SIMPLE PLACE FOR LOGS
-mkdir ~/logs
-mkdir ~/logs/monit_emails
-cd /
-sudo ln -s /home/ec2-user/logs logs
-
 # COPY KEYS TO MACHINE
 #put ~/private_active_data_etl.json ~/private_active_data_etl.json
 cp ~/private_active_data_etl.json ~/private.json
@@ -114,7 +114,7 @@ cd ~
 git clone https://github.com/klahnakoski/esShardBalancer.git
 cd ~/esShardBalancer
 git checkout master
-sudo yum group install "Development Tools"
+sudo yum group install -y "Development Tools"
 sudo yum install -y libffi-devel
 sudo yum install -y openssl-devel
 
@@ -123,20 +123,24 @@ sudo /usr/local/bin/pip install fabric
 sudo /usr/local/bin/pip install -r requirements.txt
 
 # RUN IT
+mkdir /home/ec2-user/esShardBalancer/logs
 chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
-#INSTALL TREEHERDER EXTRACT
+# INSTALL TREEHERDER EXTRACT
+# REQUIRES A ./output/treeherder_last_run.json FILE
+# REQUIRES CONFIG
 cd ~
 git clone https://github.com/klahnakoski/MySQL-to-S3.git
 cd ~/MySQL-to-S3
 git checkout master
-sudo /usr/local/bin/pip install -r requirments.txt
+sudo /usr/local/bin/pip install -r requirements.txt
 
 # CRON JOBS
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
+chmod u+x /home/ec2-user/MySQL-to-S3/resources/scripts/treeherder_extract.sh
 chmod u+x /home/ec2-user/coco-diff/resources/scripts/post_etl.sh
 chmod u+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
