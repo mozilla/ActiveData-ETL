@@ -11,7 +11,8 @@ from __future__ import unicode_literals
 
 from future.utils import text_type
 from activedata_etl import key2etl
-from pyLibrary import convert
+
+from mo_json import json2value, value2json
 from pyLibrary.aws import s3
 from mo_logs import startup
 from mo_logs import Log
@@ -32,7 +33,7 @@ def compact(file):
     for l in lines:
         if l.strip() == "":
             continue
-        data = convert.json2value(l)
+        data = json2value(l)
         taskid = data.status.taskId
         if taskid in known_tasks:
             continue
@@ -67,7 +68,7 @@ def write_file(acc, bucket, files, g):
     for a in acc:
         a.etl.id = etl.id
         a.etl.source.id = etl.source.id
-    bucket.write_lines(key, map(convert.value2json, acc[:1000:]))
+    bucket.write_lines(key, map(value2json, acc[:1000:]))
     for f in files[:-1:]:
         if f.key != key:
             f.delete()

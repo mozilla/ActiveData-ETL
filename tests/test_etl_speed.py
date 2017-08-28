@@ -76,4 +76,4 @@ class Accumulator(object):
 
 
     def extend(self, values):
-        self.acc.extend(convert.value2json(v) for v in values)
+        self.acc.extend(value2json(v) for v in values)

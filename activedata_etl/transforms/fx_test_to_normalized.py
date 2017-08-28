@@ -9,12 +9,12 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from activedata_etl import key2etl, etl2key
-from activedata_etl.transforms.unittest_logs_to_sink import accumulate_logs
 from mo_dots import Data, wrap, set_default
-from mo_logs import Log, machine_metadata, strings
+from mo_logs import machine_metadata, strings
 from mo_times import Date
+
+from activedata_etl.transforms.unittest_logs_to_sink import accumulate_logs
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

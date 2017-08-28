@@ -38,7 +38,7 @@ def work(settings):
         # local_file.write(s3_file.read())
         Log.note("process file {{file}}", file=local_file.abspath)
         for line in local_file.read_lines():
-            m = convert.json2value(line)
+            m = json2value(line)
             id = m.status.taskId
             if id not in all_messages:
                 Log.note("net new task {{id}}", id=id)
@@ -53,7 +53,7 @@ def work(settings):
             Log.error("not expected")
         key = "tc." + unicode(id)
         file = bucket.get_key(key)
-        file.write_lines(map(convert.value2json, messages))
+        file.write_lines(map(value2json, messages))
         Log.note("write to {{key}}", key=key)
         done.add({
             "bucket": "active-data-task-cluster-logger",
@@ -75,9 +75,9 @@ def main():
                     "$ref": "file://~/private.json#aws_credentials"
                 },
                 "queue": {
-               		"name":"active-data-etl",
-               		"$ref": "file://~/private.json#aws_credentials"
-               	}
+                    "name": "active-data-etl",
+                    "$ref": "file://~/private.json#aws_credentials"
+                }
             },
             "file://settings.json"
         )

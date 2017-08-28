@@ -23,7 +23,7 @@ from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.env import http
@@ -115,10 +115,10 @@ def parse_day(settings, p, force=False):
             )
             try:
                 d.etl = row_etl
-                parsed.append(convert.value2json(d))
+                parsed.append(value2json(d))
             except Exception as e:
                 d = {"etl": row_etl}
-                parsed.append(convert.value2json(d))
+                parsed.append(value2json(d))
                 Log.warning("problem in {{path}}", path=day_url, cause=e)
 
         if group_number == 0:

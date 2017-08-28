@@ -11,11 +11,12 @@ from __future__ import unicode_literals
 
 from activedata_etl import etl2key, key2etl
 from mo_dots import Data, listwrap, wrap, set_default
+from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings
 from mo_math import Math
-from pyLibrary import convert
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_hg.hg_mozilla_org import minimize_repo
 from mo_times.dates import Date
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_git_revision
@@ -37,7 +38,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
         try:
-            raw_treeherder = convert.json2value(line)
+            raw_treeherder = json2value(line)
             etl_source = consume(raw_treeherder, "etl")
             if etl_source.source.source.id <= 687:
                 etl_source = wrap({"source": key2etl(source_key)})
@@ -152,15 +153,12 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         "changeset": {"id": new_treeherder.build.revision}
     }
     try:
-        new_treeherder.repo = resources.hg.get_revision(new_treeherder.repo)
+        new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
     except Exception as e:
-        if new_treeherder.build.branch in ["bmo-master", "snippets-tests"]:
+        if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests", "go-bouncer"]:
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
-    new_treeherder.repo.changeset.files = None
-    new_treeherder.repo.changeset.description = strings.limit(new_treeherder.repo.changeset.description, 1000)
-
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
     consume(raw_job, "push")
@@ -255,7 +253,7 @@ def pull_details(source_key, details, new_treeherder):
                 pass
             else:
                 # try:
-                #     title, value = convert.json2value("{"+d.value+"}").items(0)
+                #     title, value = json2value("{"+d.value+"}").items(0)
                 #     pull_details()
                 KNOWN_VALUES.append(d.value)
                 Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)

@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs import Log
 from mo_threads import Thread
 from mo_threads import Till
@@ -47,7 +47,7 @@ class SynchState(object):
                 Log.note("{{synchro_key}} does not exist.  Starting.", synchro_key=SYNCHRONIZATION_KEY)
                 return
 
-            last_run = convert.json2value(json)
+            last_run = json2value(json)
             self.next_key = last_run.next_key
             self.source_key = last_run.source_key
             if last_run.action == "shutdown":
@@ -91,7 +91,7 @@ class SynchState(object):
 
     def _start(self):
         self.ping_time = Date.now()
-        self.synch.write(convert.value2json({
+        self.synch.write(value2json({
             "action": "startup",
             "next_key": self.next_key,
             "source_key": self.source_key,
@@ -100,7 +100,7 @@ class SynchState(object):
 
     def ping(self):
         self.ping_time = Date.now()
-        self.synch.write(convert.value2json({
+        self.synch.write(value2json({
             "action": "ping",
             "next_key": self.next_key,
             "source_key": self.source_key,
@@ -124,7 +124,7 @@ class SynchState(object):
     def shutdown(self):
         self.pinger_thread.stop()
         self.pinger_thread.join()
-        self.synch.write(convert.value2json({
+        self.synch.write(value2json({
             "action": "shutdown",
             "next_key": self.next_key,
             "source_key": self.source_key,

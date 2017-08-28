@@ -10,17 +10,18 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from activedata_etl.transforms import TRY_AGAIN_LATER
-from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from mo_dots import Data, wrap, coalesce, set_default, literal_field
+from mo_json import json2value
 from mo_json import scrub
 from mo_logs import Log, strings
+from mo_math import MAX, MIN
+
+from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from mo_logs.exceptions import Except
-from mo_math import Math, MAX, MIN
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
-from pyLibrary import convert
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
@@ -28,8 +29,8 @@ DEBUG = True
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
-    etl_header = convert.json2value(lines[0]).etl
-    bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources, source_key=source_key)
+    etl_header = json2value(lines[0]).etl
+    bb_summary = transform_buildbot(json2value(lines[1]), resources=resources, source_key=source_key)
     return process_unittest(source_key, etl_header, bb_summary, lines, destination, please_stop=please_stop)
 
 
@@ -120,7 +121,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
         try:
             accumulator.stats.lines += 1
             last_line_was_json = False
-            log = convert.json2value(line)
+            log = json2value(line)
             last_line_was_json = True
             log.time = log.time / 1000
             accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])

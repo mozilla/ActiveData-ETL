@@ -31,7 +31,7 @@ from activedata_etl.transforms import Transform
 from mo_logs.exceptions import suppress_exception
 from mo_times.dates import Date
 from mo_times.durations import SECOND
-from mohg.hg_mozilla_org import HgMozillaOrg
+from mo_hg.hg_mozilla_org import HgMozillaOrg
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex

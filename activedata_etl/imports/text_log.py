@@ -15,7 +15,7 @@ from copy import copy
 
 from activedata_etl.imports import buildbot
 from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from mo_logs.exceptions import Except
 from mo_logs import Log, strings
 from mo_math import Math, MAX, MIN

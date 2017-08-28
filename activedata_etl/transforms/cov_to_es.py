@@ -9,13 +9,12 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_json import json2value
 from mo_logs import Log
-from pyLibrary import convert
 
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
-from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 
 DEBUG = True
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -43,7 +42,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping job ETL.")
 
         try:
-            task_cluster_record = convert.json2value(msg_line)
+            task_cluster_record = json2value(msg_line)
         except Exception as e:
             if "JSON string is only whitespace" in e:
                 continue

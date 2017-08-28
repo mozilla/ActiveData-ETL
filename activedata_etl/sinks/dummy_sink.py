@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from pyLibrary import convert
+from mo_json import json2value, value2json
 
 
 class DummySink(object):
@@ -18,7 +18,7 @@ class DummySink(object):
         pass
 
     def add(self, value):
-        json = convert.value2json(value)
+        json = value2json(value)
         # Log.note("{{json}}",  json= json)
 
     def extend(self, values):

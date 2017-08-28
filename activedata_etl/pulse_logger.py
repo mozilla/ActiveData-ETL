@@ -13,7 +13,7 @@ from future.utils import text_type
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 from mo_dots import set_default, coalesce, listwrap
 from pyLibrary import aws
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
 from mo_logs import startup, constants
@@ -74,7 +74,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                     for i, d in enumerate(g)
                     if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start
                 ]
-                bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
+                bucket.write(full_key, "\n".join(value2json(d) for d in output))
                 synch.advance()
                 synch.source_key = MAX(g.get("_meta.count")) + 1
 

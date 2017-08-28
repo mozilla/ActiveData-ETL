@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from mohg.hg_mozilla_org import HgMozillaOrg
+from mo_hg.hg_mozilla_org import HgMozillaOrg
 
 hg = HgMozillaOrg()
 hg.find_changeset("8f6cb5bed0cc")

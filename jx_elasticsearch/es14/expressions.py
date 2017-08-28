@@ -750,7 +750,7 @@ def _normalize(esfilter):
     if esfilter is TRUE_FILTER or esfilter is FALSE_FILTER or esfilter.isNormal:
         return esfilter
 
-    # Log.note("from: " + convert.value2json(esfilter))
+    # Log.note("from: " + value2json(esfilter))
     isDiff = True
 
     while isDiff:
