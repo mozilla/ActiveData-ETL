@@ -239,7 +239,7 @@ class RolloverIndex(object):
 def fix(rownum, line, source, sample_only_filter, sample_size):
     _id = coalesce(strings.between(line, '"_id": "', '"'), strings.between(line, '"_id":"', '"'))  # AVOID DECODING JSON
 
-    if _id.startswith("tc.97"):
+    if _id.startswith("tc.97") or _id.startswith("96"):
         # AUG 24, 25 2017 - included full diff with repo; too big to index
         try:
             data = json2value(line)
