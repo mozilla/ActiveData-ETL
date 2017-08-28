@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from future.utils import text_type
-from mo_dots import Data, wrap, coalesce, set_default, literal_field
+from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
 from mo_json import json2value
 from mo_json import scrub
 from mo_logs import Log, strings
@@ -141,8 +141,12 @@ def accumulate_logs(source_key, url, lines, please_stop):
         except Exception as e:
             e= Except.wrap(e)
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
-                Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
-
+                content = "\n".join(lines)
+                if "<Code>AccessDenied</Code>" in content:
+                    Log.warning("Access Denied to {{url}}", url=accumulator.url)
+                    return Null
+                else:
+                    Log.error(TRY_AGAIN_LATER, reason="Remote content is not ready")
             prefix = strings.limit(line, 500)
             Log.warning(
                 "bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}",
