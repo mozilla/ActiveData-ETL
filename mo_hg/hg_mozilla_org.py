@@ -55,10 +55,15 @@ DEBUG = True
 DAEMON_DEBUG = True
 DAEMON_INTERVAL = 30*SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
+
+
+
+
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 
-GET_DIFF = "{{location}}/raw-rev/{{rev}}"
-GET_FILE = "{{location}}/raw-file/{{rev}}{{path}}"
+GET_DIFF = False
+DIFF_URL = "{{location}}/raw-rev/{{rev}}"
+FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
 
 
 last_called_url = {}
@@ -149,7 +154,7 @@ class HgMozillaOrg(object):
         elif revision.branch.name == None:
             return Null
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
-        output = self._get_from_elasticsearch(revision, locale=locale)
+        output = self._get_from_elasticsearch(revision, locale=locale, get_diff=get_diff)
         if output:
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
@@ -186,13 +191,15 @@ class HgMozillaOrg(object):
         url = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
         with Explanation("get revision from {{url}}", url=url, debug=DEBUG):
             raw_rev = self._get_raw_revision(url, found_revision.branch)
-            output = self._normalize_revision(raw_rev, found_revision, push)
+            output = self._normalize_revision(raw_rev, found_revision, push, get_diff)
             self.todo.add((output.branch, listwrap(output.parents)))
             self.todo.add((output.branch, listwrap(output.children)))
 
+            if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
+                output.changeset.diff = None
             return output
 
-    def _get_from_elasticsearch(self, revision, locale=None):
+    def _get_from_elasticsearch(self, revision, locale=None, get_diff=False):
         rev = revision.changeset.id
         query = {
             "query": {"filtered": {
@@ -231,7 +238,9 @@ class HgMozillaOrg(object):
                     best = d._source
             Log.warning("expecting no more than one document")
 
-        if best.changeset.diff:
+        if not GET_DIFF and not get_diff:
+            return best
+        elif best.changeset.diff:
             return best
         elif not best.changeset.files:
             return best  # NOT EXPECTING A DIFF, RETURN IT ANYWAY
@@ -284,7 +293,7 @@ class HgMozillaOrg(object):
             Log.error("do not know what to do")
         return pushes[0]
 
-    def _normalize_revision(self, r, found_revision, push):
+    def _normalize_revision(self, r, found_revision, push, get_diff):
         new_names = set(r.keys()) - {"rev", "node", "user", "description", "date", "files", "backedoutby", "parents", "children", "branch", "tags"}
         if new_names and not r.tags:
             Log.warning("hg is returning new property names ({{names}})", names=new_names)
@@ -308,7 +317,8 @@ class HgMozillaOrg(object):
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
         # ADD THE DIFF
-        rev.changeset.diff = self._get_json_diff_from_hg(rev)
+        if get_diff or GET_DIFF:
+            rev.changeset.diff = self._get_json_diff_from_hg(rev)
 
         _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name + "-" + coalesce(rev.branch.locale, DEFAULT_LOCALE)
         with self.es_locker:
@@ -430,7 +440,7 @@ class HgMozillaOrg(object):
             except Exception:
                 pass
 
-            url = expand_template(GET_DIFF, {"location": revision.branch.url, "rev": changeset_id})
+            url = expand_template(DIFF_URL, {"location": revision.branch.url, "rev": changeset_id})
             if DEBUG:
                 Log.note("get unified diff from {{url}}", url=url)
             try:
@@ -446,7 +456,7 @@ class HgMozillaOrg(object):
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
-        response = http.get(expand_template(GET_FILE, {"location": revision.branch.url, "rev": revision.changeset.id, "path": file_path}))
+        response = http.get(expand_template(FILE_URL, {"location": revision.branch.url, "rev": revision.changeset.id, "path": file_path}))
         return response.content.decode("utf8", "replace")
 
 
