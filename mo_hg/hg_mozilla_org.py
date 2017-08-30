@@ -446,7 +446,7 @@ class HgMozillaOrg(object):
                 response = http.get(url)
                 diff = response.content.decode("utf8", "replace")
                 json_diff = diff_to_json(diff)
-                num_changes = jx.count(c for f in diff for c in f.changes)
+                num_changes = jx.count(c for f in json_diff for c in f.changes)
                 if json_diff and num_changes < MAX_DIFF_SIZE:
                     return json_diff
             except Exception as e:
