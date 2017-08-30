@@ -390,6 +390,10 @@ def parse_test(test, output):
         test = test.replace("-e10s", "")
         output.run.type += ["e10s"]
 
+    if "-stylo" in test:
+        test = test.replace("-stylo", "")
+        output.run.type += ["stylo"]
+
     for m, d in test_modes.items():
         if test.startswith(m):
             set_default(output, d)

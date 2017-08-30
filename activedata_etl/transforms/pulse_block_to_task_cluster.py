@@ -710,6 +710,7 @@ PAYLOAD_PROPERTIES = {
     "deadline",
     "description",
     "desiredResolution",
+    "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
     "google_play_track",

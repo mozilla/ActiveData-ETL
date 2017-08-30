@@ -15,6 +15,7 @@ from collections import Mapping
 from copy import copy
 
 from future.utils import text_type, binary_type
+from jx_python import jx
 
 import mo_threads
 from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
@@ -55,13 +56,11 @@ DEBUG = True
 DAEMON_DEBUG = True
 DAEMON_INTERVAL = 30*SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
-
-
-
-
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 
-GET_DIFF = False
+
+GET_DIFF = True
+MAX_DIFF_SIZE = 1000
 DIFF_URL = "{{location}}/raw-rev/{{rev}}"
 FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
 
@@ -447,7 +446,8 @@ class HgMozillaOrg(object):
                 response = http.get(url)
                 diff = response.content.decode("utf8", "replace")
                 json_diff = diff_to_json(diff)
-                if json_diff:
+                num_changes = jx.count(c for f in diff for c in f.changes)
+                if json_diff and num_changes < MAX_DIFF_SIZE:
                     return json_diff
             except Exception as e:
                 Log.warning("could not get unified diff", cause=e)
