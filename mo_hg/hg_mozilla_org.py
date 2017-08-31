@@ -189,7 +189,13 @@ class HgMozillaOrg(object):
 
         url = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
         with Explanation("get revision from {{url}}", url=url, debug=DEBUG):
-            raw_rev = self._get_raw_revision(url, found_revision.branch)
+            try:
+                raw_rev = self._get_raw_revision(url, found_revision.branch)
+            except Exception as e:
+                if "Hg denies it exists" in e :
+                    raw_rev = Data(node=revision.changeset.id)
+                else:
+                    raise e
             output = self._normalize_revision(raw_rev, found_revision, push, get_diff)
             self.todo.add((output.branch, listwrap(output.parents)))
             self.todo.add((output.branch, listwrap(output.children)))
@@ -248,10 +254,12 @@ class HgMozillaOrg(object):
 
     @cache(duration=HOUR, lock=True)
     def _get_raw_revision(self, url, branch):
-        raw_revs = self._get_and_retry(url, branch).values()
+        raw_revs = self._get_and_retry(url, branch)
+        if "(not in 'served' subset)" in raw_revs:
+            Log.error("Tried {{url}}. Hg denies it exists.", url=url)
         if len(raw_revs) != 1:
             Log.error("do not know what to do")
-        return raw_revs[0]
+        return raw_revs.values()[0]
 
     @cache(duration=HOUR, lock=True)
     def _get_push(self, branch, changeset_id):
@@ -331,9 +339,10 @@ class HgMozillaOrg(object):
         """
         kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
         try:
-            return _get_url(url, branch, **kwargs)
+            output = _get_url(url, branch, **kwargs)
+            return output
         except Exception as e:
-            pass
+            output = Null
 
         try:
             (Till(seconds=5)).wait()
