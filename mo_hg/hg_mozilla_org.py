@@ -458,6 +458,8 @@ class HgMozillaOrg(object):
                 num_changes = jx.count(c for f in json_diff for c in f.changes)
                 if json_diff and num_changes < MAX_DIFF_SIZE:
                     return json_diff
+                else:
+                    Log.warning("Revision at {{url}} has a diff with {{num}} changes, ignored", url=url, num=num_changes)
             except Exception as e:
                 Log.warning("could not get unified diff", cause=e)
 
