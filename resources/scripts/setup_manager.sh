@@ -97,7 +97,7 @@ export HOME=/home/ec2-user
 cd ~/MoDataSubmission
 nohup python27 modatasubmission/app.py --settings=resources/config/prod.json &
 disown -h
-exit
+#exit
 
 # COPY KEYS TO MACHINE
 #put ~/private_active_data_etl.json ~/private_active_data_etl.json
