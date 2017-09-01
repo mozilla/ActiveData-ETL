@@ -78,16 +78,18 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         consume(raw_job, "job_type.name"),
         consume(raw_job, "signature.job_type_name")
     )
-    new_treeherder.job.type.group.name = coalesce_w_conflict_detection(
-        consume(raw_job, "job_type.job_group.name"),
-        consume(raw_job, "signature.job_group_name"),
-        consume(raw_job, "job_group.name"),
-    )
-
     new_treeherder.job.type.group.symbol = coalesce_w_conflict_detection(
         consume(raw_job, "job_type.job_group.symbol"),
         consume(raw_job, "signature.job_group_symbol"),
         consume(raw_job, "job_group.symbol")
+    )
+
+    new_treeherder.job.type.group.name = coalesce_w_conflict_detection(
+        consume(raw_job, "job_type.job_group.name"),
+        consume(raw_job, "job_type.job_group"),
+        consume(raw_job, "signature.job_group_name"),
+        consume(raw_job, "job_group.name"),
+        consume(raw_job, "job_group")
     )
 
     new_treeherder.job.guid = consume(raw_job, "guid")
@@ -279,7 +281,11 @@ def coalesce_w_conflict_detection(source_key, *args):
 
 
 def consume(props, key):
-    output, props[key] = props[key], None
+    output = props[key]
+    try:
+        props[key] = None
+    except Exception:
+        pass
     return output
 
 

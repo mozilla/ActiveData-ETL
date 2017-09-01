@@ -323,6 +323,9 @@ class HgMozillaOrg(object):
             push=push,
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
+        # if r.description.startswith("merge "):
+        #     rev.merge['from']=
+
         # ADD THE DIFF
         if get_diff or GET_DIFF:
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
@@ -459,6 +462,8 @@ class HgMozillaOrg(object):
                 if json_diff:
                     if num_changes < MAX_DIFF_SIZE:
                         return json_diff
+                    elif revision.changeset.description.startswith("merge "):
+                        pass  # IGNORE THE MERGE CHANGESETS
                     else:
                         Log.warning("Revision at {{url}} has a diff with {{num}} changes, ignored", url=url, num=num_changes)
             except Exception as e:
