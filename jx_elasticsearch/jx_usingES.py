@@ -13,7 +13,8 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from jx_python import jx, containers, Schema
+from jx_base import container
+from jx_python import jx
 from mo_dots import Data
 from mo_dots import coalesce, split_field, literal_field, unwraplist, join_field
 from mo_dots import wrap, listwrap
@@ -21,19 +22,20 @@ from mo_kwargs import override
 from mo_logs import Log
 from pyLibrary import convert
 
+from jx_base.container import Container
+from jx_base.dimensions import Dimension
 from jx_base.expressions import jx_expression
 from jx_base.queries import is_variable_name
+from jx_base.query import QueryOp
+from jx_base.schema import Schema
 from jx_elasticsearch.es09 import aggop as es09_aggop
 from jx_elasticsearch.es09 import setop as es09_setop
 from jx_elasticsearch.es14.aggs import es_aggsop, is_aggsop
 from jx_elasticsearch.es14.deep import is_deepop, es_deepop
 from jx_elasticsearch.es14.setop import is_setop, es_setop
 from jx_elasticsearch.es14.util import aggregates1_4
-from jx_python.containers import Container
-from jx_python.dimensions import Dimension
 from jx_elasticsearch.meta import FromESMetadata
 from jx_python.namespace.typed import Typed
-from jx_python.query import QueryOp
 from mo_dots.lists import FlatList
 from mo_logs.exceptions import Except
 from pyLibrary.env import elasticsearch, http
@@ -68,8 +70,8 @@ class FromES(Container):
         kwargs=None
     ):
         Container.__init__(self, None)
-        if not containers.config.default:
-            containers.config.default.settings = kwargs
+        if not container.config.default:
+            container.config.default.settings = kwargs
         self.settings = kwargs
         self.name = coalesce(name, alias, index)
         if read_only:
@@ -231,7 +233,7 @@ class FromES(Container):
                 for s in scripts:
                     updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
                     updates.append(s)
-            content = ("\n".join(value2json(c) for c in updates) + "\n").encode('utf-8')
+            content = ("\n".join(convert.value2json(c) for c in updates) + "\n").encode('utf-8')
             response = self._es.cluster.post(
                 self._es.path + "/_bulk",
                 data=content,
@@ -242,5 +244,5 @@ class FromES(Container):
             if response.errors:
                 Log.error("could not update: {{error}}", error=[e.error for i in response["items"] for e in i.values() if e.status not in (200, 201)])
 
-from jx_python.containers import type2container
+from jx_base.container import type2container
 type2container["elasticsearch"]=FromES
