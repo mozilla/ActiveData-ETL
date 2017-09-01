@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 import re
 
+from mo_dots import wrap
 from mo_logs import Log, strings
 
 MAX_CONTENT_LENGTH = 500  # SOME "lines" FOR CODE ARE REALLY TOO LONG
@@ -90,4 +91,4 @@ def diff_to_json(unified_diff):
             "old": {"name": old_file_path},
             "changes": changes
         })
-    return output
+    return wrap(output)

@@ -157,7 +157,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         Log.warning("No perfherder records are found in {{key}}", key=source_key)
 
     try:
-        destination.extend(records)
+        destination.extend(records, overwrite=True)
         return [source_key]
     except Exception as e:
         Log.error("Could not add {{num}} documents when processing key {{key}}", key=source_key, num=len(records), cause=e)

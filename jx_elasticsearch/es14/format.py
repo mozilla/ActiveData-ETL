@@ -242,7 +242,7 @@ def format_line(decoders, aggs, start, query, select):
 
     def data():
         for d in list.data:
-            yield value2json(d)
+            yield convert.value2json(d)
 
     return data()
 

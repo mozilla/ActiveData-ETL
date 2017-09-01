@@ -17,7 +17,8 @@ import re
 from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
 from mo_json import json2value, value2json
 from mo_logs.exceptions import suppress_exception
-from mo_logs import Log, strings, convert
+from mo_logs import Log, strings
+from pyLibrary import convert
 from pyLibrary.env import elasticsearch
 from mo_math import Math
 from mo_times.dates import Date, unicode2Date
@@ -388,6 +389,10 @@ def parse_test(test, output):
     if "-e10s" in test:
         test = test.replace("-e10s", "")
         output.run.type += ["e10s"]
+
+    if "-stylo" in test:
+        test = test.replace("-stylo", "")
+        output.run.type += ["stylo"]
 
     for m, d in test_modes.items():
         if test.startswith(m):

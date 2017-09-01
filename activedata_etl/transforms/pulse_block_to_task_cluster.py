@@ -710,6 +710,7 @@ PAYLOAD_PROPERTIES = {
     "deadline",
     "description",
     "desiredResolution",
+    "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
     "google_play_track",
@@ -851,9 +852,13 @@ KNOWN_TAGS = {
     "npmCache.url",
     "npmCache.expires",
     "objective",
+    "os",
     "owner",
     "partial_versions",
+    "partials",
+    "payload.dry_run",
     "platforms",
+    "signed_installer_url",
     "signing.signature",
     "source",
     "suite.flavor",
@@ -864,7 +869,8 @@ KNOWN_TAGS = {
     "upload_to_task_id",
     "url.busybox",
     "useCloudMirror",
-    "who"
+    "who",
+    "worker-implementation"
 } | PAYLOAD_PROPERTIES
 
 def consume(props, key):
