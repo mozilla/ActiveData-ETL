@@ -233,7 +233,7 @@ class RolloverIndex(object):
                 queue.add(done_copy)
 
         if pending:
-            Log.error("Did not find an index to place the data for key={{key}}", key=tuple(keys)[0])
+            Log.error("Did not find an index for {{alias}} to place the data for key={{key}}", key=tuple(keys)[0], alias=self.settings.index)
 
         Log.note("{{num}} keys from {{key|json}} added", num=num_keys, key=keys)
         return num_keys
