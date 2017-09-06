@@ -466,6 +466,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
         if not normalized.repo:
             Log.error("No repo found for {{rev}}", rev=normalized.build.revision)
+        if not normalized.repo.push.date:
+            Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
 
     treeherder = consume(task, "extra.treeherder")

@@ -52,6 +52,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         parent_etl = task_cluster_record.etl
         artifacts = task_cluster_record.task.artifacts
         minimize_task(task_cluster_record)
+
         etl_header_gen = EtlHeadGenerator(source_key)
         coverage_artifact_exists = False
 
@@ -74,6 +75,10 @@ def process(source_key, source, destination, resources, please_stop=None):
                     #     please_stop
                     # ))
                 elif "grcov" in artifact.name:
+                    if not task_cluster_record.repo.push.date:
+                        Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
+                        continue
+
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:

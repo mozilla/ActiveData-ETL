@@ -330,9 +330,12 @@ class HgMozillaOrg(object):
         if get_diff or GET_DIFF:
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
 
-        _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name + "-" + coalesce(rev.branch.locale, DEFAULT_LOCALE)
-        with self.es_locker:
-            self.es.add({"id": _id, "value": rev})
+        try:
+            _id = coalesce(rev.changeset.id12, "") + "-" + rev.branch.name + "-" + coalesce(rev.branch.locale, DEFAULT_LOCALE)
+            with self.es_locker:
+                self.es.add({"id": _id, "value": rev})
+        except Exception as e:
+            Log.warning("did not save to ES", cause=e)
 
         return rev
 
