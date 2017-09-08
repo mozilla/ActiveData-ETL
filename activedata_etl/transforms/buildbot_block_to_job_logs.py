@@ -119,7 +119,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "Text log does not exist"
                 else:
                     all_log_lines = response.get_all_lines(encoding=None)
-                    action = process_text_log(all_log_lines, url)
+                    action = process_text_log(all_log_lines, url, source_key)
                     set_default(data.action, action)
 
                 data.action.duration = data.action.end_time - data.action.start_time
