@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-sudo ifconfig eth0 mtu 1500
-
-
 sudo yum -y install git
 
 # INSTALL PYTHON
