@@ -170,7 +170,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
 
     try:
         fix_overlap(action.timings)
-        fix_times(action.timings, start_time, end_time)
+        fix_times(action.timings, start_time, end_time, source_key)
 
         new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
@@ -179,7 +179,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
             if not b.children:
                 continue
 
-            fix_times(b.children, b.start_time, b.end_time)
+            fix_times(b.children, b.start_time, b.end_time, source_key)
             # INJECT CHILDREN INTO THIS LIST
             new_build_times.extend([
                 {
@@ -207,7 +207,7 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     return action
 
 
-def process_text_log(all_log_lines, from_url):
+def process_text_log(all_log_lines, from_url, source_key):
     """
     Buildbot logs:
 
@@ -356,7 +356,7 @@ def process_text_log(all_log_lines, from_url):
             }]
 
     try:
-        fix_times(data.timings.builder, start_time, end_time)
+        fix_times(data.timings.builder, start_time, end_time, source_key)
         new_build_times = FlatList()
         # GO IN REVERSE SO WE CAN INSERT INTO THE LIST
         for b in data.timings:
@@ -365,7 +365,7 @@ def process_text_log(all_log_lines, from_url):
             if not b.children:
                 continue
 
-            fix_times(b.children, b.start_time, b.end_time)
+            fix_times(b.children, b.start_time, b.end_time, source_key)
             # INJECT CHILDREN INTO THIS LIST
             new_build_times.extend([
                 {
@@ -749,7 +749,7 @@ def fix_overlap(times):
             break
 
 
-def fix_times(times, start_time, end_time):
+def fix_times(times, start_time, end_time, source_key):
     if start_time == None or end_time == None:
         Log.error("Require a time range")
     if not times:
@@ -771,6 +771,10 @@ def fix_times(times, start_time, end_time):
         t.duration = MAX([time, t.end_time]) - t.start_time
         if t.duration < 0 and end_time.floor(DAY).unix == 1478390400: # 6 nov 2016
             t.duration+=HOUR
-        if t.duration==None or t.duration < 0:
-            Log.error("logic error")
+        if t.duration == None or t.duration < 0:
+            if t.duration > -1 and t.raw_step == u'downloading to buildprops.json':
+                t.duration = 0
+                Log.warning("negative time detected in step {{step|quote}} for key {{key}}, but small enough to ignore", key=source_key, step=t.step)
+            else:
+                Log.error("logic error")
         time = t.start_time

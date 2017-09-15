@@ -9,15 +9,15 @@
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
-from mo_dots import Data, set_default
-from mo_json import json2value
-from mo_logs import Log
-
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_job_logs import verify_equal, process_text_log
+from mo_dots import Data, set_default
+from mo_dots import coalesce
 from mo_hg.hg_mozilla_org import minimize_repo
+from mo_json import json2value
+from mo_logs import Log
 from mo_logs.exceptions import Except
 from mo_times.dates import Date
 from mo_times.durations import MONTH
@@ -66,6 +66,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 branch={"name": data.build.branch, "locale": data.build.locale}
             )
             data.repo = minimize_repo(resources.hg.get_revision(rev))
+            data.build.date = coalesce(data.build.date, data.repo.changeset.date)
         except Exception as e:
             if data.action.start_time > Date.today()-MONTH:
                 # ONLY SEND WARNING IF IT IS RECENT
@@ -118,7 +119,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     data.etl.error = "Text log does not exist"
                 else:
                     all_log_lines = response.get_all_lines(encoding=None)
-                    action = process_text_log(all_log_lines, url)
+                    action = process_text_log(all_log_lines, url, source_key)
                     set_default(data.action, action)
 
                 data.action.duration = data.action.end_time - data.action.start_time
