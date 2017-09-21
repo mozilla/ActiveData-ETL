@@ -15,15 +15,15 @@ from collections import Mapping
 from copy import copy
 
 from future.utils import text_type, binary_type
-from jx_python import jx
 
 import mo_threads
+from jx_python import jx
 from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
 from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
-from mo_json import json2value, scrub
+from mo_json import json2value
 from mo_kwargs import override
 from mo_logs import Log, strings, machine_metadata
 from mo_logs.exceptions import Explanation, assert_no_exception, Except, suppress_exception
@@ -54,10 +54,11 @@ def _late_imports():
 DEFAULT_LOCALE = "en-US"
 DEBUG = True
 DAEMON_DEBUG = True
-DAEMON_INTERVAL = 30*SECOND
+DAEMON_INTERVAL = 30 * SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
+DAEMON_QUEUE_SIZE = 2 ** 15
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
-
+MIN_ETL_AGE = 1506038400  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS ARE REPLACED
 
 GET_DIFF = True
 MAX_DIFF_SIZE = 1000
@@ -88,7 +89,7 @@ class HgMozillaOrg(object):
             _late_imports()
 
         self.es_locker = Lock()
-        self.todo = mo_threads.Queue("todo for hg daemon", max=2 ** 15)
+        self.todo = mo_threads.Queue("todo for hg daemon", max=DAEMON_QUEUE_SIZE)
 
         self.settings = kwargs
         self.timeout = Duration(timeout)
@@ -132,7 +133,7 @@ class HgMozillaOrg(object):
                     with Explanation("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r, debug=DAEMON_DEBUG):
                         rev = self.get_revision(Revision(branch=branch, changeset={"id": r}))
                         if DAEMON_DEBUG:
-                            Log.note("date {{date|datetime}}", date=rev.push.date)
+                            Log.note("found revision with push date {{date|datetime}}", date=rev.push.date)
                         revisions.discard(r)
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION
@@ -216,7 +217,7 @@ class HgMozillaOrg(object):
                     {"term": {"changeset.id12": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}},
                     {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
-                    {"range": {"etl.timestamp": {"gt": 1506038400}}}  # sept 22nd 2017
+                    {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                 ]}
             }},
             "size": 2000
@@ -500,7 +501,7 @@ class HgMozillaOrg(object):
 
 
 def _trim(url):
-    return url.split("/json-pushes?")[0].split("/json-info?")[0]
+    return url.split("/json-pushes?")[0].split("/json-info?")[0].split("/json-rev/")[0]
 
 
 def _get_url(url, branch, **kwargs):

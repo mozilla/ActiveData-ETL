@@ -29,7 +29,7 @@ MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
 
-def process_tc_live_log(all_log_lines, from_url, task_record):
+def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
     """
         [taskcluster 2016-10-04 17:09:02.626Z] Task ID: abzkq-CjS_KJzNEhE6nVhA
         [taskcluster 2016-10-04 17:09:02.626Z] Worker ID: i-0348d7e9408f77f42
