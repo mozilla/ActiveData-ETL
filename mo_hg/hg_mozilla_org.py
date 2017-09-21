@@ -88,7 +88,7 @@ class HgMozillaOrg(object):
             _late_imports()
 
         self.es_locker = Lock()
-        self.todo = mo_threads.Queue("todo")
+        self.todo = mo_threads.Queue("todo for hg daemon", max=2 ** 15)
 
         self.settings = kwargs
         self.timeout = Duration(timeout)
