@@ -218,6 +218,7 @@ def _all_default(d, default, seen=None):
                         if PATH_NOT_FOUND not in e:
                             get_logger().error("Can not set attribute {{name}}", name=k, cause=e)
         elif isinstance(existing_value, list) or isinstance(default_value, list):
+            _set_attr(d, [k], None)
             _set_attr(d, [k], listwrap(existing_value) + listwrap(default_value))
         elif (hasattr(existing_value, "__setattr__") or isinstance(existing_value, Mapping)) and isinstance(default_value, Mapping):
             df = seen.get(id(default_value))
@@ -350,7 +351,7 @@ def _get_attr(obj, path):
     try:
         obj = obj[attr_name]
         return _get_attr(obj, path[1:])
-    except Exception, f:
+    except Exception as f:
         return None
 
 
@@ -369,6 +370,8 @@ def _set_attr(obj_, path, value):
         if old_value == None:
             old_value = None
             new_value = value
+        elif value == None:
+            new_value = None
         else:
             new_value = old_value.__class__(value)  # TRY TO MAKE INSTANCE OF SAME CLASS
     except Exception as e:

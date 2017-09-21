@@ -23,7 +23,7 @@ from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
-from mo_json import json2value
+from mo_json import json2value, scrub
 from mo_kwargs import override
 from mo_logs import Log, strings, machine_metadata
 from mo_logs.exceptions import Explanation, assert_no_exception, Except, suppress_exception
@@ -187,16 +187,19 @@ class HgMozillaOrg(object):
         if not push:
             Log.error("did not get push!")
 
-        url = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
-        with Explanation("get revision from {{url}}", url=url, debug=DEBUG):
+        url1 = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
+        url2 = found_revision.branch.url.rstrip("/") + "/json-rev/" + found_revision.changeset.id[0:12]
+        with Explanation("get revision from {{url}}", url=url1, debug=DEBUG):
+            raw_rev2 = Null
             try:
-                raw_rev = self._get_raw_revision(url, found_revision.branch)
+                raw_rev1 = self._get_raw_json_info(url1, found_revision.branch)
+                raw_rev2 = self._get_raw_json_rev(url2, found_revision.branch)
             except Exception as e:
                 if "Hg denies it exists" in e :
-                    raw_rev = Data(node=revision.changeset.id)
+                    raw_rev1 = Data(node=revision.changeset.id)
                 else:
                     raise e
-            output = self._normalize_revision(raw_rev, found_revision, push, get_diff)
+            output = self._normalize_revision(set_default(raw_rev1, raw_rev2), found_revision, push, get_diff)
             self.todo.add((output.branch, listwrap(output.parents)))
             self.todo.add((output.branch, listwrap(output.children)))
 
@@ -212,7 +215,8 @@ class HgMozillaOrg(object):
                 "filter": {"and": [
                     {"term": {"changeset.id12": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}},
-                    {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}}
+                    {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
+                    {"range": {"etl.timestamp": {"gt": 1506038400}}}  # sept 22nd 2017
                 ]}
             }},
             "size": 2000
@@ -253,13 +257,18 @@ class HgMozillaOrg(object):
             return None
 
     @cache(duration=HOUR, lock=True)
-    def _get_raw_revision(self, url, branch):
+    def _get_raw_json_info(self, url, branch):
         raw_revs = self._get_and_retry(url, branch)
         if "(not in 'served' subset)" in raw_revs:
             Log.error("Tried {{url}}. Hg denies it exists.", url=url)
         if len(raw_revs) != 1:
             Log.error("do not know what to do")
         return raw_revs.values()[0]
+
+    @cache(duration=HOUR, lock=True)
+    def _get_raw_json_rev(self, url, branch):
+        raw_rev = self._get_and_retry(url, branch)
+        return raw_rev
 
     @cache(duration=HOUR, lock=True)
     def _get_push(self, branch, changeset_id):
@@ -301,7 +310,7 @@ class HgMozillaOrg(object):
         return pushes[0]
 
     def _normalize_revision(self, r, found_revision, push, get_diff):
-        new_names = set(r.keys()) - {"rev", "node", "user", "description", "date", "files", "backedoutby", "parents", "children", "branch", "tags"}
+        new_names = set(r.keys()) - {"rev", "node", "user", "description", "desc", "date", "files", "backedoutby", "parents", "children", "branch", "tags", "pushuser", "pushdate", "pushid", "phase", "bookmarks"}
         if new_names and not r.tags:
             Log.warning("hg is returning new property names ({{names}})", names=new_names)
 
@@ -309,15 +318,18 @@ class HgMozillaOrg(object):
             id=r.node,
             id12=r.node[0:12],
             author=r.user,
-            description=strings.limit(r.description, 2000),
-            date=Date(r.date),
+            description=strings.limit(coalesce(r.description, r.desc), 2000),
+            date=parse_hg_date(r.date),
             files=r.files,
             backedoutby=r.backedoutby,
             bug=self._extract_bug_id(r.description)
         )
+        r.desc = None
         r.node = None
         r.user = None
-        set_default(changeset, r)
+        r.pushuser = None
+        r.pushdate = None
+        r.pushid = None
 
         rev = Revision(
             branch=found_revision.branch,
@@ -326,10 +338,12 @@ class HgMozillaOrg(object):
             parents=unwraplist(r.parents),
             children=unwraplist(r.children),
             push=push,
+            phase=r.phase,
+            bookmarks=unwraplist(r.bookmarks),
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
-        # if r.description.startswith("merge "):
-        #     rev.merge['from']=
+
+        set_default(rev, r)
 
         # ADD THE DIFF
         if get_diff or GET_DIFF:
@@ -497,6 +511,16 @@ def _get_url(url, branch, **kwargs):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
         return data
+
+
+def parse_hg_date(date):
+    if isinstance(date, text_type):
+        return Date(date)
+    elif isinstance(date, list):
+        # FIRST IN TUPLE (timestamp, time_zone) TUPLE, WHERE timestamp IS GMT
+        return Date(date[0])
+    else:
+        Log.error("Can not deal with date like {{date|json}}", date=date)
 
 
 
