@@ -305,19 +305,24 @@ class HgMozillaOrg(object):
         if new_names and not r.tags:
             Log.warning("hg is returning new property names ({{names}})", names=new_names)
 
+        changeset = Changeset(
+            id=r.node,
+            id12=r.node[0:12],
+            author=r.user,
+            description=strings.limit(r.description, 2000),
+            date=Date(r.date),
+            files=r.files,
+            backedoutby=r.backedoutby,
+            bug=self._extract_bug_id(r.description)
+        )
+        r.node = None
+        r.user = None
+        set_default(changeset, r)
+
         rev = Revision(
             branch=found_revision.branch,
             index=r.rev,
-            changeset=Changeset(
-                id=r.node,
-                id12=r.node[0:12],
-                author=r.user,
-                description=strings.limit(r.description, 2000),
-                date=Date(r.date),
-                files=r.files,
-                backedoutby=r.backedoutby,
-                bug=self._extract_bug_id(r.description)
-            ),
+            changeset=changeset,
             parents=unwraplist(r.parents),
             children=unwraplist(r.children),
             push=push,
