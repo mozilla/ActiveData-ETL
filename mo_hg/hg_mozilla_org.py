@@ -15,9 +15,9 @@ from collections import Mapping
 from copy import copy
 
 from future.utils import text_type, binary_type
-from jx_python import jx
 
 import mo_threads
+from jx_python import jx
 from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
 from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
@@ -54,10 +54,11 @@ def _late_imports():
 DEFAULT_LOCALE = "en-US"
 DEBUG = True
 DAEMON_DEBUG = True
-DAEMON_INTERVAL = 30*SECOND
+DAEMON_INTERVAL = 30 * SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
+DAEMON_QUEUE_SIZE = 2 ** 15
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
-
+MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 GET_DIFF = True
 MAX_DIFF_SIZE = 1000
@@ -88,7 +89,7 @@ class HgMozillaOrg(object):
             _late_imports()
 
         self.es_locker = Lock()
-        self.todo = mo_threads.Queue("todo for hg daemon", max=2 ** 15)
+        self.todo = mo_threads.Queue("todo for hg daemon", max=DAEMON_QUEUE_SIZE)
 
         self.settings = kwargs
         self.timeout = Duration(timeout)
@@ -132,7 +133,7 @@ class HgMozillaOrg(object):
                     with Explanation("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r, debug=DAEMON_DEBUG):
                         rev = self.get_revision(Revision(branch=branch, changeset={"id": r}))
                         if DAEMON_DEBUG:
-                            Log.note("date {{date|datetime}}", date=rev.push.date)
+                            Log.note("found revision with push date {{date|datetime}}", date=rev.push.date)
                         revisions.discard(r)
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION
@@ -187,18 +188,22 @@ class HgMozillaOrg(object):
         if not push:
             Log.error("did not get push!")
 
-        url = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
-        with Explanation("get revision from {{url}}", url=url, debug=DEBUG):
+        url1 = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
+        url2 = found_revision.branch.url.rstrip("/") + "/json-rev/" + found_revision.changeset.id[0:12]
+        with Explanation("get revision from {{url}}", url=url1, debug=DEBUG):
+            raw_rev2 = Null
             try:
-                raw_rev = self._get_raw_revision(url, found_revision.branch)
+                raw_rev1 = self._get_raw_json_info(url1, found_revision.branch)
+                raw_rev2 = self._get_raw_json_rev(url2, found_revision.branch)
             except Exception as e:
                 if "Hg denies it exists" in e :
-                    raw_rev = Data(node=revision.changeset.id)
+                    raw_rev1 = Data(node=revision.changeset.id)
                 else:
                     raise e
-            output = self._normalize_revision(raw_rev, found_revision, push, get_diff)
-            self.todo.add((output.branch, listwrap(output.parents)))
-            self.todo.add((output.branch, listwrap(output.children)))
+            output = self._normalize_revision(set_default(raw_rev1, raw_rev2), found_revision, push, get_diff)
+            if output.push.date >= Date.now()-MAX_TODO_AGE:
+                self.todo.add((output.branch, listwrap(output.parents)))
+                self.todo.add((output.branch, listwrap(output.children)))
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
@@ -212,7 +217,8 @@ class HgMozillaOrg(object):
                 "filter": {"and": [
                     {"term": {"changeset.id12": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}},
-                    {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}}
+                    {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
+                    {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                 ]}
             }},
             "size": 2000
@@ -253,13 +259,18 @@ class HgMozillaOrg(object):
             return None
 
     @cache(duration=HOUR, lock=True)
-    def _get_raw_revision(self, url, branch):
+    def _get_raw_json_info(self, url, branch):
         raw_revs = self._get_and_retry(url, branch)
         if "(not in 'served' subset)" in raw_revs:
             Log.error("Tried {{url}}. Hg denies it exists.", url=url)
         if len(raw_revs) != 1:
             Log.error("do not know what to do")
         return raw_revs.values()[0]
+
+    @cache(duration=HOUR, lock=True)
+    def _get_raw_json_rev(self, url, branch):
+        raw_rev = self._get_and_retry(url, branch)
+        return raw_rev
 
     @cache(duration=HOUR, lock=True)
     def _get_push(self, branch, changeset_id):
@@ -301,30 +312,47 @@ class HgMozillaOrg(object):
         return pushes[0]
 
     def _normalize_revision(self, r, found_revision, push, get_diff):
-        new_names = set(r.keys()) - {"rev", "node", "user", "description", "date", "files", "backedoutby", "parents", "children", "branch", "tags"}
+        new_names = set(r.keys()) - {"rev", "node", "user", "description", "desc", "date", "files", "backedoutby", "parents", "children", "branch", "tags", "pushuser", "pushdate", "pushid", "phase", "bookmarks"}
         if new_names and not r.tags:
             Log.warning("hg is returning new property names ({{names}})", names=new_names)
 
+        changeset = Changeset(
+            id=r.node,
+            id12=r.node[0:12],
+            author=r.user,
+            description=strings.limit(coalesce(r.description, r.desc), 2000),
+            date=parse_hg_date(r.date),
+            files=r.files,
+            backedoutby=r.backedoutby if r.backedoutby else None,
+            bug=self._extract_bug_id(r.description)
+        )
         rev = Revision(
             branch=found_revision.branch,
             index=r.rev,
-            changeset=Changeset(
-                id=r.node,
-                id12=r.node[0:12],
-                author=r.user,
-                description=strings.limit(r.description, 2000),
-                date=Date(r.date),
-                files=r.files,
-                backedoutby=r.backedoutby,
-                bug=self._extract_bug_id(r.description)
-            ),
-            parents=unwraplist(r.parents),
-            children=unwraplist(r.children),
+            changeset=changeset,
+            parents=unwraplist(list(set(r.parents))),
+            children=unwraplist(list(set(r.children))),
             push=push,
+            phase=r.phase,
+            bookmarks=unwraplist(r.bookmarks),
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
-        # if r.description.startswith("merge "):
-        #     rev.merge['from']=
+
+        r.pushuser = None
+        r.pushdate = None
+        r.pushid = None
+        r.node = None
+        r.user = None
+        r.desc = None
+        r.description = None
+        r.date = None
+        r.files = None
+        r.backedoutby = None
+        r.parents = None
+        r.children = None
+        r.bookmarks = None
+
+        set_default(rev, r)
 
         # ADD THE DIFF
         if get_diff or GET_DIFF:
@@ -443,7 +471,8 @@ class HgMozillaOrg(object):
                         "query": {"filtered": {
                             "query": {"match_all": {}},
                             "filter": {"and": [
-                                {"prefix": {"changeset.id": changeset_id}}
+                                {"prefix": {"changeset.id": changeset_id}},
+                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                             ]}
                         }},
                         "size": 1
@@ -451,7 +480,7 @@ class HgMozillaOrg(object):
                     json_diff = response.hits.hits[0]._source.changeset.diff
                 if json_diff:
                     return json_diff
-            except Exception:
+            except Exception as e:
                 pass
 
             url = expand_template(DIFF_URL, {"location": revision.branch.url, "rev": changeset_id})
@@ -481,7 +510,7 @@ class HgMozillaOrg(object):
 
 
 def _trim(url):
-    return url.split("/json-pushes?")[0].split("/json-info?")[0]
+    return url.split("/json-pushes?")[0].split("/json-info?")[0].split("/json-rev/")[0]
 
 
 def _get_url(url, branch, **kwargs):
@@ -494,6 +523,14 @@ def _get_url(url, branch, **kwargs):
         return data
 
 
+def parse_hg_date(date):
+    if isinstance(date, text_type):
+        return Date(date)
+    elif isinstance(date, list):
+        # FIRST IN TUPLE (timestamp, time_zone) TUPLE, WHERE timestamp IS GMT
+        return Date(date[0])
+    else:
+        Log.error("Can not deal with date like {{date|json}}", date=date)
 
 
 def minimize_repo(repo):
@@ -513,7 +550,9 @@ for k in [
     "branch.etl",
     "branch.parent_name",
     "children",
-    "parents"
+    "parents",
+    "phase",
+    "bookmarks"
 ]:
     _exclude_from_repo[k] = True
 _exclude_from_repo = _exclude_from_repo

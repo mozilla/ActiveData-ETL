@@ -166,7 +166,7 @@ def read_actions(source_key, normalized, url):
         return
     try:
         all_log_lines = http.get(url).get_all_lines(encoding=None)
-        normalized.action = process_tc_live_log(all_log_lines, url, normalized)
+        normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
         if "Read timed out" in e:

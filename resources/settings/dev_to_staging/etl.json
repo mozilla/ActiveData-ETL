@@ -270,6 +270,9 @@
 	],
 	"debug": {
 		"trace": true,
+		"constants":{
+			"mo_hg.hg_mozilla_org.MAX_TODO_AGE":31536000  // ONE YEAR
+		},
 //		"cprofile": true,
 		"log": [
 			{
