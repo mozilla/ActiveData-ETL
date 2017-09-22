@@ -58,7 +58,7 @@ DAEMON_INTERVAL = 30 * SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
-MIN_ETL_AGE = 1506038400  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS ARE REPLACED
+MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 GET_DIFF = True
 MAX_DIFF_SIZE = 1000
@@ -201,8 +201,9 @@ class HgMozillaOrg(object):
                 else:
                     raise e
             output = self._normalize_revision(set_default(raw_rev1, raw_rev2), found_revision, push, get_diff)
-            self.todo.add((output.branch, listwrap(output.parents)))
-            self.todo.add((output.branch, listwrap(output.children)))
+            if output.push.date >= Date.now()-MAX_TODO_AGE:
+                self.todo.add((output.branch, listwrap(output.parents)))
+                self.todo.add((output.branch, listwrap(output.children)))
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
@@ -322,27 +323,34 @@ class HgMozillaOrg(object):
             description=strings.limit(coalesce(r.description, r.desc), 2000),
             date=parse_hg_date(r.date),
             files=r.files,
-            backedoutby=r.backedoutby,
+            backedoutby=r.backedoutby if r.backedoutby else None,
             bug=self._extract_bug_id(r.description)
         )
-        r.desc = None
-        r.node = None
-        r.user = None
-        r.pushuser = None
-        r.pushdate = None
-        r.pushid = None
-
         rev = Revision(
             branch=found_revision.branch,
             index=r.rev,
             changeset=changeset,
-            parents=unwraplist(r.parents),
-            children=unwraplist(r.children),
+            parents=unwraplist(list(set(r.parents))),
+            children=unwraplist(list(set(r.children))),
             push=push,
             phase=r.phase,
             bookmarks=unwraplist(r.bookmarks),
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
+
+        r.pushuser = None
+        r.pushdate = None
+        r.pushid = None
+        r.node = None
+        r.user = None
+        r.desc = None
+        r.description = None
+        r.date = None
+        r.files = None
+        r.backedoutby = None
+        r.parents = None
+        r.children = None
+        r.bookmarks = None
 
         set_default(rev, r)
 
@@ -463,7 +471,8 @@ class HgMozillaOrg(object):
                         "query": {"filtered": {
                             "query": {"match_all": {}},
                             "filter": {"and": [
-                                {"prefix": {"changeset.id": changeset_id}}
+                                {"prefix": {"changeset.id": changeset_id}},
+                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                             ]}
                         }},
                         "size": 1
@@ -471,7 +480,7 @@ class HgMozillaOrg(object):
                     json_diff = response.hits.hits[0]._source.changeset.diff
                 if json_diff:
                     return json_diff
-            except Exception:
+            except Exception as e:
                 pass
 
             url = expand_template(DIFF_URL, {"location": revision.branch.url, "rev": changeset_id})
@@ -524,8 +533,6 @@ def parse_hg_date(date):
         Log.error("Can not deal with date like {{date|json}}", date=date)
 
 
-
-
 def minimize_repo(repo):
     # output = set_default({}, _exclude_from_repo, repo)
     output = wrap(_copy_but(repo, _exclude_from_repo))
@@ -543,7 +550,9 @@ for k in [
     "branch.etl",
     "branch.parent_name",
     "children",
-    "parents"
+    "parents",
+    "phase",
+    "bookmarks"
 ]:
     _exclude_from_repo[k] = True
 _exclude_from_repo = _exclude_from_repo
