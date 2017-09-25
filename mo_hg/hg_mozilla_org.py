@@ -32,7 +32,7 @@ from mo_math.randoms import Random
 from mo_threads import Thread, Lock, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.dates import Date
-from mo_times.durations import SECOND, Duration, HOUR, MINUTE, DAY
+from mo_times.durations import SECOND, Duration, HOUR, MINUTE, DAY, MONTH
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.meta import cache
 
@@ -57,7 +57,7 @@ DAEMON_DEBUG = True
 DAEMON_INTERVAL = 30 * SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
-MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
+MAX_TODO_AGE = MONTH  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 GET_DIFF = True
