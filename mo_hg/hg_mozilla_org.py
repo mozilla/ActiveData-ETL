@@ -57,7 +57,7 @@ DAEMON_DEBUG = True
 DAEMON_INTERVAL = 30 * SECOND
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
-MAX_TODO_AGE = MONTH  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
+MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 GET_DIFF = True
@@ -495,13 +495,15 @@ class HgMozillaOrg(object):
                     if num_changes < MAX_DIFF_SIZE:
                         return json_diff
                     elif revision.changeset.description.startswith("merge "):
-                        pass  # IGNORE THE MERGE CHANGESETS
+                        return None  # IGNORE THE MERGE CHANGESETS
                     else:
                         Log.warning("Revision at {{url}} has a diff with {{num}} changes, ignored", url=url, num=num_changes)
+                        for file in json_diff:
+                            file.changes = None
+                        return json_diff
             except Exception as e:
                 Log.warning("could not get unified diff", cause=e)
 
-            return [{"new": {"name": f}, "old": {"name": f}} for f in revision.changeset.files]
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
