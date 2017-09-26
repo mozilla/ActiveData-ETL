@@ -24,9 +24,28 @@ class Revision(Data):
 
 
 revision_schema = {
+
+
     "settings": {
         "index.number_of_replicas": 1,
-        "index.number_of_shards": 12
+        "index.number_of_shards": 6,
+        "analysis": {
+            "analyzer": {
+                "description_limit": {
+                    "type": "custom",
+                    "tokenizer": "keyword",
+                    "filter": [
+                        "lowercase",
+                        "asciifolding",
+                        {
+                            "type": "limit",
+                            "max": 100,
+                            "min": 5
+                        }
+                    ]
+                }
+            }
+        }
     },
     "mappings": {
         "revision": {
@@ -86,7 +105,13 @@ revision_schema = {
                     "properties": {
                         "description": {
                             "index": "analyzed",
-                            "type": "string"
+                            "type": "string",
+                            "fields": {
+                                "raw": {
+                                    "type": "string",
+                                    "analyzer": "description_limit"
+                                }
+                            }
                         },
                         "diff": {
                             "type": "nested",
