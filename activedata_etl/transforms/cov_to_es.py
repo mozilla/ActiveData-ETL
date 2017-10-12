@@ -79,10 +79,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
                         continue
 
-                    if task_cluster_record.task.id != 'ANpesdqMT7O_eE9NgYEN8g':
-                        Log.warning("skipped")
-                        continue
-
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
