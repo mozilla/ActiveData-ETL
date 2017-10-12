@@ -67,8 +67,8 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
-    "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "perf_reftest_singletons",
+    "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "Quantum_1",
     "quantum_pageload_amazon",
     "quantum_pageload_facebook",
@@ -266,7 +266,9 @@ def transform(source_key, perfherder, resources):
                                 "test": subtest.name,
                                 "ordering": i,
                                 "unit": subtest.unit,
-                                "lower_is_better": subtest.lowerIsBetter
+                                "lower_is_better": subtest.lowerIsBetter,
+                                "raw_replicates": subtest.ref_replicates,
+                                "control_replicates": subtest.base_replicates
                             }
                         )},
                         buildbot
