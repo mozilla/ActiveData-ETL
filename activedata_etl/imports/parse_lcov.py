@@ -37,6 +37,12 @@ def parse_lcov_coverage(stream):
     done = set()
 
     for line in stream:
+        if len(line) == 0:
+            continue
+        elif line[0] == " ":
+            source_file += "\n" + line
+            continue
+
         line = line.strip()
 
         if line == 'end_of_record':
@@ -55,12 +61,10 @@ def parse_lcov_coverage(stream):
                     yield source
             current_source = None
         elif ':' in line:
-            cmd, data = line.split(":", 2)
+            cmd, data = line.split(":", 1)
 
             if cmd == 'TN':
                 test_name = data.strip()
-                if test_name:
-                    Log.warning("Test name found {{name}}", name=test_name)
             elif cmd == 'SF':
                 source_file = data
                 if source_file in done:
@@ -86,7 +90,7 @@ def parse_lcov_coverage(stream):
                 else:
                     current_source['lines_uncovered'].add(line_number)
             elif cmd == 'FN':
-                min_line, function_name = data.split(",", 2)
+                min_line, function_name = data.split(",", 1)
 
                 current_source['functions'][function_name] = {
                     'start': int(min_line),
@@ -100,6 +104,13 @@ def parse_lcov_coverage(stream):
                     if fn_execution_count != "0":
                         if DEBUG:
                             Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
+            elif cmd == 'BRDA':
+                line, block, branch, taken = data.split(",", 3)
+                pass
+            elif cmd == 'BRF':
+                num_branches_found = data
+            elif cmd == 'BRH':
+                num_branches_hit = data
             else:
                 Log.error('Unsupported cmd {{cmd}} with data {{data}}', cmd=cmd, data=data)
         else:
@@ -108,6 +119,8 @@ def parse_lcov_coverage(stream):
 
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
+    coverable_lines = len(details['lines_covered']) + len(details['lines_uncovered'])
+
     source = wrap({
         "language": "c/c++",
         "is_file": True,
@@ -117,7 +130,7 @@ def coco_format(details):
             'uncovered': sorted(details['lines_uncovered']),
             "total_covered": len(details['lines_covered']),
             "total_uncovered": len(details['lines_uncovered']),
-            "percentage_covered": len(details['lines_covered']) / (len(details['lines_covered']) + len(details['lines_uncovered']))
+            "percentage_covered": len(details['lines_covered']) / coverable_lines if coverable_lines else 1
         }
     })
 

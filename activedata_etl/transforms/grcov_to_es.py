@@ -64,7 +64,7 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                 with ZipFile(tmpfile.abspath) as zipped:
                     for num, zip_name in enumerate(zipped.namelist()):
                         if num == 1:
-                            Log.error("expecting only one artifdact in the grcov.zip file while processing {{key}}", key=source_key)
+                            Log.error("expecting only one artifact in the grcov.zip file while processing {{key}}", key=source_key)
                         for source in parse_lcov_coverage(ibytes2ilines(zipped.open(zip_name))):
                             if please_stop:
                                 return

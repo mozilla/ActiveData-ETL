@@ -9,19 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
 from zipfile import ZipFile
 
-import os
-from activedata_etl import etl2key
 from future.utils import text_type
+
+from activedata_etl import etl2key
+from activedata_etl.imports.parse_lcov import parse_lcov_coverage
+from activedata_etl.transforms.grcov_to_es import download_file
 from mo_dots import set_default
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process, Till
 from mo_times import Timer, Date
-
-from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from pyLibrary.env import http
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
@@ -158,16 +159,6 @@ def group_to_gcno_artifacts(group_id):
     if len(result.data) != 1:
         Log.warning("Got {{num}} gcno artifacts for task group {{group}}, not expected", num=len(result.data), group=group_id)
     return result.data[0]
-
-
-def download_file(url, destination):
-    tempfile = file(destination, "w+b")
-    stream = http.get(url).raw
-    try:
-        for b in iter(lambda: stream.read(8192), b""):
-            tempfile.write(b)
-    finally:
-        stream.close()
 
 
 def run_grcov(gcno_file, gcda_file):
