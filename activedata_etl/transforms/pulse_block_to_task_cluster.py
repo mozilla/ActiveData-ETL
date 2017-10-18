@@ -594,6 +594,7 @@ def get_tags(source_key, task_id, task, parent=None):
         tags.append({"name": "link", "value": link})
 
     consume(task, "extra.action.context.parameters")  # TOO MANY COMBINATIONS
+    consume(task, "extra.action.context.input")
 
     # VARIOUS LOCATIONS TO FIND TAGS
     t = consume(task, "tags").leaves()

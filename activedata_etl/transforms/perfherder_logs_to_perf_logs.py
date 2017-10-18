@@ -105,6 +105,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tresize",
     "trobocheck2",
     "ts_paint_webext",
+    "ts_paint_heavy",
     "ts_paint",
     "tscrollx",
     "tsvgr_opacity",
