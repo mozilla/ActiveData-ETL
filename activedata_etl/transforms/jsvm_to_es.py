@@ -64,7 +64,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                     count = 0
                     with ZipFile(tmpfile.abspath) as zipped:
                         for num, zip_name in enumerate(zipped.namelist()):
-                            for source in parse_lcov_coverage(ibytes2ilines(zipped.open(zip_name))):
+                            for source in parse_lcov_coverage(source_key, jsvm_artifact.url, ibytes2ilines(zipped.open(zip_name))):
                                 if please_stop:
                                     return
                                 if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:

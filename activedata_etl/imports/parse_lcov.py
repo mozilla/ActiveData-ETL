@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 import json
 import sys
 
-from mo_dots import wrap
+from mo_dots import wrap, Null
 from mo_logs import Log
 
 DEBUG = False
@@ -24,8 +24,10 @@ DEBUG_LINE_LIMIT = False
 EMIT_RECORDS_WITH_ZERO_COVERAGE = False
 LINE_LIMIT = 10000
 
+COMMANDS = ['TN:', 'SF:', 'FNF:', 'FNN:', 'LF:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record']
 
-def parse_lcov_coverage(stream):
+
+def parse_lcov_coverage(source_key, source_name, stream):
     """
     Parses lcov coverage from a stream
     :param stream:
@@ -39,7 +41,7 @@ def parse_lcov_coverage(stream):
     for line in stream:
         if len(line) == 0:
             continue
-        elif line[0] == " ":
+        elif not any(map(line.startswith, COMMANDS)):
             source_file += "\n" + line
             continue
 
@@ -112,10 +114,9 @@ def parse_lcov_coverage(stream):
             elif cmd == 'BRH':
                 num_branches_hit = data
             else:
-                Log.error('Unsupported cmd {{cmd}} with data {{data}}', cmd=cmd, data=data)
+                Log.error('Unsupported cmd {{cmd}} with data {{data}} in {{source|quote}} for key {{key}}', key=source_key, source=source_name, cmd=cmd, data=data)
         else:
             Log.error("unknown line {{line}}", line=line)
-
 
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
@@ -177,6 +178,6 @@ if __name__ == '__main__':
     file_path = sys.argv[1]
 
     with open(file_path) as f:
-        parsed = parse_lcov_coverage(f)
+        parsed = parse_lcov_coverage(Null, Null, f)
 
     json.dump(parsed, sys.stdout)
