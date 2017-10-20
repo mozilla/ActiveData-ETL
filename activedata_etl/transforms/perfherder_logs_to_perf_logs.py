@@ -34,7 +34,7 @@ ARRAY_TOO_BIG = 1000
 NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
-KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "heavy"]
+KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
 KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     "a11yr",
@@ -96,15 +96,20 @@ KNOWN_PERFHERDER_TESTS = [
     "tp5o_scroll",
     "tp5o_webext",
     "tp5o",
+    "tp6_amazon_heavy",
     "tp6_amazon",
+    "tp6_facebook_heavy",
     "tp6_facebook",
+    "tp6_google_heavy",
     "tp6_google",
+    "tp6_youtube_heavy",
     "tp6_youtube",
     "tpaint",
     "tps",
     "tresize",
     "trobocheck2",
     "ts_paint_webext",
+    "ts_paint_heavy",
     "ts_paint",
     "tscrollx",
     "tsvgr_opacity",
