@@ -17,7 +17,7 @@ from future.utils import text_type
 from activedata_etl import etl2key
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms.grcov_to_es import download_file
-from mo_dots import set_default
+from mo_dots import set_default, Null
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
@@ -103,7 +103,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
             count = 0
 
             if DEBUG_LCOV_FILE:
-                lcov_coverage = list(parse_lcov_coverage(DEBUG_LCOV_FILE.read_lines()))
+                lcov_coverage = list(parse_lcov_coverage(source_key, tmpdir, DEBUG_LCOV_FILE.read_lines()))
             elif os.name == 'nt':
                 # grcov DOES NOT SUPPORT WINDOWS YET
                 dest_dir = File.new_instance(tmpdir, "ccov").abspath
@@ -199,7 +199,7 @@ def run_lcov_on_linux(directory_path):
             if err_acc:
                 Log.warning("lcov error\n{{lines|indent}}", lines=err_acc)
 
-    return parse_lcov_coverage(output())
+    return parse_lcov_coverage(Null, Null, output())
 
 
 def run_lcov_on_windows(directory_path):
@@ -247,7 +247,7 @@ def run_lcov_on_windows(directory_path):
             break
         Till(till=expiry).wait()
 
-    for cov in parse_lcov_coverage(open(windows_dest_file.abspath, "rb")):
+    for cov in parse_lcov_coverage(Null, directory_path, open(windows_dest_file.abspath, "rb")):
         yield cov
 
 
