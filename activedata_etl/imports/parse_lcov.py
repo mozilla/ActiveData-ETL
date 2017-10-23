@@ -24,12 +24,15 @@ DEBUG_LINE_LIMIT = False
 EMIT_RECORDS_WITH_ZERO_COVERAGE = False
 LINE_LIMIT = 10000
 
-COMMANDS = ['TN:', 'SF:', 'FNF:', 'FNN:', 'LF:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record']
+COMMANDS = ['TN:', 'SF:', 'FNF:', 'FNH:', 'LF:', 'LH:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record']
 
 
 def parse_lcov_coverage(source_key, source_name, stream):
     """
     Parses lcov coverage from a stream
+
+    :param source_key:
+    :param source_name:
     :param stream:
     :return:
     """
