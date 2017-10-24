@@ -200,8 +200,8 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
     action.start_time = start_time
     action.end_time = end_time
     action.duration = end_time - start_time
-    action.harness_time_zone = new_mozharness_line.time_zone
-    action.harness_time_skew = new_mozharness_line.time_skew
+    # action.harness_time_zone = new_mozharness_line.time_zone
+    # action.harness_time_skew = new_mozharness_line.time_skew
 
     action.etl.total_bytes = total_bytes
     return action
@@ -386,8 +386,8 @@ def process_text_log(all_log_lines, from_url, source_key):
     data.end_time = end_time
     data.duration = end_time - start_time
     data.builder_time_zone = builder_line.time_zone
-    data.harness_time_zone = coalesce(new_mozharness_line.time_zone, old_mozharness_line.time_zone)
-    data.harness_time_skew = coalesce(new_mozharness_line.time_skew, old_mozharness_line.time_skew)
+    # data.harness_time_zone = coalesce(new_mozharness_line.time_zone, old_mozharness_line.time_zone)
+    # data.harness_time_skew = coalesce(new_mozharness_line.time_skew, old_mozharness_line.time_skew)
 
     data.etl.total_bytes = total_bytes
     return data
@@ -407,8 +407,8 @@ NEW_MOZLOG_END_STEP = [
 class NewHarnessLines(object):
 
     def __init__(self):
-        self.time_zone = None
-        self.time_skew = None
+        # self.time_zone = None
+        # self.time_skew = None
         self.last_seen = None
 
     def match(self, source, last_timestamp, curr_line):
