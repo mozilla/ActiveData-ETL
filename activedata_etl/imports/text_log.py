@@ -451,16 +451,16 @@ class NewHarnessLines(object):
 
     def utc_to_timestamp(self, _utc_time, last_timestamp):
         timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
-        if last_timestamp == None:
-            last_timestamp = timestamp
-        elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
-            Log.error("not expected")
-        if self.time_zone is None:
-            self.time_skew = last_timestamp - timestamp
-            self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
-            if DEBUG:
-                Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
-        timestamp += self.time_zone
+        # if last_timestamp == None:
+        #     last_timestamp = timestamp
+        # elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+        #     Log.error("not expected")
+        # if self.time_zone is None:
+        #     self.time_skew = last_timestamp - timestamp
+        #     self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+        #     if DEBUG:
+        #         Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
+        # timestamp += self.time_zone
         self.last_seen = MAX([timestamp, self.last_seen])
         return timestamp
 
