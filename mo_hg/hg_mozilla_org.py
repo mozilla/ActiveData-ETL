@@ -40,6 +40,10 @@ _hg_branches = None
 _OLD_BRANCH = None
 
 
+def _count(values):
+    return len(list(values))
+
+
 def _late_imports():
     global _hg_branches
     global _OLD_BRANCH
@@ -490,7 +494,7 @@ class HgMozillaOrg(object):
                 response = http.get(url)
                 diff = response.content.decode("utf8", "replace")
                 json_diff = diff_to_json(diff)
-                num_changes = jx.count(c for f in json_diff for c in f.changes)
+                num_changes = _count(c for f in json_diff for c in f.changes)
                 if json_diff:
                     if num_changes < MAX_DIFF_SIZE:
                         return json_diff
@@ -521,7 +525,7 @@ def _get_url(url, branch, **kwargs):
         data = json2value(response.content.decode("utf8"))
         if isinstance(data, (text_type, str)) and data.startswith("unknown revision"):
             Log.error("Unknown push {{revision}}", revision=strings.between(data, "'", "'"))
-        branch.url = _trim(url)  #RECORD THIS SUCCESS IN THE BRANCH
+        branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
         return data
 
 
