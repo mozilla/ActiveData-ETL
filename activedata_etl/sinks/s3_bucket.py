@@ -118,6 +118,6 @@ class S3Bucket(object):
 
         self.bucket.write_lines(key, (value2json(d) for d in documents))
 
-    def add(self, dco):
+    def add(self, doc):
         Log.error("Not supported")
 

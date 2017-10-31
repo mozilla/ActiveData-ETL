@@ -4,7 +4,40 @@
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
-	"workers":[
+	"workers": [
+		{
+			"name": "firefox-files",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": "etl.source.source.timestamp",
+				"interval": "week",
+				"max": "3week"
+			},
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://activedata.allizom.org",
+				"port": 9200,
+				"index": "firefox-files",
+				"type": "files",
+				"timeout": 300,
+				"consistency": "one",
+				"schema": {
+					"$ref": "//../../schema/files.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-firefox-files",
+				"key_format": "t.a:b.c.d"
+			},
+			"backfill": {
+				"prime_key": "etl.source.source.source.id",
+				"source_key": "etl.source.source.source.source.source.code"
+			}
+		},
 		{
 			"name": "fx_test",
 			"batch_size": 1000,

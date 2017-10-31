@@ -9,11 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from tempfile import TemporaryFile
 
+from future.utils import text_type
+
+from jx_python import jx
 from mo_dots import Data
 from mo_json import stream
+from mo_json import value2json
 from mo_logs import Log
 from mo_logs import startup, constants, strings
 from mo_logs.exceptions import suppress_exception, Explanation
@@ -23,12 +26,10 @@ from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
-from mo_json import json2value, value2json
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
-from jx_python import jx
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
