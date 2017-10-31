@@ -4,15 +4,15 @@
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
-	"workers":[
+	"workers": [
 		{
 			"name": "firefox-files",
 			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
 				"field": "etl.source.source.timestamp",
-				"interval": "year",
-				"max": "year"
+				"interval": "week",
+				"max": "3week"
 			},
 			"sample_only": [],
 			"elasticsearch": {
@@ -33,7 +33,7 @@
 				"bucket": "active-data-firefox-files",
 				"key_format": "t.a:b.c.d"
 			},
-			"backfill":{
+			"backfill": {
 				"prime_key": "etl.source.source.source.id",
 				"source_key": "etl.source.source.source.source.source.code"
 			}

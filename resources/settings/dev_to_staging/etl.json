@@ -17,7 +17,8 @@
 		},
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
+		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true,
+		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": "http://activedata.allizom.org:9200",
 	"hg": {
@@ -31,7 +32,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		},
@@ -41,7 +42,7 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		}
@@ -69,9 +70,8 @@
 			"type": "join",
 			"transformer": "activedata_etl.transforms.task_cluster_to_firefox_files.ETL",
 			"config": {
-				"task_filter": {"eq":{"repo.branch.name": "mozilla-central"}}
+				"task_filter": {"eq": {"repo.branch.name": "mozilla-central"}}
 			}
-
 		},
 		{
 			"name": "fx_test to normalized",
@@ -109,7 +109,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -296,10 +296,10 @@
 	],
 	"debug": {
 		"trace": true,
-		"constants":{
-			"mo_hg.hg_mozilla_org.MAX_TODO_AGE":31536000  // ONE YEAR
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
 		},
-//		"cprofile": true,
 		"log": [
 			{
 				"log_type": "console"
@@ -308,9 +308,6 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"cc":[
-//					{"to_address":"mcastelluccio@mozilla.com", "contains":["grcov"]}
-				],
 				"subject": "[ALERT][DEV] Problem in ETL",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
