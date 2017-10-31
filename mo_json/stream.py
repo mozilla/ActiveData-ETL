@@ -15,11 +15,12 @@ import json
 from collections import Mapping
 from types import GeneratorType
 
+from mo_dots import split_field, startswith_field, relative_field, Data, join_field, Null, wrap
 from mo_logs import Log
-from mo_dots import split_field, startswith_field, relative_field, concat_field, Data, join_field, Null, wrap
+
+DEBUG = True
 
 MIN_READ_SIZE = 8*1024
-DEBUG = False
 WHITESPACE = b" \n\r\t"
 CLOSE = {
     b"{": b"}",
@@ -42,13 +43,15 @@ def parse(json, query_path, expected_vars=NO_VARS):
 
     LARGE MANY-PROPERTY OBJECTS CAN BE HANDLED BY `items()`
 
-    :param json: SOME STRING-LIKE STRUCTURE THAT CAN ASSUME WE LOOK AT ONE
-                 CHARACTER AT A TIME, IN ORDER
-    :param query_path: AN ARRAY OF DOT-SEPARATED STRINGS INDICATING THE
-                 NESTED ARRAY BEING ITERATED.
+    :param json:       SOME STRING-LIKE STRUCTURE THAT CAN ASSUME WE LOOK AT
+                       ONE CHARACTER AT A TIME, IN ORDER
+    :param query_path: A DOT-SEPARATED STRING INDICATING THE PATH TO THE
+                       NESTED ARRAY OPTIONALLY, {"items":query_path} TO
+                       FURTHER ITERATE OVER PROPERTIES OF OBJECTS FOUND AT
+                       query_path
     :param expected_vars: REQUIRED PROPERTY NAMES, USED TO DETERMINE IF
                           MORE-THAN-ONE PASS IS REQUIRED
-    :return: RETURNS AN ITERATOR OVER ALL OBJECTS FROM NESTED path IN LEAF FORM
+    :return: RETURNS AN ITERATOR OVER ALL OBJECTS FROM ARRAY LOCATED AT query_path
     """
     if hasattr(json, "read"):
         # ASSUME IT IS A STREAM
@@ -161,6 +164,7 @@ def parse(json, query_path, expected_vars=NO_VARS):
         ITERATE THROUGH THE PROPERTIES OF AN OBJECT
         """
         c, index = skip_whitespace(index)
+        num_items = 0
         while True:
             if c == b',':
                 c, index = skip_whitespace(index)
@@ -177,9 +181,12 @@ def parse(json, query_path, expected_vars=NO_VARS):
                 c, index = skip_whitespace(index)
 
                 child_expected = needed("value", expected_vars)
-                _assign_token(index, c, child_expected)
+                index = _assign_token(index, c, child_expected)
                 c, index = skip_whitespace(index)
+                if DEBUG and not num_items % 1000:
+                    Log.note("{{num}} items iterated", num=num_items)
                 yield index
+                num_items += 1
             elif c == "}":
                 break
 

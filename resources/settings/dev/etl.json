@@ -46,6 +46,32 @@
 		}
 	},
 	"workers": [
+		{
+			"name": "firefox files",
+			"source": {
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-firefox-files",
+				"public": true,
+				"key_format": "t.a:b.c.d",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": [
+				{
+					"name": "active-data-index-dev",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"transformer": "activedata_etl.transforms.task_cluster_to_firefox_files.process",
+			"type": "join",
+			"config": {
+				"task_filter": {"repo.branch.name": "mozilla-central"}
+			}
+
+		}
 //		{
 //			"name": "fx_test to normalized",
 //			"source": {
@@ -82,8 +108,7 @@
 //				"index": "pulse",
 //				"type": "pulse_log",
 //				"timeout": 300,
-//				"consistency": "one",
-//				// WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 //				"schema": {
 //					"$ref": "//../../schema/pulse_logs.json"
 //				},
@@ -246,27 +271,27 @@
 //			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 //			"type": "join"
 //		},
-		{
-			"name": "tc_normalized to codecoverage",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-codecoverage-dev",
-				"public": true,
-				"key_format": "t.a:b.c.d"
-			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transform_type": "bulk",
-			"transformer": "activedata_etl.transforms.cov_to_es.process",
-			"type": "join"
-		}
+//		{
+//			"name": "tc_normalized to codecoverage",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-task-cluster-normalized",
+//				"key_format": "t.a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-codecoverage-dev",
+//				"public": true,
+//				"key_format": "t.a:b.c.d"
+//			},
+//			"notify": {
+//				"name": "active-data-index",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transform_type": "bulk",
+//			"transformer": "activedata_etl.transforms.cov_to_es.process",
+//			"type": "join"
+//		}
 	],
 	"debug": {
 		"trace": true,

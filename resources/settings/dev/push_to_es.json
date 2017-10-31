@@ -6,7 +6,41 @@
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"workers":[
-//		{
+		{
+			"name": "firefox-files",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover": {
+				"field": "etl.source.source.timestamp",
+				"interval": "year",
+				"max": "year"
+			},
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "firefox-files",
+				"type": "files",
+				"timeout": 300,
+				"consistency": "one",
+				"schema": {
+					"$ref": "//../../schema/files.json"
+				},
+				"debug": true,
+				"limit_replicas": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-firefox-files",
+				"key_format": "t.a:b.c.d"
+			},
+			"backfill": {
+				"prime_key": "etl.source.source.source.id",
+				"source_key": "etl.source.source.source.source.source.code"
+			}
+		}
+
+		//		{
 //			"name": "fx_test",
 //			"batch_size": 1000,
 //			"skip": 0,
@@ -153,36 +187,36 @@
 //				"key_format": "a.b"
 //			}
 //		},
-		{
-			"name":"code coverage",
-			"skip": 0.0,
-			"queue_size": 200,
-			"batch_size": 100,
-			"rollover": {
-				"field": "repo.push.date",
-				"interval": "week",
-				"max": "2week"
-			},
-			"sample_only": [],
-			"elasticsearch": {
-				"host": "http://localhost",
-				"port": 9200,
-				"index": "coverage",
-				"type": "code_coverage",
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-				"timeout": 300,
-				"schema": {
-					"$ref": "//../../schema/code_coverage.json"
-				},
-				"debug": false,
-				"limit_replicas": false
-			},
-			"source": {
-				"bucket": "active-data-codecoverage",
-				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b.c.d"
-			}
-		},
+//		{
+//			"name":"code coverage",
+//			"skip": 0.0,
+//			"queue_size": 200,
+//			"batch_size": 100,
+//			"rollover": {
+//				"field": "repo.push.date",
+//				"interval": "week",
+//				"max": "2week"
+//			},
+//			"sample_only": [],
+//			"elasticsearch": {
+//				"host": "http://localhost",
+//				"port": 9200,
+//				"index": "coverage",
+//				"type": "code_coverage",
+//				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+//				"timeout": 300,
+//				"schema": {
+//					"$ref": "//../../schema/code_coverage.json"
+//				},
+//				"debug": false,
+//				"limit_replicas": false
+//			},
+//			"source": {
+//				"bucket": "active-data-codecoverage",
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"key_format": "t.a:b.c.d"
+//			}
+//		},
 //		{
 //			"name": "task",
 //			"queue_size": 2000,
