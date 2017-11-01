@@ -24,7 +24,7 @@ from pyLibrary.env.git import get_git_revision
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer"]
+NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer", "socorro"]
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
@@ -163,6 +163,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
     consume(raw_job, "push")

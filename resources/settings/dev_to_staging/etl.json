@@ -70,7 +70,8 @@
 			"type": "join",
 			"transformer": "activedata_etl.transforms.task_cluster_to_firefox_files.ETL",
 			"config": {
-				"task_filter": {"eq": {"repo.branch.name": "mozilla-central"}}
+				// dot delimited property names are expanded, which is bad for jx
+				"task_filter": {"eq": ["repo.branch.name", {"literal": "mozilla-central"}]}
 			}
 		},
 		{
