@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
 from mo_logs import Log
 
@@ -75,6 +76,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     #     please_stop
                     # ))
                 elif "grcov" in artifact.name:
+                    pass
                     if not task_cluster_record.repo.push.date:
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
                         continue
@@ -85,6 +87,25 @@ def process(source_key, source, destination, resources, please_stop=None):
                         Log.note("Processing grcov artifact: {{url}}", url=artifact.url)
 
                     keys.extend(process_grcov_artifact(
+                        source_key,
+                        resources,
+                        destination,
+                        artifact,
+                        task_cluster_record,
+                        artifact_etl,
+                        please_stop
+                    ))
+                elif "jsvm" in artifact.name:
+                    if not task_cluster_record.repo.push.date:
+                        Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
+                        continue
+
+                    coverage_artifact_exists = True
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                    if DEBUG:
+                        Log.note("Processing jsvm artifact: {{url}}", url=artifact.url)
+
+                    keys.extend(process_jsvm_artifact(
                         source_key,
                         resources,
                         destination,

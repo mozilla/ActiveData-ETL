@@ -29,7 +29,7 @@ MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
 
-def process_tc_live_log(all_log_lines, from_url, task_record):
+def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
     """
         [taskcluster 2016-10-04 17:09:02.626Z] Task ID: abzkq-CjS_KJzNEhE6nVhA
         [taskcluster 2016-10-04 17:09:02.626Z] Worker ID: i-0348d7e9408f77f42
@@ -200,8 +200,8 @@ def process_tc_live_log(all_log_lines, from_url, task_record):
     action.start_time = start_time
     action.end_time = end_time
     action.duration = end_time - start_time
-    action.harness_time_zone = new_mozharness_line.time_zone
-    action.harness_time_skew = new_mozharness_line.time_skew
+    # action.harness_time_zone = new_mozharness_line.time_zone
+    # action.harness_time_skew = new_mozharness_line.time_skew
 
     action.etl.total_bytes = total_bytes
     return action
@@ -386,8 +386,8 @@ def process_text_log(all_log_lines, from_url, source_key):
     data.end_time = end_time
     data.duration = end_time - start_time
     data.builder_time_zone = builder_line.time_zone
-    data.harness_time_zone = coalesce(new_mozharness_line.time_zone, old_mozharness_line.time_zone)
-    data.harness_time_skew = coalesce(new_mozharness_line.time_skew, old_mozharness_line.time_skew)
+    # data.harness_time_zone = coalesce(new_mozharness_line.time_zone, old_mozharness_line.time_zone)
+    # data.harness_time_skew = coalesce(new_mozharness_line.time_skew, old_mozharness_line.time_skew)
 
     data.etl.total_bytes = total_bytes
     return data
@@ -407,8 +407,8 @@ NEW_MOZLOG_END_STEP = [
 class NewHarnessLines(object):
 
     def __init__(self):
-        self.time_zone = None
-        self.time_skew = None
+        # self.time_zone = None
+        # self.time_skew = None
         self.last_seen = None
 
     def match(self, source, last_timestamp, curr_line):
@@ -451,16 +451,16 @@ class NewHarnessLines(object):
 
     def utc_to_timestamp(self, _utc_time, last_timestamp):
         timestamp = unicode2Date(_utc_time, format="%Y-%m-%d %H:%M:%S.%f")
-        if last_timestamp == None:
-            last_timestamp = timestamp
-        elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
-            Log.error("not expected")
-        if self.time_zone is None:
-            self.time_skew = last_timestamp - timestamp
-            self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
-            if DEBUG:
-                Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
-        timestamp += self.time_zone
+        # if last_timestamp == None:
+        #     last_timestamp = timestamp
+        # elif timestamp < last_timestamp - 12 * HOUR - MAX_HARNESS_TIMING_ERROR:
+        #     Log.error("not expected")
+        # if self.time_zone is None:
+        #     self.time_skew = last_timestamp - timestamp
+        #     self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+        #     if DEBUG:
+        #         Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
+        # timestamp += self.time_zone
         self.last_seen = MAX([timestamp, self.last_seen])
         return timestamp
 

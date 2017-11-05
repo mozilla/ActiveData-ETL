@@ -142,7 +142,7 @@ def accumulate_logs(source_key, url, lines, please_stop):
             if log.subtest:
                 accumulator.last_subtest = log.time
         except Exception as e:
-            e= Except.wrap(e)
+            e = Except.wrap(e)
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 content = "\n".join(lines)
                 if "<Code>AccessDenied</Code>" in content:

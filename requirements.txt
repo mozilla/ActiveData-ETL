@@ -4,7 +4,6 @@ BeautifulSoup
 boto
 requests
 fabric
-taskcluster
 # ecdsa required by fabric (but not installed by pip)
 ecdsa
 psutil

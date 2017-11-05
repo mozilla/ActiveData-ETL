@@ -31,7 +31,7 @@
 			"index": "branches",
 			"type": "branch",
 			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		},
@@ -41,12 +41,38 @@
 			"index": "repo",
 			"type": "revision",
 			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		}
 	},
 	"workers": [
+		{
+			"name": "firefox files",
+			"source": {
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-firefox-files",
+				"public": true,
+				"key_format": "t.a:b.c.d",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"type": "join",
+			"transformer": "activedata_etl.transforms.task_cluster_to_firefox_files.ETL",
+			"config": {
+				// dot delimited property names are expanded, which is bad for jx
+				"task_filter": {"eq": ["repo.branch.name", {"literal": "mozilla-central"}]}
+			}
+		},
 		{
 			"name": "fx_test to normalized",
 			"source": {
@@ -83,7 +109,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -93,7 +119,7 @@
 			"transformer": "activedata_etl.transforms.pulse_block_to_es.process",
 			"type": "join"
 		},
-			{
+		{
 			"name": "treeherder to normalized",
 			"source": {
 				"bucket": "active-data-treeherder-jobs",
@@ -278,8 +304,8 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"cc":[
-//					{"to_address":"mcastelluccio@mozilla.com", "contains":["grcov"]}
+				"cc": [
+					//					{"to_address":"mcastelluccio@mozilla.com", "contains":["grcov"]}
 				],
 				"subject": "[ALERT][STAGING] Problem in ETL",
 				"$ref": "file://~/private.json#aws_credentials"

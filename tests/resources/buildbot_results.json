@@ -2,6 +2,200 @@
     {
         "action": {
             "buildbot_status": "success",
+            "end_time": 1507311872,
+            "job_number": 3,
+            "reason": "Created by BBB for task SZNfuJoYQrCE9ZQq0H_uhQ",
+            "request_time": 1507310473,
+            "requests": [
+                {
+                    "request_id": 154455157,
+                    "timestamp": 1507310473
+                }
+            ],
+            "start_time": 1507310481,
+            "type": "test"
+        },
+        "build": {
+            "branch": "mozilla-inbound",
+            "locale": "en-US",
+            "name": "Windows 10 64-bit stylo-disabled",
+            "platform": "win64",
+            "product": "firefox",
+            "release": "073b52890be1f0af93245d2697de1dfa464ec96a",
+            "revision": "073b52890be1f0af93245d2697de1dfa464ec96a",
+            "revision12": "073b52890be1",
+            "tags": [],
+            "type": ["debug", "stylo-disabled"],
+            "url": "https://queue.taskcluster.net/v1/task/JNBmOmkvSt-gqHvBaSd_iw/artifacts/public/build/target.zip"
+        },
+        "other": [
+            {
+                "name": "installer_path",
+                "value": "public/build/target.zip"
+            },
+            {
+                "name": "repository",
+                "value": "https://hg.mozilla.org/integration/mozilla-inbound"
+            },
+            {
+                "name": "who",
+                "value": "archaeopteryx@coole-files.de"
+            },
+            {
+                "name": "symbols_url",
+                "value": "https://queue.taskcluster.net/v1/task/JNBmOmkvSt-gqHvBaSd_iw/artifacts/public/build/target.crashreporter-symbols.zip"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "master": "http://buildbot-master109.bb.releng.scl3.mozilla.com:8201/",
+            "slavebuilddir": "test",
+            "stage_platform": "win64-stylo-disabled"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "chrome-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/bd20a2686e75c635551be1b67d9b0a7c74d42c7b21e4c5b3c87d583074526c89060e1f948c20baf575146f3feccbdcbf7f484f8e82fbfb96ea746bd9f2dea2a6"
+                },
+                {
+                    "name": "browser-chrome-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/12b4262b3698c8a8a7b2f261c81b2617b7799f7eea9a729809eb5e299863ae49375353fea04408c48f699f05381cd53fef5d97f02c85eab9c83fa1d92336e94b"
+                },
+                {
+                    "name": "chrome-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/ab2d4cd738c301b67ba770852318437ae0156b30926f858c46d9d60db483f92b5d6a5bad890d06af811d5267858f6f1f208a06c97a2fb46c70fcfeb15360683a"
+                },
+                {
+                    "name": "plain-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/5b17f621b7efa619eaf71fc8baa7e1bd3b22d5d14e95ef65eebb4791cd320ea10464e3b02f3407a555b0d8d6e46aa15f1f11efc98cfe248da20e8a8733e87fed"
+                },
+                {
+                    "name": "resource-usage.json",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/2f7d517c738c64e5be5499f9f15434522f15c030f8f456887b31171fc1ed6b6955177ade84310d650209398bb572d92d9b53e736569ae70d30b0b3ac03e47afb"
+                },
+                {
+                    "name": "browser-chrome-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/2c5adddccaa84ea6091db80bce93fd0d66e6753c7ab0c660f91fa9f558b5455e9dcb93261bbc332c35bf456bb82e5806c1bd7d8176dfd9251de3b92b79f932d5"
+                },
+                {
+                    "name": "plain-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/85bd66f96309172aa3b6de7d76113c9d6310136081804a42933d4eb3d5086e83042d675674c2e2b3cdb454699aeb61372a52788de78ab6d25ce0c412af1ea82a"
+                }
+            ],
+            "key": "Windows 10 64-bit stylo-disabled mozilla-inbound debug test mochitest-clipboard-e10s",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win64-stylo-disabled-debug/mozilla-inbound_win10_64_stylo_disabled-debug_test-mochitest-clipboard-e10s-bm109-tests1-windows-build3.txt.gz",
+            "machine": {
+                "name": "t-w1064-ix-197",
+                "os": "win10",
+                "pool": "t-w1064-ix"
+            },
+            "script": {"revision": "073b52890be1f0af93245d2697de1dfa464ec96a"},
+            "suite": "mochitest-clipboard",
+            "type": ["e10s"]
+        },
+        "task": {"id": "SZNfuJoYQrCE9ZQq0H_uhQ"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
+            "end_time": 1507323788,
+            "job_number": 5,
+            "reason": "Created by BBB for task YMs2BAWhTWWRYfSuQDL4Yw",
+            "request_time": 1507322063,
+            "requests": [
+                {
+                    "request_id": 154456672,
+                    "timestamp": 1507322063
+                }
+            ],
+            "start_time": 1507322065,
+            "type": "test"
+        },
+        "build": {
+            "branch": "mozilla-inbound",
+            "locale": "en-US",
+            "name": "Windows 7 32-bit stylo-disabled",
+            "platform": "win32",
+            "product": "firefox",
+            "release": "162593bda5e167bea16b28637e85cc9d23f19c7c",
+            "revision": "162593bda5e167bea16b28637e85cc9d23f19c7c",
+            "revision12": "162593bda5e1",
+            "tags": [],
+            "type": ["debug", "stylo-disabled"],
+            "url": "https://queue.taskcluster.net/v1/task/BGQzLxZrQMKFQqTgYJqIRA/artifacts/public/build/target.zip"
+        },
+        "other": [
+            {
+                "name": "installer_path",
+                "value": "public/build/target.zip"
+            },
+            {
+                "name": "repository",
+                "value": "https://hg.mozilla.org/integration/mozilla-inbound"
+            },
+            {
+                "name": "who",
+                "value": "eakhgari@mozilla.com"
+            },
+            {
+                "name": "symbols_url",
+                "value": "https://queue.taskcluster.net/v1/task/BGQzLxZrQMKFQqTgYJqIRA/artifacts/public/build/target.crashreporter-symbols.zip"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "master": "http://buildbot-master110.bb.releng.scl3.mozilla.com:8201/",
+            "slavebuilddir": "test",
+            "stage_platform": "win32-stylo-disabled"
+        },
+        "run": {
+            "files": [
+                {
+                    "name": "chrome-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/79fff65158a7067ee70ea45b684d0ba7dd5a8260a533c036cf054d5f401c9d9a280fe32d7a694af1c5a07d5adb6246b9afcffac79f32c2532cfdf4f3f0862610"
+                },
+                {
+                    "name": "browser-chrome-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/f2443a2be4291a09a4570e5ec533170b1b659628642573c802309e92fde13ece919b31e21d5168f6a0b928461ff1179e52789102dcdcbb9b6fbb9d298fcf9b8b"
+                },
+                {
+                    "name": "chrome-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/04c6030ee6139ab794bc8ee84533274783c3ebf85d6ee1599f6e7a9fd4e531a16e01136dbfc8da4142b8b3eef4bdcfea4232a11c57d7c4ed6be1d92e07773fa2"
+                },
+                {
+                    "name": "plain-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/c19450e7d61d316d0f7d32cab031dfc51573d73ccfe03b08ad08f0143c6bf0fd7ef152cc3123258aec897ebb4ee600e14533a5a81b5aef9a08a7724736618870"
+                },
+                {
+                    "name": "resource-usage.json",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/e260c1659e997b7b0509f14d09ce3fa0d1a1d919f5286f3a8b284a4169f6465c247ab367b6609f0df316470782b017c9b84d809813190ff995d1c0a8c4d43911"
+                },
+                {
+                    "name": "browser-chrome-clipboard_errorsummary.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/122caaf3acfe31895b3961703ba585418a6bd11d178e0f0877fa4cf426ac6015de3fe47eeb114a77703ff75dbcaf7b38455661c2f23354fe1ec0ceafc53238b4"
+                },
+                {
+                    "name": "plain-clipboard_raw.log",
+                    "url": "https://mozilla-releng-blobs.s3.amazonaws.com/blobs/mozilla-inbound/sha512/352ed0987b2daf9f9c08f203db837f6c981a20dce4742cbb4235cbba7c282b3a89822e8bc50a85f376ad22cb68546b6d3a91f8ea3e6e59c6d3f236252f9f5fea"
+                }
+            ],
+            "key": "Windows 7 32-bit stylo-disabled mozilla-inbound debug test mochitest-clipboard-e10s",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win32-stylo-disabled-debug/mozilla-inbound_win7_ix_stylo_disabled-debug_test-mochitest-clipboard-e10s-bm110-tests1-windows-build5.txt.gz",
+            "machine": {
+                "name": "t-w732-ix-076",
+                "os": "win7",
+                "pool": "t-w732-ix"
+            },
+            "script": {"revision": "162593bda5e167bea16b28637e85cc9d23f19c7c"},
+            "suite": "mochitest-clipboard",
+            "type": ["e10s"]
+        },
+        "task": {"id": "YMs2BAWhTWWRYfSuQDL4Yw"}
+    },
+    {
+        "action": {
+            "buildbot_status": "success",
             "end_time": 1490651199,
             "job_number": 0,
             "reason": "Created by BBB for task iHHC2ouJSi6oEe4snWuVpA",
@@ -76,7 +270,7 @@
             "revision": "f6b3e59cfbb275ab5db27d543e6894ed011cf62d",
             "revision12": "f6b3e59cfbb2",
             "tags": [],
-            "type": ["stylo"],
+            "type": [],
             "url": "https://queue.taskcluster.net/v1/task/RgNul60HTl-7O4JtApjKNw/artifacts/public/build/target.tar.bz2"
         },
         "other": [
@@ -128,7 +322,7 @@
             },
             "script": {"revision": "f6b3e59cfbb275ab5db27d543e6894ed011cf62d"},
             "suite": "dromaeojs",
-            "type": ["e10s"]
+            "type": ["stylo", "e10s"]
         },
         "task": {"id": "UuwxOpsPRBKbjajq2VyBmA"}
     },
@@ -2026,7 +2220,7 @@
         "other": [
             {
                 "name": "mozci_request",
-                "value": "{\"type\": \"trigger_all_talos_jobs\", \"times\": 6}"
+                "value": "{\"times\":6,\"type\":\"trigger_all_talos_jobs\"}"
             }
         ],
         "properties": {
@@ -7094,7 +7288,7 @@
             "revision": "68a1aa8c33a21b47d58fbe42ab7ac2f0f4ced76d",
             "revision12": "68a1aa8c33a2",
             "tags": [],
-            "type": [],
+            "type": ["devedition"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-win64/1435784692/graphene-42.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -7162,7 +7356,7 @@
             "revision": "68a1aa8c33a21b47d58fbe42ab7ac2f0f4ced76d",
             "revision12": "68a1aa8c33a2",
             "tags": [],
-            "type": [],
+            "type": ["devedition"],
             "url": "http://ftp.mozilla.org/pub/mozilla.org/b2g/tinderbox-builds/larch-win64/1435784692/graphene-42.0a1.en-US.win64.zip"
         },
         "other": [],
@@ -9144,7 +9338,7 @@
         "other": [
             {
                 "name": "mozci_request",
-                "value": "{\"type\": \"trigger_all_talos_jobs\", \"times\": 6}"
+                "value": "{\"times\":6,\"type\":\"trigger_all_talos_jobs\"}"
             }
         ],
         "properties": {
@@ -11583,7 +11777,7 @@
             },
             "script": {"revision": "2af63097a8a5bb362224e3cd05658a6f20d3bf45"},
             "suite": "mochitest",
-            "type": []
+            "type": ["gfx"]
         }
     },
     {
