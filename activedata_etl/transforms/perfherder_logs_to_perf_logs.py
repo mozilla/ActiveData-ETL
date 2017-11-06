@@ -49,6 +49,7 @@ KNOWN_PERFHERDER_TESTS = [
     "compiler_metrics",
     "cpstartup",
     "damp",
+    "displaylist_mutate",
     "dromaeo_css",
     "dromaeo_dom",
     "dromaeojs",
