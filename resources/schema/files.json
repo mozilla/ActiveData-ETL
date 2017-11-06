@@ -1,0 +1,63 @@
+{
+	"settings": {
+		"index.number_of_replicas": 1,
+		"index.number_of_shards": 20
+	},
+	"mappings": {
+		"files": {
+			"_source": {
+				"compress": true
+			},
+			"dynamic_templates": [
+				{
+					"default_ids": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match": "id"
+					}
+				},
+				{
+					"default_strings": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "string",
+							"doc_values": true
+						},
+						"match_mapping_type": "string",
+						"match": "*"
+					}
+				},
+				{
+					"default_doubles": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "double",
+							"doc_values": true
+						},
+						"match_mapping_type": "double",
+						"match": "*"
+					}
+				},
+				{
+					"default_longs": {
+						"mapping": {
+							"index": "not_analyzed",
+							"type": "long",
+							"doc_values": true
+						},
+						"match_mapping_type": "long|integer",
+						"match_pattern": "regex",
+						"path_match": ".*"
+					}
+				}
+			],
+			"_all": {
+				"enabled": false
+			}
+		}
+	}
+
+}

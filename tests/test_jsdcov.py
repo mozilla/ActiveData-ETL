@@ -9,29 +9,22 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import gzip
 import unittest
 
-from activedata_etl import key2etl
-from mo_dots import Null, Data, wrap
-from mo_files import File
-from mo_logs import constants
-
-from activedata_etl.imports import parse_lcov
-from activedata_etl.transforms import gcov_to_es, cov_to_es
-from activedata_etl.transforms import jscov_to_es
-from activedata_etl.transforms.gcov_to_es import process_directory, process_gcda_artifact
+from activedata_etl.transforms import cov_to_es
+from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
+from mo_dots import Null, Data
 from pyLibrary.aws.s3 import PublicBucket
 from test_gcov import Destination
 
-class TestJSDCov(unittest.TestCase):
 
+class TestJsdov(unittest.TestCase):
     def test_one_url(self):
-        key="tc.472127"
-        url="https://public-artifacts.taskcluster.net/ZFX36wSpS1iuQLzhFVqNhQ/0/public/test_info//jscov_1506005828494.json"
-        destination = Destination("results/jscov/lcov_parsing_result.json.gz")
+        key="tc.1051816"
+        url="https://queue.taskcluster.net/v1/task/PNzAZrN7SUeKMK0_-wZr0Q/runs/0/artifacts/public/test_info//code-coverage-gcda.zip"
+        destination = Destination("results/ccov/lcov_parsing_result.json.gz")
 
-        jscov_to_es.process_jscov_artifact(
+        process_jscov_artifact(
             source_key=key,
             resources=Null,
             destination=destination,
@@ -42,10 +35,8 @@ class TestJSDCov(unittest.TestCase):
         )
 
     def test_etl_block(self):
-        source = Data(read_lines=lambda: PublicBucket(
-            "https://s3-us-west-2.amazonaws.com/active-data-task-cluster-normalized").read_lines(
-            "tc.1051816:105180763.json.gz"))
-        destination = Destination("results/jscov/lcov_output.gz")
+        source = Data(read_lines=lambda: PublicBucket("https://s3-us-west-2.amazonaws.com/active-data-task-cluster-normalized").read_lines("tc.1051816:105180763.json.gz"))
+        destination = Destination("results/ccov/lcov_output.gz")
 
         cov_to_es.process(
             "tc.1051816",

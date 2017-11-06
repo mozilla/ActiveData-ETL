@@ -24,11 +24,11 @@ from pyLibrary.env.git import get_git_revision
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
+NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer", "socorro"]
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
-
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -159,10 +159,11 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     try:
         new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
     except Exception as e:
-        if new_treeherder.build.branch in ["bmo-master", "snippets-tests", "stubattribution-tests", "go-bouncer"]:
+        if new_treeherder.build.branch in NON_HG_BRANCHES:
             Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
         else:
             Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
     consume(raw_job, "push")

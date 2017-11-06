@@ -246,7 +246,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.parent.id = coalesce_w_conflict_detection(
         source_key,
         consume(task, "parent_task_id"),
-        consume(task, "payload.properties.parent_task_id")
+        consume(task, "payload.properties.parent_task_id"),
+        consume(task, "extra.parent")
     )
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
@@ -386,7 +387,7 @@ def _normalize_run(source_key, normalized, task, env):
     set_default(
         normalized,
         {"run": {
-            "key": consume(task, "payload.buildername"),
+            "key": coalesce(consume(task, "payload.buildername"), consume(task, "tags.label")),
             "name": metadata_name,
             "machine": normalized.treeherder.machine,
             "suite": {"name": test, "flavor": flavor, "fullname": fullname},
@@ -592,6 +593,9 @@ def get_tags(source_key, task_id, task, parent=None):
     if link:
         tags.append({"name": "link", "value": link})
 
+    consume(task, "extra.action.context.parameters")  # TOO MANY COMBINATIONS
+    consume(task, "extra.action.context.input")
+
     # VARIOUS LOCATIONS TO FIND TAGS
     t = consume(task, "tags").leaves()
     m = consume(task, "metadata").leaves()
@@ -745,6 +749,11 @@ PAYLOAD_PROPERTIES = {
 }
 
 KNOWN_TAGS = {
+    "action.name",
+    "action.context",
+    "action.context.taskGroupId",
+    "action.context.input.tasks",
+
     "buildid",
     "build_name",
     "build_type",
@@ -818,6 +827,7 @@ KNOWN_TAGS = {
     "installer_path",
     "l10n_changesets",
 
+    "label",  #
     "link",
     "locations.mozharness",
     "locations.test_packages",

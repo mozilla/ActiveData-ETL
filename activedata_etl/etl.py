@@ -87,7 +87,7 @@ class ETL(Thread):
                     Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
                     # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
-                    w._transformer = w._transformer.__new__()
+                    w._transformer = w._transformer(w.config)
                 w._source = get_container(w.source)
                 w._destination = get_container(w.destination)
                 kwargs.workers.append(w)
