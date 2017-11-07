@@ -102,13 +102,16 @@ def parse_lcov_coverage(source_key, source_name, stream):
                     'execution_count': 0
                 }
             elif cmd == 'FNDA':
-                fn_execution_count, function_name = data.split(",", 2)
                 try:
-                    current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                    fn_execution_count, function_name = data.split(",", 2)
+                    try:
+                        current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                    except Exception as e:
+                        if fn_execution_count != "0":
+                            if DEBUG:
+                                Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
                 except Exception as e:
-                    if fn_execution_count != "0":
-                        if DEBUG:
-                            Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
+                    Log.warning("problem with FNDA line {{line|quote}}", line=line, cause=e)
             elif cmd == 'BRDA':
                 line, block, branch, taken = data.split(",", 3)
                 pass
