@@ -84,6 +84,7 @@ KNOWN_PERFHERDER_TESTS = [
     "speedometer",
     "Strings",
     "Stylo",
+    "svgr-disabled",
     "svgr",
     "tabpaint",
     "tart",
