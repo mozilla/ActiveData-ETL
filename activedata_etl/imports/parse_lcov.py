@@ -103,7 +103,7 @@ def parse_lcov_coverage(source_key, source_name, stream):
                 }
             elif cmd == 'FNDA':
                 try:
-                    fn_execution_count, function_name = data.split(",", 2)
+                    fn_execution_count, function_name = data.split(",", 1)
                     try:
                         current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
                     except Exception as e:
