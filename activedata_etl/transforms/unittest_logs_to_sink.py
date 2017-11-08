@@ -132,7 +132,29 @@ def accumulate_logs(source_key, url, lines, please_stop):
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
-                log.test = " ".join(log.test)
+                test_name = log.test
+                if len(test_name) > 2 and test_name[1] == "==":
+                    log.test = test_name[0]
+                else:
+                    log.test = " ".join(log.test)
+            elif " == " in log.test and ("/reftest" in log.test or "/crashtest" in log.test):
+                # about:blank == http://localhost:1543/1509750649592/3/blank.html
+                log.test = log.test.split(" == ")[0]
+
+            # FIX REFTESTS
+            if not log.test:
+                pass
+            elif "/jsreftest.html?test=" in log.test:
+                # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
+                log.test = log.test.split("/jsreftest.html?test=")[1]
+            elif "/build/tests/reftest/tests" in log.test:
+                # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
+                # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
+                # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
+                log.test = log.test.split("/build/tests/reftest/tests")[1]
+            elif ":8854/" in log.test:
+                # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
+                log.test = log.test.split(":8854")[1]
 
             try:
                 accumulator.__getattribute__(log.action)(log)
