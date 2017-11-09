@@ -9,10 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from os import listdir, path
+from zipfile import ZipFile
+
 from activedata_etl import etl2key
 from mo_dots import wrap, unwraplist, set_default
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
+from mo_files import File, TempDirectory
 
 from mo_times.dates import Date
 from mo_times.timer import Timer
@@ -31,9 +35,9 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             yield count
             count += 1
 
-    def generator():
-        response_stream = http.get(artifact.url).raw
-        with Timer("Processing {{jscov_file}}", param={"jscov_file": artifact.url}):
+    def generator(file_dir):
+        response_stream = open(file_dir)
+        with Timer("Processing {{jscov_file}}", param={"jscov_file": file_dir}):
             counter = count_generator().next
 
             for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
@@ -63,11 +67,37 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         source=obj.get("sourceFile"),
                         cause=e
                     )
+    with TempDirectory() as tmpdir:
+        Log.note('Using temp dir: {{dir}}', dir=tmpdir)
+        jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
 
-    key = etl2key(artifact_etl)
-    destination.write_lines(key, (value2json(d) for d in generator()))
-    keys = [key]
-    return keys
+        download_file(artifact.url, jsdcov_file)
+        unzip_dir = File.new_instance(tmpdir, "jsdcov").abspath
+        unzip_files(jsdcov_file, unzip_dir)
+
+        key = etl2key(artifact_etl)
+        Log.note('Writing artifacts to destination. ')
+        for filename in listdir(unzip_dir):
+            file_dir = path.join(unzip_dir, filename)
+            destination.write_lines(key, (value2json(d) for d in generator(file_dir)))
+        keys = [key]
+        return keys
+
+
+def download_file(url, destination):
+    Log.note('Fetching JSDCov artifact: {{url}}', url=url)
+    tempfile = file(destination, "w+b")
+    stream = http.get(url).raw
+    try:
+        for b in iter(lambda: stream.read(8192), b""):
+            tempfile.write(b)
+    finally:
+        stream.close()
+
+
+def unzip_files(jsdcov_file, dest_dir):
+    Log.note('Extracting zipped JSDCov artifacts to {{dir}}', dir=dest_dir)
+    ZipFile(jsdcov_file).extractall(dest_dir)
 
 
 def process_source_file(parent_etl, count, obj, task_cluster_record):

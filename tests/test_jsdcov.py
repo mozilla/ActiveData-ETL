@@ -20,9 +20,9 @@ from test_gcov import Destination
 
 class TestJsdov(unittest.TestCase):
     def test_one_url(self):
-        key="tc.1051816"
-        url="https://queue.taskcluster.net/v1/task/PNzAZrN7SUeKMK0_-wZr0Q/runs/0/artifacts/public/test_info//code-coverage-gcda.zip"
-        destination = Destination("results/ccov/lcov_parsing_result.json.gz")
+        key="tc.472127"
+        url="http://queue.taskcluster.net/v1/task/AIU8wz7aShC_OkUPz7gpQw/artifacts/public/test_info//jsdcov_artifacts.zip"
+        destination = Destination("results/jsdcov/lcov_parsing_result.json.gz")
 
         process_jscov_artifact(
             source_key=key,
