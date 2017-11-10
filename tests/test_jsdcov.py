@@ -21,7 +21,7 @@ from test_gcov import Destination
 class TestJsdov(unittest.TestCase):
     def test_one_url(self):
         key="tc.472127"
-        url="http://queue.taskcluster.net/v1/task/AIU8wz7aShC_OkUPz7gpQw/artifacts/public/test_info//jsdcov_artifacts.zip"
+        url="http://queue.taskcluster.net/v1/task/GKlTCjJ1QMSgoTQbqAhrbg/artifacts/public/test_info//jsdcov_artifacts.zip"
         destination = Destination("results/jsdcov/lcov_parsing_result.json.gz")
 
         process_jscov_artifact(

@@ -9,18 +9,17 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from os import listdir, path
-from zipfile import ZipFile
-
 from activedata_etl import etl2key
 from mo_dots import wrap, unwraplist, set_default
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_files import File, TempDirectory
+from zipfile import ZipFile
 
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env import http
+from pyLibrary.env.big_data import ibytes2ilines
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
@@ -35,57 +34,54 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             yield count
             count += 1
 
-    def generator(file_dir):
-        response_stream = open(file_dir)
-        with Timer("Processing {{jscov_file}}", param={"jscov_file": file_dir}):
-            counter = count_generator().next
+    def generator():
+        with ZipFile(jsdcov_file) as zipped:
+            for num, zip_name in enumerate(zipped.namelist()):
+                if num == 1:
+                    Log.error("expecting only one artifact in the jsdcov.zip file while processing {{key}}",
+                              key=source_key)
+                json_stream = ibytes2ilines(zipped.open(zip_name))
+                counter = count_generator().next
+                for source_file_index, obj in enumerate(stream.parse(json_stream, [], ['.'])):
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping job ETL.")
 
-            for source_file_index, obj in enumerate(stream.parse(response_stream, [], ["."])):
-                if please_stop:
-                    Log.error("Shutdown detected. Stopping job ETL.")
+                    if source_file_index == 0:
+                        # this is not a jscov object but an object containing the version metadata
+                        # TODO: this metadata should not be here
+                        # TODO: this version info is not used right now. Make use of it later.
+                        jscov_format_version = obj.get("version")
+                        continue
 
-                if source_file_index == 0:
-                    # this is not a jscov object but an object containing the version metadata
-                    # TODO: this metadata should not be here
-                    # TODO: this version info is not used right now. Make use of it later.
-                    jscov_format_version = obj.get("version")
-                    continue
+                    try:
+                        for d in process_source_file(
+                            artifact_etl,
+                            counter,
+                            obj,
+                            task_cluster_record
+                        ):
+                            yield value2json(d)
+                    except Exception as e:
+                        Log.warning(
+                            "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
+                            key=source_key,
+                            test_url=obj.get("testUrl"),
+                            source=obj.get("sourceFile"),
+                            cause=e
+                        )
 
-                try:
-                    for d in process_source_file(
-                        artifact_etl,
-                        counter,
-                        obj,
-                        task_cluster_record
-                    ):
-                        yield d
-                except Exception as e:
-                    Log.warning(
-                        "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
-                        key=source_key,
-                        test_url=obj.get("testUrl"),
-                        source=obj.get("sourceFile"),
-                        cause=e
-                    )
+    key = etl2key(artifact_etl)
     with TempDirectory() as tmpdir:
-        Log.note('Using temp dir: {{dir}}', dir=tmpdir)
         jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
-
-        download_file(artifact.url, jsdcov_file)
-        unzip_dir = File.new_instance(tmpdir, "jsdcov").abspath
-        unzip_files(jsdcov_file, unzip_dir)
-
-        key = etl2key(artifact_etl)
-        Log.note('Writing artifacts to destination. ')
-        for filename in listdir(unzip_dir):
-            file_dir = path.join(unzip_dir, filename)
-            destination.write_lines(key, (value2json(d) for d in generator(file_dir)))
+        with Timer("Downloading {{url}}", param={"url": artifact.url}):
+            download_file(artifact.url, jsdcov_file)
+        with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
+            destination.write_lines(key, generator())
         keys = [key]
         return keys
 
 
 def download_file(url, destination):
-    Log.note('Fetching JSDCov artifact: {{url}}', url=url)
     tempfile = file(destination, "w+b")
     stream = http.get(url).raw
     try:
@@ -93,11 +89,6 @@ def download_file(url, destination):
             tempfile.write(b)
     finally:
         stream.close()
-
-
-def unzip_files(jsdcov_file, dest_dir):
-    Log.note('Extracting zipped JSDCov artifacts to {{dir}}', dir=dest_dir)
-    ZipFile(jsdcov_file).extractall(dest_dir)
 
 
 def process_source_file(parent_etl, count, obj, task_cluster_record):
