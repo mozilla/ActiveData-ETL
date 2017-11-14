@@ -20,7 +20,7 @@ from test_gcov import Destination
 
 class TestJsdov(unittest.TestCase):
     def test_one_url(self):
-        key="tc.472127"
+        key=Null
         url="http://queue.taskcluster.net/v1/task/GKlTCjJ1QMSgoTQbqAhrbg/artifacts/public/test_info//jsdcov_artifacts.zip"
         destination = Destination("results/jsdcov/lcov_parsing_result.json.gz")
 
@@ -34,13 +34,13 @@ class TestJsdov(unittest.TestCase):
             please_stop=Null
         )
 
-    def test_etl_block(self):
-        source = Data(read_lines=lambda: PublicBucket("https://s3-us-west-2.amazonaws.com/active-data-task-cluster-normalized").read_lines("tc.1051816:105180763.json.gz"))
-        destination = Destination("results/ccov/lcov_output.gz")
-
-        cov_to_es.process(
-            "tc.1051816",
-            source=source,
-            destination=destination,
-            resources=Null,
-        )
+    # def test_etl_block(self):
+    #     source = Data(read_lines=lambda: PublicBucket("https://s3-us-west-2.amazonaws.com/active-data-task-cluster-normalized").read_lines("tc.1051816:105180763.json.gz"))
+    #     destination = Destination("results/ccov/lcov_output.gz")
+    #
+    #     cov_to_es.process(
+    #         "tc.1051816",
+    #         source=source,
+    #         destination=destination,
+    #         resources=Null,
+    #     )

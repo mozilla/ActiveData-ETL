@@ -37,12 +37,9 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
     def generator():
         with ZipFile(jsdcov_file) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
-                if num == 1:
-                    Log.error("expecting only one artifact in the jsdcov.zip file while processing {{key}}",
-                              key=source_key)
                 json_stream = ibytes2ilines(zipped.open(zip_name))
                 counter = count_generator().next
-                for source_file_index, obj in enumerate(stream.parse(json_stream, [], ['.'])):
+                for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
                     if please_stop:
                         Log.error("Shutdown detected. Stopping job ETL.")
 
