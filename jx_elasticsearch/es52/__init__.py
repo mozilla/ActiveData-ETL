@@ -20,10 +20,12 @@ from jx_base.expressions import jx_expression
 from jx_base.queries import is_variable_name
 from jx_base.query import QueryOp
 from jx_base.schema import Schema
-from jx_elasticsearch.es14.aggs import es_aggsop, is_aggsop
-from jx_elasticsearch.es14.deep import is_deepop, es_deepop
-from jx_elasticsearch.es14.setop import is_setop, es_setop
-from jx_elasticsearch.es14.util import aggregates
+# from jx_elasticsearch.es09 import aggop as es09_aggop
+# from jx_elasticsearch.es09 import setop as es09_setop
+from jx_elasticsearch.es52.aggs import es_aggsop, is_aggsop
+from jx_elasticsearch.es52.deep import is_deepop, es_deepop
+from jx_elasticsearch.es52.setop import is_setop, es_setop
+from jx_elasticsearch.es52.util import aggregates
 from jx_elasticsearch.meta import FromESMetadata
 from jx_python import jx
 from mo_dots import Data, Null
@@ -31,6 +33,7 @@ from mo_dots import coalesce, split_field, literal_field, unwraplist, join_field
 from mo_dots import wrap, listwrap
 from mo_dots.lists import FlatList
 from mo_json import scrub
+from mo_json.typed_encoder import TYPE_PREFIX
 from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import Except
@@ -38,7 +41,7 @@ from pyLibrary import convert
 from pyLibrary.env import elasticsearch, http
 
 
-class ES14(Container):
+class ES52(Container):
     """
     SEND jx QUERIES TO ElasticSearch
     """
@@ -86,7 +89,7 @@ class ES14(Container):
 
         if typed == None:
             # SWITCH ON TYPED MODE
-            self.typed = any(c.es_column.find(".$") != -1 for c in columns)
+            self.typed = any(c.es_column.find("."+TYPE_PREFIX) != -1 for c in columns)
         else:
             self.typed = typed
 
@@ -194,8 +197,8 @@ class ES14(Container):
 
         # GET IDS OF DOCUMENTS
         results = self._es.search({
-            "fields": listwrap(schema._routing.path),
-            "query": {"filtered": {
+            "stored_fields": listwrap(schema._routing.path),
+            "query": {"bool": {
                 "filter": jx_expression(command.where).to_esfilter(Null)
             }},
             "size": 10000
@@ -210,7 +213,7 @@ class ES14(Container):
                 scripts.append({"doc": v.doc})
             else:
                 v = scrub(v)
-                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_ruby(schema).script(schema)})
+                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_painless(schema).script(schema)})
 
         if results.hits.hits:
             updates = []
