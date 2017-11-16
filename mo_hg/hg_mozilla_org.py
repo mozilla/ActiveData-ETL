@@ -57,11 +57,14 @@ def _late_imports():
 DEFAULT_LOCALE = "en-US"
 DEBUG = True
 DAEMON_DEBUG = True
-DAEMON_INTERVAL = 30 * SECOND
+DAEMON_HG_INTERVAL = 30 * SECOND  # HOW LONG TO WAIT BETWEEN HG REQUESTS (MAX)
+DAEMON_WAIT_AFTER_TIMEOUT = 10 * MINUTE  # IF WE SEE A TIMEOUT, THEN WAIT
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
+DAEMON_RECENT_HG_PULL = 2 * SECOND  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
+
 
 GET_DIFF = True
 MAX_DIFF_SIZE = 1000
@@ -96,6 +99,10 @@ class HgMozillaOrg(object):
 
         self.settings = kwargs
         self.timeout = Duration(timeout)
+
+        # VERIFY CONNECTIVITY
+        with Explanation("Test connect with hg"):
+            response = http.head(self.settings.hg.url)
 
         if branches == None:
             self.branches = _hg_branches.get_branches(kwargs=kwargs)
@@ -133,11 +140,28 @@ class HgMozillaOrg(object):
 
                 # FIND THE REVSIONS ON THIS BRANCH
                 for r in list(revisions):
-                    with WarnOnException("Scanning {{branch}} {{revision|left(12)}}", branch=branch.name, revision=r, debug=DAEMON_DEBUG):
+                    try:
                         rev = self.get_revision(Revision(branch=branch, changeset={"id": r}))
                         if DAEMON_DEBUG:
                             Log.note("found revision with push date {{date|datetime}}", date=rev.push.date)
                         revisions.discard(r)
+
+                        if rev.etl.timestamp > Date.now()-DAEMON_RECENT_HG_PULL:
+                            # SOME PUSHES ARE BIG, RUNNING THE RISK OTHER MACHINES ARE
+                            # ALSO INTERESTED AND PERFORMING THE SAME SCAN. THIS DELAY
+                            # WILL HAVE SMALL EFFECT ON THE MAJORITY OF SMALL PUSHES
+                            # https://bugzilla.mozilla.org/show_bug.cgi?id=1417720
+                            Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds).wait()
+                    except Exception as e:
+                        Log.warning(
+                            "Scanning {{branch}} {{revision|left(12)}}",
+                            branch=branch.name,
+                            revision=r,
+                            cause=e
+                        )
+                        if "Read timed out" in e:
+                            Till(seconds=DAEMON_WAIT_AFTER_TIMEOUT.seconds).wait()
+
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION
                 for r in list(revisions):
