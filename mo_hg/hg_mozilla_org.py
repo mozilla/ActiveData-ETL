@@ -57,11 +57,13 @@ def _late_imports():
 DEFAULT_LOCALE = "en-US"
 DEBUG = True
 DAEMON_DEBUG = True
-DAEMON_INTERVAL = 30 * SECOND
+DAEMON_HG_INTERVAL = 30 * SECOND  # HOW LONG TO WAIT BETWEEN HG REQUESTS (MAX)
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
+DAEMON_RECENT_HG_PULL = 2 * SECOND  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("22sep2017").unix  # sept 22nd 2017  ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
+
 
 GET_DIFF = True
 MAX_DIFF_SIZE = 1000
@@ -138,6 +140,13 @@ class HgMozillaOrg(object):
                         if DAEMON_DEBUG:
                             Log.note("found revision with push date {{date|datetime}}", date=rev.push.date)
                         revisions.discard(r)
+
+                        if rev.etl.timestamp > Date.now()-DAEMON_RECENT_HG_PULL:
+                            # SOME PUSHES ARE BIG, RUNNING THE RISK OTHER MACHINES ARE
+                            # ALSO INTERESTED AND PERFORMING THE SAME SCAN. THIS DELAY
+                            # WILL HAVE SMALL EFFECT ON THE MAJORITY OF SMALL PUSHES
+                            # https://bugzilla.mozilla.org/show_bug.cgi?id=1417720
+                            Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds).wait()
 
                 # FIND ANY BRANCH THAT MAY HAVE THIS REVISION
                 for r in list(revisions):
