@@ -37,6 +37,7 @@ PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
 KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
+    # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "a11yr",
     "basic_compositor_video",
     "bloom_basic_ref",
@@ -49,6 +50,7 @@ KNOWN_PERFHERDER_TESTS = [
     "compiler_metrics",
     "cpstartup",
     "damp",
+    "displaylist_mutate",
     "dromaeo_css",
     "dromaeo_dom",
     "dromaeojs",
@@ -56,6 +58,7 @@ KNOWN_PERFHERDER_TESTS = [
     "g1",
     "g2",
     "g3",
+    "g4-disabled",
     "g4",
     "glterrain",
     "glvideo",
@@ -83,6 +86,7 @@ KNOWN_PERFHERDER_TESTS = [
     "speedometer",
     "Strings",
     "Stylo",
+    "svgr-disabled",
     "svgr",
     "tabpaint",
     "tart",
@@ -93,6 +97,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tp4m_nochrome",
     "tp4m",
     "tp5n",
+    "tp5o_multiwindow_4_singlecp",
     "tp5o_scroll",
     "tp5o_webext",
     "tp5o",

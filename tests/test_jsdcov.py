@@ -13,6 +13,7 @@ import unittest
 
 from activedata_etl.transforms import cov_to_es
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
+from mo_dots import Null, Data
 from pyLibrary.aws.s3 import PublicBucket
 from test_gcov import Destination
 

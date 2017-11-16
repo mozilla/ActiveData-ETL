@@ -80,5 +80,5 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                 yield value2json(new_record)
                 destination.write_lines(file_id, line_gen())
         except Exception as e:
-            Log.warning("problem processing", cause=e)
+            Log.warning("problem processing jsvm artifact for key {{key}}", key=source_key, cause=e)
         return keys
