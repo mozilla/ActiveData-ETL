@@ -73,6 +73,7 @@ sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/f
 sudo mount -a
 sudo mkdir /data1/logs
 sudo mkdir /data1/heapdump
+sudo chown -R ec2-user:ec2-user /data1
 
 # INCREASE THE FILE HANDLE LIMITS
 # MUST USE nano TO REMOVE "unknown key"
@@ -99,11 +100,8 @@ git clone https://github.com/klahnakoski/ActiveData-ETL.git
 cd ~/ActiveData-ETL
 git checkout push-to-es5
 
-# COPY CONFIG FILE TO ES DIR
+# COPY CONFIG FILES TO ES DIR
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
-
-# FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
-# THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
