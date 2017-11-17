@@ -37,7 +37,6 @@ indices.recovery.max_bytes_per_sec: 1000mb
 http.compression: true
 http.cors.allow-origin: "/.*/"
 http.cors.enabled: true
-http.compression: true
 http.max_content_length: 1000mb
 http.timeout: 600
 
