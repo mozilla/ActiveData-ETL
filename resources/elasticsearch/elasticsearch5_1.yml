@@ -9,7 +9,7 @@ node.master: true
 node.data: true
 
 script.engine.painless.inline: true
-script.max_compilations_per_minute: 10000
+script.max_compilations_rate: 10000
 
 bootstrap.mlockall: true
 path.data: /data1

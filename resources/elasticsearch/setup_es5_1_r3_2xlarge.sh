@@ -101,6 +101,8 @@ cd ~/ActiveData-ETL
 git checkout push-to-es5
 
 # COPY CONFIG FILES TO ES DIR
+cd ~/ActiveData-ETL/
+git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
@@ -137,3 +139,9 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/supervisord.conf /etc/superviso
 sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
 sudo supervisorctl reread
 sudo supervisorctl update
+
+
+
+cd /usr/local/elasticsearch
+bin/elasticsearch
+
