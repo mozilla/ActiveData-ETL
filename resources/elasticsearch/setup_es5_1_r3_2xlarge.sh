@@ -78,6 +78,7 @@ sudo chown -R ec2-user:ec2-user /data1
 # INCREASE THE FILE HANDLE LIMITS
 # MUST USE nano TO REMOVE "unknown key"
 sudo sed -i '$ a\fs.file-max = 100000' /etc/sysctl.conf
+sudo sed -i '$ a\vm.max_map_count = 262144' /etc/sysctl.conf
 sudo sysctl -p
 
 # INCREASE FILE HANDLE PERMISSIONS
@@ -87,6 +88,7 @@ sudo sed -i '$ a\ec2-user hard nofile 100000' /etc/security/limits.conf
 # INCREASE MEMORY PERMISSIONS
 sudo sed -i '$ a\ec2-user soft memlock unlimited' /etc/security/limits.conf
 sudo sed -i '$ a\ec2-user hard memlock unlimited' /etc/security/limits.conf
+
 
 # EFFECTIVE LOGIN TO LOAD CHANGES TO FILE HANDLES
 sudo -i -u ec2-user
@@ -146,7 +148,7 @@ sudo supervisorctl reread
 sudo supervisorctl update
 
 
-
+# ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
 git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
