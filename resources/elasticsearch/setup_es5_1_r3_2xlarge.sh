@@ -109,6 +109,7 @@ cd ~/ActiveData-ETL/
 git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 
@@ -150,6 +151,7 @@ cd ~/ActiveData-ETL/
 git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 cd /usr/local/elasticsearch
 bin/elasticsearch
