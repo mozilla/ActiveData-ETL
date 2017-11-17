@@ -1,26 +1,28 @@
 cluster.name: active-data
+
+cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.enable: none
 cluster.routing.allocation.cluster_concurrent_rebalance: 1
 cluster.routing.allocation.node_concurrent_recoveries: 1
 
-node.zone: primary
 node.name: 1
 node.master: true
 node.data: true
+node.ingest: true
+node.attr.zone: primary
 
 script.engine.painless.inline: true
 script.max_compilations_rate: 10000/1m
 
-bootstrap.mlockall: true
+bootstrap.memory_lock: true
 path.data: /data1
 path.logs: /data1/logs
-cloud:
-    aws:
-        region: us-west-2
+
+discovery:
+    ec2:
+        endpoint: us-west-2
         protocol: https
-        ec2:
-            protocol: https
-discovery.type: ec2
+
 discovery.zen.ping.multicast.enabled: false
 discovery.zen.minimum_master_nodes: 1
 
