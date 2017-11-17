@@ -16,13 +16,9 @@
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
-# ORACLE'S JAVA VERISON 8 IS APPARENTLY MUCH FASTER
-# YOU MUST AGREE TO ORACLE'S LICENSE TERMS TO USE THIS COMMAND
+# PUT A COPY OF jre-8u131-linux-x64.rpm IN /home/ec2-user/
 cd /home/ec2-user/
-mkdir temp
-cd temp
-wget -c --no-cookies --no-check-certificate --header "Cookie: s_cc=true; s_nr=1425654197863; s_sq=%5B%5BB%5D%5D; oraclelicense=accept-securebackup-cookie; gpw_e24=http%3A%2F%2Fwww.oracle.com%2Ftechnetwork%2Fjava%2Fjavase%2Fdownloads%2Fjre8-downloads-2133155.html" "http://download.oracle.com/otn-pub/java/jdk/8u40-b25/jre-8u40-linux-x64.rpm" --output-document="jdk-8u5-linux-x64.rpm"
-sudo rpm -i jdk-8u5-linux-x64.rpm
+sudo rpm -i jre-8u131-linux-x64.rpm
 sudo alternatives --install /usr/bin/java java /usr/java/default/bin/java 20000
 export JAVA_HOME=/usr/java/default
 
@@ -31,24 +27,25 @@ java -version
 
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.7.1.tar.gz
-tar zxfv elasticsearch-1.7.1.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.tar.gz
+tar zxfv elasticsearch-6.0.0.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-1.7.1/* /usr/local/elasticsearch/
+sudo cp -R elasticsearch-6.0.0/* /usr/local/elasticsearch/
 
 
-cd /usr/local/elasticsearch/
 
 # BE SURE TO MATCH THE PULGIN WITH ES VERSION
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
-sudo bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
+cd /usr/local/elasticsearch/
+sudo bin/elasticsearch-plugin install discovery-ec2
+
 
 # ES HEAD IS WONDERFUL!
 # BE SURE YOUR elasticsearch.yml FILE IS HAS
 #     http.cors.enabled: true
 #     http.cors.allow-origin: "*"
-
-sudo bin/plugin install mobz/elasticsearch-head
+cd /usr/local/elasticsearch/
+sudo bin/elasticsearch-plugin install mobz/elasticsearch-head
 
 
 #MOUNT AND FORMAT THE EBS VOLUME
@@ -66,28 +63,11 @@ sudo bin/plugin install mobz/elasticsearch-head
 
 #FORMAT AND MOUNT
 sudo mkfs -t ext4 /dev/xvdb
-sudo mkfs -t ext4 /dev/xvdc
-sudo mkfs -t ext4 /dev/xvdd
-sudo mkfs -t ext4 /dev/xvde
-sudo mkfs -t ext4 /dev/xvdf
-
-#MOUNT (NO FORMAT)
-#sudo mount /dev/xvdb /data1
-
-
-
 sudo mkdir /data1
-sudo mkdir /data2
-sudo mkdir /data3
-sudo mkdir /data4
-sudo mkdir /data5
 
 # ADD TO /etc/fstab SO AROUND AFTER REBOOT
 sudo sed -i '$ a\/dev/xvdb   /data1       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdc   /data2       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdd   /data3       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvde   /data4       ext4    defaults,nofail  0   2' /etc/fstab
-sudo sed -i '$ a\/dev/xvdf   /data5       ext4    defaults,nofail  0   2' /etc/fstab
+
 
 # TEST IT IS WORKING
 sudo mount -a
@@ -117,7 +97,7 @@ cd ~
 rm -fr ~/ActiveData-ETL
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
 cd ~/ActiveData-ETL
-git checkout primary4
+git checkout push-to-es5
 
 # COPY CONFIG FILE TO ES DIR
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch_4.yml /usr/local/elasticsearch/config/elasticsearch.yml
