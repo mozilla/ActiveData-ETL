@@ -105,6 +105,7 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
+sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 
 #INSTALL PYTHON27

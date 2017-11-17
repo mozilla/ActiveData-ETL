@@ -12,7 +12,7 @@ script.engine.painless.inline: true
 script.max_compilations_per_minute: 10000
 
 bootstrap.mlockall: true
-path.data: /data1, /data2, /data3, /data4, /data5
+path.data: /data1
 path.logs: /data1/logs
 cloud:
     aws:
@@ -25,14 +25,9 @@ discovery.zen.ping.multicast.enabled: false
 discovery.zen.minimum_master_nodes: 1
 
 index.number_of_shards: 1
-index.number_of_replicas: 1
-index.cache.field.type: soft
-index.translog.interval: 60s
-index.translog.flush_threshold_size: 1gb
+index.number_of_replicas: 0
 
-indices.memory.index_buffer_size: 20%
 indices.recovery.concurrent_streams: 1
-indices.recovery.max_bytes_per_sec: 1000mb
 
 http.compression: true
 http.cors.allow-origin: "/.*/"
