@@ -104,18 +104,18 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local
 
 # FOR SOME REASON THE export COMMAND DOES NOT SEEM TO WORK
 # THIS SCRIPT SETS THE ES_MIN_MEM/ES_MAX_MEM EXPLICITLY
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch.in.sh /usr/local/elasticsearch/bin/elasticsearch.in.sh
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
 
 
 #INSTALL PYTHON27
 sudo yum -y install python27
-
-rm -fr /home/ec2-user/temp
-mkdir  /home/ec2-user/temp
-cd /home/ec2-user/temp
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python27 get-pip.py
-sudo ln -s /usr/local/bin/pip /usr/bin/pip
+sudo pip install --upgrade pip
+#rm -fr /home/ec2-user/temp
+#mkdir  /home/ec2-user/temp
+#cd /home/ec2-user/temp
+#wget https://bootstrap.pypa.io/get-pip.py
+#sudo python27 get-pip.py
+#sudo ln -s /usr/local/bin/pip /usr/bin/pip
 
 #INSTALL MODIFIED SUPERVISOR
 sudo yum install -y libffi-devel
