@@ -11,7 +11,7 @@ node.data: true
 node.ingest: true
 node.attr.zone: primary
 
-script.engine.painless.inline: true
+script.painless.regex.enabled: true
 script.max_compilations_rate: 10000/1m
 
 bootstrap.memory_lock: true
@@ -23,13 +23,11 @@ discovery:
         endpoint: us-west-2
         protocol: https
 
-discovery.zen.ping.multicast.enabled: false
 discovery.zen.minimum_master_nodes: 1
 
-indices.recovery.concurrent_streams: 1
 
 http.compression: true
 http.cors.allow-origin: "/.*/"
 http.cors.enabled: true
 http.max_content_length: 1000mb
-http.timeout: 600
+
