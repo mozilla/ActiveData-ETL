@@ -1,6 +1,6 @@
 {
 	"work_queue": {
-		"name": "active-data-index",
+		"name": "active-data-index-es5",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -16,7 +16,7 @@
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "firefox-files",
 				"type": "files",
@@ -50,7 +50,7 @@
 			"sample_only": [
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "fx-test",
 				"type": "test_result",
@@ -80,7 +80,7 @@
 			"sample_only": [
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "treeherder",
 				"type": "th_job",
@@ -90,7 +90,8 @@
 					"$ref": "//../../schema/treeherder.json"
 				},
 				"debug": false,
-				"limit_replicas": true
+				"limit_replicas": true,
+				"_id": "job.id"
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -103,7 +104,7 @@
 			}
 		},
 		{
-			"name": "unit",
+			"name": "unittest",
 			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
@@ -115,7 +116,7 @@
 				"try"
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
@@ -148,7 +149,7 @@
 			"queue_size": 2000,
 			"sample_only": ["try"],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "perf",
 				"type": "perf_result",
@@ -181,7 +182,7 @@
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "jobs",
 				"type": "job",
@@ -216,7 +217,7 @@
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
@@ -245,7 +246,7 @@
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "task",
 				"type": "task",
