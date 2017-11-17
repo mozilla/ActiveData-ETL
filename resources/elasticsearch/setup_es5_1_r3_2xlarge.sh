@@ -84,6 +84,10 @@ sudo sysctl -p
 sudo sed -i '$ a\ec2-user soft nofile 50000' /etc/security/limits.conf
 sudo sed -i '$ a\ec2-user hard nofile 100000' /etc/security/limits.conf
 
+# INCREASE MEMORY PERMISSIONS
+sudo sed -i '$ a\ec2-user soft memlock unlimited' /etc/security/limits.conf
+sudo sed -i '$ a\ec2-user hard memlock unlimited' /etc/security/limits.conf
+
 # EFFECTIVE LOGIN TO LOAD CHANGES TO FILE HANDLES
 sudo -i -u ec2-user
 
@@ -104,7 +108,7 @@ git checkout push-to-es5
 cd ~/ActiveData-ETL/
 git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 
@@ -145,7 +149,7 @@ sudo supervisorctl update
 cd ~/ActiveData-ETL/
 git pull origin push-to-es5
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch5_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/bin/jvm.options
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 cd /usr/local/elasticsearch
 bin/elasticsearch

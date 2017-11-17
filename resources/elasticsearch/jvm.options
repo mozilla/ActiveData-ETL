@@ -1,2 +1,3 @@
 -Xms30g
 -Xmx30g
+-log4j2.disable.jmx=true
