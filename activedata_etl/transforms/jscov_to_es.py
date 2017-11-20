@@ -21,13 +21,15 @@ from mo_times.timer import Timer
 from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
 
+import sys
+
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
 
 
-def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
+def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, do_aggr, please_stop):
     def count_generator():
         count = 0
         while True:
@@ -67,13 +69,49 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             cause=e
                         )
 
+    def aggregator():
+        aggr_coverage = dict()
+
+        with ZipFile(jsdcov_file) as zipped:
+            for num, zip_name in enumerate(zipped.namelist()):
+                json_stream = ibytes2ilines(zipped.open(zip_name))
+                for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping job ETL.")
+
+                    if source_file_index == 0:
+                        # this is not a jscov object but an object containing the version metadata
+                        # TODO: this metadata should not be here
+                        # TODO: this version info is not used right now. Make use of it later.
+                        jscov_format_version = obj.get("version")
+                        continue
+
+                    obj = wrap(obj)
+
+                    if obj.sourceFile in aggr_coverage:
+                        covered, uncovered = aggr_coverage[obj.sourceFile]
+                        covered = covered.union(set(obj.covered))
+                        uncovered = uncovered.union(set(obj.uncovered)) - covered
+                        aggr_coverage[obj.sourceFile] = (covered, uncovered)
+                    else:
+                        aggr_coverage[obj.sourceFile] = (set(obj.covered), set(obj.uncovered))
+
+        for source_file in aggr_coverage:
+            counter = count_generator().next
+            covered, uncovered = aggr_coverage[source_file]
+            record = create_record(artifact_etl, counter, source_file, covered, uncovered, task_cluster_record)
+            yield value2json(record)
+
     key = etl2key(artifact_etl)
     with TempDirectory() as tmpdir:
         jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, jsdcov_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
-            destination.write_lines(key, generator())
+            if do_aggr:
+                destination.write_lines(key, aggregator())
+            else:
+                destination.write_lines(key, generator())
         keys = [key]
         return keys
 
@@ -189,3 +227,31 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
     )
     key = etl2key(new_record.etl)
     yield {"id": key, "value": new_record}
+
+
+def create_record(parent_etl, count, filename, covered, uncovered, task_cluster_record):
+    new_record = set_default(
+        {
+            "source": {
+                "language": "js",
+                "file": {
+                    "name": filename,
+                    "covered": sorted(covered),
+                    "uncovered": sorted(uncovered),
+                    "total_covered": len(covered),
+                    "total_uncovered": len(uncovered),
+                    "percentage_covered": len(covered) / (len(covered) + len(uncovered))
+                }
+            },
+            "etl": {
+                "id": count(),
+                "source": parent_etl,
+                "type": "join",
+                "machine": machine_metadata,
+                "timestamp": Date.now()
+            }
+        },
+        task_cluster_record
+    )
+    key = etl2key(new_record.etl)
+    return {"id": key, "value": new_record}

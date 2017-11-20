@@ -31,6 +31,7 @@ class TestJsdov(unittest.TestCase):
             artifact=Data(url=url),
             task_cluster_record=Null,
             artifact_etl=Null,
+            do_aggr=True,
             please_stop=Null
         )
 

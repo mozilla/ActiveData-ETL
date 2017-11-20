@@ -64,6 +64,8 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if DEBUG:
                         Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
 
+                    # This flag will aggregate coverage information per source file.
+                    do_aggr = True
                     keys.extend(process_jscov_artifact(
                         source_key,
                         resources,
@@ -71,6 +73,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         task_cluster_record,
                         artifact,
                         artifact_etl,
+                        do_aggr,
                         please_stop
                     ))
                 elif "grcov" in artifact.name:
