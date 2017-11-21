@@ -88,17 +88,20 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
 
                     obj = wrap(obj)
 
+                    # Collecting coverage information
                     if obj.sourceFile in aggr_coverage:
                         covered, uncovered = aggr_coverage[obj.sourceFile]
-                        covered = covered.union(set(obj.covered))
-                        uncovered = uncovered.union(set(obj.uncovered)) - covered
+                        covered.update(covered.union(set(obj.covered)))
+                        uncovered.update(uncovered.union(set(obj.uncovered)))
                         aggr_coverage[obj.sourceFile] = (covered, uncovered)
                     else:
                         aggr_coverage[obj.sourceFile] = (set(obj.covered), set(obj.uncovered))
 
+        # Generate coverage information per source file
         for source_file in aggr_coverage:
             counter = count_generator().next
             covered, uncovered = aggr_coverage[source_file]
+            uncovered.update(uncovered - covered)
             record = create_record(artifact_etl, counter, source_file, covered, uncovered, task_cluster_record)
             yield value2json(record)
 
@@ -139,15 +142,12 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
     # turn obj.covered (a list) into a set for use later
     file_covered = set(obj.covered)
 
-    # file-level info
-    file_info = wrap({
-        "name": obj.sourceFile,
-        "covered": sorted(obj.covered),
-        "uncovered": sorted(obj.uncovered),
-        "total_covered": len(obj.covered),
-        "total_uncovered": len(obj.uncovered),
-        "percentage_covered": len(obj.covered) / (len(obj.covered) + len(obj.uncovered))
-    })
+    record = create_record(parent_etl, count, obj.sourceFile, set(obj.covered), set(obj.uncovered), task_cluster_record)
+    record = record["value"]
+    record["test"] = {
+        "name": test_name,
+        "url": obj.testUrl
+    }
 
     # orphan lines (i.e. lines without a method), initialized to all lines
     orphan_covered = set(obj.covered)
@@ -164,69 +164,38 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
         orphan_covered = orphan_covered - method_covered
         orphan_uncovered = orphan_uncovered - method_uncovered
 
-        new_record = set_default(
-            {
-                "test": {
-                    "name": test_name,
-                    "url": obj.testUrl
-                },
-                "source": {
-                    "language": "js",
-                    "file": file_info,
-                    "method": {
-                        "name": method_name,
-                        "covered": sorted(method_covered),
-                        "uncovered": sorted(method_uncovered),
-                        "total_covered": len(method_covered),
-                        "total_uncovered": len(method_uncovered),
-                        "percentage_covered": method_percentage_covered,
-                    }
-                },
-                "etl": {
-                    "id": count(),
-                    "source": parent_etl,
-                    "type": "join",
-                    "machine": machine_metadata,
-                    "timestamp": Date.now()
-                }
-            },
-            task_cluster_record
-        )
-        key = etl2key(new_record.etl)
-        yield {"id": key, "value": new_record}
+        # Record method coverage info
+        record["source"]["method"] = {
+            "name": method_name,
+            "covered": sorted(method_covered),
+            "uncovered": sorted(method_uncovered),
+            "total_covered": len(method_covered),
+            "total_uncovered": len(method_uncovered),
+            "percentage_covered": method_percentage_covered,
+        }
+
+        # Timestamp this record
+        record["etl"]["timestamp"] = Date.now()
+
+        key = etl2key(record.etl)
+        yield {"id": key, "value": record}
 
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
-    new_record = set_default(
-        {
-            "test": {
-                "name": test_name,
-                "url": obj.testUrl
-            },
-            "source": {
-                "is_file": True,  # THE ORPHAN LINES WILL REPRESENT THE FILE AS A WHOLE
-                "file": file_info,
-                "language": "js",
-                "method": {
-                    "covered": sorted(orphan_covered),
-                    "uncovered": sorted(orphan_uncovered),
-                    "total_covered": len(orphan_covered),
-                    "total_uncovered": len(orphan_uncovered),
-                    "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-                }
-            },
-            "etl": {
-                "id": count(),
-                "source": parent_etl,
-                "type": "join",
-                "machine": machine_metadata,
-                "timestamp": Date.now()
-            },
-        },
-        task_cluster_record
-    )
-    key = etl2key(new_record.etl)
-    yield {"id": key, "value": new_record}
+    # Record method coverage info
+    record["source"]["method"] = {
+        "covered": sorted(orphan_covered),
+        "uncovered": sorted(orphan_uncovered),
+        "total_covered": len(orphan_covered),
+        "total_uncovered": len(orphan_uncovered),
+        "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+    }
+
+    # Timestamp this record
+    record["etl"]["timestamp"] = Date.now()
+
+    key = etl2key(record.etl)
+    yield {"id": key, "value": record}
 
 
 def create_record(parent_etl, count, filename, covered, uncovered, task_cluster_record):

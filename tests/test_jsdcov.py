@@ -19,10 +19,27 @@ from test_gcov import Destination
 
 
 class TestJsdov(unittest.TestCase):
+
     def test_one_url(self):
         key=Null
         url="http://queue.taskcluster.net/v1/task/GKlTCjJ1QMSgoTQbqAhrbg/artifacts/public/test_info//jsdcov_artifacts.zip"
         destination = Destination("results/jsdcov/lcov_parsing_result.json.gz")
+
+        process_jscov_artifact(
+            source_key=key,
+            resources=Null,
+            destination=destination,
+            artifact=Data(url=url),
+            task_cluster_record=Null,
+            artifact_etl=Null,
+            do_aggr=False,
+            please_stop=Null
+        )
+
+    def test_one_url_do_aggr(self):
+        key=Null
+        url="http://queue.taskcluster.net/v1/task/GKlTCjJ1QMSgoTQbqAhrbg/artifacts/public/test_info//jsdcov_artifacts.zip"
+        destination = Destination("results/jsdcov/lcov_parsing_aggr_result.json.gz")
 
         process_jscov_artifact(
             source_key=key,

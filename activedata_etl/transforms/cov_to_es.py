@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
+from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
@@ -21,6 +22,8 @@ STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
+# This flag will aggregate coverage information per source file (JSDCov only).
+DO_AGGR = True
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -64,8 +67,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                     if DEBUG:
                         Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
 
-                    # This flag will aggregate coverage information per source file.
-                    do_aggr = True
                     keys.extend(process_jscov_artifact(
                         source_key,
                         resources,
@@ -73,7 +74,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         task_cluster_record,
                         artifact,
                         artifact_etl,
-                        do_aggr,
+                        DO_AGGR,
                         please_stop
                     ))
                 elif "grcov" in artifact.name:
