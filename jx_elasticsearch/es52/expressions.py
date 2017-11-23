@@ -22,9 +22,8 @@ from jx_base.expressions import Variable, TupleOp, LeavesOp, BinaryOp, OrOp, Scr
     PrefixOp, NotLeftOp, InOp, CaseOp, AndOp, \
     ConcatOp, IsNumberOp, Expression, BasicIndexOfOp, MaxOp, MinOp, BasicEqOp, BooleanOp, IntegerOp, BasicSubstringOp, ZERO, NULL, FirstOp, FALSE, TRUE
 from mo_dots import coalesce, wrap, Null, unwraplist, set_default, literal_field
-from mo_json import quote
 from mo_logs import Log, suppress_exception
-from mo_logs.strings import expand_template
+from mo_logs.strings import expand_template, quote
 from mo_math import MAX, OR
 from pyLibrary.convert import string2regexp
 
@@ -682,15 +681,17 @@ def to_painless(self, schema):
     value = self.term.to_painless(schema)
     if value.many:
         return BooleanOp("boolean", Painless(
-            miss=value.missing,
+            miss=value.miss,
             type=value.type,
             expr="(" + value.expr + ")[0]",
             frum=value.frum
         )).to_painless(schema)
     elif value.type == BOOLEAN:
-        return value
+        miss = value.miss
+        value.miss = FALSE
+        return WhenOp("when",  miss, **{"then": FALSE, "else": value}).partial_eval().to_painless(schema)
     else:
-        return NotOp("not", value.missing()).partial_eval().to_painless(schema)
+        return NotOp("not", value.miss).partial_eval().to_painless(schema)
 
 @extend(BooleanOp)
 def to_esfilter(self, schema):
