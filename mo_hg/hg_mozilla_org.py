@@ -212,8 +212,6 @@ class HgMozillaOrg(object):
             self.branches = _hg_branches.get_branches(kwargs=self.settings)
 
         push = self._get_push(found_revision.branch, found_revision.changeset.id)
-        if not push:
-            Log.error("did not get push!")
 
         url1 = found_revision.branch.url.rstrip("/") + "/json-info?node=" + found_revision.changeset.id[0:12]
         url2 = found_revision.branch.url.rstrip("/") + "/json-rev/" + found_revision.changeset.id[0:12]
@@ -334,9 +332,13 @@ class HgMozillaOrg(object):
                 Push(id=int(index), date=_push.date, user=_push.user)
                 for index, _push in data.items()
             ]
-        if len(pushes) != 1:
+
+        if len(pushes) == 0:
+            return Null
+        elif len(pushes) == 1:
+            return pushes[0]
+        else:
             Log.error("do not know what to do")
-        return pushes[0]
 
     def _normalize_revision(self, r, found_revision, push, get_diff):
         new_names = set(r.keys()) - {"rev", "node", "user", "description", "desc", "date", "files", "backedoutby", "parents", "children", "branch", "tags", "pushuser", "pushdate", "pushid", "phase", "bookmarks"}
