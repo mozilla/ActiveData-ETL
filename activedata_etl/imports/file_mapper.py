@@ -15,7 +15,6 @@ from activedata_etl.transforms.grcov_to_es import download_file
 from mo_files import TempFile
 from mo_json import stream
 from mo_logs import Log
-from mo_math.vendor.strangman.statstest import a
 from mo_times import Timer
 from pyLibrary.env.big_data import scompressed2ibytes
 
@@ -27,20 +26,20 @@ class FileMapper(object):
 
     def __init__(self, files_url):
         """
-        :param files_url: EXPECTING ZIP FILE OF JSON AS ONE OBJECT IN {filename: [product, component]} FORMAT
+        :param files_url: EXPECTING URL TO ZIP FILE OF JSON AS ONE OBJECT IN {filename: [product, component]} FORMAT
         """
 
         self.lookup = {}
         with TempFile() as tempfile:
-            Log.note("download {{url}}", url=a.url)
-            download_file(a.url, tempfile.abspath)
+            Log.note("download {{url}}", url=files_url)
+            download_file(files_url, tempfile.abspath)
             with open(tempfile.abspath, b"rb") as fstream:
-                with Timer("process {{url}}", param={"url": a.url}):
-                    for data in enumerate(stream.parse(
+                with Timer("process {{url}}", param={"url": files_url}):
+                    for data in stream.parse(
                         scompressed2ibytes(fstream),
                         {"items": "."},
-                        {"."}
-                    )):
+                        {"name"}
+                    ):
                         self._add(data.name)
 
     def _add(self, filename):
@@ -50,9 +49,14 @@ class FileMapper(object):
             found = curr.get(p)
             if not found:
                 curr[p] = filename
+                return
             elif isinstance(found, text_type):
-                curr[path[i + 1]] = {p: filename}
+                if i + 1 >= len(path):
+                    curr[p] = {".": filename}
+                else:
+                    curr[p] = {path[i + 1]: filename}
                 self._add(found)
+                return
             else:
                 curr = found
 
@@ -62,8 +66,10 @@ class FileMapper(object):
         for i, p in enumerate(path):
             found = curr.get(p)
             if not found:
-                Log.error("can not find filename")
+                return filename
             elif isinstance(found, text_type):
                 return found
             else:
                 curr = found
+
+        return curr.values()

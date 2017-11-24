@@ -18,7 +18,7 @@ from types import GeneratorType
 from mo_dots import split_field, startswith_field, relative_field, Data, join_field, Null, wrap
 from mo_logs import Log
 
-DEBUG = True
+DEBUG = False
 
 MIN_READ_SIZE = 8*1024
 WHITESPACE = b" \n\r\t"

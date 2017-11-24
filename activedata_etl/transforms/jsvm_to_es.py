@@ -14,13 +14,16 @@ from zipfile import ZipFile
 from future.utils import text_type
 
 from activedata_etl import etl2key
+from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
+from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
 from activedata_etl.transforms.grcov_to_es import download_file
-from mo_dots import set_default
+from mo_dots import set_default, coalesce
 from mo_files import TempFile
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
+from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
@@ -35,6 +38,26 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
     """
     if DEBUG:
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
+
+    if not resources.file_mapper:
+        # FIND RECENT FILE LISTING
+        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
+        result = http.post_json(
+            ACTIVE_DATA_QUERY,
+            json={
+                "from": "task.task.artifacts",
+                "where": {"and": [
+                    {"eq": {"name": "public/components.json.gz"}},
+                    {"eq": {"treeherder.symbol": "Bugzilla"}},
+                    {"lt": {"repo.push.date": timestamp}}
+                ]},
+                "sort": {"repo.push.date": "desc"},
+                "limit": 1,
+                "select": ["url", "repo.push.date"],
+                "format": "list"
+            }
+        )
+        resources.file_mapper = FileMapper(result.data[0].url)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -71,6 +94,20 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     continue
                                 if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                                     continue
+
+                                # RENAME FILE TO SOMETHING FOUND IN SOURCE
+                                if not source.file.name.endswith(".py"):
+                                    rename = resources.file_mapper.find(source.file.name)
+                                    if isinstance(rename, list):
+                                        for r in rename:
+                                            if r.find(task_cluster_record.run.suite.name) >= 0:
+                                                source.file.name = r
+                                                break
+                                        else:
+                                            pass
+                                    else:
+                                        source.file.name = rename
+
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)
