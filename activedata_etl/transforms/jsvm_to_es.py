@@ -53,7 +53,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
         task_cluster_record
     )
     etl_key = etl2key(artifact_etl)
-    keys = [etl_key]  #
+    keys = [etl_key]
 
     with TempFile() as tmpfile:
         try:
