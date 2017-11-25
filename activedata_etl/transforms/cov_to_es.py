@@ -101,7 +101,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing jsvm artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing jsvm artifact: {{url}} for key {{key}}", key=source_key, url=artifact.url)
 
                     keys.extend(process_jsvm_artifact(
                         source_key,

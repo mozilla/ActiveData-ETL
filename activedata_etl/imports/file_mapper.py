@@ -72,4 +72,13 @@ class FileMapper(object):
             else:
                 curr = found
 
-        return curr.values()
+        return list(_values(curr))
+
+
+def _values(curr):
+    for v in curr.values():
+        if isinstance(v, text_type):
+            yield v
+        else:
+            for u in _values(v):
+                yield u

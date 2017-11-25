@@ -104,7 +104,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                                 source.file.name = r
                                                 break
                                         else:
-                                            pass
+                                            Log.warning("Can not resolve {{filename}} for key {{key}}", key=source_key, filename=source.file.name)
                                     else:
                                         source.file.name = rename
 
