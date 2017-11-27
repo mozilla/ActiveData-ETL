@@ -15,7 +15,7 @@ import re
 from collections import Mapping
 from copy import deepcopy
 
-from future.utils import text_type, binary_type
+from mo_future import text_type, binary_type
 from jx_python.expressions import jx_expression_to_function
 
 import mo_json

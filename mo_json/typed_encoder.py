@@ -17,11 +17,11 @@ from collections import deque, Mapping
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from future.utils import text_type
+from mo_future import text_type
 
 from mo_dots import Data, FlatList, NullType, split_field, join_field
 from mo_json import ESCAPE_DCT, float2json
-from mo_json.encoder import pretty_json, problem_serializing, _repr, UnicodeBuilder, COMMA
+from mo_json.encoder import pretty_json, problem_serializing, UnicodeBuilder, COMMA
 from mo_logs import Log
 from mo_logs.strings import utf82unicode
 from mo_times.dates import Date
@@ -141,11 +141,11 @@ def _typed_encode(value, _buffer):
         else:
             from mo_logs import Log
 
-            Log.error(_repr(value) + " is not JSON serializable")
+            Log.error(text_type(repr(value)) + " is not JSON serializable")
     except Exception as e:
         from mo_logs import Log
 
-        Log.error(_repr(value) + " is not JSON serializable", e)
+        Log.error(text_type(repr(value)) + " is not JSON serializable", e)
 
 
 def _list2json(value, _buffer):
