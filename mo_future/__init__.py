@@ -67,7 +67,7 @@ else:
     round = __builtin__.round
     import HTMLParser
     from urlparse import urlparse
-    import StringIO
+    from StringIO import StringIO
     from thread import allocate_lock, get_ident
 
     def get_function_name(func):
