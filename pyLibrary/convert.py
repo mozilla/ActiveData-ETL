@@ -208,10 +208,10 @@ def value2string(value):
 
 def value2quote(value):
     # RETURN PRETTY PYTHON CODE FOR THE SAME
-    if isinstance(value, basestring):
+    if isinstance(value, text_type):
         return string2quote(value)
     else:
-        return repr(value)
+        return text_type(repr(value))
 
 
 def string2quote(value):
@@ -304,7 +304,7 @@ def quote2string(value):
 # RETURN PYTHON CODE FOR THE SAME
 
 def value2code(value):
-    return repr(value)
+    return text_type(repr(value))
 
 
 def DataFrame2string(df, columns=None):

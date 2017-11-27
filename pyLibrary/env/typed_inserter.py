@@ -261,11 +261,11 @@ class TypedInserter(object):
             else:
                 from mo_logs import Log
 
-                Log.error(repr(value) + " is not JSON serializable")
+                Log.error(text_type(repr(value)) + " is not JSON serializable")
         except Exception as e:
             from mo_logs import Log
 
-            Log.error(repr(value) + " is not JSON serializable", cause=e)
+            Log.error(text_type(repr(value)) + " is not JSON serializable", cause=e)
 
     def _list2json(self, value, sub_schema, path, net_new_properties, _buffer):
         if not value:
