@@ -40,6 +40,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
 
     if not resources.file_mapper:
+        # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
         # FIND RECENT FILE LISTING
         timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
         result = http.post_json(
