@@ -96,7 +96,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     continue
 
                                 # RENAME FILE TO SOMETHING FOUND IN SOURCE
-                                if not source.file.name.endswith(".py"):
+                                try:
                                     rename = resources.file_mapper.find(source.file.name)
                                     if isinstance(rename, list):
                                         for r in rename:
@@ -107,6 +107,8 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                             Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
                                     else:
                                         source.file.name = rename
+                                except Exception as e:
+                                    Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, cause=e)
 
                                 new_record.source = source
                                 new_record.etl.id = count
