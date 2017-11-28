@@ -9,19 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from activedata_etl import etl2key
-from mo_dots import wrap, unwraplist, set_default
-from mo_json import stream, value2json
-from mo_logs import Log, machine_metadata
-from mo_files import File, TempDirectory
 from zipfile import ZipFile
 
+from activedata_etl import etl2key
+from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
+from mo_dots import wrap, unwraplist, set_default, coalesce
+from mo_dots.datas import text_type
+from mo_files import File, TempDirectory
+from mo_json import stream, value2json
+from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
-
-import sys
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
@@ -30,12 +31,152 @@ RETRY = {"times": 3, "sleep": 5}
 # This flag will aggregate coverage information per source file.
 DO_AGGR = True
 
+
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
+
+    if not resources.file_mapper:
+        # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
+        # FIND RECENT FILE LISTING
+        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
+        result = http.post_json(
+            ACTIVE_DATA_QUERY,
+            json={
+                "from": "task.task.artifacts",
+                "where": {"and": [
+                    {"eq": {"name": "public/components.json.gz"}},
+                    {"eq": {"treeherder.symbol": "Bugzilla"}},
+                    {"lt": {"repo.push.date": timestamp}}
+                ]},
+                "sort": {"repo.push.date": "desc"},
+                "limit": 1,
+                "select": ["url", "repo.push.date"],
+                "format": "list"
+            }
+        )
+        resources.file_mapper = FileMapper(result.data[0].url)
+
     def count_generator():
         count = 0
         while True:
             yield count
             count += 1
+
+    def fix_filename(filename):
+        # RENAME FILE TO SOMETHING FOUND IN SOURCE
+        try:
+            rename = resources.file_mapper.find(filename, suite_name=task_cluster_record.run.suite.name)
+            if isinstance(rename, list):
+                Log.warning(
+                    "Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}",
+                    key=source_key,
+                    url=artifact.url,
+                    filename=filename,
+                    list=rename
+                )
+            else:
+                filename = rename
+        except Exception as e:
+            Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=artifact.url, filename=filename, cause=e)
+
+        if not isinstance(filename, text_type):
+            Log.error("expecting source.file.name to be a string")
+
+        return filename
+
+    def create_record(parent_etl, count, filename, covered, uncovered):
+        filename = fix_filename(filename)
+
+        new_record = set_default(
+            {
+                "source": {
+                    "language": "js",
+                    "file": {
+                        "name": filename,
+                        "covered": sorted(covered),
+                        "uncovered": sorted(uncovered),
+                        "total_covered": len(covered),
+                        "total_uncovered": len(uncovered),
+                        "percentage_covered": len(covered) / (len(covered) + len(uncovered))
+                    }
+                },
+                "etl": {
+                    "id": count(),
+                    "source": parent_etl,
+                    "type": "join",
+                    "machine": machine_metadata,
+                    "timestamp": Date.now()
+                }
+            },
+            task_cluster_record
+        )
+        return new_record
+
+    def process_source_file(parent_etl, count, obj):
+        obj = wrap(obj)
+
+        # get the test name. Just use the test file name at the moment
+        # TODO: change this when needed
+        try:
+            test_name = unwraplist(obj.testUrl).split("/")[-1]
+        except Exception as e:
+            raise Log.error("can not get testUrl from coverage object", cause=e)
+
+        # turn obj.covered (a list) into a set for use later
+        file_covered = set(obj.covered)
+
+        record = create_record(parent_etl, count, obj.sourceFile, set(obj.covered), set(obj.uncovered))
+        record.test = {
+            "name": test_name,
+            "url": obj.testUrl
+        }
+
+        # orphan lines (i.e. lines without a method), initialized to all lines
+        orphan_covered = set(obj.covered)
+        orphan_uncovered = set(obj.uncovered)
+
+        # iterate through the methods of this source file
+        # a variable to count the number of lines so far for this source file
+        for method_name, method_lines in obj.methods.iteritems():
+            all_method_lines = set(method_lines)
+            method_covered = all_method_lines & file_covered
+            method_uncovered = all_method_lines - method_covered
+            method_percentage_covered = len(method_covered) / len(all_method_lines)
+
+            orphan_covered = orphan_covered - method_covered
+            orphan_uncovered = orphan_uncovered - method_uncovered
+
+            # Record method coverage info
+            record.source.method = {
+                "name": method_name,
+                "covered": sorted(method_covered),
+                "uncovered": sorted(method_uncovered),
+                "total_covered": len(method_covered),
+                "total_uncovered": len(method_uncovered),
+                "percentage_covered": method_percentage_covered,
+            }
+
+            # Timestamp this record
+            record.etl.timestamp = Date.now()
+
+            key = etl2key(record.etl)
+            yield {"id": key, "value": record}
+
+        # a record for all the lines that are not in any method
+        # every file gets one because we can use it as canonical representative
+        # Record method coverage info
+        record.source.method = {
+            "covered": sorted(orphan_covered),
+            "uncovered": sorted(orphan_uncovered),
+            "total_covered": len(orphan_covered),
+            "total_uncovered": len(orphan_uncovered),
+            "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+        }
+
+        # Timestamp this record
+        record.etl.timestamp = Date.now()
+
+        key = etl2key(record.etl)
+        yield {"id": key, "value": record}
 
     def generator():
         with ZipFile(jsdcov_file) as zipped:
@@ -57,8 +198,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         for d in process_source_file(
                             artifact_etl,
                             counter,
-                            obj,
-                            task_cluster_record
+                            obj
                         ):
                             yield value2json(d)
                     except Exception as e:
@@ -90,6 +230,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         continue
 
                     obj = wrap(obj)
+                    obj.sourceFile = fix_filename(obj.sourceFile)
 
                     # Collecting coverage information
                     if obj.sourceFile in aggr_coverage:
@@ -105,7 +246,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
         for source_file, (covered, total_lines) in aggr_coverage.items():
             counter = count_generator().next
             uncovered = total_lines - covered
-            record = create_record(artifact_etl, counter, source_file, covered, uncovered, task_cluster_record)
+            record = create_record(artifact_etl, counter, source_file, covered, uncovered)
             yield value2json({"id": key, "value": record})
 
     with TempDirectory() as tmpdir:
@@ -122,105 +263,12 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
 
 
 def download_file(url, destination):
-    tempfile = file(destination, "w+b")
-    stream = http.get(url).raw
-    try:
-        for b in iter(lambda: stream.read(8192), b""):
-            tempfile.write(b)
-    finally:
-        stream.close()
+    with file(destination, "w+b") as tempfile:
+        stream = http.get(url).raw
+        try:
+            for b in iter(lambda: stream.read(8192), b""):
+                tempfile.write(b)
+        finally:
+            stream.close()
 
 
-def process_source_file(parent_etl, count, obj, task_cluster_record):
-    obj = wrap(obj)
-
-    # get the test name. Just use the test file name at the moment
-    # TODO: change this when needed
-    try:
-        test_name = unwraplist(obj.testUrl).split("/")[-1]
-    except Exception as e:
-        raise Log.error("can not get testUrl from coverage object", cause=e)
-
-    # turn obj.covered (a list) into a set for use later
-    file_covered = set(obj.covered)
-
-    record = create_record(parent_etl, count, obj.sourceFile, set(obj.covered), set(obj.uncovered), task_cluster_record)
-    record.test = {
-        "name": test_name,
-        "url": obj.testUrl
-    }
-
-    # orphan lines (i.e. lines without a method), initialized to all lines
-    orphan_covered = set(obj.covered)
-    orphan_uncovered = set(obj.uncovered)
-
-    # iterate through the methods of this source file
-    # a variable to count the number of lines so far for this source file
-    for method_name, method_lines in obj.methods.iteritems():
-        all_method_lines = set(method_lines)
-        method_covered = all_method_lines & file_covered
-        method_uncovered = all_method_lines - method_covered
-        method_percentage_covered = len(method_covered) / len(all_method_lines)
-
-        orphan_covered = orphan_covered - method_covered
-        orphan_uncovered = orphan_uncovered - method_uncovered
-
-        # Record method coverage info
-        record.source.method = {
-            "name": method_name,
-            "covered": sorted(method_covered),
-            "uncovered": sorted(method_uncovered),
-            "total_covered": len(method_covered),
-            "total_uncovered": len(method_uncovered),
-            "percentage_covered": method_percentage_covered,
-        }
-
-        # Timestamp this record
-        record.etl.timestamp = Date.now()
-
-        key = etl2key(record.etl)
-        yield {"id": key, "value": record}
-
-    # a record for all the lines that are not in any method
-    # every file gets one because we can use it as canonical representative
-    # Record method coverage info
-    record.source.method = {
-        "covered": sorted(orphan_covered),
-        "uncovered": sorted(orphan_uncovered),
-        "total_covered": len(orphan_covered),
-        "total_uncovered": len(orphan_uncovered),
-        "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-    }
-
-    # Timestamp this record
-    record.etl.timestamp = Date.now()
-
-    key = etl2key(record.etl)
-    yield {"id": key, "value": record}
-
-
-def create_record(parent_etl, count, filename, covered, uncovered, task_cluster_record):
-    new_record = set_default(
-        {
-            "source": {
-                "language": "js",
-                "file": {
-                    "name": filename,
-                    "covered": sorted(covered),
-                    "uncovered": sorted(uncovered),
-                    "total_covered": len(covered),
-                    "total_uncovered": len(uncovered),
-                    "percentage_covered": len(covered) / (len(covered) + len(uncovered))
-                }
-            },
-            "etl": {
-                "id": count(),
-                "source": parent_etl,
-                "type": "join",
-                "machine": machine_metadata,
-                "timestamp": Date.now()
-            }
-        },
-        task_cluster_record
-    )
-    return new_record

@@ -11,10 +11,9 @@ from __future__ import unicode_literals
 
 import unittest
 
-from activedata_etl.transforms import cov_to_es
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from mo_dots import Null, Data
-from pyLibrary.aws.s3 import PublicBucket
+from mo_times import Date, Duration, WEEK
 from test_gcov import Destination
 
 
@@ -27,10 +26,10 @@ class TestJsdov(unittest.TestCase):
 
         process_jscov_artifact(
             source_key=key,
-            resources=Null,
+            resources=Data(),
             destination=destination,
             artifact=Data(url=url),
-            task_cluster_record=Null,
+            task_cluster_record=Data(repo={"push": {"date": Date.now()}}),
             artifact_etl=Null,
             please_stop=Null
         )
