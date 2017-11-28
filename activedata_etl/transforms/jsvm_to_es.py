@@ -108,9 +108,6 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
 
                                 if not isinstance(source.file.name, text_type):
                                     Log.error("expecting source.file.name to be a string")
-                                # if source.file.name.find("://") != -1:
-                                #     rename = resources.file_mapper.find(source.file.name)  # FOR DEBUGGING WHY
-                                #     Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
 
                                 new_record.source = source
                                 new_record.etl.id = count
