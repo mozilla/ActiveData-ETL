@@ -10,16 +10,42 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import itertools
+
 from future.utils import text_type
 
+from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
 from activedata_etl.transforms.grcov_to_es import download_file
+from mo_dots import coalesce
 from mo_files import TempFile
 from mo_json import stream
 from mo_logs import Log
 from mo_times import Timer
+from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
 EXCLUDE = ('mobile',)
+
+
+def make_file_mapper(task_cluster_record):
+    # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
+    # FIND RECENT FILE LISTING
+    timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
+    result = http.post_json(
+        ACTIVE_DATA_QUERY,
+        json={
+            "from": "task.task.artifacts",
+            "where": {"and": [
+                {"eq": {"name": "public/components.json.gz"}},
+                {"eq": {"treeherder.symbol": "Bugzilla"}},
+                {"lt": {"repo.push.date": timestamp}}
+            ]},
+            "sort": {"repo.push.date": "desc"},
+            "limit": 1,
+            "select": ["url", "repo.push.date"],
+            "format": "list"
+        }
+    )
+    return FileMapper(result.data[0].url)
 
 
 class FileMapper(object):

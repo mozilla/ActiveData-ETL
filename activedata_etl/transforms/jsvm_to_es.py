@@ -14,16 +14,14 @@ from zipfile import ZipFile
 from future.utils import text_type
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.imports.file_mapper import make_file_mapper
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
 from activedata_etl.transforms.grcov_to_es import download_file
-from mo_dots import set_default, coalesce
+from mo_dots import set_default
 from mo_files import TempFile
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
-from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
@@ -40,25 +38,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
 
     if not resources.file_mapper:
-        # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
-        # FIND RECENT FILE LISTING
-        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
-        result = http.post_json(
-            ACTIVE_DATA_QUERY,
-            json={
-                "from": "task.task.artifacts",
-                "where": {"and": [
-                    {"eq": {"name": "public/components.json.gz"}},
-                    {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": timestamp}}
-                ]},
-                "sort": {"repo.push.date": "desc"},
-                "limit": 1,
-                "select": ["url", "repo.push.date"],
-                "format": "list"
-            }
-        )
-        resources.file_mapper = FileMapper(result.data[0].url)
+        resources.file_mapper = make_file_mapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -103,8 +83,8 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                         Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, list=rename)
                                     else:
                                         source.file.name = rename
-                                except Exception as e:
-                                    Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, cause=e)
+                                except Exception as ee:
+                                    Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, cause=ee)
 
                                 if not isinstance(source.file.name, text_type):
                                     Log.error("expecting source.file.name to be a string")

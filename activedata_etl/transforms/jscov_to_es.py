@@ -12,9 +12,8 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
-from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
-from mo_dots import wrap, unwraplist, set_default, coalesce
+from activedata_etl.imports.file_mapper import make_file_mapper
+from mo_dots import wrap, unwraplist, set_default
 from mo_dots.datas import text_type
 from mo_files import File, TempDirectory
 from mo_json import stream, value2json
@@ -35,25 +34,7 @@ DO_AGGR = True
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
 
     if not resources.file_mapper:
-        # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
-        # FIND RECENT FILE LISTING
-        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
-        result = http.post_json(
-            ACTIVE_DATA_QUERY,
-            json={
-                "from": "task.task.artifacts",
-                "where": {"and": [
-                    {"eq": {"name": "public/components.json.gz"}},
-                    {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": timestamp}}
-                ]},
-                "sort": {"repo.push.date": "desc"},
-                "limit": 1,
-                "select": ["url", "repo.push.date"],
-                "format": "list"
-            }
-        )
-        resources.file_mapper = FileMapper(result.data[0].url)
+        resources.file_mapper = make_file_mapper(task_cluster_record)
 
     def count_generator():
         count = 0
