@@ -19,6 +19,8 @@ from mo_logs import Log
 from mo_times import Timer
 from pyLibrary.env.big_data import scompressed2ibytes
 
+EXCLUDE = ('mobile',)
+
 
 class FileMapper(object):
     """
@@ -44,6 +46,9 @@ class FileMapper(object):
                         self._add(data.name)
 
     def _add(self, filename):
+        if filename.startswith(EXCLUDE):
+            return
+
         path = list(reversed(filename.split("/")))
         curr = self.lookup
         for i, p in enumerate(path):
@@ -83,12 +88,13 @@ class FileMapper(object):
         return self._find_best(path, list(_values(curr)), suite_name, filename)
 
     def _find_best(self, path, files, suite_name, default):
+        path = set(path)
         best = None
         best_score = 0
         peer = None
         for f in files:
-            f_path = f.split("/")
-            score = sum(1 for a, b in itertools.product(path, f_path) if a == b) + (1 if suite_name in f_path else 0)
+            f_path = set(f.split("/"))
+            score = len(path & f_path) + (0.5 if suite_name in f_path else 0)
             if score > best_score:
                 best = f
                 peer = None

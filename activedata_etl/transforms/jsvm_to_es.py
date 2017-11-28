@@ -100,12 +100,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                 try:
                                     rename = resources.file_mapper.find(source.file.name, suite_name=task_cluster_record.run.suite.name)
                                     if isinstance(rename, list):
-                                        for r in rename:
-                                            if r.find(task_cluster_record.run.suite.name) >= 0:
-                                                source.file.name = r
-                                                break
-                                        else:
-                                            Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
+                                        Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, list=rename)
                                     else:
                                         source.file.name = rename
                                 except Exception as e:
