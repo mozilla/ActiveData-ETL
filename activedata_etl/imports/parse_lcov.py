@@ -17,11 +17,12 @@ import json
 import sys
 
 from mo_dots import wrap, Null
+from mo_files import File
 from mo_logs import Log
 
 DEBUG = False
 DEBUG_LINE_LIMIT = False
-EMIT_RECORDS_WITH_ZERO_COVERAGE = False
+EMIT_RECORDS_WITH_ZERO_COVERAGE = True
 LINE_LIMIT = 10000
 
 COMMANDS = ['TN:', 'SF:', 'FNF:', 'FNH:', 'LF:', 'LH:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record']
@@ -55,12 +56,10 @@ def parse_lcov_coverage(source_key, source_name, stream):
                 if source.file.total_covered > LINE_LIMIT:
                     if DEBUG_LINE_LIMIT:
                         Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.file.total_covered)
-                    continue
-                if source.file.total_uncovered > LINE_LIMIT:
+                elif source.file.total_uncovered > LINE_LIMIT:
                     if DEBUG_LINE_LIMIT:
                         Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.file.total_uncovered)
-                    continue
-                if EMIT_RECORDS_WITH_ZERO_COVERAGE:
+                elif EMIT_RECORDS_WITH_ZERO_COVERAGE:
                     yield source
                 elif source.file.total_covered:
                     yield source
@@ -102,13 +101,16 @@ def parse_lcov_coverage(source_key, source_name, stream):
                     'execution_count': 0
                 }
             elif cmd == 'FNDA':
-                fn_execution_count, function_name = data.split(",", 2)
                 try:
-                    current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                    fn_execution_count, function_name = data.split(",", 1)
+                    try:
+                        current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                    except Exception as e:
+                        if fn_execution_count != "0":
+                            if DEBUG:
+                                Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
                 except Exception as e:
-                    if fn_execution_count != "0":
-                        if DEBUG:
-                            Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
+                    Log.warning("problem with FNDA line {{line|quote}}", line=line, cause=e)
             elif cmd == 'BRDA':
                 line, block, branch, taken = data.split(",", 3)
                 pass
@@ -124,9 +126,10 @@ def parse_lcov_coverage(source_key, source_name, stream):
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
     coverable_lines = len(details['lines_covered']) + len(details['lines_uncovered'])
+    lang = LANG.get(File(details['file']).extension, "c/c++")
 
     source = wrap({
-        "language": "c/c++",
+        "language": lang,
         "is_file": True,
         "file": {
             "name": details['file'],
@@ -139,6 +142,11 @@ def coco_format(details):
     })
 
     return [source]
+
+LANG = {
+    "js": "javascript",
+    "py": "python"
+}
 
 
 def js_coverage_format(sources):

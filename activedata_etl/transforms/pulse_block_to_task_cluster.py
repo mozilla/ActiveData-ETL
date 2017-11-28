@@ -416,6 +416,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         consume(task, "tags.build_props.product"),
         task.extra.treeherder.productName,
         consume(task, "extra.build_product"),
+        consume(task, "extra.product"),
         "firefox" if task.extra.suite.name.startswith("firefox") else None,
         "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else None
     )
