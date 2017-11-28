@@ -61,6 +61,7 @@ class FileMapper(object):
                 curr = found
 
     def find(self, filename):
+        filename = filename.split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
         path = list(reversed(filename.split("/")))
         curr = self.lookup
         for i, p in enumerate(path):

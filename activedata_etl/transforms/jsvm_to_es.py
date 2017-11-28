@@ -111,6 +111,9 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                 except Exception as e:
                                     Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, cause=e)
 
+                                if source.file.name.startswith("chrome://", "file://", "http://"):
+                                    Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
+
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)
