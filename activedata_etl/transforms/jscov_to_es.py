@@ -28,7 +28,7 @@ ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
 # This flag will aggregate coverage information per source file.
-DO_AGGR = False
+DO_AGGR = True
 
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
     def count_generator():
