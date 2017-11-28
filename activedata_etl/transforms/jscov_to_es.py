@@ -235,12 +235,10 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                     # Collecting coverage information
                     if obj.sourceFile in aggr_coverage:
                         covered, total_lines = aggr_coverage[obj.sourceFile]
-                        covered.update(covered.union(set(obj.covered)))
-                        total_lines.update(covered.union(set(obj.uncovered)))
-                        aggr_coverage[obj.sourceFile] = (covered, total_lines)
+                        covered.update(obj.covered)
+                        total_lines.update(obj.uncovered)  # WELL, NOT REALLY TOTAL LINES, MAY BE MISSING SOME COVERED LINES
                     else:
-                        covered = set(obj.covered)
-                        aggr_coverage[obj.sourceFile] = (covered, covered.union(set(obj.uncovered)))
+                        aggr_coverage[obj.sourceFile] = (set(obj.covered), set(obj.uncovered))
 
         # Generate coverage information per source file
         for source_file, (covered, total_lines) in aggr_coverage.items():
