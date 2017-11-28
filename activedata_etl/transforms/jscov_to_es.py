@@ -27,9 +27,10 @@ STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
+# This flag will aggregate coverage information per source file.
+DO_AGGR = False
 
-
-def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, do_aggr, please_stop):
+def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
     def count_generator():
         count = 0
         while True:
@@ -69,6 +70,8 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             cause=e
                         )
 
+    key = etl2key(artifact_etl)
+
     def aggregator():
         aggr_coverage = dict()
 
@@ -90,28 +93,27 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
 
                     # Collecting coverage information
                     if obj.sourceFile in aggr_coverage:
-                        covered, uncovered = aggr_coverage[obj.sourceFile]
+                        covered, total_lines = aggr_coverage[obj.sourceFile]
                         covered.update(covered.union(set(obj.covered)))
-                        uncovered.update(uncovered.union(set(obj.uncovered)))
-                        aggr_coverage[obj.sourceFile] = (covered, uncovered)
+                        total_lines.update(covered.union(set(obj.uncovered)))
+                        aggr_coverage[obj.sourceFile] = (covered, total_lines)
                     else:
-                        aggr_coverage[obj.sourceFile] = (set(obj.covered), set(obj.uncovered))
+                        covered = set(obj.covered)
+                        aggr_coverage[obj.sourceFile] = (covered, covered.union(set(obj.uncovered)))
 
         # Generate coverage information per source file
-        for source_file in aggr_coverage:
+        for source_file, (covered, total_lines) in aggr_coverage.items():
             counter = count_generator().next
-            covered, uncovered = aggr_coverage[source_file]
-            uncovered.update(uncovered - covered)
+            uncovered = total_lines - covered
             record = create_record(artifact_etl, counter, source_file, covered, uncovered, task_cluster_record)
-            yield value2json(record)
+            yield value2json({"id": key, "value": record})
 
-    key = etl2key(artifact_etl)
     with TempDirectory() as tmpdir:
         jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, jsdcov_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
-            if do_aggr:
+            if DO_AGGR:
                 destination.write_lines(key, aggregator())
             else:
                 destination.write_lines(key, generator())
@@ -143,8 +145,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
     file_covered = set(obj.covered)
 
     record = create_record(parent_etl, count, obj.sourceFile, set(obj.covered), set(obj.uncovered), task_cluster_record)
-    record = record["value"]
-    record["test"] = {
+    record.test = {
         "name": test_name,
         "url": obj.testUrl
     }
@@ -165,7 +166,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
         orphan_uncovered = orphan_uncovered - method_uncovered
 
         # Record method coverage info
-        record["source"]["method"] = {
+        record.source.method = {
             "name": method_name,
             "covered": sorted(method_covered),
             "uncovered": sorted(method_uncovered),
@@ -175,7 +176,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
         }
 
         # Timestamp this record
-        record["etl"]["timestamp"] = Date.now()
+        record.etl.timestamp = Date.now()
 
         key = etl2key(record.etl)
         yield {"id": key, "value": record}
@@ -183,7 +184,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
     # a record for all the lines that are not in any method
     # every file gets one because we can use it as canonical representative
     # Record method coverage info
-    record["source"]["method"] = {
+    record.source.method = {
         "covered": sorted(orphan_covered),
         "uncovered": sorted(orphan_uncovered),
         "total_covered": len(orphan_covered),
@@ -192,7 +193,7 @@ def process_source_file(parent_etl, count, obj, task_cluster_record):
     }
 
     # Timestamp this record
-    record["etl"]["timestamp"] = Date.now()
+    record.etl.timestamp = Date.now()
 
     key = etl2key(record.etl)
     yield {"id": key, "value": record}
@@ -222,5 +223,4 @@ def create_record(parent_etl, count, filename, covered, uncovered, task_cluster_
         },
         task_cluster_record
     )
-    key = etl2key(new_record.etl)
-    return {"id": key, "value": new_record}
+    return new_record

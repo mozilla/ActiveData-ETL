@@ -22,8 +22,6 @@ STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
 ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 RETRY = {"times": 3, "sleep": 5}
-# This flag will aggregate coverage information per source file (JSDCov only).
-DO_AGGR = True
 
 
 def process(source_key, source, destination, resources, please_stop=None):
@@ -74,7 +72,6 @@ def process(source_key, source, destination, resources, please_stop=None):
                         task_cluster_record,
                         artifact,
                         artifact_etl,
-                        DO_AGGR,
                         please_stop
                     ))
                 elif "grcov" in artifact.name:
