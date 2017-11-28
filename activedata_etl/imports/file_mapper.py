@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import itertools
 from future.utils import text_type
 
 from activedata_etl.transforms.grcov_to_es import download_file
@@ -28,7 +29,7 @@ class FileMapper(object):
         """
         :param files_url: EXPECTING URL TO ZIP FILE OF JSON AS ONE OBJECT IN {filename: [product, component]} FORMAT
         """
-
+        self.known_failures = set()
         self.lookup = {}
         with TempFile() as tempfile:
             Log.note("download {{url}}", url=files_url)
@@ -60,20 +61,45 @@ class FileMapper(object):
             else:
                 curr = found
 
-    def find(self, filename):
-        filename = filename.split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+    def find(self, filename, suite_name):
+        if filename in self.known_failures:
+            return filename
+
+        filename = filename.split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
         path = list(reversed(filename.split("/")))
         curr = self.lookup
         for i, p in enumerate(path):
             found = curr.get(p)
             if not found:
-                return filename
+                if i == 0:
+                    return filename
+                else:
+                    return self._find_best(path, list(_values(curr)), suite_name, filename)
             elif isinstance(found, text_type):
                 return found
             else:
                 curr = found
 
-        return list(_values(curr))
+        return self._find_best(path, list(_values(curr)), suite_name, filename)
+
+    def _find_best(self, path, files, suite_name, default):
+        best = None
+        best_score = 0
+        peer = None
+        for f in files:
+            f_path = f.split("/")
+            score = sum(1 for a, b in itertools.product(path, f_path) if a == b) + (1 if suite_name in f_path else 0)
+            if score > best_score:
+                best = f
+                peer = None
+                best_score = score
+            elif score == best_score:
+                peer = f
+        if best and not peer:
+            return best
+        else:
+            self.known_failures.add(default)
+            return files
 
 
 def _values(curr):
@@ -83,3 +109,22 @@ def _values(curr):
         else:
             for u in _values(v):
                 yield u
+
+
+def _find_best(path, files, default):
+    best = None
+    best_score = 0
+    peer = None
+    for f in files:
+        f_path = f.split("/")
+        score = sum(1 for a, b in itertools.product(path, f_path) if a == b)
+        if score > best_score:
+            best = f
+            peer = None
+            best_score = score
+        elif score == best_score:
+            peer = f
+    if best and not peer:
+        return best
+    else:
+        return files

@@ -98,7 +98,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
 
                                 # RENAME FILE TO SOMETHING FOUND IN SOURCE
                                 try:
-                                    rename = resources.file_mapper.find(source.file.name)
+                                    rename = resources.file_mapper.find(source.file.name, suite_name=task_cluster_record.run.suite.name)
                                     if isinstance(rename, list):
                                         for r in rename:
                                             if r.find(task_cluster_record.run.suite.name) >= 0:
@@ -111,8 +111,11 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                 except Exception as e:
                                     Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name, cause=e)
 
-                                if source.file.name.startswith("chrome://", "file://", "http://"):
-                                    Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
+                                if not isinstance(source.file.name, text_type):
+                                    Log.error("expecting source.file.name to be a string")
+                                # if source.file.name.find("://") != -1:
+                                #     rename = resources.file_mapper.find(source.file.name)  # FOR DEBUGGING WHY
+                                #     Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=jsvm_artifact.url, filename=source.file.name)
 
                                 new_record.source = source
                                 new_record.etl.id = count

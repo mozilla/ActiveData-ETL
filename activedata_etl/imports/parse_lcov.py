@@ -144,6 +144,7 @@ def coco_format(details):
     return [source]
 
 LANG = {
+    "jsm": "javascript",
     "js": "javascript",
     "py": "python"
 }
