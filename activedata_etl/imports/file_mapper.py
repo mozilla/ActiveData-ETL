@@ -14,6 +14,7 @@ import itertools
 from future.utils import text_type
 
 from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
+from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
 from mo_files import TempFile
 from mo_json import stream
@@ -22,6 +23,23 @@ from mo_times import Timer
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
+KNOWN_FAILURES = {"or": [
+    {"in": {".": [
+        "chrome://global/content/bindings/tree.xml", "chrome://pageloader/content/Profiler.js", "chrome://workerbootstrap/content/worker.js", "decorators.py",
+        "http://mochi.test:8888/resources/testharnessreport.js",
+        "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
+        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js","http://web-platform.test:8000/dom/common.js",
+        "https://example.com/tests/SimpleTest/SimpleTest.js",
+        "https://example.com/tests/SimpleTest/TestRunner.js",
+        "resource://gre/modules/workers/require.js",
+        "resource://services-common/utils.js",
+        "resource://services-crypto/utils.js"
+    ]}},
+    {"suffix": {".": "/build/tests/xpcshell/head.js"}}, {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}}
+]}
+KNOWN_MAPPINGS = {
+    "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
+}
 EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
 SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
     "web-platform-tests": {"web-platform", "tests", "test", "wpt"}
@@ -56,8 +74,9 @@ class FileMapper(object):
                 "format": "list"
             }
         )
-        files_url =result.data[0].url
+        files_url = result.data[0].url
 
+        self.predefined_failures = jx_expression_to_function(KNOWN_FAILURES)
         self.known_failures = set()
         self.lookup = {}
         with TempFile() as tempfile:
@@ -102,12 +121,12 @@ class FileMapper(object):
         :return: {"name":name, "old_name":old_name, "is_firefox":boolean}
         """
         def find_best(path, files, complain):
-            path = set(path)
+            path = set(pp for p in path for pp in p.split("-"))
             best = None
             best_score = 0
             peer = None
             for f in files:
-                f_path = set(f.split("/"))
+                f_path = set(pp for p in f.split("/") for pp in p.split("-"))
                 score = len(path & f_path) + (0.5 * len(suite_names & f_path))
                 if score > best_score:
                     best = f
@@ -133,9 +152,13 @@ class FileMapper(object):
                 return {"name": filename}
 
         try:
+            found = KNOWN_MAPPINGS.get(filename);
+            if found:
+                return {"name": found, "is_firefox": True, "old_name": filename}
+            if self.predefined_failures(filename):
+                return {"name": filename}
             if filename in self.known_failures:
                 return {"name": filename}
-
             suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.suite.name})
 
             filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
