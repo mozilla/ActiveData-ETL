@@ -23,6 +23,8 @@ DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON LINES
 
+ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
+
 TRY_AGAIN_LATER = "{{reason}}, try again later"
 
 STRUCTURED_LOG_ENDINGS = [
@@ -218,3 +220,13 @@ class EtlHeadGenerator(object):
         })
 
         return dest_key, dest_etl
+
+
+def download_file(url, destination):
+    with file(destination, "w+b") as tempfile:
+        stream = http.get(url).raw
+        try:
+            for b in iter(lambda: stream.read(8192), b""):
+                tempfile.write(b)
+        finally:
+            stream.close()

@@ -17,6 +17,7 @@ import json
 import sys
 
 from mo_dots import wrap, Null
+from mo_files import File
 from mo_logs import Log
 
 DEBUG = False
@@ -125,9 +126,10 @@ def parse_lcov_coverage(source_key, source_name, stream):
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
     coverable_lines = len(details['lines_covered']) + len(details['lines_uncovered'])
+    lang = LANG.get(File(details['file']).extension, "c/c++")
 
     source = wrap({
-        "language": "c/c++",
+        "language": lang,
         "is_file": True,
         "file": {
             "name": details['file'],
@@ -140,6 +142,12 @@ def coco_format(details):
     })
 
     return [source]
+
+LANG = {
+    "jsm": "javascript",
+    "js": "javascript",
+    "py": "python"
+}
 
 
 def js_coverage_format(sources):

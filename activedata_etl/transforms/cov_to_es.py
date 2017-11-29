@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
+from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
 from mo_logs import Log
@@ -36,6 +37,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     :return: The list of keys of files in the destination bucket
     """
     keys = []
+    coverage_artifact_exists = False
 
     for msg_line_index, msg_line in enumerate(list(source.read_lines())):
         if please_stop:
@@ -54,26 +56,25 @@ def process(source_key, source, destination, resources, please_stop=None):
         minimize_task(task_cluster_record)
 
         etl_header_gen = EtlHeadGenerator(source_key)
-        coverage_artifact_exists = False
 
         for artifact in artifacts:
             try:
-                if "jscov" in artifact.name:
+                if "jsdcov_artifacts.zip" in artifact.name:
                     pass
-                    # coverage_artifact_exists = True
-                    # _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-                    # if DEBUG:
-                    #     Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
-                    #
-                    # keys.extend(process_jscov_artifact(
-                    #     source_key,
-                    #     resources,
-                    #     destination,
-                    #     task_cluster_record,
-                    #     artifact,
-                    #     artifact_etl,
-                    #     please_stop
-                    # ))
+                    coverage_artifact_exists = True
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                    if DEBUG:
+                        Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
+
+                    keys.extend(process_jscov_artifact(
+                        source_key,
+                        resources,
+                        destination,
+                        task_cluster_record,
+                        artifact,
+                        artifact_etl,
+                        please_stop
+                    ))
                 elif "grcov" in artifact.name:
                     pass
                     if not task_cluster_record.repo.push.date:
@@ -102,7 +103,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing jsvm artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing jsvm artifact: {{url}} for key {{key}}", key=source_key, url=artifact.url)
 
                     keys.extend(process_jsvm_artifact(
                         source_key,
@@ -129,7 +130,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 #         please_stop
                 #     ))
             except Exception as e:
-                Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
+                raise Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
 
     if DEBUG and coverage_artifact_exists:
         Log.note("Done processing coverage artifacts")
