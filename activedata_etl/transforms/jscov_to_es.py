@@ -36,11 +36,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
     if not resources.file_mapper:
         resources.file_mapper = make_file_mapper(task_cluster_record)
 
-    def count_generator():
-        count = 0
-        while True:
-            yield count
-            count += 1
 
     def fix_filename(filename):
         # RENAME FILE TO SOMETHING FOUND IN SOURCE
@@ -163,7 +158,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
         with ZipFile(jsdcov_file) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 json_stream = ibytes2ilines(zipped.open(zip_name))
-                counter = count_generator().next
                 for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
                     if please_stop:
                         Log.error("Shutdown detected. Stopping job ETL.")
@@ -190,8 +184,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             source=obj.get("sourceFile"),
                             cause=e
                         )
-
-    key = etl2key(artifact_etl)
 
     def aggregator():
         aggr_coverage = dict()
@@ -223,10 +215,12 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
 
         # Generate coverage information per source file
         for source_file, (covered, total_lines) in aggr_coverage.items():
-            counter = count_generator().next
             uncovered = total_lines - covered
             record = create_record(artifact_etl, counter, source_file, covered, uncovered)
             yield value2json({"id": key, "value": record})
+
+    counter = count_generator().next
+    key = etl2key(artifact_etl)
 
     with TempDirectory() as tmpdir:
         jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
@@ -250,4 +244,10 @@ def download_file(url, destination):
         finally:
             stream.close()
 
+
+def count_generator():
+    count = 0
+    while True:
+        yield count
+        count += 1
 
