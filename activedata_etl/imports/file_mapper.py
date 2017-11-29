@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
 from future.utils import text_type
 
 from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
@@ -31,13 +32,16 @@ KNOWN_FAILURES = {"or": [
         "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
         "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
         "http://web-platform.test:8000/dom/common.js",
+        "http://web-platform.test:8000/testharness_runner.html",
         "https://example.com/tests/SimpleTest/SimpleTest.js",
         "https://example.com/tests/SimpleTest/TestRunner.js",
         "resource://gre/modules/workers/require.js",
         "resource://services-common/utils.js",
         "resource://services-crypto/utils.js"
     ]}},
-    {"suffix": {".": "/build/tests/xpcshell/head.js"}}, {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}}
+    {"suffix": {".": "/build/tests/xpcshell/head.js"}},
+    {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
+    {"prefix": {".": "data:"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
@@ -122,13 +126,13 @@ class FileMapper(object):
         :param task_cluster_record: FOR OTHER INFO THAT MAY HELP IDENTIFYING THE RIGHT SOURCE FILE
         :return: {"name":name, "old_name":old_name, "is_firefox":boolean}
         """
-        def find_best(path, files, complain):
-            path = set(pp for p in path for pp in p.split("-"))
+        def find_best(files, complain):
+            path = set(re.split(r"\W", filename))
             best = None
             best_score = 0
             peer = None
             for f in files:
-                f_path = set(pp for p in f.split("/") for pp in p.split("-"))
+                f_path = set(re.split("\W", f))
                 score = len(path & f_path) + (0.5 * len(suite_names & f_path))
                 if score > best_score:
                     best = f
@@ -181,7 +185,7 @@ class FileMapper(object):
 
             if i == 0:  # WE MATCH NOTHING, DO NOT EVEN TRY FOR A BETTER MATCH
                 return {"name": filename}
-            return find_best(path, list(sorted(_values(curr))), i > 1)
+            return find_best(list(sorted(_values(curr))), i > 1)
         except Exception as ee:
             Log.warning(
                 "Can not resolve {{filename}} in {{url}} for key {{key}}",
