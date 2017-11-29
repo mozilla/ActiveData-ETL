@@ -23,7 +23,10 @@ from mo_times import Timer
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
-EXCLUDE = ('mobile',)
+EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
+SUITES = {
+    "web-platform-tests": {"web-platform", "tests", "test", "wpt"}
+}
 
 
 def make_file_mapper(task_cluster_record):
@@ -96,31 +99,39 @@ class FileMapper(object):
         if filename in self.known_failures:
             return filename
 
-        filename = filename.split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+        suite_names = SUITES.get(suite_name, {suite_name})
+
+        filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
         path = list(reversed(filename.split("/")))
         curr = self.lookup
         for i, p in enumerate(path):
             found = curr.get(p)
             if not found:
-                if i <= 1:
+                if i == 0:  # WE MATCH NOTHING, DO NOT EVEN TRY
+                    return filename
+
+                best = self._find_best(path, list(sorted(_values(curr))), suite_names, filename)
+                if isinstance(best, text_type):
+                    return best
+                elif i <= 1:  # IF WE CAN ONLY MATCH THE LOCAL FILENAME,
                     return filename
                 else:
-                    return self._find_best(path, list(sorted(_values(curr))), suite_name, filename)
+                    return best
             elif isinstance(found, text_type):
                 return found
             else:
                 curr = found
 
-        return self._find_best(path, list(sorted(_values(curr))), suite_name, filename)
+        return self._find_best(path, list(sorted(_values(curr))), suite_names, filename)
 
-    def _find_best(self, path, files, suite_name, default):
+    def _find_best(self, path, files, suite_names, default):
         path = set(path)
         best = None
         best_score = 0
         peer = None
         for f in files:
             f_path = set(f.split("/"))
-            score = len(path & f_path) + (0.5 if suite_name in f_path else 0)
+            score = len(path & f_path) + (0.5 * len(suite_names & f_path))
             if score > best_score:
                 best = f
                 peer = None
