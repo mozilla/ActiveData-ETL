@@ -102,16 +102,16 @@ class FileMapper(object):
         for i, p in enumerate(path):
             found = curr.get(p)
             if not found:
-                if i == 0:
+                if i <= 1:
                     return filename
                 else:
-                    return self._find_best(path, list(_values(curr)), suite_name, filename)
+                    return self._find_best(path, list(sorted(_values(curr))), suite_name, filename)
             elif isinstance(found, text_type):
                 return found
             else:
                 curr = found
 
-        return self._find_best(path, list(_values(curr)), suite_name, filename)
+        return self._find_best(path, list(sorted(_values(curr))), suite_name, filename)
 
     def _find_best(self, path, files, suite_name, default):
         path = set(path)
