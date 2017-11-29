@@ -12,9 +12,9 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import make_file_mapper
+from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.transforms import download_file
 from mo_dots import wrap, unwraplist, set_default
-from mo_dots.datas import text_type
 from mo_files import File, TempDirectory
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
@@ -34,46 +34,26 @@ DO_AGGR = True
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
 
     if not resources.file_mapper:
-        resources.file_mapper = make_file_mapper(task_cluster_record)
+        resources.file_mapper = FileMapper(task_cluster_record)
 
-
-    def fix_filename(filename):
-        # RENAME FILE TO SOMETHING FOUND IN SOURCE
-        try:
-            rename = resources.file_mapper.find(filename, suite_name=task_cluster_record.run.suite.name)
-            if isinstance(rename, list):
-                Log.warning(
-                    "Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}",
-                    key=source_key,
-                    url=artifact.url,
-                    filename=filename,
-                    list=rename
-                )
-            else:
-                filename = rename
-        except Exception as e:
-            Log.warning("Can not resolve {{filename}} in {{url}} for key {{key}}", key=source_key, url=artifact.url, filename=filename, cause=e)
-
-        if not isinstance(filename, text_type):
-            Log.error("expecting source.file.name to be a string")
-
-        return filename
 
     def create_record(parent_etl, count, filename, covered, uncovered):
-        filename = fix_filename(filename)
+        file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
 
         new_record = set_default(
             {
                 "source": {
                     "language": "js",
-                    "file": {
-                        "name": filename,
-                        "covered": sorted(covered),
-                        "uncovered": sorted(uncovered),
-                        "total_covered": len(covered),
-                        "total_uncovered": len(uncovered),
-                        "percentage_covered": len(covered) / (len(covered) + len(uncovered))
-                    }
+                    "file": set_default(
+                        file_details,
+                        {
+                            "covered": sorted(covered),
+                            "uncovered": sorted(uncovered),
+                            "total_covered": len(covered),
+                            "total_uncovered": len(uncovered),
+                            "percentage_covered": len(covered) / (len(covered) + len(uncovered))
+                        }
+                    )
                 },
                 "etl": {
                     "id": count(),
@@ -233,16 +213,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                 destination.write_lines(key, generator())
         keys = [key]
         return keys
-
-
-def download_file(url, destination):
-    with file(destination, "w+b") as tempfile:
-        stream = http.get(url).raw
-        try:
-            for b in iter(lambda: stream.read(8192), b""):
-                tempfile.write(b)
-        finally:
-            stream.close()
 
 
 def count_generator():

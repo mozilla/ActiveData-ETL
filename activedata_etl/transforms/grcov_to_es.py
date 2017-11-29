@@ -11,16 +11,17 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
-from activedata_etl import etl2key
 from future.utils import text_type
+
+from activedata_etl import etl2key
+from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.imports.parse_lcov import parse_lcov_coverage
+from activedata_etl.transforms import download_file
 from mo_dots import set_default
 from mo_files import TempFile
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
-
-from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
@@ -35,6 +36,9 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
     """
     if DEBUG:
         Log.note("Processing grcov artifact {{artifact}}", artifact=grcov_artifact.url)
+
+    if not resources.file_mapper:
+        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -72,7 +76,11 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                                 continue
                             if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                                 continue
-                            new_record.source = source
+                            file_info = resources.file_mapper.find(source_key, source.file.name, grcov_artifact, task_cluster_record)
+                            new_record.source = set_default(
+                                {"file": file_info},
+                                source
+                            )
                             new_record.etl.id = count
                             new_record._id = file_id + "." + text_type(count)
                             count += 1
@@ -82,13 +90,3 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
             destination.write_lines(file_id, line_gen())
 
         return keys
-
-
-def download_file(url, destination):
-    tempfile = file(destination, "w+b")
-    stream = http.get(url, retry=RETRY).raw
-    try:
-        for b in iter(lambda: stream.read(8192), b""):
-            tempfile.write(b)
-    finally:
-        stream.close()

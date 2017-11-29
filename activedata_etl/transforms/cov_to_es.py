@@ -60,6 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         for artifact in artifacts:
             try:
                 if "jsdcov_artifacts.zip" in artifact.name:
+                    pass
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:

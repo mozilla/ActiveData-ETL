@@ -13,8 +13,7 @@ import itertools
 
 from future.utils import text_type
 
-from activedata_etl.transforms.gcov_to_es import ACTIVE_DATA_QUERY
-from activedata_etl.transforms.grcov_to_es import download_file
+from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
 from mo_dots import coalesce
 from mo_files import TempFile
 from mo_json import stream
@@ -24,31 +23,9 @@ from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
 EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
-SUITES = {
+SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
     "web-platform-tests": {"web-platform", "tests", "test", "wpt"}
 }
-
-
-def make_file_mapper(task_cluster_record):
-    # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
-    # FIND RECENT FILE LISTING
-    timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
-    result = http.post_json(
-        ACTIVE_DATA_QUERY,
-        json={
-            "from": "task.task.artifacts",
-            "where": {"and": [
-                {"eq": {"name": "public/components.json.gz"}},
-                {"eq": {"treeherder.symbol": "Bugzilla"}},
-                {"lt": {"repo.push.date": timestamp}}
-            ]},
-            "sort": {"repo.push.date": "desc"},
-            "limit": 1,
-            "select": ["url", "repo.push.date"],
-            "format": "list"
-        }
-    )
-    return FileMapper(result.data[0].url)
 
 
 class FileMapper(object):
@@ -56,10 +33,31 @@ class FileMapper(object):
     MAP FROM COVERAGE FILE RESOURCE NAME TO SOURCE FILENAME
     """
 
-    def __init__(self, files_url):
+    def __init__(self, task_cluster_record):
         """
-        :param files_url: EXPECTING URL TO ZIP FILE OF JSON AS ONE OBJECT IN {filename: [product, component]} FORMAT
+        :param task_cluster_record: EXPECTING TC RECORD WITH repo.push.date SO AN APPROXIMATE SOURCE FILE LIST CAN BE FOUND
         """
+
+        # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
+        # FIND RECENT FILE LISTING
+        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
+        result = http.post_json(
+            ACTIVE_DATA_QUERY,
+            json={
+                "from": "task.task.artifacts",
+                "where": {"and": [
+                    {"eq": {"name": "public/components.json.gz"}},
+                    {"eq": {"treeherder.symbol": "Bugzilla"}},
+                    {"lt": {"repo.push.date": timestamp}}
+                ]},
+                "sort": {"repo.push.date": "desc"},
+                "limit": 1,
+                "select": ["url", "repo.push.date"],
+                "format": "list"
+            }
+        )
+        files_url =result.data[0].url
+
         self.known_failures = set()
         self.lookup = {}
         with TempFile() as tempfile:
@@ -95,54 +93,78 @@ class FileMapper(object):
             else:
                 curr = found
 
-    def find(self, filename, suite_name):
-        if filename in self.known_failures:
-            return filename
-
-        suite_names = SUITES.get(suite_name, {suite_name})
-
-        filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
-        path = list(reversed(filename.split("/")))
-        curr = self.lookup
-        for i, p in enumerate(path):
-            found = curr.get(p)
-            if not found:
-                if i == 0:  # WE MATCH NOTHING, DO NOT EVEN TRY
-                    return filename
-
-                best = self._find_best(path, list(sorted(_values(curr))), suite_names, filename)
-                if isinstance(best, text_type):
-                    return best
-                elif i <= 1:  # IF WE CAN ONLY MATCH THE LOCAL FILENAME,
-                    return filename
+    def find(self, source_key, filename, artifact, task_cluster_record):
+        """
+        :param source_key: FOR DEBUGGING
+        :param filename: THE FILE TO LOOK FOR
+        :param artifact: THE ARTIFACT (FOR DEBUGGING)
+        :param task_cluster_record: FOR OTHER INFO THAT MAY HELP IDENTIFYING THE RIGHT SOURCE FILE
+        :return: {"name":name, "old_name":old_name, "is_firefox":boolean}
+        """
+        def find_best(path, files, complain):
+            path = set(path)
+            best = None
+            best_score = 0
+            peer = None
+            for f in files:
+                f_path = set(f.split("/"))
+                score = len(path & f_path) + (0.5 * len(suite_names & f_path))
+                if score > best_score:
+                    best = f
+                    peer = None
+                    best_score = score
+                elif score == best_score:
+                    peer = f
+            if best and not peer:
+                if best == filename:
+                    return {"name": best, "is_firefox": True}
                 else:
-                    return best
-            elif isinstance(found, text_type):
-                return found
+                    return {"name": best, "is_firefox": True, "old_name": filename}
             else:
-                curr = found
+                self.known_failures.add(filename)
+                if complain:
+                    Log.warning(
+                        "Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}",
+                        key=source_key,
+                        url=artifact.url,
+                        filename=filename,
+                        list=files
+                    )
+                return {"name": filename}
 
-        return self._find_best(path, list(sorted(_values(curr))), suite_names, filename)
+        try:
+            if filename in self.known_failures:
+                return {"name": filename}
 
-    def _find_best(self, path, files, suite_names, default):
-        path = set(path)
-        best = None
-        best_score = 0
-        peer = None
-        for f in files:
-            f_path = set(f.split("/"))
-            score = len(path & f_path) + (0.5 * len(suite_names & f_path))
-            if score > best_score:
-                best = f
-                peer = None
-                best_score = score
-            elif score == best_score:
-                peer = f
-        if best and not peer:
-            return best
-        else:
-            self.known_failures.add(default)
-            return files
+            suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.suite.name})
+
+            filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+            path = list(reversed(filename.split("/")))
+            curr = self.lookup
+            i = -1
+            for i, p in enumerate(path):
+                found = curr.get(p)
+                if not found:
+                    break
+                elif isinstance(found, text_type):
+                    if found == filename:
+                        return {"name": found, "is_firefox": True}
+                    else:
+                        return {"name": found, "is_firefox": True, "old_name": filename}
+                else:
+                    curr = found
+
+            if i == 0:  # WE MATCH NOTHING, DO NOT EVEN TRY FOR A BETTER MATCH
+                return {"name": filename}
+            return find_best(path, list(sorted(_values(curr))), i > 1)
+        except Exception as ee:
+            Log.warning(
+                "Can not resolve {{filename}} in {{url}} for key {{key}}",
+                key=source_key,
+                url=artifact.url,
+                filename=filename,
+                cause=ee
+            )
 
 
 def _values(curr):

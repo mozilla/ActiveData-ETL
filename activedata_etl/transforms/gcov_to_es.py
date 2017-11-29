@@ -16,7 +16,7 @@ from future.utils import text_type
 
 from activedata_etl import etl2key
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms.grcov_to_es import download_file
+from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
 from mo_dots import set_default, Null
 from mo_files import File, TempDirectory
 from mo_json import json2value, value2json
@@ -25,7 +25,6 @@ from mo_threads import Process, Till
 from mo_times import Timer, Date
 from pyLibrary.env import http
 
-ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 RETRY = {"times": 3, "sleep": 5}
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True

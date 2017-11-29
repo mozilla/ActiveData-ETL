@@ -14,7 +14,7 @@ from zipfile import ZipFile
 from future.utils import text_type
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import make_file_mapper
+from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms.grcov_to_es import download_file
 from mo_dots import set_default
@@ -38,7 +38,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
 
     if not resources.file_mapper:
-        resources.file_mapper = make_file_mapper(task_cluster_record)
+        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -77,30 +77,11 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     continue
 
                                 # RENAME FILE TO SOMETHING FOUND IN SOURCE
-                                try:
-                                    rename = resources.file_mapper.find(source.file.name, suite_name=task_cluster_record.run.suite.name)
-                                    if isinstance(rename, list):
-                                        Log.warning(
-                                            "Can not resolve {{filename}} in {{url}} for key {{key}}. Too many candidates: {{list|json}}",
-                                            key=source_key,
-                                            url=jsvm_artifact.url,
-                                            filename=source.file.name,
-                                            list=rename
-                                        )
-                                    else:
-                                        source.file.name = rename
-                                except Exception as ee:
-                                    Log.warning(
-                                        "Can not resolve {{filename}} in {{url}} for key {{key}}",
-                                        key=source_key,
-                                        url=jsvm_artifact.url,
-                                        filename=source.file.name,
-                                        cause=ee
-                                    )
-
-                                if not isinstance(source.file.name, text_type):
-                                    Log.error("expecting source.file.name to be a string")
-
+                                file_details = resources.file_mapper.find(source_key, source.file.name, jsvm_artifact, task_cluster_record)
+                                source.file = set_default(
+                                    file_details,
+                                    source.file
+                                )
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)
