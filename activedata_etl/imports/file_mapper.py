@@ -9,8 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import itertools
-
 from future.utils import text_type
 
 from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
@@ -25,10 +23,14 @@ from pyLibrary.env.big_data import scompressed2ibytes
 
 KNOWN_FAILURES = {"or": [
     {"in": {".": [
-        "chrome://global/content/bindings/tree.xml", "chrome://pageloader/content/Profiler.js", "chrome://workerbootstrap/content/worker.js", "decorators.py",
+        "chrome://global/content/bindings/tree.xml",
+        "chrome://pageloader/content/Profiler.js",
+        "chrome://workerbootstrap/content/worker.js",
+        "decorators.py",
         "http://mochi.test:8888/resources/testharnessreport.js",
         "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
-        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js","http://web-platform.test:8000/dom/common.js",
+        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
+        "http://web-platform.test:8000/dom/common.js",
         "https://example.com/tests/SimpleTest/SimpleTest.js",
         "https://example.com/tests/SimpleTest/TestRunner.js",
         "resource://gre/modules/workers/require.js",
@@ -198,21 +200,3 @@ def _values(curr):
             for u in _values(v):
                 yield u
 
-
-def _find_best(path, files, default):
-    best = None
-    best_score = 0
-    peer = None
-    for f in files:
-        f_path = f.split("/")
-        score = sum(1 for a, b in itertools.product(path, f_path) if a == b)
-        if score > best_score:
-            best = f
-            peer = None
-            best_score = score
-        elif score == best_score:
-            peer = f
-    if best and not peer:
-        return best
-    else:
-        return files
