@@ -42,7 +42,8 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
     {"prefix": {".": "data:"}},
-    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}}
+    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
+    {"prefix": {".": "vs2017"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
