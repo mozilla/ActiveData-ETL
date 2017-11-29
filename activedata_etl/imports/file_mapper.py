@@ -41,7 +41,8 @@ KNOWN_FAILURES = {"or": [
     ]}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
-    {"prefix": {".": "data:"}}
+    {"prefix": {".": "data:"}},
+    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
@@ -127,13 +128,13 @@ class FileMapper(object):
         :return: {"name":name, "old_name":old_name, "is_firefox":boolean}
         """
         def find_best(files, complain):
-            path = set(re.split(r"\W", filename))
+            filename_words = set(re.split(r"\W", filename))
             best = None
             best_score = 0
             peer = None
             for f in files:
-                f_path = set(re.split("\W", f))
-                score = len(path & f_path) + (0.5 * len(suite_names & f_path))
+                f_words = set(re.split("\W", f))
+                score = len(filename_words & f_words) + (0.5 * len(suite_names & f_words))
                 if score > best_score:
                     best = f
                     peer = None
