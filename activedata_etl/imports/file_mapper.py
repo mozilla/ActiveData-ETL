@@ -28,6 +28,7 @@ KNOWN_FAILURES = {"or": [
         "chrome://pageloader/content/Profiler.js",
         "chrome://workerbootstrap/content/worker.js",
         "decorators.py",
+        "http://example.com/tests/SimpleTest/SimpleTest.js",
         "http://mochi.test:8888/resources/testharnessreport.js",
         "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
         "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
@@ -40,11 +41,13 @@ KNOWN_FAILURES = {"or": [
         "resource://services-crypto/utils.js"
     ]}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
+    {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
     {"prefix": {".": "data:"}},
     {"prefix": {".": "javascript:"}},
     {"prefix": {".": "about:"}},
     {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
+    {"prefix": {".": "https://example.com/MochiKit"}},
     {"prefix": {".": "vs2017"}}
 ]}
 KNOWN_MAPPINGS = {
@@ -52,7 +55,7 @@ KNOWN_MAPPINGS = {
 }
 EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
 SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
-    "web-platform-tests": {"web-platform", "tests", "test", "wpt"}
+    "web-platform-tests": {"web", "platform", "tests", "test", "wpt"}
 }
 
 
@@ -137,7 +140,7 @@ class FileMapper(object):
             peer = None
             for f in files:
                 f_words = set(re.split("\W", f))
-                score = len(filename_words & f_words) + (0.5 * len(suite_names & f_words))
+                score = (len(filename_words & f_words) + (0.5 * len(suite_names & f_words))) / len(filename_words | f_words)
                 if score > best_score:
                     best = f
                     peer = None

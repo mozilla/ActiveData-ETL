@@ -201,7 +201,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
     key = etl2key(artifact_etl)
 
     with TempDirectory() as tmpdir:
-        jsdcov_file = File.new_instance(tmpdir, "jsdcov.zip").abspath
+        jsdcov_file = (tmpdir / "jsdcov.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, jsdcov_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
