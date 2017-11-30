@@ -42,6 +42,8 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
     {"prefix": {".": "data:"}},
+    {"prefix": {".": "javascript:"}},
+    {"prefix": {".": "about:"}},
     {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
     {"prefix": {".": "vs2017"}}
 ]}

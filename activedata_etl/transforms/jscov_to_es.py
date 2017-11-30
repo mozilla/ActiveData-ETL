@@ -183,8 +183,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         continue
 
                     obj = wrap(obj)
-                    obj.sourceFile = fix_filename(obj.sourceFile)
-
                     # Collecting coverage information
                     if obj.sourceFile in aggr_coverage:
                         covered, total_lines = aggr_coverage[obj.sourceFile]
