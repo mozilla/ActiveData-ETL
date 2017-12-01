@@ -46,8 +46,8 @@ def process_gcda_artifact(source_key, resources, destination, gcda_artifact, tas
 
     with TempDirectory() as tmpdir:
         Log.note('Using temp dir: {{dir}}', dir=tmpdir)
-        gcda_file = File.new_instance(tmpdir, "gcda.zip").abspath
-        gcno_file = File.new_instance(tmpdir, "gcno.zip").abspath
+        gcda_file = (tmpdir / "gcda.zip").abspath
+        gcno_file = (tmpdir / "gcno.zip").abspath
 
         try:
             Log.note('Fetching gcda artifact: {{url}}', url=gcda_artifact.url)
@@ -105,7 +105,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
                 lcov_coverage = list(parse_lcov_coverage(source_key, tmpdir, DEBUG_LCOV_FILE.read_lines()))
             elif os.name == 'nt':
                 # grcov DOES NOT SUPPORT WINDOWS YET
-                dest_dir = File.new_instance(tmpdir, "ccov").abspath
+                dest_dir = (tmpdir / "ccov").abspath
                 unzip_files(gcno_file, gcda_file, dest_dir)
                 while not please_stop:
                     try:

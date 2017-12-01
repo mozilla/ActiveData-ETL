@@ -71,6 +71,9 @@ class File(object):
     def new_instance(cls, *path):
         return File(join_path(*path))
 
+    def __div__(self, other):
+        return File(join_path(self, other))
+
     @property
     def timestamp(self):
         output = os.path.getmtime(self.abspath)
