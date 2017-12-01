@@ -72,7 +72,7 @@ class File(object):
         return File(join_path(*path))
 
     def __div__(self, other):
-        return join_path(self, other)
+        return File(join_path(self, other))
 
     @property
     def timestamp(self):
