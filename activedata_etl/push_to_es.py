@@ -125,6 +125,7 @@ def shutdown_local_es_node():
                 continue
             Log.note("Shutdown es: {{note}}", note=line)
 
+
 def main():
     try:
         settings = startup.read_settings(defs=[
