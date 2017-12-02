@@ -109,7 +109,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -182,10 +182,16 @@
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.task_cluster_to_test_result.process",
 			"type": "join"
 		},

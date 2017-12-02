@@ -68,9 +68,9 @@
 			"type": "join",
 			"transformer": "activedata_etl.transforms.task_cluster_to_firefox_files.ETL",
 			"config": {
-				"task_filter": {"eq":{"repo.branch.name": "mozilla-central"}}
+				// dot delimited property names are expanded, which is bad for jx
+				"task_filter": {"eq": ["repo.branch.name", {"literal": "mozilla-central"}]}
 			}
-
 		},
 		{
 			"name": "fx_test to normalized",
@@ -172,7 +172,7 @@
 			"name": "taskcluster to test_result",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-task-cluster-normalized-dev",
+				"bucket": "active-data-task-cluster-normalized",
 				"key_format": "t.a:b"
 			},
 			"destination": {
@@ -181,10 +181,16 @@
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
-			"notify": {
-				"name": "active-data-index-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index-dev",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.task_cluster_to_test_result.process",
 			"type": "join"
 		},
@@ -264,15 +270,21 @@
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
-			"notify": {
-				"name": "active-data-index-dev",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index-dev",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 			"type": "join"
 		},
 		{
-			"name": "tc_normalized to codecoverage",
+			"name": "codecoverage",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",

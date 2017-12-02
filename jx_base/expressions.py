@@ -1282,6 +1282,8 @@ class FirstOp(Expression):
             return term
         elif term.type != OBJECT and not term.many:
             return term
+        elif term is NULL:
+            return term
         elif isinstance(term, Literal):
             Log.error("not handled yet")
         else:
@@ -1769,6 +1771,12 @@ class CoalesceOp(Expression):
     def __data__(self):
         return {"coalesce": [t.__data__() for t in self.terms]}
 
+    def __eq__(self, other):
+        if isinstance(other, CoalesceOp):
+            if len(self.terms) == len(other.terms):
+                return all(s == o for s, o in zip(self.terms, other.terms))
+        return False
+
     def missing(self):
         # RETURN true FOR RECORDS THE WOULD RETURN NULL
         return AndOp("and", [v.missing() for v in self.terms])
@@ -1902,6 +1910,29 @@ class PrefixOp(Expression):
 
     def missing(self):
         return FALSE
+
+
+class SuffixOp(Expression):
+    has_simple_form = True
+
+    def __init__(self, op, term):
+        Expression.__init__(self, op, term)
+        if isinstance(term, Mapping):
+            self.field, self.suffix = term.items()[0]
+        else:
+            self.field, self.suffix = term
+
+    def __data__(self):
+        if isinstance(self.field, Variable) and isinstance(self.suffix, Literal):
+            return {"suffix": {self.field.var: json2value(self.suffix.json)}}
+        else:
+            return {"suffix": [self.field.__data__(), self.suffix.__data__()]}
+
+    def vars(self):
+        return {self.field.var}
+
+    def map(self, map_):
+        return SuffixOp("suffix", [self.field.map(map_), self.suffix.map(map_)])
 
 
 class ConcatOp(Expression):
@@ -2426,6 +2457,11 @@ class InOp(Expression):
         else:
             return {"in": [self.value.__data__(), self.superset.__data__()]}
 
+    def __eq__(self, other):
+        if isinstance(other, InOp):
+            return self.value == other.value and self.superset == other.superset
+        return False
+
     def vars(self):
         return self.value.vars()
 
@@ -2701,6 +2737,7 @@ operators = {
     "select": SelectOp,
     "split": SplitOp,
     "string": StringOp,
+    "suffix": SuffixOp,
     "sub": BinaryOp,
     "subtract": BinaryOp,
     "sum": MultiOp,

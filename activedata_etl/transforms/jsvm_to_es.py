@@ -14,6 +14,7 @@ from zipfile import ZipFile
 from future.utils import text_type
 
 from activedata_etl import etl2key
+from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms.grcov_to_es import download_file
 from mo_dots import set_default
@@ -36,6 +37,9 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
     if DEBUG:
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
 
+    if not resources.file_mapper:
+        resources.file_mapper = FileMapper(task_cluster_record)
+
     file_id = etl2key(artifact_etl)
     new_record = set_default(
         {
@@ -53,7 +57,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
         task_cluster_record
     )
     etl_key = etl2key(artifact_etl)
-    keys = [etl_key]  #
+    keys = [etl_key]
 
     with TempFile() as tmpfile:
         try:
@@ -71,6 +75,13 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     continue
                                 if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                                     continue
+
+                                # RENAME FILE TO SOMETHING FOUND IN SOURCE
+                                file_details = resources.file_mapper.find(source_key, source.file.name, jsvm_artifact, task_cluster_record)
+                                source.file = set_default(
+                                    file_details,
+                                    source.file
+                                )
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)

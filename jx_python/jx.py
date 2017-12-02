@@ -12,6 +12,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_times import Date
+
 _range = range
 
 from collections import Mapping
@@ -21,16 +23,15 @@ from jx_python import expressions as _expressions
 from jx_python import flat_list, group_by
 from mo_dots import listwrap, wrap, unwrap, FlatList, NullType
 from mo_dots import set_default, Null, Data, split_field, coalesce, join_field
-from mo_future import text_type, number_types, string_types, boolean_type, none_type, long
+from mo_future import text_type, boolean_type, none_type, long
 from mo_logs import Log
 from mo_math import Math
 from mo_math import UNION, MIN
 from pyLibrary import convert
-from types import GeneratorType
 
 import mo_dots
 from jx_base.container import Container
-from jx_base.expressions import TRUE, FALSE
+from jx_base.expressions import TRUE, FALSE, NullOp
 from jx_base.query import QueryOp, _normalize_selects
 from jx_python.containers.cube import Cube
 from jx_python.cubes.aggs import cube_aggs
@@ -75,7 +76,7 @@ def run(query, frum=Null):
         return DUAL.query(query_op)
     elif isinstance(frum, Container):
         return frum.query(query_op)
-    elif isinstance(frum, (list, set, GeneratorType)):
+    elif isinstance(frum, (list, set) + generator_types):
         frum = wrap(list(frum))
     elif isinstance(frum, Cube):
         if is_aggs(query_op):
@@ -573,57 +574,61 @@ def value_compare(l, r, ordering=1):
     :return: The return value is negative if x < y, zero if x == y and strictly positive if x > y.
     """
 
-    if isinstance(l, list) or isinstance(r, list):
-        for a, b in zip(listwrap(l), listwrap(r)):
-            c = value_compare(a, b) * ordering
-            if c != 0:
-                return c
+    try:
+        if isinstance(l, list) or isinstance(r, list):
+            for a, b in zip(listwrap(l), listwrap(r)):
+                c = value_compare(a, b) * ordering
+                if c != 0:
+                    return c
 
-        if len(l) < len(r):
-            return - ordering
-        elif len(l) > len(r):
+            if len(l) < len(r):
+                return - ordering
+            elif len(l) > len(r):
+                return ordering
+            else:
+                return 0
+
+        ltype = type(l)
+        rtype = type(r)
+        type_diff = TYPE_ORDER[ltype] - TYPE_ORDER[rtype]
+        if type_diff != 0:
+            return ordering if type_diff > 0 else -ordering
+
+        if ltype is builtin_tuple:
+            for a, b in zip(l, r):
+                c = value_compare(a, b)
+                if c != 0:
+                    return c * ordering
+            return 0
+        elif ltype in (dict, Data):
+            for k in sorted(set(l.keys()) | set(r.keys())):
+                c = value_compare(l.get(k), r.get(k)) * ordering
+                if c != 0:
+                    return c
+            return 0
+        elif l > r:
             return ordering
+        elif l < r:
+            return -ordering
         else:
             return 0
-
-    ltype = type(l)
-    rtype = type(r)
-    type_diff = TYPE_ORDER[ltype] - TYPE_ORDER[rtype]
-    if type_diff != 0:
-        return ordering if type_diff > 0 else -ordering
-
-    if ltype is builtin_tuple:
-        for a, b in zip(l, r):
-            c = value_compare(a, b)
-            if c != 0:
-                return c * ordering
-        return 0
-    elif ltype in (dict, Data):
-        for k in sorted(set(l.keys()) | set(r.keys())):
-            c = value_compare(l.get(k), r.get(k)) * ordering
-            if c != 0:
-                return c
-        return 0
-    elif l > r:
-        return ordering
-    elif l < r:
-        return -ordering
-    else:
-        return 0
-
+    except Exception as e:
+        Log.error("Can not compare values {{left}} to {{right}}", left=l, right=r, cause=e)
 
 TYPE_ORDER = {
     boolean_type: 0,
     int: 1,
     long: 1,
     float: 1,
+    Date: 1,
     text_type: 2,
     list: 3,
     builtin_tuple: 3,
     dict: 4,
     Data: 4,
     none_type: 9,
-    NullType: 9
+    NullType: 9,
+    NullOp: 9
 }
 
 

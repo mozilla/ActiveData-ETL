@@ -118,19 +118,12 @@ def add_message_confirmation(queue, payload_key, message):
 
 def shutdown_local_es_node():
     Log.warning("Shutdown ES on node {{node}}", node=machine_metadata)
-    proc = None
-    try:
-        proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
+    with Process("stop es", ["sudo", "supervisorctl", "stop", "es"]) as proc:
         while True:
             line = proc.stdout.pop().strip()
             if not line:
                 continue
             Log.note("Shutdown es: {{note}}", note=line)
-    finally:
-        try:
-            proc.join()
-        except Exception as e:
-            Log.warning("could not shutdown es", cause=e)
 
 
 def main():
@@ -213,9 +206,7 @@ def main():
             Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
-        aws_shutdown = Signal("aws shutdown")
-        aws_shutdown.on_go(shutdown_local_es_node)
-        aws_shutdown.on_go(please_stop.go)
+        please_stop.on_go(shutdown_local_es_node)
         aws.capture_termination_signal(please_stop)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
