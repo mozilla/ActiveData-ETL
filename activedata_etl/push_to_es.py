@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
+from jx_base import container
 from mo_dots import coalesce, unwrap, Data, wrap
 from mo_logs import Log, machine_metadata
 from mo_logs import startup, constants
@@ -21,7 +22,6 @@ from mo_math.randoms import Random
 from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.timer import Timer
-from jx_base import container
 from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.env import elasticsearch
