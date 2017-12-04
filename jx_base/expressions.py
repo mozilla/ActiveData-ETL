@@ -133,7 +133,7 @@ class Expression(object):
         if term == None:
             return class_(op, [], **clauses)
         elif isinstance(term, list):
-            terms = map(jx_expression, term)
+            terms = list(map(jx_expression, term))
             return class_(op, terms, **clauses)
         elif isinstance(term, Mapping):
             items = term.items()
@@ -927,7 +927,7 @@ class EqOp(Expression):
 
     def __new__(cls, op, terms):
         if isinstance(terms, list):
-            return object.__new__(cls, op, terms)
+            return object.__new__(cls)
 
         items = terms.items()
         if len(items) == 1:
@@ -1924,7 +1924,7 @@ class SuffixOp(Expression):
 
     def __data__(self):
         if isinstance(self.field, Variable) and isinstance(self.suffix, Literal):
-            return {"suffix": {self.field.var: json2value(self.suffix.json)}}
+            return {"suffix": {self.field.var: self.suffix.value}}
         else:
             return {"suffix": [self.field.__data__(), self.suffix.__data__()]}
 
@@ -2727,6 +2727,7 @@ operators = {
     "number": NumberOp,
     "offset": OffsetOp,
     "or": OrOp,
+    "postfix": SuffixOp,
     "prefix": PrefixOp,
     "range": RangeOp,
     "regex": RegExpOp,

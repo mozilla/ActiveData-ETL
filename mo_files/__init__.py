@@ -74,6 +74,12 @@ class File(object):
     def __div__(self, other):
         return File(join_path(self, other))
 
+    def __truediv__(self, other):
+        return File(join_path(self, other))
+
+    def __rtruediv__(self, other):
+        return File(join_path(other, self))
+
     @property
     def timestamp(self):
         output = os.path.getmtime(self.abspath)
@@ -386,8 +392,8 @@ class File(object):
 
 
 class TempDirectory(File):
-    def __new__(cls, *args, **kwargs):
-        return object.__new__(cls)
+    def __new__(cls):
+        return File.__new__(cls, None)
 
     def __init__(self):
         File.__init__(self, mkdtemp())
@@ -467,6 +473,6 @@ def join_path(*path):
     if not simpler:
         joined = "."
     else:
-        joined = b'/'.join(simpler)
+        joined = '/'.join(simpler)
     return joined
 

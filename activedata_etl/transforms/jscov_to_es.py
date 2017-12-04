@@ -15,12 +15,11 @@ from activedata_etl import etl2key
 from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.transforms import download_file
 from mo_dots import wrap, unwraplist, set_default
-from mo_files import File, TempDirectory
+from mo_files import TempDirectory
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
 from pyLibrary.env.big_data import ibytes2ilines
 
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"

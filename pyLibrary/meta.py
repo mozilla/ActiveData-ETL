@@ -12,7 +12,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import mo_json
-from mo_future import text_type
+from mo_future import text_type, get_function_arguments
 
 from mo_dots import set_default, wrap, _get_attr, Null, coalesce
 from mo_json import value2json
@@ -132,7 +132,8 @@ class _SimpleCache(object):
 def wrap_function(cache_store, func_):
     attr_name = "_cache_for_" + func_.__name__
 
-    if func_.func_code.co_argcount > 0 and func_.func_code.co_varnames[0] == "self":
+    func_args = get_function_arguments(func_)
+    if len(func_args) > 0 and func_args[0] == "self":
         using_self = True
         func = lambda self, *args: func_(self, *args)
     else:
@@ -307,7 +308,6 @@ class {{class_name}}(Mapping):
     def __str__(self):
         return str({{dict}})
 
-temp = {{class_name}}
 """,
         {
             "class_name": name,
@@ -328,10 +328,10 @@ temp = {{class_name}}
 
 
 def _exec(code, name):
-    temp = None
     try:
-        exec(code)
-        globals()[name] = temp
+        fake_locals = {}
+        exec(code, globals(), fake_locals)
+        temp = fake_locals[name]
         return temp
     except Exception as e:
         Log.error("Can not make class\n{{code}}", code=code, cause=e)
