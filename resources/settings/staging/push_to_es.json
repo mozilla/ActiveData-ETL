@@ -90,7 +90,8 @@
 					"$ref": "//../../schema/treeherder.json"
 				},
 				"debug": false,
-				"limit_replicas": true
+				"limit_replicas": true,
+				"_id": "job.id"
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -99,7 +100,7 @@
 			}
 		},
 		{
-			"name": "unit",
+			"name": "unittest",
 			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{

@@ -15,16 +15,15 @@ import re
 from collections import Mapping
 from copy import deepcopy
 
-from mo_future import text_type, binary_type
-from jx_python.expressions import jx_expression_to_function
-
 import mo_json
 from jx_python import jx
+from jx_python.expressions import jx_expression_to_function
 from jx_python.meta import Column
 from mo_dots import coalesce, Null, Data, set_default, listwrap, literal_field, ROOT_PATH, concat_field, split_field
 from mo_dots import wrap
 from mo_dots.lists import FlatList
-from mo_json import value2json, json2value
+from mo_future import text_type, binary_type
+from mo_json import value2json
 from mo_json.typed_encoder import EXISTS_TYPE, BOOLEAN_TYPE, STRING_TYPE, NUMBER_TYPE, NESTED_TYPE, TYPE_PREFIX
 from mo_kwargs import override
 from mo_logs import Log, strings
@@ -657,9 +656,10 @@ class Cluster(object):
             # DO NOT ASK FOR TOO MANY REPLICAS
             health = self.get("/_cluster/health")
             if schema.settings.index.number_of_replicas >= health.number_of_nodes:
-                Log.warning("Reduced number of replicas: {{from}} requested, {{to}} realized",
+                Log.warning(
+                    "Reduced number of replicas: {{from}} requested, {{to}} realized",
                     {"from": schema.settings.index.number_of_replicas},
-                    to= health.number_of_nodes - 1
+                    to=health.number_of_nodes - 1
                 )
                 schema.settings.index.number_of_replicas = health.number_of_nodes - 1
 

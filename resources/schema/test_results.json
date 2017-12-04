@@ -9,30 +9,6 @@
 				"enabled": false
 			},
 			"dynamic_templates": [
-				{
-					"default_numbers": {
-						"mapping": {
-							"type": "double"
-						},
-						"match": "__type__number"
-					}
-				},
-				{
-					"default_strings": {
-						"mapping": {
-							"type": "keyword"
-						},
-						"match": "__type__string"
-					}
-				},
-				{
-					"default_exists": {
-						"mapping": {
-							"type": "long"
-						},
-						"match": "__type__exists"
-					}
-				}
 			]
 		}
 	}
