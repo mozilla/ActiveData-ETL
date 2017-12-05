@@ -9,21 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
+from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
-from pyLibrary.aws import aws_retry
-from mo_logs import startup, constants
-from mo_logs import Log
 from mo_files import File
-from mo_collections import UniqueIndex
+from mo_logs import Log
+from mo_logs import startup, constants
 from mo_threads import Till
+from pyLibrary.aws import aws_retry
 
 
 @aws_retry
