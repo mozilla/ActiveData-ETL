@@ -132,8 +132,6 @@ class Index(Features):
             Log.alert("{{index}} is not typed", index=self.settings.index)
             self.encode = get_encoder(id_column)
 
-
-
     @property
     def url(self):
         return self.cluster.path.rstrip("/") + "/" + self.path.lstrip("/")
@@ -753,12 +751,9 @@ class Cluster(object):
         url = self.settings.host + ":" + text_type(self.settings.port) + path
 
         try:
-            if b'headers' not in kwargs:
-                headers = kwargs[b'headers'] = {}
-            else:
-                headers = kwargs[b'headers']
-            headers.setdefault(b"Accept-Encoding", b"gzip,deflate")
-            headers.setdefault(b"Content-Type", b"application/json")
+            heads = wrap(kwargs).headers
+            heads["Accept-Encoding"] = "gzip,deflate"
+            heads["Content-Type"] = "application/json"
 
             data = kwargs.get(b'data')
             if data == None:
@@ -857,10 +852,15 @@ class Cluster(object):
     def put(self, path, **kwargs):
         url = self.settings.host + ":" + text_type(self.settings.port) + path
 
+        heads = wrap(kwargs).headers
+        heads[b"Accept-Encoding"] = b"gzip,deflate"
+        heads[b"Content-Type"] = b"application/json"
+
         data = kwargs.get(b'data')
         if data == None:
             pass
         elif isinstance(data, Mapping):
+
             kwargs[b'data'] = data = convert.unicode2utf8(convert.value2json(data))
         elif not isinstance(kwargs["data"], str):
             Log.error("data must be utf8 encoded string")
