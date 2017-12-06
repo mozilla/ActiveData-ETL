@@ -129,6 +129,7 @@ class Index(Features):
 
             self.encode = TypedInserter(self, id_column).typed_encode
         else:
+            Log.alert("{{index}} is not typed", index=self.settings.index)
             self.encode = get_encoder(id_column)
 
 
