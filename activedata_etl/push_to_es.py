@@ -123,6 +123,8 @@ def shutdown_local_es_node():
             line = proc.stdout.pop().strip()
             if not line:
                 continue
+            if line == THREAD_STOP:
+                break
             Log.note("Shutdown es: {{note}}", note=line)
 
 

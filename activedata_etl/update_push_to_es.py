@@ -121,7 +121,7 @@ def _disable_oom_on_es():
 def _refresh_indexer():
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
-        result = run("git pull origin push-to-es")
+        result = run("git pull origin push-to-es6")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
