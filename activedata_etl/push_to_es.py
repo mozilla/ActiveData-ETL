@@ -206,8 +206,10 @@ def main():
             Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
-        please_stop.on_go(shutdown_local_es_node)
-        aws.capture_termination_signal(please_stop)
+        aws_shutdown = Signal("aws shutdown")
+        aws_shutdown.on_go(shutdown_local_es_node)
+        aws_shutdown.on_go(please_stop.go)
+        aws.capture_termination_signal(aws_shutdown)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
