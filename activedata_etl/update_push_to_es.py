@@ -55,50 +55,12 @@ def _config_fabric(connect, instance):
     env.abort_exception = Log.error
 
 
-def _start_es():
-    # KILL EXISTING "python27" PROCESS, IT MAY CONSUME TOO MUCH MEMORY AND PREVENT STARTUP
-    with hide('output'):
-        with fabric_settings(warn_only=True):
-            run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-    (Till(seconds=5)).wait()
-
-    File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
-    with cd("/home/ec2-user/"):
-        put("./results/temp/start_es.sh", "start_es.sh")
-        run("chmod u+x start_es.sh")
-
-    with cd("/usr/local/elasticsearch/"):
-        sudo("/home/ec2-user/start_es.sh")
-
-
-def _es_up():
-    """
-    ES WILL BE LIVE WHEN THIS RETURNS
-    """
-
-    #SEE IF JAVA IS RUNNING
-    pid = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
-    if not pid:
-        with hide('output'):
-            log = run("tail -n100 /data1/logs/active-data.log")
-        Log.warning("ES not Running:\n{{log|indent}}", log=log)
-
-        _start_es()
-        return
-
-    #SEE IF IT IS RESPONDING
-    result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
-    if result.find("\"_shards\":{\"total\":24,") == -1:
-        # BAD RESPONSE, KILL JAVA
-        with hide('output'):
-            log = run("tail -n100 /data1/logs/active-data.log")
-        Log.warning("ES Not Responsive:\n{{log|indent}}", log=log)
-
-        sudo("kill -9 " + pid)
-        _start_es()
-        return
-
 def _disable_oom_on_es():
+
+    with fabric_settings(warn_only=True):
+        sudo("supervisorctl start es")
+
+
     with cd("/home/ec2-user"):
         run("mkdir -p temp")
     with cd("/home/ec2-user/temp"):
@@ -129,6 +91,7 @@ def _refresh_indexer():
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_to_es")
+
 
 
 def _start_supervisor():
