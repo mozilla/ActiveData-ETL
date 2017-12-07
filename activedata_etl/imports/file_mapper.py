@@ -24,7 +24,9 @@ from pyLibrary.env.big_data import scompressed2ibytes
 
 KNOWN_FAILURES = {"or": [
     {"in": {".": [
+        "chrome://damp/content/framescript.js",
         "chrome://global/content/bindings/tree.xml",
+        "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
         "chrome://pageloader/content/Profiler.js",
         "chrome://workerbootstrap/content/worker.js",
         "decorators.py",
@@ -33,6 +35,7 @@ KNOWN_FAILURES = {"or": [
         "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
         "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
         "http://web-platform.test:8000/dom/common.js",
+        "http://web-platform.test:8000/dom/interfaces.html",
         "http://web-platform.test:8000/testharness_runner.html",
         "https://example.com/tests/SimpleTest/SimpleTest.js",
         "https://example.com/tests/SimpleTest/TestRunner.js",
