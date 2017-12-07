@@ -30,7 +30,7 @@ from mo_times.dates import Date
 from pyLibrary import convert
 from pyLibrary.env import http
 
-DEBUG = True
+DEBUG = False
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
 MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -491,7 +491,8 @@ def set_build_info(source_key, normalized, task, env, resources):
     if treeherder.jobKind == 'test':
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
-            Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            if DEBUG:
+                Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
             build_task.repo = minimize_repo(build_task.repo)
             build_task._id = None
             build_task.task.artifacts = None
@@ -572,6 +573,10 @@ def get_build_task(source_key, resources, normalized_task):
     #     candidate._id = _id
 
     if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
+        if normalized_task.repo.branch.name in ["mozilla-central"]:
+            # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
+            # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
+            return None
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",
             task=normalized_task.task.id,
@@ -754,6 +759,7 @@ KNOWN_TAGS = {
     "action.context",
     "action.context.taskGroupId",
     "action.context.input.tasks",
+    "action.context.taskId",
 
     "buildid",
     "build_name",

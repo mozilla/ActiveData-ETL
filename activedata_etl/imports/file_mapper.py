@@ -35,6 +35,7 @@ KNOWN_FAILURES = {"or": [
         "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
         "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
         "http://web-platform.test:8000/dom/common.js",
+        "http://web-platform.test:8000/dom/historical.html",
         "http://web-platform.test:8000/dom/interfaces.html",
         "http://web-platform.test:8000/testharness_runner.html",
         "https://example.com/tests/SimpleTest/SimpleTest.js",
