@@ -26,6 +26,7 @@ KNOWN_FAILURES = {"or": [
     {"in": {".": [
         "chrome://damp/content/framescript.js",
         "chrome://global/content/bindings/tree.xml",
+        "chrome://mochitests/content/browser/devtools/client/netmonitor/test/shared-head.js",
         "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
         "chrome://pageloader/content/Profiler.js",
         "chrome://workerbootstrap/content/worker.js",
