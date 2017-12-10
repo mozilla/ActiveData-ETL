@@ -338,7 +338,7 @@ class Index(Features):
                                 status=items[i].index.status,
                                 error=items[i].index.error,
                                 some=len(fails) - 1,
-                                line=strings.limit(lines[i * 2 + 1], 500 if not self.debug else 100000),
+                                line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
                                 index=self.settings.index,
                                 id=items[i].index._id
                             )
@@ -351,7 +351,7 @@ class Index(Features):
                             status=items[i].index.status,
                             error=items[i].index.error,
                             some=len(fails) - 1,
-                            line=strings.limit(lines[i * 2 + 1], 500 if not self.debug else 100000),
+                            line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
                             index=self.settings.index,
                             id=items[i].index._id
                         )
@@ -643,7 +643,9 @@ class Cluster(object):
         else:
             schema = retro_schema(mo_json.json2value(value2json(schema), leaves=True))
 
-        for n, m in schema.mappings.items():
+        for m in schema.mappings.values():
+            if tjson:
+                m.properties[EXISTS_TYPE] = {"type": "long", "store": True}
             m.dynamic_templates = DEFAULT_DYNAMIC_TEMPLATES + m.dynamic_templates + [{
                 "default_all": {
                     "mapping": {"store": True},
@@ -793,7 +795,7 @@ class Cluster(object):
                 Log.error(
                     "Problem with call to {{url}}" + suggestion + "\n{{body|left(10000)}}",
                     url=url,
-                    body=strings.limit(kwargs["data"], 100 if self.debug else 10000),
+                    body=strings.limit(kwargs["data"].decode('utf8'), 100 if self.debug else 10000),
                     cause=e
                 )
             else:
