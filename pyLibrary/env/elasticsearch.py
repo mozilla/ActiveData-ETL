@@ -334,12 +334,13 @@ class Index(Features):
                     if len(fails) <= 3:
                         cause = [
                             Except(
-                                template="{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                                template="{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}} (typed={{tjson}}):\n{{line}}",
                                 status=items[i].index.status,
                                 error=items[i].index.error,
                                 some=len(fails) - 1,
                                 line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
                                 index=self.settings.index,
+                                tjson=self.settings.tjson,
                                 id=items[i].index._id
                             )
                             for i in fails
@@ -347,12 +348,13 @@ class Index(Features):
                     else:
                         i=fails[0]
                         cause = Except(
-                            template="{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}}:\n{{line}}",
+                            template="{{status}} {{error}} (and {{some}} others) while loading line id={{id}} into index {{index|quote}} (typed={{tjson}}):\n{{line}}",
                             status=items[i].index.status,
                             error=items[i].index.error,
                             some=len(fails) - 1,
                             line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
                             index=self.settings.index,
+                            tjson=self.settings.tjson,
                             id=items[i].index._id
                         )
                     Log.error("Problems with insert", cause=cause)
