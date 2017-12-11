@@ -15,7 +15,7 @@ from collections import Mapping
 
 from mo_dots import split_field, join_field
 
-TYPE_PREFIX = "\b"   # u'\u0442\u0443\u0440\u0435-'  # "туре"
+TYPE_PREFIX = "~"   # u'\u0442\u0443\u0440\u0435-'  # "туре"
 BOOLEAN_TYPE = TYPE_PREFIX+"b~"
 NUMBER_TYPE = TYPE_PREFIX+"n~"
 STRING_TYPE = TYPE_PREFIX+"s~"
