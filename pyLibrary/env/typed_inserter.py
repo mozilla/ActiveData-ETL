@@ -19,7 +19,7 @@ from decimal import Decimal
 
 from future.utils import text_type, binary_type
 
-from jx_base import python_type_to_json_type, INTEGER, NUMBER
+from jx_base import python_type_to_json_type, INTEGER, NUMBER, EXISTS, NESTED, STRING, BOOLEAN
 from mo_dots import Data, FlatList, NullType, unwrap
 from mo_future import utf8_json_encoder, long
 from mo_json import ESCAPE_DCT, float2json, json2value
@@ -40,6 +40,15 @@ QUOTED_STRING_TYPE = quote(STRING_TYPE)
 QUOTED_NESTED_TYPE = quote(NESTED_TYPE)
 QUOTED_EXISTS_TYPE = quote(EXISTS_TYPE)
 
+json_type_to_inserter_type = {
+    BOOLEAN: BOOLEAN_TYPE,
+    INTEGER: NUMBER_TYPE,
+    NUMBER: NUMBER_TYPE,
+    STRING: STRING_TYPE,
+    NESTED: NESTED_TYPE,
+    EXISTS: EXISTS_TYPE
+}
+
 
 class TypedInserter(object):
     def __init__(self, es=None, id_column="_id"):
@@ -52,8 +61,7 @@ class TypedInserter(object):
             _schema = Data()
             for c in columns:
                 untyped_path = untype_path(c.names["."])
-                type = c.type
-                _schema[untyped_path][TYPE_PREFIX + type] = c
+                _schema[untyped_path][json_type_to_inserter_type[c.type]] = c
             self.schema = unwrap(_schema)
         else:
             self.schema = {}
@@ -212,11 +220,7 @@ class TypedInserter(object):
                     if len(types) > 1:
                         from mo_logs import Log
                         Log.error("Can not handle multi-typed multivalues")
-                    if types[0] == INTEGER:
-                        # TODO: MAYBE ALLOW INTEGER TYPES?
-                        element_type = TYPE_PREFIX + NUMBER
-                    else:
-                        element_type = TYPE_PREFIX + types[0]
+                    element_type = json_type_to_inserter_type[types[0]]
                     if element_type not in sub_schema:
                         sub_schema[element_type] = True
                         net_new_properties.append(path + [element_type])
