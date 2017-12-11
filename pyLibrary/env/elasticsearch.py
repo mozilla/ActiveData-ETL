@@ -550,6 +550,9 @@ class Cluster(object):
                 for c in columns
             )
 
+        if not kwargs.tjson:
+            Log.warning("Not typed index, columns are:\n{{columns|json}}", columns=columns)
+
         return Index(kwargs)
 
     def _get_best(self, settings):
