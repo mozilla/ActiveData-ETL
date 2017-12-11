@@ -60,8 +60,7 @@ class TypedInserter(object):
             columns = parse_properties(es.settings.alias, ".", es.get_properties())
             _schema = Data()
             for c in columns:
-                untyped_path = untype_path(c.names["."])
-                _schema[untyped_path][json_type_to_inserter_type[c.type]] = c
+                _schema[c.names["."]] = c
             self.schema = unwrap(_schema)
         else:
             self.schema = {}
