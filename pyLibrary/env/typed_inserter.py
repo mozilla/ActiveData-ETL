@@ -18,6 +18,7 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from future.utils import text_type, binary_type
+from jx_python.meta import Column
 
 from jx_base import python_type_to_json_type, INTEGER, NUMBER, EXISTS, NESTED, STRING, BOOLEAN, STRUCT, OBJECT
 from mo_dots import Data, FlatList, NullType, unwrap
@@ -142,6 +143,10 @@ class TypedInserter(object):
 
             _type = value.__class__
             if _type in (dict, Data):
+                if isinstance(sub_schema, Column):
+                    from mo_logs import Log
+                    Log.error("Can not handle {{column|json}}", column=sub_schema)
+
                 if NESTED_TYPE in sub_schema:
                     # PREFER NESTED, WHEN SEEN BEFORE
                     if value:
