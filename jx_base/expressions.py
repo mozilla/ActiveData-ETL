@@ -520,7 +520,7 @@ class Literal(Expression):
         return self
 
     def missing(self):
-        if self.term in [None, Null, ""]:
+        if self.term in [None, Null]:
             return TRUE
         return FALSE
 
