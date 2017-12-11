@@ -57,7 +57,7 @@ class TypedInserter(object):
         self.remove_id = True if id_column == "_id" else False
 
         if es:
-            columns = parse_properties(es.settings.alias, ".", es.get_properties()).columns
+            columns = parse_properties(es.settings.alias, ".", es.get_properties())
             _schema = Data()
             for c in columns:
                 untyped_path = untype_path(c.names["."])

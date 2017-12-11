@@ -537,14 +537,18 @@ class Cluster(object):
             kwargs.alias = best.alias
             kwargs.index = best.index
         elif kwargs.alias == None:
-            kwargs.alias = kwargs.index
+            kwargs.alias = best.alias
             kwargs.index = best.index
 
         index = kwargs.index
         meta = self.get_metadata()
         columns = parse_properties(index, ".", meta.indices[index].mappings.values()[0].properties)
         if len(columns) != 0:
-            kwargs.tjson = tjson or any(c.names["."].find("." + TYPE_PREFIX) != -1 for c in columns)
+            kwargs.tjson = tjson or any(
+                c.names["."].startswith(TYPE_PREFIX) or
+                c.names["."].find("." + TYPE_PREFIX) != -1
+                for c in columns
+            )
 
         return Index(kwargs)
 
