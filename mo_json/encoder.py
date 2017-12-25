@@ -290,15 +290,14 @@ def pretty_json(value):
             return "true"
         elif isinstance(value, Mapping):
             try:
-                if not value:
-                    return "{}"
-                items = list(value.items())
-                if len(items) == 1:
-                    return "{" + unicode_key(items[0][0]) + PRETTY_COLON + pretty_json(items[0][1]).strip() + "}"
-
-                items = sort_using_key(items, lambda r: r[0])
+                items = sort_using_key(list(value.items()), lambda r: r[0])
                 values = [quote(k) + PRETTY_COLON + indent(pretty_json(v)).strip() for k, v in items if v != None]
-                return "{\n" + INDENT + (",\n" + INDENT).join(values) + "\n}"
+                if not values:
+                    return "{}"
+                elif len(values) == 1:
+                    return "{" + values[0] + "}"
+                else:
+                    return "{\n" + INDENT + (",\n" + INDENT).join(values) + "\n}"
             except Exception as e:
                 from mo_logs import Log
                 from mo_math import OR
