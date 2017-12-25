@@ -275,9 +275,9 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
     # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
     if source.name.startswith("active-data-test-result"):
         # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
-        found = coalesce(strings.between(line, '"suite": {"', '}'), strings.between(line, '"suite":{"', '}'))
+        found = coalesce(strings.between(line, '"suite": {', '}'), strings.between(line, '"suite":{', '}'))
         if found != None:
-            suite_json = '{"' + found + '}'
+            suite_json = '{' + found + '}'
             if suite_json:
                 suite = json2value(suite_json)
                 suite = value2json(coalesce(suite.fullname, suite.name))
