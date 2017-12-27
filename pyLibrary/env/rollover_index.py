@@ -274,6 +274,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
 
     # ES SCHEMA IS STRICTLY TYPED, THE SUITE OBJECT CAN NOT BE HANDLED
     if source.name.startswith("active-data-test-result"):
+        line = line.replace('"suite":{},', '')
         # "suite": {"flavor": "plain-chunked", "name": "mochitest"}
         found = coalesce(strings.between(line, '"suite": {', '}'), strings.between(line, '"suite":{', '}'))
         if found != None:
