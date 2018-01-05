@@ -1,4 +1,4 @@
-# CodeCoverage TUID Annotation
+# CodeCoverage TUID Annotation Project
 
 ## Problems
 
@@ -35,4 +35,10 @@ We do not believe this type of coverage anomalies will be a large problem. We al
 
 ## Action
 
-Integrate the [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID). into the [ActiveData-ETL pipeline](https://github.com/klahnakoski/ActiveData-ETL) so that every coverage line is also marked with a TUID. The majority of the work will be dealing with the scale of our coverage; ensuring the mapping is fast enough that coverage data arrives in a timely manner. There is a need to explore what clients need to use the TUID markup, and making a prototype that demonstrates one or more solutions listed.  
+Integrate the [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID). into the [ActiveData-ETL pipeline](https://github.com/klahnakoski/ActiveData-ETL) so that every coverage line is also marked with a TUID. The majority of the work will be dealing with the scale of our coverage; ensuring the mapping is fast enough that coverage data arrives in a timely manner. There is a need to explore what clients need to use the TUID markup, and making a prototype that demonstrates one or more solutions listed.
+
+## Excluded
+
+This project involves adding TUID annotations to code coverage records in ActiveData; all existing columns remain unchanged. As a consequence, nothing using the current coverage will break. No frontend code that uses TUIDs is planned for this project.
+
+
