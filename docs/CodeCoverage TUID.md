@@ -9,7 +9,7 @@
 
 ## Proposal
 
-Instead of recording coverage by (revision, file, line) triple we record coverage by TUID (temporally unique id) that replaces it, with the additional requirement that the *TUID is invariant even when code is changed*: 
+Instead of recording coverage by (revision, file, line) triple we record coverage by TUID (temporally unique id) that replaces it, with the additional requirement that the *TUID is invariant when lines are moved*: 
 
 * If a new line is added, a new TUID is assigned. 
 * If a line is removed, the TUID is retired.
