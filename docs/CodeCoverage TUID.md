@@ -1,0 +1,37 @@
+# CodeCoverage TUID Annotation
+
+## Problems
+
+* **We do not run coverage on every revision** - Collecting coverage on every revision would require about 30x more processing and storage.  
+* **Per-test coverage is enormous** - Knowing the coverage of individual tests can inform us what tests should be run when code is changed.  Unfortunately collecting and storing at this resolution is 1000x more than what we do now. We can collect coverage for some subset of tests at a particular revision, but that has limited value given our constantly changing code.   
+* **Coverage is variable** - Tests run at Firefox-scale have coverage variability because of environmental variability; which can include time of day, operating system latency, ordering of network responses, an many more. Running a test will not likely get you the full coverage for the test, rather some subset.
+* **Coverage data is redundant** - There is an inevitable redundancy in the coverage data, as the same lines are hit, by the same suites, without fail, for months at time. With the right encoding, we can reduce our storage costs by removing redundant data; by recording only the changes in coverage.
+
+## Proposal
+
+Instead of recording coverage by (revision, file, line) triple we record coverage by TUID (temporally unique id) that replaces it, with the additional requirement that the TUID is invariant even when code is changed: 
+
+* If a new line is added, or an existing line is changed, a new TUID is assigned. 
+* If a line is removed the TUID is retired. 
+* If a line moves, because of changes above it, the TUID does not change. 
+
+More details can be found in [the repo used to demonstrate TUIDs](https://github.com/klahnakoski/diff-algebra#a-better-solution).  A [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID).
+
+## Solutions
+
+At a high level, storing coverage by TUID allows us to map coverage collected at one revision and map it to any other revision. 
+
+* **We do not run coverage on every revision** - We need not collect coverage on every revision because it can be mapped from others we already collected on.
+* **Per-test coverage is enormous** - TUIDS help enormously for per-test coverage which is a few orders of magnitude larger than what we collect now: A single Try run with per-test coverage enabled can be used for ?weeks? despite the ever-changing codebase.   
+* **Coverage is variable** - If we can map coverage from one revision to another, then we can union coverage from multiple revisions. This aggregated coverage will have less variability and provide a more stable and accurate picture of our coverage.
+* **Coverage data is redundant** - If we can map coverage from one revision to another, then we can also take their difference. Storing coverage differences will take less space.   
+ 
+## Caveats
+
+TUIDs can not replace actual coverage. TUID mappings do not even provide a best-guess of coverage given the available information: For example, code can change so that a block is never run, if that (uncovered) block calls another source file, the TUID mapping will wrongly consider that source file covered.
+
+We do not believe this type of coverage anomalies will be a large problem. We already mitigate this problem by running coverage multiple time per day, so when this problem occurs it will not persist for long.
+
+## Action
+
+Integrate the [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID). into the [ActiveData-ETL pipeline](https://github.com/klahnakoski/ActiveData-ETL) so that every coverage line is also marked with a TUID. The majority of the work will be dealing with the scale of our coverage; ensuring the mapping is fast enough that coverage data arrives in a timely manner. There is a need to explore what clients need to use the TUID markup, and making a prototype that demonstrates one or more solutions listed.  
