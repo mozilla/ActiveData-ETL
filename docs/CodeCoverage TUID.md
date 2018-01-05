@@ -2,20 +2,21 @@
 
 ## Problems
 
-* **We do not run coverage on every revision** - Collecting coverage on every revision would require about 30x more processing and storage.  
-* **Per-test coverage is enormous** - Knowing the coverage of individual tests can inform us what tests should be run when code is changed.  Unfortunately collecting and storing at this resolution is 1000x more than what we do now. We can collect coverage for some subset of tests at a particular revision, but that has limited value given our constantly changing code.   
-* **Coverage is variable** - Tests run at Firefox-scale have coverage variability because of environmental variability; which can include time of day, operating system latency, ordering of network responses, an many more. Running a test will not likely get you the full coverage for the test, rather some subset.
+* **We do not run coverage on every revision** - Collecting coverage on every revision would require about 100x more processing and storage.  
+* **Per-test coverage is enormous** - Knowing the coverage of individual tests can inform us what tests should be run when code is changed.  Unfortunately collecting and storing at this resolution is 10000x more than what we do now. We can collect coverage for some subset of tests at a particular revision, but that has limited value given our constantly changing code.   
+* **Coverage is variable** - Tests run at Firefox-scale have coverage variability because of environmental variability; which can include time of day, operating system latency, ordering of network responses, an many more. Running a test will not get you the full coverage for the test, rather some subset.
 * **Coverage data is redundant** - There is an inevitable redundancy in the coverage data, as the same lines are hit, by the same suites, without fail, for months at time. With the right encoding, we can reduce our storage costs by removing redundant data; by recording only the changes in coverage.
 
 ## Proposal
 
-Instead of recording coverage by (revision, file, line) triple we record coverage by TUID (temporally unique id) that replaces it, with the additional requirement that the TUID is invariant even when code is changed: 
+Instead of recording coverage by (revision, file, line) triple we record coverage by TUID (temporally unique id) that replaces it, with the additional requirement that the *TUID is invariant even when code is changed*: 
 
-* If a new line is added, or an existing line is changed, a new TUID is assigned. 
-* If a line is removed the TUID is retired. 
-* If a line moves, because of changes above it, the TUID does not change. 
+* If a new line is added, a new TUID is assigned. 
+* If a line is removed, the TUID is retired.
+* If a line is changed, the TUID is retired and a new one assigned.  
+* **If a line moves, because of changes above it, the TUID does not change.** 
 
-More details can be found in [the repo used to demonstrate TUIDs](https://github.com/klahnakoski/diff-algebra#a-better-solution).  A [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID).
+More details can be found in [the repo used to demonstrate TUIDs](https://github.com/klahnakoski/diff-algebra#a-better-solution). Also, a [proof-of-concept TUID mapper](https://github.com/brockajones/TID) was built by a UCOSP student.
 
 ## Solutions
 
