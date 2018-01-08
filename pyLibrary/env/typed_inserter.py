@@ -18,8 +18,9 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from future.utils import text_type, binary_type
+from jx_python.meta import Column
 
-from jx_base import python_type_to_json_type, INTEGER, NUMBER, EXISTS, NESTED, STRING, BOOLEAN
+from jx_base import python_type_to_json_type, INTEGER, NUMBER, EXISTS, NESTED, STRING, BOOLEAN, STRUCT, OBJECT
 from mo_dots import Data, FlatList, NullType, unwrap
 from mo_future import utf8_json_encoder, long
 from mo_json import ESCAPE_DCT, float2json, json2value
@@ -57,10 +58,10 @@ class TypedInserter(object):
         self.remove_id = True if id_column == "_id" else False
 
         if es:
-            columns = parse_properties(es.settings.alias, ".", es.get_properties())
             _schema = Data()
-            for c in columns:
-                _schema[c.names["."]] = c
+            for c in parse_properties(es.settings.alias, ".", es.get_properties()):
+                if c.type != OBJECT:
+                    _schema[c.names["."]] = c
             self.schema = unwrap(_schema)
         else:
             self.schema = {}
@@ -120,11 +121,7 @@ class TypedInserter(object):
             # THE PRETTY JSON WILL PROVIDE MORE DETAIL ABOUT THE SERIALIZATION CONCERNS
             from mo_logs import Log
 
-            Log.warning("Serialization of JSON problems", e)
-            try:
-                return pretty_json(r)
-            except Exception as f:
-                Log.error("problem serializing object", f)
+            Log.error("Serialization of JSON problems", cause=e)
 
     def _typed_encode(self, value, sub_schema, path, net_new_properties, _buffer):
         try:
@@ -146,6 +143,10 @@ class TypedInserter(object):
 
             _type = value.__class__
             if _type in (dict, Data):
+                if isinstance(sub_schema, Column):
+                    from mo_logs import Log
+                    Log.error("Can not handle {{column|json}}", column=sub_schema)
+
                 if NESTED_TYPE in sub_schema:
                     # PREFER NESTED, WHEN SEEN BEFORE
                     if value:
