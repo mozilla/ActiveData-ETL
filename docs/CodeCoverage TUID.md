@@ -35,10 +35,14 @@ We do not believe this type of coverage anomalies will be a large problem. We al
 
 ## Action
 
-Integrate the [proof-of-concept TUID mapper was built by a UCOSP student](https://github.com/brockajones/TID). into the [ActiveData-ETL pipeline](https://github.com/klahnakoski/ActiveData-ETL) so that every coverage line is also marked with a TUID. The majority of the work will be dealing with the scale of our coverage; ensuring the mapping is fast enough that coverage data arrives in a timely manner. There is a need to explore what clients need to use the TUID markup, and making a prototype that demonstrates one or more solutions listed.
+Integrate the [proof-of-concept TUID mapper](https://github.com/brockajones/TID). into the [ActiveData-ETL pipeline](https://github.com/klahnakoski/ActiveData-ETL) so that every coverage line is also marked with a TUID. The majority of the work will be dealing with the scale of our coverage; ensuring the mapping is fast enough that coverage data arrives in a timely manner. 
+
+## Measurable Result
+
+Like any refactoring, TUID annotation enables solutions rather than providing solutions directly. To prove that the TUID are in the database, and useful. We will build a prototype UI that will report "aggregate coverage": Coverage aggregated from the past N coverage runs. The coverage differences between aggregate coverage runs will be smaller than the coverage differences we see between individual coverage runs. This will be proof that we solved the **Coverage is variable** problem.
 
 ## Excluded
 
-This project involves adding TUID annotations to code coverage records in ActiveData; all existing columns remain unchanged. As a consequence, nothing using the current coverage will break. No frontend code that uses TUIDs is planned for this project.
+This project involves adding TUID annotations to code coverage records in ActiveData; all existing columns remain unchanged. As a consequence, nothing using the current coverage will break. Aside from the prototype, no front-end code is planned for this project.
 
 
