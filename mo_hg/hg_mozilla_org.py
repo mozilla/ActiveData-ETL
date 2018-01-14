@@ -221,7 +221,7 @@ class HgMozillaOrg(object):
                 raw_rev1 = self._get_raw_json_info(url1, found_revision.branch)
                 raw_rev2 = self._get_raw_json_rev(url2, found_revision.branch)
             except Exception as e:
-                if "Hg denies it exists" in e :
+                if "Hg denies it exists" in e:
                     raw_rev1 = Data(node=revision.changeset.id)
                 else:
                     raise e
@@ -287,6 +287,8 @@ class HgMozillaOrg(object):
     def _get_raw_json_info(self, url, branch):
         raw_revs = self._get_and_retry(url, branch)
         if "(not in 'served' subset)" in raw_revs:
+            Log.error("Tried {{url}}. Hg denies it exists.", url=url)
+        if isinstance(raw_revs, text_type) and raw_revs.startswith("unknown revision '"):
             Log.error("Tried {{url}}. Hg denies it exists.", url=url)
         if len(raw_revs) != 1:
             Log.error("do not know what to do")
