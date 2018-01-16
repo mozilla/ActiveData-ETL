@@ -1,4 +1,3 @@
-future
 ujson
 BeautifulSoup
 boto

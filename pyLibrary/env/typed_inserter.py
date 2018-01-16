@@ -17,7 +17,7 @@ from collections import Mapping
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from future.utils import text_type, binary_type
+from mo_future import text_type, binary_type
 from jx_python.meta import Column
 
 from jx_base import python_type_to_json_type, INTEGER, NUMBER, EXISTS, NESTED, STRING, BOOLEAN, STRUCT, OBJECT

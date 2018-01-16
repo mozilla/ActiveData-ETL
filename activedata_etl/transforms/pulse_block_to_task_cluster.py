@@ -13,7 +13,7 @@ from collections import Mapping
 
 import requests
 from activedata_etl import etl2key
-from future.utils import text_type
+from mo_future import text_type
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
 from mo_json import json2value, value2json

@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import os
 from zipfile import ZipFile
 
-from future.utils import text_type
+from mo_future import text_type
 
 from activedata_etl import etl2key
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage

@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
-from future.utils import text_type
+from mo_future import text_type
 from jx_python import jx
 from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
 from mo_logs import Log, strings

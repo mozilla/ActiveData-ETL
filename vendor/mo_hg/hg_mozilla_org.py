@@ -14,7 +14,7 @@ import re
 from collections import Mapping
 from copy import copy
 
-from future.utils import text_type, binary_type
+from mo_future import text_type, binary_type
 
 import mo_threads
 from mo_dots import set_default, Null, coalesce, unwraplist, listwrap, wrap, Data
