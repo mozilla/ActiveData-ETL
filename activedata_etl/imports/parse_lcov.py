@@ -43,85 +43,89 @@ def parse_lcov_coverage(source_key, source_name, stream):
     done = set()
 
     for line in stream:
-        if len(line) == 0:
-            continue
-        elif not any(map(line.startswith, COMMANDS)):
-            source_file += "\n" + line
-            continue
+        try:
+            if len(line) == 0:
+                continue
+            elif not any(map(line.startswith, COMMANDS)):
+                source_file += "\n" + line
+                continue
 
-        line = line.strip()
+            line = line.strip()
 
-        if line == 'end_of_record':
-            for source in coco_format(current_source):
-                if source.file.total_covered > LINE_LIMIT:
-                    if DEBUG_LINE_LIMIT:
-                        Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.file.total_covered)
-                elif source.file.total_uncovered > LINE_LIMIT:
-                    if DEBUG_LINE_LIMIT:
-                        Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.file.total_uncovered)
-                elif EMIT_RECORDS_WITH_ZERO_COVERAGE:
-                    yield source
-                elif source.file.total_covered:
-                    yield source
-            current_source = None
-        elif ':' in line:
-            cmd, data = line.split(":", 1)
+            if line == 'end_of_record':
+                for source in coco_format(current_source):
+                    if source.file.total_covered > LINE_LIMIT:
+                        if DEBUG_LINE_LIMIT:
+                            Log.warning("{{name}} has {{num}} lines covered", name=source.file.name, num=source.file.total_covered)
+                    elif source.file.total_uncovered > LINE_LIMIT:
+                        if DEBUG_LINE_LIMIT:
+                            Log.warning("{{name}} has {{num}} lines uncovered", name=source.file.name, num=source.file.total_uncovered)
+                    elif EMIT_RECORDS_WITH_ZERO_COVERAGE:
+                        yield source
+                    elif source.file.total_covered:
+                        yield source
+                current_source = None
+            elif ':' in line:
+                cmd, data = line.split(":", 1)
 
-            if cmd == 'TN':
-                test_name = data.strip()
-            elif cmd == 'SF':
-                source_file = data
-                if source_file in done:
-                    Log.error("Note expected to revisit a file")
-                current_source = {
-                    'file': source_file,
-                    'functions': {},
-                    'lines_covered': set(),
-                    'lines_uncovered': set()
-                }
-            elif cmd == 'FNF':
-                functions_found = int(data)
-            elif cmd == 'FNH':
-                functions_hit = int(data)
-            elif cmd == 'LF':
-                lines_found = int(data)
-            elif cmd == 'LH':
-                lines_hit = int(data)
-            elif cmd == 'DA':
-                line_number, execution_count = map(int, data.split(","))
-                if execution_count > 0:
-                    current_source['lines_covered'].add(line_number)
-                else:
-                    current_source['lines_uncovered'].add(line_number)
-            elif cmd == 'FN':
-                min_line, function_name = data.split(",", 1)
+                if cmd == 'TN':
+                    test_name = data.strip()
+                elif cmd == 'SF':
+                    source_file = data
+                    if source_file in done:
+                        Log.error("Note expected to revisit a file")
+                    current_source = {
+                        'file': source_file,
+                        'functions': {},
+                        'lines_covered': set(),
+                        'lines_uncovered': set()
+                    }
+                elif cmd == 'FNF':
+                    functions_found = int(data)
+                elif cmd == 'FNH':
+                    functions_hit = int(data)
+                elif cmd == 'LF':
+                    lines_found = int(data)
+                elif cmd == 'LH':
+                    lines_hit = int(data)
+                elif cmd == 'DA':
+                    line_number, execution_count = map(int, data.split(","))
+                    if execution_count > 0:
+                        current_source['lines_covered'].add(line_number)
+                    else:
+                        current_source['lines_uncovered'].add(line_number)
+                elif cmd == 'FN':
+                    min_line, function_name = data.split(",", 1)
 
-                current_source['functions'][function_name] = {
-                    'start': int(min_line),
-                    'execution_count': 0
-                }
-            elif cmd == 'FNDA':
-                try:
-                    fn_execution_count, function_name = data.split(",", 1)
+                    current_source['functions'][function_name] = {
+                        'start': int(min_line),
+                        'execution_count': 0
+                    }
+                elif cmd == 'FNDA':
                     try:
-                        current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                        fn_execution_count, function_name = data.split(",", 1)
+                        try:
+                            current_source['functions'][function_name]['execution_count'] = int(fn_execution_count)
+                        except Exception as e:
+                            if fn_execution_count != "0":
+                                if DEBUG:
+                                    Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
                     except Exception as e:
-                        if fn_execution_count != "0":
-                            if DEBUG:
-                                Log.note("No mention of FN:{{func}}, but it has been called", func=function_name, cause=e)
-                except Exception as e:
-                    Log.warning("problem with FNDA line {{line|quote}}", line=line, cause=e)
-            elif cmd == 'BRDA':
-                line, block, branch, taken = data.split(",", 3)
-                pass
-            elif cmd == 'BRF':
-                num_branches_found = data
-            elif cmd == 'BRH':
-                num_branches_hit = data
+                        Log.warning("problem with FNDA line {{line|quote}}", line=line, cause=e)
+                elif cmd == 'BRDA':
+                    line, block, branch, taken = data.split(",", 3)
+                    pass
+                elif cmd == 'BRF':
+                    num_branches_found = data
+                elif cmd == 'BRH':
+                    num_branches_hit = data
+                else:
+                    Log.error('Unsupported cmd {{cmd}} with data {{data}} in {{source|quote}} for key {{key}}', key=source_key, source=source_name, cmd=cmd, data=data)
             else:
-                Log.error('Unsupported cmd {{cmd}} with data {{data}} in {{source|quote}} for key {{key}}', key=source_key, source=source_name, cmd=cmd, data=data)
-        else:
-            Log.error("unknown line {{line}}", line=line)
+                Log.error("unknown line {{line}} in {{source}}", line=line, source=source_name)
+        except Exception as e:
+            Log.error("Problem in line {{line}} in {{source}}", line=line, source=source_name, cause=e)
+
 
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS

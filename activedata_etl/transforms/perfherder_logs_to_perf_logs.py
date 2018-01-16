@@ -77,6 +77,8 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_facebook",
     "quantum_pageload_google",
     "quantum_pageload_youtube",
+    "rasterflood_gradient",
+    "rasterflood_svg",
     "sccache cache_write_errors",
     "sccache hit rate",
     "sccache requests_not_cacheable",
