@@ -18,6 +18,7 @@ import time
 from collections import Mapping
 from datetime import datetime, date, timedelta
 from decimal import Decimal
+from json.encoder import encode_basestring
 from math import floor
 
 from past.builtins import xrange
@@ -291,7 +292,7 @@ def pretty_json(value):
         elif isinstance(value, Mapping):
             try:
                 items = sort_using_key(list(value.items()), lambda r: r[0])
-                values = [quote(k) + PRETTY_COLON + indent(pretty_json(v)).strip() for k, v in items if v != None]
+                values = [encode_basestring(k) + PRETTY_COLON + indent(pretty_json(v)).strip() for k, v in items if v != None]
                 if not values:
                     return "{}"
                 elif len(values) == 1:
