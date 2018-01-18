@@ -87,6 +87,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore",
     "speedometer",
     "Strings",
+    "stylebench",
     "Stylo",
     "svgr-disabled",
     "svgr",

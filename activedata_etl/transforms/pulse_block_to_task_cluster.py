@@ -693,7 +693,8 @@ BUILD_TYPES = {
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
     "ccov": ["ccov"],
-    "debug": ["debug"],
+    "debug": ["debug"],    
+    "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
@@ -860,10 +861,14 @@ KNOWN_TAGS = {
 
     "notifications.task-completed.message",
     "notifications.task-completed.ids",
+    "notifications.task-completed.plugins",
     "notifications.task-completed.subject",
-    "notifications.task-failed.message",
+    "notifications.task-failed.emails",
     "notifications.task-failed.ids",
+    "notifications.task-failed.message",
+    "notifications.task-failed.plugins",
     "notifications.task-failed.subject",
+    "notifications.task-exception.emails",
     "notifications.task-exception.message",
     "notifications.task-exception.ids",
     "notifications.task-exception.subject",
@@ -883,6 +888,7 @@ KNOWN_TAGS = {
     "suite.flavor",
     "suite.name",
 
+    "tasks_for",
     "treeherderEnv",
 
     "upload_to_task_id",
