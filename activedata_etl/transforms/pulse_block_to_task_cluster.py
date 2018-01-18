@@ -712,6 +712,7 @@ BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
+    "appVersion",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
