@@ -694,6 +694,7 @@ BUILD_TYPES = {
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
+    "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
@@ -711,6 +712,7 @@ BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
+    "appVersion",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
@@ -858,14 +860,20 @@ KNOWN_TAGS = {
     "notification.task-defined.sns.message",
     "notification.task-defined.sns.arn",
 
+    "notifications.task-completed.emails",
     "notifications.task-completed.message",
     "notifications.task-completed.ids",
+    "notifications.task-completed.plugins",
     "notifications.task-completed.subject",
-    "notifications.task-failed.message",
+    "notifications.task-failed.emails",
     "notifications.task-failed.ids",
+    "notifications.task-failed.message",
+    "notifications.task-failed.plugins",
     "notifications.task-failed.subject",
+    "notifications.task-exception.emails",
     "notifications.task-exception.message",
     "notifications.task-exception.ids",
+    "notifications.task-exception.plugins",
     "notifications.task-exception.subject",
 
     "npmCache.url",
@@ -883,6 +891,7 @@ KNOWN_TAGS = {
     "suite.flavor",
     "suite.name",
 
+    "tasks_for",
     "treeherderEnv",
 
     "upload_to_task_id",
