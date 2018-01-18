@@ -693,7 +693,7 @@ BUILD_TYPES = {
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
     "ccov": ["ccov"],
-    "debug": ["debug"],    
+    "debug": ["debug"],
     "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
@@ -859,6 +859,7 @@ KNOWN_TAGS = {
     "notification.task-defined.sns.message",
     "notification.task-defined.sns.arn",
 
+    "notifications.task-completed.emails",
     "notifications.task-completed.message",
     "notifications.task-completed.ids",
     "notifications.task-completed.plugins",
@@ -871,6 +872,7 @@ KNOWN_TAGS = {
     "notifications.task-exception.emails",
     "notifications.task-exception.message",
     "notifications.task-exception.ids",
+    "notifications.task-exception.plugins",
     "notifications.task-exception.subject",
 
     "npmCache.url",
