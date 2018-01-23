@@ -203,6 +203,7 @@ _option_map = {
     "ccov": ["ccov"],
     "cc": ["ccov"],
     "debug": ["debug"],
+    "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
