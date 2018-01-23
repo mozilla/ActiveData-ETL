@@ -242,6 +242,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     consume(task, "payload.routes")
     consume(task, "payload.log")
     consume(task, "payload.upstreamArtifacts")
+    consume(task, "extra.env")
     output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
     output.task.parent.id = coalesce_w_conflict_detection(
         source_key,
@@ -784,6 +785,9 @@ KNOWN_TAGS = {
     "chunks.current",
     "chunks.total",
     "CI",
+    "context.flettenedDeep",
+    "context.triggeredBy",
+    "context.valueFromContext",
     "crater.crateName",
     "crater.toolchain.customSha",
     "crater.crateVers",
@@ -804,11 +808,13 @@ KNOWN_TAGS = {
 
     "funsize.partials",
     "funsize.partials.branch",
+    "funsize.partials.dest_mar",
     "funsize.partials.from_mar",
     "funsize.partials.locale",
     "funsize.partials.platform",
     "funsize.partials.previousBuildNumber",
     "funsize.partials.previousVersion",
+    "funsize.partials.product",
     "funsize.partials.to_mar",
     "funsize.partials.toBuildNumber",
     "funsize.partials.toVersion",
@@ -827,6 +833,8 @@ KNOWN_TAGS = {
     "github.baseUser",
     "githubPullRequest",
 
+
+    "generate_bz2_blob",
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
@@ -883,6 +891,12 @@ KNOWN_TAGS = {
     "owner",
     "partial_versions",
     "partials",
+    "partials.artifact_name",
+    "partials.buildid",
+    "partials.locale",
+    "partials.platform",
+    "partials.previousBuildNumber",
+    "partials.previousVersion",
     "payload.dry_run",
     "platforms",
     "signed_installer_url",
@@ -893,6 +907,7 @@ KNOWN_TAGS = {
 
     "tasks_for",
     "treeherderEnv",
+    "triggeredBy",
 
     "upload_to_task_id",
     "url.busybox",
