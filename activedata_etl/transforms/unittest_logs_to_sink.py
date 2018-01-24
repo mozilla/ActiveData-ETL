@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
 from mo_json import json2value
 from mo_json import scrub

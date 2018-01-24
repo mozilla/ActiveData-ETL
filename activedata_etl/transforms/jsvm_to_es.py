@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
-from future.utils import text_type
+from mo_future import text_type
 
 from activedata_etl import etl2key
 from activedata_etl.imports.file_mapper import FileMapper

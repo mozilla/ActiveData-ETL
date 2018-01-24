@@ -8,7 +8,6 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
 import sys
 from collections import Mapping
 from copy import deepcopy

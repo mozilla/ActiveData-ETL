@@ -13,7 +13,7 @@ from collections import Mapping
 
 import requests
 from activedata_etl import etl2key
-from future.utils import text_type
+from mo_future import text_type
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
 from mo_json import json2value, value2json
@@ -30,7 +30,7 @@ from mo_times.dates import Date
 from pyLibrary import convert
 from pyLibrary.env import http
 
-DEBUG = True
+DEBUG = False
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
 MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -491,7 +491,8 @@ def set_build_info(source_key, normalized, task, env, resources):
     if treeherder.jobKind == 'test':
         build_task = get_build_task(source_key, resources, normalized)
         if build_task:
-            Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
+            if DEBUG:
+                Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
             build_task.repo = minimize_repo(build_task.repo)
             build_task._id = None
             build_task.task.artifacts = None
@@ -572,6 +573,10 @@ def get_build_task(source_key, resources, normalized_task):
     #     candidate._id = _id
 
     if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
+        if normalized_task.repo.branch.name in ["mozilla-central"]:
+            # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
+            # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
+            return None
         Log.warning(
             "Could not find matching build task {{build}} for test {{task}} in {{key}}",
             task=normalized_task.task.id,
@@ -689,6 +694,7 @@ BUILD_TYPES = {
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
+    "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
@@ -706,6 +712,7 @@ BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
+    "appVersion",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
@@ -754,6 +761,7 @@ KNOWN_TAGS = {
     "action.context",
     "action.context.taskGroupId",
     "action.context.input.tasks",
+    "action.context.taskId",
 
     "buildid",
     "build_name",
@@ -852,14 +860,20 @@ KNOWN_TAGS = {
     "notification.task-defined.sns.message",
     "notification.task-defined.sns.arn",
 
+    "notifications.task-completed.emails",
     "notifications.task-completed.message",
     "notifications.task-completed.ids",
+    "notifications.task-completed.plugins",
     "notifications.task-completed.subject",
-    "notifications.task-failed.message",
+    "notifications.task-failed.emails",
     "notifications.task-failed.ids",
+    "notifications.task-failed.message",
+    "notifications.task-failed.plugins",
     "notifications.task-failed.subject",
+    "notifications.task-exception.emails",
     "notifications.task-exception.message",
     "notifications.task-exception.ids",
+    "notifications.task-exception.plugins",
     "notifications.task-exception.subject",
 
     "npmCache.url",
@@ -877,6 +891,7 @@ KNOWN_TAGS = {
     "suite.flavor",
     "suite.name",
 
+    "tasks_for",
     "treeherderEnv",
 
     "upload_to_task_id",
