@@ -9,6 +9,9 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import logging
+from logging import handlers
+
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, hide
@@ -17,7 +20,7 @@ from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap
+from mo_dots.objects import datawrap, DataObject
 from mo_files import File
 from mo_logs import Log
 from mo_logs import startup, constants
@@ -118,6 +121,8 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
+        logging.getLogger('paramiko.transport').addHandler(LogTranslate())
+
         aws_args = dict(
             region_name=settings.aws.region,
             aws_access_key_id=unwrap(settings.aws.aws_access_key_id),
@@ -146,6 +151,22 @@ def main():
         Log.stop()
 
 
+class LogTranslate(object):
+
+    def __init__(self, level=0):
+        self.level=level
+
+    def emit(self, record):
+        Log.note("{{record}}", record=record)
+
+    def flush(self):
+        pass
+
+    def handle(self, record):
+        Log.note("{{record|json}}", record=DataObject(record))
+
+
 if __name__ == "__main__":
     main()
+
 

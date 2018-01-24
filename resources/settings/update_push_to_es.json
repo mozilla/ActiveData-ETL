@@ -8,8 +8,11 @@
 		"disable_known_hosts": true,
 		"host_string": "",
 		"port": 22,
-		"password": "",
+//		"password": "",
 		"keepalive": 1,
 		"banner_timeout": 30
+	},
+	"debug":{
+		"trace":true
 	}
 }
