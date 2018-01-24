@@ -27,10 +27,10 @@ java -version
 
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.tar.gz
-tar zxfv elasticsearch-6.0.0.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.2.tar.gz
+tar zxfv elasticsearch-6.1.2.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-6.0.0/* /usr/local/elasticsearch/
+sudo cp -R elasticsearch-6.1.2/* /usr/local/elasticsearch/
 
 
 
@@ -44,8 +44,8 @@ sudo bin/elasticsearch-plugin install discovery-ec2
 # BE SURE YOUR elasticsearch.yml FILE IS HAS
 #     http.cors.enabled: true
 #     http.cors.allow-origin: "*"
-cd /usr/local/elasticsearch/
-sudo bin/elasticsearch-plugin install mobz/elasticsearch-head
+#cd /usr/local/elasticsearch/
+#sudo bin/elasticsearch-plugin install mobz/elasticsearch-head
 
 
 #MOUNT AND FORMAT THE EBS VOLUME
@@ -108,7 +108,7 @@ git checkout push-to-es5
 
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
-git pull origin push-to-es5
+git pull origin push-to-es6
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
