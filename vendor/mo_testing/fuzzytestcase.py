@@ -13,8 +13,6 @@ import types
 import unittest
 from collections import Mapping
 
-from future.moves.itertools import zip_longest
-
 import mo_dots
 from mo_collections.unique_index import UniqueIndex
 from mo_dots import coalesce, literal_field, unwrap, wrap
