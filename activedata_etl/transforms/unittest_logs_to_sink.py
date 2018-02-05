@@ -59,6 +59,9 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
             raise Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
         elif ACCESS_DENIED in e and  buildbot_summary.task.state in ["failed", "exception"]:
             summary = Null
+        elif ACCESS_DENIED in e:
+            summary = Null
+            Log.warning("Problem processing {{key}}", key=source_key, cause=e)
         else:
             raise Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
 
