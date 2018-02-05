@@ -798,6 +798,7 @@ KNOWN_TAGS = {
     "crater.toolchainGitSha",
 
     "createdForUser",
+    "cron",
     "data.base.sha",
     "data.base.user.login",
     "data.head.sha",
@@ -898,6 +899,7 @@ KNOWN_TAGS = {
     "partials.previousBuildNumber",
     "partials.previousVersion",
     "payload.dry_run",
+    "payload.commit",
     "platforms",
     "signed_installer_url",
     "signing.signature",
