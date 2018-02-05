@@ -50,7 +50,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             "uncovered": sorted(uncovered),
                             "total_covered": len(covered),
                             "total_uncovered": len(uncovered),
-                            "percentage_covered": len(covered) / (len(covered) + len(uncovered))
+                            "percentage_covered": len(covered) / (len(covered) + len(uncovered)) if (len(covered) + len(uncovered)) else None
                         }
                     )
                 },
