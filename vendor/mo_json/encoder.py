@@ -110,9 +110,6 @@ def pypy_json_encode(value, pretty=False):
             _dealing_with_problem = False
 
 
-almost_pattern = r"(?:\.(\d*)999)|(?:\.(\d*)000)"
-
-
 class cPythonJSONEncoder(object):
     def __init__(self, sort_keys=True):
         object.__init__(self)
