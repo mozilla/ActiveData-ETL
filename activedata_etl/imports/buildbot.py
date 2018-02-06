@@ -184,6 +184,8 @@ class BuildbotTranslator(object):
             if "Code Coverage " in buildername:
                 if raw_platform.endswith("-cc"):
                     raw_platform = raw_platform[:-3]
+                elif raw_platform.endswith("-ccov"):
+                    raw_platform = raw_platform[:-5]
                 else:
                     Log.error("Not recognized: {{key}}\n{{data|json}}", key=buildername, data=data)
                 buildername = buildername.replace("Code Coverage ", "")

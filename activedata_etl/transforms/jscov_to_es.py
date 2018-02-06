@@ -30,14 +30,22 @@ RETRY = {"times": 3, "sleep": 5}
 DO_AGGR = True
 
 
+urls_w_uncoverable_lines = set()
+
+
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
 
     if not resources.file_mapper:
         resources.file_mapper = FileMapper(task_cluster_record)
 
-
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
+
+        coverable_lines = len(covered) + len(uncovered)
+
+        if not coverable_lines and artifact.url not in urls_w_uncoverable_lines:
+            urls_w_uncoverable_lines.add(artifact.url)
+            Log.warning("jscov {{url}} has uncoverable lines", url=artifact.url)
 
         new_record = set_default(
             {
@@ -50,7 +58,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             "uncovered": sorted(uncovered),
                             "total_covered": len(covered),
                             "total_uncovered": len(uncovered),
-                            "percentage_covered": len(covered) / (len(covered) + len(uncovered))
+                            "percentage_covered": len(covered) / coverable_lines if coverable_lines else None
                         }
                     )
                 },

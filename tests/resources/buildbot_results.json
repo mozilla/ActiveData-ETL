@@ -1,6 +1,70 @@
 [
     {
         "action": {
+            "buildbot_status": "failure",
+            "end_time": 1517528653,
+            "job_number": 11,
+            "reason": "Created by BBB for task EGDwCC8FQgqQzXVS9s4tBQ",
+            "request_time": 1517528646,
+            "requests": [
+                {
+                    "request_id": 155539912,
+                    "timestamp": 1517528646
+                }
+            ],
+            "start_time": 1517528647,
+            "type": "test"
+        },
+        "build": {
+            "branch": "mozilla-central",
+            "locale": "en-US",
+            "name": "Windows 10 64-bit",
+            "platform": "win64",
+            "product": "firefox",
+            "release": "27e993937c984b0e2bd05aeb17d791c7c036ad21",
+            "revision": "27e993937c984b0e2bd05aeb17d791c7c036ad21",
+            "revision12": "27e993937c98",
+            "tags": [],
+            "type": ["debug"]
+        },
+        "other": [
+            {
+                "name": "installer_path",
+                "value": "public/build/target.zip"
+            },
+            {
+                "name": "repository",
+                "value": "https://hg.mozilla.org/mozilla-central"
+            },
+            {
+                "name": "who",
+                "value": "rgurzau@mozilla.com"
+            }
+        ],
+        "properties": {
+            "basedir": "C:\\slave\\test",
+            "master": "http://buildbot-master111.bb.releng.scl3.mozilla.com:8201/",
+            "slavebuilddir": "test",
+            "stage_platform": "win64-ccov"
+        },
+        "run": {
+            "chunk": 1,
+            "key": "Windows 10 64-bit Code Coverage mozilla-central debug test reftest-e10s-1",
+            "logurl": "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-win64-ccov-debug/mozilla-central_win10_64_ccov-debug_test-reftest-e10s-1-bm111-tests1-windows-build11.txt.gz",
+            "machine": {
+                "name": "t-w1064-ix-073",
+                "os": "win10",
+                "pool": "t-w1064-ix"
+            },
+            "script": {"revision": "27e993937c984b0e2bd05aeb17d791c7c036ad21"},
+            "suite": "reftest",
+            "type": ["e10s"]
+        },
+        "tags": ["code coverage"],
+        "task": {"id": "EGDwCC8FQgqQzXVS9s4tBQ"}
+    },
+    {
+        "action": {
             "buildbot_status": "success",
             "end_time": 1507311872,
             "job_number": 3,

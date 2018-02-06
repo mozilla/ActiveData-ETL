@@ -89,7 +89,10 @@ def parse_lcov_coverage(source_key, source_name, stream):
                 elif cmd == 'LH':
                     lines_hit = int(data)
                 elif cmd == 'DA':
-                    line_number, execution_count = map(int, data.split(","))
+                    if ',' in data:
+                        line_number, execution_count = map(int, data.split(","))
+                    else:
+                        line_number, execution_count = int(data), 0
                     if execution_count > 0:
                         current_source['lines_covered'].add(line_number)
                     else:

@@ -108,7 +108,7 @@ def verify_blobber_file(line_number, name, url):
     """
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
-    if name.find("/jscov_") >= 0 and name.endswith(".json"):
+    if (name.find("/jscov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
