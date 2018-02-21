@@ -27,7 +27,6 @@ from tempfile import TemporaryFile
 
 from future.utils import text_type
 
-from activedata_etl.transforms import TRY_AGAIN_LATER
 from jx_python import jx
 from mo_dots import Data, coalesce, wrap, set_default, unwrap
 from mo_json import value2json
@@ -188,9 +187,7 @@ def get_json(url, **kwargs):
         c = response.all_content
         return mo_json.json2value(convert.utf82unicode(c))
     except Exception as e:
-        if Math.round(response.status_code, decimal=-2) == 500:
-            Log.error(TRY_AGAIN_LATER, reason="5xx reponse error")
-        elif Math.round(response.status_code, decimal=-2) == 400:
+        if Math.round(response.status_code, decimal=-2) in [400, 500]:
             Log.error("Bad GET response: {{code}}", code=response.status_code)
         else:
             Log.error("Good GET requests, but bad JSON", cause=e)
