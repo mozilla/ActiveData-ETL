@@ -555,37 +555,23 @@ def get_build_task(source_key, resources, normalized_task):
             MISSING_BUILDS.update(build_task_id)
         return None
 
-    candidate = candidates.last()
-    # if len(candidates) > 1:
-    #     etl, candidate.etl = candidate.etl, None
-    #     _id, candidate._id = candidate._id, None
-    #     for c in candidates.not_right(1):
-    #         try:
-    #             assertAlmostEqual(c, candidate)
-    #         except Exception as e:
-    #             Log.warning(
-    #                 "Found too many builds ({{num}}) with task id={{task}} in {{key}}, choosing last",
-    #                 task=build_task_id,
-    #                 key=source_key,
-    #                 num=len(candidates),
-    #                 cause=e
-    #             )
-    #     candidate.etl = etl
-    #     candidate._id = _id
+    if normalized_task.build.revision12 != None:
+        candidate = candidates.filter(lambda c: c.build.revision12 == normalized_task.build.revision12).last()
 
-    if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
-        if normalized_task.repo.branch.name in ["mozilla-central"]:
-            # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
-            # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
+        if not candidate:
+            # if normalized_task.repo.branch.name in ["mozilla-central"]:
+            #     # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
+            #     # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
+            #     return None
+            Log.warning(
+                "Could not find matching build task {{build}} for test {{task}} in {{key}}",
+                task=normalized_task.task.id,
+                build=build_task_id,
+                key=source_key
+            )
             return None
-        Log.warning(
-            "Could not find matching build task {{build}} for test {{task}} in {{key}}",
-            task=normalized_task.task.id,
-            build=build_task_id,
-            key=source_key
-        )
-        return None
-
+    else:
+        candidate = candidates.last()
     return candidate
 
 
@@ -690,6 +676,7 @@ def _object_to_array(value, key_name, value_name=None):
 
 
 BUILD_TYPES = {
+    "all": ["all"],
     "arm-debug": ["debug", "arm"],
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
@@ -885,6 +872,7 @@ KNOWN_TAGS = {
     "notifications.task-exception.plugins",
     "notifications.task-exception.subject",
 
+    "notify.email.subject",
     "npmCache.url",
     "npmCache.expires",
     "objective",
