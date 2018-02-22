@@ -153,9 +153,13 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             output.append(normalized)
         except Exception as e:
+            e = Except.wrap(e)
             if TRY_AGAIN_LATER in e:
                 raise e
-            Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
+            elif Math.round(e.params.code, decimal=-2) == 500:
+                Log.error(TRY_AGAIN_LATER, reason="error code " + text_type(e.params.code))
+            else:
+                Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
@@ -436,13 +440,15 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "extra.product").lower(),
                 consume(task, "payload.product").lower(),
                 "firefox" if task.extra.suite.name.startswith("firefox") else Null,
-                "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null
+                "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null,
+                consume(task, "extra.app-name")
             ),
             "platform": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "payload.releaseProperties.platform"),
                 task.extra.treeherder.build.platform,
-                task.extra.treeherder.machine.platform
+                # task.extra.treeherder.machine.platform,
+                consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
             # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
@@ -461,7 +467,11 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "payload.releaseProperties.appVersion"),
                 consume(task, "payload.app_version")
             ),
-            "channel": consume(task, "payload.properties.channels")
+            "channel": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "payload.properties.channels"),
+                consume(task, "extra.channel")
+            )
         }}
     )
 
@@ -654,7 +664,7 @@ def verify_tag(source_key, task_id, t):
     if not isinstance(t["value"], text_type):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
-        Log.warning("unknown task tag {{tag|quote}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t["name"])
+        Log.warning("unknown task tag {{tag|json}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t)
         KNOWN_TAGS.add(t["name"])
 
 
@@ -780,7 +790,8 @@ KNOWN_TAGS = {
     "action.context.taskGroupId",
     "action.context.input.tasks",
     "action.context.taskId",
-
+    "aus-server",
+    "archive-prefix",
     # "build_name",
     # "build_type",
     # "build_product",
@@ -800,6 +811,7 @@ KNOWN_TAGS = {
 
     "chunks.current",
     "chunks.total",
+    "chunks",
     "CI",
     "context.flettenedDeep",
     "context.triggeredBy",
@@ -855,6 +867,7 @@ KNOWN_TAGS = {
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
+    "include-version"
     "index.data.hello",
     "index.expires",
     "index.rank",
@@ -872,6 +885,7 @@ KNOWN_TAGS = {
     "locations.sources",
     "locations.symbols",
     "locations.tests",
+    "mar-channel-id-override",
     "name",
 
     "notification.task-defined.irc.notify_nicks",
@@ -918,6 +932,7 @@ KNOWN_TAGS = {
     "payload.dry_run",
     "payload.commit",
     "platforms",
+    "previous-archive-prefix",
     "signed_installer_url",
     "signing.signature",
     "source",

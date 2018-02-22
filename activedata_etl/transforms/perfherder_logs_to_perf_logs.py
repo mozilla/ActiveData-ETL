@@ -38,6 +38,7 @@ KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
 KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
+    "about_preferences_basic",
     "a11yr",
     "basic_compositor_video",
     "bloom_basic_ref",
