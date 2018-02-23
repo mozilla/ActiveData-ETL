@@ -15,7 +15,7 @@ import requests
 from activedata_etl import etl2key
 from mo_future import text_type
 from jx_python import jx
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata, strings
 from mo_math import Math
@@ -91,7 +91,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             status_url = strings.expand_template(STATUS_URL, {"task_id": task_id})
             task_status = http.get_json(status_url, retry=RETRY, session=session)
             consume(task_status, "status.taskId")
-            temp_runs, task_status.status.runs = task_status.status.runs, None  # set_default() will screw `runs` up
+            temp_runs, task_status.status.runs = task_status.status.runs, Null  # set_default() will screw `runs` up
             set_default(tc_message.status, task_status.status)
             tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
             if not tc_message.status.runs.last().resolved:
@@ -138,24 +138,28 @@ def process(source_key, source, destination, resources, please_stop=None):
                 "machine": machine_metadata
             }
 
-            tc_message.artifact = "." if tc_message.artifact else None
+            tc_message.artifact = "." if tc_message.artifact else Null
             if normalized.task.id in seen_tasks:
                 try:
                     assertAlmostEqual([tc_message, task, artifacts], seen_tasks[normalized.task.id], places=11)
                 except Exception as e:
                     Log.error("Not expected", cause=e)
             else:
-                tc_message._meta = None
-                tc_message.runs = None
-                tc_message.runId = None
-                tc_message.artifact = None
+                tc_message._meta = Null
+                tc_message.runs = Null
+                tc_message.runId = Null
+                tc_message.artifact = Null
                 seen_tasks[normalized.task.id] = [tc_message, task, artifacts]
 
             output.append(normalized)
         except Exception as e:
+            e = Except.wrap(e)
             if TRY_AGAIN_LATER in e:
                 raise e
-            Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
+            elif Math.round(e.params.code, decimal=-2) == 500:
+                Log.error(TRY_AGAIN_LATER, reason="error code " + text_type(e.params.code))
+            else:
+                Log.warning("TaskCluster line not processed for key {{key}}: {{line|quote}}", key=source_key, line=line, cause=e)
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
@@ -165,7 +169,7 @@ def read_actions(source_key, normalized, url):
     if DISABLE_LOG_PARSING:
         return
     try:
-        all_log_lines = http.get(url).get_all_lines(encoding=None)
+        all_log_lines = http.get(url).get_all_lines(encoding=Null)
         normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
@@ -183,6 +187,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output = Data()
     set_default(task, consume(tc_message, "status"))
 
+    if isinstance(task.extra.partials, list):
+        if len(task.extra.partials) > 1 and task.extra.partials[0].locale == None:
+            Log.warning("task.extra.partials has {{num}} instances! key={{key}}", num=len(task.extra.partials), key=source_key)
+        task.extra.partials = set_default({}, *task.extra.partials)
+
     output.task.id = task_id
     output.task.created = Date(consume(task, "created"))
     output.task.deadline = Date(consume(task, "deadline"))
@@ -190,7 +199,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.expires = Date(consume(task, "expires"))
     output.task.maxRunTime = consume(task, "payload.maxRunTime")
     if output.task.maxRunTime == "hello":
-        output.task.maxRunTime = None
+        output.task.maxRunTime = Null
 
     env = consume(task, "payload.env")
     output.task.env = _object_to_array(env, "name", "value")
@@ -333,7 +342,7 @@ def _normalize_run(source_key, normalized, task, env):
     # FLAVOR
     flavor = suite.flavor.lower()
     if test == flavor:
-        flavor = None
+        flavor = Null
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1::]
 
@@ -348,20 +357,20 @@ def _normalize_run(source_key, normalized, task, env):
     if flavor and "-e10s" in flavor:
         flavor = flavor.replace("-e10s", "").strip()
         if not flavor:
-            flavor = None
+            flavor = Null
         run_type += ["e10s"]
 
     if flavor=="chunked":
-        flavor = None
+        flavor = Null
         run_type += ["chunked"]
     elif flavor and "-chunked" in flavor:
         flavor = flavor.replace("-chunked", "").strip()
         if not flavor:
-            flavor = None
+            flavor = Null
         run_type += ["chunked"]
 
     # CHUNK NUMBER
-    chunk = None
+    chunk = Null
     path = test.split("-")
     if Math.is_integer(path[-1]):
         chunk = int(path[-1])
@@ -379,7 +388,7 @@ def _normalize_run(source_key, normalized, task, env):
     )
 
     if test == None:
-        fullname = None
+        fullname = Null
     elif flavor == None:
         fullname = test
     else:
@@ -411,26 +420,34 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     build_type = consume(task, "extra.build_type")
 
-    build_product = coalesce_w_conflict_detection(
-        source_key,
-        consume(task, "payload.properties.product"),
-        consume(task, "tags.build_props.product"),
-        task.extra.treeherder.productName,
-        consume(task, "extra.build_product"),
-        consume(task, "extra.product"),
-        "firefox" if task.extra.suite.name.startswith("firefox") else None,
-        "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else None
-    )
-
     set_default(
         normalized,
         {"build": {
+            "id": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "extra.buildid"),
+                consume(task, "payload.releaseProperties.buildid")
+            ),
             "name": consume(task, "extra.build_name"),
-            "product": build_product,
+            "product": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "payload.properties.product").lower(),
+                consume(task, "payload.releaseProperties.appName").lower(),
+                consume(task, "tags.build_props.product").lower(),
+                task.extra.treeherder.productName.lower(),
+                consume(task, "extra.build_product").lower(),
+                consume(task, "extra.product").lower().replace("devedition", "firefox"),
+                consume(task, "payload.product").lower(),
+                "firefox" if task.extra.suite.name.startswith("firefox") else Null,
+                "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null,
+                consume(task, "extra.app-name")
+            ),
             "platform": coalesce_w_conflict_detection(
                 source_key,
+                consume(task, "payload.releaseProperties.platform"),
                 task.extra.treeherder.build.platform,
-                task.extra.treeherder.machine.platform
+                # task.extra.treeherder.machine.platform,
+                consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
             # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
@@ -443,8 +460,17 @@ def set_build_info(source_key, normalized, task, env, resources):
                 env.GECKO_HEAD_REV
             ),
             "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
-            "version": consume(task, "tags.build_props.version"),
-            "channel": consume(task, "payload.properties.channels")
+            "version": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "tags.build_props.version"),
+                consume(task, "payload.releaseProperties.appVersion"),
+                consume(task, "payload.app_version")
+            ),
+            "channel": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "payload.properties.channels"),
+                consume(task, "extra.channel")
+            )
         }}
     )
 
@@ -458,6 +484,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
         consume(task, "tags.build_props.branch"),
+        consume(task, "payload.releaseProperties.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
@@ -523,7 +550,7 @@ def get_build_task(source_key, resources, normalized_task):
     build_task_id = listwrap(coalesce(strings.between(normalized_task.build.url, "task/", "/"), normalized_task.task.dependencies))
     if not build_task_id:
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
-        return None
+        return Null
     response = http.post_json(
         resources.local_es_node + "/task/task/_search",
         data={
@@ -553,39 +580,25 @@ def get_build_task(source_key, resources, normalized_task):
                 key=source_key
             )
             MISSING_BUILDS.update(build_task_id)
-        return None
+        return Null
 
-    candidate = candidates.last()
-    # if len(candidates) > 1:
-    #     etl, candidate.etl = candidate.etl, None
-    #     _id, candidate._id = candidate._id, None
-    #     for c in candidates.not_right(1):
-    #         try:
-    #             assertAlmostEqual(c, candidate)
-    #         except Exception as e:
-    #             Log.warning(
-    #                 "Found too many builds ({{num}}) with task id={{task}} in {{key}}, choosing last",
-    #                 task=build_task_id,
-    #                 key=source_key,
-    #                 num=len(candidates),
-    #                 cause=e
-    #             )
-    #     candidate.etl = etl
-    #     candidate._id = _id
+    if normalized_task.build.revision12 != None:
+        candidate = candidates.filter(lambda c: c.build.revision12 == normalized_task.build.revision12).last()
 
-    if normalized_task.build.revision12 != None and candidate.build.revision12 != normalized_task.build.revision12:
-        if normalized_task.repo.branch.name in ["mozilla-central"]:
-            # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
-            # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
-            return None
-        Log.warning(
-            "Could not find matching build task {{build}} for test {{task}} in {{key}}",
-            task=normalized_task.task.id,
-            build=build_task_id,
-            key=source_key
-        )
-        return None
-
+        if not candidate:
+            # if normalized_task.repo.branch.name in ["mozilla-central"]:
+            #     # THE TASK GROUP IS VERY COMPLICATED, DO NOT BOTHER COMPLAINING
+            #     # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
+            #     return None
+            Log.warning(
+                "Could not find matching build task {{build}} for test {{task}} in {{key}}",
+                task=normalized_task.task.id,
+                build=build_task_id,
+                key=source_key
+            )
+            return Null
+    else:
+        candidate = candidates.last()
     return candidate
 
 
@@ -650,14 +663,14 @@ def verify_tag(source_key, task_id, t):
     if not isinstance(t["value"], text_type):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
-        Log.warning("unknown task tag {{tag|quote}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t["name"])
+        Log.warning("unknown task tag {{tag|json}} while processing {{task_id}} in {{key}}", key=source_key, id=task_id, tag=t)
         KNOWN_TAGS.add(t["name"])
 
 
 def coalesce_w_conflict_detection(source_key, *args):
     if len(args)<2:
         Log.error("bad call to coalesce, expecting source_key as first parameter")
-    output = None
+    output = Null
     for a in args:
         if a == None:
             continue
@@ -690,6 +703,7 @@ def _object_to_array(value, key_name, value_name=None):
 
 
 BUILD_TYPES = {
+    "all": ["all"],
     "arm-debug": ["debug", "arm"],
     "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
@@ -719,6 +733,7 @@ PAYLOAD_PROPERTIES = {
     "build_number",
     "chain",
     "CHANNEL",
+    "commit",
     "contact",
     "context",
     "created",
@@ -739,6 +754,17 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "purpose",
     "release_promotion",
+
+    "releaseProperties.hashType",
+
+    "download_domain",
+    "platforms",
+    "require_mirrors",
+    "channel_names",
+    "partial_versions",
+    "rules_to_update",
+    "archive_domain",
+
     "repack_manifests_url",
     "script_repo_revision",
     "signingManifest",
@@ -763,27 +789,28 @@ KNOWN_TAGS = {
     "action.context.taskGroupId",
     "action.context.input.tasks",
     "action.context.taskId",
-
-    "buildid",
-    "build_name",
-    "build_type",
-    "build_product",
-    "build_props.branch",
-    "build_props.build_number",
-    "build_props.release_eta",
-    "build_props.locales",
-    "build_props.mozharness_changeset",
-    "build_props.partials",
-    "build_props.platform",
-    "build_props.product",
-    "build_props.revision",
-    "build_props.version",
+    "aus-server",
+    "archive-prefix",
+    # "build_name",
+    # "build_type",
+    # "build_product",
+    # "build_props.branch",
+    # "build_props.build_number",
+    # "build_props.release_eta",
+    # "build_props.locales",
+    # "build_props.mozharness_changeset",
+    # "build_props.partials",
+    # "build_props.platform",
+    # "build_props.product",
+    # "build_props.revision",
+    # "build_props.version",
 
     "chainOfTrust.inputs.docker-image",
 
 
     "chunks.current",
     "chunks.total",
+    "chunks",
     "CI",
     "context.flettenedDeep",
     "context.triggeredBy",
@@ -839,6 +866,7 @@ KNOWN_TAGS = {
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
+    "include-version"
     "index.data.hello",
     "index.expires",
     "index.rank",
@@ -846,6 +874,7 @@ KNOWN_TAGS = {
     "l10n_changesets",
 
     "label",  #
+    "last-watershed",
     "link",
     "locations.mozharness",
     "locations.test_packages",
@@ -855,6 +884,7 @@ KNOWN_TAGS = {
     "locations.sources",
     "locations.symbols",
     "locations.tests",
+    "mar-channel-id-override",
     "name",
 
     "notification.task-defined.irc.notify_nicks",
@@ -885,6 +915,7 @@ KNOWN_TAGS = {
     "notifications.task-exception.plugins",
     "notifications.task-exception.subject",
 
+    "notify.email.subject",
     "npmCache.url",
     "npmCache.expires",
     "objective",
@@ -900,7 +931,9 @@ KNOWN_TAGS = {
     "partials.previousVersion",
     "payload.dry_run",
     "payload.commit",
+    "payload.release_name",
     "platforms",
+    "previous-archive-prefix",
     "signed_installer_url",
     "signing.signature",
     "source",
@@ -911,6 +944,7 @@ KNOWN_TAGS = {
     "treeherderEnv",
     "triggeredBy",
 
+    "updater-platform",
     "upload_to_task_id",
     "url.busybox",
     "useCloudMirror",
@@ -918,6 +952,8 @@ KNOWN_TAGS = {
     "worker-implementation"
 } | PAYLOAD_PROPERTIES
 
+
 def consume(props, key):
-    output, props[key] = props[key], None
+    output, props[key] = props[key], Null
     return output
+
