@@ -931,6 +931,7 @@ KNOWN_TAGS = {
     "partials.previousVersion",
     "payload.dry_run",
     "payload.commit",
+    "payload.release_name",
     "platforms",
     "previous-archive-prefix",
     "signed_installer_url",
@@ -955,3 +956,4 @@ KNOWN_TAGS = {
 def consume(props, key):
     output, props[key] = props[key], Null
     return output
+
