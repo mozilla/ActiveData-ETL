@@ -426,8 +426,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "id": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "extra.buildid"),
-                consume(task, "payload.releaseProperties.buildid"),
-                consume(task, "extra.partials.buildid")
+                consume(task, "payload.releaseProperties.buildid")
             ),
             "name": consume(task, "extra.build_name"),
             "product": coalesce_w_conflict_detection(
@@ -437,7 +436,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "tags.build_props.product").lower(),
                 task.extra.treeherder.productName.lower(),
                 consume(task, "extra.build_product").lower(),
-                consume(task, "extra.product").lower(),
+                consume(task, "extra.product").lower().replace("devedition", "firefox"),
                 consume(task, "payload.product").lower(),
                 "firefox" if task.extra.suite.name.startswith("firefox") else Null,
                 "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null,
@@ -925,6 +924,7 @@ KNOWN_TAGS = {
     "partial_versions",
     "partials",
     "partials.artifact_name",
+    "partials.buildid",
     "partials.locale",
     "partials.platform",
     "partials.previousBuildNumber",
