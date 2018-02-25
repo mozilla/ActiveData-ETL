@@ -37,16 +37,19 @@ class RolloverIndex(object):
     AND THREADED QUEUE AND SPLIT DATA BY
     """
     @override
-    def __init__(self, rollover_field, rollover_interval, rollover_max, queue_size=10000, batch_size=5000, kwargs=None):
-        """
-        :param rollover_field: the FIELD with a timestamp to use for determining which index to push to
-        :param rollover_interval: duration between roll-over to new index
-        :param rollover_max: remove old indexes, do not add old records
-        :param queue_size: number of documents to queue in memory
-        :param batch_size: number of documents to push at once
-        :param kwargs: plus additional ES settings
-        :return:
-        """
+    def __init__(
+        self,
+        rollover_field,      # the FIELD with a timestamp to use for determining which index to push to
+        rollover_interval,   # duration between roll-over to new index
+        rollover_max,        # remove old indexes, do not add old records
+        queue_size=10000,    # number of documents to queue in memory
+        batch_size=5000,     # number of documents to push at once
+        tjson=None,          # indicate if we are expected typed json
+        kwargs=None          # plus additional ES settings
+    ):
+        if tjson == None:
+            Log.error("not expected")
+
         self.settings = kwargs
         self.locker = Lock("lock for rollover_index")
         self.rollover_field = jx.get(rollover_field)

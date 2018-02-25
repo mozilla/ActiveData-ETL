@@ -131,7 +131,7 @@ class Index(Features):
         else:
             if tjson == None and not read_only:
                 kwargs.tjson = False
-                Log.warning("{{index}} is not typed settings={{settings}}", index=self.settings.index, settings=self.settings)
+                Log.warning("{{index}} is not typed settings={{settings|json}}", index=self.settings.index, settings=self.settings)
             self.encode = get_encoder(id_column)
 
     @property

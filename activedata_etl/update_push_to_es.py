@@ -84,6 +84,9 @@ def _disable_oom_on_es():
 
 
 def _refresh_indexer():
+    with cd("/usr/local/elasticsearch"):
+        sudo("rm -f java*.hprof")
+
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es6")

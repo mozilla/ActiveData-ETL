@@ -132,6 +132,8 @@ class TypedInserter(object):
 
                 if value_json_type == column_json_type:
                     pass  # ok
+                elif value_json_type == NESTED and all(python_type_to_json_type[v.__class__] == column_json_type for v in value):
+                    pass  # empty arrays can be anything
                 else:
                     from mo_logs import Log
 
