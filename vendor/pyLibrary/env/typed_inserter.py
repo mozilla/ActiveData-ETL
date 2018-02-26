@@ -132,7 +132,7 @@ class TypedInserter(object):
 
                 if value_json_type == column_json_type:
                     pass  # ok
-                elif value_json_type == NESTED and all(python_type_to_json_type[v.__class__] == column_json_type for v in value):
+                elif value_json_type == NESTED and all(python_type_to_json_type[v.__class__] == column_json_type for v in value if v != None):
                     pass  # empty arrays can be anything
                 else:
                     from mo_logs import Log
@@ -232,17 +232,21 @@ class TypedInserter(object):
                     append(_buffer, '}')
                 else:
                     # ALLOW PRIMITIVE MULTIVALUES
+                    value = [v for v in value if v != None]
                     types = list(set(python_type_to_json_type[v.__class__] for v in value))
-                    if len(types) > 1:
+                    if len(types) == 0:  # HANDLE LISTS WITH Nones IN THEM
+                        append(_buffer, '{'+QUOTED_NESTED_TYPE+COLON+'[]}')
+                    elif len(types) > 1:
                         from mo_logs import Log
                         Log.error("Can not handle multi-typed multivalues")
-                    element_type = json_type_to_inserter_type[types[0]]
-                    if element_type not in sub_schema:
-                        sub_schema[element_type] = True
-                        net_new_properties.append(path + [element_type])
-                    append(_buffer, '{'+quote(element_type)+COLON)
-                    self._multivalue2json(value, sub_schema[element_type], path+[element_type], net_new_properties, _buffer)
-                    append(_buffer, '}')
+                    else:
+                        element_type = json_type_to_inserter_type[types[0]]
+                        if element_type not in sub_schema:
+                            sub_schema[element_type] = True
+                            net_new_properties.append(path + [element_type])
+                        append(_buffer, '{'+quote(element_type)+COLON)
+                        self._multivalue2json(value, sub_schema[element_type], path + [element_type], net_new_properties, _buffer)
+                        append(_buffer, '}')
             elif _type is date:
                 if NUMBER_TYPE not in sub_schema:
                     sub_schema[NUMBER_TYPE] = True
