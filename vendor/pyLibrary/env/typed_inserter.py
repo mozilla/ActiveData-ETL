@@ -17,6 +17,7 @@ from collections import Mapping
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
+from jx_python.expressions import jx_expression_to_function
 from mo_future import text_type, binary_type
 from jx_python.meta import Column
 
@@ -53,10 +54,11 @@ json_type_to_inserter_type = {
 
 
 class TypedInserter(object):
-    def __init__(self, es=None, id_column="_id"):
+    def __init__(self, es=None, id_expression="_id"):
         self.es = es
-        self.id_column = id_column
-        self.remove_id = True if id_column == "_id" else False
+        self.id_column = id_expression
+        self.get_id = jx_expression_to_function(id_expression)
+        self.remove_id = True if id_expression == "_id" else False
 
         if es:
             _schema = Data()
@@ -86,9 +88,9 @@ class TypedInserter(object):
             net_new_properties = []
             path = []
             if isinstance(value, Mapping):
-                given_id = value.get(self.id_column)
+                given_id = self.get_id(value)
                 if self.remove_id:
-                    value[self.id_column] = None
+                    value['_id'] = None
             else:
                 given_id = None
 
