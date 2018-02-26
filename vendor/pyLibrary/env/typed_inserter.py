@@ -52,7 +52,6 @@ json_type_to_inserter_type = {
 }
 
 
-
 class TypedInserter(object):
     def __init__(self, es=None, id_expression="_id"):
         self.es = es
