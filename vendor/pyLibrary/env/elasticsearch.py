@@ -16,9 +16,9 @@ from collections import Mapping
 from copy import deepcopy
 
 import mo_json
+from jx_python.meta import Column
 from jx_python import jx
 from jx_python.expressions import jx_expression_to_function
-from jx_python.meta import Column
 from mo_dots import coalesce, Null, Data, set_default, listwrap, literal_field, ROOT_PATH, concat_field, split_field
 from mo_dots import wrap
 from mo_dots.lists import FlatList
@@ -36,6 +36,7 @@ from mo_threads import ThreadedQueue
 from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.timer import Timer
+
 from pyLibrary import convert
 from pyLibrary.env import http
 
@@ -131,7 +132,7 @@ class Index(Features):
         else:
             if tjson == None and not read_only:
                 kwargs.tjson = False
-                Log.warning("{{index}} is not typed settings={{settings|json}}", index=self.settings.index, settings=self.settings)
+                Log.warning("{{index}} is not typed tjson={{tjson}}", index=self.settings.index, tjson=self.settings.tjson)
             self.encode = get_encoder(id_column)
 
     @property
