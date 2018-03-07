@@ -446,7 +446,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 source_key,
                 consume(task, "payload.releaseProperties.platform"),
                 task.extra.treeherder.build.platform,
-                # task.extra.treeherder.machine.platform,
+                task.extra.treeherder.machine.platform,
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
