@@ -9,20 +9,22 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from jx_base.expressions import Variable
+from mo_future import text_type
+
+from jx_elasticsearch.es14.expressions import StringOp
+from jx_python import jx
 from mo_dots import coalesce, wrap
-from pyLibrary import aws
-from pyLibrary.aws import s3
+from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
-from mo_logs import Log
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.git import get_remote_revision
 from mo_math import Math, MAX, MIN
-from jx_python import jx
-from jx_base.expressions import jx_expression
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary import aws
+from pyLibrary.aws import s3
+from pyLibrary.env import elasticsearch
+from pyLibrary.env.git import get_remote_revision
 
 
 def diff(settings, please_stop=None):
@@ -101,7 +103,7 @@ def get_all_in_es(es, in_range, es_filter, field):
                     "_match": {
                         "terms": {
                             # "field": field,
-                            "script": jx_expression({"string": field}).to_ruby(),
+                            "script": StringOp("string", Variable(field)).to_ruby(),
                             "size": 200000
                         }
                     }
