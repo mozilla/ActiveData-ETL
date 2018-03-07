@@ -302,6 +302,10 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         map(new_seen_tc_properties.add, remaining_keys)
         Log.warning("Some properties ({{props|json}}) are not consumed while processing key {{key}}", key=source_key, props=remaining_keys)
 
+    # TODO: make a list of required properties for all tests and builds
+    if not output.build.platform and output.run.name.startswith("test-"):
+        Log.warning("Task is missing build.platform while processing key {{key}}", key=source_key)
+
     return output
 
 
