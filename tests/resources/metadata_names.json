@@ -15728,6 +15728,17 @@
         },
         "run": {"suite": {"name": "mochitest-gpu"}}
     },
+    "test-linux64/debug-mochitest-gpu-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-gpu"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux64/debug-mochitest-jetpack": {
         "action": {"type": "test"},
         "build": {
