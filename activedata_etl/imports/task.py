@@ -76,8 +76,10 @@ NULL_TASKS = (
     "partials-signing-",
     "partials-",
     "repackage-l10n-",
-    "nightly-l10n-"
+    "nightly-l10n-",
+    "source-test-"
 )
+
 
 class Matcher(object):
 
@@ -111,19 +113,6 @@ class Matcher(object):
 
 
 CATEGORIES = {
-    "source-test-": {
-        "doc-upload": {},
-        "file-metadata-bugzilla-components": {},
-        "mozlint-codespell": {},
-        "mozlint-cpp-virtual-final": {},
-        "mozlint-eslint": {},
-        "mozlint-py-compat": {},
-        "mozlint-py-flake8": {},
-        "mozlint-shellcheck": {},
-        "mozlint-test-manifest": {},
-        "mozlint-wptlint-gecko": {},
-        "mozlint-yaml":{}
-    },
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {"action": {"type": "talos"}},

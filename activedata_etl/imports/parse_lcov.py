@@ -31,6 +31,7 @@ COMMANDS = ('TN:', 'SF:', 'FNF:', 'FNH:', 'LF:', 'LH:', 'LN:', 'DA:', 'FN:', 'FN
 def parse_lcov_coverage(source_key, source_name, stream):
     """
     Parses lcov coverage from a stream
+    http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php
 
     :param source_key:
     :param source_name:
@@ -89,10 +90,7 @@ def parse_lcov_coverage(source_key, source_name, stream):
                 elif cmd == 'LH':
                     lines_hit = int(data)
                 elif cmd == 'DA':
-                    if ',' in data:
-                        line_number, execution_count = map(int, data.split(","))
-                    else:
-                        line_number, execution_count = int(data), 0
+                    line_number, execution_count = n_tuple(map(int, data.split(",")), 2)
                     if execution_count > 0:
                         current_source['lines_covered'].add(line_number)
                     else:
@@ -116,7 +114,9 @@ def parse_lcov_coverage(source_key, source_name, stream):
                     except Exception as e:
                         Log.warning("problem with FNDA line {{line|quote}}", line=line, cause=e)
                 elif cmd == 'BRDA':
-                    line, block, branch, taken = data.split(",", 3)
+                    # BRDA:<line number>,<block number>,<branch number>,<taken>
+                    # <taken> is a number or a dash ("-") or does not exist
+                    line, block, branch, taken = n_tuple(data.split(","), 4)
                     pass
                 elif cmd == 'BRF':
                     num_branches_found = data
@@ -149,6 +149,13 @@ def coco_format(details):
     })
 
     return [source]
+
+
+def n_tuple(values, length):
+    output = values[:length]
+    output = output + [Null]*(length-len(output))
+    return output
+
 
 LANG = {
     "jsm": "javascript",
