@@ -12,19 +12,20 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 import requests
-from activedata_etl import etl2key
 from future.utils import text_type
-from jx_python import jx
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
-from mo_json import json2value, value2json
-from mo_logs import Log, machine_metadata, strings
-from mo_math import Math
 
+from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
+from activedata_etl.imports.task import decode_metatdata_name
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from jx_python import jx
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
 from mo_hg.hg_mozilla_org import minimize_repo
+from mo_json import json2value, value2json
+from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import suppress_exception, Except
+from mo_math import Math
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
 from pyLibrary import convert
@@ -295,6 +296,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.tags = get_tags(source_key, output.task.id, task)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
+    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
 
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()]) - new_seen_tc_properties
@@ -332,12 +334,6 @@ def _normalize_run(source_key, normalized, task, env):
     """
 
     run_type = []
-    metadata_name = consume(task, "metadata.name")
-    if "-e10s" in metadata_name:
-        metadata_name = metadata_name.replace("-e10s", "")
-        run_type += ["e10s"]
-    elif "e10s" in metadata_name:
-        Log.error("not expected")
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
@@ -398,6 +394,7 @@ def _normalize_run(source_key, normalized, task, env):
     else:
         fullname = test + "-" + flavor
 
+    metadata_name = consume(task, "metadata.name")
     set_default(
         normalized,
         {"run": {
@@ -408,7 +405,8 @@ def _normalize_run(source_key, normalized, task, env):
             "chunk": chunk,
             "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
-        }}
+        }},
+        decode_metatdata_name(metadata_name)
     )
 
 

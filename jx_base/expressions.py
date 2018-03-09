@@ -538,14 +538,14 @@ class FalseOp(Literal):
 
 class DateOp(Literal):
     def __init__(self, op, term):
-        self.value = term.date
+        self.requested_value = term.date
         Literal.__init__(self, op, Date(term.date).unix)
 
     def __data__(self):
-        return {"date": self.value}
+        return {"date": self.requested_value}
 
     def __call__(self, row=None, rownum=None, rows=None):
-        return Date(self.value)
+        return Date(self.requested_value)
 
     def __unicode__(self):
         return self._json
