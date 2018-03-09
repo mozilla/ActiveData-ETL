@@ -49,7 +49,7 @@ def minimize_task(task):
     task.worker = {"aws": task.worker.aws}
 
 
-def decode_metatdata_name(name):
+def decode_metatdata_name(source_key, name):
     if name.startswith(NULL_TASKS):
         return {}
 
@@ -60,7 +60,7 @@ def decode_metatdata_name(name):
                 if result != None:
                     return set_default(result, v)
             else:
-                Log.warning("{{name|quote}} can not be processed with {{category}}", name=name, category=category)
+                Log.warning("{{name|quote}} can not be processed with {{category}} for key {{key}}", key=source_key, name=name, category=category)
                 break
     return {}
 
@@ -112,14 +112,15 @@ class Matcher(object):
 
 CATEGORIES = {
     "source-test-": {
+        "doc-upload": {},
+        "file-metadata-bugzilla-components": {},
         "mozlint-codespell": {},
         "mozlint-cpp-virtual-final": {},
-        "mozlint-test-manifest": {},
         "mozlint-eslint": {},
-        "file-metadata-bugzilla-components": {},
         "mozlint-py-compat": {},
-        "mozlint-shellcheck": {},
         "mozlint-py-flake8": {},
+        "mozlint-shellcheck": {},
+        "mozlint-test-manifest": {},
         "mozlint-wptlint-gecko": {}
     },
     "test-": {
@@ -150,6 +151,7 @@ CATEGORIES = {
 
 BUILD_TYPE = {
     "opt": {"build": {"type": ["opt"]}},
+    "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["opt"]}}
 }
 
@@ -243,6 +245,7 @@ BUILD_PLATFORM = {
         "android-x86",
         "android",
         "linux",
+        "linux64",
         "macosx64",
         "win32",
         "win64"
@@ -253,7 +256,7 @@ BUILD_PLATFORM = {
 BUILD_OPTIONS = {
     "aarch64": {},
     "add-on-devel": {},
-    "asan-fuzzing": {"build": {"type": ["asan"]}},
+    "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},

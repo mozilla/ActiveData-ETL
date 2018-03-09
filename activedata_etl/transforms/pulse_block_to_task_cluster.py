@@ -406,7 +406,7 @@ def _normalize_run(source_key, normalized, task, env):
             "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
         }},
-        decode_metatdata_name(metadata_name)
+        decode_metatdata_name(source_key, metadata_name)
     )
 
 
