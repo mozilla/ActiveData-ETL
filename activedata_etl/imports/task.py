@@ -179,7 +179,9 @@ TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
 
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
-    "e10s": {"run": {"type": ["e10s"]}}
+    "e10s": {"run": {"type": ["e10s"]}},
+    "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
+    "stylo-sequential": {"build": {"type": ["stylo-sequential"]}},
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
@@ -188,8 +190,6 @@ TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
         "awsy",
-        "awsy-stylo-disabled",
-        "awsy-stylo-sequential",
         "browser-instrumentation",
         "browser-screenshots",
         "cppunit",
