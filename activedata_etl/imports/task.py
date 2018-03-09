@@ -121,7 +121,8 @@ CATEGORIES = {
         "mozlint-py-flake8": {},
         "mozlint-shellcheck": {},
         "mozlint-test-manifest": {},
-        "mozlint-wptlint-gecko": {}
+        "mozlint-wptlint-gecko": {},
+        "mozlint-yaml":{}
     },
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
@@ -185,7 +186,8 @@ RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
-    "stylo-sequential": {"build": {"type": ["stylo-sequential"]}},
+    "stylo-sequential": {},
+    "stylo-sequential-e10s": {"build": {"type": ["e10s"]}}
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}

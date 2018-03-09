@@ -25,7 +25,7 @@ DEBUG_LINE_LIMIT = False
 EMIT_RECORDS_WITH_ZERO_COVERAGE = True
 LINE_LIMIT = 10000
 
-COMMANDS = ['TN:', 'SF:', 'FNF:', 'FNH:', 'LF:', 'LH:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record']
+COMMANDS = ('TN:', 'SF:', 'FNF:', 'FNH:', 'LF:', 'LH:', 'LN:', 'DA:', 'FN:', 'FNDA:', 'BRDA:', 'BRF:', 'BRH:', 'end_of_record')
 
 
 def parse_lcov_coverage(source_key, source_name, stream):
@@ -46,7 +46,7 @@ def parse_lcov_coverage(source_key, source_name, stream):
         try:
             if len(line) == 0:
                 continue
-            elif not any(map(line.startswith, COMMANDS)):
+            elif not line.startswith(COMMANDS):
                 source_file += "\n" + line
                 continue
 

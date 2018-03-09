@@ -479,6 +479,7 @@ def join_path(*path):
 
 
 def delete_daemon(file, please_stop):
+    # WINDOWS WILL HANG ONTO A FILE FOR A BIT AFTER WE CLOSED IT
     while not please_stop:
         try:
             file.delete()

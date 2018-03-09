@@ -153,7 +153,7 @@
         "action": {"type": "build"},
         "build": {
             "platform": "macosx64",
-            "type": ["opt", "asan"]
+            "type": ["opt", "asan", "fuzzing"]
         }
     },
     "build-macosx64-dmd/opt": {
@@ -15378,6 +15378,14 @@
             "chunk": 6,
             "suite": {"name": "web-platform-tests-reftests"}
         }
+    },
+    "test-linux64-stylo-sequential/opt-awsy-stylo-sequential-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["e10s", "opt", "stylo-sequential"]
+        },
+        "run": {"suite": {"name": "awsy"}}
     },
     "test-linux64/debug-cppunit": {
         "action": {"type": "test"},
