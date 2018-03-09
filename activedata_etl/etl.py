@@ -21,6 +21,7 @@ from mo_math import MIN
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
 from mo_threads import Till
+from mo_times import Timer
 from pyLibrary import aws
 
 import mo_dots
@@ -126,13 +127,6 @@ class ETL(Thread):
         else:
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
-        if source_block.artifact_url or not work_actions:
-            Log.warning(
-                "REMOVING RECORDS WITH artifact_url {{todo}}",
-                todo=source_block
-            )
-            return True
-
         if not work_actions:
             Log.note(
                 "No worker defined for records from {{source_bucket|quote}} to {{destination|quote}}, {{action}}.\n{{message|indent}}",
@@ -181,8 +175,9 @@ class ETL(Thread):
                     self.resources
                 )
 
-                with MemorySample("processing {{action}} for {{source}} ", action=action.name, source=source_key):
-                    new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+                with Timer("process {{action}} for {{source}} ", param={"action": action.name, "source": source_key}):
+                    with MemorySample("processing {{action}} for {{source}} ", debug=False, action=action.name, source=source_key):
+                        new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
 
                 if new_keys == None:
                     new_keys = set()

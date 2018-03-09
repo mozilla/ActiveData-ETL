@@ -26,6 +26,8 @@ from mo_times.dates import Date
 from mo_times.durations import DAY
 
 
+gc = None
+
 def get_class(path):
     try:
         #ASSUME DIRECT FROM MODULE
@@ -370,6 +372,8 @@ class extenstion_method(object):
 class MemorySample(object):
 
     def __init__(self, description, debug=False, **parameters):
+        global gc
+
         self.debug = debug
         if debug:
             try:
@@ -410,7 +414,7 @@ class MemorySample(object):
                     from pympler import muppy
                     sum1 = sorted(summary.summarize(muppy.get_objects()), key=lambda r: -r[2])[:30]
                     Log.warning("{{data}}", data=sum1)
-                elif end_memory > 1000*1000*1000:
+                elif end_memory > 1000 * 1000 * 1000:
                     Log.warning(
                         "MEMORY WARNING (over {{end_memory|comma}}bytes): "+self.description,
                         default_params=self.params,
