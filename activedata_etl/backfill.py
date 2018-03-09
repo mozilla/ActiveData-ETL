@@ -9,8 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from jx_base.expressions import Variable
-from mo_future import text_type
+from jx_base.expressions import Variable, jx_expression
+from future.utils import text_type
 
 from jx_elasticsearch.es14.expressions import StringOp
 from jx_python import jx
@@ -46,7 +46,7 @@ def diff(settings, please_stop=None):
         rev = get_remote_revision(settings.git.url, settings.git.branch)
         es_filter = {"prefix": {"etl.revision": rev[0:12]}}
     else:
-        es_filter = {"match_all": {}}
+        es_filter = coalesce(settings.es_filter, {"match_all": {}})
 
     # EVERYTHING FROM ELASTICSEARCH
     in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
@@ -96,9 +96,7 @@ def get_all_in_es(es, in_range, es_filter, field):
     es_query = wrap({
         "aggs": {
             "_filter": {
-                "filter": {"and": [
-                    es_filter
-                ]},
+                "filter": jx_expression(es_filter).to_esfilter(),
                 "aggs": {
                     "_match": {
                         "terms": {
