@@ -50,6 +50,9 @@ def minimize_task(task):
 
 
 def decode_metatdata_name(name):
+    if name.startswith(NULL_TASKS):
+        return {}
+
     for category, patterns in COMPILED_CATEGORIES.items():
         if name.startswith(category):
             for p, v in patterns:
@@ -61,6 +64,20 @@ def decode_metatdata_name(name):
                 break
     return {}
 
+
+NULL_TASKS = (
+    "Buildbot/mozharness S3 uploader",
+    "balrog-",
+    "beetmover-",
+    "build-signing-",
+    "build-docker_image-",
+    "checksums-signing-",
+    "Cron task for ",
+    "partials-signing-",
+    "partials-",
+    "repackage-l10n-",
+    "nightly-l10n-"
+)
 
 class Matcher(object):
 

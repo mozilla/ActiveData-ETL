@@ -19,6 +19,7 @@ import os
 from future.utils import text_type, binary_type
 from mo_dots import get_module, coalesce
 from mo_logs import Log, Except
+from mo_threads import Thread, Till
 
 mime = MimeTypes()
 
@@ -418,7 +419,7 @@ class TempFile(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.delete()
+        Thread.run("delete "+self.name, delete_daemon, file=self)
 
 
 def _copy(from_, to_):
@@ -476,3 +477,12 @@ def join_path(*path):
         joined = b'/'.join(simpler)
     return joined
 
+
+def delete_daemon(file, please_stop):
+    while not please_stop:
+        try:
+            file.delete()
+            return
+        except Exception as e:
+            Log.warning("problem deleting file {{file}}", file=file.abspath, cause=e)
+            Till(seconds=1).wait()

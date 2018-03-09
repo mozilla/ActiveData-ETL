@@ -1,4 +1,329 @@
 {
+    "build-android-aarch64-nightly/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "trigger": "nightly",
+            "type": ["opt"]
+        }
+    },
+    "build-android-aarch64/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16-gradle/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16-old-id-nightly/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "trigger": "nightly",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16-old-id/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16-without-google-play-services/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "type": ["opt"]
+        }
+    },
+    "build-android-api-16/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-api-16",
+            "type": ["opt"]
+        }
+    },
+    "build-android-checkstyle/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-findbugs/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-geckoview-docs/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-lint/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-test/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-x86-old-id-nightly/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-x86",
+            "trigger": "nightly",
+            "type": ["opt"]
+        }
+    },
+    "build-android-x86-old-id/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-x86",
+            "type": ["opt"]
+        }
+    },
+    "build-android-x86/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android-x86",
+            "type": ["opt"]
+        }
+    },
+    "build-linux-rusttests/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
+            "type": ["opt", "rusttests"]
+        }
+    },
+    "build-linux-rusttests/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
+            "type": ["opt", "rusttests"]
+        }
+    },
+    "build-linux/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
+            "type": ["opt"]
+        }
+    },
+    "build-linux/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64-add-on-devel/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64-asan-fuzzing/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "asan"]
+        }
+    },
+    "build-macosx64-dmd/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64-noopt/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64-universal/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-macosx64/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-add-on-devel/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-dmd/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-mingw32/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-mingw32/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-noopt/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32-rusttests/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt", "rusttests"]
+        }
+    },
+    "build-win32/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win32/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-add-on-devel/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-asan/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "asan"]
+        }
+    },
+    "build-win64-asan/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "asan"]
+        }
+    },
+    "build-win64-ccov/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "ccov"]
+        }
+    },
+    "build-win64-dmd/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-mingw32/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-mingw32/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-noopt/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64-rusttests/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "rusttests"]
+        }
+    },
+    "build-win64/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
+    "build-win64/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
     "test-android-4": {
         "action": {"type": "test"},
         "build": {"platform": "android"}
