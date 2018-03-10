@@ -448,7 +448,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 source_key,
                 consume(task, "payload.releaseProperties.platform"),
                 task.extra.treeherder.build.platform,
-                task.extra.treeherder.machine.platform,
+                simplify_platform(task.extra.treeherder.machine.platform),  # WE DO THIS TO REDUCE THE NUMBER OF DISTRACTING WARNINGS
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
@@ -684,7 +684,6 @@ def coalesce_w_conflict_detection(source_key, *args):
             pass
     return output
 
-
 def _scrub(record, name):
     value = record[name]
     record[name] = None
@@ -702,6 +701,20 @@ def _object_to_array(value, key_name, value_name=None):
             return unwraplist([{key_name: k, value_name: v} for k, v in value.items()])
     except Exception as e:
         Log.error("unexpected", cause=e)
+
+
+def _simplify_platform(platform):
+    return SIMPLER_PLATFORMS.get(platform, platform)
+
+
+SIMPLER_PLATFORMS = {
+    "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
+    "android-4-0-armv7-api16": "android-api-16",
+    "osx-cross": "macosx64",
+    "windows2012-32": "win32",
+    "windows2012-64": "win64"
+
+}
 
 
 BUILD_TYPES = {
