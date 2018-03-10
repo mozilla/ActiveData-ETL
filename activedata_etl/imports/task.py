@@ -271,6 +271,7 @@ BUILD_OPTIONS = {
 
 BUILD_TYPE = {
     "opt": {"build": {"type": ["opt"]}},
+    "pgo": {"build": {"type": ["opt"]}},
     "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["opt"]}}
 }
