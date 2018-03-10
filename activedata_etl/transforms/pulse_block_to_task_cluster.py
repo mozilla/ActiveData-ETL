@@ -670,7 +670,7 @@ def verify_tag(source_key, task_id, t):
 
 
 def coalesce_w_conflict_detection(source_key, *args):
-    if len(args)<2:
+    if len(args) < 2:
         Log.error("bad call to coalesce, expecting source_key as first parameter")
     output = Null
     for a in args:

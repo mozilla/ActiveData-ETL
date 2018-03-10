@@ -112,6 +112,7 @@ class Matcher(object):
         return None
 
 
+
 CATEGORIES = {
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
@@ -131,18 +132,13 @@ CATEGORIES = {
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
     }
-}
-
-BUILD_TYPE = {
-    "opt": {"build": {"type": ["opt"]}},
-    "noopt": {"build": {"type": ["noopt"]}},
-    "debug": {"build": {"type": ["opt"]}}
 }
 
 TEST_PLATFORM = {
@@ -253,6 +249,7 @@ BUILD_OPTIONS = {
     "base-toolchains": {},
     "ccov": {"build": {"type": ["ccov"]}},
     "checkstyle": {},
+    "devedition": {"build": {"traim": "devedition"}},
     "dmd": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
@@ -263,6 +260,7 @@ BUILD_OPTIONS = {
     "mingw32": {},
     "noopt": {},
     "old-id": {},
+    "pgo": {"build": {"type": ["pgo"]}},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
@@ -270,6 +268,18 @@ BUILD_OPTIONS = {
     "without-google-play-services": {}
 
 }
+
+BUILD_TYPE = {
+    "opt": {"build": {"type": ["opt"]}},
+    "noopt": {"build": {"type": ["noopt"]}},
+    "debug": {"build": {"type": ["opt"]}}
+}
+
+BUILD_STEPS = {
+    "upload-symbols":{}
+}
+
+
 
 COMPILED_CATEGORIES = {c:[(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}
 
