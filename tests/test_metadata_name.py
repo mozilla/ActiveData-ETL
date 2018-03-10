@@ -29,7 +29,7 @@ class TestMetadataName(FuzzyTestCase):
             result = decode_metatdata_name(Null, name)
 
             if OVERWRITE_RESOURCE:
-                tests[name]=result
+                tests[name] = result
             else:
                 self.assertEqual(result, expected)
                 self.assertEqual(expected, result)
