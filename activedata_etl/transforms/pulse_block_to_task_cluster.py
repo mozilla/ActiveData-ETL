@@ -446,7 +446,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             ),
             "platform": coalesce_w_conflict_detection(
                 source_key,
-                consume(task, "payload.releaseProperties.platform"),
+                _simplify_platform(consume(task, "payload.releaseProperties.platform")),
                 task.extra.treeherder.build.platform,
                 _simplify_platform(task.extra.treeherder.machine.platform),  # WE DO THIS TO REDUCE THE NUMBER OF DISTRACTING WARNINGS
                 consume(task, "extra.platform")
@@ -710,6 +710,7 @@ def _simplify_platform(platform):
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
     "android-4-0-armv7-api16": "android-api-16",
+    "linux": "linux32",
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
     "windows2012-64": "win64"

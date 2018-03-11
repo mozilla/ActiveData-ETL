@@ -170,6 +170,7 @@ TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
 
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
+    "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
     "stylo-disabled-e10s":{"build": {"type": ["stylo-disabled", "e10s"]}},
@@ -261,6 +262,7 @@ BUILD_OPTIONS = {
     "lint": {},
     "mingw32": {},
     "noopt": {},
+    "nightly": {},
     "old-id": {},
     "pgo": {"build": {"type": ["pgo"]}},
     "rusttests": {"build": {"type": ["rusttests"]}},

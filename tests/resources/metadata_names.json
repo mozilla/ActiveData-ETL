@@ -22617,6 +22617,18 @@
             "type": ["profile"]
         }
     },
+    "test-macosx64-nightly/opt-talos-perf-reftest-profiling-e10s": {
+        "action": {"type": "talos"},
+        "build": {
+            "platform": "maxosx64",
+            "train": "nightly",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": "perf_reftest",
+            "type": ["profile", "e10s"]
+        }
+    },
     "test-macosx64-nightly/opt-talos-perf-reftest-singletons-profiling": {
         "action": {"type": "talos"},
         "build": {
