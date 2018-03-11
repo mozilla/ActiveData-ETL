@@ -324,6 +324,2523 @@
             "type": ["opt"]
         }
     },
+    "desktop-test-linux64/debug-cppunit": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "cppunit"}}
+    },
+    "desktop-test-linux64/debug-crashtest": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "crashtest"}}
+    },
+    "desktop-test-linux64/debug-firefox-ui-functional-local": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "firefox-ui-functional-local"}}
+    },
+    "desktop-test-linux64/debug-firefox-ui-functional-remote": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "firefox-ui-functional-remote"}}
+    },
+    "desktop-test-linux64/debug-gtest": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "gtest"}}
+    },
+    "desktop-test-linux64/debug-jittest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jittest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jittest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jittest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jittest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jittest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/debug-jsreftest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-linux64/debug-jsreftest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-linux64/debug-marionette": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "marionette"}}
+    },
+    "desktop-test-linux64/debug-mochitest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-a11y": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-a11y"}}
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-browser-chrome-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-clipboard": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-clipboard"}}
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-devtools-chrome-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-gpu": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-gpu"}}
+    },
+    "desktop-test-linux64/debug-mochitest-jetpack": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-jetpack"}}
+    },
+    "desktop-test-linux64/debug-mochitest-media": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-media"}}
+    },
+    "desktop-test-linux64/debug-mochitest-webgl": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-webgl"}}
+    },
+    "desktop-test-linux64/debug-mochitest-webgl-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-webgl-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/debug-mochitest-webgl-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-reftest-no-accel-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-12": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 12,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/debug-web-platform-tests-reftests": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-reftests"}}
+    },
+    "desktop-test-linux64/debug-web-platform-tests-wdspec": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-wdspec"}}
+    },
+    "desktop-test-linux64/debug-xpcshell-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/debug-xpcshell-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-cppunit": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "cppunit"}}
+    },
+    "desktop-test-linux64/opt-crashtest": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "crashtest"}}
+    },
+    "desktop-test-linux64/opt-firefox-ui-functional-local": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "firefox-ui-functional-local"}}
+    },
+    "desktop-test-linux64/opt-firefox-ui-functional-remote": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "firefox-ui-functional-remote"}}
+    },
+    "desktop-test-linux64/opt-gtest": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "gtest"}}
+    },
+    "desktop-test-linux64/opt-jittest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jittest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jittest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jittest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jittest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jittest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "jittest"}
+        }
+    },
+    "desktop-test-linux64/opt-jsreftest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-linux64/opt-jsreftest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-linux64/opt-marionette": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "marionette"}}
+    },
+    "desktop-test-linux64/opt-mochitest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-a11y": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-a11y"}}
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-browser-chrome-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest-browser-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-clipboard": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-clipboard"}}
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-devtools-chrome-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-gpu": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-gpu"}}
+    },
+    "desktop-test-linux64/opt-mochitest-jetpack": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-jetpack"}}
+    },
+    "desktop-test-linux64/opt-mochitest-media": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-media"}}
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-12": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 12,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-13": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 13,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-14": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 14,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-15": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 15,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-16": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 16,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-17": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 17,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-18": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 18,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-19": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 19,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-20": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 20,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-21": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 21,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-22": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 22,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-23": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 23,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-24": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 24,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-25": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 25,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-26": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 26,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-27": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 27,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-28": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 28,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-29": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 29,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-30": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 30,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-31": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 31,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-32": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 32,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-33": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 33,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-34": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 34,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-35": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 35,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-36": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 36,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-37": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 37,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-38": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 38,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-39": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 39,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-40": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 40,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-valgrind-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest-valgrind"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-webgl": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-webgl"}}
+    },
+    "desktop-test-linux64/opt-mochitest-webgl-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-webgl-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/opt-mochitest-webgl-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "reftest"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-reftest-no-accel-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 10,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-12": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 12,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "desktop-test-linux64/opt-web-platform-tests-reftests": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-reftests"}}
+    },
+    "desktop-test-linux64/opt-web-platform-tests-wdspec": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-wdspec"}}
+    },
+    "desktop-test-linux64/opt-xpcshell-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-linux64/opt-xpcshell-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "desktop-test-macosx64/debug-cppunit": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "cppunit"}}
+    },
+    "desktop-test-macosx64/debug-crashtest": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "crashtest"}}
+    },
+    "desktop-test-macosx64/debug-jsreftest-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-macosx64/debug-jsreftest-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "jsreftest"}
+        }
+    },
+    "desktop-test-macosx64/debug-mochitest-webgl-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-macosx64/debug-mochitest-webgl-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "desktop-test-macosx64/debug-mochitest-webgl-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "maxosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
     "test-android-4": {
         "action": {"type": "test"},
         "build": {"platform": "android"}
