@@ -16,54 +16,11 @@ from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
 from mo_files import TempFile
-from mo_json import stream
+from mo_json import stream, json2value
 from mo_logs import Log
 from mo_times import Timer
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
-
-KNOWN_FAILURES = {"or": [
-    {"in": {".": [
-        "chrome://damp/content/framescript.js",
-        "chrome://global/content/bindings/tree.xml",
-        "chrome://mochitests/content/browser/devtools/client/netmonitor/test/shared-head.js",
-        "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
-        "chrome://pageloader/content/utils.js",
-        "chrome://pageloader/content/Profiler.js",
-        "chrome://workerbootstrap/content/worker.js",
-        "decorators.py",
-        "http://example.com/tests/SimpleTest/SimpleTest.js",
-        "http://mochi.test:8888/resources/testharnessreport.js",
-        "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
-        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
-        "http://web-platform.test:8000/dom/common.js",
-        "http://web-platform.test:8000/dom/historical.html",
-        "http://web-platform.test:8000/dom/interfaces.html",
-        "http://web-platform.test:8000/testharness_runner.html",
-        "https://example.com/tests/SimpleTest/SimpleTest.js",
-        "https://example.com/tests/SimpleTest/TestRunner.js",
-        "resource://gre/modules/workers/require.js",
-        "resource://services-common/utils.js",
-        "resource://services-crypto/utils.js"
-    ]}},
-    {"suffix": {".": "/build/tests/xpcshell/head.js"}},
-    {"suffix": {".": "/shared/tests/browser/head.js"}},
-    {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
-    {"prefix": {".": "data:"}},
-    {"prefix": {".": "javascript:"}},
-    {"prefix": {".": "about:"}},
-    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
-    {"prefix": {".": "https://example.com/MochiKit"}},
-    {"prefix": {".": "vs2017"}}
-]}
-KNOWN_MAPPINGS = {
-    "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
-}
-EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
-SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
-    "web-platform-tests": {"web", "platform", "tests", "test", "wpt"},
-    "mochitest": {"mochitest", "mochitests"}
-}
 
 
 class FileMapper(object):
@@ -104,12 +61,15 @@ class FileMapper(object):
             download_file(files_url, tempfile.abspath)
             with open(tempfile.abspath, b"rb") as fstream:
                 with Timer("process {{url}}", param={"url": files_url}):
+                    count = 0
                     for data in stream.parse(
                         scompressed2ibytes(fstream),
                         {"items": "."},
                         {"name"}
                     ):
                         self._add(data.name)
+                        count += 1
+                    Log.note("{{count}} files in {{file}}", count=count, file=files_url)
 
     def _add(self, filename):
         if filename.startswith(EXCLUDE):
@@ -219,4 +179,48 @@ def _values(curr):
         else:
             for u in _values(v):
                 yield u
+
+
+KNOWN_FAILURES = {"or": [
+    {"in": {".": [
+        "chrome://damp/content/framescript.js",
+        "chrome://global/content/bindings/tree.xml",
+        "chrome://mochitests/content/browser/devtools/client/netmonitor/test/shared-head.js",
+        "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
+        "chrome://pageloader/content/utils.js",
+        "chrome://pageloader/content/Profiler.js",
+        "chrome://workerbootstrap/content/worker.js",
+        "decorators.py",
+        "http://example.com/tests/SimpleTest/SimpleTest.js",
+        "http://mochi.test:8888/resources/testharnessreport.js",
+        "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
+        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
+        "http://web-platform.test:8000/dom/common.js",
+        "http://web-platform.test:8000/dom/historical.html",
+        "http://web-platform.test:8000/dom/interfaces.html",
+        "http://web-platform.test:8000/testharness_runner.html",
+        "https://example.com/tests/SimpleTest/SimpleTest.js",
+        "https://example.com/tests/SimpleTest/TestRunner.js",
+        "resource://gre/modules/workers/require.js",
+        "resource://services-common/utils.js",
+        "resource://services-crypto/utils.js"
+    ]}},
+    {"suffix": {".": "/build/tests/xpcshell/head.js"}},
+    {"suffix": {".": "/shared/tests/browser/head.js"}},
+    {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
+    {"prefix": {".": "data:"}},
+    {"prefix": {".": "javascript:"}},
+    {"prefix": {".": "about:"}},
+    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
+    {"prefix": {".": "https://example.com/MochiKit"}},
+    {"prefix": {".": "vs2017"}}
+]}
+KNOWN_MAPPINGS = {
+    "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
+}
+EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
+SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
+    "web-platform-tests": {"web", "platform", "tests", "test", "wpt"},
+    "mochitest": {"mochitest", "mochitests"}
+}
 

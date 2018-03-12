@@ -64,6 +64,7 @@ NOT_STRUCTURED_LOGS = [
     "/talos_warning.log",
     "/live.log",
     "/live_backing.log",
+    ".mar",
     "/master.tar.gz",
     ".tests.zip",
     ".checksums.asc",

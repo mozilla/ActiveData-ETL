@@ -146,7 +146,7 @@ class Log(object):
         if settings.log_type == "stream" or settings.stream:
             from mo_logs.log_usingThreadedStream import StructuredLogger_usingThreadedStream
             return StructuredLogger_usingThreadedStream(settings.stream)
-        if settings.log_type == "elasticsearch" or settings.stream:
+        if settings.log_type == "elasticsearch":
             from mo_logs.log_usingElasticSearch import StructuredLogger_usingElasticSearch
             return StructuredLogger_usingElasticSearch(settings)
         if settings.log_type == "email":

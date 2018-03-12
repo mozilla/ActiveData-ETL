@@ -13,7 +13,7 @@ from mo_future import text_type
 from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
 from mo_json import json2value
 from mo_json import scrub
-from mo_logs import Log, strings
+from mo_logs import Log, strings, machine_metadata
 from mo_math import MAX, MIN
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
@@ -72,6 +72,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         "source": etl_header,
         "type": "join",
         "revision": get_git_revision(),
+        "machine": machine_metadata,
         "duration": timer.duration
     }
     buildbot_summary.run.stats = summary.stats

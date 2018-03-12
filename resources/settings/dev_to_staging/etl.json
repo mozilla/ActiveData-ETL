@@ -17,7 +17,7 @@
 		},
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-		"mo_json.stream.DEBUG": true,
+//		"mo_json.stream.DEBUG": true,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true,
 		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
