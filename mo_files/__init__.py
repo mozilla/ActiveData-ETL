@@ -485,5 +485,5 @@ def delete_daemon(file, please_stop):
             file.delete()
             return
         except Exception as e:
-            Log.warning("problem deleting file {{file}}", file=file.abspath, cause=e)
+            Log.warning(u"problem deleting file {{file}}", file=file.abspath, cause=e)
             Till(seconds=1).wait()
