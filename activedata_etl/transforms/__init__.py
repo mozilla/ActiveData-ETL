@@ -12,7 +12,7 @@ from __future__ import division
 from future.utils import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log, strings
-from mo_dots import wrap, Data, literal_field
+from mo_dots import wrap, Data, literal_field, set_default
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
@@ -202,22 +202,22 @@ class EtlHeadGenerator(object):
     def next(
         self,
         source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
-        name=None,  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
-        url=None  # URL FOR THE DATA
+        **kwargs # URL FOR THE DATA
     ):
         num = self.next_id
         self.next_id = num + 1
         dest_key = self.source_key + "." + text_type(num)
 
-        dest_etl = wrap({
-            "id": num,
-            "name": name,
-            "url": url,
-            "source": source_etl,
-            "type": "join",
-            "revision": get_git_revision(),
-            "timestamp": Date.now().unix
-        })
+        dest_etl = set_default(
+            {
+                "id": num,
+                "source": source_etl,
+                "type": "join",
+                "revision": get_git_revision(),
+                "timestamp": Date.now().unix
+            },
+            kwargs
+        )
 
         return dest_key, dest_etl
 

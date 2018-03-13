@@ -18,7 +18,7 @@ from pyLibrary.env import http
 
 def normalize_resource_usage(url):
     """
-    :param url: POOINT TO RESOURCE USAGE FILE
+    :param url: POINT TO RESOURCE USAGE FILE
     :return: NORMALIZED RESOURCE USAGE
     """
 

@@ -192,7 +192,10 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, resources):
     try:
-        buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
+        if perfherder.task:
+            buildbot = perfherder.task
+        else:
+            buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:
