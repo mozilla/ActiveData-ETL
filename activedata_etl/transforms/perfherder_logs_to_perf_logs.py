@@ -174,6 +174,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
                 continue
 
+            if not isinstance(buildbot.run.suite, text_type):
+                buildbot.run.suite = buildbot.run.suite.fullname
+
             perf_records = transform(source_key, perfherder_record, buildbot, resources)
             for p in perf_records:
                 p["etl"] = {
