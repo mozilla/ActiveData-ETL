@@ -172,9 +172,10 @@ TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
-    "e10s": {"run": {"type": ["e10s"]}},
+    "e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "no-accel-e10s": {"run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
-    "stylo-disabled-e10s":{"build": {"type": ["stylo-disabled", "e10s"]}},
+    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled", "e10s"]}},
     "stylo-sequential": {},
     "stylo-sequential-e10s": {"build": {"type": ["e10s"]}},
 }

@@ -447,8 +447,8 @@ def set_build_info(source_key, normalized, task, env, resources):
             "platform": coalesce_w_conflict_detection(
                 source_key,
                 _simplify_platform(consume(task, "payload.releaseProperties.platform")),
-                task.extra.treeherder.build.platform,
-                _simplify_platform(task.extra.treeherder.machine.platform),  # WE DO THIS TO REDUCE THE NUMBER OF DISTRACTING WARNINGS
+                _simplify_platform(task.extra.treeherder.build.platform),
+                _simplify_platform(task.extra.treeherder.machine.platform),
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
@@ -704,6 +704,10 @@ def _object_to_array(value, key_name, value_name=None):
 
 
 def _simplify_platform(platform):
+    """
+    Used to simplify the number of distracting warnings
+    :param platform: a string
+    :return: A simpler version of platform, or itself
     return SIMPLER_PLATFORMS.get(platform, platform)
 
 
@@ -714,7 +718,6 @@ SIMPLER_PLATFORMS = {
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
     "windows2012-64": "win64"
-
 }
 
 
