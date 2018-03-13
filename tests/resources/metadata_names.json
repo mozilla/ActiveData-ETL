@@ -18585,8 +18585,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["e10s"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "e10s"]
         }
     },
     "test-linux64/debug-mochitest-jetpack": {

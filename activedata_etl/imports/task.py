@@ -60,7 +60,12 @@ def decode_metatdata_name(source_key, name):
                 if result != None:
                     return set_default(result, v)
             else:
-                Log.warning("{{name|quote}} can not be processed with {{category}} for key {{key}}", key=source_key, name=name, category=category)
+                Log.warning(
+                    "{{name|quote}} can not be processed with {{category}} for key {{key}}",
+                    key=source_key,
+                    name=name,
+                    category=category
+                )
                 break
     return {}
 
@@ -137,6 +142,7 @@ CATEGORIES = {
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
     },
     "desktop-test-": {
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}}
@@ -173,6 +179,7 @@ RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "no-accel-e10s": {"run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
     "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled", "e10s"]}},
