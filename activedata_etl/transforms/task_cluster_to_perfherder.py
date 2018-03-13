@@ -15,7 +15,7 @@ from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from activedata_etl.transforms.pulse_block_to_perfherder_logs import PERFHERDER_PREFIXES
-from mo_dots import Data, wrap, Null
+from mo_dots import Data, wrap, Null, unwraplist, FlatList
 from mo_json import json2value, utf82unicode
 from mo_logs import Log, strings, suppress_exception
 from mo_times.timer import Timer
@@ -41,7 +41,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         artifacts = pulse_record.task.artifacts
         minimize_task(pulse_record)
 
-        all_perf = []
+        all_perf = FlatList()
         with Timer("get perfherder records"):
             for artifact in artifacts:
                 if artifact.name.endswith("perfherder-data.json"):
@@ -49,56 +49,65 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     for t in perf.suites:
                         t.framework = perf.framework
                         t.task = pulse_record
-                        t.etl = etl_header_gen.next(etl_task, url=artifact.url)
+                        _, t.etl = etl_header_gen.next(etl_task, url=artifact.url)
                     all_perf.extend(perf.suites)
                     Log.note(
-                        "Found {{num}} PerfHerder records while processing {{key}} {{i}}: {{url}}",
+                        "Found {{num}} {{framework|upper}} records while processing {{key}} {{i}}: {{url}}",
                         key=source_key,
                         i=i,
                         num=len(perf.suites),
+                        framework=perf.framework.name,
                         url=artifact.url
                     )
 
             log_url = wrap([a.url for a in artifacts if a.name.endswith("/live_backing.log")])[0]
 
             # PULL PERFHERDER/TALOS
-            try:
-                response = http.get(log_url)
-                if response.status_code == 404:
-                    Log.alarm("PerfHerder log missing {{url}}", url=log_url)
-                    k = source_key + "." + text_type(i)
-                    try:
-                        # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
-                        dest_bucket.get_key(k)
-                        output |= {k}  # FOR DENSITY CALCULATIONS
-                    except Exception:
-                        _, dest_etl = etl_header_gen.next(etl_task, name="PerfHerder", url=log_url, error="PerfHerder log missing")
-                        output |= dest_bucket.extend([{
-                            "id": etl2key(dest_etl),
-                            "value": {
-                                "etl": dest_etl,
-                                "task": pulse_record,
-                                "is_empty": True
-                            }
-                        }])
+            if log_url:
+                try:
+                    response = http.get(log_url)
+                    if response.status_code == 404:
+                        Log.alarm("PerfHerder log missing {{url}}", url=log_url)
+                        k = source_key + "." + text_type(i)
+                        try:
+                            # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
+                            dest_bucket.get_key(k)
+                            output |= {k}  # FOR DENSITY CALCULATIONS
+                        except Exception:
+                            _, dest_etl = etl_header_gen.next(etl_task, name="PerfHerder", url=log_url, error="PerfHerder log missing")
+                            output |= dest_bucket.extend([{
+                                "id": etl2key(dest_etl),
+                                "value": {
+                                    "etl": dest_etl,
+                                    "task": pulse_record,
+                                    "is_empty": True
+                                }
+                            }])
 
-                    continue
-                seen, more_perf = extract_perfherder(
-                    response.get_all_lines(flexible=True),
-                    etl_task,
-                    etl_header_gen,
-                    please_stop,
-                    pulse_record
-                )
-                all_perf.extend(more_perf)
-            except Exception as e:
-                Log.error("Problem processing {{url}}", url=log_url, cause=e)
-            finally:
-                with suppress_exception:
-                    response.close()
+                        continue
+                    seen, more_perf = extract_perfherder(
+                        response.get_all_lines(flexible=True),
+                        etl_task,
+                        etl_header_gen,
+                        please_stop,
+                        pulse_record
+                    )
+                    all_perf.extend(more_perf)
+                except Exception as e:
+                    Log.error("Problem processing {{url}}", url=log_url, cause=e)
+                finally:
+                    with suppress_exception:
+                        response.close()
 
         if all_perf:
-            Log.note("Found {{num}} PerfHerder records while processing {{key}} {{i}}: {{url}}", key=source_key, i=i, num=len(all_perf), url=log_url)
+            Log.note(
+                "Found {{num}} {{framework|upper}} records while processing {{key}} {{i}}: {{url}}",
+                key=source_key,
+                i=i,
+                framework=unwraplist(list(set(all_perf.framework.name))),
+                num=len(all_perf),
+                url=log_url
+            )
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
             Log.note("Found zero PerfHerder records while processing {{key}} {{i}}: {{url}}", key=source_key, i=i, url=log_url)

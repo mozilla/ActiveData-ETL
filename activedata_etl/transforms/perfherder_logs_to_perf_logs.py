@@ -39,6 +39,7 @@ KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_em
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
+    "ARES6",
     "a11yr",
     "basic_compositor_video",
     "bloom_basic_ref",
@@ -69,10 +70,14 @@ KNOWN_PERFHERDER_TESTS = [
     "h1",
     "h2",
     "installer size",
+    "JetStream",
     "jittest.jittest.overall",
     "kraken",
     "media_tests",
     "mochitest-browser-chrome",
+    "motionmark_animometer",
+    "motionmark_htmlsuite",
+    "motionmark, transformed",
     "motionmark",
     "other_nol64",
     "other_l64",
@@ -161,7 +166,15 @@ def process(source_key, source, destination, resources, please_stop=None):
             if perfherder_record.suites:
                 Log.error("Should not happen, perfherder storage iterates through the suites")
 
-            perf_records = transform(source_key, perfherder_record, resources)
+            if perfherder_record.task or perfherder_record.is_empty:
+                buildbot = perfherder_record.task
+            elif perfherder_record.pulse:
+                buildbot = transform_buildbot(source_key, perfherder_record.pulse, resources)
+            else:
+                Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
+                continue
+
+            perf_records = transform(source_key, perfherder_record, buildbot, resources)
             for p in perf_records:
                 p["etl"] = {
                     "id": i,
@@ -190,12 +203,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(source_key, perfherder, resources):
+def transform(source_key, perfherder, buildbot, resources):
     try:
-        if perfherder.task:
-            buildbot = perfherder.task
-        else:
-            buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:
@@ -206,7 +215,7 @@ def transform(source_key, perfherder, resources):
                 Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
-            if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
+            if suite_name.find("-" + option) >= 0:
                 if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
@@ -218,7 +227,7 @@ def transform(source_key, perfherder, resources):
                     )
                     buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
                 suite_name = suite_name.replace("-" + option, "")
-        buildbot.run.type = list(set(buildbot.run.type + listwrap(perfherder.extraOptions)))
+        buildbot.run.type = list(set(listwrap(buildbot.run.type) + listwrap(perfherder.extraOptions)))
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
