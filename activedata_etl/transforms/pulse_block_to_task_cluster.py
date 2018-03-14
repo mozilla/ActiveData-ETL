@@ -278,10 +278,10 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                         a.name = a.path
             output.task.artifacts = artifacts
         else:
-            output.task.artifacts = unwraplist(_object_to_array(artifacts, "name"))
+            output.task.artifacts = _object_to_array(artifacts, "name")
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
-    output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
+    output.task.cache = _object_to_array(task.payload.cache, "name", "path")
     try:
         command = consume(task, "payload.command")
         cmd = consume(task, "payload.cmd")
@@ -696,9 +696,18 @@ def _scrub(record, name):
 def _object_to_array(value, key_name, value_name=None):
     try:
         if value_name==None:
-            return unwraplist([set_default(v, {key_name: k}) for k, v in value.items()])
+            return unwraplist([
+                set_default(v, {key_name: k})
+                for k, v in value.items()
+            ])
         else:
-            return unwraplist([{key_name: k, value_name: v} for k, v in value.items()])
+            return unwraplist([
+                {
+                    key_name: k,
+                    value_name: strings.limit(v, 1000) if isinstance(v, text_type) else v
+                }
+                for k, v in value.items()
+            ])
     except Exception as e:
         Log.error("unexpected", cause=e)
 
