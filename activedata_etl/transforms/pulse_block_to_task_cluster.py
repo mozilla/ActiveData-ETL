@@ -709,7 +709,7 @@ def _simplify_platform(platform):
     :param platform: a string
     :return: A simpler version of platform, or itself
     return SIMPLER_PLATFORMS.get(platform, platform)
-
+    """
 
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
