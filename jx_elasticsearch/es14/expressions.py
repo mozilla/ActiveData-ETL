@@ -888,8 +888,7 @@ def split_expression_by_depth(where, schema, map_=None, output=None, var_to_dept
     :param output:
     :param var_to_depth: MAP FROM EACH VARIABLE NAME TO THE DEPTH
     :return:
-    """
-    """
+
     It is unfortunate that ES can not handle expressions that
     span nested indexes.  This will split your where clause
     returning {"and": [filter_depth0, filter_depth1, ...]}

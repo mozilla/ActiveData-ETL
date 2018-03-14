@@ -45,7 +45,7 @@ def backfill_recent(cache, settings, index_queue, please_stop):
     def get_in_s3(prefix):
         result = db.query(
             " SELECT " +
-            "    key, annotate"
+            "    key, annotate" +
             " FROM files " +
             " WHERE substr(name, 1, " + text_type(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +

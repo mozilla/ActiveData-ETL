@@ -39,7 +39,7 @@ NOT_STRUCTURED_LOGS = [
     "/awsy_raw.log",
     "/buildbot_properties.json",
     "/buildprops.json",
-    "/chain_of_trust.log"
+    "/chain_of_trust.log",
     "/chainOfTrust.json.asc",
     "/talos_raw.log",
     ".mozinfo.json",

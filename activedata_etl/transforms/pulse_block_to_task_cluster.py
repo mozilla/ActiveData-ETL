@@ -452,7 +452,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
-            # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
+            # https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2
             "url": env.MOZILLA_BUILD_URL,
             "revision": coalesce_w_conflict_detection(
                 source_key,
@@ -894,7 +894,7 @@ KNOWN_TAGS = {
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
-    "include-version"
+    "include-version",
     "index.data.hello",
     "index.expires",
     "index.rank",
