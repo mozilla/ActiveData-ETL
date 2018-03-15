@@ -962,6 +962,8 @@ KNOWN_TAGS = {
     "payload.release_name",
     "platforms",
     "previous-archive-prefix",
+
+    "repack_id",
     "signed_installer_url",
     "signing.signature",
     "source",
