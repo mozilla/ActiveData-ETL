@@ -14,10 +14,9 @@ import os
 import subprocess
 from types import NoneType
 
-from mo_dots import set_default, unwrap, get_module, NullType
+from mo_dots import set_default, NullType
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
-
 from mo_threads.lock import Lock
 from mo_threads.queues import Queue
 from mo_threads.signal import Signal
@@ -42,8 +41,8 @@ class Process(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 bufsize=bufsize,
-                cwd=cwd if isinstance(cwd, (basestring, NullType, NoneType)) else cwd.abspath,
-                env=unwrap(set_default(env, os.environ)),
+                cwd=cwd if isinstance(cwd, (str, NullType, NoneType)) else cwd.abspath,
+                env={str(k): str(v) for k, v in set_default(env, os.environ).items()},
                 shell=shell
             )
 
