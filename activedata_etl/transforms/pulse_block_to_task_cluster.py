@@ -436,6 +436,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "payload.properties.product").lower(),
                 consume(task, "payload.releaseProperties.appName").lower(),
                 consume(task, "tags.build_props.product").lower(),
+                consume(task, "extra.build_props.product").lower(),
                 task.extra.treeherder.productName.lower(),
                 consume(task, "extra.build_product").lower(),
                 consume(task, "extra.product").lower().replace("devedition", "firefox"),
@@ -449,6 +450,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 _simplify_platform(consume(task, "payload.releaseProperties.platform")),
                 _simplify_platform(task.extra.treeherder.build.platform),
                 _simplify_platform(task.extra.treeherder.machine.platform),
+                consume(task, "extra.build_props.platform"),
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
@@ -457,6 +459,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "revision": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "tags.build_props.revision"),
+                consume(task, "extra.build_props.revision"),
                 consume(task, "payload.sourcestamp.revision"),
                 consume(task, "payload.properties.revision"),
                 env.GECKO_HEAD_REV
@@ -464,6 +467,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
             "version": coalesce_w_conflict_detection(
                 source_key,
+                consume(task, "extra.build_props.version"),
                 consume(task, "tags.build_props.version"),
                 consume(task, "payload.releaseProperties.appVersion"),
                 consume(task, "payload.app_version")
@@ -486,6 +490,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
         consume(task, "tags.build_props.branch"),
+        consume(task, "extra.build_props.branch"),
         consume(task, "payload.releaseProperties.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
@@ -823,11 +828,11 @@ KNOWN_TAGS = {
     # "build_type",
     # "build_product",
     # "build_props.branch",
-    # "build_props.build_number",
-    # "build_props.release_eta",
-    # "build_props.locales",
-    # "build_props.mozharness_changeset",
-    # "build_props.partials",
+    "build_props.build_number",
+    "build_props.release_eta",
+    "build_props.locales",
+    "build_props.mozharness_changeset",
+    "build_props.partials",
     # "build_props.platform",
     # "build_props.product",
     # "build_props.revision",
