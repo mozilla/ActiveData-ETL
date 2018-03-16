@@ -214,6 +214,28 @@
 			"transform_type": "bulk"
 		},
 		{
+			"name": "taskcluster to perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-normalized",
+				"public": true,
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder",
+				"public": true,
+				"key_format": "t.a:b.c"
+			},
+			"notify": {
+				"name": "active-data-etl",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.task_cluster_to_perfherder.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
 			"name": "bbb2jobs",
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",

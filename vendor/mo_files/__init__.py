@@ -407,7 +407,7 @@ class TempDirectory(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.delete()
+        Thread.run("delete "+self.name, delete_daemon, file=self)
 
 
 class TempFile(File):

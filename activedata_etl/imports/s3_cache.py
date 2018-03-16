@@ -31,17 +31,17 @@ class S3Cache(object):
         self.db = db
         details = self.db.query("PRAGMA table_info(files)")
         if not details.data:
-            self.db.execute(
-                "CREATE TABLE files ("
-                "   bucket TEXT,"
-                "   key TEXT,"
-                "   name TEXT,"
-                "   last_modified REAL,"
-                "   size INTEGER,"
-                "   annotate TEXT, "
-                "   CONSTRAINT pk PRIMARY KEY (bucket, name)"
-                ")"
-            )
+            self.db.execute("""
+                CREATE TABLE files (
+                   bucket TEXT,
+                   key TEXT,
+                   name TEXT,
+                   last_modified REAL,
+                   size INTEGER,
+                   annotate TEXT, 
+                   CONSTRAINT pk PRIMARY KEY (bucket, name)
+                )            
+            """)
         self.settings = kwargs
         self.up_to_date = Signal()
         if key_format.startswith("t."):
@@ -94,7 +94,7 @@ class S3Cache(object):
             else:
                 result = self.db.query(
                     " SELECT max(" + selector + ") as " + self.db.quote_column("max") +
-                    " FROM files "
+                    " FROM files " +
                     " WHERE bucket=" + self.db.quote_value(bucket.name)
                 )
                 maximum = result.data[0][0]
@@ -170,4 +170,7 @@ class S3Cache(object):
                     self.upsert_to_db(data[split:])
             else:
                 Log.warning("Do not know what to do", cause=e)
+
+
+
 

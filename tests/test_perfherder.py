@@ -75,9 +75,9 @@ class TestBuildbotLogs(FuzzyTestCase):
 
     def test_perfherder_transform_e(self):
         url = "https://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-macosx64/1475228359/mozilla-inbound_yosemite_r7_test-tp5o-bm106-tests1-macosx-build3011.txt.gz"
-        etl_head_gen = EtlHeadGenerator(Null)
+        etl_header_gen = EtlHeadGenerator(Null)
         response = http.get(url)
-        pulse_block_to_perfherder_logs.extract_perfherder(response.get_all_lines(flexible=True), Null, etl_head_gen, None, Null)
+        pulse_block_to_perfherder_logs.extract_perfherder(response.get_all_lines(flexible=True), Null, etl_header_gen, None, Null)
 
     def test_perfherder_job_resource_usage(self):
         data = '{"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]}'

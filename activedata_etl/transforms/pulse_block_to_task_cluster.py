@@ -284,10 +284,10 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                         a.name = a.path
             output.task.artifacts = artifacts
         else:
-            output.task.artifacts = unwraplist(_object_to_array(artifacts, "name"))
+            output.task.artifacts = _object_to_array(artifacts, "name")
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
-    output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
+    output.task.cache = _object_to_array(task.payload.cache, "name", "path")
     try:
         command = consume(task, "payload.command")
         cmd = consume(task, "payload.cmd")
@@ -442,6 +442,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "payload.properties.product").lower(),
                 consume(task, "payload.releaseProperties.appName").lower(),
                 consume(task, "tags.build_props.product").lower(),
+                consume(task, "extra.build_props.product").lower(),
                 task.extra.treeherder.productName.lower(),
                 consume(task, "extra.build_product").lower(),
                 consume(task, "extra.product").lower().replace("devedition", "firefox"),
@@ -453,16 +454,18 @@ def set_build_info(source_key, normalized, task, env, resources):
             "platform": coalesce_w_conflict_detection(
                 source_key,
                 _simplify_platform(consume(task, "payload.releaseProperties.platform")),
-                task.extra.treeherder.build.platform,
-                _simplify_platform(task.extra.treeherder.machine.platform),  # WE DO THIS TO REDUCE THE NUMBER OF DISTRACTING WARNINGS
+                _simplify_platform(task.extra.treeherder.build.platform),
+                _simplify_platform(task.extra.treeherder.machine.platform),
+                consume(task, "extra.build_props.platform"),
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
-            # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
+            # https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2
             "url": env.MOZILLA_BUILD_URL,
             "revision": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "tags.build_props.revision"),
+                consume(task, "extra.build_props.revision"),
                 consume(task, "payload.sourcestamp.revision"),
                 consume(task, "payload.properties.revision"),
                 env.GECKO_HEAD_REV
@@ -470,6 +473,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
             "version": coalesce_w_conflict_detection(
                 source_key,
+                consume(task, "extra.build_props.version"),
                 consume(task, "tags.build_props.version"),
                 consume(task, "payload.releaseProperties.appVersion"),
                 consume(task, "payload.app_version")
@@ -492,6 +496,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
         consume(task, "tags.build_props.branch"),
+        consume(task, "extra.build_props.branch"),
         consume(task, "payload.releaseProperties.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
@@ -503,8 +508,8 @@ def set_build_info(source_key, normalized, task, env, resources):
     if normalized.build.revision:
         normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
         if not normalized.repo:
-            Log.error("No repo found for {{rev}}", rev=normalized.build.revision)
-        if not normalized.repo.push.date:
+            Log.warning("No repo found for {{rev}}", rev=normalized.build.revision)
+        elif not normalized.repo.push.date:
             Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
 
@@ -702,16 +707,29 @@ def _scrub(record, name):
 def _object_to_array(value, key_name, value_name=None):
     try:
         if value_name==None:
-            return unwraplist([set_default(v, {key_name: k}) for k, v in value.items()])
+            return unwraplist([
+                set_default(v, {key_name: k})
+                for k, v in value.items()
+            ])
         else:
-            return unwraplist([{key_name: k, value_name: v} for k, v in value.items()])
+            return unwraplist([
+                {
+                    key_name: k,
+                    value_name: strings.limit(v, 1000) if isinstance(v, text_type) else v
+                }
+                for k, v in value.items()
+            ])
     except Exception as e:
         Log.error("unexpected", cause=e)
 
 
 def _simplify_platform(platform):
+    """
+    Used to simplify the number of distracting warnings
+    :param platform: a string
+    :return: A simpler version of platform, or itself
     return SIMPLER_PLATFORMS.get(platform, platform)
-
+    """
 
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
@@ -720,7 +738,6 @@ SIMPLER_PLATFORMS = {
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
     "windows2012-64": "win64"
-
 }
 
 
@@ -817,11 +834,11 @@ KNOWN_TAGS = {
     # "build_type",
     # "build_product",
     # "build_props.branch",
-    # "build_props.build_number",
-    # "build_props.release_eta",
-    # "build_props.locales",
-    # "build_props.mozharness_changeset",
-    # "build_props.partials",
+    "build_props.build_number",
+    "build_props.release_eta",
+    "build_props.locales",
+    "build_props.mozharness_changeset",
+    "build_props.partials",
     # "build_props.platform",
     # "build_props.product",
     # "build_props.revision",
@@ -888,7 +905,7 @@ KNOWN_TAGS = {
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
-    "include-version"
+    "include-version",
     "index.data.hello",
     "index.expires",
     "index.rank",
@@ -956,6 +973,8 @@ KNOWN_TAGS = {
     "payload.release_name",
     "platforms",
     "previous-archive-prefix",
+
+    "repack_id",
     "signed_installer_url",
     "signing.signature",
     "source",

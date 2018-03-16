@@ -39,7 +39,7 @@ class _timelex(object):
         if isinstance(instream, text_type):
             instream = StringIO(instream)
         self.instream = instream
-        self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
+        self.wordchars = ('abcdfeghijklmnopqrstuvwxyz '
                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'
                           'ßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ'
                           'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ')

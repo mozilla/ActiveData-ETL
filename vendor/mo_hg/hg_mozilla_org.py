@@ -152,6 +152,7 @@ class HgMozillaOrg(object):
                             # WILL HAVE SMALL EFFECT ON THE MAJORITY OF SMALL PUSHES
                             # https://bugzilla.mozilla.org/show_bug.cgi?id=1417720
                             Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds).wait()
+
                     except Exception as e:
                         Log.warning(
                             "Scanning {{branch}} {{revision|left(12)}}",

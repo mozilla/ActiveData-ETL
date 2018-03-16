@@ -34,107 +34,7 @@ ARRAY_TOO_BIG = 1000
 NOW = datetime.datetime.utcnow()
 TOO_OLD = NOW - datetime.timedelta(days=30)
 PUSHLOG_TOO_OLD = NOW - datetime.timedelta(days=7)
-KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
-KNOWN_PERFHERDER_TESTS = [
-    # BE SURE TO PUT THE LONGEST STRINGS FIRST
-    "about_preferences_basic",
-    "a11yr",
-    "basic_compositor_video",
-    "bloom_basic_ref",
-    "bloom_basic_singleton",
-    "bloom_basic",
-    "build times",
-    "cart",
-    "chromez",
-    "chrome",
-    "compiler_metrics",
-    "compiler warnings",
-    "cpstartup",
-    "damp",
-    "displaylist_mutate",
-    "dromaeo_css",
-    "dromaeo_dom",
-    "dromaeojs",
-    "flex",
-    "GfxBench",
-    "g1",
-    "g2",
-    "g3",
-    "g4-disabled",
-    "g4",
-    "g5",
-    "glterrain",
-    "glvideo",
-    "h1",
-    "h2",
-    "installer size",
-    "jittest.jittest.overall",
-    "kraken",
-    "media_tests",
-    "mochitest-browser-chrome",
-    "motionmark",
-    "other_nol64",
-    "other_l64",
-    "other",
-    "perf_reftest_singletons",
-    "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
-    "Quantum_1",
-    "quantum_pageload_amazon",
-    "quantum_pageload_facebook",
-    "quantum_pageload_google",
-    "quantum_pageload_youtube",
-    "rasterflood_gradient",
-    "rasterflood_svg",
-    "sccache cache_write_errors",
-    "sccache hit rate",
-    "sccache requests_not_cacheable",
-    "sessionrestore_many_windows",
-    "sessionrestore_no_auto_restore",
-    "sessionrestore",
-    "speedometer",
-    "Strings",
-    "stylebench",
-    "Stylo",
-    "svgr-disabled",
-    "svgr",
-    "tabpaint",
-    "tart",
-    "TestStandardURL",
-    "TreeTraversal",
-    "tcanvasmark",
-    "tcheck2",
-    "tp4m_nochrome",
-    "tp4m",
-    "tp5n",
-    "tp5o_multiwindow_4_singlecp",
-    "tp5o_scroll",
-    "tp5o_webext",
-    "tp5o",
-    "tp6_amazon_heavy",
-    "tp6_amazon",
-    "tp6_facebook_heavy",
-    "tp6_facebook",
-    "tp6_google_heavy",
-    "tp6_google",
-    "tp6_youtube_heavy",
-    "tp6_youtube",
-    "tp6",
-    "tp6-stylo-threads",
-    "tpaint",
-    "tps",
-    "tresize",
-    "trobocheck2",
-    "ts_paint_webext",
-    "ts_paint_heavy",
-    "ts_paint",
-    "tscrollx",
-    "tsvgr_opacity",
-    "tsvg_static",
-    "tsvgx",
-    "v8_7",
-    "xperf"
-]
+
 
 repo = None
 locker = Lock()
@@ -161,7 +61,18 @@ def process(source_key, source, destination, resources, please_stop=None):
             if perfherder_record.suites:
                 Log.error("Should not happen, perfherder storage iterates through the suites")
 
-            perf_records = transform(source_key, perfherder_record, resources)
+            if perfherder_record.task or perfherder_record.is_empty:
+                buildbot = perfherder_record.task
+            elif perfherder_record.pulse:
+                buildbot = transform_buildbot(source_key, perfherder_record.pulse, resources)
+            else:
+                Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
+                continue
+
+            if not isinstance(buildbot.run.suite, text_type):
+                buildbot.run.suite = buildbot.run.suite.fullname
+
+            perf_records = transform(source_key, perfherder_record, buildbot, resources)
             for p in perf_records:
                 p["etl"] = {
                     "id": i,
@@ -190,9 +101,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(source_key, perfherder, resources):
+def transform(source_key, perfherder, buildbot, resources):
     try:
-        buildbot = transform_buildbot(source_key, perfherder.pulse, resources)
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
             if perfherder.is_empty:
@@ -202,20 +112,21 @@ def transform(source_key, perfherder, resources):
             else:
                 Log.error("Can not process: no suite name is found")
 
-        for option in KNOWN_PERFHERDER_OPTIONS:
-            if suite_name.find("-" + option) >= 0:  # REMOVE e10s REFERENCES FROM THE NAMES
-                if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
-                    Log.warning(
-                        "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                        uid=source_key,
-                        buildbot=buildbot,
-                        name=suite_name,
-                        perfherder=perfherder,
-                        option=option
-                    )
-                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
-                suite_name = suite_name.replace("-" + option, "")
-        buildbot.run.type = list(set(buildbot.run.type + listwrap(perfherder.extraOptions)))
+        if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
+            for option in KNOWN_PERFHERDER_OPTIONS:
+                if suite_name.find("-" + option) >= 0:
+                    if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
+                        Log.warning(
+                            "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                            uid=source_key,
+                            buildbot=buildbot,
+                            name=suite_name,
+                            perfherder=perfherder,
+                            option=option
+                        )
+                        buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
+                    suite_name = suite_name.replace("-" + option, "")
+        buildbot.run.type = list(set(listwrap(buildbot.run.type) + listwrap(perfherder.extraOptions)))
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
@@ -459,5 +370,114 @@ def geo_mean(values):
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
 
-# TODO: deal with this
-# 07:25:50     INFO - PERFHERDER_DATA: {"framework": {"name": "job_resource_usage"}, "suites": [{"subtests": [{"name": "cpu_percent", "value": 15.91289772727272}, {"name": "io_write_bytes", "value": 340640256}, {"name": "io.read_bytes", "value": 40922112}, {"name": "io_write_time", "value": 6706180}, {"name": "io_read_time", "value": 212030}], "extraOptions": ["e10s"], "name": "mochitest.mochitest-devtools-chrome.1.overall"}, {"subtests": [{"name": "time", "value": 2.5980000495910645}, {"name": "cpu_percent", "value": 10.75}], "name": "mochitest.mochitest-devtools-chrome.1.install"}, {"subtests": [{"name": "time", "value": 0.0}], "name": "mochitest.mochitest-devtools-chrome.1.stage-files"}, {"subtests": [{"name": "time", "value": 440.6840000152588}, {"name": "cpu_percent", "value": 15.960411899313495}], "name": "mochitest.mochitest-devtools-chrome.1.run-tests"}]}
+KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_TESTS = [
+    # BE SURE TO PUT THE LONGEST STRINGS FIRST
+    "about_preferences_basic",
+    "ARES6",
+    "a11yr",
+    "basic_compositor_video",
+    "bloom_basic_ref",
+    "bloom_basic_singleton",
+    "bloom_basic",
+    "build times",
+    "cart",
+    "chromez",
+    "chrome",
+    "compiler_metrics",
+    "compiler warnings",
+    "cpstartup",
+    "damp",
+    "displaylist_mutate",
+    "dromaeo_css",
+    "dromaeo_dom",
+    "dromaeojs",
+    "Explicit Memory",
+    "flex",
+    "GfxBench",
+    "g1",
+    "g2",
+    "g3",
+    "g4-disabled",
+    "g4",
+    "g5",
+    "glterrain",
+    "glvideo",
+    "h1",
+    "h2",
+    "Heap Unclassified",
+    "Images",
+    "installer size",
+    "JetStream",
+    "jittest.jittest.overall",
+    "JS",
+    "kraken",
+    "media_tests",
+    "mochitest-browser-chrome",
+    "motionmark_animometer",
+    "motionmark_htmlsuite",
+    "motionmark, transformed",
+    "motionmark",
+    "other_nol64",
+    "other_l64",
+    "other",
+    "perf_reftest_singletons",
+    "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "Quantum_1",
+    "quantum_pageload_amazon",
+    "quantum_pageload_facebook",
+    "quantum_pageload_google",
+    "quantum_pageload_youtube",
+    "rasterflood_gradient",
+    "rasterflood_svg",
+    "Resident Memory",
+    "sccache cache_write_errors",
+    "sccache hit rate",
+    "sccache requests_not_cacheable",
+    "sessionrestore_many_windows",
+    "sessionrestore_no_auto_restore",
+    "sessionrestore",
+    "speedometer",
+    "Strings",
+    "stylebench",
+    "Stylo",
+    "svgr-disabled",
+    "svgr",
+    "tabpaint",
+    "tart",
+    "TestStandardURL",
+    "TreeTraversal",
+    "tcanvasmark",
+    "tcheck2",
+    "tp4m_nochrome",
+    "tp4m",
+    "tp5n",
+    "tp5o_multiwindow_4_singlecp",
+    "tp5o_scroll",
+    "tp5o_webext",
+    "tp5o",
+    "tp6_amazon_heavy",
+    "tp6_amazon",
+    "tp6_facebook_heavy",
+    "tp6_facebook",
+    "tp6_google_heavy",
+    "tp6_google",
+    "tp6_youtube_heavy",
+    "tp6_youtube",
+    "tp6",
+    "tp6-stylo-threads",
+    "tpaint",
+    "tps",
+    "tresize",
+    "trobocheck2",
+    "ts_paint_webext",
+    "ts_paint_heavy",
+    "ts_paint",
+    "tscrollx",
+    "tsvgr_opacity",
+    "tsvg_static",
+    "tsvgx",
+    "v8_7",
+    "xperf"
+]
