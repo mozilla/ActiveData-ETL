@@ -112,19 +112,20 @@ def transform(source_key, perfherder, buildbot, resources):
             else:
                 Log.error("Can not process: no suite name is found")
 
-        for option in KNOWN_PERFHERDER_OPTIONS:
-            if suite_name.find("-" + option) >= 0:
-                if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
-                    Log.warning(
-                        "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                        uid=source_key,
-                        buildbot=buildbot,
-                        name=suite_name,
-                        perfherder=perfherder,
-                        option=option
-                    )
-                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
-                suite_name = suite_name.replace("-" + option, "")
+        if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
+            for option in KNOWN_PERFHERDER_OPTIONS:
+                if suite_name.find("-" + option) >= 0:
+                    if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
+                        Log.warning(
+                            "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                            uid=source_key,
+                            buildbot=buildbot,
+                            name=suite_name,
+                            perfherder=perfherder,
+                            option=option
+                        )
+                        buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
+                    suite_name = suite_name.replace("-" + option, "")
         buildbot.run.type = list(set(listwrap(buildbot.run.type) + listwrap(perfherder.extraOptions)))
 
         # RECOGNIZE SUITE
