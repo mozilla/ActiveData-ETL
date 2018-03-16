@@ -158,7 +158,7 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
                 try:
                     if not old_head:
                         if accumulate_head[0].endswith(" settings:"):
-                            set_default(task_record, {"worker": json2value("".join(accumulate_head[1:]))})
+                            set_default(task_record, {"run": json2value("".join(accumulate_head[1:]))})
                             accumulate_head = None
                             continue
                         else:
@@ -175,7 +175,7 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
                         Log.error("Task in log not matching task details")
                 elif key == "Worker Node Type":
                     old_head = True
-                    task_record.run.machine.aws_instance_type = value
+                    task_record.run.machine.aws.instance_type = value
                 elif key == "Worker Type":
                     old_head = True
                     task_record.run.machine.tc_worker_type = value
