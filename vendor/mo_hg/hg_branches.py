@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from mo_collections import UniqueIndex
 from mo_dots import Data, set_default
@@ -33,7 +33,7 @@ def get_branches(hg, branches, kwargs=None):
 
         query = {
             "query": {"match_all": {}},
-            "size": 20000
+            "size": 10000
         }
 
         found_branches = es.search(query).hits.hits._source
@@ -61,7 +61,7 @@ def get_branches(hg, branches, kwargs=None):
 def _get_branches_from_hg(kwarg):
     # GET MAIN PAGE
     response = http.get(kwarg.url)
-    doc = BeautifulSoup(response.all_content)
+    doc = BeautifulSoup(response.all_content, "html.parser")
 
     all_repos = doc("table")[1]
     branches = UniqueIndex(["name", "locale"], fail_on_dup=False)
@@ -108,7 +108,7 @@ def _get_single_branch_from_hg(settings, description, dir):
     if dir == "users":
         return []
     response = http.get(settings.url + "/" + dir)
-    doc = BeautifulSoup(response.all_content)
+    doc = BeautifulSoup(response.all_content, "html.parser")
 
     output = []
     try:
@@ -126,7 +126,7 @@ def _get_single_branch_from_hg(settings, description, dir):
             if path == "/":
                 continue
 
-            name, desc, last_used = [c.text for c in columns][0:3]
+            name, desc, last_used = [c.text.strip() for c in columns][0:3]
 
             if last_used.startswith('at'):
                 last_used = last_used[2:]
@@ -191,27 +191,14 @@ branches_schema = {
     },
     "mappings": {
         "branch": {
-            "_source": {
-                "compress": False
-            },
             "_all": {
                 "enabled": False
             },
             "dynamic_templates": [
                 {
-                    "default_ids": {
-                        "mapping": {
-                            "index": "not_analyzed",
-                            "type": "string"
-                        },
-                        "match": "id"
-                    }
-                },
-                {
                     "default_strings": {
                         "mapping": {
-                            "index": "not_analyzed",
-                            "type": "string"
+                            "type": "keyword"
                         },
                         "match_mapping_type": "string",
                         "match": "*"
@@ -220,13 +207,11 @@ branches_schema = {
             ],
             "properties": {
                 "name": {
-                    "index": "not_analyzed",
-                    "type": "string",
+                    "type": "keyword",
                     "store": True
                 },
                 "description": {
-                    "index": "analyzed",
-                    "type": "string",
+                    "type": "keyword",
                     "store": True
                 }
             }

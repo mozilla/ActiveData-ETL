@@ -15,27 +15,19 @@ import itertools
 from copy import copy
 from itertools import product
 
-from jx_base import STRUCT
+from jx_base import STRUCT, Table
 from jx_base.query import QueryOp
 from jx_base.schema import Schema
-from jx_python import jx
-from jx_python import meta as jx_base_meta
+from jx_python import jx, meta as jx_base_meta
 from jx_python.containers.list_usingPythonList import ListContainer
-from jx_python.meta import ColumnList, metadata_columns, metadata_tables, Column, Table
-from mo_dots import Data, relative_field, concat_field, SELF_PATH
-from mo_dots import coalesce, set_default, Null, split_field, join_field
-from mo_dots import wrap
+from jx_python.meta import ColumnList, Column, metadata_tables, metadata_columns
+from mo_dots import Data, relative_field, concat_field, SELF_PATH, ROOT_PATH, coalesce, set_default, Null, split_field, join_field, wrap
 from mo_json.typed_encoder import EXISTS_TYPE
 from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.strings import quote
-from mo_threads import Queue
-from mo_threads import THREAD_STOP
-from mo_threads import Thread
-from mo_threads import Till
-from mo_times.dates import Date
-from mo_times.durations import HOUR, MINUTE
-from mo_times.timer import Timer
+from mo_threads import Queue, THREAD_STOP, Thread, Till
+from mo_times import HOUR, MINUTE, Timer, Date
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.elasticsearch import es_type_to_json_type
 
@@ -210,7 +202,7 @@ class FromESMetadata(Schema):
                 table = Table(
                     name=es_index_name,
                     url=None,
-                    query_path=None,
+                    query_path=['.'],
                     timestamp=Date.now()
                 )
                 with self.meta.tables.locker:

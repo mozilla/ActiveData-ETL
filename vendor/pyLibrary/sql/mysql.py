@@ -12,6 +12,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
 import subprocess
 from collections import Mapping
 from datetime import datetime
@@ -31,7 +32,8 @@ from mo_logs.strings import indent
 from mo_logs.strings import outdent
 from mo_math import Math
 from mo_times import Date
-from pyLibrary.sql import SQL
+from pyLibrary.sql import SQL, SQL_NULL, SQL_SELECT, SQL_LIMIT, SQL_WHERE, SQL_LEFT_JOIN, SQL_FROM, SQL_AND, sql_list, sql_iso, SQL_ASC, SQL_TRUE, SQL_ONE, SQL_DESC, SQL_IS_NULL, sql_alias
+from pyLibrary.sql.sqlite import join_column
 
 DEBUG = False
 MAX_BATCH_SIZE = 100
@@ -607,8 +609,11 @@ class MySQL(object):
             Log.error("missing column_name")
         elif isinstance(column_name, text_type):
             if table:
-                column_name = table + "." + column_name
-            return SQL("`" + column_name.replace(".", "`.`") + "`")    # MY SQL QUOTE OF COLUMN NAMES
+                return SQL(self.quote_column(table).rstrip() + "." + self.quote_column(column_name).lstrip())
+            elif _no_need_to_quote.match(column_name):
+                return SQL(" " + column_name + " ")
+            else:
+                return SQL(" `" + column_name.replace("`", "``") + "` ")  # MY SQL QUOTE OF COLUMN NAMES
         elif isinstance(column_name, list):
             if table:
                 return SQL(", ".join([self.quote_column(table + "." + c) for c in column_name]))
@@ -620,6 +625,9 @@ class MySQL(object):
     def sort2sqlorderby(self, sort):
         sort = jx.normalize_sort_parameters(sort)
         return ",\n".join([self.quote_column(s.field) + (" DESC" if s.sort == -1 else " ASC") for s in sort])
+
+
+_no_need_to_quote = re.compile(r"^\w+$", re.UNICODE)
 
 
 def utf8_to_unicode(v):

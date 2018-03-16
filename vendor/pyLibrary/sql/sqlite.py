@@ -44,7 +44,7 @@ def _upgrade():
     _upgraded = True
     try:
         import sys
-
+        Log.error("Fix to work with 64bit windows too")
         sqlite_dll = File.new_instance(sys.exec_prefix, "dlls/sqlite3.dll")
         python_dll = File("pyLibrary/vendor/sqlite/sqlite3.dll")
         if python_dll.read_bytes() != sqlite_dll.read_bytes():
