@@ -18,6 +18,7 @@ from activedata_etl.transforms.pulse_block_to_perfherder_logs import PERFHERDER_
 from mo_dots import Data, wrap, Null, unwraplist, FlatList
 from mo_json import json2value, utf82unicode
 from mo_logs import Log, strings, suppress_exception
+from mo_times import Date
 from mo_times.timer import Timer
 from pyLibrary.env import http
 
@@ -115,7 +116,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {
-                    "etl": {"id": 0, "source": dest_etl},
+                    "etl": {"id": 0, "source": dest_etl, "timestamp": Date.now()},
                     "task": pulse_record,
                     "is_empty": True
                 }
