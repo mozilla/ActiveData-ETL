@@ -166,6 +166,9 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
+    pull_job_log(source_key, consume(raw_treeherder.job, "job_log"), new_treeherder)
+
+
     consume(raw_job, "push")
     consume(raw_job, "running_eta")
     consume(raw_job, "who")
@@ -215,6 +218,16 @@ _option_map = {
     "pgo": ["pgo"],
 }
 
+
+
+def pull_job_log(source_key, job_log, new_treeherder):
+    for d in listwrap(job_log):
+        for f in listwrap(d.failure_line):
+            f.message = None
+            f.job_guid = None
+            f.stackwalk_stdout = None
+            f.stackwalk_stderr = None
+    new_treeherder.job_log = job_log
 
 
 def pull_details(source_key, details, new_treeherder):
