@@ -9,11 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from jx_base.expressions import Variable, jx_expression
-from future.utils import text_type
-
-from jx_elasticsearch.es14.expressions import StringOp
-from jx_python import jx
+from mo_future import text_type
 from mo_dots import coalesce, wrap
 from mo_logs import Log
 from mo_logs import startup, constants

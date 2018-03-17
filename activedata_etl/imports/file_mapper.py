@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-from future.utils import text_type
+from mo_future import text_type
 
 from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
 from jx_python.expressions import jx_expression_to_function

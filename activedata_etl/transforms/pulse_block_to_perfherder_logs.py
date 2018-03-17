@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
-from future.utils import text_type
+from mo_future import text_type
 from mo_dots import Data, wrap, coalesce, Null
 from mo_json import json2value, utf82unicode
 from mo_logs import Log, strings

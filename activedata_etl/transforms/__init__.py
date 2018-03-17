@@ -9,7 +9,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
-from future.utils import text_type
+from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log, strings
 from mo_dots import wrap, Data, literal_field, set_default
@@ -92,12 +92,13 @@ class Transform(object):
         """
         :param source_key: THE DOT-DELIMITED PATH FOR THE SOURCE
         :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
-        :param destination: THE s3 BUCK TO PLACE ALL THE TRANSFORM RESULTS
+        :param destination: THE s3 BUCKET TO PLACE ALL THE TRANSFORM RESULTS
         :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
         :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError
+
 
 def verify_blobber_file(line_number, name, url):
     """

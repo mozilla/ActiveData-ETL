@@ -8,10 +8,11 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
 import sys
 from collections import Mapping
 from copy import deepcopy
+
+from mo_future import text_type
 
 from activedata_etl import key2etl
 from mo_dots import coalesce, listwrap, Data, Null, wrap

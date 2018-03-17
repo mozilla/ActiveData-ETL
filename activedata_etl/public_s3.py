@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 from boto.s3 import connect_to_region
 
 from mo_logs import startup, constants

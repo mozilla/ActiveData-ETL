@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
+from jx_base import container
 from mo_dots import coalesce, unwrap, Data, wrap
 from mo_logs import Log, machine_metadata
 from mo_logs import startup, constants
@@ -21,7 +22,6 @@ from mo_math.randoms import Random
 from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP
 from mo_threads import Till
 from mo_times.timer import Timer
-from jx_base import container
 from pyLibrary import aws
 from pyLibrary.aws import s3
 from pyLibrary.env import elasticsearch
@@ -123,6 +123,8 @@ def shutdown_local_es_node():
             line = proc.stdout.pop().strip()
             if not line:
                 continue
+            if line == THREAD_STOP:
+                break
             Log.note("Shutdown es: {{note}}", note=line)
 
 
@@ -206,8 +208,10 @@ def main():
             Log.note("Bucket {{bucket}} pushed to ES {{index}}", bucket=w.source.bucket, index=split[w.source.bucket].es.settings.index)
 
         please_stop = Signal()
-        please_stop.on_go(shutdown_local_es_node)
-        aws.capture_termination_signal(please_stop)
+        aws_shutdown = Signal("aws shutdown")
+        aws_shutdown.on_go(shutdown_local_es_node)
+        aws_shutdown.on_go(please_stop.go)
+        aws.capture_termination_signal(aws_shutdown)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 

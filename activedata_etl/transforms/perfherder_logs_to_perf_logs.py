@@ -14,7 +14,7 @@ import datetime
 from copy import copy
 from math import sqrt
 
-from future.utils import text_type
+from mo_future import text_type
 from jx_python import jx
 from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
 from mo_json import json2value

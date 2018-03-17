@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 from activedata_etl import key2etl, etl2path
 from mo_dots import unwrap
 from pyLibrary.aws import s3

@@ -9,21 +9,23 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+import logging
+from logging import handlers
+
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd, hide
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
-from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap
-from pyLibrary.aws import aws_retry
-from mo_logs import startup, constants
-from mo_logs import Log
-from mo_files import File
 from mo_collections import UniqueIndex
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap, DataObject
+from mo_files import File
+from mo_logs import Log
+from mo_logs import startup, constants
 from mo_threads import Till
+from pyLibrary.aws import aws_retry
 
 
 @aws_retry
@@ -56,50 +58,12 @@ def _config_fabric(connect, instance):
     env.abort_exception = Log.error
 
 
-def _start_es():
-    # KILL EXISTING "python27" PROCESS, IT MAY CONSUME TOO MUCH MEMORY AND PREVENT STARTUP
-    with hide('output'):
-        with fabric_settings(warn_only=True):
-            run("ps -ef | grep python27 | grep -v grep | awk '{print $2}' | xargs kill -9")
-    (Till(seconds=5)).wait()
-
-    File("./results/temp/start_es.sh").write("nohup ./bin/elasticsearch >& /dev/null < /dev/null &\nsleep 20")
-    with cd("/home/ec2-user/"):
-        put("./results/temp/start_es.sh", "start_es.sh")
-        run("chmod u+x start_es.sh")
-
-    with cd("/usr/local/elasticsearch/"):
-        sudo("/home/ec2-user/start_es.sh")
-
-
-def _es_up():
-    """
-    ES WILL BE LIVE WHEN THIS RETURNS
-    """
-
-    #SEE IF JAVA IS RUNNING
-    pid = run("ps -ef | grep java | grep -v grep | awk '{print $2}'")
-    if not pid:
-        with hide('output'):
-            log = run("tail -n100 /data1/logs/active-data.log")
-        Log.warning("ES not Running:\n{{log|indent}}", log=log)
-
-        _start_es()
-        return
-
-    #SEE IF IT IS RESPONDING
-    result = run("curl http://localhost:9200/unittest/_search -d '{\"fields\":[\"etl.id\"],\"query\": {\"match_all\": {}},\"from\": 0,\"size\": 1}'")
-    if result.find("\"_shards\":{\"total\":24,") == -1:
-        # BAD RESPONSE, KILL JAVA
-        with hide('output'):
-            log = run("tail -n100 /data1/logs/active-data.log")
-        Log.warning("ES Not Responsive:\n{{log|indent}}", log=log)
-
-        sudo("kill -9 " + pid)
-        _start_es()
-        return
-
 def _disable_oom_on_es():
+
+    with fabric_settings(warn_only=True):
+        sudo("supervisorctl start es")
+
+
     with cd("/home/ec2-user"):
         run("mkdir -p temp")
     with cd("/home/ec2-user/temp"):
@@ -122,7 +86,7 @@ def _disable_oom_on_es():
 def _refresh_indexer():
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
-        result = run("git pull origin push-to-es")
+        result = run("git pull origin push-to-es6")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
         else:
@@ -130,6 +94,7 @@ def _refresh_indexer():
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl restart push_to_es")
+
 
 
 def _start_supervisor():
@@ -155,6 +120,8 @@ def main():
         settings = startup.read_settings()
         constants.set(settings.constants)
         Log.start(settings.debug)
+
+        logging.getLogger('paramiko.transport').addHandler(LogTranslate())
 
         aws_args = dict(
             region_name=settings.aws.region,
@@ -184,6 +151,22 @@ def main():
         Log.stop()
 
 
+class LogTranslate(object):
+
+    def __init__(self, level=0):
+        self.level=level
+
+    def emit(self, record):
+        Log.note("{{record}}", record=record)
+
+    def flush(self):
+        pass
+
+    def handle(self, record):
+        Log.note("{{record|json}}", record=DataObject(record))
+
+
 if __name__ == "__main__":
     main()
+
 
