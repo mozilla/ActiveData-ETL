@@ -66,8 +66,8 @@ def run(query, frum=Null):
     BUT IT IS ALSO PROCESSING A list CONTAINER; SEPARATE TO A ListContainer
     """
     if frum == None:
-        query_op = QueryOp.wrap(query)
-        frum = query_op.frum
+        frum = wrap(query)['from']
+        query_op = QueryOp.wrap(query, table=frum, schema=frum.schema)
     else:
         query_op = QueryOp.wrap(query, frum.schema)
 
@@ -89,12 +89,6 @@ def run(query, frum=Null):
     if is_aggs(query_op):
         frum = list_aggs(frum, query_op)
     else:  # SETOP
-        # try:
-        #     if query.filter != None or query.esfilter != None:
-        #         Log.error("use 'where' clause")
-        # except AttributeError:
-        #     pass
-
         if query_op.where is not TRUE:
             frum = filter(frum, query_op.where)
 

@@ -186,10 +186,11 @@ def tab(value):
     """
     if isinstance(value, Mapping):
         h, d = zip(*wrap(value).leaves())
-        return \
-            "\t".join(map(value2json, h)) + \
-            "\n" + \
+        return (
+            "\t".join(map(value2json, h)) +
+            "\n" +
             "\t".join(map(value2json, d))
+        )
     else:
         text_type(value)
 

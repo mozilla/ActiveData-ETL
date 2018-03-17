@@ -26,6 +26,7 @@ from numbers import Number
 from tempfile import TemporaryFile
 
 from requests import sessions, Response
+
 from jx_python import jx
 from mo_dots import Data, coalesce, wrap, set_default, unwrap, Null
 from mo_future import text_type, PY2
@@ -49,6 +50,8 @@ default_timeout = 600
 
 _warning_sent = False
 
+request_count = 0
+
 
 def request(method, url, zip=None, retry=None, **kwargs):
     """
@@ -68,12 +71,14 @@ def request(method, url, zip=None, retry=None, **kwargs):
     INCLUDES url AND headers
     """
     global _warning_sent
+    global request_count
+
     if not default_headers and not _warning_sent:
         _warning_sent = True
         Log.warning(
-            "The pyLibrary.env.http module was meant to add extra " +
-            "default headers to all requests, specifically the 'Referer' " +
-            "header with a URL to the project. Use the `pyLibrary.debug.cons tants.set()` " +
+            "The pyLibrary.env.http module was meant to add extra "
+            "default headers to all requests, specifically the 'Referer' "
+            "header with a URL to the project. Use the `pyLibrary.debug.constants.set()` "
             "function to set `pyLibrary.env.http.default_headers`"
         )
 
@@ -148,6 +153,7 @@ def request(method, url, zip=None, retry=None, **kwargs):
             try:
                 if DEBUG:
                     Log.note(u"http {{method}} to {{url}}", method=method, url=url)
+                request_count += 1
                 return session.request(method=method, url=url, **kwargs)
             except Exception as e:
                 errors.append(Except.wrap(e))

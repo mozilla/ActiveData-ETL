@@ -64,41 +64,6 @@ revision_schema = {
                     }
                 }
             ],
-            "dynamic_templates": [
-                {
-                    "default_strings": {
-                        "mapping": {
-                            "index": "not_analyzed",
-                            "type": "string",
-                            "doc_values": True
-                        },
-                        "match_mapping_type": "string",
-                        "match": "*"
-                    }
-                },
-                {
-                    "default_longs": {
-                        "mapping": {
-                            "index": "not_analyzed",
-                            "type": "long",
-                            "doc_values": True
-                        },
-                        "match_mapping_type": "long",
-                        "match": "*"
-                    }
-                },
-                {
-                    "default_integers": {
-                        "mapping": {
-                            "index": "not_analyzed",
-                            "type": "long",
-                            "doc_values": True
-                        },
-                        "match_mapping_type": "integer",
-                        "match": "*"
-                    }
-                }
-            ],
             "properties": {
                 "changeset": {
                     "type": "object",

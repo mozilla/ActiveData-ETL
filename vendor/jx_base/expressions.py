@@ -144,7 +144,7 @@ class Expression(object):
         if term == None:
             return class_(op, [], **clauses)
         elif isinstance(term, list):
-            terms = list(map(jx_expression, term))
+            terms = list(map(_jx_expression, term))
             return class_(op, terms, **clauses)
         elif isinstance(term, Mapping):
             items = term.items()
@@ -160,7 +160,7 @@ class Expression(object):
             if op in ["literal", "date", "offset"]:
                 return class_(op, term, **clauses)
             else:
-                return class_(op, jx_expression(term), **clauses)
+                return class_(op, _jx_expression(term), **clauses)
 
     @property
     def name(self):
@@ -259,7 +259,7 @@ class Variable(Expression):
         return True
 
     def vars(self):
-        return {self.var}
+        return {self}
 
     def map(self, map_):
         if not isinstance(map_, Mapping):
@@ -1004,13 +1004,13 @@ class EqOp(Expression):
         if isinstance(lhs, Literal) and isinstance(rhs, Literal):
             return TRUE if builtin_ops["eq"](lhs.value, rhs.value) else FALSE
         else:
-            return WhenOp(
-                "when",
-                lhs.missing(),
-                **{
-                    "then": rhs.missing(),
-                    "else": BasicEqOp("eq", [lhs, rhs])
-                }
+            return CaseOp(
+                "case",
+                [
+                    WhenOp("when", lhs.missing(), **{"then": rhs.missing()}),
+                    WhenOp("when", rhs.missing(), **{"then": FALSE}),
+                    BasicEqOp("eq", [lhs, rhs])
+                ]
             ).partial_eval()
 
 
@@ -1044,13 +1044,7 @@ class NeOp(Expression):
 
     @simplified
     def partial_eval(self):
-        lhs = self.lhs.partial_eval()
-        rhs = self.rhs.partial_eval()
-
-        if isinstance(lhs, Literal) and isinstance(rhs, Literal):
-            return Literal(None, builtin_ops["ne"](lhs, rhs))
-
-        output = NeOp("ne", [lhs, rhs])
+        output = NotOp("not", EqOp("eq", [self.lhs, self.rhs])).partial_eval()
         return output
 
 
@@ -1095,6 +1089,14 @@ class NotOp(Expression):
                     term.when,
                     **{"then": inverse(term.then), "else": inverse(term.els_)}
                 ).partial_eval()
+            elif isinstance(term, CaseOp):
+                output = CaseOp(
+                    "case",
+                    [
+                        WhenOp("when", w.when, **{"then": inverse(w.then)}) if isinstance(w, WhenOp) else inverse(w)
+                        for w in term.whens
+                    ]
+                ).partial_eval()
             elif isinstance(term, AndOp):
                 output = OrOp("or", [inverse(t) for t in term.terms]).partial_eval()
             elif isinstance(term, OrOp):
@@ -1107,8 +1109,6 @@ class NotOp(Expression):
                 output = term.term.partial_eval()
             elif isinstance(term, NeOp):
                 output = EqOp("eq", [term.lhs, term.rhs]).partial_eval()
-            elif isinstance(term, EqOp):
-                output = NeOp("ne", [term.lhs, term.rhs]).partial_eval()
             elif isinstance(term, (BasicIndexOfOp, BasicSubstringOp)):
                 return FALSE
             else:
@@ -1222,6 +1222,13 @@ class OrOp(Expression):
     def __call__(self, row=None, rownum=None, rows=None):
         return any(t(row, rownum, rows) for t in self.terms)
 
+    def __eq__(self, other):
+        if not isinstance(other, OrOp):
+            return False
+        if len(self.terms) != len(other.terms):
+            return False
+        return all(t == u for t, u in zip(self.terms, other.terms))
+
     @simplified
     def partial_eval(self):
         terms = []
@@ -1263,6 +1270,10 @@ class LengthOp(Expression):
         Expression.__init__(self, op, [term])
         self.term = term
 
+    def __eq__(self, other):
+        if isinstance(other, LengthOp):
+            return self.term == other.term
+
     def __data__(self):
         return {"length": self.term.__data__()}
 
@@ -1293,13 +1304,13 @@ class FirstOp(Expression):
         self.data_type = self.term.type
 
     def __data__(self):
-        return {"boolean": self.term.__data__()}
+        return {"first": self.term.__data__()}
 
     def vars(self):
         return self.term.vars()
 
     def map(self, map_):
-        return BooleanOp("boolean", self.term.map(map_))
+        return LastOp("last", self.term.map(map_))
 
     def missing(self):
         return self.term.missing()
@@ -1317,6 +1328,43 @@ class FirstOp(Expression):
             Log.error("not handled yet")
         else:
             return FirstOp("first", term)
+
+
+class LastOp(Expression):
+    def __init__(self, op, term):
+        Expression.__init__(self, op, [term])
+        self.term = term
+        self.data_type = self.term.type
+
+    def __data__(self):
+        return {"last": self.term.__data__()}
+
+    def vars(self):
+        return self.term.vars()
+
+    def map(self, map_):
+        return LastOp("last", self.term.map(map_))
+
+    def missing(self):
+        return self.term.missing()
+
+    @simplified
+    def partial_eval(self):
+        term = self.term.partial_eval()
+        if isinstance(self.term, LastOp):
+            return term
+        elif term.type != OBJECT and not term.many:
+            return term
+        elif term is NULL:
+            return term
+        elif isinstance(term, Literal):
+            if isinstance(term, list):
+                if len(term)>0:
+                    return term[-1]
+                return NULL
+            return term
+        else:
+            return LastOp("last", term)
 
 
 class BooleanOp(Expression):
@@ -1348,14 +1396,8 @@ class BooleanOp(Expression):
         elif term.type == BOOLEAN:
             return term
 
-        is_missing = term.missing().partial_eval()
-        if is_missing is TRUE:
-            return FALSE
-        elif is_missing is FALSE:
-            if term.type in [INTEGER, NUMBER, STRING]:
-                return TRUE
-        else:
-            return NotOp("not", is_missing).partial_eval()
+        is_missing = NotOp("not", term.missing()).partial_eval()
+        return is_missing
 
 
 class IsBooleanOp(Expression):
@@ -1676,14 +1718,6 @@ class MultiOp(Expression):
     has_simple_form = True
     data_type = NUMBER
 
-    operators = {
-        "add": (" + ", "0"),  # (operator, zero-array default value) PAIR
-        "sum": (" + ", "0"),
-        "mul": (" * ", "1"),
-        "mult": (" * ", "1"),
-        "multiply": (" * ", "1")
-    }
-
     def __init__(self, op, terms, **clauses):
         Expression.__init__(self, op, terms)
         self.op = op
@@ -1778,7 +1812,7 @@ class RegExpOp(Expression):
         return {"regexp": {self.var.var: self.pattern}}
 
     def vars(self):
-        return {self.var.var}
+        return {self.var}
 
     def map(self, map_):
         return RegExpOp("regex", [self.var.map(map_), self.pattern])
@@ -1870,8 +1904,16 @@ class MissingOp(Expression):
 
     @simplified
     def partial_eval(self):
-        if isinstance(self.expr, Variable) and self.expr.var == "_id":
+        expr = self.expr.partial_eval()
+        if isinstance(expr, Variable) and expr.var == "_id":
             return FALSE
+        if isinstance(expr, Literal):
+            if expr is NULL:
+                return TRUE
+            elif expr.value == None:
+                Log.error("not expected")
+            else:
+                return FALSE
         self.simplified = True
         return self
 
@@ -1910,32 +1952,31 @@ class PrefixOp(Expression):
     def __init__(self, op, term):
         Expression.__init__(self, op, term)
         if not term:
-            self.field = None
+            self.expr = None
             self.prefix=None
         elif isinstance(term, Mapping):
-            self.field, self.prefix = term.items()[0]
+            self.expr, self.prefix = term.items()[0]
         else:
-            self.field, self.prefix = term
+            self.expr, self.prefix = term
 
     def __data__(self):
-        if not self.field:
+        if not self.expr:
             return {"prefix": {}}
-        elif isinstance(self.field, Variable) and isinstance(self.prefix, Literal):
-            return {"prefix": {self.field.var: self.prefix.value}}
+        elif isinstance(self.expr, Variable) and isinstance(self.prefix, Literal):
+            return {"prefix": {self.expr.var: self.prefix.value}}
         else:
-            return {"prefix": [self.field.__data__(), self.prefix.__data__()]}
+            return {"prefix": [self.expr.__data__(), self.prefix.__data__()]}
 
     def vars(self):
-        if not self.field:
+        if not self.expr:
             return set()
-        else:
-            return {self.field.var}
+        return self.expr.vars() | self.prefix.vars()
 
     def map(self, map_):
-        if not self.field:
+        if not self.expr:
             return self
         else:
-            return PrefixOp("prefix", [self.field.map(map_), self.prefix.map(map_)])
+            return PrefixOp("prefix", [self.expr.map(map_), self.prefix.map(map_)])
 
     def missing(self):
         return FALSE
@@ -1947,28 +1988,30 @@ class SuffixOp(Expression):
     def __init__(self, op, term):
         Expression.__init__(self, op, term)
         if not term:
-            self.field = self.suffix = None
+            self.term = self.suffix = None
         elif isinstance(term, Mapping):
-            self.field, self.suffix = term.items()[0]
+            self.term, self.suffix = term.items()[0]
         else:
-            self.field, self.suffix = term
+            self.term, self.suffix = term
 
     def __data__(self):
-        if self.field is None:
+        if self.term is None:
             return {"suffix": {}}
-        elif isinstance(self.field, Variable) and isinstance(self.suffix, Literal):
-            return {"suffix": {self.field.var: self.suffix.value}}
+        elif isinstance(self.term, Variable) and isinstance(self.suffix, Literal):
+            return {"suffix": {self.term.var: self.suffix.value}}
         else:
-            return {"suffix": [self.field.__data__(), self.suffix.__data__()]}
+            return {"suffix": [self.term.__data__(), self.suffix.__data__()]}
 
     def vars(self):
-        return {self.field.var}
+        if self.term is None:
+            return set()
+        return self.term.vars() | self.suffix.vars()
 
     def map(self, map_):
-        if self.field is None:
+        if self.term is None:
             return TRUE
         else:
-            return SuffixOp("suffix", [self.field.map(map_), self.suffix.map(map_)])
+            return SuffixOp("suffix", [self.term.map(map_), self.suffix.map(map_)])
 
 
 class ConcatOp(Expression):
@@ -2465,7 +2508,7 @@ class BetweenOp(Expression):
         ).partial_eval()
 
         start_index = MultiOp("add", [start_index, len_prefix]).partial_eval()
-        substring = BasicSubstringOp("subtring", [value, start_index, end_index]).partial_eval()
+        substring = BasicSubstringOp("substring", [value, start_index, end_index]).partial_eval()
 
         between = WhenOp(
             "when",
@@ -2596,17 +2639,17 @@ class WhenOp(Expression):
 
 
 class CaseOp(Expression):
-    def __init__(self, op, term, **clauses):
-        if not isinstance(term, (list, tuple)):
+    def __init__(self, op, terms, **clauses):
+        if not isinstance(terms, (list, tuple)):
             Log.error("case expression requires a list of `when` sub-clauses")
-        Expression.__init__(self, op, term)
-        if len(term) <= 1:
+        Expression.__init__(self, op, terms)
+        if len(terms) <= 1:
             Log.error("Expecting at least two clauses")
         else:
-            for w in term[:-1]:
+            for w in terms[:-1]:
                 if not isinstance(w, WhenOp) or w.els_:
                     Log.error("case expression does not allow `else` clause in `when` sub-clause")
-            self.whens = term
+            self.whens = terms
 
     def __data__(self):
         return {"case": [w.__data__() for w in self.whens]}
@@ -2651,6 +2694,14 @@ class CaseOp(Expression):
             return whens[0]
         else:
             return CaseOp("case", whens)
+
+    @property
+    def type(self):
+        types = set(w.then.type if isinstance(w, WhenOp) else w.type for w in self.whens)
+        if len(types) > 1:
+            return OBJECT
+        else:
+            return list(types)[0]
 
 
 
@@ -2698,6 +2749,11 @@ class BasicEqOp(Expression):
     def missing(self):
         return FALSE
 
+    def __eq__(self, other):
+        if not isinstance(other, EqOp):
+            return False
+        return self.lhs==other.lhs and self.rhs==other.rhs
+
 
 class BasicSubstringOp(Expression):
     """
@@ -2741,6 +2797,7 @@ operators = {
     "instr": FindOp,
     "is_number": IsNumberOp,
     "is_string": IsStringOp,
+    "last": LastOp,
     "left": LeftOp,
     "length": LengthOp,
     "literal": Literal,
