@@ -124,12 +124,12 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {"action": {"type": "talos"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {"action": {"type": "talos"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}": {"action": {"type": "test"}}
@@ -142,12 +142,12 @@ CATEGORIES = {
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
     },
     "desktop-test-": {
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"build": {"type": ["chunked"]}, "action": {"type": "test"}}
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}}
     }
 }
 
@@ -165,11 +165,12 @@ TEST_PLATFORM = {
 
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
-    for o in BUILD_TYPES +[
-        "ming32",
-        "qr",
+    for o in BUILD_TYPES + [
+        "asan",
         "gradle",
         "mingw32",
+        "ming32",
+        "qr",
         "stylo-disabled",
         "stylo-sequential"
     ]
@@ -248,6 +249,7 @@ BUILD_PLATFORM = {
         "linux",
         "linux64",
         "macosx64",
+        "macosx",
         "win32",
         "win64"
 
@@ -263,7 +265,7 @@ BUILD_OPTIONS = {
     "base-toolchains": {},
     "ccov": {"build": {"type": ["ccov"]}},
     "checkstyle": {},
-    "devedition": {"build": {"traim": "devedition"}},
+    "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
