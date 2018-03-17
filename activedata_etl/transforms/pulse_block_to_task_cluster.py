@@ -969,6 +969,7 @@ KNOWN_TAGS = {
     "previous-archive-prefix",
 
     "repack_id",
+    "schedule_at",
     "signed_installer_url",
     "signing.signature",
     "source",

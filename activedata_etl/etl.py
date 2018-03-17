@@ -229,7 +229,7 @@ class ETL(Thread):
 
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    Log.warning("delete keys?\n{{list}}", list=sorted(delete_me))
+                    Log.warning("delete keys in {{bucket}}?\n{{list}}", list=sorted(delete_me), bucket=action.destination.bucket)
 
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
