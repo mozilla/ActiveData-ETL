@@ -278,6 +278,7 @@ BUILD_OPTIONS = {
     "nightly": {},
     "old-id": {},
     "pgo": {"build": {"type": ["pgo"]}},
+    "pytests": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
