@@ -63,7 +63,6 @@ def _refresh_etl(instance, settings, conn):
     sudo("rm -fr /tmp/grcov*")
     with cd("~/ActiveData-ETL/"):
         result = run("git pull origin etl")
-        sudo("pip install -r requirements.txt")
         if result.find("Already up-to-date.") != -1:
             Log.note("No change required")
             if cpu_percent > 50:
