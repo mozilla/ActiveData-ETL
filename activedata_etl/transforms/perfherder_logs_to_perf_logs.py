@@ -414,6 +414,7 @@ KNOWN_PERFHERDER_TESTS = [
     "JS",
     "kraken",
     "media_tests",
+    "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
     "motionmark_animometer",
     "motionmark_htmlsuite",
