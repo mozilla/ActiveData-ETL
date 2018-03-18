@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
+from activedata_etl.imports.tuid_client import TuidClient
 from mo_future import text_type
 
 from activedata_etl import etl2key
@@ -36,9 +37,6 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
     """
     if DEBUG:
         Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
-
-    if not resources.file_mapper:
-        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -82,6 +80,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     file_details,
                                     source.file
                                 )
+                                resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, source)
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)

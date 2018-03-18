@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
+from activedata_etl.imports.tuid_client import TuidClient
 from mo_future import text_type
 
 from activedata_etl import etl2key
@@ -36,9 +37,6 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
     """
     if DEBUG:
         Log.note("Processing grcov artifact {{artifact}}", artifact=grcov_artifact.url)
-
-    if not resources.file_mapper:
-        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -77,6 +75,7 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                             if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                                 continue
                             file_info = resources.file_mapper.find(source_key, source.file.name, grcov_artifact, task_cluster_record)
+                            resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, source)
                             new_record.source = set_default(
                                 {"file": file_info},
                                 source
