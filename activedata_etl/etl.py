@@ -489,7 +489,8 @@ def etl_one(settings):
     hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
         hg=hg,
-        local_es_node=settings.local_es_node
+        local_es_node=settings.local_es_node,
+        tuid_endpoint=settings.tuid_endpoint
     )
 
     stopper = Signal("main stop signal")
