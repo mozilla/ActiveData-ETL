@@ -115,7 +115,9 @@ def transform(source_key, perfherder, buildbot, resources):
         if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
             for option in KNOWN_PERFHERDER_OPTIONS:
                 if suite_name.find("-" + option) >= 0:
-                    if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
+                    if option == 'coverage':
+                        pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
+                    elif option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
                         Log.warning(
                             "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
                             uid=source_key,
