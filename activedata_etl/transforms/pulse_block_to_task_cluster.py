@@ -500,9 +500,12 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
     if normalized.build.revision:
-        normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
+        candidate = {"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}
+        normalized.repo = minimize_repo(resources.hg.get_revision(wrap(candidate)))
         if not normalized.repo:
-            Log.warning("No repo found for {{rev}}", rev=normalized.build.revision)
+            Log.warning("No repo found for {{rev}} while processing key={{key}}", key=source_key, rev=candidate)
+            normalized.repo = candidate
+            normalized.repo.changeset.id12 = normalized.build.revision[:12]
         elif not normalized.repo.push.date:
             Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
