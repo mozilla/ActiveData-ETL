@@ -49,7 +49,7 @@ class TuidClient(object):
             return None
 
         try:
-            return http.post_json(
+            response = http.post_json(
                 self.tuid_endpoint,
                 json={
                     "from": "files",
@@ -59,7 +59,8 @@ class TuidClient(object):
                     ]}
                 },
                 timeout=30
-            ).tuids
+            )
+            return response.data[0].tuids
         except Exception as e:
             self.enabled = False
             Log.warning("TUID service has problems, disabling.", cause=e)

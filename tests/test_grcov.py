@@ -11,16 +11,40 @@ from __future__ import unicode_literals
 
 import unittest
 
+from pyLibrary.env import http
+
 from activedata_etl.imports.tuid_client import TuidClient
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
 from test_gcov import Destination
+
+http.default_headers['Referer'] = "ActiveData testing"
 
 
 class TestGcov(unittest.TestCase):
 
     def test_one(self):
         url = "http://queue.taskcluster.net/v1/task/a-LgV-cVTKiDxjl5I_4tWg/artifacts/public/test_info/code-coverage-grcov.zip"
+
+        source_key = http.get_json(
+            "http://activedata.allizom.org/query",
+            json={
+                "from": "task.task.artifacts",
+                "select": "_id",
+                "where": {"eq": {"url": url}},
+                "format": "list"
+            }
+
+        ).data[0]
+
+        task_cluster_record = http.get_json(
+            "http://activedata.allizom.org/query",
+            json={
+                "from": "task",
+                "where": {"eq": {"_id": source_key}},
+                "format": "list"
+            }
+        ).data[0]
 
         resources = Data(
             file_mapper=Data(find=fake_file_mapper),
@@ -30,11 +54,11 @@ class TestGcov(unittest.TestCase):
         destination = Destination("results/grcov/parsing_result.json.gz")
 
         process_grcov_artifact(
-            source_key=Null,
+            source_key=source_key,
             resources=resources,
             destination=destination,
             grcov_artifact=Data(url=url),
-            task_cluster_record=Null,
+            task_cluster_record=task_cluster_record,
             artifact_etl=Null,
             please_stop=Null
         )
