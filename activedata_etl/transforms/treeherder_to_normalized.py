@@ -149,6 +149,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.last_modified = consume(raw_job, "last_modified")
 
     new_treeherder.failure.auto_classification = consume(raw_job, "autoclassify_status")
+    new_treeherder.failure.auto_classification = consume(raw_job, "autoclassify_status")
     new_treeherder.failure.classification = consume(raw_job, "failure_classification")
     new_treeherder.failure.notes = consume(raw_job, "job_note")
 

@@ -8,6 +8,8 @@
 #
 from __future__ import unicode_literals
 
+from future.utils import text_type
+
 from activedata_etl import etl2path
 from activedata_etl import key2etl
 from jx_python import jx
@@ -283,6 +285,18 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
                 suite = json2value(suite_json)
                 suite = value2json(coalesce(suite.fullname, suite.name))
                 line = line.replace(suite_json, suite)
+
+    if source.name.startswith("active-data-treeherder"):
+        d = json2value(line)
+        changed = False
+        if isinstance(d.failure.auto_classification, text_type):
+            changed = True
+            d.failure.auto_classify, d.failure.auto_classification = d.failure.auto_classification, None
+        if isinstance(d.failure.classification, text_type):
+            changed = True
+            d.failure.classify, d.failure.classification = d.failure.classification, None
+        if changed:
+            line = value2json(d)
 
     if source.name.startswith("active-data-codecoverage"):
         d = json2value(line)
