@@ -135,7 +135,12 @@ def transform(source_key, perfherder, buildbot, resources):
             if suite_name == s:
                 break
             elif suite_name.startswith(s):
-                Log.warning("removing suite suffix of {{suffix|quote}} for {{suite}}", suffix=suite_name[len(s)::], suite=suite_name)
+                Log.warning(
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
+                    uid=source_key,
+                    suffix=suite_name[len(s)::],
+                    suite=suite_name
+                )
                 suite_name = s
                 break
             elif suite_name.startswith("remote-" + s):
