@@ -71,20 +71,24 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.job.type.name = consume(raw_job, "job_type.name")
     new_treeherder.job.type.description = consume(raw_job, "job_type.description")
     new_treeherder.job.type.symbol = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.symbol"),
         consume(raw_job, "signature.job_type_symbol")
     )
     new_treeherder.job.type.name = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.name"),
         consume(raw_job, "signature.job_type_name")
     )
     new_treeherder.job.type.group.symbol = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.job_group.symbol"),
         consume(raw_job, "signature.job_group_symbol"),
         consume(raw_job, "job_group.symbol")
     )
 
     new_treeherder.job.type.group.name = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.job_group.name"),
         consume(raw_job, "job_type.job_group"),
         consume(raw_job, "signature.job_group_name"),
@@ -98,6 +102,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     # BUILD
     new_treeherder.build.branch = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "repository"),
         consume(raw_job, "signature.repository")
     )
@@ -106,14 +111,17 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.build.date = consume(raw_job, "push.time")
 
     new_treeherder.build.platform = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.platform"),
         consume(raw_job, "signature.build_platform")
     )
     new_treeherder.build.os = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.os_name"),
         consume(raw_job, "signature.build_os_name")
     )
     new_treeherder.build.architecture = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.architecture"),
         consume(raw_job, "signature.build_architecture")
     )
@@ -137,6 +145,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
     new_treeherder.run.machine.architecture = consume(raw_job, "signature.machine_architecture")
     new_treeherder.run.machine.platform = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "machine_platform"),
         consume(raw_job, "signature.machine_platform")
     )
@@ -177,7 +186,11 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     consume(raw_job, "signature.signature")
     pull_details(source_key, consume(raw_treeherder.job, "job_detail"), new_treeherder)
 
-    new_treeherder.run.taskcluster.id = coalesce_w_conflict_detection(new_treeherder.run.taskcluster.id, consume(raw_job, "taskcluster_metadata.task_id"))
+    new_treeherder.run.taskcluster.id = coalesce_w_conflict_detection(
+        source_key,
+        new_treeherder.run.taskcluster.id,
+        consume(raw_job, "taskcluster_metadata.task_id")
+    )
     new_treeherder.run.taskcluster.retry_id = consume(raw_job, "taskcluster_metadata.retry_id")
 
     pull_options(source_key, raw_treeherder, new_treeherder)
