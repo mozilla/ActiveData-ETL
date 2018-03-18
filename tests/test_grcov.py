@@ -11,7 +11,6 @@ from __future__ import unicode_literals
 
 import unittest
 
-from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.tuid_client import TuidClient
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
@@ -24,8 +23,8 @@ class TestGcov(unittest.TestCase):
         url = "http://queue.taskcluster.net/v1/task/a-LgV-cVTKiDxjl5I_4tWg/artifacts/public/test_info/code-coverage-grcov.zip"
 
         resources = Data(
-            file_mapper=FileMapper(task_cluster_record),
-            tuid_mapper=TuidClient(resources.tuid_endpoint)
+            file_mapper=Data(find=fake_file_mapper),
+            tuid_mapper=TuidClient("http://54.149.21.8/tuid")
         )
 
         destination = Destination("results/grcov/parsing_result.json.gz")
@@ -39,3 +38,7 @@ class TestGcov(unittest.TestCase):
             artifact_etl=Null,
             please_stop=Null
         )
+
+
+def fake_file_mapper(source_key, filename, grcov_artifact, task_cluster_record):
+    return {"name": filename}
