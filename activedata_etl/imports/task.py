@@ -109,7 +109,7 @@ class Matcher(object):
             for k, v in self.pattern.items():
                 if name.startswith(k):
                     match = self.child.match(name[len(k):])
-                    if match != None:
+                    if match is not None:
                         return set_default(match, v)
         elif self.literal:
             if name.startswith(self.literal):

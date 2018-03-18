@@ -37,3 +37,10 @@ class TestMetadataName(FuzzyTestCase):
         if OVERWRITE_RESOURCE:
             resource.write_bytes(value2json(tests, pretty=True).encode('utf8'))
 
+
+    def test_one(self):
+        test = decode_metatdata_name(Null, "build-win64-nightly/opt-upload-symbols")
+        expected = {"action": {"type": "build"}, "build": {"type": ["opt"], "platform": "win64", "trigger": "nightly"}}
+
+        self.assertEqual(test, expected)
+        self.assertEqual(expected, test)

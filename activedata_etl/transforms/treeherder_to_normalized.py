@@ -177,7 +177,6 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     pull_job_log(source_key, consume(raw_treeherder.job, "job_log"), new_treeherder)
 
-
     consume(raw_job, "push")
     consume(raw_job, "running_eta")
     consume(raw_job, "who")

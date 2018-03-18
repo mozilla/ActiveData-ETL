@@ -115,7 +115,9 @@ def transform(source_key, perfherder, buildbot, resources):
         if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
             for option in KNOWN_PERFHERDER_OPTIONS:
                 if suite_name.find("-" + option) >= 0:
-                    if option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
+                    if option == 'coverage':
+                        pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
+                    elif option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
                         Log.warning(
                             "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
                             uid=source_key,
@@ -133,7 +135,12 @@ def transform(source_key, perfherder, buildbot, resources):
             if suite_name == s:
                 break
             elif suite_name.startswith(s):
-                Log.warning("removing suite suffix of {{suffix|quote}} for {{suite}}", suffix=suite_name[len(s)::], suite=suite_name)
+                Log.warning(
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
+                    uid=source_key,
+                    suffix=suite_name[len(s)::],
+                    suite=suite_name
+                )
                 suite_name = s
                 break
             elif suite_name.startswith("remote-" + s):
@@ -370,7 +377,7 @@ def geo_mean(values):
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
 
-KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo"]
+KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
 KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
@@ -414,6 +421,7 @@ KNOWN_PERFHERDER_TESTS = [
     "JS",
     "kraken",
     "media_tests",
+    "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
     "motionmark_animometer",
     "motionmark_htmlsuite",
