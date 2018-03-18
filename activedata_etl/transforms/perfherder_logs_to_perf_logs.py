@@ -439,6 +439,7 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
+    "reftest-stylo",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",
