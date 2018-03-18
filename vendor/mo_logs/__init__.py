@@ -146,7 +146,7 @@ class Log(object):
         if settings.log_type == "stream" or settings.stream:
             from mo_logs.log_usingThreadedStream import StructuredLogger_usingThreadedStream
             return StructuredLogger_usingThreadedStream(settings.stream)
-        if settings.log_type == "elasticsearch":
+        if settings.log_type == "elasticsearch" or settings.stream:
             from mo_logs.log_usingElasticSearch import StructuredLogger_usingElasticSearch
             return StructuredLogger_usingElasticSearch(settings)
         if settings.log_type == "email":
@@ -378,23 +378,24 @@ class Log(object):
 
         add_to_trace = False
         if cause == None:
-            pass
+            causes = None
         elif isinstance(cause, list):
-            cause = []
+            causes = []
             for c in listwrap(cause):  # CAN NOT USE LIST-COMPREHENSION IN PYTHON3 (EXTRA STACK DEPTH FROM THE IN-LINED GENERATOR)
-                cause.append(Except.wrap(c, stack_depth=1))
-            cause = FlatList(cause)
+                causes.append(Except.wrap(c, stack_depth=1))
+            causes = FlatList(causes)
         elif isinstance(cause, BaseException):
-            cause = Except.wrap(cause, stack_depth=1)
+            causes = Except.wrap(cause, stack_depth=1)
         else:
-            Log.error("can only accept Exception , or list of exceptions")
+            causes = None
+            Log.error("can only accept Exception, or list of exceptions")
 
         trace = exceptions.extract_stack(stack_depth + 1)
 
         if add_to_trace:
             cause[0].trace.extend(trace[1:])
 
-        e = Except(exceptions.ERROR, template, params, cause, trace)
+        e = Except(exceptions.ERROR, template, params, causes, trace)
         raise_from_none(e)
 
     @classmethod
