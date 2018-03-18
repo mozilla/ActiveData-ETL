@@ -12,33 +12,31 @@ import sys
 from collections import Mapping
 from copy import deepcopy
 
-from mo_future import text_type
-
+import mo_dots
 from activedata_etl import key2etl
+from activedata_etl.sinks.dummy_sink import DummySink
+from activedata_etl.sinks.s3_bucket import S3Bucket
+from activedata_etl.sinks.split import Split
+from activedata_etl.transforms import Transform
+from jx_python import jx
 from mo_dots import coalesce, listwrap, Data, Null, wrap
+from mo_future import text_type
+from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_kwargs import override
 from mo_logs import Log, startup, constants, strings
+from mo_logs.exceptions import suppress_exception
 from mo_math import MIN
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock
 from mo_threads import Till
 from mo_times import Timer
-from pyLibrary import aws
-
-import mo_dots
-from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.s3_bucket import S3Bucket
-from activedata_etl.sinks.split import Split
-from activedata_etl.transforms import Transform
-from mo_logs.exceptions import suppress_exception
 from mo_times.dates import Date
 from mo_times.durations import SECOND
-from mo_hg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
-from jx_python import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -118,7 +116,7 @@ class ETL(Thread):
         # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
-        if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
+        if not isinstance(source_block.bucket, text_type):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
 

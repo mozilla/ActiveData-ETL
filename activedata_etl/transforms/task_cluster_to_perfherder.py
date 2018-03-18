@@ -8,14 +8,13 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
-
 from activedata_etl import etl2key
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from activedata_etl.transforms.pulse_block_to_perfherder_logs import PERFHERDER_PREFIXES
 from mo_dots import Data, wrap, Null, unwraplist, FlatList
+from mo_future import text_type
 from mo_json import json2value, utf82unicode
 from mo_logs import Log, strings, suppress_exception
 from mo_times import Date

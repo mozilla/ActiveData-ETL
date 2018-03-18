@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 
 from activedata_etl.imports.buildbot import BUILD_TYPES
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import KNOWN_PERFHERDER_TESTS

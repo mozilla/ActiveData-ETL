@@ -12,15 +12,11 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
-from mo_future import text_type
-from jx_python import jx
-from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
-from mo_logs import Log, strings
-from mo_math import Math, MAX, MIN
-
 from activedata_etl.imports import buildbot
 from jx_python import jx
 from mo_dots import wrap, FlatList, Null, Data, unwrap, set_default
+from mo_future import text_type
+from mo_json import json2value
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
 from mo_math import Math, MAX, MIN
