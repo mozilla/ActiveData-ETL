@@ -34,16 +34,17 @@ class TuidClient(object):
             return
 
         line_to_tuid = self.get_tuid(revision, source.file.name)
-        source.file.tuid_covered = [
-            {"line": line, "tuid": line_to_tuid[line]}
-            for line in source.file.covered
-            if line_to_tuid[line]
-        ]
-        source.file.tuid_uncovered = [
-            {"line": line, "tuid": line_to_tuid[line]}
-            for line in source.file.uncovered
-            if line_to_tuid[line]
-        ]
+        if line_to_tuid is not None:
+            source.file.tuid_covered = [
+                {"line": line, "tuid": line_to_tuid[line]}
+                for line in source.file.covered
+                if line_to_tuid[line]
+            ]
+            source.file.tuid_uncovered = [
+                {"line": line, "tuid": line_to_tuid[line]}
+                for line in source.file.uncovered
+                if line_to_tuid[line]
+            ]
 
     @cache(duration=DAY, lock=True)
     def get_tuid(self, revision, file):
