@@ -755,7 +755,7 @@ BUILD_TYPES = {
     "memleak": ["memleak"],
     "opt": ["opt"],
     "pgo": ["pgo"],
-    "nostylo": ["nostylo"],
+    "nostylo": ["stylo-disabled"],
     "ubsan": ["ubsan"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())

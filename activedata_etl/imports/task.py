@@ -181,13 +181,15 @@ TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
-    "e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "e10s": {"run": {"type": ["e10s"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
-    "no-accel-e10s": {"run": {"type": ["e10s"]}},
+    "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "stylo": {"build": {"type": ["stylo"]}},
+    "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
-    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled", "e10s"]}},
+    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled"]}, "run": {"type": ["e10s"]}},
     "stylo-sequential": {},
-    "stylo-sequential-e10s": {"build": {"type": ["e10s"]}},
+    "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
@@ -225,7 +227,6 @@ TEST_SUITE = {
         "reftest",
         "reftest-gpu",
         "reftest-no-accel",
-        "reftest-stylo",
         "robocop",
         "telemetry-tests-client",
         "test-verify",
@@ -289,9 +290,9 @@ BUILD_OPTIONS = {
 
 BUILD_TYPE = {
     "opt": {"build": {"type": ["opt"]}},
-    "pgo": {"build": {"type": ["opt"]}},
+    "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
-    "debug": {"build": {"type": ["opt"]}}
+    "debug": {"build": {"type": ["debug"]}}
 }
 
 BUILD_STEPS = {

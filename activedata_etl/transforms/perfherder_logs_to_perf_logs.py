@@ -102,6 +102,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, buildbot, resources):
+    if perfherder.is_empty:
+        return [buildbot]
     try:
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
         if not suite_name:
@@ -112,29 +114,28 @@ def transform(source_key, perfherder, buildbot, resources):
             else:
                 Log.error("Can not process: no suite name is found")
 
-        if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
-            for option in KNOWN_PERFHERDER_OPTIONS:
-                if suite_name.find("-" + option) >= 0:
-                    if option == 'coverage':
-                        pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
-                    elif option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
-                        Log.warning(
-                            "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                            uid=source_key,
-                            buildbot=buildbot,
-                            name=suite_name,
-                            perfherder=perfherder,
-                            option=option
-                        )
-                        buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
-                    suite_name = suite_name.replace("-" + option, "")
+        for option in KNOWN_PERFHERDER_OPTIONS:
+            if suite_name.find("-" + option) >= 0:
+                if option == 'coverage':
+                    pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
+                elif option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type) and perfherder.framework.name != 'job_resource_usage':
+                    Log.warning(
+                        "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                        uid=source_key,
+                        buildbot=buildbot,
+                        name=suite_name,
+                        perfherder=perfherder,
+                        option=option
+                    )
+                    buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
+                suite_name = suite_name.replace("-" + option, "")
         buildbot.run.type = list(set(listwrap(buildbot.run.type) + listwrap(perfherder.extraOptions)))
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
                 break
-            elif suite_name.startswith(s):
+            elif suite_name.startswith(s) and perfherder.framework.name != 'job_resource_usage':
                 Log.warning(
                     "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
                     uid=source_key,
@@ -439,7 +440,6 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
-    "reftest-stylo",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",
