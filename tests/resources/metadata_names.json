@@ -18883,9 +18883,12 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["e10s", "opt", "stylo-sequential"]
+            "type": ["opt", "stylo-sequential"]
         },
-        "run": {"suite": {"name": "awsy"}}
+        "run": {
+            "suite": {"name": "awsy"},
+            "type": ["e10s"]
+        }
     },
     "test-linux64/debug-cppunit": {
         "action": {"type": "test"},
@@ -20084,94 +20087,6 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "reftest-no-accel"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-1": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 1,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-2": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 2,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-3": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 3,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-4": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 4,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-5": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 5,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-6": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 6,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-7": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 7,
-            "suite": {"name": "reftest-stylo"}
-        }
-    },
-    "test-linux64/debug-reftest-stylo-8": {
-        "action": {"type": "test"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt"]
-        },
-        "run": {
-            "chunk": 8,
-            "suite": {"name": "reftest-stylo"}
         }
     },
     "test-linux64/debug-telemetry-tests-client": {
@@ -21840,88 +21755,96 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-2": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-3": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-4": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-5": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-6": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-7": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-8": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt"]
+            "type": ["stylo", "opt"]
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-stylo"}
+            "suite": {"name": "reftest"},
+            "type": ["chunked"]
         }
     },
     "test-linux64/opt-talos-chrome": {
@@ -39560,5 +39483,94 @@
             "chunk": 4,
             "suite": {"name": "xpcshell"}
         }
-    }
+    },
+	"test-linux64/debug-reftest-stylo-1": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 1,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-2": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 2,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-3": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 3,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-4": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 4,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-5": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 5,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-6": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 6,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-7": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 7,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+ "test-linux64/debug-reftest-stylo-8": {
+     "action": {"type": "test"},
+     "build": {
+         "platform": "linux64",
+         "type": ["opt"]
+     },
+     "run": {
+         "chunk": 8,
+         "suite": {"name": "reftest-stylo"}
+     }
+ },
+
 }
