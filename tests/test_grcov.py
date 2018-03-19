@@ -48,7 +48,7 @@ class TestGcov(unittest.TestCase):
 
         resources = Data(
             file_mapper=Data(find=fake_file_mapper),
-            tuid_mapper=TuidClient("http://54.149.21.8/tuid")
+            tuid_mapper=TuidClient("http://localhost:5000/tuid")
         )
 
         destination = Destination("results/grcov/parsing_result.json.gz")

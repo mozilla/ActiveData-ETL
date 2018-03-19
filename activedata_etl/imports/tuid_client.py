@@ -24,23 +24,25 @@ class TuidClient(object):
         self.enabled = True
         self.tuid_endpoint = tuid_endpoint
 
-    def annotate_source(self, revision, coverage):
+    def annotate_source(self, revision, source):
         """
         :param revision: revision number to use for lookup
-        :param coverage: coverage that will be marked up with tuids
+        :param source: coverage that will be marked up with tuids
         :return:
         """
         if not self.enabled:
             return
 
-        line_to_tuid = self.get_tuid(revision, coverage.source.file.name)
-        coverage.source.file.tuid_covered = [
+        line_to_tuid = self.get_tuid(revision, source.file.name)
+        source.file.tuid_covered = [
             {"line": line, "tuid": line_to_tuid[line]}
-            for line in coverage.source.file.covered
+            for line in source.file.covered
+            if line_to_tuid[line]
         ]
-        coverage.source.file.tuid_uncovered = [
+        source.file.tuid_uncovered = [
             {"line": line, "tuid": line_to_tuid[line]}
-            for line in coverage.source.file.uncovered
+            for line in source.file.uncovered
+            if line_to_tuid[line]
         ]
 
     @cache(duration=DAY, lock=True)
@@ -55,7 +57,7 @@ class TuidClient(object):
                     "from": "files",
                     "where": {"and": [
                         {"eq": {"revision": revision}},
-                        {"eq": {"file": file}}
+                        {"eq": {"path": file}}
                     ]}
                 },
                 timeout=30
