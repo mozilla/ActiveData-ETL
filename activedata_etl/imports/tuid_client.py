@@ -11,12 +11,11 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from mo_logs import Log
-
-from pyLibrary.env import http
-
 from mo_times import DAY, Timer
+from pyLibrary.env import http
 from pyLibrary.meta import cache
 
+DEBUG = True
 
 class TuidClient(object):
 
@@ -51,21 +50,26 @@ class TuidClient(object):
         if not self.enabled:
             return None
 
-        try:
-            response = http.post_json(
-                self.tuid_endpoint,
-                json={
-                    "from": "files",
-                    "where": {"and": [
-                        {"eq": {"revision": revision}},
-                        {"eq": {"path": file}}
-                    ]}
-                },
-                timeout=30
-            )
-            return response.data[0].tuids
-        except Exception as e:
-            self.enabled = False
-            Log.warning("TUID service has problems, disabling.", cause=e)
-            return None
+        with Timer(
+            "ask tuid service for {{file}} at {{revision|left(12)}}",
+            {"file": file, "revision": revision},
+            debug=DEBUG
+        ):
+            try:
+                response = http.post_json(
+                    self.tuid_endpoint,
+                    json={
+                        "from": "files",
+                        "where": {"and": [
+                            {"eq": {"revision": revision}},
+                            {"eq": {"path": file}}
+                        ]}
+                    },
+                    timeout=30
+                )
+                return {h: v for h, v in zip(response.header, response.data[0])}['tuids']
+            except Exception as e:
+                self.enabled = False
+                Log.warning("TUID service has problems, disabling.", cause=e)
+                return None
 

@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 import unittest
 
+from activedata_etl.imports.file_mapper import FileMapper
 from pyLibrary.env import http
 
 from activedata_etl.imports.tuid_client import TuidClient
@@ -21,7 +22,7 @@ from test_gcov import Destination
 http.default_headers['Referer'] = "ActiveData testing"
 
 
-class TestGcov(unittest.TestCase):
+class TestGrcov(unittest.TestCase):
 
     def test_one(self):
         url = "http://queue.taskcluster.net/v1/task/a-LgV-cVTKiDxjl5I_4tWg/artifacts/public/test_info/code-coverage-grcov.zip"
@@ -47,7 +48,8 @@ class TestGcov(unittest.TestCase):
         ).data[0]
 
         resources = Data(
-            file_mapper=Data(find=fake_file_mapper),
+            # file_mapper=Data(find=fake_file_mapper),
+            file_mapper=FileMapper(task_cluster_record),
             tuid_mapper=TuidClient("http://localhost:5000/tuid")
         )
 
