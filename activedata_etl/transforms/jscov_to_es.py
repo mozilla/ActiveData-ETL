@@ -12,8 +12,6 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
-from activedata_etl.imports.tuid_client import TuidClient
 from activedata_etl.transforms import download_file
 from mo_dots import wrap, unwraplist, set_default
 from mo_files import TempDirectory

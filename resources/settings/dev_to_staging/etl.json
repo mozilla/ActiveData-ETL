@@ -22,7 +22,10 @@
 		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": "http://activedata.allizom.org:9200",
-	"tuid_endpoint": "http://54.149.21.8/tuid",
+	"tuid": {
+		"endpoint": "http://54.149.21.8/tuid",
+		"timeout": 30
+	},
 	"hg": {
 		"use_cache": true,
 		"hg": {

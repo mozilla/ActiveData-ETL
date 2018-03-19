@@ -50,7 +50,7 @@ class TestGrcov(unittest.TestCase):
         resources = Data(
             # file_mapper=Data(find=fake_file_mapper),
             file_mapper=FileMapper(task_cluster_record),
-            tuid_mapper=TuidClient("http://localhost:5000/tuid")
+            tuid_mapper=TuidClient(endpoint="http://localhost:5000/tuid", timeout=30)
         )
 
         destination = Destination("results/grcov/parsing_result.json.gz")

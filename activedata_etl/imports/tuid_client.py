@@ -10,6 +10,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_kwargs import override
+
 from mo_logs import Log
 from mo_times import DAY, Timer
 from pyLibrary.env import http
@@ -17,11 +19,14 @@ from pyLibrary.meta import cache
 
 DEBUG = True
 
+
 class TuidClient(object):
 
-    def __init__(self, tuid_endpoint):
+    @override
+    def __init__(self, endpoint, timeout=30, kwargs=None):
         self.enabled = True
-        self.tuid_endpoint = tuid_endpoint
+        self.tuid_endpoint = endpoint
+        self.timeout = timeout
 
     def annotate_source(self, revision, source):
         """
