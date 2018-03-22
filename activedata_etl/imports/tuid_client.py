@@ -10,6 +10,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_future import text_type
+
 from mo_dots import listwrap
 
 from mo_json import json2value, value2json
@@ -17,7 +19,7 @@ from mo_kwargs import override
 from mo_logs import Log
 from mo_times import Timer
 from pyLibrary.env import http
-from pyLibrary.sql import sql_iso, sql_list
+from pyLibrary.sql import sql_iso, sql_list, sqlite
 from pyLibrary.sql.sqlite import Sqlite, quote_value
 
 DEBUG = True
@@ -55,6 +57,7 @@ class TuidClient(object):
         if not self.enabled:
             return
         try:
+            revision = revision[:12]
             sources = listwrap(sources)
 
             # WHAT DO WE HAVE
@@ -68,6 +71,8 @@ class TuidClient(object):
             remaining = set(filenames) - set(found.keys())
             if remaining:
                 more = self._get_tuid_from_endpoint(revision, remaining)
+                if more == None:
+                    Log.error("seems the tuid service is not working")
                 found.update(more)
 
             for source in sources:
@@ -96,6 +101,7 @@ class TuidClient(object):
         if not self.enabled:
             return None
 
+        revision = revision[:12]
         # TRY THE DATABASE
         response = self.db.query("SELECT tuids FROM tuid WHERe revision=" + quote_value(revision) + " AND file=" + quote_value(file))
         if response:
@@ -131,7 +137,7 @@ class TuidClient(object):
                 )
 
                 self.db.execute(
-                    "INSERT INTO revision, file, tuids VALUES " + sql_list(
+                    "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
                         sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
                         for r in response.data
                     )
