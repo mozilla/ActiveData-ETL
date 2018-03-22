@@ -10,16 +10,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
-
 from mo_dots import listwrap
-
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
 from mo_times import Timer
 from pyLibrary.env import http
-from pyLibrary.sql import sql_iso, sql_list, sqlite
+from pyLibrary.sql import sql_iso, sql_list
 from pyLibrary.sql.sqlite import Sqlite, quote_value
 
 DEBUG = True
