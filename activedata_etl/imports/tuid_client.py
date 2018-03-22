@@ -56,35 +56,36 @@ class TuidClient(object):
         try:
             revision = revision[:12]
             sources = listwrap(sources)
-
-            # WHAT DO WE HAVE
             filenames = sources.file.name
-            response = self.db.query(
-                "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
-                " AND file in " + sql_iso(sql_list(map(quote_value, filenames)))
-            )
-            found = {file: json2value(tuids) for file, tuids in response.data}
 
-            remaining = set(filenames) - set(found.keys())
-            if remaining:
-                more = self._get_tuid_from_endpoint(revision, remaining)
-                if more == None:
-                    Log.error("seems the tuid service is not working")
-                found.update(more)
+            with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
+                # WHAT DO WE HAVE
+                response = self.db.query(
+                    "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
+                    " AND file in " + sql_iso(sql_list(map(quote_value, filenames)))
+                )
+                found = {file: json2value(tuids) for file, tuids in response.data}
 
-            for source in sources:
-                line_to_tuid = found[source.file.name]
-                if line_to_tuid is not None:
-                    source.file.tuid_covered = [
-                        {"line": line, "tuid": line_to_tuid[line]}
-                        for line in source.file.covered
-                        if line_to_tuid[line]
-                    ]
-                    source.file.tuid_uncovered = [
-                        {"line": line, "tuid": line_to_tuid[line]}
-                        for line in source.file.uncovered
-                        if line_to_tuid[line]
-                    ]
+                remaining = set(filenames) - set(found.keys())
+                if remaining:
+                    more = self._get_tuid_from_endpoint(revision, remaining)
+                    if more == None:
+                        Log.error("seems the tuid service is not working")
+                    found.update(more)
+
+                for source in sources:
+                    line_to_tuid = found[source.file.name]
+                    if line_to_tuid is not None:
+                        source.file.tuid_covered = [
+                            {"line": line, "tuid": line_to_tuid[line]}
+                            for line in source.file.covered
+                            if line_to_tuid[line]
+                        ]
+                        source.file.tuid_uncovered = [
+                            {"line": line, "tuid": line_to_tuid[line]}
+                            for line in source.file.uncovered
+                            if line_to_tuid[line]
+                        ]
         except Exception as e:
             self.enabled = False
             Log.warning("unexpected failure", cause=e)
