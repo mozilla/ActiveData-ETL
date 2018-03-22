@@ -224,7 +224,7 @@ class EtlHeadGenerator(object):
 
 
 def download_file(url, destination):
-    with file(destination, "w+b") as tempfile:
+    with open(destination, "w+b") as tempfile:
         stream = http.get(url).raw
         try:
             for b in iter(lambda: stream.read(8192), b""):

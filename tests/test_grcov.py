@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 import unittest
 
 from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.imports.task import minimize_task
 from pyLibrary.env import http
 
 from activedata_etl.imports.tuid_client import TuidClient
@@ -46,10 +47,11 @@ class TestGrcov(unittest.TestCase):
                 "format": "list"
             }
         ).data[0]
+        minimize_task(task_cluster_record)
 
         resources = Data(
-            # file_mapper=Data(find=fake_file_mapper),
-            file_mapper=FileMapper(task_cluster_record),
+            file_mapper=Data(find=fake_file_mapper),
+            # file_mapper=FileMapper(task_cluster_record),
             tuid_mapper=TuidClient(endpoint="http://localhost:5000/tuid", timeout=30)
         )
 

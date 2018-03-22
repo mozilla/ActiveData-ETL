@@ -10,12 +10,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_kwargs import override
+from mo_dots import listwrap
 
+from mo_json import json2value, value2json
+from mo_kwargs import override
 from mo_logs import Log
-from mo_times import DAY, Timer
+from mo_times import Timer
 from pyLibrary.env import http
-from pyLibrary.meta import cache
+from pyLibrary.sql import sql_iso, sql_list
+from pyLibrary.sql.sqlite import Sqlite, quote_value
 
 DEBUG = True
 
@@ -23,41 +26,94 @@ DEBUG = True
 class TuidClient(object):
 
     @override
-    def __init__(self, endpoint, timeout=30, kwargs=None):
+    def __init__(self, endpoint, timeout=30, db_filename="tuid.sqlite", kwargs=None):
         self.enabled = True
         self.tuid_endpoint = endpoint
         self.timeout = timeout
+        self.db = Sqlite(filename=db_filename)
 
-    def annotate_source(self, revision, source):
+        if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
+            self._setup()
+        self.db.commit()
+
+    def _setup(self):
+        self.db.execute("""
+        CREATE TABLE tuid (
+            revision CHAR(12),
+            file TEXT,
+            tuids TEXT,
+            PRIMARY KEY(revision, file)
+        )
+        """)
+
+    def annotate_sources(self, revision, sources):
         """
-        :param revision: revision number to use for lookup
-        :param source: coverage that will be marked up with tuids
-        :return:
+        :param revision: REVISION NUMBER TO USE FOR MARKUP
+        :param sources: LIST OF COVERAGE SOURCE STRUCTURES TO MARKUP
+        :return: NOTHING, sources ARE MARKED UP
         """
         if not self.enabled:
             return
+        try:
+            sources = listwrap(sources)
 
-        line_to_tuid = self.get_tuid(revision, source.file.name)
-        if line_to_tuid is not None:
-            source.file.tuid_covered = [
-                {"line": line, "tuid": line_to_tuid[line]}
-                for line in source.file.covered
-                if line_to_tuid[line]
-            ]
-            source.file.tuid_uncovered = [
-                {"line": line, "tuid": line_to_tuid[line]}
-                for line in source.file.uncovered
-                if line_to_tuid[line]
-            ]
+            # WHAT DO WE HAVE
+            filenames = sources.file.name
+            response = self.db.query(
+                "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
+                " AND file in " + sql_iso(sql_list(map(quote_value, filenames)))
+            )
+            found = {file: json2value(tuids) for file, tuids in response.data}
 
-    @cache(duration=DAY, lock=True)
+            remaining = set(filenames) - set(found.keys())
+            if remaining:
+                more = self._get_tuid_from_endpoint(revision, remaining)
+                found.update(more)
+
+            for source in sources:
+                line_to_tuid = found[source.file.name]
+                if line_to_tuid is not None:
+                    source.file.tuid_covered = [
+                        {"line": line, "tuid": line_to_tuid[line]}
+                        for line in source.file.covered
+                        if line_to_tuid[line]
+                    ]
+                    source.file.tuid_uncovered = [
+                        {"line": line, "tuid": line_to_tuid[line]}
+                        for line in source.file.uncovered
+                        if line_to_tuid[line]
+                    ]
+        except Exception as e:
+            self.enabled = False
+            Log.warning("unexpected failure", cause=e)
+
     def get_tuid(self, revision, file):
+        """
+        :param revision:
+        :param file:
+        :return: A LIST OF TUIDS
+        """
         if not self.enabled:
             return None
 
+        # TRY THE DATABASE
+        response = self.db.query("SELECT tuids FROM tuid WHERe revision=" + quote_value(revision) + " AND file=" + quote_value(file))
+        if response:
+            return json2value(response.data[0][0])
+
+        return self._get_tuid_from_endpoint(revision, [file])[file]
+
+    def _get_tuid_from_endpoint(self, revision, files):
+        """
+        GET TUIDS FROM ENDPOINT, AND STORE IN DB
+        :param revision:
+        :param files:
+        :return: MAP FROM FILENAME TO TUID LIST
+        """
+
         with Timer(
-            "ask tuid service for {{file}} at {{revision|left(12)}}",
-            {"file": file, "revision": revision},
+            "ask tuid service for {{num}} files at {{revision|left(12)}}",
+            {"num": len(files), "revision": revision},
             debug=DEBUG
         ):
             try:
@@ -67,14 +123,24 @@ class TuidClient(object):
                         "from": "files",
                         "where": {"and": [
                             {"eq": {"revision": revision}},
-                            {"eq": {"path": file}}
-                        ]}
+                            {"in": {"path": files}}
+                        ]},
+                        "format": "list"
                     },
                     timeout=30
                 )
-                return {h: v for h, v in zip(response.header, response.data[0])}['tuids']
+
+                self.db.execute(
+                    "INSERT INTO revision, file, tuids VALUES " + sql_list(
+                        sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
+                        for r in response.data
+                    )
+                )
+                self.db.commit()
+
+                return {r.path: r.tuids for r in response.data}
+
             except Exception as e:
                 self.enabled = False
                 Log.warning("TUID service has problems, disabling.", cause=e)
                 return None
-
