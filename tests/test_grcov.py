@@ -11,14 +11,12 @@ from __future__ import unicode_literals
 
 import unittest
 
-from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
-from pyLibrary.env import http
-
-from activedata_etl.imports.tuid_client import TuidClient
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
+from pyLibrary.env import http
 from test_gcov import Destination
+from tuid.client import TuidClient
 
 http.default_headers['Referer'] = "ActiveData testing"
 

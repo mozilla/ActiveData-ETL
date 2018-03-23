@@ -11,6 +11,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from mo_dots import listwrap
+from mo_files import File
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
@@ -29,6 +30,9 @@ class TuidClient(object):
         self.enabled = True
         self.tuid_endpoint = endpoint
         self.timeout = timeout
+
+        if DEBUG:
+            File(db_filename).delete()
         self.db = Sqlite(filename=db_filename)
 
         if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
@@ -51,8 +55,6 @@ class TuidClient(object):
         :param sources: LIST OF COVERAGE SOURCE STRUCTURES TO MARKUP
         :return: NOTHING, sources ARE MARKED UP
         """
-        if not self.enabled:
-            return
         try:
             revision = revision[:12]
             sources = listwrap(sources)
@@ -70,7 +72,7 @@ class TuidClient(object):
                 if remaining:
                     more = self._get_tuid_from_endpoint(revision, remaining)
                     if more == None:
-                        Log.error("seems the tuid service is not working")
+                        return
                     found.update(more)
 
                 for source in sources:
@@ -121,6 +123,10 @@ class TuidClient(object):
             debug=DEBUG
         ):
             try:
+                timeout = self.timeout
+                if not self.enabled:
+                    timeout = 0
+
                 response = http.post_json(
                     self.tuid_endpoint,
                     json={
@@ -131,7 +137,7 @@ class TuidClient(object):
                         ]},
                         "format": "list"
                     },
-                    timeout=30
+                    timeout=timeout
                 )
 
                 self.db.execute(
@@ -145,6 +151,7 @@ class TuidClient(object):
                 return {r.path: r.tuids for r in response.data}
 
             except Exception as e:
+                if not self.enabled:
+                    Log.warning("TUID service has problems, disabling.", cause=e)
                 self.enabled = False
-                Log.warning("TUID service has problems, disabling.", cause=e)
                 return None

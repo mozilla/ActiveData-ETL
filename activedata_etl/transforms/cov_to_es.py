@@ -11,13 +11,13 @@ from __future__ import unicode_literals
 
 from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
-from activedata_etl.imports.tuid_client import TuidClient
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
 from mo_logs import Log
+from tuid.client import TuidClient
 
 DEBUG = True
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
