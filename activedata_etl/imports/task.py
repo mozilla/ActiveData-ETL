@@ -76,6 +76,7 @@ NULL_TASKS = (
     "beetmover-",
     "build-signing-",
     "build-docker_image-",
+    "build-docker-image-",
     "checksums-signing-",
     "Cron task for ",
     "partials-signing-",
@@ -93,7 +94,7 @@ class Matcher(object):
             var_name = strings.between(pattern, "{{", "}}")
             self.pattern = globals()[var_name]
             self.literal = None
-            remainder = pattern[len(var_name)+4:]
+            remainder = pattern[len(var_name) + 4:]
         else:
             self.pattern = None
             self.literal = coalesce(strings.between(pattern, None, "{{"), pattern)
@@ -115,7 +116,6 @@ class Matcher(object):
             if name.startswith(self.literal):
                 return self.child.match(name[len(self.literal):])
         return None
-
 
 
 CATEGORIES = {
@@ -143,8 +143,10 @@ CATEGORIES = {
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}}
@@ -166,14 +168,14 @@ TEST_PLATFORM = {
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
     for o in BUILD_TYPES + [
-        "asan",
-        "gradle",
-        "mingw32",
-        "ming32",
-        "qr",
-        "stylo-disabled",
-        "stylo-sequential"
-    ]
+    "asan",
+    "gradle",
+    "mingw32",
+    "ming32",
+    "qr",
+    "stylo-disabled",
+    "stylo-sequential"
+]
 }
 TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
 TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
@@ -197,64 +199,63 @@ TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERD
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
-        "awsy",
-        "browser-instrumentation",
-        "browser-screenshots",
-        "cppunit",
-        "crashtest",
-        "firefox-ui-functional-local",
-        "firefox-ui-functional-remote",
-        "geckoview",
-        "gtest",
-        "jittest",
-        "jsreftest",
-        "marionette",
-        "marionette-headless",
-        "mochitest",
-        "mochitest-a11y",
-        "mochitest-browser-chrome",
-        "mochitest-browser-screenshots",
-        "mochitest-chrome",
-        "mochitest-clipboard",
-        "mochitest-devtools-chrome",
-        "mochitest-jetpack",
-        "mochitest-gpu",
-        "mochitest-media",
-        "mochitest-plain-headless",
-        "mochitest-valgrind",
-        "mochitest-webgl",
-        "mozmill",
-        "reftest",
-        "reftest-gpu",
-        "reftest-no-accel",
-        "robocop",
-        "telemetry-tests-client",
-        "test-verify",
-        "test-verify-wpt",
-        "web-platform-tests",
-        "web-platform-tests-reftests",
-        "web-platform-tests-wdspec",
-        "xpcshell"
-    ]
+    "awsy",
+    "browser-instrumentation",
+    "browser-screenshots",
+    "cppunit",
+    "crashtest",
+    "firefox-ui-functional-local",
+    "firefox-ui-functional-remote",
+    "geckoview",
+    "gtest",
+    "jittest",
+    "jsreftest",
+    "marionette",
+    "marionette-headless",
+    "mochitest",
+    "mochitest-a11y",
+    "mochitest-browser-chrome",
+    "mochitest-browser-screenshots",
+    "mochitest-chrome",
+    "mochitest-clipboard",
+    "mochitest-devtools-chrome",
+    "mochitest-jetpack",
+    "mochitest-gpu",
+    "mochitest-media",
+    "mochitest-plain-headless",
+    "mochitest-valgrind",
+    "mochitest-webgl",
+    "mozmill",
+    "reftest",
+    "reftest-gpu",
+    "reftest-no-accel",
+    "robocop",
+    "telemetry-tests-client",
+    "test-verify",
+    "test-verify-wpt",
+    "web-platform-tests",
+    "web-platform-tests-reftests",
+    "web-platform-tests-wdspec",
+    "xpcshell"
+]
 }
 
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
 
-
 BUILD_PLATFORM = {
-    p: {"build":{"platform":p}}
+    p: {"build": {"platform": p}}
     for p in [
-        "android-api-16",
-        "android-x86",
-        "android",
-        "linux",
-        "linux64",
-        "macosx64",
-        "macosx",
-        "win32",
-        "win64"
+    "android-api-16",
+    "android-x86",
+    "android",
+    "linux",
+    "linux64",
+    "macosx64",
+    "macosx",
+    "win32",
+    "win64"
 
-    ]
+]
 }
 
 BUILD_OPTIONS = {
@@ -283,6 +284,7 @@ BUILD_OPTIONS = {
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
+    "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {}
 
@@ -296,10 +298,7 @@ BUILD_TYPE = {
 }
 
 BUILD_STEPS = {
-    "upload-symbols":{}
+    "upload-symbols": {}
 }
 
-
-
-COMPILED_CATEGORIES = {c:[(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}
-
+COMPILED_CATEGORIES = {c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}

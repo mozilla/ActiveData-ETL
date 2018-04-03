@@ -323,5 +323,6 @@ KNOWN_VALUES = [
     "The following arguments ",
     "Tests will be run from the following files:",
     "gaia_revlink: ",
-    "Unknown: "
+    "Unknown: ",
+    "\t--this-chunk=1 --total-chunks=1 -- tests/web-platform/tests/streams/readable-streams/default-reader.dedicatedworker.html tes"
 ]

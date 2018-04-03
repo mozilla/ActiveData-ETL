@@ -140,10 +140,11 @@ def transform(source_key, perfherder, metadata, resources):
                 break
             elif suite_name.startswith(s) and framework_name != 'job_resource_usage':
                 Log.warning(
-                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framwork {{framework}}",
                     uid=source_key,
                     suffix=suite_name[len(s)::],
-                    suite=suite_name
+                    suite=suite_name,
+                    framework=framework_name
                 )
                 suite_name = s
                 break
@@ -498,6 +499,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvgr_opacity",
     "tsvg_static",
     "tsvgx",
+    "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
     "xperf"
