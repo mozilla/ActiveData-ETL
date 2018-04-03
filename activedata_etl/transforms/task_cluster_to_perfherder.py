@@ -63,7 +63,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
             log_url = wrap([a.url for a in artifacts if a.name.endswith("/live_backing.log")])[0]
 
-            # PULL PERFHERDER/TALOS
+            # PULL PERFHERDER/TALOS OUT OF LOG
             if log_url:
                 try:
                     response = http.get(log_url)
@@ -145,7 +145,7 @@ def extract_perfherder(all_log_lines, etl_job, etl_header_gen, please_stop, puls
                 continue
 
             log_line = strings.strip(log_line[s + len(prefix):])
-            perf = json2value(utf82unicode(log_line))
+            perf = json2value(log_line, leaves=False, flexible=False)
 
             if "TALOS" in prefix:
                 for t in perf:

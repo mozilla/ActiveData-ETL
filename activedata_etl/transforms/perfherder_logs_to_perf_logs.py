@@ -162,6 +162,7 @@ def transform(source_key, perfherder, buildbot, resources):
         buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
         buildbot.run.suite = suite_name
         buildbot.run.framework = perfherder.framework
+        buildbot.run.extraOptions = perfherder.extraOptions
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
