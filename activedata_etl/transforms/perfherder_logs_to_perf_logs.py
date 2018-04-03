@@ -107,6 +107,7 @@ def transform(source_key, perfherder, metadata, resources):
         return [metadata]
 
     try:
+        framework_name = perfherder.framework.name
         suite_name = coalesce(perfherder.testrun.suite, perfherder.name, metadata.run.suite)
         if not suite_name:
             if perfherder.is_empty:
@@ -120,7 +121,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name.find("-" + option) >= 0:
                 if option == 'coverage':
                     pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
-                elif option not in listwrap(metadata.run.type) + listwrap(metadata.build.type) and perfherder.framework.name != 'job_resource_usage':
+                elif option not in listwrap(metadata.run.type) + listwrap(metadata.build.type) and framework_name != 'job_resource_usage':
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                         uid=source_key,
@@ -131,13 +132,13 @@ def transform(source_key, perfherder, metadata, resources):
                     )
                     metadata.run.type = unwraplist(listwrap(metadata.run.type) + [option])
                 suite_name = suite_name.replace("-" + option, "")
-        metadata.run.type = list(set(listwrap(metadata.run.type) + listwrap(perfherder.extraOptions)))
+
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
                 break
-            elif suite_name.startswith(s) and perfherder.framework.name != 'job_resource_usage':
+            elif suite_name.startswith(s) and framework_name != 'job_resource_usage':
                 Log.warning(
                     "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
                     uid=source_key,
@@ -150,7 +151,7 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if not perfherder.is_empty and perfherder.framework.name != "job_resource_usage":
+            if not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -162,9 +163,9 @@ def transform(source_key, perfherder, metadata, resources):
 
         # UPDATE metadata PROPERTIES TO BETTER VALUES
         metadata.run.timestamp = coalesce(perfherder.testrun.date, metadata.run.timestamp, metadata.action.timestamp, metadata.action.start_time)
-        metadata.run.suite = suite_name
-        metadata.run.framework = perfherder.framework
-        metadata.run.extraOptions = perfherder.extraOptions
+        metadata.result.suite = metadata.run.suite = suite_name
+        metadata.result.framework = metadata.run.framework = perfherder.framework
+        metadata.result.extraOptions = perfherder.extraOptions
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -212,7 +213,8 @@ def transform(source_key, perfherder, metadata, resources):
                                 "unit": subtest.unit,
                                 "lower_is_better": subtest.lowerIsBetter,
                                 "raw_replicates": subtest.ref_replicates,
-                                "control_replicates": subtest.base_replicates
+                                "control_replicates": subtest.base_replicates,
+                                "value": samples[0] if len(samples) == 1 else None
                             }
                         )},
                         metadata
@@ -259,7 +261,8 @@ def transform(source_key, perfherder, metadata, resources):
                     stats(source_key, [perfherder.value], None, suite_name),
                     {
                         "unit": perfherder.unit,
-                        "lower_is_better": perfherder.lowerIsBetter
+                        "lower_is_better": perfherder.lowerIsBetter,
+                        "value": perfherder.value
                     }
                 )},
                 metadata
@@ -283,7 +286,7 @@ def transform(source_key, perfherder, metadata, resources):
         Log.note(
             "Done {{uid}}, processed {{framework|upper}} :: {{name}}, transformed {{num}} records",
             uid=source_key,
-            framework=metadata.run.framework.name,
+            framework=framework_name,
             name=suite_name,
             num=len(new_records)
         )
@@ -382,7 +385,7 @@ def geo_mean(values):
 
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "shouldAlert", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
