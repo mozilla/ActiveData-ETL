@@ -435,8 +435,10 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "pull",  # VCS
     "Quantum_1",
     "quantum_pageload_amazon",
     "quantum_pageload_facebook",
@@ -493,6 +495,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvgr_opacity",
     "tsvg_static",
     "tsvgx",
+    "update",  # VCS
     "v8_7",
     "xperf"
 ]
