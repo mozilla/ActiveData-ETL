@@ -27,6 +27,7 @@ def minimize_task(task):
     """
     task.repo = minimize_repo(task.repo)
 
+    task._id = None
     task.action.timings = None
     task.action.etl = None
     task.build.build = None
@@ -157,6 +158,7 @@ TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
+    "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "maxosx64"}},
@@ -245,17 +247,18 @@ TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
 BUILD_PLATFORM = {
     p: {"build": {"platform": p}}
     for p in [
-    "android-api-16",
-    "android-x86",
-    "android",
-    "linux",
-    "linux64",
-    "macosx64",
-    "macosx",
-    "win32",
-    "win64"
+        "android-hw-gs3-7-1-arm7-api-16",
+        "android-api-16",
+        "android-x86",
+        "android",
+        "linux",
+        "linux64",
+        "macosx64",
+        "macosx",
+        "win32",
+        "win64"
 
-]
+    ]
 }
 
 BUILD_OPTIONS = {

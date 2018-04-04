@@ -16,7 +16,7 @@ from future.utils import text_type
 
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
-from activedata_etl.imports.task import decode_metatdata_name
+from activedata_etl.imports.task import decode_metatdata_name, minimize_task
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from jx_python import jx
@@ -531,17 +531,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         if build_task:
             if DEBUG:
                 Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
-            build_task.repo = minimize_repo(build_task.repo)
-            build_task._id = None
-            build_task.task.artifacts = None
-            build_task.task.command = None
-            build_task.task.env = None
-            build_task.task.scopes = None
-            build_task.task.runs = None
-            build_task.task.routes = None
-            build_task.task.tags = None
-            build_task.action.timings = None
-            build_task.etl = None
+            minimize_task(build_task)
             set_default(normalized.build, build_task)
 
 

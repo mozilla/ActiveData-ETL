@@ -443,6 +443,7 @@ KNOWN_PERFHERDER_TESTS = [
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "pull",  # VCS
+    "purge",  # VCS
     "Quantum_1",
     "quantum_pageload_amazon",
     "quantum_pageload_facebook",
