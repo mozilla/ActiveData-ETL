@@ -239,6 +239,7 @@ def pull_job_log(source_key, job_log, new_treeherder):
             f.job_guid = None
             f.stackwalk_stdout = None
             f.stackwalk_stderr = None
+            f.subtest = None
     new_treeherder.job_log = job_log
 
 
