@@ -225,7 +225,7 @@ _option_map = {
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "make": ["make"],
-    "nostylo": ["nostylo"],
+    "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
 }
@@ -239,6 +239,7 @@ def pull_job_log(source_key, job_log, new_treeherder):
             f.job_guid = None
             f.stackwalk_stdout = None
             f.stackwalk_stderr = None
+            f.subtest = None
     new_treeherder.job_log = job_log
 
 
@@ -323,5 +324,6 @@ KNOWN_VALUES = [
     "The following arguments ",
     "Tests will be run from the following files:",
     "gaia_revlink: ",
-    "Unknown: "
+    "Unknown: ",
+    "\t--this-chunk=1 --total-chunks=1 -- tests/web-platform/tests/streams/readable-streams/default-reader.dedicatedworker.html tes"
 ]

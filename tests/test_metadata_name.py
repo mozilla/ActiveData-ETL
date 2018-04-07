@@ -44,3 +44,15 @@ class TestMetadataName(FuzzyTestCase):
 
         self.assertEqual(test, expected)
         self.assertEqual(expected, test)
+
+    def test_one2(self):
+        test = decode_metatdata_name(Null, "test-linux64/debug-reftest-stylo-8")
+        expected = {
+            "action": {"type": "test"},
+            "build": {"type": ["stylo", "debug"], "platform": "linux64"},
+            "run": {"suite": {"name": "reftest"}, "chunk": 8, "type": ["chunked"]}
+        }
+
+        self.assertEqual(test, expected)
+        self.assertEqual(expected, test)
+

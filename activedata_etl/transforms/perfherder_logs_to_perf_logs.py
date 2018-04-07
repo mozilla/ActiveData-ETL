@@ -62,17 +62,18 @@ def process(source_key, source, destination, resources, please_stop=None):
                 Log.error("Should not happen, perfherder storage iterates through the suites")
 
             if perfherder_record.task or perfherder_record.is_empty:
-                buildbot = perfherder_record.task
+                metadata, perfherder_record.task = perfherder_record.task, None
             elif perfherder_record.pulse:
-                buildbot = transform_buildbot(source_key, perfherder_record.pulse, resources)
+                metadata = transform_buildbot(source_key, perfherder_record.pulse, resources)
+                perfherder_record.pulse = None
             else:
                 Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
                 continue
 
-            if not isinstance(buildbot.run.suite, text_type):
-                buildbot.run.suite = buildbot.run.suite.fullname
+            if not isinstance(metadata.run.suite, text_type):
+                metadata.run.suite = metadata.run.suite.fullname
 
-            perf_records = transform(source_key, perfherder_record, buildbot, resources)
+            perf_records = transform(source_key, perfherder_record, metadata, resources)
             for p in perf_records:
                 p["etl"] = {
                     "id": i,
@@ -101,45 +102,49 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
-def transform(source_key, perfherder, buildbot, resources):
+def transform(source_key, perfherder, metadata, resources):
+    if perfherder.is_empty:
+        return [metadata]
+
     try:
-        suite_name = coalesce(perfherder.testrun.suite, perfherder.name, buildbot.run.suite)
+        framework_name = perfherder.framework.name
+        suite_name = coalesce(perfherder.testrun.suite, perfherder.name, metadata.run.suite)
         if not suite_name:
             if perfherder.is_empty:
                 # RETURN A PLACEHOLDER
-                buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
-                return [buildbot]
+                metadata.run.timestamp = coalesce(perfherder.testrun.date, metadata.run.timestamp, metadata.action.timestamp, metadata.action.start_time)
+                return [metadata]
             else:
                 Log.error("Can not process: no suite name is found")
 
-        if perfherder.framework.name != 'job_resource_usage':  # this has too many 'suites'
-            for option in KNOWN_PERFHERDER_OPTIONS:
-                if suite_name.find("-" + option) >= 0:
-                    if option == 'coverage':
-                        pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
-                    elif option not in listwrap(buildbot.run.type) + listwrap(buildbot.build.type):
-                        Log.warning(
-                            "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
-                            uid=source_key,
-                            buildbot=buildbot,
-                            name=suite_name,
-                            perfherder=perfherder,
-                            option=option
-                        )
-                        buildbot.run.type = unwraplist(listwrap(buildbot.run.type) + [option])
-                    suite_name = suite_name.replace("-" + option, "")
-        buildbot.run.type = list(set(listwrap(buildbot.run.type) + listwrap(perfherder.extraOptions)))
+        for option in KNOWN_PERFHERDER_OPTIONS:
+            if suite_name.find("-" + option) >= 0:
+                if option == 'coverage':
+                    pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
+                elif option not in listwrap(metadata.run.type) + listwrap(metadata.build.type) and framework_name != 'job_resource_usage':
+                    Log.warning(
+                        "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
+                        uid=source_key,
+                        metadata=metadata,
+                        name=suite_name,
+                        perfherder=perfherder,
+                        option=option
+                    )
+                    metadata.run.type = unwraplist(listwrap(metadata.run.type) + [option])
+                suite_name = suite_name.replace("-" + option, "")
+
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
                 break
-            elif suite_name.startswith(s):
+            elif suite_name.startswith(s) and framework_name != 'job_resource_usage':
                 Log.warning(
-                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}}",
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framwork {{framework}}",
                     uid=source_key,
                     suffix=suite_name[len(s)::],
-                    suite=suite_name
+                    suite=suite_name,
+                    framework=framework_name
                 )
                 suite_name = s
                 break
@@ -147,20 +152,21 @@ def transform(source_key, perfherder, buildbot, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if not perfherder.is_empty and perfherder.framework.name != "job_resource_usage":
+            if not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
-                    "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{buildbot.run.type}}, build.type={{buildbot.build.type}})",
+                    "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
-                    buildbot=buildbot,
+                    metadata=metadata,
                     name=suite_name,
                     perfherder=perfherder
                 )
                 KNOWN_PERFHERDER_TESTS.append(suite_name)
 
-        # UPDATE buildbot PROPERTIES TO BETTER VALUES
-        buildbot.run.timestamp = coalesce(perfherder.testrun.date, buildbot.run.timestamp, buildbot.action.timestamp, buildbot.action.start_time)
-        buildbot.run.suite = suite_name
-        buildbot.run.framework = perfherder.framework
+        # UPDATE metadata PROPERTIES TO BETTER VALUES
+        metadata.run.timestamp = coalesce(perfherder.testrun.date, metadata.run.timestamp, metadata.action.timestamp, metadata.action.start_time)
+        metadata.result.suite = metadata.run.suite = suite_name
+        metadata.result.framework = metadata.run.framework = perfherder.framework
+        metadata.result.extraOptions = perfherder.extraOptions
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -173,7 +179,7 @@ def transform(source_key, perfherder, buildbot, resources):
             for k in KNOWN_PERFHERDER_PROPERTIES:
                 remainder[k] = None
             if any(remainder.values()):
-                new_records.append(set_default(remainder, buildbot))
+                new_records.append(set_default(remainder, metadata))
 
         total = FlatList()
 
@@ -192,7 +198,7 @@ def transform(source_key, perfherder, buildbot, resources):
                                     "lower_is_better": subtest.lowerIsBetter
                                 }
                             )},
-                            buildbot
+                            metadata
                         )
                         new_records.append(new_record)
                         total.append(new_record.result.stats)
@@ -208,10 +214,11 @@ def transform(source_key, perfherder, buildbot, resources):
                                 "unit": subtest.unit,
                                 "lower_is_better": subtest.lowerIsBetter,
                                 "raw_replicates": subtest.ref_replicates,
-                                "control_replicates": subtest.base_replicates
+                                "control_replicates": subtest.base_replicates,
+                                "value": samples[0] if len(samples) == 1 else None
                             }
                         )},
-                        buildbot
+                        metadata
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
@@ -231,7 +238,7 @@ def transform(source_key, perfherder, buildbot, resources):
                                     "ordering": i
                                 }
                             )},
-                            buildbot
+                            metadata
                         )
                         new_records.append(new_record)
                         total.append(new_record.result.stats)
@@ -245,7 +252,7 @@ def transform(source_key, perfherder, buildbot, resources):
                                 "ordering": i
                             }
                         )},
-                        buildbot
+                        metadata
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
@@ -255,19 +262,20 @@ def transform(source_key, perfherder, buildbot, resources):
                     stats(source_key, [perfherder.value], None, suite_name),
                     {
                         "unit": perfherder.unit,
-                        "lower_is_better": perfherder.lowerIsBetter
+                        "lower_is_better": perfherder.lowerIsBetter,
+                        "value": perfherder.value
                     }
                 )},
-                buildbot
+                metadata
             )
             new_records.append(new_record)
             total.append(new_record.result.stats)
         elif perfherder.is_empty:
-            buildbot.run.result.is_empty = True
-            new_records.append(buildbot)
+            metadata.run.result.is_empty = True
+            new_records.append(metadata)
             pass
         else:
-            new_records.append(buildbot)
+            new_records.append(metadata)
             Log.warning(
                 "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
                 uid=source_key,
@@ -275,11 +283,11 @@ def transform(source_key, perfherder, buildbot, resources):
             )
 
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
-        buildbot.run.stats = geo_mean(total)
+        metadata.run.stats = geo_mean(total)
         Log.note(
             "Done {{uid}}, processed {{framework|upper}} :: {{name}}, transformed {{num}} records",
             uid=source_key,
-            framework=buildbot.run.framework.name,
+            framework=framework_name,
             name=suite_name,
             num=len(new_records)
         )
@@ -378,7 +386,7 @@ def geo_mean(values):
 
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "shouldAlert", "subtests", "summary", "value"}
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
@@ -392,6 +400,7 @@ KNOWN_PERFHERDER_TESTS = [
     "cart",
     "chromez",
     "chrome",
+    "clone",   # vcs
     "compiler_metrics",
     "compiler warnings",
     "cpstartup",
@@ -430,8 +439,11 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "pull",  # VCS
+    "purge",  # VCS
     "Quantum_1",
     "quantum_pageload_amazon",
     "quantum_pageload_facebook",
@@ -488,6 +500,8 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvgr_opacity",
     "tsvg_static",
     "tsvgx",
+    "update_sparse",  #VCS
+    "update",  # VCS
     "v8_7",
     "xperf"
 ]

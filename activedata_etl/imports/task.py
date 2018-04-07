@@ -27,6 +27,7 @@ def minimize_task(task):
     """
     task.repo = minimize_repo(task.repo)
 
+    task._id = None
     task.action.timings = None
     task.action.etl = None
     task.build.build = None
@@ -76,6 +77,7 @@ NULL_TASKS = (
     "beetmover-",
     "build-signing-",
     "build-docker_image-",
+    "build-docker-image-",
     "checksums-signing-",
     "Cron task for ",
     "partials-signing-",
@@ -93,7 +95,7 @@ class Matcher(object):
             var_name = strings.between(pattern, "{{", "}}")
             self.pattern = globals()[var_name]
             self.literal = None
-            remainder = pattern[len(var_name)+4:]
+            remainder = pattern[len(var_name) + 4:]
         else:
             self.pattern = None
             self.literal = coalesce(strings.between(pattern, None, "{{"), pattern)
@@ -115,7 +117,6 @@ class Matcher(object):
             if name.startswith(self.literal):
                 return self.child.match(name[len(self.literal):])
         return None
-
 
 
 CATEGORIES = {
@@ -143,8 +144,10 @@ CATEGORIES = {
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}}
@@ -155,6 +158,7 @@ TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
+    "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "maxosx64"}},
@@ -166,14 +170,14 @@ TEST_PLATFORM = {
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
     for o in BUILD_TYPES + [
-        "asan",
-        "gradle",
-        "mingw32",
-        "ming32",
-        "qr",
-        "stylo-disabled",
-        "stylo-sequential"
-    ]
+    "asan",
+    "gradle",
+    "mingw32",
+    "ming32",
+    "qr",
+    "stylo-disabled",
+    "stylo-sequential"
+]
 }
 TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
 TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
@@ -181,13 +185,15 @@ TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
-    "e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "e10s": {"run": {"type": ["e10s"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
-    "no-accel-e10s": {"run": {"type": ["e10s"]}},
+    "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "stylo": {"build": {"type": ["stylo"]}},
+    "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
-    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled", "e10s"]}},
+    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled"]}, "run": {"type": ["e10s"]}},
     "stylo-sequential": {},
-    "stylo-sequential-e10s": {"build": {"type": ["e10s"]}},
+    "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
@@ -195,54 +201,53 @@ TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERD
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
-        "awsy",
-        "browser-instrumentation",
-        "browser-screenshots",
-        "cppunit",
-        "crashtest",
-        "firefox-ui-functional-local",
-        "firefox-ui-functional-remote",
-        "geckoview",
-        "gtest",
-        "jittest",
-        "jsreftest",
-        "marionette",
-        "marionette-headless",
-        "mochitest",
-        "mochitest-a11y",
-        "mochitest-browser-chrome",
-        "mochitest-browser-screenshots",
-        "mochitest-chrome",
-        "mochitest-clipboard",
-        "mochitest-devtools-chrome",
-        "mochitest-jetpack",
-        "mochitest-gpu",
-        "mochitest-media",
-        "mochitest-plain-headless",
-        "mochitest-valgrind",
-        "mochitest-webgl",
-        "mozmill",
-        "reftest",
-        "reftest-gpu",
-        "reftest-no-accel",
-        "reftest-stylo",
-        "robocop",
-        "telemetry-tests-client",
-        "test-verify",
-        "test-verify-wpt",
-        "web-platform-tests",
-        "web-platform-tests-reftests",
-        "web-platform-tests-wdspec",
-        "xpcshell"
-    ]
+    "awsy",
+    "browser-instrumentation",
+    "browser-screenshots",
+    "cppunit",
+    "crashtest",
+    "firefox-ui-functional-local",
+    "firefox-ui-functional-remote",
+    "geckoview",
+    "gtest",
+    "jittest",
+    "jsreftest",
+    "marionette",
+    "marionette-headless",
+    "mochitest",
+    "mochitest-a11y",
+    "mochitest-browser-chrome",
+    "mochitest-browser-screenshots",
+    "mochitest-chrome",
+    "mochitest-clipboard",
+    "mochitest-devtools-chrome",
+    "mochitest-jetpack",
+    "mochitest-gpu",
+    "mochitest-media",
+    "mochitest-plain-headless",
+    "mochitest-valgrind",
+    "mochitest-webgl",
+    "mozmill",
+    "reftest",
+    "reftest-gpu",
+    "reftest-no-accel",
+    "robocop",
+    "telemetry-tests-client",
+    "test-verify",
+    "test-verify-wpt",
+    "web-platform-tests",
+    "web-platform-tests-reftests",
+    "web-platform-tests-wdspec",
+    "xpcshell"
+]
 }
 
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
 
-
 BUILD_PLATFORM = {
-    p: {"build":{"platform":p}}
+    p: {"build": {"platform": p}}
     for p in [
+        "android-hw-gs3-7-1-arm7-api-16",
         "android-api-16",
         "android-x86",
         "android",
@@ -282,6 +287,7 @@ BUILD_OPTIONS = {
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
+    "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {}
 
@@ -289,16 +295,13 @@ BUILD_OPTIONS = {
 
 BUILD_TYPE = {
     "opt": {"build": {"type": ["opt"]}},
-    "pgo": {"build": {"type": ["opt"]}},
+    "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
-    "debug": {"build": {"type": ["opt"]}}
+    "debug": {"build": {"type": ["debug"]}}
 }
 
 BUILD_STEPS = {
-    "upload-symbols":{}
+    "upload-symbols": {}
 }
 
-
-
-COMPILED_CATEGORIES = {c:[(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}
-
+COMPILED_CATEGORIES = {c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}
