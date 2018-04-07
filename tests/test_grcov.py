@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 
 import unittest
 
+import mo_json_config
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
@@ -50,7 +51,15 @@ class TestGrcov(unittest.TestCase):
         resources = Data(
             file_mapper=Data(find=fake_file_mapper),
             # file_mapper=FileMapper(task_cluster_record),
-            tuid_mapper=TuidClient(endpoint="http://localhost:5000/tuid", timeout=30)
+            tuid_mapper=TuidClient(
+                endpoint="http://localhost:5000/tuid",
+                timeout=30,
+                request_queue=mo_json_config.expand({
+                    "name": "active-data-tuid-dev",
+                    "debug": True,
+                    "$ref": "file://~/private.json#tuid_queue"
+                })
+            )
         )
 
         destination = Destination("results/grcov/parsing_result.json.gz")

@@ -24,7 +24,12 @@
 	"local_es_node": "http://activedata.allizom.org:9200",
 	"tuid": {
 		"endpoint": "http://54.149.21.8/tuid",
-		"timeout": 30
+		"timeout": 30,
+		"request_queue": {
+			"name": "active-data-tuid-dev",
+			"debug": true,
+			"$ref": "file://~/private.json#aws_credentials"
+		}
 	},
 	"hg": {
 		"use_cache": true,

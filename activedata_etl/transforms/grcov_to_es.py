@@ -27,7 +27,7 @@ IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
-TUID_BLOCK_SIZE = 100
+TUID_BLOCK_SIZE = 1000
 
 
 def process_grcov_artifact(source_key, resources, destination, grcov_artifact, task_cluster_record, artifact_etl, please_stop):
