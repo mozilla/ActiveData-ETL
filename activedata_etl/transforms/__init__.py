@@ -54,6 +54,7 @@ NOT_STRUCTURED_LOGS = [
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    ".png",
     "/properties.json",
     "/log_raw.log",
     "/localconfig.json",
