@@ -64,6 +64,10 @@
 				{
 					"name": "active-data-index",
 					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
 				}
 			],
 			"type": "join",
@@ -90,6 +94,10 @@
 			"notify": [
 				{
 					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
 			],
@@ -137,6 +145,10 @@
 				{
 					"name": "active-data-index",
 					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
 				}
 			],
 			"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
@@ -163,6 +175,10 @@
 				},
 				{
 					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
 			],
@@ -252,10 +268,16 @@
 				"public": true,
 				"key_format": "a.b"
 			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.buildbot_block_to_job_logs.process",
 			"type": "join",
 			"transform_type": "bulk"
@@ -273,10 +295,16 @@
 				"public": true,
 				"key_format": "t.a:b.c"
 			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
 			"type": "join"
 		},
@@ -319,10 +347,16 @@
 				"public": true,
 				"key_format": "t.a:b.c.d"
 			},
-			"notify": {
-				"name": "active-data-index",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
+			"notify": [
+				{
+					"name": "active-data-index",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
 			"transform_type": "bulk",
 			"transformer": "activedata_etl.transforms.cov_to_es.process",
 			"type": "join"
