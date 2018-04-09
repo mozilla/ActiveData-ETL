@@ -294,7 +294,7 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Staging]Problem in Push to ES",
+				"subject": "[ALERT][Staging6]Problem in Push to ES",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
