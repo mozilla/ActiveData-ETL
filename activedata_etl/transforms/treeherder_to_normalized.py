@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from collections import Mapping
+
 from activedata_etl import etl2key, key2etl
 from mo_dots import Data, listwrap, wrap, set_default
 from mo_json import json2value
@@ -71,20 +73,24 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.job.type.name = consume(raw_job, "job_type.name")
     new_treeherder.job.type.description = consume(raw_job, "job_type.description")
     new_treeherder.job.type.symbol = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.symbol"),
         consume(raw_job, "signature.job_type_symbol")
     )
     new_treeherder.job.type.name = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.name"),
         consume(raw_job, "signature.job_type_name")
     )
     new_treeherder.job.type.group.symbol = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.job_group.symbol"),
         consume(raw_job, "signature.job_group_symbol"),
         consume(raw_job, "job_group.symbol")
     )
 
     new_treeherder.job.type.group.name = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "job_type.job_group.name"),
         consume(raw_job, "job_type.job_group"),
         consume(raw_job, "signature.job_group_name"),
@@ -98,6 +104,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     # BUILD
     new_treeherder.build.branch = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "repository"),
         consume(raw_job, "signature.repository")
     )
@@ -106,14 +113,17 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.build.date = consume(raw_job, "push.time")
 
     new_treeherder.build.platform = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.platform"),
         consume(raw_job, "signature.build_platform")
     )
     new_treeherder.build.os = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.os_name"),
         consume(raw_job, "signature.build_os_name")
     )
     new_treeherder.build.architecture = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "build_platform.architecture"),
         consume(raw_job, "signature.build_architecture")
     )
@@ -137,6 +147,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
     new_treeherder.run.machine.architecture = consume(raw_job, "signature.machine_architecture")
     new_treeherder.run.machine.platform = coalesce_w_conflict_detection(
+        source_key,
         consume(raw_job, "machine_platform"),
         consume(raw_job, "signature.machine_platform")
     )
@@ -166,6 +177,8 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
+    pull_job_log(source_key, consume(raw_treeherder.job, "job_log"), new_treeherder)
+
     consume(raw_job, "push")
     consume(raw_job, "running_eta")
     consume(raw_job, "who")
@@ -174,7 +187,11 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     consume(raw_job, "signature.signature")
     pull_details(source_key, consume(raw_treeherder.job, "job_detail"), new_treeherder)
 
-    new_treeherder.run.taskcluster.id = coalesce_w_conflict_detection(new_treeherder.run.taskcluster.id, consume(raw_job, "taskcluster_metadata.task_id"))
+    new_treeherder.run.taskcluster.id = coalesce_w_conflict_detection(
+        source_key,
+        new_treeherder.run.taskcluster.id,
+        consume(raw_job, "taskcluster_metadata.task_id")
+    )
     new_treeherder.run.taskcluster.retry_id = consume(raw_job, "taskcluster_metadata.retry_id")
 
     pull_options(source_key, raw_treeherder, new_treeherder)
@@ -210,11 +227,22 @@ _option_map = {
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "make": ["make"],
-    "nostylo": ["nostylo"],
+    "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
 }
 
+
+
+def pull_job_log(source_key, job_log, new_treeherder):
+    for d in listwrap(job_log):
+        for f in listwrap(d.failure_line):
+            f.message = None
+            f.job_guid = None
+            f.stackwalk_stdout = None
+            f.stackwalk_stderr = None
+            f.subtest = None
+    new_treeherder.job_log = job_log
 
 
 def pull_details(source_key, details, new_treeherder):
@@ -274,6 +302,8 @@ def coalesce_w_conflict_detection(source_key, *args):
     for a in args:
         if a == None:
             continue
+        if isinstance(a, Mapping) and not a:
+            continue
         if output == None:
             output = a
         elif a != output:
@@ -298,5 +328,6 @@ KNOWN_VALUES = [
     "The following arguments ",
     "Tests will be run from the following files:",
     "gaia_revlink: ",
-    "Unknown: "
+    "Unknown: ",
+    "\t--this-chunk=1 --total-chunks=1 -- tests/web-platform/tests/streams/readable-streams/default-reader.dedicatedworker.html tes"
 ]

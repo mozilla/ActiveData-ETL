@@ -12,7 +12,6 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.transforms import download_file
 from mo_dots import wrap, unwraplist, set_default
 from mo_files import TempDirectory
@@ -34,9 +33,6 @@ urls_w_uncoverable_lines = set()
 
 
 def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
-
-    if not resources.file_mapper:
-        resources.file_mapper = FileMapper(task_cluster_record)
 
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
@@ -72,6 +68,8 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             },
             task_cluster_record
         )
+        resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, new_record.source.file)
+
         return new_record
 
     def process_source_file(parent_etl, count, obj):

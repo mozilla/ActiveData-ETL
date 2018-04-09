@@ -33,14 +33,3 @@ class TestJsdov(unittest.TestCase):
             artifact_etl=Null,
             please_stop=Null
         )
-
-    # def test_etl_block(self):
-    #     source = Data(read_lines=lambda: PublicBucket("https://s3-us-west-2.amazonaws.com/active-data-task-cluster-normalized").read_lines("tc.1051816:105180763.json.gz"))
-    #     destination = Destination("results/ccov/lcov_output.gz")
-    #
-    #     cov_to_es.process(
-    #         "tc.1051816",
-    #         source=source,
-    #         destination=destination,
-    #         resources=Null,
-    #     )

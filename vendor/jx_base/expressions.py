@@ -17,10 +17,10 @@ from collections import Mapping
 from decimal import Decimal
 
 import mo_json
-from jx_base import OBJECT, python_type_to_json_type, BOOLEAN, NUMBER, INTEGER, STRING
+from jx_base import OBJECT, python_type_to_json_type, BOOLEAN, NUMBER, INTEGER, STRING, IS_NULL
 from jx_base.queries import is_variable_name, get_property_name
 from mo_dots import coalesce, wrap, Null, split_field
-from mo_future import text_type, utf8_json_encoder, get_function_name
+from mo_future import text_type, utf8_json_encoder, get_function_name, zip_longest
 from mo_json import scrub
 from mo_logs import Log, Except
 from mo_math import Math, MAX, MIN, UNION
@@ -60,6 +60,8 @@ def jx_expression(expr, schema=None):
         return output
     for v in output.vars():
         leaves = schema.leaves(v.var)
+        if len(leaves) == 0:
+            v.data_type = IS_NULL
         if len(leaves) == 1:
             v.data_type = list(leaves)[0].type
     return output
@@ -72,7 +74,9 @@ def _jx_expression(expr):
     if isinstance(expr, Expression):
         Log.error("Expecting JSON, not expression")
 
-    if expr in (True, False, None) or expr == None or isinstance(expr, (float, int, Decimal, Date)):
+    if expr is None:
+        return TRUE
+    elif expr in (True, False, None) or expr == None or isinstance(expr, (float, int, Decimal, Date)):
         return Literal(None, expr)
     elif isinstance(expr, text_type):
         return Variable(expr)
@@ -269,7 +273,11 @@ class Variable(Expression):
         return self.var.__hash__()
 
     def __eq__(self, other):
-        return self.var.__eq__(other)
+        if isinstance(other, Variable):
+            return self.var == other.var
+        elif isinstance(other, text_type):
+            return self.var == other
+        return False
 
     def __unicode__(self):
         return self.var
@@ -417,12 +425,13 @@ class ScriptOp(Expression):
     ONLY FOR WHEN YOU TRUST THE SCRIPT SOURCE
     """
 
-    def __init__(self, op, script):
+    def __init__(self, op, script, data_type=OBJECT):
         Expression.__init__(self, op, None)
         if not isinstance(script, text_type):
             Log.error("expecting text of a script")
         self.simplified = True
         self.script = script
+        self.data_type = data_type
 
     @classmethod
     def define(cls, expr):
@@ -551,6 +560,7 @@ class Literal(Expression):
     def partial_eval(self):
         return self
 ZERO = Literal("literal", 0)
+ONE = Literal("literal", 1)
 
 
 class NullOp(Literal):
@@ -719,7 +729,10 @@ class DateOp(Literal):
     def __init__(self, op, term):
         if hasattr(self, "date"):
             return
-        self.date = term
+        if isinstance(term, text_type):
+            self.date = term
+        else:
+            self.date = coalesce(term.literal, term)
         v = unicode2Date(self.date)
         if isinstance(v, Date):
             Literal.__init__(self, op, v.unix)
@@ -926,7 +939,11 @@ class FloorOp(Expression):
 
     def __init__(self, op, terms, default=NULL):
         Expression.__init__(self, op, terms)
-        self.lhs, self.rhs = terms
+        if len(terms) == 1:
+            self.lhs = terms[0]
+            self.rhs = ONE
+        else:
+            self.lhs, self.rhs = terms
         self.default = default
 
     def __data__(self):
@@ -981,6 +998,11 @@ class EqOp(Expression):
             return {"eq": {self.lhs.var, self.rhs.value}}
         else:
             return {"eq": [self.lhs.__data__(), self.rhs.__data__()]}
+
+    def __eq__(self, other):
+        if isinstance(other, EqOp):
+            return self.lhs == other.lhs and self.rhs == other.rhs
+        return False
 
     def vars(self):
         return self.lhs.vars() | self.rhs.vars()
@@ -1132,6 +1154,11 @@ class AndOp(Expression):
 
     def __data__(self):
         return {"and": [t.__data__() for t in self.terms]}
+
+    def __eq__(self, other):
+        if isinstance(other, AndOp):
+            return all(a == b for a, b in zip_longest(self.terms, other.terms))
+        return False
 
     def vars(self):
         output = set()
@@ -1986,30 +2013,30 @@ class SuffixOp(Expression):
     def __init__(self, op, term):
         Expression.__init__(self, op, term)
         if not term:
-            self.term = self.suffix = None
+            self.expr = self.suffix = None
         elif isinstance(term, Mapping):
-            self.term, self.suffix = term.items()[0]
+            self.expr, self.suffix = term.items()[0]
         else:
-            self.term, self.suffix = term
+            self.expr, self.suffix = term
 
     def __data__(self):
-        if self.term is None:
+        if self.expr is None:
             return {"suffix": {}}
-        elif isinstance(self.term, Variable) and isinstance(self.suffix, Literal):
-            return {"suffix": {self.term.var: self.suffix.value}}
+        elif isinstance(self.expr, Variable) and isinstance(self.suffix, Literal):
+            return {"suffix": {self.expr.var: self.suffix.value}}
         else:
-            return {"suffix": [self.term.__data__(), self.suffix.__data__()]}
+            return {"suffix": [self.expr.__data__(), self.suffix.__data__()]}
 
     def vars(self):
-        if self.term is None:
+        if self.expr is None:
             return set()
-        return self.term.vars() | self.suffix.vars()
+        return self.expr.vars() | self.suffix.vars()
 
     def map(self, map_):
-        if self.term is None:
+        if self.expr is None:
             return TRUE
         else:
-            return SuffixOp("suffix", [self.term.map(map_), self.suffix.map(map_)])
+            return SuffixOp("suffix", [self.expr.map(map_), self.suffix.map(map_)])
 
 
 class ConcatOp(Expression):

@@ -12,19 +12,20 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 import requests
-from activedata_etl import etl2key
-from mo_future import text_type
-from jx_python import jx
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
-from mo_json import json2value, value2json
-from mo_logs import Log, machine_metadata, strings
-from mo_math import Math
 
+from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
+from activedata_etl.imports.task import decode_metatdata_name, minimize_task
 from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from jx_python import jx
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
+from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
+from mo_json import json2value, value2json
+from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import suppress_exception, Except
+from mo_math import Math
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
 from pyLibrary import convert
@@ -214,7 +215,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.capabilities = consume(task, "payload.capabilities")
 
     image = consume(task, "payload.image")
-    if isinstance(image, basestring):
+    if isinstance(image, text_type):
         output.task.image = {"path": image}
     else:
         output.task.image = image
@@ -277,10 +278,10 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                         a.name = a.path
             output.task.artifacts = artifacts
         else:
-            output.task.artifacts = unwraplist(_object_to_array(artifacts, "name"))
+            output.task.artifacts = _object_to_array(artifacts, "name")
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
-    output.task.cache = unwraplist(_object_to_array(task.payload.cache, "name", "path"))
+    output.task.cache = _object_to_array(task.payload.cache, "name", "path")
     try:
         command = consume(task, "payload.command")
         cmd = consume(task, "payload.cmd")
@@ -295,12 +296,17 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.tags = get_tags(source_key, output.task.id, task)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
+    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
 
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()]) - new_seen_tc_properties
     if remaining_keys:
         map(new_seen_tc_properties.add, remaining_keys)
         Log.warning("Some properties ({{props|json}}) are not consumed while processing key {{key}}", key=source_key, props=remaining_keys)
+
+    # TODO: make a list of required properties for all tests and builds
+    if not output.build.platform and output.run.name.startswith("test-"):
+        Log.warning("Task is missing build.platform while processing key {{key}}", key=source_key)
 
     return output
 
@@ -328,12 +334,6 @@ def _normalize_run(source_key, normalized, task, env):
     """
 
     run_type = []
-    metadata_name = consume(task, "metadata.name")
-    if "-e10s" in metadata_name:
-        metadata_name = metadata_name.replace("-e10s", "")
-        run_type += ["e10s"]
-    elif "e10s" in metadata_name:
-        Log.error("not expected")
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
@@ -394,6 +394,7 @@ def _normalize_run(source_key, normalized, task, env):
     else:
         fullname = test + "-" + flavor
 
+    metadata_name = consume(task, "metadata.name")
     set_default(
         normalized,
         {"run": {
@@ -404,7 +405,8 @@ def _normalize_run(source_key, normalized, task, env):
             "chunk": chunk,
             "type": unwraplist(list(set(run_type))),
             "timestamp": normalized.task.run.start_time
-        }}
+        }},
+        decode_metatdata_name(source_key, metadata_name)
     )
 
 
@@ -434,6 +436,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "payload.properties.product").lower(),
                 consume(task, "payload.releaseProperties.appName").lower(),
                 consume(task, "tags.build_props.product").lower(),
+                consume(task, "extra.build_props.product").lower(),
                 task.extra.treeherder.productName.lower(),
                 consume(task, "extra.build_product").lower(),
                 consume(task, "extra.product").lower().replace("devedition", "firefox"),
@@ -444,17 +447,19 @@ def set_build_info(source_key, normalized, task, env, resources):
             ),
             "platform": coalesce_w_conflict_detection(
                 source_key,
-                consume(task, "payload.releaseProperties.platform"),
-                task.extra.treeherder.build.platform,
-                # task.extra.treeherder.machine.platform,
+                _simplify_platform(consume(task, "payload.releaseProperties.platform")),
+                _simplify_platform(task.extra.treeherder.build.platform),
+                _simplify_platform(task.extra.treeherder.machine.platform),
+                consume(task, "extra.build_props.platform"),
                 consume(task, "extra.platform")
             ),
             # MOZILLA_BUILD_URL looks like this:
-            # "https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2"
+            # https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2
             "url": env.MOZILLA_BUILD_URL,
             "revision": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "tags.build_props.revision"),
+                consume(task, "extra.build_props.revision"),
                 consume(task, "payload.sourcestamp.revision"),
                 consume(task, "payload.properties.revision"),
                 env.GECKO_HEAD_REV
@@ -462,6 +467,7 @@ def set_build_info(source_key, normalized, task, env, resources):
             "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
             "version": coalesce_w_conflict_detection(
                 source_key,
+                consume(task, "extra.build_props.version"),
                 consume(task, "tags.build_props.version"),
                 consume(task, "payload.releaseProperties.appVersion"),
                 consume(task, "payload.app_version")
@@ -484,6 +490,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.branch = coalesce_w_conflict_detection(
         source_key,
         consume(task, "tags.build_props.branch"),
+        consume(task, "extra.build_props.branch"),
         consume(task, "payload.releaseProperties.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
@@ -493,10 +500,13 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.build.revision12 = normalized.build.revision[0:12]
 
     if normalized.build.revision:
-        normalized.repo = minimize_repo(resources.hg.get_revision(wrap({"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}})))
+        candidate = {"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}
+        normalized.repo = minimize_repo(resources.hg.get_revision(wrap(candidate)))
         if not normalized.repo:
-            Log.error("No repo found for {{rev}}", rev=normalized.build.revision)
-        if not normalized.repo.push.date:
+            Log.warning("No repo found for {{rev}} while processing key={{key}}", key=source_key, rev=candidate)
+            normalized.repo = candidate
+            normalized.repo.changeset.id12 = normalized.build.revision[:12]
+        elif not normalized.repo.push.date:
             Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
 
@@ -521,17 +531,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         if build_task:
             if DEBUG:
                 Log.note("Got build {{build}} for test {{test}}", build=build_task.task.id, test=normalized.task.id)
-            build_task.repo = minimize_repo(build_task.repo)
-            build_task._id = None
-            build_task.task.artifacts = None
-            build_task.task.command = None
-            build_task.task.env = None
-            build_task.task.scopes = None
-            build_task.task.runs = None
-            build_task.task.routes = None
-            build_task.task.tags = None
-            build_task.action.timings = None
-            build_task.etl = None
+            minimize_task(build_task)
             set_default(normalized.build, build_task)
 
 
@@ -668,7 +668,7 @@ def verify_tag(source_key, task_id, t):
 
 
 def coalesce_w_conflict_detection(source_key, *args):
-    if len(args)<2:
+    if len(args) < 2:
         Log.error("bad call to coalesce, expecting source_key as first parameter")
     output = Null
     for a in args:
@@ -682,7 +682,6 @@ def coalesce_w_conflict_detection(source_key, *args):
             pass
     return output
 
-
 def _scrub(record, name):
     value = record[name]
     record[name] = None
@@ -695,11 +694,38 @@ def _scrub(record, name):
 def _object_to_array(value, key_name, value_name=None):
     try:
         if value_name==None:
-            return unwraplist([set_default(v, {key_name: k}) for k, v in value.items()])
+            return unwraplist([
+                set_default(v, {key_name: k})
+                for k, v in value.items()
+            ])
         else:
-            return unwraplist([{key_name: k, value_name: v} for k, v in value.items()])
+            return unwraplist([
+                {
+                    key_name: k,
+                    value_name: strings.limit(v, 1000) if isinstance(v, text_type) else v
+                }
+                for k, v in value.items()
+            ])
     except Exception as e:
         Log.error("unexpected", cause=e)
+
+
+def _simplify_platform(platform):
+    """
+    Used to simplify the number of distracting warnings
+    :param platform: a string
+    :return: A simpler version of platform, or itself
+    return SIMPLER_PLATFORMS.get(platform, platform)
+    """
+
+SIMPLER_PLATFORMS = {
+    "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
+    "android-4-0-armv7-api16": "android-api-16",
+    "linux": "linux32",
+    "osx-cross": "macosx64",
+    "windows2012-32": "win32",
+    "windows2012-64": "win64"
+}
 
 
 BUILD_TYPES = {
@@ -719,7 +745,7 @@ BUILD_TYPES = {
     "memleak": ["memleak"],
     "opt": ["opt"],
     "pgo": ["pgo"],
-    "nostylo": ["nostylo"],
+    "nostylo": ["stylo-disabled"],
     "ubsan": ["ubsan"]
 }
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
@@ -728,11 +754,13 @@ PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
     "appVersion",
+    "archive_domain",
     "artifactsTaskId",
     "balrog_api_root",
     "build_number",
     "chain",
     "CHANNEL",
+    "channel_names",
     "commit",
     "contact",
     "context",
@@ -740,6 +768,7 @@ PAYLOAD_PROPERTIES = {
     "deadline",
     "description",
     "desiredResolution",
+    "download_domain",
     "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
@@ -752,20 +781,19 @@ PAYLOAD_PROPERTIES = {
     "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
+    "partial_versions",
+    "platforms",
     "purpose",
     "release_promotion",
 
     "releaseProperties.hashType",
-
-    "download_domain",
-    "platforms",
-    "require_mirrors",
-    "channel_names",
-    "partial_versions",
-    "rules_to_update",
-    "archive_domain",
-
     "repack_manifests_url",
+    "require_mirrors",
+    "rules_to_update",
+
+    "timeout",
+
+
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
@@ -795,11 +823,11 @@ KNOWN_TAGS = {
     # "build_type",
     # "build_product",
     # "build_props.branch",
-    # "build_props.build_number",
-    # "build_props.release_eta",
-    # "build_props.locales",
-    # "build_props.mozharness_changeset",
-    # "build_props.partials",
+    "build_props.build_number",
+    "build_props.release_eta",
+    "build_props.locales",
+    "build_props.mozharness_changeset",
+    "build_props.partials",
     # "build_props.platform",
     # "build_props.product",
     # "build_props.revision",
@@ -866,7 +894,7 @@ KNOWN_TAGS = {
     "imageMeta.contextHash",
     "imageMeta.imageName",
     "imageMeta.level",
-    "include-version"
+    "include-version",
     "index.data.hello",
     "index.expires",
     "index.rank",
@@ -934,6 +962,9 @@ KNOWN_TAGS = {
     "payload.release_name",
     "platforms",
     "previous-archive-prefix",
+
+    "repack_id",
+    "schedule_at",
     "signed_installer_url",
     "signing.signature",
     "source",

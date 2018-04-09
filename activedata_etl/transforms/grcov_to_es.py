@@ -11,14 +11,13 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
-from mo_future import text_type
-
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import download_file
+from jx_python import jx
 from mo_dots import set_default
 from mo_files import TempFile
+from mo_future import text_type
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
@@ -28,6 +27,7 @@ IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
+TUID_BLOCK_SIZE = 1000
 
 
 def process_grcov_artifact(source_key, resources, destination, grcov_artifact, task_cluster_record, artifact_etl, please_stop):
@@ -36,9 +36,6 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
     """
     if DEBUG:
         Log.note("Processing grcov artifact {{artifact}}", artifact=grcov_artifact.url)
-
-    if not resources.file_mapper:
-        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -69,24 +66,27 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                     for num, zip_name in enumerate(zipped.namelist()):
                         if num == 1:
                             Log.error("expecting only one artifact in the grcov.zip file while processing {{key}}", key=source_key)
-                        for source in parse_lcov_coverage(source_key, grcov_artifact.url, ibytes2ilines(zipped.open(zip_name))):
-                            if please_stop:
-                                return
-                            if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
-                                continue
-                            if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
-                                continue
-                            file_info = resources.file_mapper.find(source_key, source.file.name, grcov_artifact, task_cluster_record)
-                            new_record.source = set_default(
-                                {"file": file_info},
-                                source
-                            )
-                            new_record.etl.id = count
-                            new_record._id = file_id + "." + text_type(count)
-                            count += 1
-                            if DEBUG and (count % 10000 == 0):
-                                Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))
-                            yield value2json(new_record)
+                        for g, sources in jx.groupby(parse_lcov_coverage(source_key, grcov_artifact.url, ibytes2ilines(zipped.open(zip_name))), size=TUID_BLOCK_SIZE):
+                            resources.tuid_mapper.annotate_sources(task_cluster_record.repo.changeset.id, sources)
+
+                            for source in sources:
+                                if please_stop:
+                                    return
+                                if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
+                                    continue
+                                if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
+                                    continue
+                                file_info = resources.file_mapper.find(source_key, source.file.name, grcov_artifact, task_cluster_record)
+                                new_record.source = set_default(
+                                    {"file": file_info},
+                                    source
+                                )
+                                new_record.etl.id = count
+                                new_record._id = file_id + "." + text_type(count)
+                                count += 1
+                                if DEBUG and (count % 10000 == 0):
+                                    Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))
+                                yield value2json(new_record)
             destination.write_lines(file_id, line_gen())
 
         return keys

@@ -17,31 +17,42 @@
 		},
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-		"mo_json.stream.DEBUG": true,
+//		"mo_json.stream.DEBUG": true,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true,
 		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": "http://activedata.allizom.org:9200",
+	"tuid": {
+		"endpoint": "http://54.149.21.8/tuid",
+		"timeout": 30,
+		"request_queue": {
+			"name": "active-data-tuid-dev",
+			"debug": true,
+			"$ref": "file://~/private.json#aws_credentials"
+		}
+	},
 	"hg": {
 		"use_cache": true,
 		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://34.215.198.169",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
+			"tjson": true,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://34.215.198.169",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
+			"tjson": true,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
@@ -210,6 +221,28 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transformer": "activedata_etl.transforms.pulse_block_to_perfherder_logs.process",
+			"type": "join",
+			"transform_type": "bulk"
+		},
+		{
+			"name": "taskcluster to perfherder",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-normalized",
+				"public": true,
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-perfherder",
+				"public": true,
+				"key_format": "t.a:b.c"
+			},
+			"notify": {
+				"name": "active-data-etl",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"transformer": "activedata_etl.transforms.task_cluster_to_perfherder.process",
 			"type": "join",
 			"transform_type": "bulk"
 		},

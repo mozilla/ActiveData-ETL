@@ -11,18 +11,16 @@ from __future__ import unicode_literals
 
 from mo_future import text_type
 from mo_dots import coalesce, wrap
-from pyLibrary import aws
-from pyLibrary.aws import s3
+from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
-from mo_logs import Log
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.git import get_remote_revision
 from mo_math import Math, MAX, MIN
-from jx_python import jx
-from jx_base.expressions import jx_expression
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary import aws
+from pyLibrary.aws import s3
+from pyLibrary.env import elasticsearch
+from pyLibrary.env.git import get_remote_revision
 
 
 def diff(settings, please_stop=None):
@@ -44,7 +42,7 @@ def diff(settings, please_stop=None):
         rev = get_remote_revision(settings.git.url, settings.git.branch)
         es_filter = {"prefix": {"etl.revision": rev[0:12]}}
     else:
-        es_filter = {"match_all": {}}
+        es_filter = coalesce(settings.es_filter, {"match_all": {}})
 
     # EVERYTHING FROM ELASTICSEARCH
     in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
@@ -94,14 +92,12 @@ def get_all_in_es(es, in_range, es_filter, field):
     es_query = wrap({
         "aggs": {
             "_filter": {
-                "filter": {"and": [
-                    es_filter
-                ]},
+                "filter": jx_expression(es_filter).to_esfilter(),
                 "aggs": {
                     "_match": {
                         "terms": {
                             # "field": field,
-                            "script": jx_expression({"string": field}).to_ruby(),
+                            "script": StringOp("string", Variable(field)).to_ruby(),
                             "size": 200000
                         }
                     }

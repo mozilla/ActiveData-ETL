@@ -15,28 +15,21 @@ import re
 from collections import Mapping
 from copy import deepcopy
 
-import mo_json
-from jx_python.meta import Column
 from jx_python import jx
 from jx_python.expressions import jx_expression_to_function
-from mo_dots import coalesce, Null, Data, set_default, listwrap, literal_field, ROOT_PATH, concat_field, split_field
-from mo_dots import wrap
-from mo_dots.lists import FlatList
+from jx_python.meta import Column
+from mo_dots import wrap, FlatList, coalesce, Null, Data, set_default, listwrap, literal_field, ROOT_PATH, concat_field, split_field
 from mo_future import text_type, binary_type
-from mo_json import value2json
+from mo_json import value2json, json2value
 from mo_json.typed_encoder import EXISTS_TYPE, BOOLEAN_TYPE, STRING_TYPE, NUMBER_TYPE, NESTED_TYPE, TYPE_PREFIX
 from mo_kwargs import override
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
-from mo_logs.strings import utf82unicode
+from mo_logs.strings import utf82unicode, unicode2utf8
 from mo_math import Math
 from mo_math.randoms import Random
-from mo_threads import Lock
-from mo_threads import ThreadedQueue
-from mo_threads import Till
-from mo_times.dates import Date
-from mo_times.timer import Timer
-
+from mo_threads import Lock, ThreadedQueue, Till
+from mo_times import Date, Timer
 from pyLibrary import convert
 from pyLibrary.env import http
 
@@ -44,6 +37,8 @@ ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
 INDEX_DATE_FORMAT = "%Y%m%d_%H%M%S"
+
+DATA_KEY = text_type("data")
 
 
 class Features(object):
@@ -83,16 +78,11 @@ class Index(Features):
     ):
         if index==None:
             Log.error("not allowed")
-        # if index == alias:
-        #     Log.error("must have a unique index name")
 
-        self.cluster_state = None
+        self.info = None
         self.debug = debug
         self.settings = kwargs
-        if cluster:
-            self.cluster = cluster
-        else:
-            self.cluster = Cluster(kwargs)
+        self.cluster = cluster or Cluster(kwargs)
 
         try:
             full_index = self.get_index(index)
@@ -131,9 +121,17 @@ class Index(Features):
             self.encode = TypedInserter(self, id_column).typed_encode
         else:
             if tjson == None and not read_only:
-                kwargs.tjson = False
-                Log.warning("{{index}} is not typed tjson={{tjson}}", index=self.settings.index, tjson=self.settings.tjson)
-            self.encode = get_encoder(id_column)
+                props = self.get_properties()
+                if props[EXISTS_TYPE]:
+                    kwargs.tjson=True
+                    from pyLibrary.env.typed_inserter import TypedInserter
+                    self.encode = TypedInserter(self, id_column).typed_encode
+                else:
+                    kwargs.tjson = False
+                    Log.warning("{{index}} is not typed tjson={{tjson}}", index=self.settings.index, tjson=self.settings.tjson)
+                    self.encode = get_encoder(id_column)
+            else:
+                self.encode = get_encoder(id_column)
 
     @property
     def url(self):
@@ -146,7 +144,7 @@ class Index(Features):
 
             if index == None and retry:
                 #TRY AGAIN, JUST IN CASE
-                self.cluster.cluster_state = None
+                self.cluster.info = None
                 return self.get_properties(retry=False)
 
             if not index.mappings[self.settings.type]:
@@ -184,7 +182,7 @@ class Index(Features):
 
     def add_alias(self, alias=None):
         alias = coalesce(alias, self.settings.alias)
-        self.cluster_state = None
+        self.info = None
         self.cluster.post(
             "/_aliases",
             data={
@@ -192,7 +190,8 @@ class Index(Features):
                     {"add": {"index": self.settings.index, "alias": alias}}
                 ]
             },
-            timeout=coalesce(self.settings.timeout, 30)
+            timeout=coalesce(self.settings.timeout, 30),
+            stream=False
         )
         self.settings.alias = alias
 
@@ -253,32 +252,62 @@ class Index(Features):
             Log.error("Index opened in read only mode, no changes allowed")
         self.cluster.get_metadata()
 
-        if self.cluster.cluster_state.version.number.startswith("0.90"):
+        if self.debug:
+            Log.note("Delete bugs:\n{{query}}", query=filter)
+
+        if self.cluster.info.version.number.startswith("0.90"):
             query = {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.cluster_state.version.number.startswith("1."):
+
+            result = self.cluster.delete(
+                self.path + "/_query",
+                data=value2json(query),
+                timeout=600,
+                params={"consistency": self.settings.consistency}
+            )
+            for name, status in result._indices.items():
+                if status._shards.failed > 0:
+                    Log.error("Failure to delete from {{index}}", index=name)
+
+        elif self.cluster.info.version.number.startswith("1."):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}}
+
+            result = self.cluster.delete(
+                self.path + "/_query",
+                data=value2json(query),
+                timeout=600,
+                params={"consistency": self.settings.consistency}
+            )
+            for name, status in result._indices.items():
+                if status._shards.failed > 0:
+                    Log.error("Failure to delete from {{index}}", index=name)
+
+        elif self.cluster.info.version.number.startswith(("5.", "6.")):
+            query = {"query": filter}
+
+            wait_for_active_shards = coalesce(  # EARLIER VERSIONS USED "consistency" AS A PARAMETER
+                self.settings.wait_for_active_shards,
+                {"one": 1, None: None}[self.settings.consistency]
+            )
+
+            result = self.cluster.post(
+                self.path + "/_delete_by_query",
+                json=query,
+                timeout=600,
+                params={"wait_for_active_shards": wait_for_active_shards}
+            )
+
+            if result.failures:
+                Log.error("Failure to delete fom {{index}}:\n{{data|pretty}}", index=self.settings.index, data=result)
+
         else:
             raise NotImplementedError
 
-        if self.debug:
-            Log.note("Delete bugs:\n{{query}}",  query= query)
-
-        result = self.cluster.delete(
-            self.path + "/_query",
-            data=value2json(query),
-            timeout=600,
-            params={"consistency": self.settings.consistency}
-        )
-
-        for name, status in result._indices.items():
-            if status._shards.failed > 0:
-                Log.error("Failure to delete from {{index}}", index=name)
 
 
     def extend(self, records):
@@ -294,8 +323,8 @@ class Index(Features):
         try:
             for r in records:
                 rec = self.encode(r)
-                json_bytes = rec['json'].encode('utf8')
-                lines.append(b'{"index":{"_id": ' + convert.value2json(rec['id']).encode("utf8") + b'}}')
+                json_bytes = rec['json']
+                lines.append('{"index":{"_id": ' + convert.value2json(rec['id']) + '}}')
                 lines.append(json_bytes)
 
             del records
@@ -305,7 +334,7 @@ class Index(Features):
 
             with Timer("Add {{num}} documents to {{index}}", {"num": len(lines) / 2, "index":self.settings.index}, debug=self.debug):
                 try:
-                    data_bytes = b"\n".join(l for l in lines) + b"\n"
+                    data_string = "\n".join(l for l in lines) + "\n"
                 except Exception as e:
                     raise Log.error("can not make request body from\n{{lines|indent}}", lines=lines, cause=e)
 
@@ -316,7 +345,7 @@ class Index(Features):
 
                 response = self.cluster.post(
                     self.path + "/_bulk",
-                    data=data_bytes,
+                    data=data_string,
                     headers={"Content-Type": "application/x-ndjson"},
                     timeout=self.settings.timeout,
                     retry=self.settings.retry,
@@ -344,7 +373,7 @@ class Index(Features):
                                 status=items[i].index.status,
                                 error=items[i].index.error,
                                 some=len(fails) - 1,
-                                line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
+                                line=strings.limit(lines[i * 2 + 1], 500 if not self.debug else 100000),
                                 index=self.settings.index,
                                 tjson=self.settings.tjson,
                                 id=items[i].index._id
@@ -358,7 +387,7 @@ class Index(Features):
                             status=items[i].index.status,
                             error=items[i].index.error,
                             some=len(fails) - 1,
-                            line=strings.limit(lines[i * 2 + 1].decode('utf8'), 500 if not self.debug else 100000),
+                            line=strings.limit(lines[i * 2 + 1], 500 if not self.debug else 100000),
                             index=self.settings.index,
                             tjson=self.settings.tjson,
                             id=items[i].index._id
@@ -366,9 +395,10 @@ class Index(Features):
                     Log.error("Problems with insert", cause=cause)
 
         except Exception as e:
+            e = Except.wrap(e)
             if e.message.startswith("sequence item "):
                 Log.error("problem with {{data}}", data=text_type(repr(lines[int(e.message[14:16].strip())])), cause=e)
-            Log.error("problem sending to ES", e)
+            Log.error("problem sending to ES", cause=e)
 
     # RECORDS MUST HAVE id AND json AS A STRING OR
     # HAVE id AND value AS AN OBJECT
@@ -400,7 +430,7 @@ class Index(Features):
                 **kwargs
             )
 
-            result = mo_json.json2value(utf82unicode(response.all_content))
+            result = json2value(utf82unicode(response.all_content))
             if not result.ok:
                 Log.error("Can not set refresh interval ({{error}})", {
                     "error": utf82unicode(response.all_content)
@@ -408,7 +438,7 @@ class Index(Features):
         elif self.cluster.version.startswith(("1.4.", "1.5.", "1.6.", "1.7.", "5.", "6.")):
             result = self.cluster.put(
                 "/" + self.settings.index + "/_settings",
-                data=convert.unicode2utf8('{"index":{"refresh_interval":' + value2json(interval) + '}}'),
+                data=unicode2utf8('{"index":{"refresh_interval":' + value2json(interval) + '}}'),
                 **kwargs
             )
 
@@ -475,8 +505,6 @@ class Index(Features):
             error_target=errors
         )
 
-    def delete(self):
-        self.cluster.delete_index(index_name=self.settings.index)
 
 
 HOPELESS = [
@@ -515,7 +543,7 @@ class Cluster(object):
             return
 
         self.settings = kwargs
-        self.cluster_state = None
+        self.info = None
         self._metadata = None
         self.metadata_locker = Lock()
         self.debug = kwargs.debug
@@ -602,10 +630,6 @@ class Cluster(object):
                 kwargs.alias = kwargs.index
                 kwargs.index = best.index
 
-            if tjson is None:
-                metadata = self.get_metadata()
-                metadata[kwargs.index]
-
             return Index(kwargs=kwargs, cluster=self)
 
     def get_alias(self, alias):
@@ -633,6 +657,20 @@ class Cluster(object):
         ])
         return output
 
+    def delete_all_but(self, prefix, name):
+        """
+        :param prefix: INDEX MUST HAVE THIS AS A PREFIX AND THE REMAINDER MUST BE DATE_TIME
+        :param name: INDEX WITH THIS NAME IS NOT DELETED
+        :return:
+        """
+        if prefix == name:
+            Log.note("{{index_name}} will not be deleted", {"index_name": prefix})
+        for a in self.get_aliases():
+            # MATCH <prefix>YYMMDD_HHMMSS FORMAT
+            if re.match(re.escape(prefix) + "\\d{8}_\\d{6}", a.index) and a.index != name:
+                self.delete_index(a.index)
+
+
     @override
     def create_index(
         self,
@@ -659,28 +697,30 @@ class Cluster(object):
         if schema == None:
             Log.error("Expecting a schema")
         elif isinstance(schema, text_type):
-            Log.error("Expecting a schema")
-        elif self.version.startswith("5."):
-            schema.settings.index.max_inner_result_window = None  # NOT ACCEPTED BY ES5
-            schema = mo_json.json2value(value2json(schema), leaves=True)
-        elif self.version.startswith("6."):
-            schema = mo_json.json2value(value2json(schema), leaves=True)
-        else:
-            schema = retro_schema(mo_json.json2value(value2json(schema), leaves=True))
+            Log.error("Expecting a JSON schema")
 
-        for m in schema.mappings.values():
+        for k, m in list(schema.mappings.items()):
             if tjson:
-                m.properties[EXISTS_TYPE] = {"type": "long", "store": True}
-            m.dynamic_templates = DEFAULT_DYNAMIC_TEMPLATES + m.dynamic_templates + [{
-                "default_all": {
-                    "mapping": {"store": True},
-                    "match": "*"
-                }
-            }]
+                schema.mappings[k] = add_typed_annotations(m)
+
+            schema.mappings[k].date_detection = False  # DISABLE DATE DETECTION
+            schema.mappings[k].dynamic_templates = (
+                DEFAULT_DYNAMIC_TEMPLATES +
+                m.dynamic_templates
+            )
+
+        if self.version.startswith("5."):
+            schema.settings.index.max_inner_result_window = None  # NOT ACCEPTED BY ES5
+            schema = json2value(value2json(schema), leaves=True)
+        elif self.version.startswith("6."):
+            schema = json2value(value2json(schema), leaves=True)
+        else:
+            schema = retro_schema(json2value(value2json(schema), leaves=True))
+
 
         if limit_replicas:
             # DO NOT ASK FOR TOO MANY REPLICAS
-            health = self.get("/_cluster/health")
+            health = self.get("/_cluster/health", stream=False)
             if schema.settings.index.number_of_replicas >= health.number_of_nodes:
                 if limit_replicas_warning:
                     Log.warning(
@@ -693,13 +733,14 @@ class Cluster(object):
         self.put(
             "/" + index,
             data=schema,
-            headers={"Content-Type": "application/json"}
+            headers={text_type("Content-Type"): text_type("application/json")},
+            stream=False
         )
 
         # CONFIRM INDEX EXISTS
         while True:
             try:
-                state = self.get("/_cluster/state", retry={"times": 5}, timeout=3)
+                state = self.get("/_cluster/state", retry={"times": 5}, timeout=3, stream=False)
                 if index in state.metadata.indices:
                     self._metadata = None
                     break
@@ -732,7 +773,7 @@ class Cluster(object):
             response = http.delete(url)
             if response.status_code != 200:
                 Log.error("Expecting a 200, got {{code}}", code=response.status_code)
-            details = mo_json.json2value(utf82unicode(response.content))
+            details = json2value(utf82unicode(response.content))
             if self.debug:
                 Log.note("delete response {{response}}", response=details)
             return response
@@ -744,7 +785,7 @@ class Cluster(object):
         RETURN LIST OF {"alias":a, "index":i} PAIRS
         ALL INDEXES INCLUDED, EVEN IF NO ALIAS {"alias":Null}
         """
-        data = self.get("/_aliases", retry={"times": 5}, timeout=3)
+        data = self.get("/_aliases", retry={"times": 5}, timeout=3, stream=False)
         output = []
         for index, desc in data.items():
             if not desc["aliases"]:
@@ -759,7 +800,7 @@ class Cluster(object):
             Log.error("Metadata exploration has been disabled")
 
         if not self._metadata or force:
-            response = self.get("/_cluster/state", retry={"times": 3}, timeout=30)
+            response = self.get("/_cluster/state", retry={"times": 3}, timeout=30, stream=False)
             with self.metadata_locker:
                 self._metadata = wrap(response.metadata)
                 # REPLICATE MAPPING OVER ALL ALIASES
@@ -769,8 +810,8 @@ class Cluster(object):
                     for a in m.aliases:
                         if not indices[a]:
                             indices[a] = m
-                self.cluster_state = wrap(self.get("/"))
-                self.version = self.cluster_state.version.number
+                self.info = wrap(self.get("/", stream=False))
+                self.version = self.info.version.number
             return self._metadata
 
         return self._metadata
@@ -783,16 +824,18 @@ class Cluster(object):
             heads["Accept-Encoding"] = "gzip,deflate"
             heads["Content-Type"] = "application/json"
 
-            data = kwargs.get(b'data')
+            data = kwargs.get(DATA_KEY)
             if data == None:
                 pass
             elif isinstance(data, Mapping):
-                kwargs[b'data'] = data = convert.unicode2utf8(value2json(data))
-            elif not isinstance(kwargs[b"data"], str):
+                kwargs[DATA_KEY] = unicode2utf8(value2json(data))
+            elif isinstance(data, text_type):
+                kwargs[DATA_KEY] = unicode2utf8(data)
+            else:
                 Log.error("data must be utf8 encoded string")
 
             if self.debug:
-                sample = kwargs.get(b'data', "")[:300]
+                sample = kwargs.get(DATA_KEY, b"")[:300]
                 Log.note("{{url}}:\n{{data|indent}}", url=url, data=sample)
 
             if self.debug:
@@ -802,7 +845,7 @@ class Cluster(object):
                 Log.error(response.reason.decode("latin1") + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
             if self.debug:
                 Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
-            details = mo_json.json2value(utf82unicode(response.content))
+            details = json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
@@ -817,11 +860,11 @@ class Cluster(object):
             else:
                 suggestion = ""
 
-            if kwargs.get("data"):
+            if kwargs.get(DATA_KEY):
                 Log.error(
                     "Problem with call to {{url}}" + suggestion + "\n{{body|left(10000)}}",
                     url=url,
-                    body=strings.limit(kwargs["data"].decode('utf8'), 100 if self.debug else 10000),
+                    body=strings.limit(kwargs[DATA_KEY], 100 if self.debug else 10000),
                     cause=e
                 )
             else:
@@ -835,7 +878,7 @@ class Cluster(object):
                 Log.error(response.reason+": "+response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
-            details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
+            details = wrap(json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -852,7 +895,7 @@ class Cluster(object):
                 Log.error(response.reason + ": " + response.all_content)
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
-            details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
+            details = wrap(json2value(utf82unicode(response.all_content)))
             if details.error:
                 Log.error(details.error)
             return details
@@ -868,7 +911,7 @@ class Cluster(object):
             if self.debug:
                 Log.note("response: {{response}}", response=strings.limit(utf82unicode(response.all_content), 130))
             if response.all_content:
-                details = wrap(mo_json.json2value(utf82unicode(response.all_content)))
+                details = wrap(json2value(utf82unicode(response.all_content)))
                 if details.error:
                     Log.error(details.error)
                 return details
@@ -881,35 +924,37 @@ class Cluster(object):
         url = self.settings.host + ":" + text_type(self.settings.port) + path
 
         heads = wrap(kwargs).headers
-        heads[b"Accept-Encoding"] = b"gzip,deflate"
-        heads[b"Content-Type"] = b"application/json"
+        heads[text_type("Accept-Encoding")] = text_type("gzip,deflate")
+        heads[text_type("Content-Type")] = text_type("application/json")
 
-        data = kwargs.get(b'data')
+        data = kwargs.get(DATA_KEY)
         if data == None:
             pass
         elif isinstance(data, Mapping):
-
-            kwargs[b'data'] = data = convert.unicode2utf8(convert.value2json(data))
-        elif not isinstance(kwargs["data"], str):
+            kwargs[DATA_KEY] = unicode2utf8(convert.value2json(data))
+        elif isinstance(kwargs[DATA_KEY], text_type):
+            pass
+        else:
             Log.error("data must be utf8 encoded string")
 
         if self.debug:
-            sample = kwargs.get(b'data', "")[:1000]
+            sample = kwargs.get(DATA_KEY, "")[:1000]
             Log.note("{{url}}:\n{{data|indent}}", url=url, data=sample)
         try:
             response = http.put(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason+": "+response.all_content)
+                Log.error(response.reason + ": " + utf82unicode(response.all_content))
             if self.debug:
-                Log.note("response: {{response}}",  response= utf82unicode(response.all_content)[0:300:])
+                Log.note("response: {{response}}", response=utf82unicode(response.all_content)[0:300:])
 
-            details = mo_json.json2value(utf82unicode(response.content))
+            details = json2value(utf82unicode(response.content))
             if details.error:
                 Log.error(convert.quote2string(details.error))
             if details._shards.failed > 0:
-                Log.error("Shard failures {{failures|indent}}",
-                          failures="---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)
-                          )
+                Log.error(
+                    "Shard failures {{failures|indent}}",
+                    failures="---\n".join(r.replace(";", ";\n") for r in details._shards.failures.reason)
+                )
             return details
         except Exception as e:
             Log.error("Problem with call to {{url}}", url=url, cause=e)
@@ -1054,7 +1099,7 @@ class Alias(Features):
 
             if index == None and retry:
                 #TRY AGAIN, JUST IN CASE
-                self.cluster.cluster_state = None
+                self.cluster.info = None
                 return self.get_schema(retry=False)
 
             #TODO: REMOVE THIS BUG CORRECTION
@@ -1078,12 +1123,12 @@ class Alias(Features):
     def delete(self, filter):
         self.cluster.get_metadata()
 
-        if self.cluster.cluster_state.version.number.startswith("0.90"):
+        if self.cluster.info.version.number.startswith("0.90"):
             query = {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
             }}
-        elif self.cluster.cluster_state.version.number.startswith("1."):
+        elif self.cluster.info.version.number.startswith("1."):
             query = {"query": {"filtered": {
                 "query": {"match_all": {}},
                 "filter": filter
@@ -1286,23 +1331,10 @@ def retro_schema(schema):
     output = wrap({
         "mappings":{
             typename: {
-                "dynamic_templates": (
-                    [
-                        retro_dynamic_template(*(t.items()[0])) for t in details.dynamic_templates
-                    ] + [
-                        {
-                            "default_strings": {
-                                "mapping": {
-                                    "index": "not_analyzed",
-                                    "type": "keyword",
-                                    "store": True
-                                },
-                                "match_mapping_type": "string",
-                                "match": "*"
-                            }
-                        }
-                    ]
-                ),
+                "dynamic_templates": [
+                    retro_dynamic_template(*(t.items()[0]))
+                    for t in details.dynamic_templates
+                ],
                 "properties": retro_properties(details.properties)
             }
             for typename, details in schema.mappings.items()
@@ -1318,6 +1350,9 @@ def retro_dynamic_template(name, template):
         template.mapping.type = "string"
         template.mapping.index = "not_analyzed"
     elif template.mapping.type == "text":
+        template.mapping.type = "string"
+        template.mapping.index = "analyzed"
+    elif template.mapping.type == "string":
         template.mapping.type = "string"
         template.mapping.index = "analyzed"
     return {name: template}
@@ -1339,37 +1374,76 @@ def retro_properties(properties):
         if v.properties:
             v.properties = retro_properties(v.properties)
 
+        if v.fields:
+            v.fields = retro_properties(v.fields)
+            v.fields[k] = {
+                "type": v.type,
+                "index": v.index,
+                "doc_values": v.doc_values,
+                "analyzer": v.analyzer
+            }
+            v.type = "multi_field"
+            v.index = None
+            v.doc_values = None
+            v.analyzer = None
         output[k] = v
     return output
 
 
+def add_typed_annotations(meta):
+    from pyLibrary.env.typed_inserter import json_type_to_inserter_type
+
+    if meta.type in ["text", "keyword", "string", "float", "double", "integer", "nested", "boolean"]:
+        return {
+            "type": "object",
+            "dynamic": True,
+            "properties": {
+                json_type_to_inserter_type[es_type_to_json_type[meta.type]]: meta,
+                EXISTS_TYPE: {"type": "long", "store": True}
+            }
+        }
+    else:
+        output = {}
+        for meta_name, meta_value in meta.items():
+            if meta_name=='properties':
+                output[meta_name]={
+                    prop_name: add_typed_annotations(about) if prop_name not in [BOOLEAN_TYPE, NUMBER_TYPE, STRING_TYPE, BOOLEAN_TYPE] else about
+                    for prop_name, about in meta_value.items()
+                }
+                output[meta_name][EXISTS_TYPE] = {"type": "long", "store": True}
+            else:
+                output[meta_name]=meta_value
+
+        return output
+
+
 DEFAULT_DYNAMIC_TEMPLATES = wrap([
     {
-        "default_boolean": {
+        "default_typed_boolean": {
             "mapping": {"type": "boolean", "store": True},
             "match": BOOLEAN_TYPE
         }
     },
     {
-        "default_number": {
+        "default_typed_number": {
             "mapping": {"type": "double", "store": True},
             "match": NUMBER_TYPE
         }
     },
     {
-        "default_string": {
+        "default_typed_string": {
             "mapping": {"type": "keyword", "store": True},
             "match": STRING_TYPE
         }
     },
     {
-        "default_exist": {
+        "default_typed_exist": {
             "mapping": {"type": "long", "store": True},
             "match": EXISTS_TYPE
         }
     },
     {
-        "default_nested": {
+        "default_typed_nested": {
             "mapping": {"type": "nested", "store": True},
             "match": NESTED_TYPE
         }

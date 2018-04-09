@@ -98,7 +98,7 @@ class Log(object):
             for log in listwrap(settings.log):
                 Log.add_log(Log.new_instance(log))
 
-        if settings.cprofile.enabled==True:
+        if settings.cprofile.enabled == True:
             Log.alert("cprofiling is enabled, writing to {{filename}}", filename=os.path.abspath(settings.cprofile.filename))
 
     @classmethod
@@ -325,7 +325,7 @@ class Log(object):
         :return:
         """
         if not isinstance(template, text_type):
-            Log.error("Log.note was expecting a unicode template")
+            Log.error("Log.warning was expecting a unicode template")
 
         if isinstance(default_params, BaseException):
             cause = default_params
@@ -454,6 +454,7 @@ def write_profile(profile_settings, stats):
     from pyLibrary import convert
     from mo_files import File
 
+    Log.note("aggregating {{num}} profile stats", num=len(stats))
     acc = stats[0]
     for s in stats[1:]:
         acc.add(s)

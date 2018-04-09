@@ -30,18 +30,19 @@ revision_schema = {
         "index.number_of_replicas": 1,
         "index.number_of_shards": 6,
         "analysis": {
+            "tokenizer": {
+                "left250": {
+                    "type": "pattern",
+                    "pattern": "^.{1,250}"
+                }
+            },
             "analyzer": {
                 "description_limit": {
                     "type": "custom",
-                    "tokenizer": "keyword",
+                    "tokenizer": "left250",
                     "filter": [
                         "lowercase",
-                        "asciifolding",
-                        {
-                            "type": "limit",
-                            "max": 100,
-                            "min": 5
-                        }
+                        "asciifolding"
                     ]
                 }
             }
@@ -49,31 +50,30 @@ revision_schema = {
     },
     "mappings": {
         "revision": {
-            "_source": {
-                "compress": False
-            },
-            "_id": {
-                "index": "not_analyzed",
-                "type": "string",
-                "store": True
-            },
             "_all": {
                 "enabled": False
             },
-            "_routing": {
-                "required": True,
-                "path": "changeset.id12"
-            },
+            "dynamic_templates": [
+                {
+                    "default_strings": {
+                        "mapping": {
+                            "type": "keyword"
+                        },
+                        "match_mapping_type": "string",
+                        "match": "*"
+                    }
+                }
+            ],
             "properties": {
                 "changeset": {
                     "type": "object",
                     "properties": {
                         "description": {
-                            "index": "analyzed",
-                            "type": "string",
+                            "index": True,
+                            "type": "text",
                             "fields": {
                                 "raw": {
-                                    "type": "string",
+                                    "type": "text",
                                     "analyzer": "description_limit"
                                 }
                             }
@@ -91,8 +91,7 @@ revision_schema = {
                                             "dynamic": True,
                                             "properties": {
                                                 "content": {
-                                                    "type": "string",
-                                                    "index": "no"
+                                                    "type": "keyword"
                                                 }
                                             }
                                         },
@@ -101,8 +100,7 @@ revision_schema = {
                                             "dynamic": True,
                                             "properties": {
                                                 "content": {
-                                                    "type": "string",
-                                                    "index": "no"
+                                                    "type": "keyword"
                                                 }
                                             }
                                         }

@@ -14,11 +14,14 @@ from __future__ import unicode_literals
 from collections import Mapping
 from uuid import uuid4
 
-from mo_dots import NullType, Data, FlatList, wrap, coalesce, listwrap
-from mo_future import text_type, none_type, PY2, long
 from mo_json import value2json
+
+from mo_logs.strings import expand_template, quote
+
 from mo_logs import Log
-from mo_logs.strings import quote, expand_template
+
+from mo_dots import NullType, Data, FlatList, wrap, coalesce, listwrap
+from mo_future import text_type, none_type, PY2
 from mo_times import Date
 
 IS_NULL = '0'
@@ -31,7 +34,7 @@ NESTED = "nested"
 EXISTS = "exists"
 
 JSON_TYPES = [BOOLEAN, INTEGER, NUMBER, STRING, OBJECT]
-PRIMITIVE = [BOOLEAN, INTEGER, NUMBER, STRING]
+PRIMITIVE = [EXISTS, BOOLEAN, INTEGER, NUMBER, STRING]
 STRUCT = [EXISTS, OBJECT, NESTED]
 
 
@@ -53,9 +56,8 @@ python_type_to_json_type = {
 }
 
 if PY2:
-    python_type_to_json_type[str] = STRING
-    python_type_to_json_type[long] = NUMBER
-
+    python_type_to_json_type[str]=STRING
+    python_type_to_json_type[long]=NUMBER
 
 def generateGuid():
     """Gets a random GUID.
@@ -133,7 +135,10 @@ class {{class_name}}(Mapping):
 
 
     def _constraint(row, rownum, rows):
-        return {{constraint_expr}}
+        try:
+            return {{constraint_expr}}
+        except Exception as e:
+            return False
 
     def __init__(self, **kwargs):
         if not kwargs:
@@ -218,12 +223,18 @@ class {{class_name}}(Mapping):
     return _exec(code, name)
 
 
-class Table(DataClass("Table", [
-    "name",
-    "url",
-    "query_path",
-    "timestamp"
-])):
+class Table(DataClass(
+    "Table",
+    [
+        "name",
+        "url",
+        "query_path",
+        "timestamp"
+    ],
+    constraint={"and": [
+        {"eq": [{"last": "query_path"}, {"literal": "."}]}
+    ]}
+)):
     @property
     def columns(self):
         Log.error("not implemented")
@@ -251,4 +262,3 @@ Column = DataClass(
         {"eq": [{"last": "nested_path"}, {"literal": "."}]}
     ]}
 )
-

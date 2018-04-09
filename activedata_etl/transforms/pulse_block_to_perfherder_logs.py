@@ -28,12 +28,13 @@ DEBUG = False
 # 07:43:11     INFO -  2015-10-08 07:43:11,492 INFO : TALOSDATA:
 
 PERFHERDER_PREFIXES = [
-    b" INFO : PERFHERDER_DATA: ",
-    b" INFO -  PERFHERDER_DATA: ",
-    b" INFO - PERFHERDER_DATA: ",
-    b" INFO : TALOSDATA: ",
-    b" INFO -  TALOSDATA: ",  # NOT SEEN IN WILD
-    b" INFO - TALOSDATA: "  # NOT SEEN IN WILD
+    "] PERFHERDER_DATA: ",
+    " INFO : PERFHERDER_DATA: ",
+    " INFO -  PERFHERDER_DATA: ",
+    " INFO - PERFHERDER_DATA: ",
+    " INFO : TALOSDATA: ",
+    " INFO -  TALOSDATA: ",  # NOT SEEN IN WILD
+    " INFO - TALOSDATA: "  # NOT SEEN IN WILD
 ]
 
 
@@ -72,7 +73,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
         if "scl3.mozilla.com" in log_url:
             # DO NOT EVEN TRY
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
             dest_etl.error = "log_url not accessible"
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
@@ -95,7 +96,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         dest_bucket.get_key(k)
                         output |= {k}  # FOR DENSITY CALCULATIONS
                     except Exception:
-                        _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                        _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
                         dest_etl.error = "PerfHerder log missing"
                         output |= dest_bucket.extend([{
                             "id": etl2key(dest_etl),
@@ -125,7 +126,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} PerfHerder records while processing {{key}} {{i}}: {{url}}", key=source_key, i=i, num=len(all_perf), url=log_url)
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {
@@ -163,13 +164,13 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
 
             if "TALOS" in prefix:
                 for t in perf:
-                    _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                    _, dest_etl = etl_head_gen.next(etl_file, name="talos")
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload
                 all_perf.extend(perf)
             else:  # PERFHERDER
                 for t in perf.suites:
-                    _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                    _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
                     t.framework = perf.framework
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload

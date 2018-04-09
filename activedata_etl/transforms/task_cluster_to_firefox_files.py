@@ -70,7 +70,7 @@ class ETL(Transform):
 
                 if "components.json.gz" in a.url:
                     pass
-                    dest_key, dest_etl = etl_header_gen.next(etl, a.name)
+                    dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
                     dest_etl.machine = machine_metadata
                     dest_etl.url = a.url
 
@@ -94,7 +94,7 @@ class ETL(Transform):
                     file_num += 1
                     output.append(dest_key)
                 elif "missing.json.gz" in a.url:
-                    dest_key, dest_etl = etl_header_gen.next(etl, a.name)
+                    dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
                     dest_etl.machine = machine_metadata
                     dest_etl.url = a.url
 

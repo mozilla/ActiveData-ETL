@@ -12,32 +12,31 @@ import sys
 from collections import Mapping
 from copy import deepcopy
 
-from mo_future import text_type
-
-from activedata_etl import key2etl
-from mo_dots import coalesce, listwrap, Data, Null, wrap
-from mo_kwargs import override
-from mo_logs import Log, startup, constants, strings
-from mo_math import MIN
-from mo_testing import fuzzytestcase
-from mo_threads import Thread, Signal, Queue, Lock
-from mo_threads import Till
-from pyLibrary import aws
-
 import mo_dots
+from activedata_etl import key2etl
 from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+from jx_python import jx
+from mo_dots import coalesce, listwrap, Data, Null, wrap
+from mo_future import text_type
+from mo_hg.hg_mozilla_org import HgMozillaOrg
+from mo_kwargs import override
+from mo_logs import Log, startup, constants, strings
 from mo_logs.exceptions import suppress_exception
+from mo_math import MIN
+from mo_testing import fuzzytestcase
+from mo_threads import Thread, Signal, Queue, Lock
+from mo_threads import Till
+from mo_times import Timer
 from mo_times.dates import Date
 from mo_times.durations import SECOND
-from mo_hg.hg_mozilla_org import HgMozillaOrg
+from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
-from jx_python import jx
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -117,7 +116,7 @@ class ETL(Thread):
         # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
-        if not isinstance(source_block.bucket, basestring):  # FIX MISTAKE
+        if not isinstance(source_block.bucket, text_type):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
 
@@ -126,13 +125,6 @@ class ETL(Thread):
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
         else:
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
-
-        if source_block.artifact_url or not work_actions:
-            Log.warning(
-                "REMOVING RECORDS WITH artifact_url {{todo}}",
-                todo=source_block
-            )
-            return True
 
         if not work_actions:
             Log.note(
@@ -182,8 +174,9 @@ class ETL(Thread):
                     self.resources
                 )
 
-                with MemorySample("processing {{action}} for {{source}} ", action=action.name, source=source_key):
-                    new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+                with Timer("process {{action}} for {{source}} ", param={"action": action.name, "source": source_key}):
+                    with MemorySample("processing {{action}} for {{source}} ", debug=False, action=action.name, source=source_key):
+                        new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
 
                 if new_keys == None:
                     new_keys = set()
@@ -235,7 +228,7 @@ class ETL(Thread):
 
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    Log.warning("delete keys?\n{{list}}", list=sorted(delete_me))
+                    Log.warning("delete keys in {{bucket}}?\n{{list}}", list=sorted(delete_me), bucket=action.destination.bucket)
 
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -496,7 +489,8 @@ def etl_one(settings):
     hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
         hg=hg,
-        local_es_node=settings.local_es_node
+        local_es_node=settings.local_es_node,
+        tuid_endpoint=settings.tuid_endpoint
     )
 
     stopper = Signal("main stop signal")
@@ -525,5 +519,4 @@ def parse_id_argument(id):
 
 if __name__ == "__main__":
     main()
-
 

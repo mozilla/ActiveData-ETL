@@ -12,7 +12,7 @@ from __future__ import division
 from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log, strings
-from mo_dots import wrap, Data, literal_field
+from mo_dots import wrap, Data, literal_field, set_default
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
@@ -39,7 +39,7 @@ NOT_STRUCTURED_LOGS = [
     "/awsy_raw.log",
     "/buildbot_properties.json",
     "/buildprops.json",
-    "/chain_of_trust.log"
+    "/chain_of_trust.log",
     "/chainOfTrust.json.asc",
     "/talos_raw.log",
     ".mozinfo.json",
@@ -54,6 +54,7 @@ NOT_STRUCTURED_LOGS = [
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    ".png",
     "/properties.json",
     "/log_raw.log",
     "/localconfig.json",
@@ -64,6 +65,7 @@ NOT_STRUCTURED_LOGS = [
     "/talos_warning.log",
     "/live.log",
     "/live_backing.log",
+    ".mar",
     "/master.tar.gz",
     ".tests.zip",
     ".checksums.asc",
@@ -202,28 +204,28 @@ class EtlHeadGenerator(object):
     def next(
         self,
         source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
-        name=None,  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
-        url=None  # URL FOR THE DATA
+        **kwargs # URL FOR THE DATA
     ):
         num = self.next_id
         self.next_id = num + 1
         dest_key = self.source_key + "." + text_type(num)
 
-        dest_etl = wrap({
-            "id": num,
-            "name": name,
-            "url": url,
-            "source": source_etl,
-            "type": "join",
-            "revision": get_git_revision(),
-            "timestamp": Date.now().unix
-        })
+        dest_etl = set_default(
+            {
+                "id": num,
+                "source": source_etl,
+                "type": "join",
+                "revision": get_git_revision(),
+                "timestamp": Date.now().unix
+            },
+            kwargs
+        )
 
         return dest_key, dest_etl
 
 
 def download_file(url, destination):
-    with file(destination, "w+b") as tempfile:
+    with open(destination, "w+b") as tempfile:
         stream = http.get(url).raw
         try:
             for b in iter(lambda: stream.read(8192), b""):

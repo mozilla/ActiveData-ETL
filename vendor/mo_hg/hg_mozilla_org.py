@@ -21,7 +21,7 @@ from mo_hg.parse import diff_to_json
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
-from mo_json import json2value
+from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log, strings, machine_metadata
 from mo_logs.exceptions import Explanation, assert_no_exception, Except, suppress_exception
@@ -151,6 +151,7 @@ class HgMozillaOrg(object):
                             # WILL HAVE SMALL EFFECT ON THE MAJORITY OF SMALL PUSHES
                             # https://bugzilla.mozilla.org/show_bug.cgi?id=1417720
                             Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds).wait()
+
                     except Exception as e:
                         Log.warning(
                             "Scanning {{branch}} {{revision|left(12)}}",
@@ -235,18 +236,29 @@ class HgMozillaOrg(object):
 
     def _get_from_elasticsearch(self, revision, locale=None, get_diff=False):
         rev = revision.changeset.id
-        query = {
-            "query": {"filtered": {
-                "query": {"match_all": {}},
-                "filter": {"and": [
+        if self.es.cluster.version.startswith("1.7."):
+            query = {
+                "query": {"filtered": {
+                    "query": {"match_all": {}},
+                    "filter": {"and": [
+                        {"term": {"changeset.id12": rev[0:12]}},
+                        {"term": {"branch.name": revision.branch.name}},
+                        {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
+                        {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
+                    ]}
+                }},
+                "size": 2000
+            }
+        else:
+            query = {
+                "query": {"bool": {"must": [
                     {"term": {"changeset.id12": rev[0:12]}},
                     {"term": {"branch.name": revision.branch.name}},
                     {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
                     {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
-                ]}
-            }},
-            "size": 2000
-        }
+                ]}},
+                "size": 2000
+            }
 
         for attempt in range(3):
             try:
@@ -300,19 +312,30 @@ class HgMozillaOrg(object):
 
     @cache(duration=HOUR, lock=True)
     def _get_push(self, branch, changeset_id):
+        if self.es.cluster.version.startswith("1.7."):
+            query = {
+                "query": {"filtered": {
+                    "query": {"match_all": {}},
+                    "filter": {"and": [
+                        {"term": {"branch.name": branch.name}},
+                        {"prefix": {"changeset.id": changeset_id[0:12]}}
+                    ]}
+                }},
+                "size": 1
+            }
+        else:
+            query = {
+                "query": {"bool": {"must": [
+                    {"term": {"branch.name": branch.name}},
+                    {"prefix": {"changeset.id": changeset_id[0:12]}}
+                ]}},
+                "size": 1
+            }
+
         try:
             # ALWAYS TRY ES FIRST
             with self.es_locker:
-                response = self.es.search({
-                    "query": {"filtered": {
-                        "query": {"match_all": {}},
-                        "filter": {"and": [
-                            {"term": {"branch.name": branch.name}},
-                            {"prefix": {"changeset.id": changeset_id[0:12]}}
-                        ]}
-                    }},
-                    "size": 1
-                })
+                response = self.es.search(query)
                 json_push = response.hits.hits[0]._source.push
             if json_push:
                 return json_push
@@ -342,7 +365,7 @@ class HgMozillaOrg(object):
             Log.error("do not know what to do")
 
     def _normalize_revision(self, r, found_revision, push, get_diff):
-        new_names = set(r.keys()) - {"rev", "node", "user", "description", "desc", "date", "files", "backedoutby", "parents", "children", "branch", "tags", "pushuser", "pushdate", "pushid", "phase", "bookmarks"}
+        new_names = set(r.keys()) - KNOWN_TAGS
         if new_names and not r.tags:
             Log.warning("hg is returning new property names ({{names}})", names=new_names)
 
@@ -494,19 +517,30 @@ class HgMozillaOrg(object):
         """
         @cache(duration=MINUTE, lock=True)
         def inner(changeset_id):
+            if self.es.cluster.version.startswith("1.7."):
+                query = {
+                    "query": {"filtered": {
+                        "query": {"match_all": {}},
+                        "filter": {"and": [
+                            {"prefix": {"changeset.id": changeset_id}},
+                            {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
+                        ]}
+                    }},
+                    "size": 1
+                }
+            else:
+                query = {
+                    "query": {"bool": {"must": [
+                        {"prefix": {"changeset.id": changeset_id}},
+                        {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
+                    ]}},
+                    "size": 1
+                }
+
             try:
                 # ALWAYS TRY ES FIRST
                 with self.es_locker:
-                    response = self.es.search({
-                        "query": {"filtered": {
-                            "query": {"match_all": {}},
-                            "filter": {"and": [
-                                {"prefix": {"changeset.id": changeset_id}},
-                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
-                            ]}
-                        }},
-                        "size": 1
-                    })
+                    response = self.es.search(query)
                     json_diff = response.hits.hits[0]._source.changeset.diff
                 if json_diff:
                     return json_diff
@@ -602,3 +636,24 @@ def _copy_but(value, exclude):
             elif v != None:
                 output[k] = v
     return output if output else None
+
+
+KNOWN_TAGS = {
+    "rev", 
+    "node", 
+    "user", 
+    "description", 
+    "desc", 
+    "date", 
+    "files", 
+    "backedoutby", 
+    "parents", 
+    "children", 
+    "branch", 
+    "tags", 
+    "pushuser", 
+    "pushdate", 
+    "pushid", 
+    "phase", 
+    "bookmarks"
+}

@@ -6,3 +6,4 @@ fabric
 # ecdsa required by fabric (but not installed by pip)
 ecdsa
 psutil
+pympler

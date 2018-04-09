@@ -19,6 +19,7 @@ import os
 from mo_future import text_type, binary_type
 from mo_dots import get_module, coalesce
 from mo_logs import Log, Except
+from mo_threads import Thread, Till
 
 mime = MimeTypes()
 
@@ -396,6 +397,10 @@ class File(object):
 
 
 class TempDirectory(File):
+    """
+    A CONTEXT MANAGER FOR AN ALLOCATED, BUT UNOPENED TEMPORARY DIRECTORY
+    WILL BE DELETED WHEN EXITED
+    """
     def __new__(cls):
         return File.__new__(cls, None)
 
@@ -406,10 +411,14 @@ class TempDirectory(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.delete()
+        Thread.run("delete "+self.name, delete_daemon, file=self)
 
 
 class TempFile(File):
+    """
+    A CONTEXT MANAGER FOR AN ALLOCATED, BUT UNOPENED TEMPORARY FILE
+    WILL BE DELETED WHEN EXITED
+    """
     def __new__(cls, *args, **kwargs):
         return object.__new__(cls)
 
@@ -422,7 +431,7 @@ class TempFile(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.delete()
+        Thread.run("delete "+self.name, delete_daemon, file=self)
 
 
 def _copy(from_, to_):
@@ -499,3 +508,14 @@ def join_path(*path):
         joined = abs_prefix + ('/'.join(simpler))
 
     return joined
+
+
+def delete_daemon(file, please_stop):
+    # WINDOWS WILL HANG ONTO A FILE FOR A BIT AFTER WE CLOSED IT
+    while not please_stop:
+        try:
+            file.delete()
+            return
+        except Exception as e:
+            Log.warning(u"problem deleting file {{file}}", file=file.abspath, cause=e)
+            Till(seconds=1).wait()

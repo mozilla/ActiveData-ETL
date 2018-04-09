@@ -12,14 +12,14 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
-from mo_future import text_type
-from jx_python import jx
-from mo_dots import coalesce, wrap, FlatList, Null, Data, unwrap
-from mo_logs import Log, strings
-from mo_math import Math, MAX, MIN
-
 from activedata_etl.imports import buildbot
+from jx_python import jx
+from mo_dots import wrap, FlatList, Null, Data, unwrap, set_default
+from mo_future import text_type
+from mo_json import json2value
+from mo_logs import Log, strings
 from mo_logs.exceptions import Except
+from mo_math import Math, MAX, MIN
 from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 from pyLibrary.convert import quote2string
@@ -55,6 +55,8 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
     """
 
     process_head = True
+    old_head = False
+    accumulate_head = []
     action = Data()
     action.timings = []
 
@@ -119,26 +121,67 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
             # [taskcluster 2016-10-04 17:09:02.626Z] using cache "tooltool-cache" -> /home/worker/tooltool-cache
             # [taskcluster 2016-10-04 17:09:02.626Z] using cache "level-3-autoland-test-workspace" -> /home/worker/workspace
             # [taskcluster 2016-10-04 17:09:02.626Z] using cache "level-3-hg-shared" -> /home/worker/hg-shared
-            try:
-                if curr_line.startswith("=== Task Starting ==="):
-                    process_head = False
-                    continue
 
-                key, value = curr_line.split(": ")
+
+            # [taskcluster 2018-03-07T06:28:51.049Z] Worker Type (gecko-t-win10-64) settings:
+            # [taskcluster 2018-03-07T06:28:51.050Z]   {
+            # [taskcluster 2018-03-07T06:28:51.050Z]     "aws": {
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "ami-id": "ami-7a131a1a",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "availability-zone": "us-west-1b",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "instance-id": "i-0b489ebae9ce39eab",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "instance-type": "c4.2xlarge",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "local-ipv4": "10.143.16.108",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "public-hostname": "ec2-18-144-3-174.us-west-1.compute.amazonaws.com",
+            # [taskcluster 2018-03-07T06:28:51.050Z]       "public-ipv4": "18.144.3.174"
+            # [taskcluster 2018-03-07T06:28:51.051Z]     },
+            # [taskcluster 2018-03-07T06:28:51.051Z]     "config": {
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "deploymentId": "137c8c1b0e4b",
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "runTaskAsCurrentUser": true
+            # [taskcluster 2018-03-07T06:28:51.051Z]     },
+            # [taskcluster 2018-03-07T06:28:51.051Z]     "generic-worker": {
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "go-arch": "amd64",
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "go-os": "windows",
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "go-version": "go1.7.5",
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "release": "https://github.com/taskcluster/generic-worker/releases/tag/v8.3.0",
+            # [taskcluster 2018-03-07T06:28:51.051Z]       "version": "8.3.0"
+            # [taskcluster 2018-03-07T06:28:51.051Z]     },
+            # [taskcluster 2018-03-07T06:28:51.052Z]     "machine-setup": {
+            # [taskcluster 2018-03-07T06:28:51.052Z]       "ami-created": "2018-02-14 15:05:41.795Z",
+            # [taskcluster 2018-03-07T06:28:51.052Z]       "manifest": "https://github.com/mozilla-releng/OpenCloudConfig/blob/137c8c1b0e4b3927f15cf38ee4f9771894818221/userdata/Manifest/gecko-t-win10-64.json"
+            # [taskcluster 2018-03-07T06:28:51.052Z]     }
+            # [taskcluster 2018-03-07T06:28:51.052Z]   }
+            # [taskcluster 2018-03-07T06:28:51.052Z] === Task Starting ===
+            #
+            if curr_line.startswith("=== Task Starting ==="):
+                process_head = False
+                try:
+                    if not old_head:
+                        if accumulate_head[0].endswith(" settings:"):
+                            set_default(task_record, {"run": json2value("".join(accumulate_head[1:]))})
+                            accumulate_head = None
+                            continue
+                        else:
+                            Log.warning("expecting JSON header at (url={{url}})", url=from_url)
+                except Exception as e:
+                    Log.warning("expecting JSON header at (url={{url}})", url=from_url, cause=e)
+            else:
+                accumulate_head.append(curr_line)
+            try:
+                key, value = map(strings.trim, curr_line.split(": "))
                 if key == "Task ID":
+                    old_head = True
                     if value != task_record.task.id:
                         Log.error("Task in log not matching task details")
                 elif key == "Worker Node Type":
-                    task_record.run.machine.aws_instance_type = value
+                    old_head = True
+                    task_record.run.machine.aws.instance_type = value
                 elif key == "Worker Type":
+                    old_head = True
                     task_record.run.machine.tc_worker_type = value
-                continue
             except Exception as e:
-                e = Except.wrap(e)
-                process_head = False
-                if "need more than 1 value to unpack" not in e:
-                    Log.warning("Log header {{log_line|quote}} can not be processed (url={{url}})", log_line=curr_line, url=from_url, cause=e)
-                continue
+                pass
+
+            continue
 
         mozharness_says = new_mozharness_line.match(from_url, end_time, curr_line)
         if mozharness_says:

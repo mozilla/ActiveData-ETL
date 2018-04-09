@@ -57,10 +57,16 @@ def _config_fabric(connect, instance):
 
 def _find_oom(instance):
     with TempDirectory() as temp:
-        get("/data1/logs/es.log", temp.abspath)
+        log_file = "supervisor_es.log"
+        try:
+            get("/data1/logs/supervisor_es.log", temp.abspath)
+        except Exception as e:
+            get("/data1/logs/es.log", temp.abspath)
+            log_file = "es.log"
+
         last_restart_time = _get_es_restart_time(instance)
         found_oom = False
-        for line in File.new_instance(temp, "es.log"):
+        for line in File.new_instance(temp, log_file):
             if "java.lang.OutOfMemoryError" in line:
                 # Log.note("{{line}}", line=line)
                 found_oom = True

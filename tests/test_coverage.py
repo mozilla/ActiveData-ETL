@@ -16,7 +16,6 @@ from mo_files import File
 from mo_json import stream, json2value
 from mo_logs import Log
 
-from activedata_etl.transforms.jscov_to_es import process_source_file
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from mo_times import Date
 
