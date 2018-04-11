@@ -20,6 +20,7 @@
 				"port": 9200,
 				"index": "firefox-files",
 				"type": "files",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",
 				"schema": {
@@ -54,6 +55,7 @@
 				"port": 9200,
 				"index": "fx-test",
 				"type": "test_result",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -84,6 +86,8 @@
 				"port": 9200,
 				"index": "treeherder",
 				"type": "th_job",
+				"id": "job.id",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -116,6 +120,7 @@
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -149,6 +154,7 @@
 				"port": 9200,
 				"index": "perf",
 				"type": "perf_result",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -182,6 +188,7 @@
 				"port": 9200,
 				"index": "jobs",
 				"type": "job",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -217,6 +224,7 @@
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
+				"tjson": true,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
@@ -246,6 +254,8 @@
 				"port": 9200,
 				"index": "task",
 				"type": "task",
+				"id": "task.id",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -284,7 +294,7 @@
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Staging]Problem in Push to ES",
+				"subject": "[ALERT][Staging6]Problem in Push to ES",
 				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
