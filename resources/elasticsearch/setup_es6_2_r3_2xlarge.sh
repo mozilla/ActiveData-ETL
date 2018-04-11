@@ -28,9 +28,9 @@ java -version
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.2.tar.gz
-tar zxfv elasticsearch-6.2.3.tar.gz
+tar zxfv elasticsearch-6.1.2.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-6.2.3/* /usr/local/elasticsearch/
+sudo cp -R elasticsearch-6.1.2/* /usr/local/elasticsearch/
 
 
 
