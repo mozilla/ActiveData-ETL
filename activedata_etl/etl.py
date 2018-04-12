@@ -490,7 +490,7 @@ def etl_one(settings):
     resources = Data(
         hg=hg,
         local_es_node=settings.local_es_node,
-        tuid_endpoint=settings.tuid_endpoint
+        tuid=settings.tuid
     )
 
     stopper = Signal("main stop signal")

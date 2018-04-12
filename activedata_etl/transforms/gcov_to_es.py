@@ -12,13 +12,13 @@ from __future__ import unicode_literals
 import os
 from zipfile import ZipFile
 
-from mo_future import text_type
-
 from activedata_etl import etl2key
+from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
+from activedata_etl.transforms import ACTIVE_DATA_QUERY
 from mo_dots import set_default, Null
 from mo_files import File, TempDirectory
+from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process, Till

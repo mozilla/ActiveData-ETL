@@ -12,7 +12,8 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.transforms import download_file
+from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file
+from jx_python import jx
 from mo_dots import wrap, unwraplist, set_default
 from mo_files import TempDirectory
 from mo_json import stream, value2json
@@ -68,7 +69,6 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             },
             task_cluster_record
         )
-        resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, new_record.source.file)
 
         return new_record
 
@@ -160,7 +160,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             counter,
                             obj
                         ):
-                            yield value2json(d)
+                            yield d
                     except Exception as e:
                         Log.warning(
                             "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
@@ -200,10 +200,22 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
         for source_file, (covered, total_lines) in aggr_coverage.items():
             uncovered = total_lines - covered
             record = create_record(artifact_etl, counter, source_file, covered, uncovered)
-            yield value2json({"id": key, "value": record})
+            yield {"id": key, "value": record}
 
     counter = count_generator().next
     key = etl2key(artifact_etl)
+
+    def _batch(iterator):
+        """
+        MARKUP THE COVERAGE RECORDS WITH TUIDS
+
+        :param iterator: ITERATOR OF {"id": id, "value":value} objects
+        :return: ITERATOR
+        """
+        for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
+            resources.tuid_mapper.annotate_sources(task_cluster_record.repo.changeset.id, [s for s in records.value])
+            for r in records:
+                yield value2json(r)
 
     with TempDirectory() as tmpdir:
         jsdcov_file = (tmpdir / "jsdcov.zip").abspath
@@ -211,9 +223,9 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             download_file(artifact.url, jsdcov_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
             if DO_AGGR:
-                destination.write_lines(key, aggregator())
+                destination.write_lines(key, _batch(aggregator()))
             else:
-                destination.write_lines(key, generator())
+                destination.write_lines(key, _batch(generator()))
         keys = [key]
         return keys
 

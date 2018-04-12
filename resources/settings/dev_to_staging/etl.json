@@ -17,7 +17,6 @@
 		},
 		"pyLibrary.env.http.DEBUG": false,
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
-//		"mo_json.stream.DEBUG": true,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true,
 		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
@@ -25,7 +24,7 @@
 	"tuid": {
 		"endpoint": "http://54.149.21.8/tuid",
 		"timeout": 30,
-		"request_queue": {
+		"push_queue": {
 			"name": "active-data-tuid-dev",
 			"debug": true,
 			"$ref": "file://~/private.json#aws_credentials"
@@ -377,10 +376,6 @@
 	],
 	"debug": {
 		"trace": true,
-		"cprofile": {
-			"enabled": false,
-			"filename": "./results/profile.tab"
-		},
 		"log": [
 			{
 				"log_type": "console"

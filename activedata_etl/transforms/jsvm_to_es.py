@@ -12,8 +12,8 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
+from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms.grcov_to_es import download_file
 from mo_dots import set_default
 from mo_files import TempFile
 from mo_future import text_type
@@ -63,7 +63,11 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                     count = 0
                     with ZipFile(tmpfile.abspath) as zipped:
                         for num, zip_name in enumerate(zipped.namelist()):
-                            for source in parse_lcov_coverage(source_key, jsvm_artifact.url, ibytes2ilines(zipped.open(zip_name))):
+                            for source in tuid_batches(
+                                task_cluster_record,
+                                resources,
+                                parse_lcov_coverage(source_key, jsvm_artifact.url, ibytes2ilines(zipped.open(zip_name)))
+                            ):
                                 if please_stop:
                                     return
                                 if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
@@ -77,7 +81,6 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                                     file_details,
                                     source.file
                                 )
-                                resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, source)
                                 new_record.source = source
                                 new_record.etl.id = count
                                 new_record._id = file_id + "." + text_type(count)

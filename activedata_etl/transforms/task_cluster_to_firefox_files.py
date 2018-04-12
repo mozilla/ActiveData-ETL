@@ -10,9 +10,9 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
+from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, Transform
-from activedata_etl.transforms.grcov_to_es import download_file
 from jx_python import jx
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import listwrap, wrap, Data, Null

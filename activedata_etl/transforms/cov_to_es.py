@@ -64,10 +64,10 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts
             for a in ("jsdcov_artifacts.zip", "grcov", "jsvm")
         ):
+            if not resources.tuid_mapper:
+                resources.tuid_mapper = TuidClient(resources.tuid)
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
-            if not resources.tuid_mapper:
-                resources.tuid_mapper = TuidClient(resources.tuid_endpoint)
 
         for artifact in artifacts:
             try:
