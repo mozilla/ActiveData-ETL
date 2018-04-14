@@ -4,6 +4,8 @@ ujson
 BeautifulSoup
 boto
 requests
+mo_future
+future
 fabric
 # ecdsa required by fabric (but not installed by pip)
 ecdsa
