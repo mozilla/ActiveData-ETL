@@ -45,7 +45,6 @@ config = None
 service = None
 
 
-@gzip_wrapper
 @cors_wrapper
 def tuid_endpoint(path):
     try:
@@ -75,7 +74,7 @@ def tuid_endpoint(path):
         paths = listwrap(paths)
         # RETURN TUIDS
         with Timer("tuid internal response time for {{num}} files", {"num": len(paths)}):
-            response = service.get_tuids_from_files(revision=rev, files=paths)
+            response = service.get_tuids_from_files(revision=rev, files=paths, going_forward=True)
 
         if query.meta.format == 'list':
             formatter = _stream_list
@@ -163,12 +162,10 @@ if __name__ in ("__main__",):
     flask_app.add_url_rule(str('/'), None, _default, defaults={'path': ''}, methods=[str('GET'), str('POST')])
     flask_app.add_url_rule(str('/<path:path>'), None, _default, methods=[str('GET'), str('POST')])
 
-
     try:
         config = startup.read_settings(
-            env_filename=os.environ.get('TUID_CONFIG')
+            filename=os.environ.get('TUID_CONFIG')
         )
-
         constants.set(config.constants)
         Log.start(config.debug)
         service = TUIDService(config.tuid)

@@ -17,14 +17,19 @@ from mo_logs import Log
 
 from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_hg.parse import diff_to_moves
+from mo_threads import Till
+from mo_times.durations import SECOND
 from pyLibrary.env import http
 from pyLibrary.sql import sql_list, sql_iso
 from pyLibrary.sql.sqlite import quote_value
 from tuid import sql
 
+import json
+
 DEBUG = False
 RETRY = {"times": 3, "sleep": 5}
 SQL_BATCH_SIZE = 500
+DAEMON_WAIT_AT_NEWEST = 30 * SECOND # Time to wait at the newest revision before polling again.
 
 GET_TUID_QUERY = "SELECT tuid FROM temporal WHERE file=? and revision=? and line=?"
 
@@ -36,11 +41,11 @@ GET_LATEST_MODIFICATION = "SELECT revision FROM latestFileMod WHERE file=?"
 class TUIDService:
 
     @override
-    def __init__(self, database, hg, hg_cache, conn=None, kwargs=None):
+    def __init__(self, database, hg, hg_cache=None, conn=None, kwargs=None):
         try:
             self.config = kwargs
 
-            self.conn = conn if conn else sql.Sql(self.config.database.name)
+            self.conn = conn if conn else sql.Sql(self.config.database)
             self.hg_cache = HgMozillaOrg(hg_cache) if hg_cache else Null
 
             if not self.conn.get_one("SELECT name FROM sqlite_master WHERE type='table';"):
@@ -173,7 +178,7 @@ class TUIDService:
         :param cset: revision to get diff from
         :return: unified diff object from diff_to_moves
         """
-        url = 'https://hg.mozilla.org/' + self.config['hg']['branch'] + '/raw-rev/' + cset
+        url = 'https://hg.mozilla.org/' + self.config.hg.branch + '/raw-rev/' + cset
         if DEBUG:
             Log.note("HG: {{url}}", url=url)
 
@@ -183,7 +188,10 @@ class TUIDService:
         except Exception as e:
             Log.error("Unexpected error while trying to get diff for: " + url  + " because of {{cause}}", cause=e)
             return None
-        return diff_to_moves(str(diff_object.content.decode('utf8')))
+        try:
+            return diff_to_moves(str(diff_object.content.decode('utf8')))
+        except UnicodeDecodeError as e:
+            return diff_to_moves(str(diff_object.content.decode('latin-1')))
 
 
     def get_tuids_from_revision(self, revision):
@@ -194,7 +202,7 @@ class TUIDService:
         :return: list of (file, list(tuids)) tuples
         """
         result = []
-        URL_TO_FILES = 'https://hg.mozilla.org/' + self.config['hg']['branch'] + '/json-info/' + revision
+        URL_TO_FILES = 'https://hg.mozilla.org/' + self.config.hg.branch + '/json-info/' + revision
         try:
             mozobject = http.get_json(url=URL_TO_FILES, retry=RETRY)
         except Exception as e:
@@ -215,7 +223,7 @@ class TUIDService:
         return result
 
 
-    def get_tuids_from_files(self, files, revision):
+    def get_tuids_from_files(self, files, revision, going_forward=False):
         """
         Gets the TUIDs for a set of files, at a given revision.
         list(tuids) is an array of tuids, one tuid for each line, in order, and `null` if no tuid assigned
@@ -267,6 +275,9 @@ class TUIDService:
                     if DEBUG:
                         Log.note("Will update frontier for file {{file}}.", file=file)
                     frontier_update_list.append((file, latest_rev[0]))
+                elif latest_rev == revision:
+                    tmp_res = self.destringify_tuids(self._get_annotation(latest_rev[0], file))
+                    result.append((file, tmp_res))
                 else:
                     # File has never been seen before, get it's initial
                     # annotation to work from in the future.
@@ -285,7 +296,7 @@ class TUIDService:
 
             # If we have files that need to have their frontier updated
             if len(frontier_update_list) > 0:
-                tmp = self._update_file_frontiers(frontier_update_list,revision)
+                tmp = self._update_file_frontiers(frontier_update_list, revision, going_forward=going_forward)
                 result.extend(tmp)
 
             if len(latestFileMod_inserts) > 0:
@@ -359,9 +370,8 @@ class TUIDService:
         return new_ann
 
 
-
-    #
-    def _update_file_frontiers(self, frontier_list, revision, max_csets_proc=10):
+    def _update_file_frontiers(self, frontier_list, revision, max_csets_proc=30,
+                               going_forward=False):
         '''
         Update the frontier for all given files, up to the given revision.
 
@@ -375,6 +385,11 @@ class TUIDService:
         :param revision: revision to update files to
         :param max_csets_proc: maximum number of changeset logs to look through
                                to find past frontiers.
+        :param going_forward: If we know the requested revision is in front
+                              of the latest revision use this flag. Used when
+                              the frontier is too far away. If this is not set and
+                              a frontier is too far, the latest revision will not
+                              be updated.
         :return: list of (file, list(tuids)) tuples
         '''
 
@@ -400,9 +415,13 @@ class TUIDService:
         removed_files = {}
         if DEBUG:
             Log.note("Searching for the following frontiers: {{csets}}", csets=str([cset for cset in latest_csets]))
+
+        tmp = [cset for cset in latest_csets]
+        Log.note("Searching for frontier(s): {{frontier}} ", frontier=str(tmp))
+        Log.note("HG URL: {{url}}", url='https://hg.mozilla.org/' + self.config.hg.branch + '/rev/' + tmp[0])
         while not found_last_frontier:
             # Get a changelog
-            clog_url = 'https://hg.mozilla.org/' + self.config['hg']['branch'] + '/json-log/' + final_rev
+            clog_url = 'https://hg.mozilla.org/' + self.config.hg.branch + '/json-log/' + final_rev
             try:
                 Log.note("Searching through changelog {{url}}", url=clog_url)
                 clog_obj = http.get_json(clog_url, retry=RETRY)
@@ -425,47 +444,7 @@ class TUIDService:
 
                     # If there are still frontiers left to explore,
                     # add the files this node modifies to the processing list.
-                    parsed_diff = self.get_diff(cset_len12)
-
-                    for f_added in parsed_diff:
-                        # Get new entries for removed files.
-                        new_name = f_added['new'].name.lstrip('/')
-                        old_name = f_added['old'].name.lstrip('/')
-
-                        # If we don't need this file, skip it
-                        if new_name not in file_to_frontier:
-                            # If the file was removed, set a
-                            # flag and return no tuids later.
-                            if new_name == 'dev/null':
-                                removed_files[old_name] = True
-                            continue
-
-                        # At this point, file is in the database, and is
-                        # asked to be processed, and we are still
-                        # searching for the last frontier.
-
-                        # If we are past the frontier for this file,
-                        # or if we are at the frontier skip it.
-                        if file_to_frontier[new_name] == '':
-                            continue
-                        if file_to_frontier[new_name] == cset_len12:
-                            file_to_frontier[new_name] = ''
-                            continue
-
-                        # Skip diffs that change file names, this is the first
-                        # annotate entry to the new file_name and it doesn't do
-                        # anything to the old other than bring it to new.
-                        # We should never make it to this point unless there was an error elsewhere
-                        # because any frontier for the new_name file should be at this revision or
-                        # further ahead - never earlier.
-                        if old_name != new_name:
-                            Log.error("Should not have made it here, can't find a frontier for {{file}}", file=new_name)
-
-                        if new_name in files_to_process:
-                            files_to_process[new_name].append(cset_len12)
-                        else:
-                            files_to_process[new_name] = [cset_len12]
-                    diffs_cache[cset_len12] = parsed_diff
+                    diffs_cache[cset_len12] = None
 
                 if cset_len12 in latest_csets:
                     # Found a frontier, remove it from search list.
@@ -482,11 +461,58 @@ class TUIDService:
                 # that is in the past is asked for.
                 found_last_frontier = True
 
-                files_to_process = {f: revision for (f,r) in frontier_list}
+                files_to_process = {f: [revision] for (f,r) in frontier_list}
 
             if not found_last_frontier:
                 # Go to the next log page
                 final_rev = clog_obj['changesets'][len(clog_obj['changesets'])-1]['node'][:12]
+
+        added_files = {}
+        if not still_looking:
+            for cset_len12 in diffs_cache:
+                parsed_diff = self.get_diff(cset_len12)
+                diffs_cache[cset_len12] = parsed_diff
+                for f_added in parsed_diff:
+                    # Get new entries for removed files.
+                    new_name = f_added['new'].name.lstrip('/')
+                    old_name = f_added['old'].name.lstrip('/')
+
+                    # If we don't need this file, skip it
+                    if new_name not in file_to_frontier:
+                        # If the file was removed, set a
+                        # flag and return no tuids later.
+                        if new_name == 'dev/null':
+                            removed_files[old_name] = True
+                        continue
+
+                    if old_name == 'dev/null':
+                        added_files[new_name] = True
+
+                    # At this point, file is in the database, and is
+                    # asked to be processed, and we are still
+                    # searching for the last frontier.
+
+                    # If we are past the frontier for this file,
+                    # or if we are at the frontier skip it.
+                    if file_to_frontier[new_name] == '':
+                        continue
+                    if file_to_frontier[new_name] == cset_len12:
+                        file_to_frontier[new_name] = ''
+                        continue
+
+                    # Skip diffs that change file names, this is the first
+                    # annotate entry to the new file_name and it doesn't do
+                    # anything to the old other than bring it to new.
+                    # We should never make it to this point unless there was an error elsewhere
+                    # because any frontier for the new_name file should be at this revision or
+                    # further ahead - never earlier.
+                    if old_name != new_name:
+                        Log.error("Should not have made it here, can't find a frontier for {{file}}", file=new_name)
+
+                    if new_name in files_to_process:
+                        files_to_process[new_name].append(cset_len12)
+                    else:
+                        files_to_process[new_name] = [cset_len12]
 
         # Process each file that needs it based on the
         # files_to_process list.
@@ -508,7 +534,8 @@ class TUIDService:
                 Log.note("Frontier update: {{count}}/{{total}} - {{percent|percent(decimal=0)}} | {{rev}}|{{file}} ", count=count,
                                                 total=total, file=file, rev=proc_rev, percent=count / total)
 
-            if proc and file not in removed_files:
+            modified = True
+            if proc and file not in removed_files and csets_proced < max_csets_proc:
                 # Process this file using the diffs found
 
                 # Reverse the list, we always find the newest diff first
@@ -522,16 +549,25 @@ class TUIDService:
 
                 ann_inserts.append((revision, file, self.stringify_tuids(tmp_res)))
             elif file not in removed_files:
-                # File is new, or the name was changed - we need to create
-                # a new initial entry for this file.
-                tmp_res = self.get_tuids(file, proc_rev, commit=False)
+                old_ann = self._get_annotation(rev, file)
+                if old_ann is None or (old_ann == '' and file in added_files):
+                    # File is new, or re-added - we need to create
+                    # a new initial entry for this file.
+                    tmp_res = self.get_tuids(file, proc_rev, commit=False)
+                else:
+                    # File was not modified since last
+                    # known revision
+                    tmp_res = self.destringify_tuids(old_ann) if old_ann != '' else []
+                    ann_inserts.append((revision, file, old_ann[0]))
+                    modified = False
             else:
                 # File was removed
+                ann_inserts.append((revision, file, ''))
                 tmp_res = None
 
             if tmp_res:
                 result.append((file, tmp_res))
-                if proc_rev != revision:
+                if proc_rev != revision and not modified:
                     # If the file hasn't changed up to this revision,
                     # reinsert it with the same previous annotate.
                     if not self._get_annotation(revision, file):
@@ -539,19 +575,17 @@ class TUIDService:
                         ann_inserts.append((revision, file, self.stringify_tuids(annotate)))
             else:
                 Log.note("Error occured for file {{file}} in revision {{revision}}", file=file, revision=proc_rev)
-                ann_inserts.append((revision, file, ''))
                 result.append((file, []))
 
+            # Save the newest frontier revision
             latest_rev = rev
-            if csets_proced < max_csets_proc and not still_looking:
+            if (csets_proced < max_csets_proc and not still_looking) or going_forward:
                 # If we have found all frontiers, update to the
                 # latest revision. Otherwise, the requested
                 # revision is too far away (can't be sure
-                # if it's past).
+                # if it's past). Unless we are told that we are
+                # going forward.
                 latest_rev = revision
-
-            # Get any past revisions, and include the previous
-            # latest in it.
             latestFileMod_inserts[file] = (file, latest_rev)
 
         if len(latestFileMod_inserts) > 0:
@@ -567,6 +601,7 @@ class TUIDService:
 
         if len(ann_inserts) > 0:
             count = 0
+            ann_inserts = list(set(ann_inserts))
             while count < len(ann_inserts):
                 tmp_inserts = ann_inserts[count:count + SQL_BATCH_SIZE]
                 count += SQL_BATCH_SIZE
@@ -633,7 +668,7 @@ class TUIDService:
         # Get annotated file (cannot get around using this).
         # Unfortunately, this also means we always have to
         # deal with a small network delay.
-        url = 'https://hg.mozilla.org/' + self.config['hg']['branch'] + '/json-annotate/' + revision + "/" + file
+        url = 'https://hg.mozilla.org/' + self.config.hg.branch + '/json-annotate/' + revision + "/" + file
 
         existing_tuids = {}
         tmp_tuids = []
@@ -720,8 +755,117 @@ class TUIDService:
 
             if commit:
                 self.conn.commit()
-
         return tuids
+
+
+    def _daemon(self, please_stop):
+        '''
+        Runs continuously to prefill the temporal and
+        annotations table with the coverage revisions*.
+
+        * A coverage revision is a revision which has had
+        code coverage run on it.
+
+        :param please_stop: Used to stop the daemon
+        :return: None
+        '''
+        while not please_stop:
+            # Get all known files and their latest revisions on the frontier
+            files_n_revs = self.conn.get("SELECT file, revision FROM latestFileMod")
+
+            # Split these files into groups of revisions to make it
+            # easier to update them. If we group them together, we
+            # may end up updating groups that are new back to older
+            # revisions.
+            revs = {rev: [] for rev in set([file_n_rev[1] for file_n_rev in files_n_revs])}
+            for file_n_rev in files_n_revs:
+                revs[file_n_rev[1]].append(file_n_rev[0])
+
+            # Go through each frontier and update it
+            ran_changesets = False
+            coverage_revisions = None
+            for frontier in revs:
+                if please_stop:
+                    return
+
+                files = revs[frontier]
+
+                # Go through changeset logs until we find the last
+                # known frontier for this revision group.
+                csets = []
+                final_rev = ''
+                found_last_frontier = False
+                Log.note("Searching for frontier: {{frontier}} ", frontier=frontier)
+                Log.note("HG URL: {{url}}", url='https://hg.mozilla.org/' + self.config.hg.branch + '/rev/' + frontier)
+                while not found_last_frontier:
+                    # Get a changelog
+                    clog_url = 'https://hg.mozilla.org/' + self.config.hg.branch + '/json-log/' + final_rev
+                    try:
+                        Log.note("Searching through changelog {{url}}", url=clog_url)
+                        clog_obj = http.get_json(clog_url, retry=RETRY)
+                    except Exception as e:
+                        Log.error("Unexpected error getting changset-log for {{url}}", url=clog_url, error=e)
+
+                    cset = ''
+                    still_looking = True
+                    # For each changeset/node
+                    for clog_cset in clog_obj['changesets']:
+                        cset = clog_cset['node'][:12]
+                        if cset == frontier:
+                            still_looking = False
+                            break
+                        csets.append(cset)
+
+                    if not still_looking:
+                        found_last_frontier = True
+                    final_rev = cset
+
+                # No csets found means that we are already
+                # at the latest revisions.
+                if len(csets) == 0:
+                    continue
+
+                # Get all the latest ccov and jsdcov revisions
+                if not coverage_revisions:
+                    active_data_url = 'http://activedata.allizom.org/query'
+                    query_json = {
+                        "limit": 1000,
+                        "from": "task",
+                        "where": {"and": [
+                            {"in": {"build.type": ["ccov", "jsdcov"]}},
+                            {"gte": {"run.timestamp": {"date": "today-day"}}},
+                            {"eq": {"repo.branch.name": self.config.hg.branch}}
+                        ]},
+                        "select": [
+                            {"aggregate": "min", "value": "run.timestamp"},
+                            {"aggregate": "count"}
+                        ],
+                        "groupby": ["repo.changeset.id12"]
+                    }
+                    coverage_revisions_resp = http.post_json(active_data_url, retry=RETRY, data=query_json)
+                    coverage_revisions = [rev_arr[0] for rev_arr in coverage_revisions_resp.data]
+
+                # Reverse changeset list and for each code coverage revision
+                # found by going through the list from oldest to newest,
+                # update _all known_ file frontiers to that revision.
+                csets.reverse()
+                prev_cset = frontier
+                for cset in csets:
+                    if please_stop:
+                        return
+                    if cset not in coverage_revisions:
+                        continue
+                    if DEBUG:
+                        Log.note("Moving frontier {{frontier}} forward to {{cset}}.", frontier=prev_cset, cset=cset)
+
+                    # Update files
+                    self.get_tuids_from_files(files, cset, going_forward=True)
+
+                    ran_changesets = True
+                    prev_cset = cset
+
+            if not ran_changesets:
+                (please_stop | Till(seconds=DAEMON_WAIT_AT_NEWEST.seconds)).wait()
 
 
 # Used for increasing readability
