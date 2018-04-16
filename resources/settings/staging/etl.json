@@ -35,20 +35,22 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://34.215.198.169",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
+			"tjson": true,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://activedata.allizom.org",
+			"host": "http://34.215.198.169",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
+			"tjson": true,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
