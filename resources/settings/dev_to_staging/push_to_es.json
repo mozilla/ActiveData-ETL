@@ -1,6 +1,6 @@
 {
 	"work_queue": {
-		"name": "active-data-index",
+		"name": "active-data-index-es5",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
@@ -9,17 +9,18 @@
 			"name": "firefox-files",
 			"batch_size": 1000,
 			"skip": 0,
-			"rollover":{
+			"rollover": {
 				"field": "etl.source.source.timestamp",
 				"interval": "week",
 				"max": "3week"
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "firefox-files",
 				"type": "files",
+				"tjson": true,
 				"timeout": 300,
 				"consistency": "one",
 				"schema": {
@@ -42,7 +43,7 @@
 			"name": "fx_test",
 			"batch_size": 1000,
 			"skip": 0,
-			"rollover":{
+			"rollover": {
 				"field": "result.start_time",
 				"interval": "3month",
 				"max": "2year"
@@ -50,12 +51,13 @@
 			"sample_only": [
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "fx-test",
 				"type": "test_result",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/fx_test.json"
 				},
@@ -72,7 +74,7 @@
 			"name": "treeherder",
 			"batch_size": 1000,
 			"skip": 0,
-			"rollover":{
+			"rollover": {
 				"field": "action.start_time",
 				"interval": "3month",
 				"max": "2year"
@@ -80,34 +82,33 @@
 			"sample_only": [
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "treeherder",
 				"type": "th_job",
+				"id": "job.id",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/treeherder.json"
 				},
 				"debug": false,
-				"limit_replicas": true
+				"limit_replicas": true,
+				"_id": "job.id"
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-treeherder-normalized",
 				"key_format": "a.b"
-			},
-			"backfill": {
-				"prime_key": "etl.source.id",
-				"source_key": null
 			}
 		},
 		{
-			"name": "unit",
+			"name": "unittest",
 			"batch_size": 1000,
 			"skip": 0,
-			"rollover":{
-				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
+			"rollover": {
+				"field": {"coalesce": ["build.date", "repo.push.date", "run.timestamp"]},
 				"interval": "week",
 				"max": "5week"
 			},
@@ -115,12 +116,13 @@
 				"try"
 			],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
@@ -132,28 +134,29 @@
 				"bucket": "active-data-test-result",
 				"key_format": "t.a:b.c"
 			},
-			"backfill":{
+			"backfill": {
 				"prime_key": "etl.source.source.id",
 				"source_key": "etl.source.source.source.source.code"
 			}
 		},
 		{
-			"name":"perf",
-			"rollover":{
-				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
+			"name": "perf",
+			"rollover": {
+				"field": {"coalesce": ["build.date", "repo.push.date", "run.timestamp"]},
 				"interval": "year",
-				"max":"2year"
+				"max": "2year"
 			},
 			"batch_size": 1000,
 			"queue_size": 2000,
 			"sample_only": ["try"],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "perf",
 				"type": "perf_result",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
@@ -165,28 +168,29 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "t.a:b.c"
 			},
-			"backfill":{
+			"backfill": {
 				"ignore_key": "etl.source.id",
 				"prime_key": "etl.source.source.source.id",
 				"source_key": "etl.source.source.source.source.source.code"
 			}
 		},
 		{
-			"name":"jobs",
+			"name": "jobs",
 			"rollover": {
 				"field": "build.date",
 				"interval": "3month",
-				"max":"2year"
+				"max": "2year"
 			},
 			"batch_size": 500,
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "jobs",
 				"type": "job",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
@@ -198,14 +202,14 @@
 				"$ref": "file://~/private.json#aws_credentials",
 				"key_format": "a.b"
 			},
-			"backfill":{
+			"backfill": {
 				"prime_key": "etl.source.source.id", // "etl.source.id"],
 				"source": null,
 				"source_key": null
 			}
 		},
 		{
-			"name":"code coverage",
+			"name": "code coverage",
 			"skip": 0.0,
 			"queue_size": 1000,
 			"batch_size": 500,
@@ -216,11 +220,12 @@
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"tjson": true,
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
@@ -245,12 +250,14 @@
 			},
 			"sample_only": [],
 			"elasticsearch": {
-				"host": "http://activedata.allizom.org",
+				"host": "http://34.215.198.169",
 				"port": 9200,
 				"index": "task",
 				"type": "task",
+				"id": "task.id",
+				"tjson": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
@@ -271,8 +278,8 @@
 		}
 	},
 	"debug": {
-		"trace":true,
-		"cprofile":false,
+		"trace": true,
+		"cprofile": false,
 		"log": [
 			{
 				"log_type": "console"

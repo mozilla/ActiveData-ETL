@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 from mo_threads.threads import MAIN_THREAD
 
 from mo_dots import wrap
@@ -121,3 +121,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

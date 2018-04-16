@@ -6,17 +6,17 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from future.utils import text_type
-from mo_json import json2value, value2json
+from mo_dots import Data, literal_field, set_default
+from mo_future import text_type
+from mo_json import json2value
 from mo_logs import Log, strings
-from mo_dots import wrap, Data, literal_field, set_default
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -26,6 +26,7 @@ TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 
 TRY_AGAIN_LATER = "{{reason}}, try again later"
+
 
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
@@ -54,6 +55,7 @@ NOT_STRUCTURED_LOGS = [
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    ".png",
     "/properties.json",
     "/log_raw.log",
     "/localconfig.json",
@@ -92,12 +94,13 @@ class Transform(object):
         """
         :param source_key: THE DOT-DELIMITED PATH FOR THE SOURCE
         :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
-        :param destination: THE s3 BUCK TO PLACE ALL THE TRANSFORM RESULTS
+        :param destination: THE s3 BUCKET TO PLACE ALL THE TRANSFORM RESULTS
         :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
         :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError
+
 
 def verify_blobber_file(line_number, name, url):
     """
@@ -222,11 +225,3 @@ class EtlHeadGenerator(object):
         return dest_key, dest_etl
 
 
-def download_file(url, destination):
-    with file(destination, "w+b") as tempfile:
-        stream = http.get(url).raw
-        try:
-            for b in iter(lambda: stream.read(8192), b""):
-                tempfile.write(b)
-        finally:
-            stream.close()

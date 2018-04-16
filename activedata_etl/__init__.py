@@ -10,11 +10,11 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from future.utils import text_type
+from jx_python import jx
 from mo_dots import wrap, coalesce
+from mo_future import text_type
 from mo_logs import Log, strings
 from pyLibrary.aws import s3
-from jx_python import jx
 
 
 def key2etl(key):
@@ -65,13 +65,13 @@ def _parse_key(elements):
     """
     EXPECTING ALTERNATING LIST OF operands AND operators
     """
-    if isinstance(elements, basestring):
+    if isinstance(elements, text_type):
         try:
             return {"id": format_id(elements)}
         except Exception as e:
             Log.error("problem", e)
     if isinstance(elements, list) and len(elements) == 1:
-        if isinstance(elements[0], basestring):
+        if isinstance(elements[0], text_type):
             return {"id": format_id(elements[0])}
         return elements[0]
     if isinstance(elements, Mapping):

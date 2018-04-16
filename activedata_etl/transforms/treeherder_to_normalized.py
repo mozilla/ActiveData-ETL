@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from collections import Mapping
+
 from activedata_etl import etl2key, key2etl
 from mo_dots import Data, listwrap, wrap, set_default
 from mo_json import json2value
@@ -299,6 +301,8 @@ def coalesce_w_conflict_detection(source_key, *args):
     output = None
     for a in args:
         if a == None:
+            continue
+        if isinstance(a, Mapping) and not a:
             continue
         if output == None:
             output = a

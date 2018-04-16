@@ -20,6 +20,15 @@
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
 	"local_es_node": "http://activedata.allizom.org:9200",
+	"tuid": {
+		"endpoint": "http://54.149.21.8/tuid",
+		"timeout": 30,
+		"push_queue": {
+			"name": "active-data-tuid-dev",
+			"debug": true,
+			"$ref": "file://~/private.json#aws_credentials"
+		}
+	},
 	"hg": {
 		"use_cache": true,
 		"hg": {

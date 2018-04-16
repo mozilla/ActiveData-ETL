@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 from tempfile import TemporaryFile
 
-from future.utils import text_type
+from mo_future import text_type
 
 from jx_python import jx
 from mo_dots import Data
