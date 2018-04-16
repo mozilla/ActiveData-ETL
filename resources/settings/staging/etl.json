@@ -19,9 +19,9 @@
 		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},
-	"local_es_node": "http://activedata.allizom.org:9200",
+	"local_es_node": "http://172.31.1.12:9200",
 	"tuid": {
-		"endpoint": "http://54.149.21.8/tuid",
+		"endpoint": "http://172.31.1.12/tuid",
 		"timeout": 30,
 		"push_queue": {
 			"name": "active-data-tuid-dev",
