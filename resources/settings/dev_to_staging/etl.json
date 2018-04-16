@@ -36,7 +36,7 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://34.215.198.169",
+			"host": "http://54.149.21.8",
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
@@ -47,7 +47,7 @@
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://34.215.198.169",
+			"host": "http://54.149.21.8",
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
