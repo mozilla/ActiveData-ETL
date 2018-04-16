@@ -12,6 +12,8 @@ import sys
 from collections import Mapping
 from copy import deepcopy
 
+import jx_elasticsearch
+
 import mo_dots
 from activedata_etl import key2etl
 from activedata_etl.sinks.dummy_sink import DummySink
@@ -435,7 +437,7 @@ def main():
         hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
             hg=hg,
-            local_es_node=settings.local_es_node
+            local_es_node=jx_elasticsearch.new_instance(settings.local_es_node)
         )
 
         stopper = Signal()
@@ -489,7 +491,7 @@ def etl_one(settings):
     hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
         hg=hg,
-        local_es_node=settings.local_es_node,
+        local_es_node=jx_elasticsearch.new_instance(settings.local_es_node),
         tuid=settings.tuid
     )
 
