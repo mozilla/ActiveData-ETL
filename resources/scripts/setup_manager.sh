@@ -124,6 +124,18 @@ mkdir /home/ec2-user/esShardBalancer/logs
 chmod u+x /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 /home/ec2-user/esShardBalancer/resources/scripts/staging/balance.sh
 
+
+# INSTALL esShardBalancer6
+cd ~
+git clone https://github.com/klahnakoski/esShardBalancer.git esShardBalancer6
+cd ~/esShardBalancer6
+git checkout es6
+
+# RUN IT
+mkdir /home/ec2-user/esShardBalancer6/logs
+chmod u+x /home/ec2-user/esShardBalancer6/resources/scripts/staging/balance6.sh
+/home/ec2-user/esShardBalancer6/resources/scripts/staging/balance.sh
+
 # INSTALL TREEHERDER EXTRACT
 # REQUIRES A ./output/treeherder_last_run.json FILE
 # REQUIRES CONFIG

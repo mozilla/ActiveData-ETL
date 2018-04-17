@@ -11,14 +11,12 @@ from __future__ import unicode_literals
 
 from zipfile import ZipFile
 
-from future.utils import text_type
-
 from activedata_etl import etl2key
-from activedata_etl.imports.file_mapper import FileMapper
+from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import download_file
 from mo_dots import set_default
 from mo_files import TempFile
+from mo_future import text_type
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
@@ -36,9 +34,6 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
     """
     if DEBUG:
         Log.note("Processing grcov artifact {{artifact}}", artifact=grcov_artifact.url)
-
-    if not resources.file_mapper:
-        resources.file_mapper = FileMapper(task_cluster_record)
 
     file_id = etl2key(artifact_etl)
     new_record = set_default(
@@ -69,7 +64,11 @@ def process_grcov_artifact(source_key, resources, destination, grcov_artifact, t
                     for num, zip_name in enumerate(zipped.namelist()):
                         if num == 1:
                             Log.error("expecting only one artifact in the grcov.zip file while processing {{key}}", key=source_key)
-                        for source in parse_lcov_coverage(source_key, grcov_artifact.url, ibytes2ilines(zipped.open(zip_name))):
+                        for source in tuid_batches(
+                            task_cluster_record,
+                            resources,
+                            parse_lcov_coverage(source_key, grcov_artifact.url, ibytes2ilines(zipped.open(zip_name)))
+                        ):
                             if please_stop:
                                 return
                             if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:

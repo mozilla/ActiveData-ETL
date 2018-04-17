@@ -1,7 +1,5 @@
-mo-future
-future
 ujson
-BeautifulSoup
+BeautifulSoup4
 boto
 requests
 mo_future

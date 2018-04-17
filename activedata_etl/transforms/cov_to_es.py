@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
@@ -16,6 +17,7 @@ from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
 from mo_logs import Log
+from tuid.client import TuidClient
 
 DEBUG = True
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -56,6 +58,16 @@ def process(source_key, source, destination, resources, please_stop=None):
         minimize_task(task_cluster_record)
 
         etl_header_gen = EtlHeadGenerator(source_key)
+
+        if any(  # if we will be processing coverage, then prepare the resources
+            a in artifact.name
+            for artifact in artifacts
+            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm")
+        ):
+            if not resources.tuid_mapper:
+                resources.tuid_mapper = TuidClient(resources.tuid)
+            if not resources.file_mapper:
+                resources.file_mapper = FileMapper(task_cluster_record)
 
         for artifact in artifacts:
             try:

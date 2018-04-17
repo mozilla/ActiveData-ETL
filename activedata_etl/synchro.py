@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from future.utils import text_type
+from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log
 from mo_threads import Thread

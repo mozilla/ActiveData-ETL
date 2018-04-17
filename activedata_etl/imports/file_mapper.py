@@ -10,13 +10,14 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-from future.utils import text_type
 
-from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
+from activedata_etl.imports.coverage_util import download_file
+from activedata_etl.transforms import ACTIVE_DATA_QUERY
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
 from mo_files import TempFile
-from mo_json import stream, json2value
+from mo_future import text_type
+from mo_json import stream
 from mo_logs import Log
 from mo_times import Timer
 from pyLibrary.env import http

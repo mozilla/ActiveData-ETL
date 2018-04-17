@@ -9,7 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from future.utils import text_type
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.operations import sudo
@@ -17,10 +16,9 @@ from fabric.state import env
 
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
-from pyLibrary.aws import aws_retry
-from mo_logs import startup, constants, strings
 from mo_logs import Log
-
+from mo_logs import startup, constants, strings
+from pyLibrary.aws import aws_retry
 
 restart_es_count = 0
 
