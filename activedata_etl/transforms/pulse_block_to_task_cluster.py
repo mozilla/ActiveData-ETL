@@ -551,13 +551,24 @@ def get_build_task(source_key, resources, normalized_task):
     if not build_task_id:
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return Null
-    response = resources.local_es_node.query({"from": "task", "where": {"eq": {"task.id": build_task_id}}, "format": "list"})
+    response = http.post_json(
+        resources.local_es_node.host + ":9200/task/task/_search",
+        headers={"Content-Type": "application/json"},
+        data={
+            "query": {"terms": {
+                "task.id": build_task_id
+            }},
+            "from": 0,
+            "size": 10
+        },
+        retry={"times": 3, "sleep": 15}
+    )
 
     candidates = jx.sort(
         [
-            h
-            for h in response.data
-            if h.treeherder.jobKind == "build"
+            h._source
+            for h in response.hits.hits
+            if h._source.treeherder.jobKind == "build"
         ],
         "run.start_time"
     )

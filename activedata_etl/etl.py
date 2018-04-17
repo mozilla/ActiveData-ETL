@@ -12,8 +12,6 @@ import sys
 from collections import Mapping
 from copy import deepcopy
 
-import jx_elasticsearch
-
 import mo_dots
 from activedata_etl import key2etl
 from activedata_etl.sinks.dummy_sink import DummySink
@@ -29,11 +27,8 @@ from mo_logs import Log, startup, constants, strings
 from mo_logs.exceptions import suppress_exception
 from mo_math import MIN
 from mo_testing import fuzzytestcase
-from mo_threads import Thread, Signal, Queue, Lock
-from mo_threads import Till
-from mo_times import Timer
-from mo_times.dates import Date
-from mo_times.durations import SECOND
+from mo_threads import Thread, Signal, Queue, Lock, Till
+from mo_times import Timer, Date, SECOND
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
@@ -437,7 +432,7 @@ def main():
         hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
             hg=hg,
-            local_es_node=jx_elasticsearch.new_instance(settings.local_es_node)
+            local_es_node=settings.local_es_node
         )
 
         stopper = Signal()
@@ -491,7 +486,7 @@ def etl_one(settings):
     hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
         hg=hg,
-        local_es_node=jx_elasticsearch.new_instance(settings.local_es_node),
+        local_es_node=settings.local_es_node,
         tuid=settings.tuid
     )
 
