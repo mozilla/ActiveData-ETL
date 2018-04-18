@@ -42,7 +42,7 @@
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
-			"tjson": true,
+			"tjson": false,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
@@ -53,7 +53,7 @@
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
-			"tjson": true,
+			"tjson": false,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
