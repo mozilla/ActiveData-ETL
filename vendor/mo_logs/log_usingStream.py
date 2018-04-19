@@ -22,8 +22,9 @@ from mo_logs.strings import expand_template
 
 class StructuredLogger_usingStream(StructuredLogger):
     def __init__(self, stream):
-        self.locker = allocate_lock()
         try:
+            self.locker = allocate_lock()
+            self.flush = stream.flush
             if stream in (sys.stdout, sys.stderr):
                 if PY3:
                     self.writer = stream.write
@@ -33,7 +34,7 @@ class StructuredLogger_usingStream(StructuredLogger):
                 self.writer = _UTF8Encoder(stream).write
             else:
                 self.writer = stream.write
-        except Exception as e:
+        except Exception as _:
             sys.stderr("can not handle")
 
     def write(self, template, params):
@@ -45,7 +46,7 @@ class StructuredLogger_usingStream(StructuredLogger):
             self.locker.release()
 
     def stop(self):
-        pass
+        self.flush()
 
 
 class _UTF8Encoder(object):
