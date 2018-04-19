@@ -70,7 +70,7 @@ class TuidClient(object):
 
                 for source in sources:
                     line_to_tuid = found[source.file.name]
-                    if line_to_tuid is not None:
+                    if line_to_tuid != None:
                         source.file.tuid_covered = [
                             {"line": line, "tuid": line_to_tuid[line]}
                             for line in source.file.covered
