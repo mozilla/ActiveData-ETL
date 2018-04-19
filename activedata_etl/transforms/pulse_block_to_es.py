@@ -10,16 +10,15 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
-from mo_dots import Data, Null
-from mo_json import json2value
-from mo_logs import Log, strings
-
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from mo_dots import Data, Null
 from mo_hg.hg_mozilla_org import DEFAULT_LOCALE, minimize_repo
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.revisions import Revision
-from mo_logs.profiles import Profiler
+from mo_json import json2value
+from mo_logs import Log, strings
+from mo_threads.profiles import Profiler
 from pyLibrary.env.git import get_git_revision
 
 DEBUG = True
