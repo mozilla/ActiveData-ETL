@@ -99,7 +99,7 @@ def main():
         Thread.run("loop", loop_all, bucket)
         Thread.run("bucket writer thread", writer, bucket)
 
-        Thread.wait_for_shutdown_signal(allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(allow_exit=True)
 
     except Exception as e:
         Log.error("Problem with compaction", e)

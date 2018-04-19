@@ -19,7 +19,7 @@ from mo_logs import startup, constants
 from mo_logs.exceptions import Explanation, WarnOnException
 from mo_math import MAX
 from mo_math.randoms import Random
-from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP
+from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP, MAIN_THREAD
 from mo_threads import Till
 from mo_times.timer import Timer
 from pyLibrary import aws
@@ -222,7 +222,7 @@ def main():
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
-        Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
         Log.note("Shutdown")
     except Exception as e:

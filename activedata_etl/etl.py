@@ -448,7 +448,7 @@ def main():
             )
 
         aws.capture_termination_signal(stopper)
-        Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:
