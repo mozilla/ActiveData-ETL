@@ -35,7 +35,7 @@ class StructuredLogger_usingStream(StructuredLogger):
             else:
                 self.writer = stream.write
         except Exception as _:
-            sys.stderr("can not handle")
+            sys.stderr.write("can not handle")
 
     def write(self, template, params):
         value = expand_template(template, params)

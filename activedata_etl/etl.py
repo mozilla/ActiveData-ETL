@@ -430,10 +430,10 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
-            hg=hg,
-            local_es_node=settings.local_es_node
+            hg=HgMozillaOrg(use_cache=True, kwargs=settings.hg),
+            local_es_node=settings.local_es_node,
+            tuid_mapper=TuidClient(settings.tuid_client)
         )
 
         stopper = Signal()

@@ -1,0 +1,11 @@
+{
+	"tuid_client": {
+		"endpoint": "http://172.31.1.12/tuid",
+		"timeout": 30,
+		"push_queue": {
+			"name": "active-data-tuid-dev",
+			"debug": true,
+			"$ref": "file://~/private.json#aws_credentials"
+		}
+	}
+}
