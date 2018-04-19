@@ -287,9 +287,6 @@ def pull_details(source_key, details, new_treeherder):
             elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
             else:
-                # try:
-                #     title, value = json2value("{"+d.value+"}").items(0)
-                #     pull_details()
                 KNOWN_VALUES.append(d.value)
                 Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)
         else:
@@ -329,5 +326,5 @@ KNOWN_VALUES = [
     "Tests will be run from the following files:",
     "gaia_revlink: ",
     "Unknown: ",
-    "\t--this-chunk=1 --total-chunks=1 -- tests/web-platform/tests/streams/readable-streams/default-reader.dedicatedworker.html tes"
+    "\t--this-chunk=1 --total-chunks=1 -- tests"
 ]

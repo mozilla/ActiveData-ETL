@@ -458,6 +458,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
+    "sparse_update_config",  # VCS
     "speedometer",
     "Strings",
     "stylebench",
