@@ -13,6 +13,8 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
+from mo_json.typed_encoder import TYPE_PREFIX
+
 from jx_base import container
 from jx_base.container import Container
 from jx_base.dimensions import Dimension
@@ -63,7 +65,7 @@ class ES14(Container):
         typed=None,
         kwargs=None
     ):
-        Container.__init__(self, None)
+        Container.__init__(self)
         if not container.config.default:
             container.config.default = {
                 "type": "elasticsearch",

@@ -475,6 +475,10 @@ def write_profile(profile_settings, stats):
     stats_file.write(convert.list2tab(stats))
 
 
+def _same_frame(frameA, frameB):
+    return (frameA.line, frameA.file) == (frameB.line, frameB.file)
+
+
 # GET THE MACHINE METADATA
 machine_metadata = wrap({
     "pid":  os.getpid(),
