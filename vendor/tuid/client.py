@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 from pyLibrary import aws
 
-from mo_dots import listwrap, wrap
+from mo_dots import listwrap, wrap, Null
 from mo_files import File
 from mo_json import json2value, value2json
 from mo_kwargs import override
@@ -161,4 +161,4 @@ class TuidClient(object):
                 if self.enabled:
                     Log.warning("TUID service has problems.", cause=e)
                 self.enabled = False
-                return None
+                return Null
