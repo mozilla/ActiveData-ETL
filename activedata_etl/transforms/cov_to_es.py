@@ -17,7 +17,6 @@ from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from mo_json import json2value
 from mo_logs import Log
-from tuid.client import TuidClient
 
 DEBUG = True
 STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
@@ -64,8 +63,6 @@ def process(source_key, source, destination, resources, please_stop=None):
             for artifact in artifacts
             for a in ("jsdcov_artifacts.zip", "grcov", "jsvm")
         ):
-            if not resources.tuid_mapper:
-                resources.tuid_mapper = TuidClient(resources.tuid)
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
 

@@ -23,7 +23,7 @@
 		"host":"http://172.31.1.12",
 		"index": "task"
 	},
-	"tuid": {
+	"tuid_client": {
 		"endpoint": "http://172.31.1.12/tuid",
 		"timeout": 30,
 		"push_queue": {

@@ -34,6 +34,7 @@ from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
+from tuid.client import TuidClient
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -483,11 +484,10 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
-        hg=hg,
+        hg=HgMozillaOrg(kwargs=settings.hg),
         local_es_node=settings.local_es_node,
-        tuid=settings.tuid
+        tuid_mapper=TuidClient(settings.tuid_client)
     )
 
     stopper = Signal("main stop signal")
