@@ -67,6 +67,8 @@ class TuidClient(object):
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
                 # WHAT DO WE HAVE
                 found = self._get_tuid_from_endpoint(revision, filenames)
+                if found == None:
+                    return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
                 for source in sources:
                     line_to_tuid = found[source.file.name]
@@ -161,4 +163,4 @@ class TuidClient(object):
                 if self.enabled:
                     Log.warning("TUID service has problems.", cause=e)
                 self.enabled = False
-                return Null
+                return None
