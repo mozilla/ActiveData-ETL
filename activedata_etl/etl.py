@@ -27,7 +27,7 @@ from mo_logs import Log, startup, constants, strings
 from mo_logs.exceptions import suppress_exception
 from mo_math import MIN
 from mo_testing import fuzzytestcase
-from mo_threads import Thread, Signal, Queue, Lock, Till
+from mo_threads import Thread, Signal, Queue, Lock, Till, MAIN_THREAD
 from mo_times import Timer, Date, SECOND
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
@@ -499,7 +499,7 @@ def etl_one(settings):
         resources=resources,
         please_stop=stopper
     )
-    Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
 def parse_id_argument(id):

@@ -113,6 +113,8 @@ def verify_blobber_file(line_number, name, url):
         return None, 0
     if (name.find("/jscov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
         return None, 0
+    if name.find("/test_info/memory-report-") >=0:
+        return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
         response = http.get(url)

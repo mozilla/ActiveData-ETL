@@ -25,7 +25,7 @@
 		"host": "http://54.149.21.8",
 		"index": "task"
 	},
-	"tuid": {
+	"tuid_client": {
 		"endpoint": "http://54.149.21.8/tuid",
 		"timeout": 30,
 		"push_queue": {

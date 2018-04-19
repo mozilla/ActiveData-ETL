@@ -412,8 +412,15 @@ class Index(Features):
         self.extend([record])
 
     def add_property(self, name, details):
+        if self.debug:
+            Log.note("Adding property {{prop}} to {{index}}", prop=name, index=self.settings.index)
         for n in jx.reverse(split_field(name)):
-            details = {"properties": {n: details}}
+            if n == NESTED_TYPE:
+                details = {"properties": {n: set_default(details, {"type": "nested", "dynamic": True})}}
+            elif n.startswith(TYPE_PREFIX):
+                details = {"properties": {n: details}}
+            else:
+                details = {"properties": {n: set_default(details, {"type": "object", "dynamic": True})}}
 
         self.cluster.put(
             "/" + self.settings.index + "/_mapping/" + self.settings.type,
@@ -798,11 +805,13 @@ class Cluster(object):
         RETURN LIST OF {"alias":a, "index":i} PAIRS
         ALL INDEXES INCLUDED, EVEN IF NO ALIAS {"alias":Null}
         """
-        data = self.get("/_aliases", retry={"times": 5}, timeout=3, stream=False)
+        metadata = self.get_metadata()
         output = []
-        for index, desc in data.items():
+        for index, desc in metadata.indices.items():
             if not desc["aliases"]:
                 output.append({"index": index, "alias": None})
+            elif desc['aliases'][0] == index:
+                pass
             else:
                 for a in desc["aliases"]:
                     output.append({"index": index, "alias": a})
@@ -855,7 +864,7 @@ class Cluster(object):
                 Log.note("POST {{url}}", url=url)
             response = http.post(url, **kwargs)
             if response.status_code not in [200, 201]:
-                Log.error(response.reason.decode("latin1") + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
+                Log.error(text_type(response.reason) + ": " + strings.limit(response.content.decode("latin1"), 100 if self.debug else 10000))
             if self.debug:
                 Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
             details = json2value(utf82unicode(response.content))
