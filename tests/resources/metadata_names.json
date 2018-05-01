@@ -27705,6 +27705,17 @@
         },
         "run": {"suite": "tp6-stylo-threads"}
     },
+    "test-windows10-64-ccov/debug-test-coverage-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug", "ccov"]
+        },
+        "run": {
+            "suite": {"name": "test-coverage"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-ccov/debug-web-platform-tests-1": {
         "action": {"type": "test"},
         "build": {

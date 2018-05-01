@@ -233,6 +233,7 @@ TEST_SUITE = {
     "reftest-no-accel",
     "robocop",
     "telemetry-tests-client",
+    "test-coverage",
     "test-verify",
     "test-verify-wpt",
     "web-platform-tests",
