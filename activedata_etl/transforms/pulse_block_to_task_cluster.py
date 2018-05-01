@@ -34,10 +34,10 @@ from pyLibrary.env import http
 DEBUG = False
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
-STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
-ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+MAIN_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/status"
+ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 
 RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}

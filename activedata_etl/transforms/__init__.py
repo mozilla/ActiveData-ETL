@@ -109,11 +109,15 @@ def verify_blobber_file(line_number, name, url):
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
+    if not name.startswith("public/"):
+        return None, 0
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
     if (name.find("/jscov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
         return None, 0
-    if name.find("/test_info/memory-report-") >=0:
+    if name.find("/test_info/memory-report-") >= 0:
+        return None, 0
+    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
@@ -142,9 +146,6 @@ def verify_blobber_file(line_number, name, url):
     if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):
         # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
         return logs, "unknown"
-
-    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
-        return None, 0
 
     # DETECT IF THIS IS A STRUCTURED LOG
 
