@@ -32,6 +32,9 @@
 			"name": "active-data-tuid-dev",
 			"debug": true,
 			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"db":{
+			"load_functions": false
 		}
 	},
 	"hg": {

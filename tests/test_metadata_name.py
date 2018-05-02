@@ -12,7 +12,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl.imports.task import decode_metatdata_name
-from mo_dots import Null
+from mo_dots import Null, unwrap
 from mo_files import File
 from mo_json import value2json
 from mo_testing.fuzzytestcase import FuzzyTestCase
@@ -24,7 +24,7 @@ class TestMetadataName(FuzzyTestCase):
 
     def test_basic(self):
         resource = File("tests/resources/metadata_names.json")
-        tests = resource.read_json()
+        tests = unwrap(resource.read_json(leaves=False, flexible=False))
         for name, expected in list(tests.items()):
             result = decode_metatdata_name(Null, name)
 

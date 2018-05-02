@@ -2841,9 +2841,16 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
-    "test-android-4": {
+    "test-android-4.3-arm7-api-16/debug-geckoview-junit-1": {
         "action": {"type": "test"},
-        "build": {"platform": "android"}
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "geckoview-junit"}
+        }
     },
     "test-linux32-devedition/opt-cppunit": {
         "action": {"type": "test"},

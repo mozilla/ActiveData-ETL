@@ -38,7 +38,6 @@ def parse_lcov_coverage(source_key, source_name, stream):
     :param stream:
     :return:
     """
-    # XXX BRDA, BRF, BFH not implemented because not used in the output
 
     current_source = None
     done = set()
