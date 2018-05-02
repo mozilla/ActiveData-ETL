@@ -64,7 +64,6 @@ MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISI
 MIN_ETL_AGE = Date("03may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 
-GET_DIFF = True
 MAX_DIFF_SIZE = 1000
 DIFF_URL = "{{location}}/raw-rev/{{rev}}"
 FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
@@ -238,7 +237,7 @@ class HgMozillaOrg(object):
                 output.changeset.moves = None
             return output
 
-    def _get_from_elasticsearch(self, revision, locale=None, get_diff=False):
+    def _get_from_elasticsearch(self, revision, locale=None, get_diff=False, get_moves=True):
         rev = revision.changeset.id
         if self.es.cluster.version.startswith("1.7."):
             query = {
@@ -288,15 +287,7 @@ class HgMozillaOrg(object):
                 if d._id.endswith(d._source.branch.locale):
                     best = d._source
             Log.warning("expecting no more than one document")
-
-        if not GET_DIFF and not get_diff:
-            return best
-        elif best.changeset.diff:
-            return best
-        elif not best.changeset.files:
-            return best  # NOT EXPECTING A DIFF, RETURN IT ANYWAY
-        else:
-            return None
+        return best
 
     @cache(duration=HOUR, lock=True)
     def _get_raw_json_info(self, url, branch):
@@ -414,7 +405,7 @@ class HgMozillaOrg(object):
         # ADD THE DIFF
         if get_diff or GET_DIFF:
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
-        if get_moves or GET_DIFF:
+        if get_moves:
             rev.changeset.moves = self._get_moves_from_hg(rev)
 
         try:
