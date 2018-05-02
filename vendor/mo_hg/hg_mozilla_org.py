@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-import sys
 from collections import Mapping
 from copy import copy
 
@@ -62,7 +61,7 @@ DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
 DAEMON_RECENT_HG_PULL = 2 * SECOND  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
-MIN_ETL_AGE = Date("02may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
+MIN_ETL_AGE = Date("03may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 
 
 GET_DIFF = True
@@ -184,6 +183,8 @@ class HgMozillaOrg(object):
         output = self._get_from_elasticsearch(revision, locale=locale, get_diff=get_diff)
         if output:
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
+                output.changeset.diff = None
+            if not get_moves:
                 output.changeset.moves = None
             if DEBUG:
                 Log.note("Got hg ({{branch}}, {{locale}}, {{revision}}) from ES", branch=output.branch.name, locale=locale, revision=output.changeset.id)
@@ -233,7 +234,7 @@ class HgMozillaOrg(object):
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
-            if not get_moves:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
+            if not get_moves:
                 output.changeset.moves = None
             return output
 
@@ -653,18 +654,21 @@ def parse_hg_date(date):
 
 
 def minimize_repo(repo):
+    """
+    RETURN A MINIMAL VERSION OF THIS CHANGESET
+    """
     if repo == None:
         return Null
-    # output = set_default({}, _exclude_from_repo, repo)
     output = wrap(_copy_but(repo, _exclude_from_repo))
     output.changeset.description = strings.limit(output.changeset.description, 1000)
     return output
 
 
-_exclude_from_repo = Data()  # A STRUCTURE TO
+_exclude_from_repo = Data()
 for k in [
     "changeset.files",
     "changeset.diff",
+    "changeset.moves",
     "etl",
     "branch.last_used",
     "branch.description",
