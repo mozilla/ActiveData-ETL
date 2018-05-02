@@ -13,12 +13,12 @@ ETL process attaches its own metatdata to help track issues; these [can be seen 
 
 ## Coverage Overview
 
-Coverage [processed by `cov_to_es.py`](https://github.com/klahnakoski/ActiveData-ETL/blob/etl/activedata_etl/transforms/cov_to_es.py): It is responsible for switching between the types of coverage.  This switching is required because task are processed in blocks of 100, and there can be multiple coverage tasks in any one block, and each must be assigned a contiguous `_id`. Contiguous `_id`s allow me to find possible holes in the ETL.
-
-The `tests` directory has a number of broken "tests"; these all worked at some time in the past, but the tasks and artifacts they depend on have long expired, plus many rotted. This directory is a good source of code templates to make new tests.  Feel free to copy-and-paste a test, or change an existing one.
+Coverage is [processed by `cov_to_es.py`](https://github.com/klahnakoski/ActiveData-ETL/blob/etl/activedata_etl/transforms/cov_to_es.py): It is responsible for switching between the types of coverage.  This switching is required because task are processed in blocks of 100, and there can be multiple coverage tasks in any one block, and each must be assigned a contiguous `_id`. Contiguous `_id`s allow me to find possible holes in the ETL.
 
 ### Artifact Testing
  
+The `tests` directory has a number of broken "tests"; these all worked at some time in the past, but the tasks and artifacts they depend on have long expired, plus many rotted. This directory is a good source of code templates to make new tests.  Feel free to copy-and-paste a test, or change an existing one.
+
 There will be three levels of testing. The first level is to test the artifact transformation; [`test_jsvm.py`](https://github.com/klahnakoski/ActiveData-ETL/blob/etl/tests/test_jsvm.py) is a good example of that: It downloads a known artifact and writes the result to a file.  I have not looked at the per-test coverage artifacts, you may need to expand this to cover multiple artifacts (?do per-test tasks generate multiple artifacts?). Running the test should be as simple as using `unittest` to run the test:
   
     python -m unittest discover -s tests -p test_jsvm.py`
