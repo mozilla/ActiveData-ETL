@@ -226,7 +226,7 @@ class HgMozillaOrg(object):
                     raw_rev1 = Data(node=revision.changeset.id)
                 else:
                     raise e
-            output = self._normalize_revision(set_default(raw_rev1, raw_rev2), found_revision, push, get_diff)
+            output = self._normalize_revision(set_default(raw_rev1, raw_rev2), found_revision, push, get_diff, get_moves)
             if output.push.date >= Date.now()-MAX_TODO_AGE:
                 self.todo.add((output.branch, listwrap(output.parents)))
                 self.todo.add((output.branch, listwrap(output.children)))
@@ -278,7 +278,7 @@ class HgMozillaOrg(object):
                     (Till(seconds=Random.int(30))).wait()
                     continue
                 else:
-                    Log.warning("Bad ES call, fall back to TH", cause=e)
+                    Log.warning("Bad ES call, fall back to HG", cause=e)
                     return None
 
         best = docs[0]._source
@@ -403,7 +403,7 @@ class HgMozillaOrg(object):
         set_default(rev, r)
 
         # ADD THE DIFF
-        if get_diff or GET_DIFF:
+        if get_diff:
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
         if get_moves:
             rev.changeset.moves = self._get_moves_from_hg(rev)
