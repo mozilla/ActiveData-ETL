@@ -96,7 +96,7 @@ class Transform(object):
         :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
         :param destination: THE s3 BUCKET TO PLACE ALL THE TRANSFORM RESULTS
         :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
-        :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
+        :param please_stop: CHECK REGULARLY, AND EXIT TRANSFORMATION IF True
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError

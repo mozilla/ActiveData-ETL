@@ -380,7 +380,10 @@
 	],
 	"debug": {
 		"trace": true,
-		"cprofile": false,
+		"cprofile": {
+			"enabled": false,
+			"filename": "./results/profile.tab"
+		},
 		"log": [
 			{
 				"log_type": "console"
