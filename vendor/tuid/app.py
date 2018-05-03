@@ -14,14 +14,13 @@ import os
 
 import flask
 from flask import Flask, Response
+
 from mo_dots import listwrap, coalesce, unwraplist
-from mo_files import File
 from mo_json import value2json, json2value
 from mo_logs import Log
 from mo_logs import constants, startup
 from mo_logs.strings import utf82unicode, unicode2utf8
 from mo_times import Timer
-
 from pyLibrary.env.flask_wrappers import cors_wrapper
 from tuid.service import TUIDService, TuidMap
 
@@ -72,9 +71,13 @@ def tuid_endpoint(path):
             paths = unwraplist(coalesce(paths, a['in'].path, a.eq.path))
 
         paths = listwrap(paths)
-        # RETURN TUIDS
-        with Timer("tuid internal response time for {{num}} files", {"num": len(paths)}):
-            response = service.get_tuids_from_files(revision=rev, files=paths, going_forward=True)
+        if len(paths) <= 0:
+            Log.warning("Can't find file paths found in request: {{request}}", request=request_body)
+            response = [("Error in app.py - no paths found", [])]
+        else:
+            # RETURN TUIDS
+            with Timer("tuid internal response time for {{num}} files", {"num": len(paths)}):
+                response = service.get_tuids_from_files(revision=rev, files=paths, going_forward=True)
 
         if query.meta.format == 'list':
             formatter = _stream_list
@@ -150,7 +153,6 @@ def _default(path):
 
 
 if __name__ in ("__main__",):
-    OVERVIEW = File("tuid/public/index.html").read_bytes()
     flask_app = TUIDApp(__name__)
 
     flask_app.add_url_rule(str('/'), None, tuid_endpoint, defaults={'path': ''}, methods=[str('GET'), str('POST')])
