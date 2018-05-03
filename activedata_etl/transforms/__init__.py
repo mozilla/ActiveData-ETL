@@ -46,6 +46,8 @@ NOT_STRUCTURED_LOGS = [
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
+    ".extra",
+    ".dmp",
     "/log_critical.log",
     "/log_error.log",
     "/log_fatal.log",
