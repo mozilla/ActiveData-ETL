@@ -15,6 +15,7 @@ from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
+from activedata_etl.transforms.per_test_to_es import process_per_test_artifact
 from mo_json import json2value
 from mo_logs import Log
 
@@ -61,7 +62,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if any(  # if we will be processing coverage, then prepare the resources
             a in artifact.name
             for artifact in artifacts
-            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm")
+            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm", "per-test-coverage-reports.zip")
         ):
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
@@ -120,6 +121,21 @@ def process(source_key, source, destination, resources, please_stop=None):
                         destination,
                         artifact,
                         task_cluster_record,
+                        artifact_etl,
+                        please_stop
+                    ))
+                elif "per-test-coverage-reports.zip" in artifact.name:
+                    coverage_artifact_exists = True
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                    if DEBUG:
+                        Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
+
+                    keys.extend(process_per_test_artifact(
+                        source_key,
+                        resources,
+                        destination,
+                        task_cluster_record,
+                        artifact,
                         artifact_etl,
                         please_stop
                     ))
