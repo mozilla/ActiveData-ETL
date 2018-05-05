@@ -119,7 +119,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
                 lcov_coverage = run_grcov(gcno_file, gcda_file)
 
             for source in lcov_coverage:
-                if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
+                if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
                     continue
                 if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                     continue

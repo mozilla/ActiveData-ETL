@@ -143,7 +143,7 @@ def coco_format(details):
             'uncovered': sorted(details['lines_uncovered']),
             "total_covered": len(details['lines_covered']),
             "total_uncovered": len(details['lines_uncovered']),
-            "percentage_covered": len(details['lines_covered']) / coverable_lines if coverable_lines else 1
+            "percentage_covered": len(details['lines_covered']) / coverable_lines if coverable_lines else None
         }
     })
 
