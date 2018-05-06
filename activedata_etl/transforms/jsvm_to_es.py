@@ -70,7 +70,7 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
                             ):
                                 if please_stop:
                                     return
-                                if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
+                                if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
                                     continue
                                 if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                                     continue
