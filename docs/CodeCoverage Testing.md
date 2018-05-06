@@ -28,7 +28,7 @@ There will be three levels of testing. The first level is to test the artifact t
 The second level is to get the ETL framework involved.  This will test the `cov_to_es.py` switching code, and provide [legitimate parameters to the transformation method](https://github.com/klahnakoski/ActiveData-ETL/blob/etl/activedata_etl/transforms/__init__.py#L91).  This will require a config file to point to all the correct resources.  The `resources/settings/codecoverage` directory has an number of config files, one of which I just updated (but have not tested).  This step will make the full-and-proper artifacts and upload them to test bucket in S3.
 
     export PYTHONPATH=.:vendor
-    python activedata_etl\etl.py --settings=resources/settings/codecoverage/etl.json  --key=tc.1530798
+    python activedata_etl\etl.py --settings=resources/settings/codecoverage/etl.json  --key=tc.1538295
 
 This second level requires access to AWS S3 buckets and test queues; credentials are hidden in `~/private.json` (which you can references to in `etl.json` file).  
 
