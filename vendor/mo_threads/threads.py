@@ -205,7 +205,7 @@ class Thread(object):
 
         self.thread = None
         self.stopped = Signal("stopped signal for " + self.name)
-        self.cprofiler = None
+        self.cprofiler = Null
         self.children = []
 
         if "parent_thread" in kwargs:
@@ -262,7 +262,8 @@ class Thread(object):
         try:
             if self.target is not None:
                 a, k, self.args, self.kwargs = self.args, self.kwargs, None, None
-                with CProfiler():  # PROFILE IN HERE SO THAT __exit__() IS RUN BEFORE THREAD MARKED AS stopped
+                self.cprofiler = CProfiler()
+                with self.cprofiler:  # PROFILE IN HERE SO THAT __exit__() IS RUN BEFORE THREAD MARKED AS stopped
                     response = self.target(*a, **k)
                 with self.synch_lock:
                     self.end_of_thread = Data(response=response)

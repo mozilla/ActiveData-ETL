@@ -127,3 +127,8 @@ class CProfiler(object):
             del self.cprofiler
             Log.note("done cprofile")
 
+    def enable(self):
+        return self.cprofiler.enable()
+
+    def disable(self):
+        return self.cprofiler.disable()

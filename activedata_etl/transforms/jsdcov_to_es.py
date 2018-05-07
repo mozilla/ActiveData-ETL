@@ -33,7 +33,7 @@ DO_AGGR = True
 urls_w_uncoverable_lines = set()
 
 
-def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
+def process_jsdcov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
 
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
@@ -42,7 +42,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
 
         if not coverable_lines and artifact.url not in urls_w_uncoverable_lines:
             urls_w_uncoverable_lines.add(artifact.url)
-            Log.warning("jscov {{url}} has uncoverable lines", url=artifact.url)
+            Log.warning("jsdcov {{url}} has uncoverable lines", url=artifact.url)
 
         new_record = set_default(
             {
@@ -148,10 +148,10 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         Log.error("Shutdown detected. Stopping job ETL.")
 
                     if source_file_index == 0:
-                        # this is not a jscov object but an object containing the version metadata
+                        # this is not a jsdcov object but an object containing the version metadata
                         # TODO: this metadata should not be here
                         # TODO: this version info is not used right now. Make use of it later.
-                        jscov_format_version = obj.get("version")
+                        jsdcov_format_version = obj.get("version")
                         continue
 
                     try:
@@ -181,10 +181,10 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         Log.error("Shutdown detected. Stopping job ETL.")
 
                     if source_file_index == 0:
-                        # this is not a jscov object but an object containing the version metadata
+                        # this is not a jsdcov object but an object containing the version metadata
                         # TODO: this metadata should not be here
                         # TODO: this version info is not used right now. Make use of it later.
-                        jscov_format_version = obj.get("version")
+                        jsdcov_format_version = obj.get("version")
                         continue
 
                     obj = wrap(obj)

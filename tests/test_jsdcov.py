@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
+from activedata_etl.transforms.jsdcov_to_es import process_jsdcov_artifact
 from mo_dots import Null, Data
 from mo_times import Date, Duration, WEEK
 from test_gcov import Destination
@@ -24,7 +24,7 @@ class TestJsdov(unittest.TestCase):
         url = "http://queue.taskcluster.net/v1/task/JFTo4WWfS3GGK8-A4y26Pw/artifacts/public/test_info//jsdcov_artifacts.zip"
         destination = Destination("results/jsdcov/lcov_parsing_result.json.gz")
 
-        process_jscov_artifact(
+        process_jsdcov_artifact(
             source_key=key,
             resources=Data(),
             destination=destination,
