@@ -55,8 +55,7 @@ class TuidClient(object):
         :param file: THE FULL PATH TO A SINGLE FILE
         :return: A LIST OF TUIDS
         """
-        revision = revision[:12]
-        service_response = wrap(self._get_tuid_from_endpoint(revision, [file]))
+        service_response = wrap(self.get_tuids(revision, [file]))
         for f, t in service_response.items():
             return t
 
@@ -68,6 +67,10 @@ class TuidClient(object):
         :return: MAP FROM FILENAME TO TUID LIST
         """
 
+        # SCRUB INPUTS
+        revision = revision[:12]
+        files = [file.lstrip('/') for file in files]
+
         with Timer(
             "ask tuid service for {{num}} files at {{revision|left(12)}}",
             {"num": len(files), "revision": revision},
@@ -75,15 +78,13 @@ class TuidClient(object):
             silent=not self.enabled
         ):
             try:
-                proced_filenames = [file.lstrip('/') for file in files]
-
                 response = self.db.query(
                     "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
-                    " AND file in " + sql_iso(sql_list(map(quote_value, proced_filenames)))
+                    " AND file in " + sql_iso(sql_list(map(quote_value, files)))
                 )
                 found = {file: json2value(tuids) for file, tuids in response.data}
 
-                remaining = set(proced_filenames) - set(found.keys())
+                remaining = set(files) - set(found.keys())
                 new_response = None
                 if remaining:
                     request = wrap({
