@@ -34,9 +34,9 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
 
-        coverable_lines = len(covered) + len(uncovered)
+        coverable_line_count = len(covered) + len(uncovered)
 
-        if not coverable_lines and artifact.url not in urls_w_uncoverable_lines:
+        if not coverable_line_count and artifact.url not in urls_w_uncoverable_lines:
             urls_w_uncoverable_lines.add(artifact.url)
             Log.warning("jsdcov {{url}} has uncoverable lines", url=artifact.url)
 
@@ -51,7 +51,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
                             "uncovered": sorted(uncovered),
                             "total_covered": len(covered),
                             "total_uncovered": len(uncovered),
-                            "percentage_covered": len(covered) / coverable_lines if coverable_lines else None
+                            "percentage_covered": len(covered) / coverable_line_count if coverable_line_count else None
                         }
                     )
                 },
@@ -97,7 +97,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
             all_method_lines = set(method_lines)
             method_covered = all_method_lines & file_covered
             method_uncovered = all_method_lines - method_covered
-            method_percentage_covered = len(method_covered) / len(all_method_lines)
+            method_percentage_covered = len(method_covered) / len(all_method_lines) if all_method_lines else None
 
             orphan_covered = orphan_covered - method_covered
             orphan_uncovered = orphan_uncovered - method_uncovered
@@ -121,12 +121,13 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
         # a record for all the lines that are not in any method
         # every file gets one because we can use it as canonical representative
         # Record method coverage info
+        total_orphan_coverable = len(orphan_covered) + len(orphan_uncovered)
         record.source.method = {
             "covered": sorted(orphan_covered),
             "uncovered": sorted(orphan_uncovered),
             "total_covered": len(orphan_covered),
             "total_uncovered": len(orphan_uncovered),
-            "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+            "percentage_covered": len(orphan_covered) / total_orphan_coverable if total_orphan_coverable else None
         }
 
         # Timestamp this record

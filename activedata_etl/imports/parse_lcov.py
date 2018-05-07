@@ -131,7 +131,7 @@ def parse_lcov_coverage(source_key, source_name, stream):
 
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
-    coverable_lines = len(details['lines_covered']) + len(details['lines_uncovered'])
+    coverable_line_count = len(details['lines_covered']) + len(details['lines_uncovered'])
     lang = LANG.get(File(details['file']).extension, "c/c++")
 
     source = wrap({
@@ -143,7 +143,7 @@ def coco_format(details):
             'uncovered': sorted(details['lines_uncovered']),
             "total_covered": len(details['lines_covered']),
             "total_uncovered": len(details['lines_uncovered']),
-            "percentage_covered": len(details['lines_covered']) / coverable_lines if coverable_lines else None
+            "percentage_covered": len(details['lines_covered']) / coverable_line_count if coverable_line_count else None
         }
     })
 
