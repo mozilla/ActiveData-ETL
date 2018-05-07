@@ -228,7 +228,7 @@ _option_map = {
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
-    "pgo": ["pgo"],
+    "pgo": ["pgo"]
 }
 
 
