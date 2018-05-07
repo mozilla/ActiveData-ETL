@@ -28,7 +28,7 @@ class TestJsdov(unittest.TestCase):
             source_key=key,
             resources=Data(),
             destination=destination,
-            jsvm_artifact=Data(url=url),
+            artifact=Data(url=url),
             task_cluster_record=Data(repo={"push": {"date": Date.now()}}),
             artifact_etl=Null,
             please_stop=Null

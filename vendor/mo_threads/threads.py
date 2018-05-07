@@ -84,6 +84,7 @@ class MainThread(object):
         self.children = []
         self.stop_logging = Log.stop
         self.timers = None
+        self.cprofiler = Null
 
     def add_child(self, child):
         self.children.append(child)

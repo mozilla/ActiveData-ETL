@@ -10,14 +10,51 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from jx_python import jx
+from mo_dots import listwrap
+from mo_logs import Log
+from mo_times import Timer
 from pyLibrary.env import http
 
 TUID_BLOCK_SIZE = 1000
 
 
 def tuid_batches(task_cluster_record, resources, iterator):
+    def _annotate_sources(sources):
+        """
+
+        :param sources: LIST OF COVERAGE SOURCE STRUCTURES TO MARKUP
+        :return: NOTHING, sources ARE MARKED UP
+        """
+        try:
+            revision = task_cluster_record.repo.changeset.id[:12]
+            sources = listwrap(sources)
+            filenames = [s.file.name for s in sources if s.file.is_firefox and s.file.percentage_covered != None]
+
+            with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
+                # WHAT DO WE HAVE
+                found = resources.tuid_mapper.get_tuids(revision, filenames)
+                if found == None:
+                    return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
+
+                for source in sources:
+                    line_to_tuid = found[source.file.name]
+                    if line_to_tuid != None:
+                        source.file.tuid_covered = [
+                            line_to_tuid[line]
+                            for line in source.file.covered
+                            if line_to_tuid[line]
+                        ]
+                        source.file.tuid_uncovered = [
+                            line_to_tuid[line]
+                            for line in source.file.uncovered
+                            if line_to_tuid[line]
+                        ]
+        except Exception as e:
+            resources.tuid_mapper.enabled = False
+            Log.warning("unexpected failure", cause=e)
+
     for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
-        resources.tuid_mapper.annotate_sources(task_cluster_record.repo.changeset.id, records)
+        _annotate_sources(records)
         for r in records:
             yield r
 
