@@ -24,7 +24,6 @@ from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
-RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 
 

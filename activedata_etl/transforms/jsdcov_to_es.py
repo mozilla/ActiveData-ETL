@@ -22,10 +22,6 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env.big_data import ibytes2ilines
 
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-RETRY = {"times": 3, "sleep": 5}
 # This flag will aggregate coverage information per source file.
 DO_AGGR = True
 

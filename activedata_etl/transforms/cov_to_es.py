@@ -19,10 +19,6 @@ from mo_json import json2value
 from mo_logs import Log
 
 DEBUG = True
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-RETRY = {"times": 3, "sleep": 5}
 
 
 def process(source_key, source, destination, resources, please_stop=None):

@@ -10,7 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_dots import listwrap, wrap, coalesce
+from mo_dots import wrap, coalesce
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log

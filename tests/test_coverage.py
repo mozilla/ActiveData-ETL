@@ -12,8 +12,6 @@ from __future__ import unicode_literals
 
 import requests
 
-from activedata_etl.transforms.jsdcov_to_es import process_jsdcov_artifact
-from mo_dots import Null, Data
 from mo_files import File
 from mo_json import stream, json2value
 from mo_logs import Log
@@ -32,7 +30,7 @@ class TestCoverage(FuzzyTestCase):
         for source_file_index, obj in enumerate(stream.parse(_stream, [], ["."])):
             if source_file_index==0:
                 continue  # VERSION LINE
-            records = list(process_jsdcov_artifact(Data(), obj, Null, Null, Null, Null)
+            # records = list(process_jsdcov_artifact(Data(), obj, Null, Null, Null, Null)
         Log.note("{{records|json}}", records=records)
 
     def test_read_coverage(self):

@@ -25,7 +25,6 @@ from mo_threads import Process, Till
 from mo_times import Timer, Date
 from pyLibrary.env import http
 
-RETRY = {"times": 3, "sleep": 5}
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 DEBUG = True
