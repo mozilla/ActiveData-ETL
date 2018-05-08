@@ -17,7 +17,7 @@ from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.task import decode_metatdata_name, minimize_task
 from activedata_etl.imports.text_log import process_tc_live_log
-from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY
+from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
 from mo_future import text_type
@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             consume(tc_message, "_meta")
 
             Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
-            task_url = strings.expand_template(TC_STATUS_URL, {"task_id": task_id})
+            task_url = strings.expand_template(TC_MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=TC_RETRY, session=session)
             if task.code == u'ResourceNotFound':
                 Log.note("Can not find task {{task}} while processing key {{key}}", key=source_key, task=task_id)
@@ -90,7 +90,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             temp_runs, task_status.status.runs = task_status.status.runs, Null  # set_default() will screw `runs` up
             set_default(tc_message.status, task_status.status)
             tc_message.status.runs = [set_default(r, tc_message.status.runs[ii]) for ii, r in enumerate(temp_runs)]
-            if tc_message.status.state != "completed" and not tc_message.status.runs.last().resolved:
+            if not tc_message.status.runs.last().resolved:
                 Log.error(TRY_AGAIN_LATER, reason="task still runnning (not \"resolved\")")
 
             normalized = _normalize(source_key, task_id, tc_message, task, resources)

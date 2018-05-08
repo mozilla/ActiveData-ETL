@@ -25,7 +25,8 @@ TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON 
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 
-TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+TC_MAIN_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/status"
 TC_ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
 TC_ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 TC_RETRY = {"times": 3, "sleep": 5}

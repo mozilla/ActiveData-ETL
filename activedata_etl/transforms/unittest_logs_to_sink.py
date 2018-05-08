@@ -185,6 +185,9 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                         # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
                         lhs, rhs = log.test.split(" == ")
                         log.test = lhs + " == " + rhs.split("/")[-1]
+                    elif log.test.startswith(("http://")):
+                        # http://localhost:49391/1525812148499/12/752340.html
+                        log.test = log.test.split("/")[-1]
                     else:
                         Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
                 except Exception as e:
