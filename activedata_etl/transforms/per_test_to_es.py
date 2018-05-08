@@ -9,19 +9,16 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import json
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file, LANGUAGE_MAPPINGS, tuid_batches
-from jx_python import jx
+from activedata_etl.imports.coverage_util import download_file, LANGUAGE_MAPPINGS, tuid_batches
 from mo_dots import wrap, set_default
 from mo_files import TempDirectory
-from mo_json import stream, value2json, json2value
+from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
-
 
 ENABLE_METHOD_COVERAGE = False
 
@@ -148,19 +145,27 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
                 key = etl2key(record.etl)
                 yield {"id": key, "value": record}
 
-        # a record for all the lines that are not in any method
-        # every file gets one because we can use it as canonical representative
-        # Record method coverage info
-        record.source.method = {
-            "covered": sorted(orphan_covered),
-            "uncovered": sorted(orphan_uncovered),
-            "total_covered": len(orphan_covered),
-            "total_uncovered": len(orphan_uncovered),
-            "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
-        }
+            # a record for all the lines that are not in any method
+            # every file gets one because we can use it as canonical representative
+            # Record method coverage info
+            orphan_line_count = len(orphan_covered) + len(orphan_uncovered)
+            record.source.method = {
+                "covered": sorted(orphan_covered),
+                "uncovered": sorted(orphan_uncovered),
+                "total_covered": len(orphan_covered),
+                "total_uncovered": len(orphan_uncovered),
+                "percentage_covered": len(orphan_covered) / orphan_line_count if orphan_line_count else None
+            }
+
+            # Timestamp this record
+            record.etl.timestamp = Date.now()
+
+            key = etl2key(record.etl)
+            yield {"id": key, "value": record}
 
         # Timestamp this record
         record.etl.timestamp = Date.now()
+        record.source.is_file = True
 
         key = etl2key(record.etl)
         yield {"id": key, "value": record}
@@ -183,10 +188,9 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
                             yield d
                     except Exception as e:
                         Log.warning(
-                            "Error processing test {{test}} and source file {{source}} while processing {{key}}",
+                            "Error processing test {{test}} while processing {{key}}",
                             key=source_key,
-                            test=test,
-                            source=sf['name'],
+                            test=record.test,
                             cause=e
                         )
 
