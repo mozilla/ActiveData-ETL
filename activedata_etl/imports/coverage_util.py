@@ -28,7 +28,7 @@ def tuid_batches(task_cluster_record, resources, iterator):
         try:
             revision = task_cluster_record.repo.changeset.id[:12]
             sources = listwrap(sources)
-            filenames = [s.file.name for s in sources if s.file.is_firefox and s.file.percentage_covered != None]
+            filenames = [s.file.name for s in sources if s.file.is_firefox and s.file.total_covered == 0 and s.file.total_uncovered == 0]
 
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
                 # WHAT DO WE HAVE
