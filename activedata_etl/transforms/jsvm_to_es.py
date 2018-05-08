@@ -76,7 +76,8 @@ def process_jsvm_artifact(source_key, resources, destination, artifact, task_clu
                 for source in tuid_batches(
                     task_cluster_record,
                     resources,
-                    renamed_files()
+                    renamed_files(),
+                    "file"
                 ):
                     template_record.source = source
                     template_record.etl.id = count

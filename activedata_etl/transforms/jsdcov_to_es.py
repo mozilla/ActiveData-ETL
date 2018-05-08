@@ -192,11 +192,11 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
                     else:
                         aggr_coverage[obj.sourceFile] = (set(obj.covered), set(obj.uncovered))
 
-        # Generate coverage information per source file
-        for source_file, (covered, total_lines) in aggr_coverage.items():
-            uncovered = total_lines - covered
-            record = create_record(artifact_etl, counter, source_file, covered, uncovered)
-            yield {"id": key, "value": record}
+            # Generate coverage information per source file
+            for source_file, (covered, total_lines) in aggr_coverage.items():
+                uncovered = total_lines - covered
+                record = create_record(artifact_etl, counter, source_file, covered, uncovered)
+                yield {"id": key, "value": record}
 
     counter = count_generator().next
     key = etl2key(artifact_etl)

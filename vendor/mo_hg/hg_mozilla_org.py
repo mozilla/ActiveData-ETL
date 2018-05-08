@@ -668,7 +668,8 @@ for k in [
     "children",
     "parents",
     "phase",
-    "bookmarks"
+    "bookmarks",
+    "tags"
 ]:
     _exclude_from_repo[k] = True
 _exclude_from_repo = _exclude_from_repo
