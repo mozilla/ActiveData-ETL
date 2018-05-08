@@ -262,7 +262,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     )
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
-
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
 
@@ -292,6 +291,18 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     set_build_info(source_key, output, task, env, resources)
     _normalize_run(source_key, output, task, env)
+
+    # VERIFY DUPLICATE
+    treeherder_platform = consume(task, 'extra.treeherder-platform')
+    if treeherder_platform != None:
+        pair = treeherder_platform.split("/")
+        try:
+            if pair[0] == output.treeherder.machine.platform and output.treeherder.collection[pair[1]]:
+                pass
+            else:
+                Log.warning("extra.treeherder platform does not match treeherder")
+        except Exception:
+            Log.warning("extra.treeherder platform does not match treeherder")
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
