@@ -13,11 +13,11 @@ import json
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file, LANGUAGE_MAPPINGS
+from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file, LANGUAGE_MAPPINGS, tuid_batches
 from jx_python import jx
 from mo_dots import wrap, set_default
 from mo_files import TempDirectory
-from mo_json import stream, value2json
+from mo_json import stream, value2json, json2value
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
@@ -193,24 +193,12 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
     counter = count_generator().next
     key = etl2key(artifact_etl)
 
-    def _batch(iterator):
-        """
-        MARKUP THE COVERAGE RECORDS WITH TUIDS
-
-        :param iterator: ITERATOR OF {"id": id, "value":value} objects
-        :return: ITERATOR
-        """
-        for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
-            resources.tuid_mapper.annotate_sources(task_cluster_record.repo.changeset.id, [s for s in records.value])
-            for r in records:
-                yield value2json(r)
-
     with TempDirectory() as tmpdir:
         per_test_file = (tmpdir / "per_test.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, per_test_file)
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):
-            destination.write_lines(key, _batch(generator()))
+            destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, generator(), path="value.source.file")))
         keys = [key]
         return keys
 

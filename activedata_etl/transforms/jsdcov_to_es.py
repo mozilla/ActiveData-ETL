@@ -12,8 +12,7 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file
-from jx_python import jx
+from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from mo_dots import wrap, unwraplist, set_default
 from mo_files import TempDirectory
 from mo_json import stream, value2json
@@ -202,27 +201,15 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
     counter = count_generator().next
     key = etl2key(artifact_etl)
 
-    def _batch(iterator):
-        """
-        MARKUP THE COVERAGE RECORDS WITH TUIDS
-
-        :param iterator: ITERATOR OF {"id": id, "value":value} objects
-        :return: ITERATOR
-        """
-        for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
-            resources.tuid_mapper.annotate_sources(task_cluster_record.repo.changeset.id, [s for s in records.value])
-            for r in records:
-                yield value2json(r)
-
     with TempDirectory() as tmpdir:
         jsdcov_file = (tmpdir / "jsdcov.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, jsdcov_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
             if DO_AGGR:
-                destination.write_lines(key, _batch(aggregator()))
+                destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, aggregator(), path="value.source.file")))
             else:
-                destination.write_lines(key, _batch(generator()))
+                destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, generator(), path="value.source.file")))
         keys = [key]
         return keys
 

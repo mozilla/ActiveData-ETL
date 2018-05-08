@@ -24,7 +24,7 @@ LANGUAGE_MAPPINGS = [
 ]
 
 
-def tuid_batches(task_cluster_record, resources, iterator):
+def tuid_batches(task_cluster_record, resources, iterator, path="file"):
     def _annotate_sources(sources):
         """
 
@@ -34,7 +34,7 @@ def tuid_batches(task_cluster_record, resources, iterator):
         try:
             revision = task_cluster_record.repo.changeset.id[:12]
             sources = listwrap(sources)
-            filenames = [s.file.name for s in sources if s.file.is_firefox and s.file.total_covered == 0 and s.file.total_uncovered == 0]
+            filenames = [s[path].name for s in sources if s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)]
 
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
                 # WHAT DO WE HAVE
@@ -43,14 +43,14 @@ def tuid_batches(task_cluster_record, resources, iterator):
                     return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
                 for source in sources:
-                    line_to_tuid = found[source.file.name]
+                    line_to_tuid = found[source[path].name]
                     if line_to_tuid != None:
-                        source.file.tuid_covered = [
+                        source[path].tuid_covered = [
                             line_to_tuid[line]
                             for line in source.file.covered
                             if line_to_tuid[line]
                         ]
-                        source.file.tuid_uncovered = [
+                        source[path].tuid_uncovered = [
                             line_to_tuid[line]
                             for line in source.file.uncovered
                             if line_to_tuid[line]
