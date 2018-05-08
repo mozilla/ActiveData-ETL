@@ -13,7 +13,7 @@ import json
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
-from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file
+from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file, LANGUAGE_MAPPINGS
 from jx_python import jx
 from mo_dots import wrap, set_default
 from mo_files import TempDirectory
@@ -24,10 +24,7 @@ from mo_times.timer import Timer
 
 
 ENABLE_METHOD_COVERAGE = False
-LANGUAGE_MAPPINGS = [
-    ("c/c++", (".c", ".cpp", ".h", ".cc", ".cxx", ".hh", ".hpp", ".hxx")),
-    ("js", (".js", ".jsm", ".xul", ".xml", ".html", ".xhtml")),
-]
+
 
 urls_w_uncoverable_lines = set()
 

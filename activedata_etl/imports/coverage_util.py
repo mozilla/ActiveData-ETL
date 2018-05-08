@@ -17,6 +17,12 @@ from pyLibrary.env import http
 
 TUID_BLOCK_SIZE = 1000
 
+LANGUAGE_MAPPINGS = [
+    ("c/c++", (".c", ".cpp", ".h", ".cc", ".cxx", ".hh", ".hpp", ".hxx")),
+    ("javascript", (".js", ".jsm", ".xul", ".xml", ".html", ".xhtml")),
+    ("python", (".py",))
+]
+
 
 def tuid_batches(task_cluster_record, resources, iterator):
     def _annotate_sources(sources):

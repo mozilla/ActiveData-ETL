@@ -16,6 +16,7 @@ from __future__ import unicode_literals
 import json
 import sys
 
+from activedata_etl.imports.coverage_util import LANGUAGE_MAPPINGS
 from mo_dots import wrap, Null
 from mo_files import File
 from mo_logs import Log
@@ -132,10 +133,10 @@ def parse_lcov_coverage(source_key, source_name, stream):
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
     coverable_line_count = len(details['lines_covered']) + len(details['lines_uncovered'])
-    lang = LANG.get(File(details['file']).extension, "c/c++")
+    language = [lang for lang, extensions in LANGUAGE_MAPPINGS if details['file'].endswith(extensions)]
 
     source = wrap({
-        "language": lang,
+        "language": language,
         "is_file": True,
         "file": {
             "name": details['file'],
@@ -154,13 +155,6 @@ def n_tuple(values, length):
     output = values[:length]
     output = output + [Null]*(length-len(output))
     return output
-
-
-LANG = {
-    "jsm": "javascript",
-    "js": "javascript",
-    "py": "python"
-}
 
 
 def js_coverage_format(sources):
