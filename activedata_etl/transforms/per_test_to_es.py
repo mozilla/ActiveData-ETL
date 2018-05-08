@@ -24,6 +24,10 @@ from mo_times.timer import Timer
 
 
 ENABLE_METHOD_COVERAGE = False
+LANGUAGE_MAPPINGS = [
+    ("c/c++", ["c", "cpp", "h", "cc", "cxx", "hh", "hpp", "hxx"]),
+    ("js", ["js", "jsm", "xul", "xml", "html", "xhtml"]),
+]
 
 urls_w_uncoverable_lines = set()
 
@@ -39,9 +43,16 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
             urls_w_uncoverable_lines.add(artifact.url)
             Log.warning("per-test-coverage {{url}} has uncoverable lines", url=artifact.url)
 
+        language = "unknown"
+        for lang, extensions in LANGUAGE_MAPPINGS:
+            for extension in extensions:
+                if filename.endswith("." + extension):
+                    language = lang
+
         new_record = set_default(
             {
                 "source": {
+                    "language": language,
                     "file": set_default(
                         file_details,
                         {
