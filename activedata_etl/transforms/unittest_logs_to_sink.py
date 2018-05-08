@@ -52,7 +52,13 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
+            summary = accumulate_logs(
+                source_key,
+                etl_header.url,
+                unittest_log,
+                buildbot_summary.run.suite.name,
+                please_stop
+            )
     except Exception as e:
         e = Except.wrap(e)
         if "EOF occurred in violation of protocol" in e:
@@ -114,7 +120,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, url, lines, please_stop):
+def accumulate_logs(source_key, url, lines, suite_name, please_stop):
     accumulator = LogSummary(url)
     last_line_was_json = True
     for line in lines:
@@ -137,29 +143,52 @@ def accumulate_logs(source_key, url, lines, please_stop):
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
                 test_name = log.test
-                if len(test_name) > 2 and test_name[1] == "==":
-                    log.test = test_name[0]
-                else:
-                    log.test = " ".join(log.test)
-            elif " == " in log.test and ("/reftest" in log.test or "/crashtest" in log.test):
-                # about:blank == http://localhost:1543/1509750649592/3/blank.html
-                log.test = log.test.split(" == ")[0]
+                log.test = " ".join(log.test)
 
-            # FIX REFTESTS
-            if not log.test:
-                pass
-            elif "/jsreftest.html?test=" in log.test:
-                # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
-                log.test = log.test.split("/jsreftest.html?test=")[1]
-            elif "/build/tests/reftest/tests/" in log.test:
-                # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
-                # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
-                # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
-                log.test = log.test.split("/build/tests/reftest/tests/")[1]
-            elif ":8854/tests/" in log.test:
-                # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
-                log.test = log.test.split(":8854/tests/")[1]
-
+            if suite_name.startswith("reftest"):
+                try:
+                    # FIXES FOR REFTESTS
+                    if not log.test:
+                        pass
+                    elif "/jsreftest.html?test=" in log.test:
+                        # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
+                        log.test = log.test.split("/jsreftest.html?test=")[1]
+                    elif " == " in log.test and "/build/tests/reftest/tests/" in log.test:
+                        # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
+                        # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
+                        # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
+                        # about:blank == file:///Z:/task_1525695436/build/tests/reftest/tests/layout/reftests/reftest-sanity/blank.html
+                        sides = log.test.split(" == ")
+                        sides = [
+                            s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
+                            for s in sides
+                        ]
+                        log.test = " == ".join(sides)
+                    elif " == " in log.test and ":8854/tests/" in log.test:
+                        # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
+                    elif "/build/tests/reftest/tests/" in log.test:
+                        # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
+                        log.test = log.test.split("/build/tests/reftest/tests/")[1]
+                    elif " == " in log.test and log.test.startswith(("http://", "file:///")):
+                        # REMOVE host:port/timestamp/test_num/ PREFIX
+                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs.split("/")[-1] + " == " + rhs.split("/")[-1]
+                    elif " != " in log.test and log.test.startswith(("http://", "file:///")):
+                        # REMOVE host:port/timestamp/test_num/ PREFIX
+                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+                        lhs, rhs = log.test.split(" != ")
+                        log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
+                    elif " == http://localhost:" in log.test:
+                        # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs + " == " + rhs.split("/")[-1]
+                    else:
+                        Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
+                except Exception as e:
+                    Log.error("programming error", cause=e)
             try:
                 accumulator.__getattribute__(log.action)(log)
             except AttributeError:
