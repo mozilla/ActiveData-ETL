@@ -23,6 +23,8 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 
 
+ENABLE_METHOD_COVERAGE = False
+
 urls_w_uncoverable_lines = set()
 
 
@@ -93,53 +95,54 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         orphan_covered = set(covered)
         orphan_uncovered = set(uncovered)
 
-        # iterate through the methods of this source file
-        # a variable to count the number of lines so far for this source file
-        methods = sf['functions'] if 'functions' in sf else []
-        method_start_indexes = [method['start'] for method in methods]
-        end = len(sf["coverage"])
-        for method in methods:
-            func_start = method['start']
-            func_end = end
+        if ENABLE_METHOD_COVERAGE:
+            # iterate through the methods of this source file
+            # a variable to count the number of lines so far for this source file
+            methods = sf['functions'] if 'functions' in sf else []
+            method_start_indexes = [method['start'] for method in methods]
+            end = len(sf["coverage"])
+            for method in methods:
+                func_start = method['start']
+                func_end = end
 
-            for start in method_start_indexes:
-                if start > func_start:
-                    func_end = start
-                    break
+                for start in method_start_indexes:
+                    if start > func_start:
+                        func_end = start
+                        break
 
-            method_lines = []
-            for l in coverable:
-                if l < func_start:
-                    continue
+                method_lines = []
+                for l in coverable:
+                    if l < func_start:
+                        continue
 
-                if l >= func_end:
-                    break
+                    if l >= func_end:
+                        break
 
-                method_lines.append(l)
+                    method_lines.append(l)
 
-            all_method_lines = set(method_lines)
-            method_covered = all_method_lines & file_covered
-            method_uncovered = all_method_lines - method_covered
-            method_percentage_covered = len(method_covered) / len(all_method_lines) if len(all_method_lines) > 0 else None
+                all_method_lines = set(method_lines)
+                method_covered = all_method_lines & file_covered
+                method_uncovered = all_method_lines - method_covered
+                method_percentage_covered = len(method_covered) / len(all_method_lines) if len(all_method_lines) > 0 else None
 
-            orphan_covered = orphan_covered - method_covered
-            orphan_uncovered = orphan_uncovered - method_uncovered
+                orphan_covered = orphan_covered - method_covered
+                orphan_uncovered = orphan_uncovered - method_uncovered
 
-            # Record method coverage info
-            record.source.method = {
-                "name": method['name'],
-                "covered": sorted(method_covered),
-                "uncovered": sorted(method_uncovered),
-                "total_covered": len(method_covered),
-                "total_uncovered": len(method_uncovered),
-                "percentage_covered": method_percentage_covered,
-            }
+                # Record method coverage info
+                record.source.method = {
+                    "name": method['name'],
+                    "covered": sorted(method_covered),
+                    "uncovered": sorted(method_uncovered),
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
 
-            # Timestamp this record
-            record.etl.timestamp = Date.now()
+                # Timestamp this record
+                record.etl.timestamp = Date.now()
 
-            key = etl2key(record.etl)
-            yield {"id": key, "value": record}
+                key = etl2key(record.etl)
+                yield {"id": key, "value": record}
 
         # a record for all the lines that are not in any method
         # every file gets one because we can use it as canonical representative
