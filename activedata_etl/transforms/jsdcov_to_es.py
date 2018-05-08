@@ -22,10 +22,6 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env.big_data import ibytes2ilines
 
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-RETRY = {"times": 3, "sleep": 5}
 # This flag will aggregate coverage information per source file.
 DO_AGGR = True
 
@@ -33,16 +29,16 @@ DO_AGGR = True
 urls_w_uncoverable_lines = set()
 
 
-def process_jscov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
+def process_jsdcov_artifact(source_key, resources, destination, task_cluster_record, artifact, artifact_etl, please_stop):
 
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
 
-        coverable_lines = len(covered) + len(uncovered)
+        coverable_line_count = len(covered) + len(uncovered)
 
-        if not coverable_lines and artifact.url not in urls_w_uncoverable_lines:
+        if not coverable_line_count and artifact.url not in urls_w_uncoverable_lines:
             urls_w_uncoverable_lines.add(artifact.url)
-            Log.warning("jscov {{url}} has uncoverable lines", url=artifact.url)
+            Log.warning("jsdcov {{url}} has uncoverable lines", url=artifact.url)
 
         new_record = set_default(
             {
@@ -55,7 +51,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                             "uncovered": sorted(uncovered),
                             "total_covered": len(covered),
                             "total_uncovered": len(uncovered),
-                            "percentage_covered": len(covered) / coverable_lines if coverable_lines else None
+                            "percentage_covered": len(covered) / coverable_line_count if coverable_line_count else None
                         }
                     )
                 },
@@ -101,7 +97,7 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
             all_method_lines = set(method_lines)
             method_covered = all_method_lines & file_covered
             method_uncovered = all_method_lines - method_covered
-            method_percentage_covered = len(method_covered) / len(all_method_lines)
+            method_percentage_covered = len(method_covered) / len(all_method_lines) if all_method_lines else None
 
             orphan_covered = orphan_covered - method_covered
             orphan_uncovered = orphan_uncovered - method_uncovered
@@ -125,12 +121,13 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
         # a record for all the lines that are not in any method
         # every file gets one because we can use it as canonical representative
         # Record method coverage info
+        total_orphan_coverable = len(orphan_covered) + len(orphan_uncovered)
         record.source.method = {
             "covered": sorted(orphan_covered),
             "uncovered": sorted(orphan_uncovered),
             "total_covered": len(orphan_covered),
             "total_uncovered": len(orphan_uncovered),
-            "percentage_covered": len(orphan_covered) / max(1, (len(orphan_covered) + len(orphan_uncovered))),
+            "percentage_covered": len(orphan_covered) / total_orphan_coverable if total_orphan_coverable else None
         }
 
         # Timestamp this record
@@ -148,10 +145,10 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         Log.error("Shutdown detected. Stopping job ETL.")
 
                     if source_file_index == 0:
-                        # this is not a jscov object but an object containing the version metadata
+                        # this is not a jsdcov object but an object containing the version metadata
                         # TODO: this metadata should not be here
                         # TODO: this version info is not used right now. Make use of it later.
-                        jscov_format_version = obj.get("version")
+                        jsdcov_format_version = obj.get("version")
                         continue
 
                     try:
@@ -181,10 +178,10 @@ def process_jscov_artifact(source_key, resources, destination, task_cluster_reco
                         Log.error("Shutdown detected. Stopping job ETL.")
 
                     if source_file_index == 0:
-                        # this is not a jscov object but an object containing the version metadata
+                        # this is not a jsdcov object but an object containing the version metadata
                         # TODO: this metadata should not be here
                         # TODO: this version info is not used right now. Make use of it later.
-                        jscov_format_version = obj.get("version")
+                        jsdcov_format_version = obj.get("version")
                         continue
 
                     obj = wrap(obj)

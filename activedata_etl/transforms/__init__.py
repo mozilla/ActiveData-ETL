@@ -25,6 +25,12 @@ TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON 
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 
+TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+TC_ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+TC_ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+TC_RETRY = {"times": 3, "sleep": 5}
+
+
 TRY_AGAIN_LATER = "{{reason}}, try again later"
 
 
@@ -115,7 +121,7 @@ def verify_blobber_file(line_number, name, url):
         return None, 0
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
-    if (name.find("/jscov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
+    if (name.find("/jscov_") >= 0 or name.find("/jsdcov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
         return None, 0
     if name.find("/test_info/memory-report-") >= 0:
         return None, 0

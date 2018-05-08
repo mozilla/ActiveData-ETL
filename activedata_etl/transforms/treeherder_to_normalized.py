@@ -28,7 +28,6 @@ DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
 NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer", "socorro"]
 
-RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
 
@@ -229,9 +228,8 @@ _option_map = {
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
-    "pgo": ["pgo"],
+    "pgo": ["pgo"]
 }
-
 
 
 def pull_job_log(source_key, job_log, new_treeherder):
