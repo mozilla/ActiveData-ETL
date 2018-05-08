@@ -17,11 +17,17 @@ from activedata_etl.imports.coverage_util import TUID_BLOCK_SIZE, download_file
 from jx_python import jx
 from mo_dots import wrap, set_default
 from mo_files import TempDirectory
-from mo_json import value2json
+from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
 
+
+ENABLE_METHOD_COVERAGE = False
+LANGUAGE_MAPPINGS = [
+    ("c/c++", (".c", ".cpp", ".h", ".cc", ".cxx", ".hh", ".hpp", ".hxx")),
+    ("js", (".js", ".jsm", ".xul", ".xml", ".html", ".xhtml")),
+]
 
 urls_w_uncoverable_lines = set()
 
@@ -37,9 +43,12 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
             urls_w_uncoverable_lines.add(artifact.url)
             Log.warning("per-test-coverage {{url}} has uncoverable lines", url=artifact.url)
 
+        language = [lang for lang, extensions in LANGUAGE_MAPPINGS if filename.endswith(extensions)]
+
         new_record = set_default(
             {
                 "source": {
+                    "language": language,
                     "file": set_default(
                         file_details,
                         {
@@ -64,7 +73,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
 
         return new_record
 
-    def process_source_file(parent_etl, count, test, sf):
+    def process_source_file(parent_etl, count, suite, test, sf):
         sf = wrap(sf)
 
         covered = []
@@ -86,59 +95,61 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         record = create_record(parent_etl, count, sf["name"], covered, uncovered)
         record.test = {
             "name": test,
+            "suite": suite,
         }
 
         # orphan lines (i.e. lines without a method), initialized to all lines
         orphan_covered = set(covered)
         orphan_uncovered = set(uncovered)
 
-        # iterate through the methods of this source file
-        # a variable to count the number of lines so far for this source file
-        methods = sf['functions'] if 'functions' in sf else []
-        method_start_indexes = [method['start'] for method in methods]
-        end = len(sf["coverage"])
-        for method in methods:
-            func_start = method['start']
-            func_end = end
+        if ENABLE_METHOD_COVERAGE:
+            # iterate through the methods of this source file
+            # a variable to count the number of lines so far for this source file
+            methods = sf['functions'] if 'functions' in sf else []
+            method_start_indexes = [method['start'] for method in methods]
+            end = len(sf["coverage"])
+            for method in methods:
+                func_start = method['start']
+                func_end = end
 
-            for start in method_start_indexes:
-                if start > func_start:
-                    func_end = start
-                    break
+                for start in method_start_indexes:
+                    if start > func_start:
+                        func_end = start
+                        break
 
-            method_lines = []
-            for l in coverable:
-                if l < func_start:
-                    continue
+                method_lines = []
+                for l in coverable:
+                    if l < func_start:
+                        continue
 
-                if l >= func_end:
-                    break
+                    if l >= func_end:
+                        break
 
-                method_lines.append(l)
+                    method_lines.append(l)
 
-            all_method_lines = set(method_lines)
-            method_covered = all_method_lines & file_covered
-            method_uncovered = all_method_lines - method_covered
-            method_percentage_covered = len(method_covered) / len(all_method_lines)
+                all_method_lines = set(method_lines)
+                method_covered = all_method_lines & file_covered
+                method_uncovered = all_method_lines - method_covered
+                method_percentage_covered = len(method_covered) / len(all_method_lines) if len(all_method_lines) > 0 else None
 
-            orphan_covered = orphan_covered - method_covered
-            orphan_uncovered = orphan_uncovered - method_uncovered
+                orphan_covered = orphan_covered - method_covered
+                orphan_uncovered = orphan_uncovered - method_uncovered
 
-            # Record method coverage info
-            record.source.method = {
-                "name": method['name'],
-                "covered": sorted(method_covered),
-                "uncovered": sorted(method_uncovered),
-                "total_covered": len(method_covered),
-                "total_uncovered": len(method_uncovered),
-                "percentage_covered": method_percentage_covered,
-            }
+                # Record method coverage info
+                record.source.method = {
+                    "name": method['name'],
+                    "covered": sorted(method_covered),
+                    "uncovered": sorted(method_uncovered),
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
 
-            # Timestamp this record
-            record.etl.timestamp = Date.now()
+                # Timestamp this record
+                record.etl.timestamp = Date.now()
 
-            key = etl2key(record.etl)
-            yield {"id": key, "value": record}
+                key = etl2key(record.etl)
+                yield {"id": key, "value": record}
 
         # a record for all the lines that are not in any method
         # every file gets one because we can use it as canonical representative
@@ -160,32 +171,27 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
     def generator():
         with ZipFile(per_test_file) as zipped:
             for zip_name in zipped.namelist():
-                with zipped.open(zip_name) as f:
-                    data = json.load(f)
+                for record in stream.parse(zipped.open(zip_name), "report.source_files", {"report.source_files", "suite", "test"}):
+                    if please_stop:
+                        Log.error("Shutdown detected. Stopping job ETL.")
 
-                    test = data['test']
-                    report = data['report']
-
-                    for sf in report['source_files']:
-                        if please_stop:
-                            Log.error("Shutdown detected. Stopping job ETL.")
-
-                        try:
-                            for d in process_source_file(
-                                artifact_etl,
-                                counter,
-                                test,
-                                sf
-                            ):
-                                yield d
-                        except Exception as e:
-                            Log.warning(
-                                "Error processing test {{test}} and source file {{source}} while processing {{key}}",
-                                key=source_key,
-                                test=test,
-                                source=sf['name'],
-                                cause=e
-                            )
+                    try:
+                        for d in process_source_file(
+                            artifact_etl,
+                            counter,
+                            record.suite,
+                            record.test,
+                            record.report.source_files
+                        ):
+                            yield d
+                    except Exception as e:
+                        Log.warning(
+                            "Error processing test {{test}} and source file {{source}} while processing {{key}}",
+                            key=source_key,
+                            test=test,
+                            source=sf['name'],
+                            cause=e
+                        )
 
     counter = count_generator().next
     key = etl2key(artifact_etl)
