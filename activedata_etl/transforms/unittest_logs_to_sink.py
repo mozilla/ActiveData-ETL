@@ -181,6 +181,8 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                         # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
                         lhs, rhs = log.test.split(" != ")
                         log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
+                    elif " != http://10.0.2.2:8888/tests/" in log.test:
+                        log.test = log.test.split(" != http://10.0.2.2:8888/tests/")[1]
                     elif " == http://localhost:" in log.test:
                         # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
                         lhs, rhs = log.test.split(" == ")
