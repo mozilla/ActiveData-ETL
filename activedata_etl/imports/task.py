@@ -261,6 +261,7 @@ BUILD_PLATFORM = {
         "android",
         "linux",
         "linux64",
+        "linux64-dmd",
         "macosx64",
         "macosx",
         "win32",

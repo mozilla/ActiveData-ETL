@@ -166,12 +166,10 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         "changeset": {"id": new_treeherder.build.revision}
     }
     try:
-        new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
+        if new_treeherder.build.branch not in NON_HG_BRANCHES:
+            new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
     except Exception as e:
-        if new_treeherder.build.branch in NON_HG_BRANCHES:
-            Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
-        else:
-            Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
