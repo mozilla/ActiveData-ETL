@@ -390,6 +390,7 @@
 				"host": {"$ref": "#local_es_node.host"},
 				"index": "debug-etl",
 				"type": "etl",
+				"timeout": "5minute",
 				"retry": {
 					"times": 3,
 					"sleep": "minute"
