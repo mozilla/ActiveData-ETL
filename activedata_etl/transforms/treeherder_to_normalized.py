@@ -26,7 +26,6 @@ from pyLibrary.env.git import get_git_revision
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer", "socorro"]
 
 seen_tasks = {}
 new_seen_tc_properties = set()
@@ -325,4 +324,15 @@ KNOWN_VALUES = [
     "gaia_revlink: ",
     "Unknown: ",
     "\t--this-chunk=1 --total-chunks=1 -- "
+]
+
+
+NON_HG_BRANCHES = [
+    "bmo-master",
+    "go-bouncer",
+    "snippets-service",
+    "snippets-service",
+    "snippets-tests",
+    "socorro",
+    "stubattribution-tests"
 ]
