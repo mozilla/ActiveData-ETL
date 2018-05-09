@@ -159,6 +159,7 @@ TEST_PLATFORM = {
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "maxosx64"}},

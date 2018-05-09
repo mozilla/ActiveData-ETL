@@ -2866,6 +2866,7 @@
             "suite": {"name": "geckoview-junit"}
         }
     },
+    "test-android-hw-pix-7-1-android-aarch64/opt-cppunit": {},
     "test-linux32-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
