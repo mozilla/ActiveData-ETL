@@ -890,6 +890,7 @@ KNOWN_TAGS = {
     "github.branches",
     "github.events",
     "github.env",
+    "github.excludeBranches",
     "github.headBranch",
     "github.headRepo",
     "github.headRevision",
