@@ -265,8 +265,8 @@ BUILD_PLATFORM = {
         "macosx64",
         "macosx",
         "win32",
-        "win64"
-
+        "win64",
+        "win32-dmd"
     ]
 }
 

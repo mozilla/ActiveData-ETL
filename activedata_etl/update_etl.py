@@ -22,6 +22,7 @@ from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_logs import Log
 from mo_logs import startup, constants
+from mo_threads import MAIN_THREAD
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -121,7 +122,7 @@ def main():
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:
-        Log.stop()
+        MAIN_THREAD.stop()
 
 
 if __name__ == "__main__":
