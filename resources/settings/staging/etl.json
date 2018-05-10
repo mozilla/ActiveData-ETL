@@ -386,17 +386,6 @@
 				"log_type": "console"
 			},
 			{
-				"log_type": "elasticsearch",
-				"host": {"$ref": "#local_es_node.host"},
-				"index": "debug-etl",
-				"type": "etl",
-				"timeout": "5minute",
-				"retry": {
-					"times": 3,
-					"sleep": "minute"
-				}
-			},
-			{
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
