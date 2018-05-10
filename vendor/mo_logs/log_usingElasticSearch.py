@@ -33,7 +33,7 @@ LOG_STRING_LENGTH = 2000
 
 class StructuredLogger_usingElasticSearch(StructuredLogger):
     @override
-    def __init__(self, host, index, port=9200, type="log", max_size=1000, batch_size=100, kwargs=None):
+    def __init__(self, host, index, port=9200, type="log", queue_size=1000, batch_size=100, kwargs=None):
         """
         settings ARE FOR THE ELASTICSEARCH INDEX
         """
@@ -49,7 +49,7 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         )
         self.batch_size = batch_size
         self.es.add_alias(coalesce(kwargs.alias, kwargs.index))
-        self.queue = Queue("debug logs to es", max=max_size, silent=True)
+        self.queue = Queue("debug logs to es", max=queue_size, silent=True)
 
         Thread.run("add debug logs to es", self._insert_loop)
 
