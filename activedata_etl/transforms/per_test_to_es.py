@@ -9,6 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from itertools import chain
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
@@ -71,7 +72,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         covered = []
         uncovered = []
         coverable = []
-        for l, c in enumerate(sf["coverage"]):
+        for l, c in enumerate(sf["coverage"], start=1):  # FIRST LINE STARTS AT ONE, INSERT A PLACEHOLDER
             if c is None:
                 continue
             coverable.append(l)
