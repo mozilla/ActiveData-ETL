@@ -72,7 +72,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         covered = []
         uncovered = []
         coverable = []
-        for l, c in enumerate(sf["coverage"], start=1):  # FIRST LINE STARTS AT ONE, INSERT A PLACEHOLDER
+        for l, c in enumerate(sf["coverage"], start=1):  # FIRST LINE STARTS AT ONE
             if c is None:
                 continue
             coverable.append(l)
