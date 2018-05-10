@@ -31,26 +31,24 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
     def create_record(parent_etl, count, filename, covered, uncovered):
         file_details = resources.file_mapper.find(source_key, filename, artifact, task_cluster_record)
 
-        coverable_lines = len(covered) + len(uncovered)
+        coverable_line_count = len(covered) + len(uncovered)
 
-        if not coverable_lines and artifact.url not in urls_w_uncoverable_lines:
+        if not coverable_line_count and artifact.url not in urls_w_uncoverable_lines:
             urls_w_uncoverable_lines.add(artifact.url)
             Log.warning("per-test-coverage {{url}} has uncoverable lines", url=artifact.url)
-
-        language = [lang for lang, extensions in LANGUAGE_MAPPINGS if filename.endswith(extensions)]
 
         new_record = set_default(
             {
                 "source": {
-                    "language": language,
+                    "language": [lang for lang, extensions in LANGUAGE_MAPPINGS if filename.endswith(extensions)],
                     "file": set_default(
                         file_details,
                         {
-                            "covered": covered,
-                            "uncovered": uncovered,
+                            "covered": sorted(covered),
+                            "uncovered": sorted(uncovered),
                             "total_covered": len(covered),
                             "total_uncovered": len(uncovered),
-                            "percentage_covered": len(covered) / coverable_lines if coverable_lines else None
+                            "percentage_covered": len(covered) / coverable_line_count if coverable_line_count else None
                         }
                     )
                 },
@@ -92,11 +90,11 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
             "suite": suite,
         }
 
-        # orphan lines (i.e. lines without a method), initialized to all lines
-        orphan_covered = set(covered)
-        orphan_uncovered = set(uncovered)
-
         if ENABLE_METHOD_COVERAGE:
+            # orphan lines (i.e. lines without a method), initialized to all lines
+            orphan_covered = set(covered)
+            orphan_uncovered = set(uncovered)
+
             # iterate through the methods of this source file
             # a variable to count the number of lines so far for this source file
             methods = sf['functions'] if 'functions' in sf else []
@@ -141,37 +139,31 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
 
                 # Timestamp this record
                 record.etl.timestamp = Date.now()
-
-                key = etl2key(record.etl)
-                yield {"id": key, "value": record}
+                yield record
 
             # a record for all the lines that are not in any method
             # every file gets one because we can use it as canonical representative
             # Record method coverage info
-            orphan_line_count = len(orphan_covered) + len(orphan_uncovered)
+            total_orphan_coverable = len(orphan_covered) + len(orphan_uncovered)
             record.source.method = {
                 "covered": sorted(orphan_covered),
                 "uncovered": sorted(orphan_uncovered),
                 "total_covered": len(orphan_covered),
                 "total_uncovered": len(orphan_uncovered),
-                "percentage_covered": len(orphan_covered) / orphan_line_count if orphan_line_count else None
+                "percentage_covered": len(orphan_covered) / total_orphan_coverable if total_orphan_coverable else None
             }
 
             # Timestamp this record
             record.etl.timestamp = Date.now()
-
-            key = etl2key(record.etl)
-            yield {"id": key, "value": record}
+            yield record
 
         # Timestamp this record
         record.etl.timestamp = Date.now()
         record.source.is_file = True
-
-        key = etl2key(record.etl)
-        yield {"id": key, "value": record}
+        yield record
 
     def generator():
-        with ZipFile(per_test_file) as zipped:
+        with ZipFile(local_file) as zipped:
             for zip_name in zipped.namelist():
                 for record in stream.parse(zipped.open(zip_name), "report.source_files", {"report.source_files", "suite", "test"}):
                     if please_stop:
@@ -197,14 +189,20 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
     counter = count_generator().next
     key = etl2key(artifact_etl)
 
+    keys = []
+    def key_acc(generator):
+        for record in generator:
+            keys.append(etl2key(record.etl))
+            yield record
+
     with TempDirectory() as tmpdir:
-        per_test_file = (tmpdir / "per_test.zip").abspath
+        local_file = (tmpdir / "coverage.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
-            download_file(artifact.url, per_test_file)
+            download_file(artifact.url, local_file)
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):
-            destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, generator(), path="value.source.file")))
-        keys = [key]
-        return keys
+            destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, generator(), path="source.file"))))
+
+    return keys
 
 
 def count_generator():

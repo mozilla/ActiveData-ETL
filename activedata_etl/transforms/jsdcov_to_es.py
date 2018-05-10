@@ -21,8 +21,9 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env.big_data import ibytes2ilines
 
-# This flag will aggregate coverage information per source file.
-DO_AGGR = True
+
+DO_AGGR = True  # This flag will aggregate coverage information per source file.
+ENABLE_METHOD_COVERAGE = False
 
 
 urls_w_uncoverable_lines = set()
@@ -86,57 +87,59 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
             "url": obj.testUrl
         }
 
-        # orphan lines (i.e. lines without a method), initialized to all lines
-        orphan_covered = set(obj.covered)
-        orphan_uncovered = set(obj.uncovered)
+        if ENABLE_METHOD_COVERAGE:
+            # orphan lines (i.e. lines without a method), initialized to all lines
+            orphan_covered = set(obj.covered)
+            orphan_uncovered = set(obj.uncovered)
 
-        # iterate through the methods of this source file
-        # a variable to count the number of lines so far for this source file
-        for method_name, method_lines in obj.methods.iteritems():
-            all_method_lines = set(method_lines)
-            method_covered = all_method_lines & file_covered
-            method_uncovered = all_method_lines - method_covered
-            method_percentage_covered = len(method_covered) / len(all_method_lines) if all_method_lines else None
+            # iterate through the methods of this source file
+            # a variable to count the number of lines so far for this source file
+            for method_name, method_lines in obj.methods.iteritems():
+                all_method_lines = set(method_lines)
+                method_covered = all_method_lines & file_covered
+                method_uncovered = all_method_lines - method_covered
+                method_percentage_covered = len(method_covered) / len(all_method_lines) if all_method_lines else None
 
-            orphan_covered = orphan_covered - method_covered
-            orphan_uncovered = orphan_uncovered - method_uncovered
+                orphan_covered = orphan_covered - method_covered
+                orphan_uncovered = orphan_uncovered - method_uncovered
 
+                # Record method coverage info
+                record.source.method = {
+                    "name": method_name,
+                    "covered": sorted(method_covered),
+                    "uncovered": sorted(method_uncovered),
+                    "total_covered": len(method_covered),
+                    "total_uncovered": len(method_uncovered),
+                    "percentage_covered": method_percentage_covered,
+                }
+
+                # Timestamp this record
+                record.etl.timestamp = Date.now()
+                yield record
+
+            # a record for all the lines that are not in any method
+            # every file gets one because we can use it as canonical representative
             # Record method coverage info
+            total_orphan_coverable = len(orphan_covered) + len(orphan_uncovered)
             record.source.method = {
-                "name": method_name,
-                "covered": sorted(method_covered),
-                "uncovered": sorted(method_uncovered),
-                "total_covered": len(method_covered),
-                "total_uncovered": len(method_uncovered),
-                "percentage_covered": method_percentage_covered,
+                "covered": sorted(orphan_covered),
+                "uncovered": sorted(orphan_uncovered),
+                "total_covered": len(orphan_covered),
+                "total_uncovered": len(orphan_uncovered),
+                "percentage_covered": len(orphan_covered) / total_orphan_coverable if total_orphan_coverable else None
             }
 
             # Timestamp this record
             record.etl.timestamp = Date.now()
-
-            key = etl2key(record.etl)
-            yield {"id": key, "value": record}
-
-        # a record for all the lines that are not in any method
-        # every file gets one because we can use it as canonical representative
-        # Record method coverage info
-        total_orphan_coverable = len(orphan_covered) + len(orphan_uncovered)
-        record.source.method = {
-            "covered": sorted(orphan_covered),
-            "uncovered": sorted(orphan_uncovered),
-            "total_covered": len(orphan_covered),
-            "total_uncovered": len(orphan_uncovered),
-            "percentage_covered": len(orphan_covered) / total_orphan_coverable if total_orphan_coverable else None
-        }
+            yield record
 
         # Timestamp this record
         record.etl.timestamp = Date.now()
-
-        key = etl2key(record.etl)
-        yield {"id": key, "value": record}
+        record.source.is_file = True
+        yield record
 
     def generator():
-        with ZipFile(jsdcov_file) as zipped:
+        with ZipFile(local_file) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 json_stream = ibytes2ilines(zipped.open(zip_name))
                 for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
@@ -169,7 +172,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
     def aggregator():
         aggr_coverage = dict()
 
-        with ZipFile(jsdcov_file) as zipped:
+        with ZipFile(local_file) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 json_stream = ibytes2ilines(zipped.open(zip_name))
                 for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
@@ -196,22 +199,28 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
             for source_file, (covered, total_lines) in aggr_coverage.items():
                 uncovered = total_lines - covered
                 record = create_record(artifact_etl, counter, source_file, covered, uncovered)
-                yield {"id": key, "value": record}
+                yield record
 
     counter = count_generator().next
     key = etl2key(artifact_etl)
 
+    keys = []
+    def key_acc(generator):
+        for record in generator:
+            keys.append(etl2key(record.etl))
+            yield record
+
     with TempDirectory() as tmpdir:
-        jsdcov_file = (tmpdir / "jsdcov.zip").abspath
+        local_file = (tmpdir / "coverage.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
-            download_file(artifact.url, jsdcov_file)
+            download_file(artifact.url, local_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
             if DO_AGGR:
-                destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, aggregator(), path="value.source.file")))
+                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, aggregator(), path="value.source.file"))))
             else:
-                destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, generator(), path="value.source.file")))
-        keys = [key]
-        return keys
+                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, generator(), path="value.source.file"))))
+
+    return keys
 
 
 def count_generator():
