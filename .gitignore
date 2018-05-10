@@ -24,3 +24,4 @@ log.txt
 /tests/resources/mochitest_chunk_2
 /resources/binaries/jre-8u131-linux-x64.rpm
 /logs
+/*.sqlite

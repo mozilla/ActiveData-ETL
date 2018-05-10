@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 
 from future.utils import text_type
 
-from activedata_etl import etl2path
+from activedata_etl import etl2path, etl2key
 from activedata_etl import key2etl
 from jx_python import jx
 from mo_dots import coalesce, wrap, Null
@@ -301,7 +301,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
     if source.name.startswith("active-data-codecoverage"):
         d = json2value(line)
         if d.source.file.total_covered > 0:
-            return {"id": d._id, "json": line}, False
+            return {"id": etl2key(d.etl), "json": line}, False
         else:
             return None, False
 
