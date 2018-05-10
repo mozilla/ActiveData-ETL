@@ -66,24 +66,26 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         bad_count = 0
         while not please_stop:
             try:
-                Till(seconds=1).wait()
                 messages = wrap(self.queue.pop_all())
                 if not messages:
+                    Till(seconds=1).wait()
                     continue
 
                 for g, mm in jx.groupby(messages, size=self.batch_size):
                     scrubbed = []
-                    try:
-                        for i, message in enumerate(mm):
-                            if message is THREAD_STOP:
-                                please_stop.go()
-                                return
+                    for i, message in enumerate(mm):
+                        if message is THREAD_STOP:
+                            please_stop.go()
+                            return
+                        try:
                             scrubbed.append(_deep_json_to_string(message, depth=3))
-                    finally:
-                        self.es.extend(scrubbed)
+                        except Exception as e:
+                            Log.warning("Problem adding to scrubbed list", cause=e)
+
+                    self.es.extend(scrubbed)
                     bad_count = 0
-            except Exception as e:
-                Log.warning("Problem inserting logs into ES", cause=e)
+            except Exception as f:
+                Log.warning("Problem inserting logs into ES", cause=f)
                 bad_count += 1
                 if bad_count > MAX_BAD_COUNT:
                     Log.warning("Given up trying to write debug logs to ES index {{index}}", index=self.es.settings.index)
