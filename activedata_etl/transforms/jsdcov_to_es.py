@@ -216,9 +216,9 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
             download_file(artifact.url, local_file)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
             if DO_AGGR:
-                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, aggregator(), path="value.source.file"))))
+                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, aggregator(), path="source.file"))))
             else:
-                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, generator(), path="value.source.file"))))
+                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, generator(), path="source.file"))))
 
     return keys
 
