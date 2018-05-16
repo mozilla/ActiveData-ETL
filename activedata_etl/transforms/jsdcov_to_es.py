@@ -14,13 +14,12 @@ from zipfile import ZipFile
 from activedata_etl import etl2key
 from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from mo_dots import wrap, unwraplist, set_default
-from mo_files import TempDirectory
+from mo_files import TempFile
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary.env.big_data import ibytes2ilines
-
 
 DO_AGGR = True  # This flag will aggregate coverage information per source file.
 ENABLE_METHOD_COVERAGE = False
@@ -141,8 +140,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
     def generator():
         with ZipFile(temp_file.abspath) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
-                json_stream = ibytes2ilines(zipped.open(zip_name))
-                for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
+                for source_file_index, record in enumerate(stream.parse(zipped.open(zip_name), '.', ['.'])):
                     if please_stop:
                         Log.error("Shutdown detected. Stopping job ETL.")
 
@@ -150,29 +148,29 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
                         # this is not a jsdcov object but an object containing the version metadata
                         # TODO: this metadata should not be here
                         # TODO: this version info is not used right now. Make use of it later.
-                        jsdcov_format_version = obj.get("version")
+                        jsdcov_format_version = record.get("version")
                         continue
 
                     try:
                         for d in process_source_file(
                             artifact_etl,
                             counter,
-                            obj
+                            record
                         ):
                             yield d
                     except Exception as e:
                         Log.warning(
                             "Error processing test {{test_url}} and source file {{source}} while processing {{key}}",
                             key=source_key,
-                            test_url=obj.get("testUrl"),
-                            source=obj.get("sourceFile"),
+                            test_url=record.get("testUrl"),
+                            source=record.get("sourceFile"),
                             cause=e
                         )
 
     def aggregator():
         aggr_coverage = dict()
 
-        with ZipFile(local_file) as zipped:
+        with ZipFile(temp_file.abspath) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 json_stream = ibytes2ilines(zipped.open(zip_name))
                 for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
