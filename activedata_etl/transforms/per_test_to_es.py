@@ -9,13 +9,12 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from itertools import chain
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
 from activedata_etl.imports.coverage_util import download_file, LANGUAGE_MAPPINGS, tuid_batches
 from mo_dots import wrap, set_default
-from mo_files import TempDirectory
+from mo_files import TempFile
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
@@ -164,7 +163,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         yield record
 
     def generator():
-        with ZipFile(local_file) as zipped:
+        with ZipFile(temp_file.abspath) as zipped:
             for zip_name in zipped.namelist():
                 for record in stream.parse(zipped.open(zip_name), "report.source_files", {"report.source_files", "suite", "test"}):
                     if please_stop:
@@ -189,10 +188,9 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
 
     counter = count_generator().next
 
-    with TempDirectory() as tmpdir:
-        local_file = (tmpdir / "coverage.zip").abspath
+    with TempFile() as temp_file:
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
-            download_file(artifact.url, local_file)
+            download_file(artifact.url, temp_file.abspath)
 
         key = etl2key(artifact_etl)
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):

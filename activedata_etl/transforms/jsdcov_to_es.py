@@ -139,7 +139,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
         yield record
 
     def generator():
-        with ZipFile(local_file) as zipped:
+        with ZipFile(temp_file.abspath) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 json_stream = ibytes2ilines(zipped.open(zip_name))
                 for source_file_index, obj in enumerate(stream.parse(json_stream, '.', ['.'])):
@@ -203,10 +203,9 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
 
     counter = count_generator().next
 
-    with TempDirectory() as tmpdir:
-        local_file = (tmpdir / "coverage.zip").abspath
+    with TempFile() as temp_file:
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
-            download_file(artifact.url, local_file)
+            download_file(artifact.url, temp_file.abspath)
 
         key = etl2key(artifact_etl)
         with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
