@@ -202,25 +202,24 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
                 yield record
 
     counter = count_generator().next
-    key = etl2key(artifact_etl)
-
-    keys = []
-    def key_acc(generator):
-        for record in generator:
-            keys.append(etl2key(record.etl))
-            yield record
 
     with TempDirectory() as tmpdir:
         local_file = (tmpdir / "coverage.zip").abspath
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
             download_file(artifact.url, local_file)
-        with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
-            if DO_AGGR:
-                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, aggregator(), path="source.file"))))
-            else:
-                destination.write_lines(key, map(value2json, key_acc(tuid_batches(task_cluster_record, resources, generator(), path="source.file"))))
 
-    return keys
+        key = etl2key(artifact_etl)
+        with Timer("Processing JSDCov for key {{key}}", param={"key": key}):
+            destination.write_lines(
+                key,
+                map(value2json, tuid_batches(
+                    task_cluster_record,
+                    resources,
+                    aggregator() if DO_AGGR else generator(),
+                    path="source.file"
+                ))
+            )
+        return [key]
 
 
 def count_generator():

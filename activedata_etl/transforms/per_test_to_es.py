@@ -196,7 +196,14 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
 
         key = etl2key(artifact_etl)
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):
-            destination.write_lines(key, map(value2json, tuid_batches(task_cluster_record, resources, generator(), path="source.file")))
+            destination.write_lines(
+                key, map(value2json, tuid_batches(
+                    task_cluster_record,
+                    resources,
+                    generator(),
+                    path="source.file"
+                ))
+            )
 
     return [key]
 
