@@ -14,3 +14,4 @@ log.txt
 /tests/resources/mochitest_chunk_2
 /tuid.sqlite
 /vendor/pyLibrary/vendor/sqlite
+/*.sqlite
