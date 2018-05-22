@@ -203,6 +203,7 @@ TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERD
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
+        "awsy-base",
         "awsy",
         "browser-instrumentation",
         "browser-screenshots",

@@ -328,6 +328,7 @@ KNOWN_VALUES = [
 NON_HG_BRANCHES = [
     "bmo-master",
     "go-bouncer",
+    "mozillians-tests",
     "snippets-service",
     "snippets-service",
     "snippets-tests",

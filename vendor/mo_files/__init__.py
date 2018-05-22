@@ -19,6 +19,7 @@ import os
 from mo_future import text_type, binary_type
 from mo_dots import get_module, coalesce
 from mo_logs import Log, Except
+from mo_logs.exceptions import extract_stack
 from mo_threads import Thread, Till
 
 mime = MimeTypes()
@@ -422,7 +423,7 @@ class TempDirectory(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        Thread.run("delete dir "+self.name, delete_daemon, file=self)
+        Thread.run("delete dir " + self.name, delete_daemon, file=self, caller_stack=extract_stack(1))
 
 
 class TempFile(File):
@@ -442,7 +443,7 @@ class TempFile(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        Thread.run("delete file "+self.name, delete_daemon, file=self)
+        Thread.run("delete file " + self.name, delete_daemon, file=self, caller_stack=extract_stack(1))
 
 
 def _copy(from_, to_):
@@ -521,12 +522,15 @@ def join_path(*path):
     return joined
 
 
-def delete_daemon(file, please_stop):
+def delete_daemon(file, caller_stack, please_stop):
     # WINDOWS WILL HANG ONTO A FILE FOR A BIT AFTER WE CLOSED IT
     while not please_stop:
         try:
             file.delete()
             return
         except Exception as e:
+            e = Except.wrap(e)
+            e.trace = e.trace[0:2]+caller_stack
+
             Log.warning(u"problem deleting file {{file}}", file=file.abspath, cause=e)
-            Till(seconds=1).wait()
+            (Till(seconds=10)|please_stop).wait()

@@ -151,16 +151,13 @@ def extract_stack(start=0):
         f = f.f_back
 
     stack = []
-    n = 0
     while f is not None:
         stack.append({
-            "depth": n,
             "line": f.f_lineno,
             "file": f.f_code.co_filename,
             "method": f.f_code.co_name
         })
         f = f.f_back
-        n += 1
     return stack
 
 
@@ -175,17 +172,14 @@ def _extract_traceback(start):
         tb = tb.tb_next
 
     trace = []
-    n = 0
     while tb is not None:
         f = tb.tb_frame
         trace.append({
-            "depth": n,
             "file": f.f_code.co_filename,
             "line": tb.tb_lineno,
             "method": f.f_code.co_name
         })
         tb = tb.tb_next
-        n += 1
     trace.reverse()
     return trace
 
