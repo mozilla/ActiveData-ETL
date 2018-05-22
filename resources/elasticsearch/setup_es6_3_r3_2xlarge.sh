@@ -109,7 +109,7 @@ git checkout push-to-es6
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_2.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
@@ -151,7 +151,7 @@ sudo supervisorctl update
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_2.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch

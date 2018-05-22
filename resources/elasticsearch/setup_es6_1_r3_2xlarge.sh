@@ -27,7 +27,7 @@ java -version
 
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.1.2.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.3.tar.gz
 tar zxfv elasticsearch-6.2.3.tar.gz
 sudo mkdir /usr/local/elasticsearch
 sudo cp -R elasticsearch-6.2.3/* /usr/local/elasticsearch/
@@ -104,7 +104,7 @@ cd ~
 rm -fr ~/ActiveData-ETL
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
 cd ~/ActiveData-ETL
-git checkout push-to-es5
+git checkout push-to-es6
 
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
@@ -117,7 +117,7 @@ sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 #INSTALL PYTHON27
 sudo yum -y install python27
-sudo pip install --upgrade pip
+sudo /usr/local/bin/pip install --upgrade pip
 #rm -fr /home/ec2-user/temp
 #mkdir  /home/ec2-user/temp
 #cd /home/ec2-user/temp
@@ -130,12 +130,12 @@ sudo yum install -y libffi-devel
 sudo yum install -y openssl-devel
 sudo yum groupinstall -y "Development tools"
 
-sudo pip install pyopenssl
-sudo pip install ndg-httpsclient
-sudo pip install pyasn1
-sudo pip install requests
-sudo pip install fabric==1.10.2
-sudo pip install supervisor-plus-cron
+sudo /usr/local/bin/pip install pyopenssl
+sudo /usr/local/bin/pip install ndg-httpsclient
+sudo /usr/local/bin/pip install pyasn1
+sudo /usr/local/bin/pip install requests
+sudo /usr/local/bin/pip install fabric==1.10.2
+sudo /usr/local/bin/pip install supervisor-plus-cron
 
 cd /usr/bin
 sudo ln -s /usr/local/bin/supervisorctl supervisorctl
@@ -150,7 +150,7 @@ sudo supervisorctl update
 
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
-git pull origin push-to-es5
+git pull origin push-to-es6
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
