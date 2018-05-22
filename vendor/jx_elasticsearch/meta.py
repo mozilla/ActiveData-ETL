@@ -236,6 +236,8 @@ class ElasticsearchMetadata(Namespace):
         except Exception as e:
             Log.error("Not expected", cause=e)
 
+        return []
+
     def _update_cardinality(self, column):
         """
         QUERY ES TO FIND CARDINALITY AND PARTITIONS FOR A SIMPLE COLUMN

@@ -55,8 +55,6 @@ return output.toString()
 """
 
 
-
-
 class EsScript(Expression):
     __slots__ = ("miss", "data_type", "expr", "many")
 

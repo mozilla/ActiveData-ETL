@@ -31,6 +31,8 @@ class Till(Signal):
     """
     TIMEOUT AS A SIGNAL
     """
+    __slots__ = []
+
     locker = _allocate_lock()
     next_ping = time()
     done = Signal("Timers shutdown")
@@ -62,6 +64,9 @@ class Till(Signal):
                 Log.error("Duration objects for Till are no longer allowed")
 
             timeout = now + timeout
+        else:
+            from mo_logs import Log
+            Log.error("Should not happen")
 
         Signal.__init__(self, name=text_type(timeout))
 

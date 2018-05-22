@@ -200,11 +200,15 @@ class File(object):
         return File.add_suffix(self._filename, suffix)
 
     def read(self, encoding="utf8"):
+        """
+        :param encoding:
+        :return:
+        """
         with open(self._filename, "rb") as f:
-            content = f.read().decode(encoding)
             if self.key:
-                return get_module(u"mo_math.crypto").decrypt(content, self.key)
+                return get_module("mo_math.crypto").decrypt(f.read(), self.key)
             else:
+                content = f.read().decode(encoding)
                 return content
 
     def read_lines(self, encoding="utf8"):
@@ -228,7 +232,10 @@ class File(object):
             if not self.parent.exists:
                 self.parent.create()
             with open(self._filename, "rb") as f:
-                return f.read()
+                if self.key:
+                    return get_module("mo_math.crypto").decrypt(f.read(), self.key)
+                else:
+                    return f.read()
         except Exception as e:
             Log.error(u"Problem reading file {{filename}}", filename=self.abspath, cause=e)
 
@@ -236,7 +243,10 @@ class File(object):
         if not self.parent.exists:
             self.parent.create()
         with open(self._filename, "wb") as f:
-            f.write(content)
+            if self.key:
+                f.write(get_module("mo_math.crypto").encrypt(content, self.key))
+            else:
+                f.write(content)
 
     def write(self, data):
         if not self.parent.exists:
@@ -256,7 +266,8 @@ class File(object):
                 if not isinstance(d, text_type):
                     Log.error(u"Expecting unicode data only")
                 if self.key:
-                    f.write(get_module(u"crypto").encrypt(d, self.key).encode("utf8"))
+                    from mo_math.crypto import encrypt
+                    f.write(encrypt(d, self.key).encode("utf8"))
                 else:
                     f.write(d.encode("utf8"))
 
