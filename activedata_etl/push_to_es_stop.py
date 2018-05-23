@@ -46,14 +46,14 @@ def _config_fabric(connect, instance):
 
 def _stop_indexer():
     with fabric_settings(warn_only=True):
-        sudo("supervisorctl stop push_to_es")
+        sudo("supervisorctl stop push_to_es:*")
         # sudo("supervisorctl stop es")
 
 
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
-        sudo("supervisorctl start push_to_es")
+        sudo("supervisorctl start push_to_es:*")
 
 def _restart_es():
     global restart_es_count

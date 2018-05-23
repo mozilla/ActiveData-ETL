@@ -17,7 +17,7 @@ from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json, CAN_NOT_DECODE_JSON
 from mo_kwargs import override
 from mo_logs import Log
-from mo_logs.exceptions import suppress_exception
+from mo_logs.exceptions import suppress_exception, Except
 from mo_math.randoms import Random
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_threads import Lock
@@ -95,6 +95,7 @@ class RolloverIndex(object):
                         es = self.cluster.create_index(create_timestamp=rounded_timestamp, kwargs=self.settings)
                         es.add_alias(self.settings.index)
                     except Exception as e:
+                        e = Except.wrap(e)
                         if "IndexAlreadyExistsException" not in e:
                             Log.error("Problem creating index", cause=e)
                         return self._get_queue(row)  # TRY AGAIN
