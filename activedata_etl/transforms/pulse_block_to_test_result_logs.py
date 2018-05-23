@@ -6,19 +6,18 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict, set_default, Null
-from pyLibrary.env import http
-from pyLibrary.thread.threads import Signal
-from pyLibrary.times.timer import Timer
-from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from activedata_etl.transforms import EtlHeadGenerator, verify_blobber_file
+from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
-
+from mo_dots import Data
+from mo_logs import Log, machine_metadata
+from mo_logs.strings import utf82unicode
+from mo_threads import Signal
+from mo_times.timer import Timer
+from pyLibrary.env import http
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -34,7 +33,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     TRANSFORM STRUCTURED LOG TO INDIVIDUAL TESTS
     """
     output = []
-    stats = Dict()
+    stats = Data()
     etl_header_gen = EtlHeadGenerator(source_key)
     fast_forward = False
 
@@ -42,7 +41,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     for e in existing_keys:
         destination.delete_key(e)
 
-    all_lines = list(enumerate(convert.utf82unicode(source.read()).split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
+    all_lines = list(enumerate(utf82unicode(source.read()).split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
     for i, line in all_lines:
         if fast_forward:
             continue
@@ -54,7 +53,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             continue
 
         buildbot_summary = transform_buildbot(source_key, pulse_record.payload, resources)
-
+        # buildbot_summary.repo = minimize_repo(buildbot_summary.repo)
         if DEBUG or DEBUG_SHOW_LINE:
             Log.note(
                 "Source {{key}}, line {{line}}, buildid = {{buildid}}",
@@ -90,7 +89,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 ):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue
-                    dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name)
+                    dest_key, dest_etl = etl_header_gen.next(pulse_record.etl, name=name)
                     dest_etl.machine = machine_metadata
                     dest_etl.url = url
                     new_keys = process_unittest(dest_key, dest_etl, buildbot_summary, log_content, destination, please_stop=please_stop)
@@ -107,7 +106,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             key=dest_key,
                             url=url
                         )
-            except Exception, e:
+            except Exception as e:
                 Log.error("Problem processing {{name}} = {{url}}", name=name, url=url, cause=e)
 
         if not file_num and DEBUG_SHOW_NO_LOG:
@@ -126,10 +125,10 @@ if __name__ == "__main__":
         for d in data:
             Log.note("{{data}}", data=d)
 
-    destination = Dict(extend=extend)
+    destination = Data(extend=extend)
 
     try:
-        _new_keys = process_unittest("0:0.0.0", Dict(), Dict(), response.all_lines, destination, please_stop=Signal())
+        _new_keys = process_unittest("0:0.0.0", Data(), Data(), response.all_lines, destination, please_stop=Signal())
     finally:
         response.close()
 

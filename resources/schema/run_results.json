@@ -5,41 +5,6 @@
 	},
 	"mappings": {
 		"run_results": {
-			"_source": {
-				"compress": true
-			},
-			"dynamic_templates": [
-				{
-					"xperf": {
-						"mapping": {
-							"index": "not_analyzed",
-							"type": "string"
-						},
-						"match": "results_xperf.*"
-					}
-				},
-				{
-					"default_ids": {
-						"mapping": {
-							"index": "not_analyzed",
-							"type": "string"
-						},
-						"match": "id"
-					}
-				},
-				{
-					"default_strings": {
-						"mapping": {
-							"index": "not_analyzed",
-							"type": "string"
-						},
-						"match_mapping_type": "string",
-						"match": "*"
-					}
-				}
-			],
-			"properties": {
-			},
 			"_all": {
 				"enabled": false
 			}

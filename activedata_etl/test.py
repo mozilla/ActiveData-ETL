@@ -6,9 +6,10 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from mo_future import text_type
 from multiprocessing import Process, Queue
 
 

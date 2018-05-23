@@ -10,12 +10,11 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from pyLibrary import strings
+from jx_python import jx
+from mo_dots import wrap, coalesce
+from mo_future import text_type
+from mo_logs import Log, strings
 from pyLibrary.aws import s3
-from pyLibrary.collections import reverse
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, coalesce
-from pyLibrary.queries import jx
 
 
 def key2etl(key):
@@ -59,20 +58,20 @@ def format_id(value):
     try:
         return int(value)
     except Exception:
-        return unicode(value)
+        return text_type(value)
 
 
 def _parse_key(elements):
     """
     EXPECTING ALTERNATING LIST OF operands AND operators
     """
-    if isinstance(elements, basestring):
+    if isinstance(elements, text_type):
         try:
             return {"id": format_id(elements)}
-        except Exception, e:
+        except Exception as e:
             Log.error("problem", e)
     if isinstance(elements, list) and len(elements) == 1:
-        if isinstance(elements[0], basestring):
+        if isinstance(elements[0], text_type):
             return {"id": format_id(elements[0])}
         return elements[0]
     if isinstance(elements, Mapping):
@@ -91,7 +90,7 @@ def etl2key(etl):
     source = etl
     seq = []
     while source:
-        seq.append(unicode(format_id(coalesce(source.id, source.code))))
+        seq.append(text_type(format_id(coalesce(source.id, source.code))))
         if source.type == "join":
             seq.append(".")
         else:
@@ -124,12 +123,11 @@ def etl2path(etl):
                 etl = etl.source
             etl = etl.source
         return jx.reverse(path)
-    except Exception, e:
+    except Exception as e:
         Log.error("Can not get path {{etl}}", etl=etl, cause=e)
 
 
 def key2path(key):
     return etl2path(key2etl(key))
-
 
 from . import transforms

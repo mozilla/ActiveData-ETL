@@ -6,11 +6,11 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from mohg.hg_mozilla_org import HgMozillaOrg
-
+from mo_future import text_type
+from mo_hg.hg_mozilla_org import HgMozillaOrg
 
 hg = HgMozillaOrg()
 hg.find_changeset("8f6cb5bed0cc")

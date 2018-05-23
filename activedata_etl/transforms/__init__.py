@@ -6,24 +6,34 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary import convert
-from pyLibrary import strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, literal_field
+from mo_dots import Data, literal_field, set_default
+from mo_future import text_type
+from mo_json import json2value
+from mo_logs import Log, strings
+from mo_times.dates import Date
+from mo_times.timer import Timer
 from pyLibrary.env import http
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
 DEBUG_SHOW_NO_LOG = False
 TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON LINES
 
+ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
+
+TC_MAIN_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/status"
+TC_ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+TC_ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+TC_RETRY = {"times": 3, "sleep": 5}
+
+
 TRY_AGAIN_LATER = "{{reason}}, try again later"
+
 
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
@@ -32,22 +42,31 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
+    "perfherder-data.json",
     ".apk",
+    "/awsy_raw.log",
     "/buildbot_properties.json",
-    "/log_raw.log",
-    "/talos_raw.log",
     "/buildprops.json",
+    "/chain_of_trust.log",
+    "/chainOfTrust.json.asc",
+    "/talos_raw.log",
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
+    ".extra",
+    ".dmp",
     "/log_critical.log",
     "/log_error.log",
     "/log_fatal.log",
     "/log_info.log",
     "/log_warning.log",
+    "/manifest.json",
     "/mar.exe",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    ".png",
+    "/properties.json",
+    "/log_raw.log",
     "/localconfig.json",
     "/talos_critical.log",
     "/talos_error.log",
@@ -56,6 +75,7 @@ NOT_STRUCTURED_LOGS = [
     "/talos_warning.log",
     "/live.log",
     "/live_backing.log",
+    ".mar",
     "/master.tar.gz",
     ".tests.zip",
     ".checksums.asc",
@@ -72,7 +92,7 @@ NOT_STRUCTURED_LOGS = [
     ".xml.sha1",
     ".xml",
     ]
-TOO_MANY_NON_JSON_LINES = Dict()
+TOO_MANY_NON_JSON_LINES = Data()
 
 next_key = {}  # TRACK THE NEXT KEY FOR EACH SOURCE KEY
 
@@ -83,9 +103,9 @@ class Transform(object):
         """
         :param source_key: THE DOT-DELIMITED PATH FOR THE SOURCE
         :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
-        :param destination: THE s3 BUCK TO PLACE ALL THE TRANSFORM RESULTS
+        :param destination: THE s3 BUCKET TO PLACE ALL THE TRANSFORM RESULTS
         :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
-        :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
+        :param please_stop: CHECK REGULARLY, AND EXIT TRANSFORMATION IF True
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError
@@ -98,7 +118,15 @@ def verify_blobber_file(line_number, name, url):
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
+    if not name.startswith("public/"):
+        return None, 0
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
+        return None, 0
+    if (name.find("/jscov_") >= 0 or name.find("/jsdcov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
+        return None, 0
+    if name.find("/test_info/memory-report-") >= 0:
+        return None, 0
+    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
@@ -106,7 +134,7 @@ def verify_blobber_file(line_number, name, url):
 
         try:
             logs = response.all_lines
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log"):
                 Log.error(
                     "Line {{line}}: {{name}} = {{url}} is NOT structured log",
@@ -128,9 +156,6 @@ def verify_blobber_file(line_number, name, url):
         # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
         return logs, "unknown"
 
-    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
-        return None, 0
-
     # DETECT IF THIS IS A STRUCTURED LOG
 
     with Timer("Structured log detection {{name}}:", {"name": name}):
@@ -144,9 +169,9 @@ def verify_blobber_file(line_number, name, url):
                     continue
 
                 try:
-                    total += len(convert.json2value(blobber_line))
+                    total += len(json2value(blobber_line))
                     count += 1
-                except Exception, e:
+                except Exception as e:
                     if DEBUG:
                         Log.note("Not JSON: {{line}}",
                             name= name,
@@ -161,7 +186,7 @@ def verify_blobber_file(line_number, name, url):
                 TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
                 Log.error("No JSON lines found")
 
-        except Exception, e:
+        except Exception as e:
             if name.endswith("_raw.log") and "No JSON lines found" not in e:
                 Log.error(
                     "Line {{line}}: {{name}} is NOT structured log",
@@ -192,21 +217,23 @@ class EtlHeadGenerator(object):
     def next(
         self,
         source_etl,  # ETL STRUCTURE DESCRIBING SOURCE
-        name=None,  # NAME FOR HUMANS TO BETTER UNDERSTAND WHICH SOURCE THIS IS
-        url=None  # URL FOR THE DATA
+        **kwargs # URL FOR THE DATA
     ):
         num = self.next_id
         self.next_id = num + 1
-        dest_key = self.source_key + "." + unicode(num)
+        dest_key = self.source_key + "." + text_type(num)
 
-        dest_etl = wrap({
-            "id": num,
-            "name": name,
-            "url": url,
-            "source": source_etl,
-            "type": "join",
-            "revision": get_git_revision(),
-            "timestamp": Date.now().unix
-        })
+        dest_etl = set_default(
+            {
+                "id": num,
+                "source": source_etl,
+                "type": "join",
+                "revision": get_git_revision(),
+                "timestamp": Date.now().unix
+            },
+            kwargs
+        )
 
         return dest_key, dest_etl
+
+

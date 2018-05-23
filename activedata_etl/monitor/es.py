@@ -6,17 +6,16 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from mo_future import text_type
 import requests
 
-from pyLibrary import convert, aws
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import Dict
-
+from mo_json import json2value, value2json
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, machine_metadata
 
 with suppress_exception:
     # ATTEMPT TO HIDE WARNING SO *.error.log DOES NOT FILL UP
@@ -35,14 +34,14 @@ def main():
             "http://localhost:9200/unittest/_search",
             data='{"fields":["etl.id"],"query": {"match_all": {}},"from": 0,"size": 1}'
         )
-        data = convert.json2value(convert.utf82unicode(result.content))
+        data = json2value(convert.utf82unicode(result.content))
 
         if data._shards.failed > 0 or result.status_code != 200:
             # BAD RESPONSE, ASK SUPERVISOR FOR A RESTART
             Log.warning("ES gave a bad response. NO ACTION TAKEN.\n{{response|json|indent}}", response=data)
         else:
             Log.note("Good response")
-    except Exception, e:
+    except Exception as e:
         Log.warning("Problem with call to ES at {{machine}}.  NO ACTION TAKEN", machine=machine_metadata, cause=e)
     finally:
         Log.stop()

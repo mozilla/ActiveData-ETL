@@ -1,5 +1,5 @@
 {
-	"name":"ActiveData ES Spot Instance",
+	"name":"ActiveData ES6 Spot Instance",
 	"aws":{"$ref":"//~/private.json#aws_credentials"},
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
@@ -8,8 +8,11 @@
 		"disable_known_hosts": true,
 		"host_string": "",
 		"port": 22,
-		"password": "",
+//		"password": "",
 		"keepalive": 1,
 		"banner_timeout": 30
+	},
+	"debug":{
+		"trace":true
 	}
 }

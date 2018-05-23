@@ -12,33 +12,36 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl.etl import parse_id_argument
-from pyLibrary import queries, aws
+from jx_base import container
+from mo_dots import coalesce, unwrap, Data, wrap
+from mo_logs import Log, machine_metadata
+from mo_logs import startup, constants
+from mo_logs.exceptions import Explanation, WarnOnException
+from mo_math import MAX
+from mo_math.randoms import Random
+from mo_threads import Process, Thread, Signal, Queue, THREAD_STOP, MAIN_THREAD
+from mo_threads import Till
+from mo_times.timer import Timer
+from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Explanation, WarnOnException, suppress_exception
-from pyLibrary.debugs.logs import Log, machine_metadata
-from pyLibrary.dot import coalesce, unwrap, Dict, wrap
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
-from pyLibrary.maths import Math
-from pyLibrary.maths.randoms import Random
-from pyLibrary.thread.multiprocess import Process
-from pyLibrary.thread.threads import Thread, Signal, Queue
-from pyLibrary.times.timer import Timer
 
 split = {}
 empty_bucket_complaint_sent = False
+
 
 def splitter(work_queue, please_stop):
     global empty_bucket_complaint_sent
 
     for pair in iter(work_queue.pop_message, ""):
         if please_stop:
-            for k,v in split.items():
-                v.add(Thread.STOP)
+            for k, v in split.items():
+                v.add(THREAD_STOP)
             return
         if pair == None:
-            Thread.sleep(seconds=5)
+            # ADD BACKFILLING HERE
+            (Till(seconds=5) | please_stop).wait()
             continue
 
         message, payload = pair
@@ -92,7 +95,7 @@ def splitter(work_queue, please_stop):
                 bucket=source_bucket.name,
                 es=es.settings.index,
                 duration=extend_time.duration,
-                rate=num_keys / Math.max(extend_time.duration.seconds, 0.01)
+                rate=num_keys / MAX([extend_time.duration.seconds, 0.01])
             )
 
 
@@ -101,7 +104,7 @@ def safe_splitter(work_queue, please_stop):
         try:
             with WarnOnException("Indexing records"):
                 splitter(work_queue, please_stop)
-        except Exception, e:
+        except Exception as e:
             Log.warning("problem", cause=e)
 
 
@@ -114,19 +117,15 @@ def add_message_confirmation(queue, payload_key, message):
 
 
 def shutdown_local_es_node():
-    Log.warning("Shutdown ES on node {{node}}", machine_metadata)
-
-    proc = Process("stop es", ["sudo", "supervisorctl", "stop", "es"])
-
-    try:
+    Log.warning("Shutdown ES on node {{node}}", node=machine_metadata)
+    with Process("stop es", ["sudo", "supervisorctl", "stop", "es"]) as proc:
         while True:
             line = proc.stdout.pop().strip()
             if not line:
                 continue
+            if line == THREAD_STOP:
+                break
             Log.note("Shutdown es: {{note}}", note=line)
-    finally:
-        with suppress_exception:
-            proc.join()
 
 
 def main():
@@ -150,7 +149,7 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        queries.config.default = {
+        container.config.default = {
             "type": "elasticsearch",
             "settings": settings.elasticsearch.copy()
         }
@@ -171,7 +170,7 @@ def main():
                 Log.error("Index {{index}} has prefix={{alias|quote}}, and has no alias.  Can not make another.", alias=alias, index=index)
             else:
                 Log.alert("Creating index for alias={{alias}}", alias=alias)
-                cluster.create_index(settings=es_settings)
+                cluster.create_index(kwargs=es_settings)
                 Log.alert("Done.  Exiting.")
                 return
 
@@ -179,28 +178,29 @@ def main():
             main_work_queue = Queue("local work queue")
             for w in settings.workers:
                 bucket = s3.Bucket(w.source)
-                for k in parse_id_argument(settings.args.id):
-                    key = bucket.get_meta(key=k)
-                    main_work_queue.extend(Dict(
-                        key=key,
-                        bucket=bucket.name
-                    ))
+                for prefixes in parse_id_argument(settings.args.id):
+                    keys = bucket.keys(prefix=prefixes)
+                    for k in keys:
+                        main_work_queue.add(Data(
+                            key=k,
+                            bucket=bucket.name
+                        ))
         else:
-            main_work_queue = aws.Queue(settings=settings.work_queue)
+            main_work_queue = aws.Queue(kwargs=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:
             if not w.rollover.interval or not w.rollover.field:
                 Log.error("All workers must declare an `rollover.interval` which will indicate when to rollover to a fresh index")
 
-            split[w.source.bucket] = Dict(
+            split[w.source.bucket] = Data(
                 es=RolloverIndex(
                     rollover_field=w.rollover.field,
                     rollover_interval=w.rollover.interval,
                     rollover_max=w.rollover.max,
                     queue_size=coalesce(w.queue_size, 1000),
                     batch_size=unwrap(w.batch_size),
-                    settings=w.elasticsearch
+                    kwargs=w.elasticsearch
                 ),
                 bucket=s3.Bucket(w.source),
                 settings=w
@@ -209,23 +209,23 @@ def main():
 
         please_stop = Signal()
         aws_shutdown = Signal("aws shutdown")
-        aws_shutdown.on_go(shutdown_local_es_node())
-        aws_shutdown.on_go(lambda: please_stop.go())
+        aws_shutdown.on_go(shutdown_local_es_node)
+        aws_shutdown.on_go(please_stop.go)
         aws.capture_termination_signal(aws_shutdown)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)
 
         def monitor_progress(please_stop):
             while not please_stop:
-                Log.note("Remaining: {{num}}", num=len(main_work_queue))
-                Thread.sleep(seconds=10)
+                Log.note("Remaining in SQS: {{num}}", num=len(main_work_queue))
+                (please_stop | Till(seconds=10)).wait()
 
         Thread.run(name="monitor progress", target=monitor_progress, please_stop=please_stop)
 
-        Thread.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(please_stop=please_stop, allow_exit=True)
         please_stop.go()
-        Log.note("Shutdown started")
-    except Exception, e:
+        Log.note("Shutdown")
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

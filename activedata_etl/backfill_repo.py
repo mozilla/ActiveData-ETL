@@ -8,16 +8,18 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap, unwrap, wrap, wrap_leaves
+from mo_future import text_type
+from mo_hg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from mo_dots import listwrap, unwrap, wrap, wrap_leaves
+from mo_logs import startup, constants
+from mo_logs import Log
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
-from pyLibrary.queries.jx_usingES import FromES
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.thread.threads import Thread, Signal
-from pyLibrary.times.dates import Date
-from mohg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from mo_math import Math
+from jx_elasticsearch.es17 import FromES
+from mo_collections import UniqueIndex
+from mo_threads import Thread, Signal, MAIN_THREAD
+from mo_threads import Till
+from mo_times.dates import Date
 
 
 DEBUG = False
@@ -131,13 +133,13 @@ def getall(hg, es, please_stop):
         #TODO: use the `retry_on_conflict` parameter
         while len(errors) < 3 and not please_stop:
             try:
-                Thread.sleep(seconds=10)
+                (Till(seconds=10)).wait()
                 es.update({
                     "set": wrap_leaves({SCAN_DONE: True}),
                     "where": {"eq": {"changeset.id": id}}
                 })
                 return
-            except Exception, e:
+            except Exception as e:
                 errors += [e]
 
         Log.error("Can not seem to markup changeset as scanned", cause=errors)
@@ -148,7 +150,7 @@ def getall(hg, es, please_stop):
 def backfill_repo(settings, please_stop):
     global current_revision
     hg = HgMozillaOrg(settings)
-    es = FromES(settings=settings.repo)
+    es = FromES(kwargs=settings.repo)
 
     frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     frontier |= get_frontier(hg)
@@ -166,7 +168,7 @@ def backfill_repo(settings, please_stop):
             try:
                 rev = hg.get_revision(current_revision)
                 frontier.remove(rev)
-            except Exception, e:
+            except Exception as e:
                 Log.warning("can not get {{rev}}", rev=current_revision, cause=e)
                 getall(hg, es, please_stop)
     finally:
@@ -185,8 +187,8 @@ def main():
 
         stopper = Signal()
         Thread.run("backfill repo", backfill_repo, settings.hg, please_stop=stopper)
-        Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
-    except Exception, e:
+        MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

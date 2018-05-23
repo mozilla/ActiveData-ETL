@@ -1,0 +1,6 @@
+{
+
+	"bucket":"fx-test-activedata",
+	"region":"us-east-1",
+	"$ref": "file://~/private.json#aws_credentials"
+}

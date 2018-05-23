@@ -9,37 +9,30 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_future import text_type
+from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
+from mo_json import json2value
+from mo_json import scrub
+from mo_logs import Log, strings, machine_metadata
+from mo_math import MAX, MIN
+
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, set_default, literal_field
+from mo_logs.exceptions import Except
+from mo_times.dates import Date
+from mo_times.durations import DAY
+from mo_times.timer import Timer
 from pyLibrary.env.git import get_git_revision
-from pyLibrary.jsons import scrub
-from pyLibrary.maths import Math
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
-from pyLibrary.times.timer import Timer
 
 DEBUG = True
+ACCESS_DENIED = "Access Denied to {{url}}"
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
     lines = source.read_lines()
-
-    etl_header = convert.json2value(lines[0])
-
-    # FIX ETL IDS
-    e = etl_header
-    while e:
-        if isinstance(e.id, basestring):
-            e.id = int(e.id.split(":")[0])
-        e = e.source
-
-    bb_summary = transform_buildbot(convert.json2value(lines[1]), resources=resources, source_key=source_key)
-    unittest_log = lines[2:]
-    return process_unittest(source_key, etl_header, bb_summary, unittest_log, destination, please_stop=please_stop)
+    etl_header = json2value(lines[0]).etl
+    bb_summary = transform_buildbot(json2value(lines[1]), resources=resources, source_key=source_key)
+    return process_unittest(source_key, etl_header, bb_summary, lines, destination, please_stop=please_stop)
 
 
 def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, destination, please_stop=None):
@@ -59,10 +52,24 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     })
     try:
         with timer:
-            summary = accumulate_logs(source_key, etl_header.url, unittest_log, please_stop)
-    except Exception, e:
-        Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
-        summary = None
+            summary = accumulate_logs(
+                source_key,
+                etl_header.url,
+                unittest_log,
+                buildbot_summary.run.suite.name,
+                please_stop
+            )
+    except Exception as e:
+        e = Except.wrap(e)
+        if "EOF occurred in violation of protocol" in e:
+            raise Log.error(TRY_AGAIN_LATER, reason="EOF ssl violation")
+        elif ACCESS_DENIED in e and buildbot_summary.task.state in ["failed", "exception"]:
+            summary = Null
+        elif ACCESS_DENIED in e:
+            summary = Null
+            Log.warning("Problem processing {{key}}", key=source_key, cause=e)
+        else:
+            raise Log.error("Problem processing {{key}} after {{duration|round(decimal=0)}}seconds", key=source_key, duration=timer.duration.seconds, cause=e)
 
     buildbot_summary.etl = {
         "id": 0,
@@ -71,6 +78,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         "source": etl_header,
         "type": "join",
         "revision": get_git_revision(),
+        "machine": machine_metadata,
         "duration": timer.duration
     }
     buildbot_summary.run.stats = summary.stats
@@ -95,7 +103,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         })
     else:
         for i, t in enumerate(summary.tests):
-            key = source_key + "." + unicode(i)
+            key = source_key + "." + text_type(i)
             new_keys.append(key)
 
             new_data.append({
@@ -112,7 +120,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     return new_keys
 
 
-def accumulate_logs(source_key, url, lines, please_stop):
+def accumulate_logs(source_key, url, lines, suite_name, please_stop):
     accumulator = LogSummary(url)
     last_line_was_json = True
     for line in lines:
@@ -126,16 +134,66 @@ def accumulate_logs(source_key, url, lines, please_stop):
         try:
             accumulator.stats.lines += 1
             last_line_was_json = False
-            log = convert.json2value(line)
+            log = json2value(line)
             last_line_was_json = True
             log.time = log.time / 1000
-            accumulator.stats.start_time = Math.min(accumulator.stats.start_time, log.time)
-            accumulator.stats.end_time = Math.max(accumulator.stats.end_time, log.time)
+            accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])
+            accumulator.stats.end_time = MAX([accumulator.stats.end_time, log.time])
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
+                test_name = log.test
                 log.test = " ".join(log.test)
 
+            if suite_name.startswith("reftest"):
+                try:
+                    # FIXES FOR REFTESTS
+                    if not log.test:
+                        pass
+                    elif "/jsreftest.html?test=" in log.test:
+                        # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
+                        log.test = log.test.split("/jsreftest.html?test=")[1]
+                    elif " == " in log.test and "/build/tests/reftest/tests/" in log.test:
+                        # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
+                        # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
+                        # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
+                        # about:blank == file:///Z:/task_1525695436/build/tests/reftest/tests/layout/reftests/reftest-sanity/blank.html
+                        sides = log.test.split(" == ")
+                        sides = [
+                            s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
+                            for s in sides
+                        ]
+                        log.test = " == ".join(sides)
+                    elif " == " in log.test and ":8854/tests/" in log.test:
+                        # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
+                    elif "/build/tests/reftest/tests/" in log.test:
+                        # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
+                        log.test = log.test.split("/build/tests/reftest/tests/")[1]
+                    elif " == " in log.test and log.test.startswith(("http://", "file:///")):
+                        # REMOVE host:port/timestamp/test_num/ PREFIX
+                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs.split("/")[-1] + " == " + rhs.split("/")[-1]
+                    elif " != " in log.test and log.test.startswith(("http://", "file:///")):
+                        # REMOVE host:port/timestamp/test_num/ PREFIX
+                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+                        lhs, rhs = log.test.split(" != ")
+                        log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
+                    elif " != http://10.0.2.2:8888/tests/" in log.test:
+                        log.test = log.test.split(" != http://10.0.2.2:8888/tests/")[1]
+                    elif " == http://localhost:" in log.test:
+                        # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs + " == " + rhs.split("/")[-1]
+                    elif log.test.startswith(("http://")):
+                        # http://localhost:49391/1525812148499/12/752340.html
+                        log.test = log.test.split("/")[-1]
+                    else:
+                        Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
+                except Exception as e:
+                    Log.error("programming error", cause=e)
             try:
                 accumulator.__getattribute__(log.action)(log)
             except AttributeError:
@@ -143,13 +201,14 @@ def accumulate_logs(source_key, url, lines, please_stop):
 
             if log.subtest:
                 accumulator.last_subtest = log.time
-        except Exception, e:
-            e= Except.wrap(e)
-            if "Can not decode JSON" in e:
-                Log.error(TRY_AGAIN_LATER, reason="Bad JSON", cause=e)
-            elif line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
-                Log.error(TRY_AGAIN_LATER, reason="Log is not ready")
-
+        except Exception as e:
+            e = Except.wrap(e)
+            if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
+                content = "\n".join(lines)
+                if "<Code>AccessDenied</Code>" in content:
+                    Log.error(ACCESS_DENIED, url=accumulator.url)
+                else:
+                    Log.error(TRY_AGAIN_LATER, reason="Remote content is not ready")
             prefix = strings.limit(line, 500)
             Log.warning(
                 "bad line #{{line_number}} in key={{key}} url={{url|quote}}:\n{{line|quote}}",
@@ -178,21 +237,23 @@ def accumulate_logs(source_key, url, lines, please_stop):
     return output
 
 
-class LogSummary(Dict):
+class LogSummary(Data):
     def __init__(self, url):
-        Dict.__init__(self)
-        self.tests = Dict()
-        self.logs = Dict()
+        Data.__init__(self)
+        self.tests = Data()
+        self.logs = Data()
         self.last_subtest = None
         self.url = url
 
     def suite_start(self, log):
-        pass
+        for k, v in log.items():
+            if k not in ["action", "tests", "time"]:
+                setattr(self, k, v)
 
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[literal_field(log.test)] = Dict(
+        self.tests[literal_field(log.test)] = Data(
             test=log.test,
             start_time=log.time
         )
@@ -219,7 +280,7 @@ class LogSummary(Dict):
         test = self.tests[literal_field(log.test)]
         test.stats.action.test_status += 1
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
@@ -281,7 +342,7 @@ class LogSummary(Dict):
         self.logs[test_name] += [log]
         test = self.tests[test_name]
         if not test:
-            self.tests[test_name] = test = Dict(
+            self.tests[test_name] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 crash=True,
@@ -302,7 +363,7 @@ class LogSummary(Dict):
         self.logs[literal_field(log.test)] += [log]
         test = self.tests[literal_field(log.test)]
         if not test:
-            self.tests[literal_field(log.test)] = test = Dict(
+            self.tests[literal_field(log.test)] = test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
@@ -340,7 +401,7 @@ class LogSummary(Dict):
         try:
             for t in tests:
                 self.stats.status[t.status.lower()] += 1
-        except Exception, e:
+        except Exception as e:
             Log.error("problem", e)
 
         self.stats.ok = sum(1 for t in tests if t.ok)

@@ -9,22 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import os
-from math import log10
-
+import jx_elasticsearch
+from jx_base.expressions import TRUE
+from jx_python import jx
+from mo_dots import coalesce
+from mo_future import text_type
+from mo_logs import Log
+from mo_logs import startup, constants
+from mo_logs.exceptions import suppress_exception
+from mo_math import Math, MAX, MIN
+from mo_times.dates import Date
+from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import coalesce, wrap
-from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
-from pyLibrary.maths import Math
-from pyLibrary.queries import jx
-from pyLibrary.queries.expressions import jx_expression
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 
 
 def diff(settings, please_stop=None):
@@ -33,26 +31,26 @@ def diff(settings, please_stop=None):
     if settings.range.min == None:
         settings.range.min = coalesce(settings.start, 0)
 
-    #SHOULD WE PUSH?
-    work_queue = aws.Queue(settings=settings.work_queue)
+    # SHOULD WE PUSH?
+    work_queue = aws.Queue(kwargs=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), settings=settings.elasticsearch)
+    esq = jx_elasticsearch.new_instance(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
     if settings.git:
         rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"not": {"prefix": {"etl.revision": rev}}}
+        es_filter = {"prefix": {"etl.revision": rev[0:12]}}
     else:
-        es_filter = {"match_all": {}}
+        es_filter = coalesce(settings.es_filter, {"match_all": {}})
 
     # EVERYTHING FROM ELASTICSEARCH
-    in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
+    in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
-        max_in_es = Math.MAX(in_es)
+        max_in_es = MAX(in_es)
         _min = coalesce(settings.range.min, 0)
         _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
         in_range = set(range(_min, _max))
@@ -67,14 +65,14 @@ def diff(settings, please_stop=None):
     Log.note(
         "Queueing {{num}} keys (from {{min}} to {{max}}) for insertion to {{queue}}",
         num=len(remaining_in_s3),
-        min=Math.MIN(remaining_in_s3),
-        max=Math.MAX(remaining_in_s3),
+        min=MIN(remaining_in_s3),
+        max=MAX(remaining_in_s3),
         queue=work_queue.name
     )
 
     source_prefix = coalesce(settings.source.prefix, "")
     for i, p in enumerate(remaining_in_s3):
-        all_keys = source_bucket.keys(source_prefix + unicode(p))
+        all_keys = source_bucket.keys(source_prefix + text_type(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
         with Timer("insert into aws sqs", silent=len(all_keys) == 1):
             work_queue.extend([
@@ -88,64 +86,49 @@ def diff(settings, please_stop=None):
             ])
 
 
-def get_all_in_es(es, in_range, es_filter, field):
-    if es_filter==None:
-        es_filter = {"match_all": {}}
+def get_all_in_es(esq, in_range, es_filter, field):
+    if es_filter == None:
+        es_filter = TRUE
+
+    range_filter = []
+    if in_range:
+        if in_range.min:
+            range_filter.append({"gte": {field: in_range.min}})
+        if in_range.max:
+            range_filter.append({"lt": {field: in_range.max}})
+
+    result = esq.query({
+        "from": "task",
+        "edges": {"name": "value", "value": field},
+        "where": {"and": [es_filter] + range_filter},
+        "limit": 100000,
+        "format": "list"
+    })
 
     in_es = set()
-    es_query = wrap({
-        "aggs": {
-            "_filter": {
-                "filter": {"and": [
-                    es_filter
-                ]},
-                "aggs": {
-                    "_match": {
-                        "terms": {
-                            # "field": field,
-                            "script": jx_expression({"string": field}).to_ruby(),
-                            "size": 200000
-                        }
-                    }
-                }
-            }
-        },
-        "size":0
-    })
-    if in_range:
-        _filter = es_query.aggs._filter.filter["and"]
-        if in_range.min:
-            _filter.append({"range": {field: {"gte": in_range.min}}})
-        if in_range.max:
-            _filter.append({"range": {field: {"lt": in_range.max}}})
-
-    result = es.search(es_query)
-
-    good_es = []
-    for k in result.aggregations._filter._match.buckets.key:
+    for rec in result.data:
         with suppress_exception:
-            good_es.append(int(k))
+            in_es.add(int(rec.value))
 
     Log.note(
         "got {{num}} from {{index}}",
-        num=len(good_es),
-        index=es.settings.index
+        num=len(in_es),
+        index=esq.settings.index
     )
-    in_es |= set(good_es)
 
     return in_es
 
 
 def get_all_s3(in_es, in_range, settings):
     in_s3 = []
-    min_range = coalesce(Math.MIN(in_range), 0)
+    min_range = coalesce(MIN(in_range), 0)
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
-    max_allowed = Math.MAX([settings.range.max, Math.MAX(in_es)])
-    extra_digits = Math.ceiling(Math.log10(Math.MIN([max_allowed-settings.range.min, limit])))
+    max_allowed = MAX([settings.range.max, MAX(in_es)])
+    extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
-    prefix = unicode(max(in_range - in_es))[:-extra_digits]
+    prefix = text_type(max(in_range - in_es))[:-extra_digits]
     prefix_max = int(prefix + ("999999999999"[:extra_digits]))
     while prefix != "0" and len(in_s3) < limit and min_range <= prefix_max:
         # EVERYTHING FROM S3
@@ -175,12 +158,12 @@ def get_all_s3(in_es, in_range, settings):
                 #     continue
 
                 in_s3.append(p)
-            except Exception, e:
+            except Exception as e:
                 Log.note("delete key? {{key|quote}}", key=q)
 
         if prefix == "":
             break
-        prefix = unicode(int(prefix) - 1)
+        prefix = text_type(int(prefix) - 1)
         prefix_max = int(prefix + ("999999999999"[:extra_digits]))
 
     in_s3 = jx.reverse(jx.sort(in_s3))[:limit:]
@@ -206,7 +189,7 @@ def main():
         Log.start(settings.debug)
 
         diff(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

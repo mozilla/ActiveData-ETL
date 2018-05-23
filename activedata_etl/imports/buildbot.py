@@ -7,20 +7,21 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import unicode_literals
 from __future__ import division
-import ast
+from __future__ import unicode_literals
 
+from mo_future import text_type
+import ast
 import re
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.exceptions import suppress_exception
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, coalesce, set_default, unwraplist, listwrap
+from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
+from mo_json import json2value, value2json
+from mo_logs.exceptions import suppress_exception
+from mo_logs import Log, strings
+from pyLibrary import convert
 from pyLibrary.env import elasticsearch
-from pyLibrary.maths import Math
-from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date, unicode2Date
+from mo_math import Math
+from mo_times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
 
@@ -32,7 +33,7 @@ class BuildbotTranslator(object):
 
     def parse(self, data):
         data = wrap(data)
-        output = Dict()
+        output = Data()
 
         if data.build.times:
             if len(data.build.times) != 2:
@@ -41,7 +42,7 @@ class BuildbotTranslator(object):
             data = data.build
 
         if isinstance(data.properties, list):
-            props = data.properties = Dict(**{a: b for a, b, c in data.properties})
+            props = data.properties = Data(**{a: b for a, b, c in data.properties})
         else:
             props = data.properties.copy()
 
@@ -83,7 +84,7 @@ class BuildbotTranslator(object):
             ratio = RATIO_PATTERN.match(buildername.split("_")[-1])
             if ratio:
                 output.action.step = ratio.groups()[0]
-        except Exception, e:
+        except Exception as e:
             Log.error("problem in\n{{data|json}}", data=data, cause=e)
 
         # SCRIPT
@@ -129,7 +130,7 @@ class BuildbotTranslator(object):
             output.build.date = Date(consume(props, "builddate"))
             if not output.build.date:
                 output.build.date = unicode2Date(output.build.id, "%Y%m%d%H%M%S")
-        except Exception, _:
+        except Exception as _:
             output.build.id = "<error>"
 
         # LOCALE
@@ -138,7 +139,7 @@ class BuildbotTranslator(object):
             output.action.repack = coalesce(consume(props, "repack"), True)
             locales = consume(props, "locales")
             try:
-                output.build.locales = convert.json2value(locales).keys()
+                output.build.locales = json2value(locales).keys()
             except Exception:
                 output.build.locales = locales.split(",")
 
@@ -162,14 +163,14 @@ class BuildbotTranslator(object):
         try:
             if blobber_files:
                 try:
-                    files = convert.json2value(blobber_files)
+                    files = json2value(blobber_files)
                 except Exception:
                     files = blobber_files
                 output.run.files = [
                     {"name": name, "url": url}
                     for name, url in files.items()
                 ]
-        except Exception, e:
+        except Exception as e:
             Log.error("Malformed `blobber_files` buildbot property: {{json}}", json=blobber_files, cause=e)
 
         # PRODUCT
@@ -183,6 +184,8 @@ class BuildbotTranslator(object):
             if "Code Coverage " in buildername:
                 if raw_platform.endswith("-cc"):
                     raw_platform = raw_platform[:-3]
+                elif raw_platform.endswith("-ccov"):
+                    raw_platform = raw_platform[:-5]
                 else:
                     Log.error("Not recognized: {{key}}\n{{data|json}}", key=buildername, data=data)
                 buildername = buildername.replace("Code Coverage ", "")
@@ -201,6 +204,8 @@ class BuildbotTranslator(object):
 
         if 'release' in buildername:
             output.tags += ['release']
+        if 'devedition' in buildername.lower():
+            output.tags += ['devedition']
         if buildername.endswith("nightly"):
             output.tags += ["nightly"]
 
@@ -243,7 +248,7 @@ class BuildbotTranslator(object):
                 "jetpack-(.*)-{{platform}}-{{type}}",
                 {
                     "platform": raw_platform,
-                    "type": unwraplist(output.build.type)
+                    "type": unwraplist(list(set(listwrap(output.build.type))))
                 }
             ), buildername)
 
@@ -261,7 +266,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR INGNORED, ALREADY SENT
             set_default(output, KNOWN_PLATFORM[raw_platform])
         elif buildername.endswith("nightly"):
             output.build.trigger = "nightly"
@@ -297,10 +302,10 @@ class BuildbotTranslator(object):
                         self.unknown_platforms += [raw_platform]
                         Log.error("Test platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                     else:
-                        return Dict()  # ERROR INGNORED, ALREADY SENT
+                        return Data()  # ERROR INGNORED, ALREADY SENT
                 set_default(output, TEST_PLATFORMS[raw_platform])
                 output.action.type = "build"
-            except Exception, e:
+            except Exception as e:
                 raise Log.error("Not recognized: {{key}}\n{{data|json}}", key=buildername, data=data, cause=e)
 
             for t in BUILD_TYPES:
@@ -333,7 +338,7 @@ class BuildbotTranslator(object):
                     self.unknown_platforms += [raw_platform]
                     Log.error("Test Platform not recognized: {{platform}}\n{{data}}", platform=raw_platform, data=data)
                 else:
-                    return Dict()  # ERROR INGNORED, ALREADY SENT
+                    return Data()  # ERROR IGNORED, ALREADY SENT
 
             set_default(output, TEST_PLATFORMS[raw_platform])
 
@@ -356,11 +361,11 @@ def consume(props, key):
 
 
 def verify(output, data):
-    output.run.type = unwraplist(list(set(listwrap(output.run.type))))
-    output.build.type = unwraplist(list(set(listwrap(output.build.type))))
-    output.build.tags = unwraplist(list(set(output.build.tags)))
+    output.run.type = list(set(listwrap(output.run.type)))
+    output.build.type = list(set(listwrap(output.build.type)))
+    output.build.tags = list(set(output.build.tags))
 
-    if "e10s" in data.properties.buildername.lower() and output.run.type != 'e10s':
+    if "e10s" in data.properties.buildername.lower() and 'e10s' not in output.run.type:
         Log.error("Did not pickup e10s in\n{{data|json}}", data=data)
     if output.run.machine.os != None and output.run.machine.os not in ALLOWED_OS:
         ALLOWED_OS.append(output.run.machine.os)
@@ -387,6 +392,10 @@ def parse_test(test, output):
         test = test.replace("-e10s", "")
         output.run.type += ["e10s"]
 
+    if "-stylo" in test:
+        test = test.replace("-stylo", "")
+        output.run.type += ["stylo"]
+
     for m, d in test_modes.items():
         if test.startswith(m):
             set_default(output, d)
@@ -401,7 +410,7 @@ def unquote(value):
         return ast.literal_eval(value)
 
     with suppress_exception:
-        return convert.json2value(value)
+        return json2value(value)
 
     return value
 
@@ -410,7 +419,7 @@ def normalize_other(other):
     """
     the buildbot properties are unlimited in their number of keys
     """
-    known = Dict()
+    known = Data()
     unknown = []
     for k, v in other.items():
         v = elasticsearch.scrub(v)
@@ -424,16 +433,16 @@ def normalize_other(other):
         if k not in unknown_properties:
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
-        if isinstance(v, (list, dict, Dict)):
-            unknown.append({"name": unicode(k), "value": convert.value2json(v)})
+        if isinstance(v, (list, dict, Data)):
+            unknown.append({"name": text_type(k), "value": value2json(v)})
         elif Math.is_number(v):
-            unknown.append({"name": unicode(k), "value": convert.value2number(v)})
+            unknown.append({"name": text_type(k), "value": convert.value2number(v)})
         elif v in [True, "true", "True"]:
-            unknown.append({"name": unicode(k), "value": True})
+            unknown.append({"name": text_type(k), "value": True})
         elif v in [False, "false", "False"]:
-            unknown.append({"name": unicode(k), "value": False})
-        elif isinstance(v, unicode):
-            unknown.append({"name": unicode(k), "value": v})
+            unknown.append({"name": text_type(k), "value": False})
+        elif isinstance(v, text_type):
+            unknown.append({"name": text_type(k), "value": v})
         else:
             Log.error("Do not know how to handle type {{type}}", type=v.__class__.__name__)
 
@@ -464,7 +473,7 @@ known_properties = {
     "uploadFiles"
 }
 
-unknown_properties=Dict()
+unknown_properties=Data()
 
 
 test_modes = {
@@ -477,7 +486,6 @@ test_modes = {
 }
 
 BUILDER_NAMES = [
-
     '{{branch}}-{{product}}_{{platform}}_build',
     '{{branch}}-{{product}}_antivirus',
     '{{branch}}-{{product}}_almost_ready_for_release',
@@ -533,9 +541,12 @@ BUILDER_NAMES = [
     'linux64-br-haz_{{branch}}_dep',
     'release-{{branch}}_{{product}}_{{platform}}_update_verify',
     'release-{{branch}}_{{product}}_bncr_sub',
+    'release-{{branch}}-{{product}}_bncr_sub',
     'release-{{branch}}-{{product}}_bouncer_aliases',
     'release-{{branch}}-{{product}}_chcksms',
     'release-{{branch}}-{{product}}_publish_balrog',
+    'release-{{branch}}-{{product}}_mark_as_shipped',
+    'release-{{branch}}-{{product}}_schedule_publishing_in_balrog',
     'release-{{branch}}-{{product}}_updates',
     'release-{{branch}}-{{product}}_version_bump',
     'release-{{branch}}-{{product}}_uptake_monitoring',
@@ -553,7 +564,8 @@ BUILD_TYPES = [
     "l10n",   # INTERNATIONALIZATION
     "leak test",
     "static analysis",
-    "ubsan",   #
+    "ccov",   # C/C++ CODE COVERAGE
+    "ubsan",  #
     "jsdcov"  # JAVASCRIPT CODE COVERAGE
 
 ]
@@ -594,22 +606,34 @@ TEST_PLATFORMS = {
     "Rev5 MacOSX Yosemite 10.10": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Rev5 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
     "Rev7 MacOSX Yosemite 10.10.5": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "Rev7 MacOSX Yosemite 10.10.5 DevEdition": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64", "type": ["devedition"]}},
     "Ubuntu ASAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu ASAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "Ubuntu TSAN VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu TSAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
+    "Ubuntu HW 12.04 x64 qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
+    "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}, "type":["stylo"]}, "build": {"platform": "linux64"}},
+    "Ubuntu HW 12.04 x64 stylo-sequential": {"run": {"machine": {"os": "ubuntu"}, "type":["stylo"]}, "build": {"platform": "linux64", "type": ["sequential"]}},
+    "Ubuntu HW 12.04 x64 devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
     "Ubuntu VM 12.04": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "Ubuntu VM 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "Ubuntu VM 12.04 x64 Mulet": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["mulet"]}},
     "Windows XP 32-bit": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "Windows 7 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 32-bit DevEdition": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32", "type": ["devedition"]}},
+    "Windows 7 32-bit stylo-disabled": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32", "type": ["stylo-disabled"]}},
     "Windows 7 VM 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
-    "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32"}},
+    "Windows 7 VM 32-bit DevEdition": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win32", "type": ["devedition"]}},
+    "Windows 7 VM-GFX 32-bit": {"run": {"machine": {"os": "win7"}, "type": ["gfx"]}, "build": {"platform": "win32"}},
+    "Windows 7 VM-GFX 32-bit DevEdition": {"run": {"machine": {"os": "win7"}, "type": ["gfx"]}, "build": {"platform": "win32", "type": ["devedition"]}},
     "Windows 8 64-bit": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
+    "Windows 8 64-bit DevEdition": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64", "type": ["devedition"]}},
     "Windows 10 64-bit": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
+    "Windows 10 64-bit DevEdition": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64", "type": ["devedition"]}},
+    "Windows 10 64-bit stylo-disabled": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64", "type": ["stylo-disabled"]}},
     "WINNT 5.2": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64"}},
     "WINNT 5.2 add-on-devel": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win64", "type": ["add-on"]}},
     "WINNT 6.1 x86-64": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
@@ -723,6 +747,7 @@ KNOWN_PLATFORM = {
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx64-add-on-devel": {"build": {"platform": "macosx64", "type": ["add-on"]}},
     "macosx64-debug": {"build": {"platform": "macosx64", "type": ["debug"]}},
+    "macosx64-devedition":  {"build": {"platform": "macosx64", "type":["devedition"]}},
     "macosx64_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "macosx64_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "macosx64_gecko_localizer": {},
@@ -741,35 +766,46 @@ KNOWN_PLATFORM = {
     "source": {},
     "snowleopard": {"run": {"machine": {"os": "snowleopard 10.6"}}, "build": {"platform": "macosx64"}},
     "ubuntu32_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
-    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
-    "ubuntu64_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
+    "ubuntu64_hw_devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
+    "ubuntu64_hw_qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
+    "ubuntu64_hw_stylo": {"run": {"machine": {"os": "ubuntu"}, "type": ["stylo"]}, "build": {"platform": "linux64"}},
+    "ubuntu64_hw_styloseq": {"run": {"machine": {"os": "ubuntu"}, "type": ["stylo"]}, "build": {"platform": "linux64", "type": ["sequential"]}},
+    "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},
     "ubuntu64_vm_lnx_large": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64"}},
     "wasabi": {"run": {"machine": {"os": "b2g"}}, "build": {"platform": "wasabi"}},
     "win32": {"build": {"platform": "win32"}},
     "win32-add-on-devel": {"build": {"platform": "win32", "type": ["add-on"]}},
     "win32-debug": {"build": {"platform": "win32", "type": ["debug"]}},
+    "win32-devedition": {"build": {"platform": "win32", "type": ["debug", "devedition"]}},
     "win32-mulet": {"build": {"platform": "win32", "type": ["mulet"]}},
     "win32_gecko": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g"}},
     "win32_gecko-debug": {"run": {"machine": {"os": "b2g", "type": "emulator"}}, "build": {"platform": "b2g", "type": ["debug"]}},
     "win32_gecko_localizer": {},
     "win32-st-an-debug": {"build": {"platform": "win32", "type": ["debug", "static analysis"]}},
+    "win32-stylo-disabled": {"build": {"platform": "win32", "type": ["stylo-disabled"]}},
     "win64": {"build": {"platform": "win64"}},
     "win64-add-on-devel": {"build": {"platform": "win64", "type": ["add-on"]}},
     "win64-debug": {"build": {"platform": "win64", "type": ["debug"]}},
-    "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64"}},
+    "win64-devedition":  {"build": {"platform": "win64", "type":["devedition"]}},
+    "win64_graphene": {"run": {"machine": {"vm": "graphene"}}, "build": {"platform": "win64", "type":["devedition"]}},
     "win64_horizon": {"run": {"machine": {"vm": "horizon"}}, "build": {"platform": "win64"}},
     "win64-rev2": {"build": {"platform": "win64"}},
+    "win64-stylo-disabled": {"build": {"platform": "win64", "type": ["stylo-disabled"]}},
     "win7-ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win7_ix": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
+    "win7_ix_devedition": {"run": {"machine": {"os": "win7"}}, "build": {"platform": "win64"}},
     "win8": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
     "win8_64": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64"}},
+    "win8_64_devedition": {"run": {"machine": {"os": "win8"}}, "build": {"platform": "win64", "type": ["devedition"]}},
     "win10_64": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64"}},
+    "win10_64_devedition": {"run": {"machine": {"os": "win10"}}, "build": {"platform": "win64", "type": ["devedition"]}},
     "xp-ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "xp_ix": {"run": {"machine": {"os": "winxp"}}, "build": {"platform": "win32"}},
     "yosemite": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
-    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}}
+    "yosemite_r7": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64"}},
+    "yosemite_r7_devedition": {"run": {"machine": {"os": "yosemite 10.10"}}, "build": {"platform": "macosx64", "type":["devedition"]}}
 }
 
 
@@ -791,6 +827,7 @@ ALLOWED_PLATFORMS = [
 ALLOWED_PRODUCTS = [
     None,
     "b2g",
+    "devedition",
     "fennec",
     "firefox",
     "fuzzing",

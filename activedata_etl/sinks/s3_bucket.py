@@ -7,25 +7,27 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
+
+from mo_future import text_type
 from math import log10
 
-from pyLibrary import convert
-from pyLibrary.aws import s3
-from pyLibrary.aws.s3 import key_prefix
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import wrap, Dict, literal_field
-from pyLibrary.maths import Math
-from pyLibrary.meta import use_settings
-from pyLibrary.queries.unique_index import UniqueIndex
-from pyLibrary.testing import fuzzytestcase
-from pyLibrary.times.timer import Timer
+from mo_kwargs import override
+
 from activedata_etl import etl2key, key2etl
 from activedata_etl.reset import Version
+from mo_collections import UniqueIndex
+from mo_dots import wrap
+from mo_logs import Log
+from mo_math import Math
+from mo_times.timer import Timer
+from mo_json import json2value, value2json
+from pyLibrary.aws import s3
+from pyLibrary.aws.s3 import key_prefix
 
 
 class S3Bucket(object):
 
-    @use_settings
+    @override
     def __init__(
         self,
         bucket,  # NAME OF THE BUCKET
@@ -34,10 +36,10 @@ class S3Bucket(object):
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
-        settings=None
+        kwargs=None
     ):
-        self.bucket = s3.Bucket(settings)
-        self.settings = settings
+        self.bucket = s3.Bucket(kwargs)
+        self.settings = kwargs
 
     def __getattr__(self, item):
         return getattr(self.bucket, item)
@@ -48,11 +50,11 @@ class S3Bucket(object):
 
     def find_keys(self, start, count, filter=None):
         digits = int(Math.ceiling(log10(count - 1)))
-        prefix = unicode(start)[:-digits]
+        prefix = text_type(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
-        min_ = Version(unicode(start))
-        max_ = Version(unicode(start+count))
+        min_ = Version(text_type(start))
+        max_ = Version(text_type(start+count))
         output = [m.key for m in metas if min_ <= Version(m.key) < max_]
 
         return set(output)
@@ -68,7 +70,7 @@ class S3Bucket(object):
                 try:
                     v = key_prefix(k.name)
                     maxi = max(maxi, v)
-                except Exception, e:
+                except Exception as e:
                     self.bucket.bucket.delete_key(k.name)
             return maxi
 
@@ -85,9 +87,12 @@ class S3Bucket(object):
 
         return set(parts.keys())
 
+    def write_lines(self, key, lines):
+        self.bucket.write_lines(key, lines)
+
     def _extend(self, key, documents, overwrite=False):
         if overwrite:
-            self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
+            self.bucket.write_lines(key, (value2json(d) for d in documents))
             return
 
         meta = self.bucket.get_meta(key)
@@ -95,8 +100,8 @@ class S3Bucket(object):
             documents = UniqueIndex(keys="etl.id", data=documents)
             try:
                 content = self.bucket.read_lines(key)
-                old_docs = UniqueIndex(keys="etl.id", data=map(convert.json2value, content))
-            except Exception, e:
+                old_docs = UniqueIndex(keys="etl.id", data=map(json2value, content))
+            except Exception as e:
                 Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)
                 old_docs = UniqueIndex(keys="etl.id")
@@ -111,8 +116,8 @@ class S3Bucket(object):
             if residual:
                 documents = documents | residual
 
-        self.bucket.write_lines(key, (convert.value2json(d) for d in documents))
+        self.bucket.write_lines(key, (value2json(d) for d in documents))
 
-    def add(self, dco):
+    def add(self, doc):
         Log.error("Not supported")
 

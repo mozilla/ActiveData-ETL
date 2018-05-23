@@ -1,38 +1,140 @@
 
 {
 	"work_queue": {
-		"name": "active-data-index-dev",
+		"name": "active-data-index-es5",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"workers":[
 		{
-			"name": "unit",
-			"batch_size": 5000,
+			"name": "firefox-files",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover": {
+				"field": "etl.source.source.timestamp",
+				"interval": "year",
+				"max": "year"
+			},
+			"sample_only": [],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "firefox-files",
+				"id": "_id",
+				"tjson": true,
+				"type": "files",
+				"timeout": 300,
+				"consistency": "one",
+				"schema": {
+					"$ref": "//../../schema/files.json"
+				},
+				"limit_replicas": true,
+				"debug": true
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-firefox-files",
+				"key_format": "t.a:b.c.d"
+			},
+			"backfill": {
+				"prime_key": "etl.source.source.source.id",
+				"source_key": "etl.source.source.source.source.source.code"
+			}
+		},
+		{
+			"name": "fx_test",
+			"batch_size": 1000,
 			"skip": 0,
 			"rollover":{
-				"field": "build.date",
-				"interval": "week",
-				"max": "5week"
+				"field": "result.start_time",
+				"interval": "3month",
+				"max": "2year"
 			},
 			"sample_only": [
 			],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
+				"index": "fx-test",
+				"id": "_id",
+				"tjson": true,
+				"type": "test_result",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/fx_test.json"
+				},
+				"limit_replicas": true,
+				"debug": true
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-fx-test-normalized-dev",
+				"key_format": "a.b"
+			}
+		},
+		{
+			"name": "treeherder",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": "action.start_time",
+				"interval": "3month",
+				"max": "2year"
+			},
+			"sample_only": [
+			],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "treeherder",
+				"id": "job.id",
+				"tjson": true,
+				"type": "th_job",
+				"timeout": 300,
+				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"schema": {
+					"$ref": "//../../schema/treeherder.json"
+				},
+				"limit_replicas": true,
+				"debug": false
+			},
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-treeherder-normalized-dev",
+				"key_format": "a.b"
+			}
+		},
+		{
+			"name": "unittest",
+			"batch_size": 1000,
+			"skip": 0,
+			"rollover":{
+				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
+				"interval": "week",
+				"max": "5week"
+			},
+			"sample_only": [
+				"try"
+			],
+			"elasticsearch": {
+				"host": "http://localhost",
+				"port": 9200,
 				"index": "unittest",
+				"id": "_id",
+				"tjson": true,
 				"type": "test_result",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": false,
-				"limit_replicas": false
+				"limit_replicas": true,
+				"debug": true
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-test-result-dev",
+				"bucket": "active-data-test-result",
 				"key_format": "t.a:b.c"
 			}
 		},
@@ -50,14 +152,16 @@
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "perf",
+				"id": "_id",
+				"tjson": true,
 				"type": "perf_result",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
-				"debug": false,
-				"limit_replicas": false
+				"limit_replicas": true,
+				"debug": false
 			},
 			"source": {
 				"bucket": "active-data-perf-dev",
@@ -78,14 +182,16 @@
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "jobs",
+				"id": "_id",
+				"tjson": true,
 				"type": "job",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/jobs.json"
 				},
-				"debug": false,
-				"limit_replicas": false
+				"limit_replicas": true,
+				"debug": false
 			},
 			"source": {
 				"bucket": "active-data-jobs-dev",
@@ -95,31 +201,34 @@
 		},
 		{
 			"name":"code coverage",
-			"queue_size": 2000,
-			"batch_size": 1000,
+			"skip": 0.0,
+			"queue_size": 200,
+			"batch_size": 100,
 			"rollover": {
-				"field": "build.created_timestamp",
-				"interval": "day",
-				"max": "10day"
+				"field": "repo.push.date",
+				"interval": "week",
+				"max": "2week"
 			},
 			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "coverage",
+				"id": "_id",
+				"tjson": true,
 				"type": "code_coverage",
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
-				"limit_replicas": false
+				"limit_replicas": true,
+				"debug": false
 			},
 			"source": {
-				"bucket": "active-data-codecoverage-dev",
+				"bucket": "active-data-codecoverage",
 				"$ref": "file://~/private.json#aws_credentials",
-				"key_format": "t.a:b.c"
+				"key_format": "t.a:b.c.d"
 			}
 		},
 		{
@@ -136,14 +245,16 @@
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "task",
+				"id": "_id",
+				"tjson": true,
 				"type": "task",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/task_cluster.json"
 				},
-				"debug": false,
-				"limit_replicas": false
+				"limit_replicas": true,
+				"debug": false
 			},
 			"source": {
 				"bucket": "active-data-task-cluster-normalized-dev",

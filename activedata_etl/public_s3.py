@@ -8,10 +8,11 @@
 #
 from __future__ import unicode_literals
 
+from mo_future import text_type
 from boto.s3 import connect_to_region
 
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
+from mo_logs import startup, constants
+from mo_logs import Log
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
                         readable = True
             if not readable:
                 key.make_public()
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

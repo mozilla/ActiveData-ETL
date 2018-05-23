@@ -7,8 +7,9 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
-from pyLibrary import convert
-from pyLibrary.debugs.logs import Log
+
+from mo_future import text_type
+from mo_json import json2value, value2json
 
 
 class DummySink(object):
@@ -17,7 +18,7 @@ class DummySink(object):
         pass
 
     def add(self, value):
-        json = convert.value2json(value)
+        json = value2json(value)
         # Log.note("{{json}}",  json= json)
 
     def extend(self, values):

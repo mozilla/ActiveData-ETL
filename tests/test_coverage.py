@@ -12,11 +12,11 @@ from __future__ import unicode_literals
 
 import requests
 
-from activedata_etl.transforms.jscov_to_es import process_source_file
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Null, Dict
-from pyLibrary.jsons import stream
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_files import File
+from mo_json import stream, json2value
+from mo_logs import Log
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_times import Date
 
 
 class TestCoverage(FuzzyTestCase):
@@ -30,6 +30,18 @@ class TestCoverage(FuzzyTestCase):
         for source_file_index, obj in enumerate(stream.parse(_stream, [], ["."])):
             if source_file_index==0:
                 continue  # VERSION LINE
-            process_source_file(Dict(), obj, Null, Null, Null, Null, records)
+            # records = list(process_jsdcov_artifact(Data(), obj, Null, Null, Null, Null)
         Log.note("{{records|json}}", records=records)
 
+    def test_read_coverage(self):
+        Date.now()
+        count = 0
+        total = 0
+        filename = "C:/Users/kyle/code/Activedata-ETL/results/tc.696110_69610163.19.0.json"
+        for line in File(filename).read_lines():
+            d = json2value(line)
+            total += 1
+            if d.source.file.total_covered > 0:
+                Log.note("\n{{_id}}, {{run.type}}, {{source.file.total_covered}}, {{source.file.name}}, {{test}}", default_params=d)
+                count += 1
+        Log.note("{{num}} records with lines covered out of {{total}}", num=count, total=total)

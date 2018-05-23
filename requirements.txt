@@ -1,8 +1,10 @@
-BeautifulSoup
+ujson
+BeautifulSoup4
 boto
 requests
+future
 fabric
-taskcluster
 # ecdsa required by fabric (but not installed by pip)
 ecdsa
-
+psutil
+pympler

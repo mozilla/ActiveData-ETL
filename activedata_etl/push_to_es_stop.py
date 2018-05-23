@@ -14,12 +14,13 @@ from fabric.api import settings as fabric_settings
 from fabric.operations import sudo
 from fabric.state import env
 
+from mo_dots import unwrap, wrap
+from mo_dots.objects import datawrap
+from mo_logs import Log
+from mo_logs import startup, constants, strings
 from pyLibrary.aws import aws_retry
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap, wrap
-from pyLibrary.dot.objects import dictwrap
 
+restart_es_count = 0
 
 @aws_retry
 def _get_managed_instances(ec2_conn, name):
@@ -29,7 +30,7 @@ def _get_managed_instances(ec2_conn, name):
     for res in reservations:
         for instance in res.instances:
             if instance.tags.get('Name', '').startswith(name) and instance._state.name == "running":
-                output.append(dictwrap(instance))
+                output.append(datawrap(instance))
     return wrap(output)
 
 
@@ -46,11 +47,30 @@ def _config_fabric(connect, instance):
 def _stop_indexer():
     with fabric_settings(warn_only=True):
         sudo("supervisorctl stop push_to_es")
+        # sudo("supervisorctl stop es")
 
 
 def _start_indexer():
     with fabric_settings(warn_only=True):
+        # sudo("supervisorctl start es")
         sudo("supervisorctl start push_to_es")
+
+def _restart_es():
+    global restart_es_count
+    if not restart_es_count:
+        return
+
+    result = sudo("supervisorctl status")
+    for r in result.split("\n"):
+        try:
+            if r.startswith("es"):
+                days = int(strings.between(r, "uptime", "days").strip())
+                if days > 7:
+                    Log.alert("RESTART ES")
+                    sudo("supervisorctl restart es")
+                    restart_es_count -= 1
+        except Exception:
+            pass
 
 
 def main():
@@ -69,10 +89,14 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-            _config_fabric(settings.fabric, i)
-            Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", insance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-            _stop_indexer()
-    except Exception, e:
+            try:
+                _config_fabric(settings.fabric, i)
+                Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                _stop_indexer()
+                _restart_es()
+            except Exception as e:
+                Log.warning("Problem with stopping", e)
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

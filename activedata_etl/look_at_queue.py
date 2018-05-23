@@ -9,12 +9,12 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from mo_logs import Log
+from mo_logs import startup
 from pyLibrary import aws
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
 
 
 def list_queue(settings, num):
@@ -23,6 +23,24 @@ def list_queue(settings, num):
         content = queue.pop()
         Log.note("\n{{content|json}}", content=content)
     queue.rollback()
+
+
+def scrub_queue(settings):
+    queue = aws.Queue(settings)
+
+    existing = set()
+
+    for i in range(120000):
+        content = queue.pop()
+        try:
+            if (content.key, content.bucket) not in existing:
+                existing.add((content.key, content.bucket))
+                queue.add(content)
+                Log.note("KEEP {{content|json}}", content=content)
+            else:
+                Log.note("remove {{content|json}}", content=content)
+        finally:
+            queue.commit()
 
 
 def main():
@@ -36,8 +54,9 @@ def main():
             "required": False
         })
         Log.start(settings.debug)
+        # scrub_queue(settings.source)
         list_queue(settings.source, settings.args.num)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

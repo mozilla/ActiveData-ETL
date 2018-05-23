@@ -6,18 +6,18 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
-from pyLibrary import aws, strings
-from pyLibrary.aws.s3 import Connection, key_prefix
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
-from pyLibrary.env.files import File
-from pyLibrary.queries import jx
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
+from mo_future import text_type
 from activedata_etl import key2etl, etl2path
+from mo_files import File
+from mo_logs import Log, startup, strings
+from mo_times.dates import Date
+from mo_times.timer import Timer
+from pyLibrary import aws
+from pyLibrary.aws.s3 import Connection, key_prefix
+from jx_python import jx
 
 
 def main():
@@ -101,7 +101,7 @@ def main():
                     "date/time": now.format()
                 })
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
@@ -153,10 +153,10 @@ class Version(object):
         return b".".join(str(p) for p in self.path)
 
     def __unicode__(self):
-        return ".".join(unicode(p) for p in self.path)
+        return ".".join(text_type(p) for p in self.path)
 
-    def __json__(self):
-        return "\".".join(unicode(p) for p in self.path)+"\""
+    def __data__(self):
+        return "\".".join(text_type(p) for p in self.path) + "\""
 
 
 def comparePath(a, b):

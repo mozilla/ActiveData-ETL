@@ -9,12 +9,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.aws import s3
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import unwrap
-from pyLibrary.queries import jx
+from mo_future import text_type
 from activedata_etl import key2etl, etl2path
+from mo_dots import unwrap
+from pyLibrary.aws import s3
+from mo_logs import startup
+from mo_logs import Log
+from jx_python import jx
 
 
 def main():
@@ -53,7 +54,7 @@ def main():
             Log.note("delete {{num}} keys", num=len(kk))
             bucket.delete_keys(kk)
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with compaction", e)
     finally:
         Log.stop()

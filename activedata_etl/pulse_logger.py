@@ -9,19 +9,20 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_future import text_type
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
+from mo_dots import set_default, coalesce, listwrap
 from pyLibrary import aws
-from pyLibrary import convert
+from mo_json import json2value, value2json
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
-from pyLibrary.debugs import startup, constants
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import set_default, coalesce, listwrap
+from mo_logs import startup, constants
+from mo_logs.exceptions import Except
+from mo_logs import Log
 from pyLibrary.env import pulse
-from pyLibrary.queries import jx
-from pyLibrary.thread.threads import Thread
-from pyLibrary.times.dates import Date
+from jx_python import jx
+from mo_threads import Thread, MAIN_THREAD
+from mo_times.dates import Date
 
 
 # ONLY DEPLOY OFF THE pulse-logger BRANCH
@@ -43,9 +44,9 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             )
 
             if settings.destination.key_prefix:
-                full_key = settings.destination.key_prefix + "." + unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+                full_key = settings.destination.key_prefix + "." + text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
             else:
-                full_key = unicode(synch.next_key) + ":" + unicode(MIN(g.get("_meta.count")))
+                full_key = text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
             try:
                 output = [
                     set_default(
@@ -73,7 +74,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                     for i, d in enumerate(g)
                     if d != None  # HAPPENS WHEN PERSISTENT QUEUE FAILS TO LOG start
                 ]
-                bucket.write(full_key, "\n".join(convert.value2json(d) for d in output))
+                bucket.write(full_key, "\n".join(value2json(d) for d in output))
                 synch.advance()
                 synch.source_key = MAX(g.get("_meta.count")) + 1
 
@@ -94,14 +95,14 @@ def log_loop(settings, synch, queue, bucket, please_stop):
                     bucket=bucket.name,
                     key=full_key
                 )
-            except Exception, e:
+            except Exception as e:
                 queue.rollback()
                 if not queue.closed:
                     Log.warning("Problem writing {{key}} to S3", key=full_key, cause=e)
 
             if please_stop:
                 break
-    except Exception, e:
+    except Exception as e:
         Log.warning("Problem in the log loop", cause=e)
     finally:
         if work_queue != None:
@@ -134,20 +135,20 @@ def main():
                     synch.source_key = last_item._meta.count + 1
 
                 context = [
-                    pulse.Consumer(settings=s, target=None, target_queue=queue, start=synch.source_key)
+                    pulse.Consumer(kwargs=s, target=None, target_queue=queue, start=synch.source_key)
                     for s in settings.source
                 ]
 
                 with ExitStack(*context):
                     Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
-                    Thread.wait_for_shutdown_signal(allow_exit=True)
+                    MAIN_THREAD.wait_for_shutdown_signal(allow_exit=True)
                     Log.warning("starting shutdown")
 
                 queue.close()
                 Log.note("write shutdown state to S3")
                 synch.shutdown()
 
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
@@ -162,7 +163,7 @@ class ExitStack(object):
         for i, c in enumerate(self.context):
             try:
                 c.__enter__()
-            except Exception, e:
+            except Exception as e:
                 e = Except.wrap(e)
                 for ii in range(i):
                     try:

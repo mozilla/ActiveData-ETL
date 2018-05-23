@@ -8,16 +8,18 @@
 #
 from __future__ import unicode_literals
 
-from pyLibrary import convert, strings
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, wrap, coalesce, Null
-from pyLibrary.env import http, elasticsearch
-from pyLibrary.env.git import get_git_revision
-from pyLibrary.times.dates import Date
-from pyLibrary.times.timer import Timer
 from activedata_etl import etl2key
-from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from mo_future import text_type
+from mo_dots import Data, wrap, coalesce, Null
+from mo_json import json2value, utf82unicode
+from mo_logs import Log, strings
+
 from activedata_etl.transforms import EtlHeadGenerator
+from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from mo_times.dates import Date
+from mo_times.timer import Timer
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = False
 
@@ -26,12 +28,13 @@ DEBUG = False
 # 07:43:11     INFO -  2015-10-08 07:43:11,492 INFO : TALOSDATA:
 
 PERFHERDER_PREFIXES = [
-    b" INFO : PERFHERDER_DATA: ",
-    b" INFO -  PERFHERDER_DATA: ",
-    b" INFO - PERFHERDER_DATA: ",
-    b" INFO : TALOSDATA: ",
-    b" INFO -  TALOSDATA: ",  # NOT SEEN IN WILD
-    b" INFO - TALOSDATA: "  # NOT SEEN IN WILD
+    "] PERFHERDER_DATA: ",
+    " INFO : PERFHERDER_DATA: ",
+    " INFO -  PERFHERDER_DATA: ",
+    " INFO - PERFHERDER_DATA: ",
+    " INFO : TALOSDATA: ",
+    " INFO -  TALOSDATA: ",  # NOT SEEN IN WILD
+    " INFO - TALOSDATA: "  # NOT SEEN IN WILD
 ]
 
 
@@ -40,7 +43,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     CONVERT pulse_block INTO PERFHERDER, IF ANY
     """
     etl_head_gen = EtlHeadGenerator(source_key)
-    stats = Dict()
+    stats = Data()
     counter = 0
 
     output = set()
@@ -70,7 +73,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
         if "scl3.mozilla.com" in log_url:
             # DO NOT EVEN TRY
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
             dest_etl.error = "log_url not accessible"
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
@@ -87,13 +90,13 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 response = http.get(log_url)
                 if response.status_code == 404:
                     Log.alarm("PerfHerder log missing {{url}}", url=log_url)
-                    k = source_key + "." + unicode(counter)
+                    k = source_key + "." + text_type(counter)
                     try:
                         # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
                         dest_bucket.get_key(k)
                         output |= {k}  # FOR DENSITY CALCULATIONS
                     except Exception:
-                        _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                        _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
                         dest_etl.error = "PerfHerder log missing"
                         output |= dest_bucket.extend([{
                             "id": etl2key(dest_etl),
@@ -106,7 +109,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                     continue
                 seen, all_perf = extract_perfherder(response.get_all_lines(flexible=True), etl_file, etl_head_gen, please_stop, pulse_record)
-            except Exception, e:
+            except Exception as e:
                 Log.error("Problem processing {{url}}", url=log_url, cause=e)
             finally:
                 try:
@@ -123,7 +126,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             Log.note("Found {{num}} PerfHerder records while processing {{key}} {{i}}: {{url}}", key=source_key, i=i, num=len(all_perf), url=log_url)
             output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
         else:
-            _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+            _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
             output |= dest_bucket.extend([{
                 "id": etl2key(dest_etl),
                 "value": {
@@ -157,21 +160,21 @@ def extract_perfherder(all_log_lines, etl_file, etl_head_gen, please_stop, pulse
                 continue
 
             log_line = strings.strip(log_line[s + len(prefix):])
-            perf = convert.json2value(convert.utf82unicode(log_line))
+            perf = json2value(utf82unicode(log_line))
 
             if "TALOS" in prefix:
                 for t in perf:
-                    _, dest_etl = etl_head_gen.next(etl_file, "talos")
+                    _, dest_etl = etl_head_gen.next(etl_file, name="talos")
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload
                 all_perf.extend(perf)
             else:  # PERFHERDER
                 for t in perf.suites:
-                    _, dest_etl = etl_head_gen.next(etl_file, "PerfHerder")
+                    _, dest_etl = etl_head_gen.next(etl_file, name="PerfHerder")
                     t.framework = perf.framework
                     t.etl = dest_etl
                     t.pulse = pulse_record.payload
                 all_perf.extend(perf.suites)
-    except Exception, e:
+    except Exception as e:
         Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
     return perfherder_exists, all_perf

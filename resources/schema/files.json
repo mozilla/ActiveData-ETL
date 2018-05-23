@@ -1,0 +1,14 @@
+{
+	"settings": {
+		"index.number_of_replicas": 1,
+		"index.number_of_shards": 20
+	},
+	"mappings": {
+		"files": {
+			"_all": {
+				"enabled": false
+			}
+		}
+	}
+
+}

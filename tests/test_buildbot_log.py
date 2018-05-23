@@ -11,19 +11,21 @@ from __future__ import unicode_literals
 
 import itertools
 
+import mo_json_config
 from activedata_etl.buildbot_json_logs import parse_day
 from activedata_etl.imports import buildbot
 from activedata_etl.imports.buildbot import BuildbotTranslator
 from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
-from pyLibrary import convert, jsons
-from pyLibrary.debugs.exceptions import Except
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import listwrap
+from jx_base.expressions import NullOp
+from mo_dots import listwrap
+from mo_files import File
+from mo_json import json2value, value2json
+from mo_logs import Log
+from mo_logs.exceptions import Except
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from mo_times.dates import Date
+from mo_times.durations import DAY
 from pyLibrary.env import http
-from pyLibrary.env.files import File
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
-from pyLibrary.times.dates import Date
-from pyLibrary.times.durations import DAY
 
 false = False
 true = True
@@ -45,46 +47,48 @@ class TestBuildbotLogs(FuzzyTestCase):
 
 
     def test_past_problems(self):
-        COMPARE_TO_EXPECTED = True
+        COMPARE_TO_EXPECTED = False
 
         translator = BuildbotTranslator()
 
-        builds = convert.json2value(File("tests/resources/buildbot.json").read(), flexible=True)
+        builds = json2value(File("tests/resources/buildbot.json").read(), flexible=True)
         if COMPARE_TO_EXPECTED:
-            expected = convert.json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
+            expected = json2value(File("tests/resources/buildbot_results.json").read(), flexible=True)
         else:
             expected = []
 
         results = []
         failures = []
-        for i, (b, e) in enumerate(itertools.izip_longest(builds, expected)):
-            if e != None:
-                e.other = set(listwrap(e.other))
-                e.properties.uploadFiles = set(listwrap(e.properties.uploadFiles))
+        for i, (b, expected) in enumerate(itertools.izip_longest(builds, expected)):
+            if expected != None:
+                expected.other = set(listwrap(expected.other))
+                uf = expected.properties.uploadFiles = set(listwrap(expected.properties.uploadFiles))
+                if not uf:
+                    expected.properties.uploadFiles = NullOp()
             try:
                 result = translator.parse(b)
                 results.append(result)
                 if COMPARE_TO_EXPECTED:
-                    if e == None:
+                    if expected == None:
                         Log.error("missing expected output")
-                    self.assertEqual(result, e)
-            except Exception, e:
-                e = Except.wrap(e)
-                failures.append(e)
-                Log.warning("problem", cause=e)
+                    self.assertEqual(result, expected)
+            except Exception as expected:
+                expected = Except.wrap(expected)
+                failures.append(expected)
+                Log.warning("problem", cause=expected)
 
         if failures:
             Log.error("parsing problems", cause=failures)
 
         if not COMPARE_TO_EXPECTED:
-            File("tests/resources/buildbot_results.json").write(convert.value2json(results, pretty=True))
+            File("tests/resources/buildbot_results.json").write(value2json(results, pretty=True))
 
     def test_by_key_day(self):
         day = 634
         date = Date("2015/01/01") + day * DAY
         filename = date.format("builds-%Y-%m-%d.js.gz")
 
-        settings = jsons.ref.expand({
+        settings = mo_json_config.expand({
             "force": true,
             "source": {
                 "url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
@@ -114,7 +118,7 @@ class TestBuildbotLogs(FuzzyTestCase):
     def test_all_in_one_day(self):
         filename = "builds-2015-12-20.js.gz"
 
-        settings = jsons.ref.expand({
+        settings = mo_json_config.expand({
             "force": false,
             "source": {
                 "url": "http://builddata.pub.build.mozilla.org/builddata/buildjson/"

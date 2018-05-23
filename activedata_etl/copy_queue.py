@@ -9,13 +9,14 @@
 #
 
 
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from mo_future import text_type
 from pyLibrary import aws
-from pyLibrary.debugs import startup
-from pyLibrary.debugs.logs import Log
-from pyLibrary.times.durations import SECOND
+from mo_logs import startup
+from mo_logs import Log
+from mo_times.durations import SECOND
 
 
 def copy_queue(settings):
@@ -35,7 +36,7 @@ def main():
         settings = startup.read_settings()
         Log.start(settings.debug)
         copy_queue(settings)
-    except Exception, e:
+    except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()

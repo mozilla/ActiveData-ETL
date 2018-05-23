@@ -14,7 +14,7 @@ import requests
 
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from pyLibrary import convert
-from pyLibrary.testing.fuzzytestcase import FuzzyTestCase
+from mo_testing.fuzzytestcase import FuzzyTestCase
 
 
 class TestResourceUsage(FuzzyTestCase):

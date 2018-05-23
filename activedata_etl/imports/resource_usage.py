@@ -10,14 +10,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.debugs.logs import Log
-from pyLibrary.dot import Dict, join_field, wrap
+from mo_future import text_type
+from mo_dots import Data, join_field, wrap
+from mo_logs import Log
 from pyLibrary.env import http
 
 
 def normalize_resource_usage(url):
     """
-    :param url: POOINT TO RESOURCE USAGE FILE
+    :param url: POINT TO RESOURCE USAGE FILE
     :return: NORMALIZED RESOURCE USAGE
     """
 
@@ -27,9 +28,9 @@ def normalize_resource_usage(url):
     content = response.content
     if not content.strip():
         return None
-    usage = convert.json2value(convert.utf82unicode(content))
+    usage = json2value(convert.utf82unicode(content))
 
-    output = Dict()
+    output = Data()
     output.meta.version = usage.version
     output.timing.start = usage.start
     output.timing.end = usage.end
@@ -41,9 +42,9 @@ def normalize_resource_usage(url):
     fields["cpu_times_sum"], fields["cpu_times"] = fields["cpu_times"], []
     measures = [(f, c, [f, i]) for f, g in fields.items() for i, c in enumerate(g)]
     for core, _ in enumerate(usage.overall.cpu_percent_cores):
-        measures.append(("cpu_percent_cores", unicode(i), ["cpu_percent_cores", core]))
+        measures.append(("cpu_percent_cores", text_type(i), ["cpu_percent_cores", core]))
         for column_number, f in enumerate(fields["cpu_times_sum"]):
-            measures.append(("cpu_times", unicode(column_number), ["cpu_times", core, column_number]))
+            measures.append(("cpu_times", text_type(column_number), ["cpu_times", core, column_number]))
     measures.append(("cpu_percent_mean", ".", []))
     # ASSIGN EACH MEASURE A COLUMN NUMBER, AND PACK THE WHOLE THING INTO A tuple
     measures = tuple((column_number, f, c, k) for column_number, (f, c, k) in enumerate(measures))
