@@ -37,7 +37,7 @@ sudo cp -R elasticsearch-6.2.3/* /usr/local/elasticsearch/
 # BE SURE TO MATCH THE PULGIN WITH ES VERSION
 # https://github.com/elasticsearch/elasticsearch-cloud-aws
 cd /usr/local/elasticsearch/
-sudo yes | bin/elasticsearch-plugin install discovery-ec2
+sudo bin/elasticsearch-plugin install discovery-ec2
 
 
 # ES HEAD IS WONDERFUL!
@@ -130,6 +130,7 @@ sudo yum install -y libffi-devel
 sudo yum install -y openssl-devel
 sudo yum groupinstall -y "Development tools"
 
+sudo /usr/local/bin/pip install --upgrade setuptools
 sudo /usr/local/bin/pip install pyopenssl
 sudo /usr/local/bin/pip install ndg-httpsclient
 sudo /usr/local/bin/pip install pyasn1

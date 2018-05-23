@@ -117,7 +117,7 @@ sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 #INSTALL PYTHON27
 sudo yum -y install python27
-sudo /usr/local/bin/pip install --upgrade pip
+sudo pip install --upgrade pip
 #rm -fr /home/ec2-user/temp
 #mkdir  /home/ec2-user/temp
 #cd /home/ec2-user/temp
