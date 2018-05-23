@@ -19,12 +19,11 @@ from jx_base.dimensions import Dimension
 from jx_base.expressions import jx_expression
 from jx_base.queries import is_variable_name
 from jx_base.query import QueryOp
-from jx_base.schema import Schema
 from jx_elasticsearch.es52.aggs import es_aggsop, is_aggsop
 from jx_elasticsearch.es52.deep import is_deepop, es_deepop
 from jx_elasticsearch.es52.setop import is_setop, es_setop
 from jx_elasticsearch.es52.util import aggregates
-from jx_elasticsearch.meta import FromESMetadata
+from jx_elasticsearch.meta import ElasticsearchMetadata, Table
 from jx_python import jx
 from mo_dots import Data, Null, unwrap, coalesce, split_field, literal_field, unwraplist, join_field, wrap, listwrap, FlatList
 from mo_json import scrub, value2json
@@ -41,7 +40,7 @@ class ES52(Container):
 
     def __new__(cls, *args, **kwargs):
         if (len(args) == 1 and args[0].get("index") == "meta") or kwargs.get("index") == "meta":
-            output = FromESMetadata.__new__(FromESMetadata, *args, **kwargs)
+            output = ElasticsearchMetadata.__new__(ElasticsearchMetadata, *args, **kwargs)
             output.__init__(*args, **kwargs)
             return output
         else:
@@ -62,26 +61,25 @@ class ES52(Container):
         typed=None,
         kwargs=None
     ):
-        Container.__init__(self, None)
+        Container.__init__(self)
         if not container.config.default:
             container.config.default = {
                 "type": "elasticsearch",
                 "settings": unwrap(kwargs)
             }
         self.settings = kwargs
-        self.name = coalesce(name, alias, index)
+        self.name = name = coalesce(name, alias, index)
         if read_only:
-            self._es = elasticsearch.Alias(alias=coalesce(alias, index), kwargs=kwargs)
+            self.es = elasticsearch.Alias(alias=coalesce(alias, index), kwargs=kwargs)
         else:
-            self._es = elasticsearch.Cluster(kwargs=kwargs).get_index(read_only=read_only, kwargs=kwargs)
+            self.es = elasticsearch.Cluster(kwargs=kwargs).get_index(read_only=read_only, kwargs=kwargs)
 
-        self.meta = FromESMetadata(kwargs=kwargs)
-        self.settings.type = self._es.settings.type
+        self._namespace = ElasticsearchMetadata(kwargs=kwargs)
+        self.settings.type = self.es.settings.type
         self.edges = Data()
         self.worker = None
 
-        columns = self.meta.get_columns(table_name=coalesce(name, alias, index))
-        self._schema = Schema(coalesce(name, alias, index), columns)
+        columns = self._namespace.get_snowflake(self.es.settings.alias).columns  # ABSOLUTE COLUMNS
 
         if typed == None:
             # SWITCH ON TYPED MODE
@@ -90,8 +88,19 @@ class ES52(Container):
             self.typed = typed
 
     @property
-    def schema(self):
-        return self._schema
+    def snowflake(self):
+        return self._namespace.get_snowflake(self._es.settings.alias)
+
+    @property
+    def namespace(self):
+        return self._namespace
+
+
+    def get_table(self, full_name):
+        return Table(full_name, self)
+
+    def get_schema(self, query_path):
+        return self._namespace.get_schema(query_path)
 
     def __data__(self):
         settings = self.settings.copy()
@@ -118,14 +127,11 @@ class ES52(Container):
 
     @property
     def url(self):
-        return self._es.url
+        return self.es.url
 
     def query(self, _query):
         try:
-            query = QueryOp.wrap(_query, table=self, schema=self.schema)
-
-            for n in self.namespaces:
-                query = n.convert(query)
+            query = QueryOp.wrap(_query, container=self, namespace=self.namespace)
 
             for s in listwrap(query.select):
                 if s.aggregate != None and not aggregates.get(s.aggregate):
@@ -142,17 +148,17 @@ class ES52(Container):
                 q2.frum = result
                 return jx.run(q2)
 
-            if is_deepop(self._es, query):
-                return es_deepop(self._es, query)
-            if is_aggsop(self._es, query):
-                return es_aggsop(self._es, frum, query)
-            if is_setop(self._es, query):
-                return es_setop(self._es, query)
+            if is_deepop(self.es, query):
+                return es_deepop(self.es, query)
+            if is_aggsop(self.es, query):
+                return es_aggsop(self.es, frum, query)
+            if is_setop(self.es, query):
+                return es_setop(self.es, query)
             Log.error("Can not handle")
         except Exception as e:
             e = Except.wrap(e)
             if "Data too large, data for" in e:
-                http.post(self._es.cluster.path+"/_cache/clear")
+                http.post(self.es.cluster.path+"/_cache/clear")
                 Log.error("Problem (Tried to clear Elasticsearch cache)", e)
             Log.error("problem", e)
 
@@ -189,10 +195,10 @@ class ES52(Container):
         THE where CLAUSE IS AN ES FILTER
         """
         command = wrap(command)
-        schema = self._es.get_properties()
+        schema = self.es.get_properties()
 
         # GET IDS OF DOCUMENTS
-        results = self._es.search({
+        results = self.es.search({
             "stored_fields": listwrap(schema._routing.path),
             "query": {"bool": {
                 "filter": jx_expression(command.where).to_esfilter(Null)
@@ -209,7 +215,7 @@ class ES52(Container):
                 scripts.append({"doc": v.doc})
             else:
                 v = scrub(v)
-                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_painless(schema).script(schema)})
+                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_es_script(schema).script(schema)})
 
         if results.hits.hits:
             updates = []
@@ -218,8 +224,8 @@ class ES52(Container):
                     updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
                     updates.append(s)
             content = ("\n".join(value2json(c) for c in updates) + "\n")
-            response = self._es.cluster.post(
-                self._es.path + "/_bulk",
+            response = self.es.cluster.post(
+                self.es.path + "/_bulk",
                 data=content,
                 headers={"Content-Type": "application/json"},
                 timeout=self.settings.timeout,

@@ -12,20 +12,19 @@ from __future__ import unicode_literals
 import os
 from zipfile import ZipFile
 
-from mo_future import text_type
-
 from activedata_etl import etl2key
+from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms import ACTIVE_DATA_QUERY, download_file
+from activedata_etl.transforms import ACTIVE_DATA_QUERY
 from mo_dots import set_default, Null
 from mo_files import File, TempDirectory
+from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process, Till
 from mo_times import Timer, Date
 from pyLibrary.env import http
 
-RETRY = {"times": 3, "sleep": 5}
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 DEBUG = True
@@ -97,40 +96,40 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
         task_cluster_record
     )
 
+    def generator():
+        count = 0
+
+        if DEBUG_LCOV_FILE:
+            lcov_coverage = list(parse_lcov_coverage(source_key, tmpdir, DEBUG_LCOV_FILE.read_lines()))
+        elif os.name == 'nt':
+            # grcov DOES NOT SUPPORT WINDOWS YET
+            dest_dir = (tmpdir / "ccov").abspath
+            unzip_files(gcno_file, gcda_file, dest_dir)
+            while not please_stop:
+                try:
+                    lcov_coverage = list(run_lcov_on_windows(dest_dir))  # TODO: Remove list()
+                    break
+                except Exception as e:
+                    if "Could not remove file" in e:
+                        continue
+                    raise e
+        else:
+            lcov_coverage = run_grcov(gcno_file, gcda_file)
+
+        for source in lcov_coverage:
+            if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
+                continue
+            if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
+                continue
+            new_record.source = source
+            new_record.etl.id = count
+            new_record._id = file_id + "." + text_type(count)
+            count += 1
+            if DEBUG and (count % 10000 == 0):
+                Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))
+            yield value2json(new_record)
+
     with Timer("Processing gcno/gcda in {{temp_dir}} for key {{key}}", param={"temp_dir": tmpdir, "key": source_key}):
-        def generator():
-            count = 0
-
-            if DEBUG_LCOV_FILE:
-                lcov_coverage = list(parse_lcov_coverage(source_key, tmpdir, DEBUG_LCOV_FILE.read_lines()))
-            elif os.name == 'nt':
-                # grcov DOES NOT SUPPORT WINDOWS YET
-                dest_dir = (tmpdir / "ccov").abspath
-                unzip_files(gcno_file, gcda_file, dest_dir)
-                while not please_stop:
-                    try:
-                        lcov_coverage = list(run_lcov_on_windows(dest_dir))  # TODO: Remove list()
-                        break
-                    except Exception as e:
-                        if "Could not remove file" in e:
-                            continue
-                        raise e
-            else:
-                lcov_coverage = run_grcov(gcno_file, gcda_file)
-
-            for source in lcov_coverage:
-                if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
-                    continue
-                if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
-                    continue
-                new_record.source = source
-                new_record.etl.id = count
-                new_record._id = file_id + "." + text_type(count)
-                count += 1
-                if DEBUG and (count % 10000 == 0):
-                    Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))
-                yield value2json(new_record)
-
         destination.write_lines(file_id, generator())
 
 

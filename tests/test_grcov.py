@@ -68,7 +68,7 @@ class TestGrcov(unittest.TestCase):
             source_key=source_key,
             resources=resources,
             destination=destination,
-            grcov_artifact=Data(url=url),
+            artifact=Data(url=url),
             task_cluster_record=task_cluster_record,
             artifact_etl=Null,
             please_stop=Null

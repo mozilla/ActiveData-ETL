@@ -26,9 +26,7 @@ from pyLibrary.env.git import get_git_revision
 DEBUG = True
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-NON_HG_BRANCHES = ["bmo-master", "snippets-service", "snippets-tests", "stubattribution-tests", "go-bouncer", "socorro"]
 
-RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
 
@@ -168,12 +166,10 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         "changeset": {"id": new_treeherder.build.revision}
     }
     try:
-        new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
+        if new_treeherder.build.branch not in NON_HG_BRANCHES:
+            new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
     except Exception as e:
-        if new_treeherder.build.branch in NON_HG_BRANCHES:
-            Log.note("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
-        else:
-            Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
@@ -229,9 +225,8 @@ _option_map = {
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
-    "pgo": ["pgo"],
+    "pgo": ["pgo"]
 }
-
 
 
 def pull_job_log(source_key, job_log, new_treeherder):
@@ -287,9 +282,6 @@ def pull_details(source_key, details, new_treeherder):
             elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
             else:
-                # try:
-                #     title, value = json2value("{"+d.value+"}").items(0)
-                #     pull_details()
                 KNOWN_VALUES.append(d.value)
                 Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)
         else:
@@ -329,5 +321,17 @@ KNOWN_VALUES = [
     "Tests will be run from the following files:",
     "gaia_revlink: ",
     "Unknown: ",
-    "\t--this-chunk=1 --total-chunks=1 -- tests/web-platform/tests/streams/readable-streams/default-reader.dedicatedworker.html tes"
+    "\t--this-chunk=1 --total-chunks=1 -- "
+]
+
+
+NON_HG_BRANCHES = [
+    "bmo-master",
+    "go-bouncer",
+    "mozillians-tests",
+    "snippets-service",
+    "snippets-service",
+    "snippets-tests",
+    "socorro",
+    "stubattribution-tests"
 ]

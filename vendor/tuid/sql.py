@@ -9,8 +9,8 @@ from pyLibrary.sql.sqlite import Sqlite, quote_value
 
 
 class Sql:
-    def __init__(self, dbname):
-        self.db = Sqlite(dbname)
+    def __init__(self, config):
+        self.db = Sqlite(config)
 
     def execute(self, sql, params=None):
         if params:
@@ -20,6 +20,9 @@ class Sql:
 
     def commit(self):
         self.db.commit()
+
+    def rollback(self):
+        self.db.execute("ROLLBACK")
 
     def get(self, sql, params=None):
         if params:

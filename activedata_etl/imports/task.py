@@ -158,7 +158,9 @@ TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
+    "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "maxosx64"}},
@@ -170,14 +172,14 @@ TEST_PLATFORM = {
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
     for o in BUILD_TYPES + [
-    "asan",
-    "gradle",
-    "mingw32",
-    "ming32",
-    "qr",
-    "stylo-disabled",
-    "stylo-sequential"
-]
+        "asan",
+        "gradle",
+        "mingw32",
+        "ming32",
+        "qr",
+        "stylo-disabled",
+        "stylo-sequential"
+    ]
 }
 TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
 TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
@@ -201,45 +203,52 @@ TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERD
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
-    "awsy",
-    "browser-instrumentation",
-    "browser-screenshots",
-    "cppunit",
-    "crashtest",
-    "firefox-ui-functional-local",
-    "firefox-ui-functional-remote",
-    "geckoview",
-    "gtest",
-    "jittest",
-    "jsreftest",
-    "marionette",
-    "marionette-headless",
-    "mochitest",
-    "mochitest-a11y",
-    "mochitest-browser-chrome",
-    "mochitest-browser-screenshots",
-    "mochitest-chrome",
-    "mochitest-clipboard",
-    "mochitest-devtools-chrome",
-    "mochitest-jetpack",
-    "mochitest-gpu",
-    "mochitest-media",
-    "mochitest-plain-headless",
-    "mochitest-valgrind",
-    "mochitest-webgl",
-    "mozmill",
-    "reftest",
-    "reftest-gpu",
-    "reftest-no-accel",
-    "robocop",
-    "telemetry-tests-client",
-    "test-verify",
-    "test-verify-wpt",
-    "web-platform-tests",
-    "web-platform-tests-reftests",
-    "web-platform-tests-wdspec",
-    "xpcshell"
-]
+        "awsy-base",
+        "awsy",
+        "browser-instrumentation",
+        "browser-screenshots",
+        "cppunit",
+        "crashtest",
+        "firefox-ui-functional-local",
+        "firefox-ui-functional-remote",
+        "geckoview",
+        "geckoview-junit",
+        "gtest",
+        "jittest",
+        "jsreftest",
+        "marionette",
+        "marionette-headless",
+        "mochitest",
+        "mochitest-a11y",
+        "mochitest-browser-chrome",
+        "mochitest-browser-screenshots",
+        "mochitest-chrome",
+        "mochitest-clipboard",
+        "mochitest-devtools-chrome",
+        "mochitest-jetpack",
+        "mochitest-gpu",
+        "mochitest-media",
+        "mochitest-plain-headless",
+        "mochitest-valgrind",
+        "mochitest-webgl",
+        "mozmill",
+        "reftest",
+        "reftest-fonts",
+        "reftest-gpu",
+        "reftest-gpu-fonts",
+        "reftest-no-accel",
+        "reftest-no-accel-fonts",
+        "robocop",
+        "telemetry-tests-client",
+        "test-coverage",
+        "test-coverage-wpt",
+        "test-verify",
+        "test-verify-wpt",
+        "web-platform-tests",
+        "web-platform-tests-reftests",
+        "web-platform-tests-wdspec",
+        "xpcshell"
+    ]
 }
 
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
@@ -253,11 +262,12 @@ BUILD_PLATFORM = {
         "android",
         "linux",
         "linux64",
+        "linux64-dmd",
         "macosx64",
         "macosx",
         "win32",
-        "win64"
-
+        "win64",
+        "win32-dmd"
     ]
 }
 
@@ -283,6 +293,7 @@ BUILD_OPTIONS = {
     "nightly": {},
     "old-id": {},
     "pgo": {"build": {"type": ["pgo"]}},
+    "plain": {},
     "pytests": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},

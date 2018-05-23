@@ -9,7 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
 import datetime
 
 from boto import ec2 as boto_ec2
@@ -18,11 +17,12 @@ from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
+from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
-from mo_logs import startup, constants
 from mo_logs import Log
-from mo_collections import UniqueIndex
+from mo_logs import startup, constants
+from mo_threads import MAIN_THREAD
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -55,7 +55,13 @@ def _config_fabric(connect, instance):
 
 def _refresh_etl(instance, settings, conn):
     cpu_percent = get_cpu(conn, instance)
-    Log.note("Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}", instance_id=instance.id, name=instance.tags["Name"], ip=instance.ip_address, cpu=cpu_percent/100)
+    Log.note(
+        "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
+        instance_id=instance.id,
+        name=instance.tags["Name"],
+        ip=instance.ip_address,
+        cpu=cpu_percent/100
+    )
 
 
     _config_fabric(settings.fabric, instance)
@@ -116,7 +122,7 @@ def main():
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:
-        Log.stop()
+        MAIN_THREAD.stop()
 
 
 if __name__ == "__main__":

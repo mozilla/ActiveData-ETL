@@ -16,6 +16,7 @@ from __future__ import unicode_literals
 import json
 import sys
 
+from activedata_etl.imports.coverage_util import LANGUAGE_MAPPINGS
 from mo_dots import wrap, Null
 from mo_files import File
 from mo_logs import Log
@@ -38,7 +39,6 @@ def parse_lcov_coverage(source_key, source_name, stream):
     :param stream:
     :return:
     """
-    # XXX BRDA, BRF, BFH not implemented because not used in the output
 
     current_source = None
     done = set()
@@ -132,11 +132,11 @@ def parse_lcov_coverage(source_key, source_name, stream):
 
 def coco_format(details):
     # TODO: DO NOT IGNORE METHODS
-    coverable_lines = len(details['lines_covered']) + len(details['lines_uncovered'])
-    lang = LANG.get(File(details['file']).extension, "c/c++")
+    coverable_line_count = len(details['lines_covered']) + len(details['lines_uncovered'])
+    language = [lang for lang, extensions in LANGUAGE_MAPPINGS if details['file'].endswith(extensions)]
 
     source = wrap({
-        "language": lang,
+        "language": language,
         "is_file": True,
         "file": {
             "name": details['file'],
@@ -144,7 +144,7 @@ def coco_format(details):
             'uncovered': sorted(details['lines_uncovered']),
             "total_covered": len(details['lines_covered']),
             "total_uncovered": len(details['lines_uncovered']),
-            "percentage_covered": len(details['lines_covered']) / coverable_lines if coverable_lines else 1
+            "percentage_covered": len(details['lines_covered']) / coverable_line_count if coverable_line_count else None
         }
     })
 
@@ -155,13 +155,6 @@ def n_tuple(values, length):
     output = values[:length]
     output = output + [Null]*(length-len(output))
     return output
-
-
-LANG = {
-    "jsm": "javascript",
-    "js": "javascript",
-    "py": "python"
-}
 
 
 def js_coverage_format(sources):

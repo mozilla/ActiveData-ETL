@@ -17,7 +17,7 @@ from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.task import decode_metatdata_name, minimize_task
 from activedata_etl.imports.text_log import process_tc_live_log
-from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
 from mo_future import text_type
@@ -34,12 +34,7 @@ from pyLibrary.env import http
 DEBUG = False
 DISABLE_LOG_PARSING = False
 MAX_THREADS = 5
-MAIN_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}"
-STATUS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/status"
-ARTIFACTS_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "http://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
 
-RETRY = {"times": 3, "sleep": 5}
 seen_tasks = {}
 new_seen_tc_properties = set()
 
@@ -60,8 +55,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             consume(tc_message, "_meta")
 
             Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
-            task_url = strings.expand_template(MAIN_URL, {"task_id": task_id})
-            task = http.get_json(task_url, retry=RETRY, session=session)
+            task_url = strings.expand_template(TC_MAIN_URL, {"task_id": task_id})
+            task = http.get_json(task_url, retry=TC_RETRY, session=session)
             if task.code == u'ResourceNotFound':
                 Log.note("Can not find task {{task}} while processing key {{key}}", key=source_key, task=task_id)
                 if not source_etl:
@@ -89,8 +84,8 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # if not tc_message.status.runs.last().resolved:
             # UPDATE TASK STATUS (tc_message MAY BE OLD)
-            status_url = strings.expand_template(STATUS_URL, {"task_id": task_id})
-            task_status = http.get_json(status_url, retry=RETRY, session=session)
+            status_url = strings.expand_template(TC_STATUS_URL, {"task_id": task_id})
+            task_status = http.get_json(status_url, retry=TC_RETRY, session=session)
             consume(task_status, "status.taskId")
             temp_runs, task_status.status.runs = task_status.status.runs, Null  # set_default() will screw `runs` up
             set_default(tc_message.status, task_status.status)
@@ -102,12 +97,12 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # get the artifact list for the taskId
             try:
-                artifacts = normalized.task.artifacts = http.get_json(strings.expand_template(ARTIFACTS_URL, {"task_id": task_id}), retry=RETRY).artifacts
+                artifacts = normalized.task.artifacts = http.get_json(strings.expand_template(TC_ARTIFACTS_URL, {"task_id": task_id}), retry=TC_RETRY).artifacts
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="Can not get artifacts for task " + task_id, cause=e)
 
             for a in artifacts:
-                a.url = strings.expand_template(ARTIFACT_URL, {"task_id": task_id, "path": a.name})
+                a.url = strings.expand_template(TC_ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
                 if a.name.endswith("/live.log"):
                     try:
@@ -262,7 +257,6 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     )
     output.task.parent.artifacts_url = consume(task, "payload.parent_task_artifacts_url")
 
-
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
 
@@ -292,6 +286,18 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     set_build_info(source_key, output, task, env, resources)
     _normalize_run(source_key, output, task, env)
+
+    # VERIFY DUPLICATE
+    treeherder_platform = consume(task, 'extra.treeherder-platform')
+    if treeherder_platform != None:
+        pair = treeherder_platform.split("/")
+        try:
+            if pair[0] == output.treeherder.machine.platform and output.treeherder.collection[pair[1]]:
+                pass
+            else:
+                Log.warning("extra.treeherder platform does not match treeherder")
+        except Exception:
+            Log.warning("extra.treeherder platform does not match treeherder")
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
@@ -551,17 +557,22 @@ def get_build_task(source_key, resources, normalized_task):
     if not build_task_id:
         Log.warning("Could not find build.url {{task}} in {{key}}", task=normalized_task.task.id, key=source_key)
         return Null
-    response = http.post_json(
-        resources.local_es_node + "/task/task/_search",
-        data={
-            "query": {"filtered": {"filter": {"terms": {
-                "task.id": build_task_id
-            }}}},
-            "from": 0,
-            "size": 10
-        },
-        retry={"times": 3, "sleep": 15}
-    )
+    try:
+        response = http.post_json(
+            resources.local_es_node.host + ":9200/task/task/_search",
+            headers={"Content-Type": "application/json"},
+            data={
+                "query": {"terms": {
+                    "task.id": build_task_id
+                }},
+                "from": 0,
+                "size": 10
+            },
+            retry={"times": 3, "sleep": 15}
+        )
+    except Exception as e:
+        Log.warning("Failure to get build task", cause=e)
+        return Null
 
     candidates = jx.sort(
         [
@@ -879,6 +890,7 @@ KNOWN_TAGS = {
     "github.branches",
     "github.events",
     "github.env",
+    "github.excludeBranches",
     "github.headBranch",
     "github.headRepo",
     "github.headRevision",

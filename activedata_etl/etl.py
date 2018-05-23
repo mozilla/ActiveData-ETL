@@ -27,16 +27,14 @@ from mo_logs import Log, startup, constants, strings
 from mo_logs.exceptions import suppress_exception
 from mo_math import MIN
 from mo_testing import fuzzytestcase
-from mo_threads import Thread, Signal, Queue, Lock
-from mo_threads import Till
-from mo_times import Timer
-from mo_times.dates import Date
-from mo_times.durations import SECOND
+from mo_threads import Thread, Signal, Queue, Lock, Till, MAIN_THREAD
+from mo_times import Timer, Date, SECOND
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
 from pyLibrary.env.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
+from tuid.client import TuidClient
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 
@@ -432,10 +430,10 @@ def main():
             etl_one(settings)
             return
 
-        hg = HgMozillaOrg(use_cache=True, kwargs=settings.hg)
         resources = Data(
-            hg=hg,
-            local_es_node=settings.local_es_node
+            hg=HgMozillaOrg(use_cache=True, kwargs=settings.hg),
+            local_es_node=settings.local_es_node,
+            tuid_mapper=TuidClient(settings.tuid_client)
         )
 
         stopper = Signal()
@@ -450,7 +448,7 @@ def main():
             )
 
         aws.capture_termination_signal(stopper)
-        Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:
@@ -486,11 +484,10 @@ def etl_one(settings):
                 ))
             Log.warning("Problem", cause=e)
 
-    hg = HgMozillaOrg(kwargs=settings.hg)
     resources = Data(
-        hg=hg,
+        hg=HgMozillaOrg(kwargs=settings.hg),
         local_es_node=settings.local_es_node,
-        tuid_endpoint=settings.tuid_endpoint
+        tuid_mapper=TuidClient(settings.tuid_client)
     )
 
     stopper = Signal("main stop signal")
@@ -502,7 +499,7 @@ def etl_one(settings):
         resources=resources,
         please_stop=stopper
     )
-    Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
 
 
 def parse_id_argument(id):

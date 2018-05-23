@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl import key2etl, etl2key
-from mo_dots import Data, wrap, set_default
+from mo_dots import Data, wrap, set_default, Null
 from mo_logs import machine_metadata, strings
 from mo_times import Date
 
@@ -24,7 +24,7 @@ SINGLE_URL = None
 
 
 def process(source_key, source, destination, resources, please_stop=None):
-    test_results = accumulate_logs(source_key, resources.url, source.read_lines(), please_stop)
+    test_results = accumulate_logs(source_key, resources.url, source.read_lines(), Null, please_stop)
     parent_source = key2etl(source_key)
 
     run_info = Data()

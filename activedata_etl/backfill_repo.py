@@ -17,7 +17,7 @@ from pyLibrary.env import elasticsearch
 from mo_math import Math
 from jx_elasticsearch.es17 import FromES
 from mo_collections import UniqueIndex
-from mo_threads import Thread, Signal
+from mo_threads import Thread, Signal, MAIN_THREAD
 from mo_threads import Till
 from mo_times.dates import Date
 
@@ -187,7 +187,7 @@ def main():
 
         stopper = Signal()
         Thread.run("backfill repo", backfill_repo, settings.hg, please_stop=stopper)
-        Thread.wait_for_shutdown_signal(stopper, allow_exit=True)
+        MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:

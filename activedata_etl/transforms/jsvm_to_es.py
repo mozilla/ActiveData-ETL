@@ -12,8 +12,8 @@ from __future__ import unicode_literals
 from zipfile import ZipFile
 
 from activedata_etl import etl2key
+from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
-from activedata_etl.transforms.grcov_to_es import download_file
 from mo_dots import set_default
 from mo_files import TempFile
 from mo_future import text_type
@@ -24,19 +24,18 @@ from pyLibrary.env.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
-RETRY = {"times": 3, "sleep": 5}
 DEBUG = True
 
 
-def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, task_cluster_record, artifact_etl, please_stop):
+def process_jsvm_artifact(source_key, resources, destination, artifact, task_cluster_record, artifact_etl, please_stop):
     """
     Processes a jsvm artifact (lcov format)
     """
     if DEBUG:
-        Log.note("Processing jsvm artifact {{artifact}}", artifact=jsvm_artifact.url)
+        Log.note("Processing jsvm artifact {{artifact}}", artifact=artifact.url)
 
     file_id = etl2key(artifact_etl)
-    new_record = set_default(
+    template_record = set_default(
         {
             "test": {
                 "suite": task_cluster_record.run.suite.name,
@@ -54,38 +53,46 @@ def process_jsvm_artifact(source_key, resources, destination, jsvm_artifact, tas
     etl_key = etl2key(artifact_etl)
     keys = [etl_key]
 
+    def line_gen(zipped_file):
+        count = 0
+        with ZipFile(zipped_file.abspath) as zipped:
+            for num, zip_name in enumerate(zipped.namelist()):
+                def renamed_files():
+                    for source in parse_lcov_coverage(source_key, artifact.url, ibytes2ilines(zipped.open(zip_name))):
+                        if please_stop:
+                            return
+                        if IGNORE_ZERO_COVERAGE and source.file.total_covered == 0:
+                            continue
+                        if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
+                            continue
+
+                        file_info = resources.file_mapper.find(source_key, source.file.name, artifact, task_cluster_record)
+                        source.file = set_default(
+                            file_info,
+                            source.file
+                        )
+                        yield source
+
+                for source in tuid_batches(
+                    task_cluster_record,
+                    resources,
+                    renamed_files(),
+                    "file"
+                ):
+                    template_record.source = source
+                    template_record.etl.id = count
+                    template_record._id = file_id + "." + text_type(count)
+                    count += 1
+                    if DEBUG and (count % 10000 == 0):
+                        Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(template_record))
+                    yield value2json(template_record)
+
     with TempFile() as tmpfile:
         try:
-            with Timer("download {{url}}", param={"url": jsvm_artifact.url}):
-                download_file(jsvm_artifact.url, tmpfile.abspath)
+            with Timer("download {{url}}", param={"url": artifact.url}):
+                download_file(artifact.url, tmpfile.abspath)
             with Timer("Processing jsvm for key {{key}}", param={"key": etl_key}):
-                def line_gen():
-                    count = 0
-                    with ZipFile(tmpfile.abspath) as zipped:
-                        for num, zip_name in enumerate(zipped.namelist()):
-                            for source in parse_lcov_coverage(source_key, jsvm_artifact.url, ibytes2ilines(zipped.open(zip_name))):
-                                if please_stop:
-                                    return
-                                if IGNORE_ZERO_COVERAGE and not source.file.total_covered == 0:
-                                    continue
-                                if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
-                                    continue
-
-                                # RENAME FILE TO SOMETHING FOUND IN SOURCE
-                                file_details = resources.file_mapper.find(source_key, source.file.name, jsvm_artifact, task_cluster_record)
-                                source.file = set_default(
-                                    file_details,
-                                    source.file
-                                )
-                                resources.tuid_mapper.annotate_source(task_cluster_record.repo.changeset.id, source)
-                                new_record.source = source
-                                new_record.etl.id = count
-                                new_record._id = file_id + "." + text_type(count)
-                                count += 1
-                                if DEBUG and (count % 10000 == 0):
-                                    Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))
-                                yield value2json(new_record)
-                destination.write_lines(file_id, line_gen())
+                destination.write_lines(file_id, line_gen(tmpfile))
         except Exception as e:
             Log.warning("problem processing jsvm artifact for key {{key}}", key=source_key, cause=e)
         return keys

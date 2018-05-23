@@ -12,9 +12,27 @@
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
-			"User-Agent": "ActiveData-ETL"
+			"User-Agent": "ActiveData-ETL-development"
 		},
+		"pyLibrary.env.http.DEBUG": false,
+		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
+	},
+	"local_es_node": {
+		"host":"http://localhost",
+		"index": "task"
+	},
+	"tuid_client": {
+		"endpoint": "http://54.149.21.8/tuid",
+		"timeout": 30,
+		"push_queue": {
+			"name": "active-data-tuid-dev",
+			"debug": true,
+			"$ref": "file://~/private.json#aws_credentials"
+		},
+		"db":{
+			"load_functions": false
+		}
 	},
 	"hg": {
 		"use_cache": true,
@@ -22,20 +40,22 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": "http://localhost",
+			"host": {"$ref": "#local_es_node.host"},
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
+			"tjson": false,
 			"timeout": 300,
 			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
-			"limit_replicas": true
+			"limit_replicas": false
 		},
 		"repo": {
-			"host": "http://localhost",
+			"host": {"$ref": "#local_es_node.host"},
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
+			"tjson": false,
 			"timeout": 300,
 			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
@@ -44,11 +64,11 @@
 	},
 	"workers": [
 		{
-			"name": "gcov to codecoverage",
+			"name": "codecoverage",
 			"source": {
+				"$ref": "file://~/codecoverage.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b",
-				"$ref": "file://~/codecoverage.json#aws_credentials"
+				"key_format": "t.a:b"
 			},
 			"destination": {
 				"$ref": "file://~/codecoverage.json#aws_credentials",
@@ -61,7 +81,7 @@
 				"$ref": "file://~/codecoverage.json#aws_credentials"
 			},
 			"transform_type": "bulk",
-			"transformer": "activedata_etl.transforms.gcov_to_es.process",
+			"transformer": "activedata_etl.transforms.cov_to_es.process",
 			"type": "join"
 		}
 	],

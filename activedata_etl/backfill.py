@@ -9,8 +9,11 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import jx_elasticsearch
+from jx_base.expressions import TRUE
+from jx_python import jx
+from mo_dots import coalesce
 from mo_future import text_type
-from mo_dots import coalesce, wrap
 from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
@@ -19,7 +22,6 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.env import elasticsearch
 from pyLibrary.env.git import get_remote_revision
 
 
@@ -35,7 +37,7 @@ def diff(settings, please_stop=None):
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    es = elasticsearch.Alias(alias=coalesce(settings.elasticsearch.alias, settings.elasticsearch.index), kwargs=settings.elasticsearch)
+    esq = jx_elasticsearch.new_instance(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
 
     if settings.git:
@@ -45,7 +47,7 @@ def diff(settings, please_stop=None):
         es_filter = coalesce(settings.es_filter, {"match_all": {}})
 
     # EVERYTHING FROM ELASTICSEARCH
-    in_es = get_all_in_es(es, settings.range, es_filter, settings.elasticsearch.id_field)
+    in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
         max_in_es = MAX(in_es)
@@ -84,48 +86,35 @@ def diff(settings, please_stop=None):
             ])
 
 
-def get_all_in_es(es, in_range, es_filter, field):
-    if es_filter==None:
-        es_filter = {"match_all": {}}
+def get_all_in_es(esq, in_range, es_filter, field):
+    if es_filter == None:
+        es_filter = TRUE
+
+    range_filter = []
+    if in_range:
+        if in_range.min:
+            range_filter.append({"gte": {field: in_range.min}})
+        if in_range.max:
+            range_filter.append({"lt": {field: in_range.max}})
+
+    result = esq.query({
+        "from": "task",
+        "edges": {"name": "value", "value": field},
+        "where": {"and": [es_filter] + range_filter},
+        "limit": 100000,
+        "format": "list"
+    })
 
     in_es = set()
-    es_query = wrap({
-        "aggs": {
-            "_filter": {
-                "filter": jx_expression(es_filter).to_esfilter(),
-                "aggs": {
-                    "_match": {
-                        "terms": {
-                            # "field": field,
-                            "script": StringOp("string", Variable(field)).to_ruby(),
-                            "size": 200000
-                        }
-                    }
-                }
-            }
-        },
-        "size":0
-    })
-    if in_range:
-        _filter = es_query.aggs._filter.filter["and"]
-        if in_range.min:
-            _filter.append({"range": {field: {"gte": in_range.min}}})
-        if in_range.max:
-            _filter.append({"range": {field: {"lt": in_range.max}}})
-
-    result = es.search(es_query)
-
-    good_es = []
-    for k in result.aggregations._filter._match.buckets.key:
+    for rec in result.data:
         with suppress_exception:
-            good_es.append(int(k))
+            in_es.add(int(rec.value))
 
     Log.note(
         "got {{num}} from {{index}}",
-        num=len(good_es),
-        index=es.settings.index
+        num=len(in_es),
+        index=esq.settings.index
     )
-    in_es |= set(good_es)
 
     return in_es
 

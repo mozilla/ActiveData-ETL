@@ -6,17 +6,17 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import unicode_literals
 from __future__ import division
+from __future__ import unicode_literals
 
+from mo_dots import Data, literal_field, set_default
 from mo_future import text_type
-from mo_json import json2value, value2json
+from mo_json import json2value
 from mo_logs import Log, strings
-from mo_dots import wrap, Data, literal_field, set_default
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
 from mo_times.dates import Date
 from mo_times.timer import Timer
+from pyLibrary.env import http
+from pyLibrary.env.git import get_git_revision
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -25,7 +25,15 @@ TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON 
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 
+TC_MAIN_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
+TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/status"
+TC_ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
+TC_ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+TC_RETRY = {"times": 3, "sleep": 5}
+
+
 TRY_AGAIN_LATER = "{{reason}}, try again later"
+
 
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
@@ -45,6 +53,8 @@ NOT_STRUCTURED_LOGS = [
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
+    ".extra",
+    ".dmp",
     "/log_critical.log",
     "/log_error.log",
     "/log_fatal.log",
@@ -95,7 +105,7 @@ class Transform(object):
         :param source: A LINE GENERATOR WITH ETL ARTIFACTS (LIKELY JSON)
         :param destination: THE s3 BUCKET TO PLACE ALL THE TRANSFORM RESULTS
         :param resources: VARIOUS EXTRA RESOURCES TO HELP WITH ANNOTATING THE DATA
-        :param please_stop: CHECK REGULARITY, AND EXIT TRANSFORMATION IF True
+        :param please_stop: CHECK REGULARLY, AND EXIT TRANSFORMATION IF True
         :return: list OF NEW KEYS, WITH source_key AS THEIR PREFIX
         """
         raise NotImplementedError
@@ -108,9 +118,15 @@ def verify_blobber_file(line_number, name, url):
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
+    if not name.startswith("public/"):
+        return None, 0
     if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
         return None, 0
-    if (name.find("/jscov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
+    if (name.find("/jscov_") >= 0 or name.find("/jsdcov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
+        return None, 0
+    if name.find("/test_info/memory-report-") >= 0:
+        return None, 0
+    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
         return None, 0
 
     with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
@@ -139,9 +155,6 @@ def verify_blobber_file(line_number, name, url):
     if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):
         # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
         return logs, "unknown"
-
-    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
-        return None, 0
 
     # DETECT IF THIS IS A STRUCTURED LOG
 
@@ -224,11 +237,3 @@ class EtlHeadGenerator(object):
         return dest_key, dest_etl
 
 
-def download_file(url, destination):
-    with open(destination, "w+b") as tempfile:
-        stream = http.get(url).raw
-        try:
-            for b in iter(lambda: stream.read(8192), b""):
-                tempfile.write(b)
-        finally:
-            stream.close()

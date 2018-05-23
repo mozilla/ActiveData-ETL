@@ -21,7 +21,7 @@ from mo_logs.exceptions import Except
 from mo_logs import Log
 from pyLibrary.env import pulse
 from jx_python import jx
-from mo_threads import Thread
+from mo_threads import Thread, MAIN_THREAD
 from mo_times.dates import Date
 
 
@@ -141,7 +141,7 @@ def main():
 
                 with ExitStack(*context):
                     Thread.run("pulse log loop", log_loop, settings, synch, queue, bucket)
-                    Thread.wait_for_shutdown_signal(allow_exit=True)
+                    MAIN_THREAD.wait_for_shutdown_signal(allow_exit=True)
                     Log.warning("starting shutdown")
 
                 queue.close()

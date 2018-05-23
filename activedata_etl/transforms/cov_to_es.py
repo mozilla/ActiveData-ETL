@@ -13,22 +13,18 @@ from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
-from activedata_etl.transforms.jscov_to_es import process_jscov_artifact
+from activedata_etl.transforms.jsdcov_to_es import process_jsdcov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
+from activedata_etl.transforms.per_test_to_es import process_per_test_artifact
 from mo_json import json2value
 from mo_logs import Log
-from tuid.client import TuidClient
 
 DEBUG = True
-STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
-RETRY = {"times": 3, "sleep": 5}
 
 
 def process(source_key, source, destination, resources, please_stop=None):
     """
-    This transform will turn a pulse message containing info about a jscov artifact on taskcluster
+    This transform will turn a pulse message containing info about a jsdcov artifact on taskcluster
     into a list of records of method coverages. Each record represents a method in a source file, given a test.
 
     :param source_key: The key of the file containing the pulse messages in the source pulse message bucket
@@ -62,12 +58,10 @@ def process(source_key, source, destination, resources, please_stop=None):
         if any(  # if we will be processing coverage, then prepare the resources
             a in artifact.name
             for artifact in artifacts
-            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm")
+            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm", "per-test-coverage-reports.zip")
         ):
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
-            if not resources.tuid_mapper:
-                resources.tuid_mapper = TuidClient(resources.tuid_endpoint)
 
         for artifact in artifacts:
             try:
@@ -76,9 +70,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing jscov artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing jsdcov artifact: {{url}}", url=artifact.url)
 
-                    keys.extend(process_jscov_artifact(
+                    keys.extend(process_jsdcov_artifact(
                         source_key,
                         resources,
                         destination,
@@ -123,6 +117,21 @@ def process(source_key, source, destination, resources, please_stop=None):
                         destination,
                         artifact,
                         task_cluster_record,
+                        artifact_etl,
+                        please_stop
+                    ))
+                elif "per-test-coverage-reports.zip" in artifact.name:
+                    coverage_artifact_exists = True
+                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                    if DEBUG:
+                        Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
+
+                    keys.extend(process_per_test_artifact(
+                        source_key,
+                        resources,
+                        destination,
+                        task_cluster_record,
+                        artifact,
                         artifact_etl,
                         please_stop
                     ))
