@@ -886,6 +886,7 @@ class Cluster(object):
                 )
             return details
         except Exception as e:
+            e = Except.wrap(e)
             if url[0:4] != "http":
                 suggestion = " (did you forget \"http://\" prefix on the host name?)"
             else:
