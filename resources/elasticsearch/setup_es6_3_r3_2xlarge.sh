@@ -109,7 +109,7 @@ git checkout push-to-es6
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_2.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
@@ -117,7 +117,7 @@ sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 #INSTALL PYTHON27
 sudo yum -y install python27
-sudo /usr/local/bin/pip install --upgrade pip
+sudo pip install --upgrade pip
 #rm -fr /home/ec2-user/temp
 #mkdir  /home/ec2-user/temp
 #cd /home/ec2-user/temp
@@ -130,7 +130,6 @@ sudo yum install -y libffi-devel
 sudo yum install -y openssl-devel
 sudo yum groupinstall -y "Development tools"
 
-sudo /usr/local/bin/pip install --upgrade setuptools
 sudo /usr/local/bin/pip install pyopenssl
 sudo /usr/local/bin/pip install ndg-httpsclient
 sudo /usr/local/bin/pip install pyasn1
@@ -152,7 +151,7 @@ sudo supervisorctl update
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_2.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch

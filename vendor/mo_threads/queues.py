@@ -22,7 +22,7 @@ from datetime import datetime
 from time import time
 
 from mo_dots import coalesce, Null
-from mo_logs import Log
+from mo_logs import Log, Except
 from mo_threads.lock import Lock
 from mo_threads.signal import Signal
 from mo_threads.threads import THREAD_STOP, THREAD_TIMEOUT, Thread
@@ -321,7 +321,7 @@ class ThreadedQueue(Queue):
                         _buffer.append(item)
 
                 except Exception as e:
-                    e = _Except.wrap(e)
+                    e = Except.wrap(e)
                     if error_target:
                         try:
                             error_target(e, _buffer)
@@ -346,7 +346,7 @@ class ThreadedQueue(Queue):
                         next_push = Till(till=now + period)
 
                 except Exception as e:
-                    e = _Except.wrap(e)
+                    e = Except.wrap(e)
                     if error_target:
                         try:
                             error_target(e, _buffer)
