@@ -66,7 +66,7 @@ class RolloverIndex(object):
         row = wrap(row)
         if row.json:
             row.value, row.json = json2value(row.json), None
-        timestamp = Date(self.rollover_field(wrap(row).value))
+        timestamp = Date(self.rollover_field(row.value))
         if timestamp == None:
             return Null
         elif timestamp < Date.today() - self.rollover_max:
@@ -250,32 +250,15 @@ class RolloverIndex(object):
 
 
 def fix(rownum, line, source, sample_only_filter, sample_size):
+    """
+    :param rownum:
+    :param line:
+    :param source:
+    :param sample_only_filter:
+    :param sample_size:
+    :return:  (row, no_more_data) TUPLE WHERE row IS {"value":<data structure>} OR {"json":<text line>}
+    """
     value = json2value(line)
-
-    if value._id.startswith(("tc.97", "96", "bb.27")):
-        # AUG 24, 25 2017 - included full diff with repo; too big to index
-        try:
-            data = json2value(line)
-            repo = data.repo
-            repo.etl = None
-            repo.branch.last_used = None
-            repo.branch.description = None
-            repo.branch.etl = None
-            repo.branch.parent_name = None
-            repo.children = None
-            repo.parents = None
-            if repo.changeset.diff or data.build.repo.changeset.diff:
-                Log.error("no diff allowed")
-            else:
-                assertAlmostEqual(minimize_repo(repo), repo)
-        except Exception as e:
-            if CAN_NOT_DECODE_JSON in e:
-                raise e
-            data.repo = minimize_repo(repo)
-            data.build.repo = minimize_repo(data.build.repo)
-            line = value2json(data)
-    else:
-        pass
 
     if rownum == 0:
         if len(line) > MAX_RECORD_LENGTH:
@@ -290,7 +273,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
     elif len(line) > MAX_RECORD_LENGTH:
         _shorten(value, source)
         value = _fix(value)
-    elif line.find('"resource_usage":') != -1:
+    elif '"resource_usage":' in line:
         value = _fix(value)
 
     row = {"value": value}
