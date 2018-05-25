@@ -10,11 +10,10 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import logging
-from logging import handlers
 
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, hide
+from fabric.context_managers import cd
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
@@ -24,7 +23,6 @@ from mo_dots.objects import datawrap, DataObject
 from mo_files import File
 from mo_logs import Log
 from mo_logs import startup, constants
-from mo_threads import Till
 from pyLibrary.aws import aws_retry
 
 
@@ -96,7 +94,7 @@ def _refresh_indexer():
             # RESTART ANYWAY, SO WE USE LATEST INDEX
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
-                sudo("supervisorctl restart push_to_es")
+                sudo("supervisorctl restart push_to_es:*")
 
 
 
