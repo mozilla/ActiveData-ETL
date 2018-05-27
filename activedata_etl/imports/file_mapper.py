@@ -142,7 +142,13 @@ class FileMapper(object):
                 return {"name": filename}
             suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.run.suite.name})
 
-            filename = filename.split(' line ')[0].split(' -> ')[1].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+            split_fname = filename.split(' line ')[0].split(' -> ')
+            fname_to_use = split_fname[0]
+            if len(split_fname) > 1:
+                # GET LAST FILE OF LIST (THE ONE THAT IS COVERED)
+                split_fname = fname_to_use[-1]
+            filename = fname_to_use.split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+
             path = list(reversed(filename.split("/")))
             curr = self.lookup
             i = -1
