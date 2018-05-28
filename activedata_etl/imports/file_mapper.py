@@ -133,7 +133,7 @@ class FileMapper(object):
                 return {"name": filename}
 
         try:
-            found = KNOWN_MAPPINGS.get(filename);
+            found = KNOWN_MAPPINGS.get(filename)
             if found:
                 return {"name": found, "is_firefox": True, "old_name": filename}
             if self.predefined_failures(filename):
