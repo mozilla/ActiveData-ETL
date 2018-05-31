@@ -266,12 +266,7 @@ class ThreadedQueue(Queue):
                            # BE CAREFUL!  THE THREAD MAKING THE CALL WILL NOT BE YOUR OWN!
                            # DEFAULT BEHAVIOUR: THIS WILL KEEP RETRYING WITH WARNINGS
     ):
-        if not Log:
-            _late_import()
-
         if period !=None and not isinstance(period, (int, float, long)):
-            if not Log:
-                _late_import()
             Log.error("Expecting a float for the period")
 
         batch_size = coalesce(batch_size, int(max_size / 2) if max_size else None, 900)
@@ -295,8 +290,8 @@ class ThreadedQueue(Queue):
             def push_to_queue():
                 queue.extend(_buffer)
                 del _buffer[:]
-                for f in _post_push_functions:
-                    f()
+                for ppf in _post_push_functions:
+                    ppf()
                 del _post_push_functions[:]
 
             while not please_stop:

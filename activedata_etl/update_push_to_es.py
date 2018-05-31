@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import logging
+
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
 from fabric.context_managers import cd
@@ -92,7 +94,8 @@ def _refresh_indexer():
             # RESTART ANYWAY, SO WE USE LATEST INDEX
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
-                sudo("supervisorctl restart push_to_es")
+                sudo("supervisorctl stop push_to_es:*")
+                sudo("supervisorctl start push_to_es:00")
 
 
 
