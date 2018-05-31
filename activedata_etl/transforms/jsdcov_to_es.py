@@ -210,6 +210,7 @@ def process_jsdcov_artifact(source_key, resources, destination, task_cluster_rec
             destination.write_lines(
                 key,
                 map(value2json, tuid_batches(
+                    source_key,
                     task_cluster_record,
                     resources,
                     aggregator() if DO_AGGR else generator(),

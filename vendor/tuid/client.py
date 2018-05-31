@@ -128,6 +128,6 @@ class TuidClient(object):
 
             except Exception as e:
                 if self.enabled:
-                    Log.warning("TUID service has problems.", cause=e)
-                self.enabled = False
+                    self.enabled = False
+                    Log.error("TUID service has problems.", cause=e)
                 return None
