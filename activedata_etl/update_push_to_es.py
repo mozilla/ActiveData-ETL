@@ -94,7 +94,8 @@ def _refresh_indexer():
             # RESTART ANYWAY, SO WE USE LATEST INDEX
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
-                sudo("supervisorctl restart push_to_es:*")
+                sudo("supervisorctl stop push_to_es:*")
+                sudo("supervisorctl start push_to_es:00")
 
 
 

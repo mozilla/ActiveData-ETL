@@ -13,13 +13,11 @@ from activedata_etl import key2etl
 from jx_python import jx
 from jx_python.containers.list_usingPythonList import ListContainer
 from mo_dots import coalesce, wrap, Null
-from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json, CAN_NOT_DECODE_JSON
 from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import suppress_exception, Except
 from mo_math.randoms import Random
-from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_threads import Lock
 from mo_times.dates import Date, unicode2Date, unix2Date
 from mo_times.durations import Duration
@@ -29,7 +27,7 @@ from pyLibrary.env import elasticsearch
 
 MAX_RECORD_LENGTH = 400000
 DATA_TOO_OLD = "data is too old to be indexed"
-
+DEBUG=False
 
 class RolloverIndex(object):
     """
@@ -189,7 +187,7 @@ class RolloverIndex(object):
         queue = None
         pending = []  # FOR WHEN WE DO NOT HAVE QUEUE YET
         for key in keys:
-            timer = Timer("Process {{key}}", param={"key": key})
+            timer = Timer("Process {{key}}", param={"key": key}, debug=DEBUG)
             try:
                 with timer:
                     for rownum, line in enumerate(source.read_lines(strip_extension(key))):

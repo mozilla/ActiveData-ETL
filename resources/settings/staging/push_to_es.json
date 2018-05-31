@@ -126,7 +126,7 @@
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -160,7 +160,7 @@
 				"schema": {
 					"$ref": "//../../schema/perf_results.json"
 				},
-				"debug": true,
+				"debug": false,
 				"limit_replicas": false
 			},
 			"source": {
