@@ -9,22 +9,18 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import logging
-from logging import handlers
-
 from boto import ec2 as boto_ec2
 from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd, hide
+from fabric.context_managers import cd
 from fabric.operations import run, put, sudo
 from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap, DataObject
+from mo_dots.objects import datawrap
 from mo_files import File
 from mo_logs import Log
 from mo_logs import startup, constants
-from mo_threads import Till
 from pyLibrary.aws import aws_retry
 
 
