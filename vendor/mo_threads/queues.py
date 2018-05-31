@@ -23,7 +23,10 @@ from time import time
 
 from mo_dots import coalesce, Null
 from mo_logs import Log, Except
-from mo_threads import Lock, Signal, Till, THREAD_STOP, THREAD_TIMEOUT, Thread
+from mo_threads.lock import Lock
+from mo_threads.signal import Signal
+from mo_threads.threads import THREAD_STOP, THREAD_TIMEOUT, Thread
+from mo_threads.till import Till
 
 DEBUG = False
 
