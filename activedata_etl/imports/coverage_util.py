@@ -24,7 +24,7 @@ LANGUAGE_MAPPINGS = [
 ]
 
 
-def tuid_batches(task_cluster_record, resources, iterator, path="file"):
+def tuid_batches(source_key, task_cluster_record, resources, iterator, path="file"):
     def _annotate_sources(sources):
         """
 
@@ -57,7 +57,7 @@ def tuid_batches(task_cluster_record, resources, iterator, path="file"):
                         ]
         except Exception as e:
             resources.tuid_mapper.enabled = False
-            Log.warning("unexpected failure", cause=e)
+            Log.warning("failure with TUID mapping with {{key}}", key=source_key, cause=e)
 
     for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
         _annotate_sources(records)

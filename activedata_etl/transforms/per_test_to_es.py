@@ -196,6 +196,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):
             destination.write_lines(
                 key, map(value2json, tuid_batches(
+                    source_key,
                     task_cluster_record,
                     resources,
                     generator(),

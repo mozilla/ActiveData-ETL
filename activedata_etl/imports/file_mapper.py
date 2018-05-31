@@ -133,7 +133,7 @@ class FileMapper(object):
                 return {"name": filename}
 
         try:
-            found = KNOWN_MAPPINGS.get(filename);
+            found = KNOWN_MAPPINGS.get(filename)
             if found:
                 return {"name": found, "is_firefox": True, "old_name": filename}
             if self.predefined_failures(filename):
@@ -142,7 +142,7 @@ class FileMapper(object):
                 return {"name": filename}
             suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.run.suite.name})
 
-            filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+            filename = filename.split(' line ')[0].split(' -> ')[-1].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
             path = list(reversed(filename.split("/")))
             curr = self.lookup
             i = -1

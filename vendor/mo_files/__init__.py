@@ -290,7 +290,7 @@ class File(object):
 
         return output()
 
-    def append(self, content):
+    def append(self, content, encoding='utf8'):
         """
         add a line to file
         """
@@ -299,7 +299,7 @@ class File(object):
         with open(self._filename, "ab") as output_file:
             if isinstance(content, str):
                 Log.error(u"expecting to write unicode only")
-            output_file.write(content.encode("utf8"))
+            output_file.write(content.encode(encoding))
             output_file.write(b"\n")
 
     def __len__(self):
