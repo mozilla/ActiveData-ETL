@@ -32,13 +32,18 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
         :return: NOTHING, sources ARE MARKED UP
         """
         try:
+            branch = task_cluster_record.repo.branch.name
             revision = task_cluster_record.repo.changeset.id[:12]
             sources = listwrap(sources)
-            filenames = [s[path].name for s in sources if s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)]
+            filenames = [
+                s[path].name
+                for s in sources
+                if s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)
+            ]
 
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
                 # WHAT DO WE HAVE
-                found = resources.tuid_mapper.get_tuids(revision, filenames)
+                found = resources.tuid_mapper.get_tuids(branch, revision, filenames)
                 if found == None:
                     return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
