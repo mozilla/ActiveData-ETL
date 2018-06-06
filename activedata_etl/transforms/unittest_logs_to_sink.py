@@ -168,6 +168,10 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                         # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
                         lhs, rhs = log.test.split(" == ")
                         log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
+                    elif " == " in log.test and ":8888/tests/" in log.test:
+                        # "view-source:http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2.html == http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2-ref.html
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs.split(":8888/tests/")[-1] + " == " + rhs.split(":8888/tests/")[-1]
                     elif "/build/tests/reftest/tests/" in log.test:
                         # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
                         log.test = log.test.split("/build/tests/reftest/tests/")[1]

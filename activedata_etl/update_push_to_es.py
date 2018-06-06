@@ -19,7 +19,7 @@ from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap, DataObject
+from mo_dots.objects import datawrap
 from mo_files import File
 from mo_logs import Log
 from mo_logs import startup, constants
@@ -94,7 +94,8 @@ def _refresh_indexer():
             # RESTART ANYWAY, SO WE USE LATEST INDEX
             sudo("pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
-                sudo("supervisorctl restart push_to_es:*")
+                sudo("supervisorctl stop push_to_es:*")
+                sudo("supervisorctl start push_to_es:00")
 
 
 

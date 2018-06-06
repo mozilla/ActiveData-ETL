@@ -36,11 +36,11 @@ class TuidClient(object):
         self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), kwargs=db)
 
         if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
-            self._setup()
-        self.db.commit()
+            with self.db.transaction() as transaction:
+                self._setup(transaction)
 
-    def _setup(self):
-        self.db.execute("""
+    def _setup(self, transaction):
+        transaction.execute("""
         CREATE TABLE tuid (
             revision CHAR(12),
             file TEXT,
@@ -49,21 +49,23 @@ class TuidClient(object):
         )
         """)
 
-    def get_tuid(self, revision, file):
+    def get_tuid(self, branch, revision, file):
         """
+        :param branch: BRANCH TO FIND THE REVISION/FILE
         :param revision: THE REVISION NUNMBER
         :param file: THE FULL PATH TO A SINGLE FILE
         :return: A LIST OF TUIDS
         """
-        service_response = wrap(self.get_tuids(revision, [file]))
+        service_response = wrap(self.get_tuids(branch, revision, [file]))
         for f, t in service_response.items():
             return t
 
-    def get_tuids(self, revision, files):
+    def get_tuids(self, branch, revision, files):
         """
         GET TUIDS FROM ENDPOINT, AND STORE IN DB
-        :param revision:
-        :param files:
+        :param branch: BRANCH TO FIND THE REVISION/FILE
+        :param revision: THE REVISION NUNMBER
+        :param files: THE FULL PATHS TO THE FILES
         :return: MAP FROM FILENAME TO TUID LIST
         """
 
@@ -91,8 +93,10 @@ class TuidClient(object):
                         "from": "files",
                         "where": {"and": [
                             {"eq": {"revision": revision}},
-                            {"in": {"path": remaining}}
+                            {"in": {"path": remaining}},
+                            {"eq": {"branch": branch}}
                         ]},
+                        "branch": branch,
                         "meta": {
                             "format": "list",
                             "request_time": Date.now()
@@ -115,13 +119,13 @@ class TuidClient(object):
                         timeout=self.timeout
                     )
 
-                    self.db.execute(
-                        "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
-                            sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
-                            for r in new_response.data
+                    with self.db.transaction() as transaction:
+                        transaction.execute(
+                            "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
+                                sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
+                                for r in new_response.data
+                            )
                         )
-                    )
-                    self.db.commit()
 
                 found.update({r.path: r.tuids for r in new_response.data} if new_response else {})
                 return found
