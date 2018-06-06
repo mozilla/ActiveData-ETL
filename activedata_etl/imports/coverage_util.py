@@ -25,6 +25,9 @@ LANGUAGE_MAPPINGS = [
 
 
 def tuid_batches(source_key, task_cluster_record, resources, iterator, path="file"):
+    def has_tuids(s):
+        return s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)
+
     def _annotate_sources(sources):
         """
 
@@ -38,7 +41,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
             filenames = [
                 s[path].name
                 for s in sources
-                if s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)
+                if has_tuids(s)
             ]
 
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
@@ -48,6 +51,8 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                     return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
                 for source in sources:
+                    if not has_tuids(source):
+                        continue
                     line_to_tuid = found[source[path].name]
                     if line_to_tuid != None:
                         source[path].tuid_covered = [
