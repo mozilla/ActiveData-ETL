@@ -16,8 +16,9 @@ from mimetypes import MimeTypes
 from tempfile import mkdtemp, NamedTemporaryFile
 
 import os
+
 from mo_future import text_type, binary_type
-from mo_dots import get_module, coalesce
+from mo_dots import get_module, coalesce, Null
 from mo_logs import Log, Except
 from mo_logs.exceptions import extract_stack
 from mo_threads import Thread, Till
@@ -30,7 +31,9 @@ class File(object):
     """
 
     def __new__(cls, filename, buffering=2 ** 14, suffix=None):
-        if isinstance(filename, File):
+        if filename == None:
+            return Null
+        elif isinstance(filename, File):
             return filename
         else:
             return object.__new__(cls)
@@ -210,6 +213,18 @@ class File(object):
             else:
                 content = f.read().decode(encoding)
                 return content
+
+    def read_zipfile(self, encoding='utf8'):
+        """
+        READ FIRST FILE IN ZIP FILE
+        :param encoding:
+        :return: STRING
+        """
+        from zipfile import ZipFile
+        with ZipFile(self.abspath) as zipped:
+            for num, zip_name in enumerate(zipped.namelist()):
+                return zipped.open(zip_name).read().decode(encoding)
+
 
     def read_lines(self, encoding="utf8"):
         with open(self._filename, "rb") as f:
