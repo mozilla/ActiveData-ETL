@@ -293,7 +293,7 @@ BUILD_OPTIONS = {
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
     "lint": {},
-    "lto": {"build": {"type": ["lto"]}},
+    "lto": {"build": {"type": ["lto"]}},  # LINK TIME OPTIMIZATION
     "mingw32": {},
     "msvc": {},
     "noopt": {},

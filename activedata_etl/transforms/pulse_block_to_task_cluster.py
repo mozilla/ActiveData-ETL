@@ -683,7 +683,8 @@ null = Null
 KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, null, "firefox", null, null, null, "browser"): "firefox",
     (null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
-    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null): "thunderbird"
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null): "thunderbird",
+    (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta"
 }
 
 
@@ -766,7 +767,7 @@ BUILD_TYPES = {
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
-    "lto": ["lto"],
+    "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
     "memleak": ["memleak"],
     "opt": ["opt"],

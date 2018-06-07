@@ -33,7 +33,7 @@ from mo_times import Date, Timer, MINUTE
 from pyLibrary import convert
 from pyLibrary.env import http
 
-DEBUG_METADATA_UPDATE = True
+DEBUG_METADATA_UPDATE = False
 
 ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]

@@ -222,6 +222,7 @@ _option_map = {
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
+    "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
