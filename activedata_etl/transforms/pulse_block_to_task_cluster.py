@@ -766,6 +766,7 @@ BUILD_TYPES = {
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
+    "lto": ["lto"],
     "make": ["make"],
     "memleak": ["memleak"],
     "opt": ["opt"],

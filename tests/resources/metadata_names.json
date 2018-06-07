@@ -142,6 +142,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux64-lto/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "lto"]
+        }
+    },
     "build-linux64-plain/debug": {
         "action": {"type": "build"},
         "build": {
@@ -306,7 +313,7 @@
     "build-win64-msvc/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "win64-msvc",
+            "platform": "win64",
             "type": ["opt"]
         }
     },
@@ -28810,6 +28817,30 @@
         },
         "run": {"suite": {"name": "xpcshell"}}
     },
+    "test-windows10-64-msvc/debug-jsreftest-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug", "msvc"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "jsreftest"},
+            "type": ["e10s", "chunked"]
+        }
+    },
+    "test-windows10-64-msvc/opt-mochitest-webgl-e10s-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "msvc"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-webgl"},
+            "type": ["e10s", "chunked"]
+        }
+    },
     "test-windows10-64-nightly/opt-awsy": {
         "action": {"type": "test"},
         "build": {
@@ -33672,6 +33703,18 @@
             "type": ["opt"]
         },
         "run": {"suite": {"name": "xpcshell"}}
+    },
+    "test-windows7-32-msvc/debug-mochitest-devtools-chrome-e10s-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["debug", "msvc"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-devtools-chrome"},
+            "type": ["e10s", "chunked"]
+        }
     },
     "test-windows7-32-nightly/opt-awsy": {
         "action": {"type": "test"},

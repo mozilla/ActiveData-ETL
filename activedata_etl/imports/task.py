@@ -178,6 +178,7 @@ TEST_OPTIONS = {
         "gradle",
         "mingw32",
         "ming32",
+        "msvc",
         "qr",
         "stylo-disabled",
         "stylo-sequential"
@@ -270,10 +271,8 @@ BUILD_PLATFORM = {
         "macosx",
         "win32",
         "win32-dmd",
-        "win32-msvc",
         "win64",
         "win64-dmd",
-        "win64-msvc",
     ]
 }
 
@@ -294,7 +293,9 @@ BUILD_OPTIONS = {
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
     "lint": {},
+    "lto": {"build": {"type": ["lto"]}},
     "mingw32": {},
+    "msvc": {},
     "noopt": {},
     "nightly": {},
     "old-id": {},
