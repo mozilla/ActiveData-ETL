@@ -303,6 +303,13 @@
             "type": ["opt"]
         }
     },
+    "build-win64-msvc/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64-msvc",
+            "type": ["opt"]
+        }
+    },
     "build-win64-noopt/debug": {
         "action": {"type": "build"},
         "build": {
@@ -2866,7 +2873,36 @@
             "suite": {"name": "geckoview-junit"}
         }
     },
-    "test-android-hw-pix-7-1-android-aarch64/opt-cppunit": {},
+    "test-android-7.0-x86/opt-mochitest-webgl-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "xpcshell"}
+        }
+    },
+    "test-android-hw-pix-7-1-android-aarch64/opt-cppunit": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "cppunit"}}
+    },
     "test-linux32-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -20222,6 +20258,18 @@
             "type": ["debug"]
         },
         "run": {"suite": {"name": "test-verify"}}
+    },
+    "test-linux64/debug-test-verify-e10s-1164": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1164,
+            "suite": {"name": "test-verify"},
+            "type": ["e10s", "chunked"]
+        }
     },
     "test-linux64/debug-test-verify-wpt": {
         "action": {"type": "test"},

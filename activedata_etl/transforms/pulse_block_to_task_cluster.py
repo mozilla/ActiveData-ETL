@@ -481,7 +481,8 @@ def set_build_info(source_key, normalized, task, env, resources):
             "channel": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "payload.properties.channels"),
-                consume(task, "extra.channel")
+                consume(task, "extra.channel"),
+                consume(task, "payload.channel")
             )
         }}
     )
@@ -678,9 +679,22 @@ def verify_tag(source_key, task_id, t):
         KNOWN_TAGS.add(t["name"])
 
 
+null = Null
+KNOWN_COALESCE_CONFLICTS = {
+    (null, null, null, null, null, null, "firefox", null, null, null, "browser"): "firefox",
+    (null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null): "thunderbird"
+}
+
+
 def coalesce_w_conflict_detection(source_key, *args):
     if len(args) < 2:
         Log.error("bad call to coalesce, expecting source_key as first parameter")
+
+    output = KNOWN_COALESCE_CONFLICTS.get(args, Null)
+    if output is not Null:
+        return output
+
     output = Null
     for a in args:
         if a == None:
@@ -785,6 +799,7 @@ PAYLOAD_PROPERTIES = {
     "en_us_binary_url",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
+    "is_partner_repack_public",
     "locales",
     "locale",
     "mar_tools_url",
@@ -956,6 +971,7 @@ KNOWN_TAGS = {
     "notifications.task-exception.subject",
 
     "notify.email.subject",
+    "notify.email.content",
     "npmCache.url",
     "npmCache.expires",
     "objective",

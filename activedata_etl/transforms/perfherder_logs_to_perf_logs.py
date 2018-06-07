@@ -392,6 +392,8 @@ KNOWN_PERFHERDER_TESTS = [
     "about_preferences_basic",
     "ARES6",
     "a11yr",
+    "avcodec section sizes",
+    "avutil section sizes",
     "Base Content Heap Unclassified",
     "Base Content JS",
     "Base Content Resident Unique Memory",
@@ -403,6 +405,7 @@ KNOWN_PERFHERDER_TESTS = [
     "cart",
     "chromez",
     "chrome",
+    "clone_errored",  # vcs
     "clone",   # vcs
     "compiler_metrics",
     "compiler warnings",
@@ -432,6 +435,8 @@ KNOWN_PERFHERDER_TESTS = [
     "jittest.jittest.overall",
     "JS",
     "kraken",
+    "NSPR section sizes",
+    "NSS section sizes",
     "media_tests",
     "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
@@ -507,5 +512,6 @@ KNOWN_PERFHERDER_TESTS = [
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
-    "xperf"
+    "xperf",
+    "XUL section sizes"
 ]

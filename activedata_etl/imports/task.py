@@ -157,7 +157,9 @@ CATEGORIES = {
 TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
+    "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
@@ -251,12 +253,13 @@ TEST_SUITE = {
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
+TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(2000)}
 
 BUILD_PLATFORM = {
     p: {"build": {"platform": p}}
     for p in [
         "android-hw-gs3-7-1-arm7-api-16",
+        "android-hw-p2-8-1-arm7-api-16",
         "android-api-16",
         "android-x86",
         "android",
@@ -266,8 +269,11 @@ BUILD_PLATFORM = {
         "macosx64",
         "macosx",
         "win32",
+        "win32-dmd",
+        "win32-msvc",
         "win64",
-        "win32-dmd"
+        "win64-dmd",
+        "win64-msvc",
     ]
 }
 
