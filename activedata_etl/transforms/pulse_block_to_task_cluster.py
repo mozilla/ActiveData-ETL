@@ -685,7 +685,8 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, null, "firefox", null, null, null, "browser"): "firefox",
     (null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
     (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null): "thunderbird",
-    (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta"
+    (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta"
 }
 
 

@@ -2910,6 +2910,7 @@
             "suite": {"name": "mochitest"}
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {},
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
         "action": {"type": "test"},
         "build": {

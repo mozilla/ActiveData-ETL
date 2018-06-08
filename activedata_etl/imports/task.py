@@ -264,6 +264,7 @@ BUILD_PLATFORM = {
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "android-x86": {"build": {"platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
