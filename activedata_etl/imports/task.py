@@ -137,8 +137,10 @@ CATEGORIES = {
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
     },
@@ -157,7 +159,9 @@ CATEGORIES = {
 TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
@@ -257,23 +261,22 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(2000)}
 
 BUILD_PLATFORM = {
-    p: {"build": {"platform": p}}
-    for p in [
-        "android-hw-gs3-7-1-arm7-api-16",
-        "android-hw-p2-8-1-arm7-api-16",
-        "android-api-16",
-        "android-x86",
-        "android",
-        "linux",
-        "linux64",
-        "linux64-dmd",
-        "macosx64",
-        "macosx",
-        "win32",
-        "win32-dmd",
-        "win64",
-        "win64-dmd",
-    ]
+    "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-x86": {"build": {"platform": "android"}},
+    "android-api-16-old-id": {"build": {"platform": "android"}},
+    "android-api-16": {"build": {"platform": "android"}},
+    "android": {"build": {"platform": "android"}},
+    "linux": {"build": {"platform": "linux"}},
+    "linux64": {"build": {"platform": "linux64"}},
+    "linux64-dmd": {"build": {"platform": "linux64"}},
+    "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx": {"build": {"platform": "maxosx"}},
+    "win32": {"build": {"platform": "win32"}},
+    "win32-dmd": {"build": {"platform": "win32"}},
+    "win64": {"build": {"platform": "win64"}},
+    "win64-dmd": {"build": {"platform": "win64"}}
 }
 
 BUILD_OPTIONS = {

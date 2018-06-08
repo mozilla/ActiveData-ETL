@@ -1,4 +1,5 @@
 {
+    "android-hw-p2-8-0-arm7-api-16": {},
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
@@ -17,43 +18,42 @@
     "build-android-api-16-gradle/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
+            "platform": "android",
             "type": ["opt"]
         }
     },
     "build-android-api-16-old-id-nightly/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
-            "trigger": "nightly",
+            "platform": "android",
             "type": ["opt"]
         }
     },
     "build-android-api-16-old-id/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
+            "platform": "android",
             "type": ["opt"]
         }
     },
     "build-android-api-16-without-google-play-services/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
+            "platform": "android",
             "type": ["opt"]
         }
     },
     "build-android-api-16/debug": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
+            "platform": "android",
             "type": ["debug"]
         }
     },
     "build-android-api-16/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-api-16",
+            "platform": "android",
             "type": ["opt"]
         }
     },
@@ -95,7 +95,7 @@
     "build-android-x86-old-id-nightly/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-x86",
+            "platform": "android",
             "trigger": "nightly",
             "type": ["opt"]
         }
@@ -103,14 +103,14 @@
     "build-android-x86-old-id/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-x86",
+            "platform": "android",
             "type": ["opt"]
         }
     },
     "build-android-x86/opt": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android-x86",
+            "platform": "android",
             "type": ["opt"]
         }
     },
@@ -308,6 +308,14 @@
         "build": {
             "platform": "win64",
             "type": ["opt"]
+        }
+    },
+    "build-win64-msvc/debug-upload-symbols": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "trigger": "nightly",
+            "type": ["debug"]
         }
     },
     "build-win64-msvc/opt": {
@@ -2889,6 +2897,17 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-mochitest-9": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 9,
+            "suite": {"name": "mochitest"}
         }
     },
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
