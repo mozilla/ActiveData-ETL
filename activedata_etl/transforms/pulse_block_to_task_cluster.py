@@ -499,6 +499,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         consume(task, "tags.build_props.branch"),
         consume(task, "extra.build_props.branch"),
         consume(task, "payload.releaseProperties.branch"),
+        consume(task, "payload.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
@@ -802,6 +803,7 @@ PAYLOAD_PROPERTIES = {
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "is_partner_repack_public",
+    "l10n_changesets",
     "locales",
     "locale",
     "mar_tools_url",
@@ -809,23 +811,26 @@ PAYLOAD_PROPERTIES = {
     "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
+    "partials",
     "partial_versions",
     "platforms",
     "purpose",
+    "release_name",
     "release_promotion",
 
     "releaseProperties.hashType",
     "repack_manifests_url",
     "require_mirrors",
+    "revision",
     "rules_to_update",
 
     "timeout",
-
 
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
     "stage-product",
+    "submission_entries",
     "summary",
     "supersederUrl",
     "template_key",
