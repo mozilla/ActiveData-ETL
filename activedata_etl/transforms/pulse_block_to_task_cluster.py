@@ -108,14 +108,14 @@ def process(source_key, source, destination, resources, please_stop=None):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception as e:
-                        if "could not connect" in e and normalized.task.run.status != "completed":  # in ["deadline-exceeded"]:
+                        if normalized.task.run.status != "completed":
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
                             pass
                         elif TRY_AGAIN_LATER in e:
                             Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                         else:
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
-                            Log.warning("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
+                            Log.error("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)
