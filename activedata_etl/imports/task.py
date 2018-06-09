@@ -162,6 +162,7 @@ TEST_PLATFORM = {
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
@@ -178,6 +179,7 @@ TEST_PLATFORM = {
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
     for o in BUILD_TYPES + [
+        "aarch64",
         "asan",
         "gradle",
         "mingw32",
@@ -246,6 +248,7 @@ TEST_SUITE = {
         "reftest-no-accel",
         "reftest-no-accel-fonts",
         "robocop",
+        "talos-bcv",
         "telemetry-tests-client",
         "test-coverage",
         "test-coverage-wpt",
