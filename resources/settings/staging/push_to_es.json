@@ -230,7 +230,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
