@@ -98,7 +98,6 @@ def _refresh_indexer():
                 sudo("supervisorctl start push_to_es:00")
 
 
-
 def _start_supervisor():
     put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
 

@@ -81,6 +81,7 @@ def float2json(value):
 
 
 def _snap_to_base_10(mantissa):
+    # TODO: https://lists.nongnu.org/archive/html/gcl-devel/2012-10/pdfkieTlklRzN.pdf
     digits = mantissa.replace('.', '')
     if SNAP_TO_BASE_10:
         f9 = strings.find(digits, '999')
