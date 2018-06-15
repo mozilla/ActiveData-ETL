@@ -240,7 +240,7 @@ class RolloverIndex(object):
             else:
                 queue.add(done_copy)
 
-        if [p for p in pending if p.value.task.state not in ('failed', 'exception')]:
+        if [p for p in pending if wrap(p).value.task.state not in ('failed', 'exception')]:
             Log.error("Did not find an index for {{alias}} to place the data for key={{key}}", key=tuple(keys)[0], alias=self.settings.index)
 
         Log.note("{{num}} keys from {{key|json}} added", num=num_keys, key=keys)
