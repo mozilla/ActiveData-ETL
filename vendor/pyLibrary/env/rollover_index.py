@@ -197,7 +197,7 @@ class RolloverIndex(object):
                         if rownum > 0 and rownum % 1000 == 0:
                             Log.note("Ingested {{num}} records from {{key}} in bucket {{bucket}}", num=rownum, key=key, bucket=source.name)
 
-                        row, please_stop = fix(rownum, line, source, sample_only_filter, sample_size)
+                        row, please_stop = fix(key, rownum, line, source, sample_only_filter, sample_size)
                         if row == None:
                             continue
 
@@ -247,7 +247,7 @@ class RolloverIndex(object):
         return num_keys
 
 
-def fix(rownum, line, source, sample_only_filter, sample_size):
+def fix(source_key, rownum, line, source, sample_only_filter, sample_size):
     """
     :param rownum:
     :param line:
@@ -260,7 +260,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
 
     if rownum == 0:
         if len(line) > MAX_RECORD_LENGTH:
-            _shorten(value, source)
+            _shorten(source_key, value, source)
         value = _fix(value)
         if sample_only_filter and Random.int(int(1.0/coalesce(sample_size, 0.01))) != 0 and jx.filter([value], sample_only_filter):
             # INDEX etl.id==0, BUT NO MORE
@@ -269,7 +269,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
             row = {"value": value}
             return row, True
     elif len(line) > MAX_RECORD_LENGTH:
-        _shorten(value, source)
+        _shorten(source_key, value, source)
         value = _fix(value)
     elif '"resource_usage":' in line:
         value = _fix(value)
@@ -278,7 +278,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
     return row, False
 
 
-def _shorten(value, source):
+def _shorten(source_key, value, source):
     if source.name.startswith("active-data-test-result"):
         value.result.subtests = [s for s in value.result.subtests if s.ok is False]
         value.result.missing_subtests = True
@@ -293,7 +293,7 @@ def _shorten(value, source):
             else:
                 pass  # NOT A PROBLEM
         else:
-            Log.warning("Monstrous {{name}} record {{id}} of length {{length}}", id=value._id, name=source.name, length=shorter_length)
+            Log.warning("Monstrous {{name}} record {{id}} of length {{length}}", id=source_key,  name=source.name, length=shorter_length)
 
 
 def _fix(value):
