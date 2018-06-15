@@ -88,7 +88,7 @@ def _refresh_indexer():
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es6")
-        if result.find("Already up-to-date.") != -1:
+        if "Already up-to-date." in result:
             Log.note("No change required")
         else:
             # RESTART ANYWAY, SO WE USE LATEST INDEX
