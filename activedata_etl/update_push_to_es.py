@@ -92,7 +92,7 @@ def _refresh_indexer():
             Log.note("No change required")
         else:
             # RESTART ANYWAY, SO WE USE LATEST INDEX
-            sudo("pip install -r requirements.txt")
+            run("~/pypy/bin/pypy -m pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl stop push_to_es:*")
                 sudo("supervisorctl start push_to_es:00")
