@@ -51,8 +51,8 @@ class RolloverIndex(object):
         self.settings = kwargs
         self.locker = Lock("lock for rollover_index")
         self.rollover_field = jx.get(rollover_field)
-        self.rollover_interval = self.settings.rollover_interval = Duration(kwargs.rollover_interval)
-        self.rollover_max = self.settings.rollover_max = Duration(kwargs.rollover_max)
+        self.rollover_interval = self.settings.rollover_interval = Duration(rollover_interval)
+        self.rollover_max = self.settings.rollover_max = Duration(rollover_max)
         self.known_queues = {}  # MAP DATE TO INDEX
         self.cluster = elasticsearch.Cluster(self.settings)
 
