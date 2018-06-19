@@ -1,5 +1,4 @@
 {
-    "android-hw-p2-8-0-arm7-api-16": {},
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
@@ -15401,6 +15400,50 @@
             "chunk": 3,
             "suite": {"name": "mochitest-webgl"},
             "type": ["chunked"]
+        }
+    },
+    "test-linux64-pgo/opt-raptor-chrome-speedometer-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "raptor-chrome-speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-pgo/opt-raptor-chrome-tp6-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "raptor-chrome-tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-pgo/opt-raptor-firefox-speedometer-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "raptor-firefox-speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-pgo/opt-raptor-firefox-tp6-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "raptor-firefox-tp6"},
+            "type": ["e10s"]
         }
     },
     "test-linux64-pgo/opt-reftest-1": {
