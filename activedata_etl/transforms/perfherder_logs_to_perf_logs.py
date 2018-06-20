@@ -61,11 +61,11 @@ def process(source_key, source, destination, resources, please_stop=None):
             if perfherder_record.suites:
                 Log.error("Should not happen, perfherder storage iterates through the suites")
 
-            if perfherder_record.task or perfherder_record.is_empty:
-                metadata, perfherder_record.task = perfherder_record.task, None
-            elif perfherder_record.pulse:
+            if perfherder_record.pulse:
                 metadata = transform_buildbot(source_key, perfherder_record.pulse, resources)
                 perfherder_record.pulse = None
+            elif perfherder_record.task or perfherder_record.is_empty:
+                metadata, perfherder_record.task = perfherder_record.task, None
             else:
                 Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
                 continue
