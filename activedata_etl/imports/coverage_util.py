@@ -53,7 +53,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                 for source in sources:
                     if not has_tuids(source):
                         continue
-                    line_to_tuid = found[source[path].name]
+                    line_to_tuid = found.get(source[path].name)
                     if line_to_tuid != None:
                         source[path].tuid_covered = [
                             line_to_tuid[line]
