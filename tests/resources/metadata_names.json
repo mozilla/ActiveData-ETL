@@ -2876,6 +2876,17 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-android-4.3-arm7-api-15/debug-jsreftest-70": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 70,
+            "suite": {"name": "jsreftest"}
+        }
+    },
     "test-android-4.3-arm7-api-16/debug-geckoview-junit-1": {
         "action": {"type": "test"},
         "build": {
@@ -39798,6 +39809,17 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "xpcshell"}
+        }
+    },
+    "test-windows8-64/debug-mochitest-browser-chrome-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "mochitest-browser-chrome"}
         }
     }
 }
