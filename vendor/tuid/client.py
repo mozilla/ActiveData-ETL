@@ -83,7 +83,7 @@ class TuidClient(object):
         ):
             response = self.db.query(
                 "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
-                " AND file in " + sql_iso(sql_list(map(quote_value, files)))
+                " AND file IN " + sql_iso(sql_list(map(quote_value, files)))
             )
             found = {file: json2value(tuids) for file, tuids in response.data}
 
@@ -122,12 +122,13 @@ class TuidClient(object):
                     )
 
                     with self.db.transaction() as transaction:
-                        transaction.execute(
-                            "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
-                                sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
-                                for r in new_response.data
-                            )
+                        command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
+                            sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
+                            for r in new_response.data
+                            if r.tuids != None
                         )
+                        if not command.endswith(" VALUES "):
+                            transaction.execute(command)
                     self.num_bad_requests = 0
 
                 found.update({r.path: r.tuids for r in new_response.data} if new_response else {})
