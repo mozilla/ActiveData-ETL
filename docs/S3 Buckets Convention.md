@@ -37,7 +37,7 @@ Inside each file is a CR-delimited list of JSON records representing the unit te
 
 ## Uniqueness
 
- Every record has an `_id` property with the containing file name as a prefix.
+ Every record has a unique `_id` property, following the convention used with the files, with an additional sequence number tacked on the end. Occasionally, the ETL breaks because of upstream schema changes, or the ETL is discovered to be wrong; these ids allow us to re-play ETL as needed. 
 
 ## Logical Identity
 
