@@ -21,8 +21,7 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap, DataObject
 from mo_files import File
-from mo_logs import Log
-from mo_logs import startup, constants
+from mo_logs import Log, startup, constants
 from pyLibrary.aws import aws_retry
 
 

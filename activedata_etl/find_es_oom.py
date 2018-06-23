@@ -12,14 +12,14 @@ from __future__ import unicode_literals
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo
 from fabric.state import env
+from pyLibrary.env import http
+
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce
-from mo_files import File, TempDirectory
-from mo_logs import Log, strings
-from mo_logs import startup, constants
-from mo_times import Date, HOUR, DAY, MINUTE
-
 from mo_dots.objects import datawrap
+from mo_files import File, TempDirectory
+from mo_logs import Log, strings, startup, constants
+from mo_times import Date, HOUR, DAY, MINUTE
 from mo_times.durations import SECOND, ZERO
 from pyLibrary.aws import aws_retry
 
@@ -43,6 +43,11 @@ def _get_managed_instances(ec2_conn, name):
                 instance.request = requests[instance.id]
                 output.append(datawrap(instance))
     return wrap(output)
+
+
+def _get_known_es_nodes(url):
+    result = http.get_json(url)
+    return result.nodes.values()
 
 
 def _config_fabric(connect, instance):
@@ -122,9 +127,12 @@ def main():
         )
         ec2_conn = boto_ec2.connect_to_region(**aws_args)
 
+        known_nodes = _get_known_es_nodes(settings.nodes)
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
+
+
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
@@ -132,7 +140,12 @@ def main():
             try:
                 Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
-                _find_oom(i)
+                if i.private_ip_address not in known_nodes.ip:
+                    Log.note("Stopping everything on node because not visible to cluster: {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+                    sudo("supervisorctl stop all")
+                else:
+                    # _find_oom(i)
+                    pass
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",

@@ -1,5 +1,5 @@
 {
-	"name":"ActiveData ES",
+	"name":"ActiveData ES ",
 	"aws":{"$ref":"//~/private.json#aws_credentials"},
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
@@ -11,5 +11,6 @@
 		"password": "",
 		"keepalive": 1,
 		"banner_timeout": 30
-	}
+	},
+	"nodes":"http://54.148.242.195:9200/_nodes"
 }

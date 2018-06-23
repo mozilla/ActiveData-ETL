@@ -8,7 +8,9 @@
 #
 from __future__ import unicode_literals
 
-from activedata_etl import etl2path
+from future.utils import text_type
+
+from activedata_etl import etl2path, etl2key
 from activedata_etl import key2etl
 from jx_python import jx
 from jx_python.containers.list_usingPythonList import ListContainer
