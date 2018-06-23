@@ -144,7 +144,7 @@ def main():
                     Log.note("Stopping everything on node because not visible to cluster: {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                     sudo("supervisorctl stop all")
                 else:
-                    # _find_oom(i)
+                    _find_oom(i)
                     pass
             except Exception as e:
                 Log.warning(
