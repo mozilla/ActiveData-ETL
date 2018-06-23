@@ -62,9 +62,9 @@ def _config_fabric(connect, instance):
 
 def _find_oom(instance):
     with TempDirectory() as temp:
-        log_file = "supervisor_es.log"
         try:
             get("/data1/logs/supervisor_es.log", temp.abspath)
+            log_file = "supervisor_es.log"
         except Exception as e:
             get("/data1/logs/es.log", temp.abspath)
             log_file = "es.log"
