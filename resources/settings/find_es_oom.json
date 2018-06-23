@@ -11,5 +11,6 @@
 		"password": "",
 		"keepalive": 1,
 		"banner_timeout": 30
-	}
+	},
+	"nodes":"http://54.148.242.195:9200/_nodes"
 }
