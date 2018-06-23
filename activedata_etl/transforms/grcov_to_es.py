@@ -25,7 +25,7 @@ from pyLibrary.env.big_data import ibytes2ilines
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 DEBUG = True
-
+FILE_TOO_LONG = 100*1000
 
 def process_grcov_artifact(source_key, resources, destination, artifact, task_cluster_record, artifact_etl, please_stop):
     """
@@ -68,7 +68,8 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
                             continue
                         if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                             continue
-
+                        if FILE_TOO_LONG < source.file.total_covered + source.file.total_uncovered:
+                            continue
                         file_info = resources.file_mapper.find(source_key, source.file.name, artifact, task_cluster_record)
                         source.file = set_default(
                             file_info,
