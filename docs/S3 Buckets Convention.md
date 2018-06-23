@@ -24,7 +24,7 @@ These are all public buckets, which you can access using [Amazon's S3 Bucket API
 
 Each file in the S3 bucket is given a dot-delimited name. These names are called "keys", and they represent the ETL steps:
 
-![](S3_Buckets_Convention_Name.png)
+![](S3%20Buckets%20Convention%20Name.png)
 
 Here is more description of those steps 
 
