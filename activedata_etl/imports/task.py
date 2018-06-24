@@ -38,6 +38,7 @@ def minimize_task(task):
     task.task.command = None
     task.task.env = None
     task.task.expires = None
+    task.task.mounts = None
     task.task.retries = None
     task.task.routes = None
     task.task.run = None
