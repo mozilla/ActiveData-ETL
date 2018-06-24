@@ -4,7 +4,7 @@
 		"index.translog.flush_threshold_size": "1000mb",
 		"index.translog.sync_interval": "60s",
 		"index.number_of_replicas": 1,
-		"index.number_of_shards": 60
+		"index.number_of_shards": 24
 	},
 	"mappings": {
 		"code_coverage": {
