@@ -1488,7 +1488,7 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
             "mapping": {
                 "type": "boolean",
                 "store": True,
-                "norms": {"enabled": False}
+                "norms": False
             },
             "match": BOOLEAN_TYPE
         }
@@ -1498,7 +1498,7 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
             "mapping": {
                 "type": "double",
                 "store": True,
-                "norms": {"enabled": False}
+                "norms": False
             },
             "match": NUMBER_TYPE
         }
@@ -1508,7 +1508,7 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
             "mapping": {
                 "type": "keyword",
                 "store": True,
-                "norms": {"enabled": False}
+                "norms": False
             },
             "match": STRING_TYPE
         }
@@ -1518,7 +1518,7 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
             "mapping": {
                 "type": "long",
                 "store": True,
-                "norms": {"enabled": False}
+                "norms": False
             },
             "match": EXISTS_TYPE
         }
@@ -1528,7 +1528,7 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
             "mapping": {
                 "type": "nested",
                 "store": True,
-                "norms": {"enabled": False}
+                "norms": False
             },
             "match": NESTED_TYPE
         }
@@ -1537,9 +1537,9 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
         "default_string": {
             "mapping": {
                 "type": "keyword",
-                        "store": True,
-                        "norms": {"enabled": False}
-                        },
+                "store": True,
+                "norms": False
+            },
             "match_mapping_type": "string"
         }
     }
