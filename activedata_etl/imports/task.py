@@ -160,6 +160,7 @@ TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-15": {"build": {"platform": "android"}},
+    "android-em-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
