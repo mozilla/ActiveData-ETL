@@ -250,6 +250,8 @@ TEST_SUITE = {
         "mochitest-valgrind",
         "mochitest-webgl",
         "mozmill",
+        "raptor-firefox-motionmark-animometer",
+        "raptor-firefox-motionmark-htmlsuite",
         "raptor-firefox-motionmark",
         "raptor-firefox-stylebench",
         "reftest",
