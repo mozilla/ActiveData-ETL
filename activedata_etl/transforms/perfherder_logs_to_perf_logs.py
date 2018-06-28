@@ -394,6 +394,7 @@ KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "avcodec section sizes",
     "avutil section sizes",
+    "Base Content Explicit",
     "Base Content Heap Unclassified",
     "Base Content JS",
     "Base Content Resident Unique Memory",

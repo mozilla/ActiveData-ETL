@@ -300,6 +300,7 @@ BUILD_OPTIONS = {
     "aarch64": {},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
+    "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
