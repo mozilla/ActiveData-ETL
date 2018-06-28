@@ -458,6 +458,10 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_facebook",
     "quantum_pageload_google",
     "quantum_pageload_youtube",
+    "raptor-firefox-tp6-amazon",
+    "raptor-firefox-tp6-facebook",
+    "raptor-firefox-tp6-google",
+    "raptor-firefox-tp6-youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
     "Resident Memory",
@@ -467,6 +471,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
+    "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
     "Strings",
