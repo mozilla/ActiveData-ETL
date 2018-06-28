@@ -256,6 +256,8 @@ TEST_SUITE = {
         "reftest-gpu-fonts",
         "reftest-no-accel",
         "reftest-no-accel-fonts",
+        "raptor-firefox-stylebench",
+        "raptor-firefox-motionmark",
         "robocop",
         "talos-bcv",
         "telemetry-tests-client",
