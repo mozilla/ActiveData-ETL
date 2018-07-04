@@ -38,6 +38,7 @@ def minimize_task(task):
     task.task.command = None
     task.task.env = None
     task.task.expires = None
+    task.task.mounts = None
     task.task.retries = None
     task.task.routes = None
     task.task.run = None
@@ -160,6 +161,8 @@ TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-15": {"build": {"platform": "android"}},
+    "android-em-4.2-x86": {"build": {"platform": "android"}},
+    "android-em-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
@@ -247,6 +250,10 @@ TEST_SUITE = {
         "mochitest-valgrind",
         "mochitest-webgl",
         "mozmill",
+        "raptor-firefox-motionmark-animometer",
+        "raptor-firefox-motionmark-htmlsuite",
+        "raptor-firefox-motionmark",
+        "raptor-firefox-stylebench",
         "reftest",
         "reftest-fonts",
         "reftest-gpu",
@@ -267,7 +274,7 @@ TEST_SUITE = {
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(2000)}
+TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -293,6 +300,7 @@ BUILD_OPTIONS = {
     "aarch64": {},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
+    "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},

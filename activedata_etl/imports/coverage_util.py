@@ -16,21 +16,22 @@ from mo_times import Timer
 from pyLibrary.env import http
 
 TUID_BLOCK_SIZE = 1000
-
+DEBUG = True
 LANGUAGE_MAPPINGS = [
     ("c/c++", (".c", ".cpp", ".h", ".cc", ".cxx", ".hh", ".hpp", ".hxx")),
     ("javascript", (".js", ".jsm", ".xul", ".xml", ".html", ".xhtml")),
-    ("python", (".py",))
+    ("python", (".py",)),
+    ("java", ("java",)),
 ]
 
 
 def tuid_batches(source_key, task_cluster_record, resources, iterator, path="file"):
+
     def has_tuids(s):
         return s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)
 
     def _annotate_sources(sources):
         """
-
         :param sources: LIST OF COVERAGE SOURCE STRUCTURES TO MARKUP
         :return: NOTHING, sources ARE MARKED UP
         """
@@ -51,6 +52,13 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                     return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
                 for source in sources:
+                    if DEBUG and source[path].total_covered+source[path].total_uncovered > 100000:
+                        Log.warning(
+                            "lines={{num}}, file={{name}}",
+                            name=source[path].name,
+                            num=source[path].total_covered + source[path].total_uncovered
+                        )
+
                     if not has_tuids(source):
                         continue
                     line_to_tuid = found.get(source[path].name)

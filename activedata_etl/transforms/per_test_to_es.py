@@ -21,7 +21,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 
 ENABLE_METHOD_COVERAGE = False
-
+FILE_TOO_LONG = 100*1000
 
 urls_w_uncoverable_lines = set()
 
@@ -83,6 +83,9 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         # turn covered into a set for use later
         file_covered = set(covered)
         coverable = set(coverable)
+
+        if len(coverable) > FILE_TOO_LONG:
+            return
 
         record = create_record(parent_etl, count, sf["name"], covered, uncovered)
         record.test = {

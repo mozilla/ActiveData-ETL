@@ -57,6 +57,8 @@ DEBUG = False
 DAEMON_DEBUG = False
 DAEMON_HG_INTERVAL = 30 * SECOND  # HOW LONG TO WAIT BETWEEN HG REQUESTS (MAX)
 DAEMON_WAIT_AFTER_TIMEOUT = 10 * MINUTE  # IF WE SEE A TIMEOUT, THEN WAIT
+WAIT_AFTER_NODE_FAILURE = 10 * MINUTE   # IF WE SEE A NODE FAILURE OR CLUSTER FAILURE, THEN WAIT
+WAIT_AFTER_CACHE_MISS = 30 * SECOND  # HOW LONG TO WAIT BETWEEN CACHE MISSES
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
 DAEMON_RECENT_HG_PULL = 2 * SECOND  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
@@ -106,6 +108,8 @@ class HgMozillaOrg(object):
             self.es = None
             return
 
+        self.last_cache_miss = Date.now()
+
         set_default(repo, {"schema": revision_schema})
         self.es = elasticsearch.Cluster(kwargs=repo).get_or_create_index(kwargs=repo)
 
@@ -148,7 +152,7 @@ class HgMozillaOrg(object):
                             # ALSO INTERESTED AND PERFORMING THE SAME SCAN. THIS DELAY
                             # WILL HAVE SMALL EFFECT ON THE MAJORITY OF SMALL PUSHES
                             # https://bugzilla.mozilla.org/show_bug.cgi?id=1417720
-                            Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds).wait()
+                            Till(seconds=Random.float(DAEMON_HG_INTERVAL).seconds*2).wait()
 
                     except Exception as e:
                         Log.warning(
@@ -191,6 +195,13 @@ class HgMozillaOrg(object):
                 self.todo.add((output.branch, listwrap(output.children)))
             if output.push.date:
                 return output
+
+        # RATE LIMIT CALLS TO HG (CACHE MISSES)
+        next_cache_miss = self.last_cache_miss + (Random.float(WAIT_AFTER_CACHE_MISS.seconds * 2) * SECOND)
+        self.last_cache_miss = Date.now()
+        if next_cache_miss > self.last_cache_miss:
+            Log.note("delaying next hg call for {{seconds|round(decimal=1)}} seconds", seconds=next_cache_miss - self.last_cache_miss)
+            Till(till=next_cache_miss.unix).wait()
 
         found_revision = copy(revision)
         if isinstance(found_revision.branch, (text_type, binary_type)):
@@ -249,7 +260,7 @@ class HgMozillaOrg(object):
                         {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                     ]}
                 }},
-                "size": 2000
+                "size": 20
             }
         else:
             query = {
@@ -259,34 +270,39 @@ class HgMozillaOrg(object):
                     {"term": {"branch.locale": coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)}},
                     {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}}
                 ]}},
-                "size": 2000
+                "size": 20
             }
 
         for attempt in range(3):
             try:
                 with self.es_locker:
                     docs = self.es.search(query).hits.hits
-                break
+                best = docs[0]._source
+                if len(docs) > 1:
+                    for d in docs:
+                        if d._id.endswith(d._source.branch.locale):
+                            best = d._source
+                    Log.warning("expecting no more than one document")
+                return best
             except Exception as e:
                 e = Except.wrap(e)
                 if "NodeNotConnectedException" in e:
                     # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    (Till(seconds=Random.int(5 * 60))).wait()
+                    Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
                     continue
                 elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
                     (Till(seconds=Random.int(30))).wait()
+                    continue
+                elif "NewConnectionError" in e:
+                    # WE LOST THE CLUSTER, THIS MAY TAKE A WHILE
+                    Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
                     continue
                 else:
                     Log.warning("Bad ES call, fall back to HG", cause=e)
                     return None
 
-        best = docs[0]._source
-        if len(docs) > 1:
-            for d in docs:
-                if d._id.endswith(d._source.branch.locale):
-                    best = d._source
-            Log.warning("expecting no more than one document")
-        return best
+        return None
+
 
     @cache(duration=HOUR, lock=True)
     def _get_raw_json_info(self, url, branch):

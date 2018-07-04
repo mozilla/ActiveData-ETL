@@ -136,8 +136,10 @@ class TuidClient(object):
 
             except Exception as e:
                 self.num_bad_requests += 1
-                Till(seconds=SLEEP_ON_ERROR).wait()
-                if self.enabled and self.num_bad_requests >= 3:
-                    self.enabled = False
-                    Log.error("TUID service has problems.", cause=e)
+                if self.enabled:
+                    if self.num_bad_requests >= 3:
+                        self.enabled = False
+                        Log.error("TUID service has problems.", cause=e)
+                    else:
+                        Log.warning("TUID service has problems.", cause=e)
                 return found
