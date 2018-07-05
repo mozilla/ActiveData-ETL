@@ -188,6 +188,7 @@ TEST_OPTIONS = {
         "aarch64",
         "asan",
         "gradle",
+        "lto",
         "mingw32",
         "ming32",
         "msvc",
