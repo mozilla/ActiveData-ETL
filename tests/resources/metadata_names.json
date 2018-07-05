@@ -84,6 +84,13 @@
             "type": ["opt"]
         }
     },
+    "build-android-test-ccov/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["debug", "ccov"]
+        }
+    },
     "build-android-test/opt": {
         "action": {"type": "build"},
         "build": {

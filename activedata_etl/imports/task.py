@@ -336,6 +336,7 @@ BUILD_OPTIONS = {
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
+    "test-ccov": {"build": {"type": ["ccov"]}},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {}
