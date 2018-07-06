@@ -277,6 +277,8 @@ class HgMozillaOrg(object):
             try:
                 with self.es_locker:
                     docs = self.es.search(query).hits.hits
+                if len(docs) == 0:
+                    return None
                 best = docs[0]._source
                 if len(docs) > 1:
                     for d in docs:
@@ -286,21 +288,15 @@ class HgMozillaOrg(object):
                 return best
             except Exception as e:
                 e = Except.wrap(e)
-                if "NodeNotConnectedException" in e:
-                    # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
-                    continue
-                elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
+                if "EsRejectedExecutionException[rejected execution (queue capacity" in e:
                     (Till(seconds=Random.int(30))).wait()
                     continue
-                elif "NewConnectionError" in e:
-                    # WE LOST THE CLUSTER, THIS MAY TAKE A WHILE
+                else:
+                    Log.warning("Bad ES call, waiting for {{num}} seconds", num=WAIT_AFTER_NODE_FAILURE.seconds, cause=e)
                     Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
                     continue
-                else:
-                    Log.warning("Bad ES call, fall back to HG", cause=e)
-                    return None
 
+        Log.warning("ES did not deliver, fall back to HG")
         return None
 
 
