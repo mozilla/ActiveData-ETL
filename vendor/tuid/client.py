@@ -23,6 +23,7 @@ from pyLibrary.sql.sqlite import Sqlite, quote_value
 
 DEBUG = True
 SLEEP_ON_ERROR = 30
+MAX_BAD_REQUESTS = 3
 
 class TuidClient(object):
 
@@ -137,9 +138,13 @@ class TuidClient(object):
             except Exception as e:
                 self.num_bad_requests += 1
                 if self.enabled:
-                    if self.num_bad_requests >= 3:
+                    if "502 Bad Gateway" in e:
+                        self.enabled = False
+                        Log.error("TUID service has problems.", cause=e)
+                    elif self.num_bad_requests >= MAX_BAD_REQUESTS:
                         self.enabled = False
                         Log.error("TUID service has problems.", cause=e)
                     else:
                         Log.warning("TUID service has problems.", cause=e)
+                        Till(seconds=SLEEP_ON_ERROR).wait()
                 return found
