@@ -300,7 +300,7 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
 
     if source.name.startswith("active-data-codecoverage"):
         d = json2value(line)
-        if d.source.file.total_covered > 0:
+        if d.source.file.total_uncovered + d.source.file.total_covered < 20000:
             return {"id": etl2key(d.etl), "json": line}, False
         else:
             return None, False
