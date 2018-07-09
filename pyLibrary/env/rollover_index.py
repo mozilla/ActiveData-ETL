@@ -298,13 +298,6 @@ def fix(rownum, line, source, sample_only_filter, sample_size):
         if changed:
             line = value2json(d)
 
-    if source.name.startswith("active-data-codecoverage"):
-        d = json2value(line)
-        if d.source.file.total_uncovered + d.source.file.total_covered < 20000:
-            return {"id": etl2key(d.etl), "json": line}, False
-        else:
-            return None, False
-
     if rownum == 0:
         value = json2value(line)
         if len(line) > MAX_RECORD_LENGTH:
