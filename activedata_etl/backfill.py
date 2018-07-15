@@ -98,7 +98,7 @@ def get_all_in_es(esq, in_range, es_filter, field):
             range_filter.append({"lt": {field: in_range.max}})
 
     result = esq.query({
-        "from": "task",
+        "from": esq.es.settings.alias,
         "edges": {"name": "value", "value": field},
         "where": {"and": [es_filter] + range_filter},
         "limit": 100000,
