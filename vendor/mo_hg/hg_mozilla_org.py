@@ -425,11 +425,10 @@ class HgMozillaOrg(object):
                 self.es.add({"id": _id, "value": rev})
         except Exception as e:
             e = Except.wrap(e)
+            Log.warning("Did not save to ES, waiting {{duration}}", duration=WAIT_AFTER_NODE_FAILURE, cause=e)
+            Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
             if "FORBIDDEN/12/index read-only" in e:
-                Log.warning("Did not save to ES, waiting {{duration}}", duration=WAIT_AFTER_NODE_FAILURE, cause=e)
-                Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
-            else:
-                Log.warning("Did not save to ES", cause=e)
+                pass  # KNOWN FAILURE MODE
 
         return rev
 
