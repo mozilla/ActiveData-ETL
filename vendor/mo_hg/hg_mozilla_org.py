@@ -424,7 +424,10 @@ class HgMozillaOrg(object):
             with self.es_locker:
                 self.es.add({"id": _id, "value": rev})
         except Exception as e:
+            e = Except.wrap(e)
             Log.warning("did not save to ES", cause=e)
+            if "FORBIDDEN/12/index read-only" in e:
+                Till(seconds=WAIT_AFTER_NODE_FAILURE).wait()
 
         return rev
 
