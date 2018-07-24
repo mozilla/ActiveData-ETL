@@ -229,6 +229,8 @@ TEST_SUITE = {
         "raptor-chrome-tp6",
         "raptor-firefox-speedometer",
         "raptor-firefox-tp6",
+        "raptor-firefox-unity-webgl",
+        "raptor-firefox-webaudio",
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
         "geckoview",

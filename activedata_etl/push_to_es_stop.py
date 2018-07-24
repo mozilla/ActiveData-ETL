@@ -55,6 +55,7 @@ def _start_indexer():
         # sudo("supervisorctl start es")
         sudo("supervisorctl start push_to_es:00")
 
+
 def _restart_es():
     global restart_es_count
     if not restart_es_count:
