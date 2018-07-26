@@ -28,8 +28,7 @@ from pyLibrary.env.git import get_remote_revision
 def diff(settings, please_stop=None):
     if not settings.elasticsearch.id_field:
         Log.error("Expecting an `id_field` property")
-    if settings.range.min == None:
-        settings.range.min = coalesce(settings.start, 0)
+    settings.range.min = coalesce(settings.range.min, settings.start, 0)
 
     # SHOULD WE PUSH?
     work_queue = aws.Queue(kwargs=settings.work_queue)
