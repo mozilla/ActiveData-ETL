@@ -471,6 +471,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-speedometer-chrome",
     "raptor-stylebench-firefox",
     "raptor-stylebench-chrome",
+    "raptor-sunspider-firefox",
+    "raptor-sunspider-chrome",
     "raptor-webaudio-firefox",
     "raptor-webaudio-chrome",
     "rasterflood_gradient",

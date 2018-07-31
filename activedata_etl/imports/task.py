@@ -284,6 +284,8 @@ TEST_SUITE = {
         "raptor-stylebench-firefox",
         "raptor-speedometer-firefox",
         "raptor-speedometer-chrome",
+        "raptor-sunspider-chrome",
+        "raptor-sunspider-firefox",
         "raptor-tp6-chrome",
         "raptor-tp6-firefox",
         "raptor-unity-webgl-chrome",
