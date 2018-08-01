@@ -271,6 +271,8 @@ TEST_SUITE = {
         "raptor-firefox-unity-webgl",
         "raptor-firefox-webaudio",
 
+        "raptor-gdocs-chrome",
+        "raptor-gdocs-firefox",
         "raptor-motionmark-animometer-chrome",
         "raptor-motionmark-animometer-firefox",
         "raptor-motionmark-htmlsuite-chrome",
