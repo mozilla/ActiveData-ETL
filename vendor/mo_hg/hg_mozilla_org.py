@@ -373,7 +373,11 @@ class HgMozillaOrg(object):
     def _normalize_revision(self, r, found_revision, push, get_diff, get_moves):
         new_names = set(r.keys()) - KNOWN_TAGS
         if new_names and not r.tags:
-            Log.warning("hg is returning new property names ({{names}})", names=new_names)
+            Log.warning(
+                "hg is returning new property names {{names|quote}} for {{changeset}}",
+                names=new_names,
+                changeset=r.node
+            )
 
         changeset = Changeset(
             id=r.node,
