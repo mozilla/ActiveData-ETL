@@ -491,6 +491,7 @@ KNOWN_PERFHERDER_TESTS = [
     "Strings",
     "stylebench",
     "Stylo",
+    "sunspider",
     "svgr-disabled",
     "svgr",
     "tabpaint",
