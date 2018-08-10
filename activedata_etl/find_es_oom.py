@@ -10,14 +10,14 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from boto import ec2 as boto_ec2
-from fabric.operations import get, sudo
+from fabric.operations import get, sudo, put
 from fabric.state import env
 from pyLibrary.env import http
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce
 from mo_dots.objects import datawrap
-from mo_files import File, TempDirectory
+from mo_files import File, TempDirectory, TempFile
 from mo_logs import Log, strings, startup, constants
 from mo_times import Date, HOUR, DAY, MINUTE
 from mo_times.durations import SECOND, ZERO
@@ -126,7 +126,6 @@ def main():
 
         for i in instances:
 
-
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
@@ -134,11 +133,23 @@ def main():
             try:
                 Log.note("Look for OOM {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _config_fabric(settings.fabric, i)
+
                 if i.private_ip_address not in known_nodes.ip:
-                    Log.note("Stopping everything on node because not visible to cluster: {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-                    sudo("supervisorctl stop all")
+                    Log.note("Restarting ES on node because not visible to cluster: {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
+
+                    ES_CONFIG_FILE = "/usr/local/elasticsearch/config/elasticsearch.yml"
+                    MASTER_NODE = "172.31.0.196"
+                    with TempFile() as temp:
+                        get(ES_CONFIG_FILE, temp)
+                        content = temp.read()
+                        # CONVERT FROM ec2 DISCOVERY TO unicast
+                        new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
+                        temp.write(new_content)
+                        put(temp.abspath, ES_CONFIG_FILE)
+
+                    sudo("supervisorctl restart es")
                 else:
-                    # _find_oom(i)
+                    _find_oom(i)
                     pass
             except Exception as e:
                 Log.warning(
