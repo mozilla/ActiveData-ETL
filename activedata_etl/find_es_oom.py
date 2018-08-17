@@ -140,7 +140,7 @@ def main():
                     ES_CONFIG_FILE = "/usr/local/elasticsearch/config/elasticsearch.yml"
                     MASTER_NODE = "172.31.0.196"
                     with TempFile() as temp:
-                        get(ES_CONFIG_FILE, temp)
+                        get(ES_CONFIG_FILE, temp.abspath)
                         content = temp.read()
                         # CONVERT FROM ec2 DISCOVERY TO unicast
                         new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
