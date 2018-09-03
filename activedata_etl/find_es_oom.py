@@ -12,6 +12,8 @@ from __future__ import unicode_literals
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo, put
 from fabric.state import env
+from mo_future import text_type
+
 from pyLibrary.env import http
 
 from mo_collections import UniqueIndex
@@ -57,7 +59,9 @@ def _config_fabric(connect, instance):
     for k, v in connect.items():
         env[k] = v
     env.host_string = instance.ip_address
-    env.abort_exception = Log.error
+    def new_error(template, *args, **kwargs):
+        Log.error(text_type(template), *args, **kwargs)
+    env.abort_exception = new_error
 
 
 def _find_oom(instance):
@@ -143,6 +147,7 @@ def main():
                         get(ES_CONFIG_FILE, temp.abspath)
                         content = temp.read()
                         # CONVERT FROM ec2 DISCOVERY TO unicast
+                        # discovery.zen.ping.unicast.hosts: 172.31.0.196
                         new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
                         temp.write(new_content)
                         put(temp.abspath, ES_CONFIG_FILE)
@@ -150,7 +155,7 @@ def main():
                     sudo("supervisorctl restart es")
                 else:
                     _find_oom(i)
-                    pass
+                    # pass
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
