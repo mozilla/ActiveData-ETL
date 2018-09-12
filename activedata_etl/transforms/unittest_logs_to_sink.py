@@ -194,6 +194,13 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                     elif log.test.startswith(("http://")):
                         # http://localhost:49391/1525812148499/12/752340.html
                         log.test = log.test.split("/")[-1]
+                    elif log.test.startswith(("http://")):
+                        # http://localhost:49391/1525812148499/12/752340.html
+                        log.test = log.test.split("/")[-1]
+                    elif log.test[-15:-10].startswith("test_"):
+                        # dom/canvas/test/reftest/filters/strokeText-with-shadow-1.html != file:///C:/Users/task_1536307940
+                        lhs, rhs = log.test.split(" == ")
+                        log.test = lhs
                     else:
                         Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
                 except Exception as e:
