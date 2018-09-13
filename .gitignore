@@ -16,3 +16,4 @@ log.txt
 /vendor/pyLibrary/vendor/sqlite
 *.sqlite
 /*.tab
+/result/output.txt

@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
-from mo_dots import Null
+from mo_dots import Null, Data
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.env import http
 from tests import Destination
@@ -29,7 +29,7 @@ class TestUnittestETL(FuzzyTestCase):
         process_unittest(
             source_key=Null,
             etl_header=Null,
-            buildbot_summary=Null,
+            buildbot_summary=Data(run={"suite": {"name": "reftest"}}),
             unittest_log=response.get_all_lines(),
             destination=Destination("result/output.txt"),
             please_stop=None
