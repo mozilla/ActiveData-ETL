@@ -17079,6 +17079,28 @@
             "type": ["chunked"]
         }
     },
+    "test-linux64-qr/opt-raptor-wasm-misc-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-misc-firefox"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-qr/opt-raptor-wasm-misc-ion-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-misc-ion-firefox"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux64-qr/opt-reftest-1": {
         "action": {"type": "test"},
         "build": {
@@ -21857,6 +21879,28 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mozmill"}
+        }
+    },
+    "test-linux64/opt-raptor-wasm-misc-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-misc-firefox"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-misc-ion-firefox"},
+            "type": ["e10s"]
         }
     },
     "test-linux64/opt-reftest-1": {
