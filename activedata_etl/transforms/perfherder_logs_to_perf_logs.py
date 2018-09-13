@@ -390,6 +390,7 @@ KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_em
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
+    "ares6-sm",
     "ARES6",
     "a11yr",
     "avcodec section sizes",
@@ -446,6 +447,7 @@ KNOWN_PERFHERDER_TESTS = [
     "motionmark_htmlsuite",
     "motionmark, transformed",
     "motionmark",
+    "octane-sm",
     "other_nol64",
     "other_l64",
     "other",
@@ -510,7 +512,7 @@ KNOWN_PERFHERDER_TESTS = [
     "Stylo",
     "sunspider",
     "sunspider-sm",  # sm = spidermonkey
-    "sunspider-v8",  # sm = spidermonkey
+    "sunspider-v8", 
     "svgr-disabled",
     "svgr",
     "tabpaint",
