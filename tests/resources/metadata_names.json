@@ -316,6 +316,14 @@
             "type": ["opt"]
         }
     },
+    "build-win64-mingwclang/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "compiler": ["clang"],
+            "platform": "win64",
+            "type": ["debug"]
+        }
+    },
     "build-win64-msvc/debug-upload-symbols": {
         "action": {"type": "build"},
         "build": {
@@ -15420,6 +15428,17 @@
             "type": ["chunked"]
         }
     },
+    "test-linux64-pgo/opt-raptor-assorted-dom-firefox-e10": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "raptor-assorted-dom-firefox"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux64-pgo/opt-raptor-chrome-speedometer-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -19728,8 +19747,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest"},
-            "type": ["gpu", "e10s"]
+            "suite": {"name": "mochitest-gpu"},
+            "type": ["e10s"]
         }
     },
     "test-linux64/debug-mochitest-jetpack": {

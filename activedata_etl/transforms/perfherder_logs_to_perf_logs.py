@@ -487,6 +487,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-tp6-google-chrome",
     "raptor-tp6-youtube-firefox",
     "raptor-tp6-youtube-chrome",
+    "raptor-wasm-misc-ion-firefox",
+    "raptor-wasm-misc-ion-chrome",
     "raptor-webaudio-firefox",
     "raptor-webaudio-chrome",
     "rasterflood_gradient",
@@ -500,12 +502,15 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_no_auto_restore",
     "sessionrestore",
     "six-speed",
+    "six-speed-sm",
     "sparse_update_config",  # VCS
     "speedometer",
     "Strings",
     "stylebench",
     "Stylo",
     "sunspider",
+    "sunspider-sm",  # sm = spidermonkey
+    "sunspider-v8",  # sm = spidermonkey
     "svgr-disabled",
     "svgr",
     "tabpaint",

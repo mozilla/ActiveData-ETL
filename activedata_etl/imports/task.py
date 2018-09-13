@@ -204,6 +204,7 @@ RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["e10s"]}},
+    "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "stylo": {"build": {"type": ["stylo"]}},
@@ -252,6 +253,7 @@ TEST_SUITE = {
         "mochitest-webgl2-ext",
         "mochitest-webgl",
         "mozmill",
+        "raptor-assorted-dom-firefox",
         "raptor-chrome-motionmark-animometer",
         "raptor-chrome-motionmark-htmlsuite",
         "raptor-chrome-motionmark",
@@ -357,6 +359,7 @@ BUILD_OPTIONS = {
     "lint": {},
     "lto": {"build": {"type": ["lto"]}},  # LINK TIME OPTIMIZATION
     "mingw32": {},
+    "mingwclang": {"build": {"compiler": ["clang"]}},
     "msvc": {},
     "noopt": {},
     "nightly": {},
