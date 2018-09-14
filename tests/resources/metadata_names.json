@@ -120,6 +120,13 @@
             "type": ["opt"]
         }
     },
+    "build-android-x86_64/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
     "build-linux-rusttests/debug": {
         "action": {"type": "build"},
         "build": {
@@ -2935,6 +2942,14 @@
             "suite": {"name": "mochitest"}
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "raptor-speedometer-geckoview"}}
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {
         "action": {"type": "test"},
         "build": {
@@ -2946,6 +2961,14 @@
             "suite": {"name": "mochitest-webgl"},
             "type": ["chunked"]
         }
+    },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "raptor-speedometer-geckoview"}}
     },
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
         "action": {"type": "test"},
@@ -21879,6 +21902,17 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mozmill"}
+        }
+    },
+    "test-linux64/opt-raptor-wasm-misc-baseline-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-misc-baseline-firefox"},
+            "type": ["e10s"]
         }
     },
     "test-linux64/opt-raptor-wasm-misc-firefox-e10s": {
