@@ -461,6 +461,8 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_facebook",
     "quantum_pageload_google",
     "quantum_pageload_youtube",
+    "raptor-assorted-dom-firefox",
+    "raptor-assorted-dom-chrome",
     "raptor-firefox-tp6-amazon",
     "raptor-firefox-tp6-facebook",
     "raptor-firefox-tp6-google",
@@ -475,6 +477,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-motionmark-animometer-chrome",
     "raptor-motionmark-htmlsuite-firefox",
     "raptor-motionmark-htmlsuite-chrome",
+    "raptor-unity-webgl-firefox",
+    "raptor-unity-webgl-chrome",
     "raptor-speedometer-firefox",
     "raptor-speedometer-chrome",
     "raptor-stylebench-firefox",
@@ -489,6 +493,9 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-tp6-google-chrome",
     "raptor-tp6-youtube-firefox",
     "raptor-tp6-youtube-chrome",
+    "raptor-wasm-misc-baseline-firefox",
+    "raptor-wasm-misc-chrome"
+    "raptor-wasm-misc-firefox"
     "raptor-wasm-misc-ion-firefox",
     "raptor-wasm-misc-ion-chrome",
     "raptor-webaudio-firefox",
@@ -512,7 +519,7 @@ KNOWN_PERFHERDER_TESTS = [
     "Stylo",
     "sunspider",
     "sunspider-sm",  # sm = spidermonkey
-    "sunspider-v8", 
+    "sunspider-v8",
     "svgr-disabled",
     "svgr",
     "tabpaint",
@@ -554,6 +561,8 @@ KNOWN_PERFHERDER_TESTS = [
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
+    "web-tooling-benchmark-sm",
+    "web-tooling-benchmark-v8",
     "xperf",
     "XUL section sizes"
 ]
