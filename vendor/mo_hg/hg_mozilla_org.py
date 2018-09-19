@@ -374,9 +374,10 @@ class HgMozillaOrg(object):
         new_names = set(r.keys()) - KNOWN_TAGS
         if new_names and not r.tags:
             Log.warning(
-                "hg is returning new property names {{names|quote}} for {{changeset}}",
+                "hg is returning new property names {{names|quote}} for {{changeset}} from {{url}}",
                 names=new_names,
-                changeset=r.node
+                changeset=r.node,
+                url=found_revision.branch.url
             )
 
         changeset = Changeset(
