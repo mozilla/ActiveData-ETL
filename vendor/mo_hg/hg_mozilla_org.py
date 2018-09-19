@@ -200,7 +200,7 @@ class HgMozillaOrg(object):
         next_cache_miss = self.last_cache_miss + (Random.float(WAIT_AFTER_CACHE_MISS.seconds * 2) * SECOND)
         self.last_cache_miss = Date.now()
         if next_cache_miss > self.last_cache_miss:
-            Log.note("delaying next hg call for {{seconds|round(decimal=1)}} seconds", seconds=next_cache_miss - self.last_cache_miss)
+            Log.note("delaying next hg call for {{seconds|round(decimal=1)}}", seconds=next_cache_miss - self.last_cache_miss)
             Till(till=next_cache_miss.unix).wait()
 
         found_revision = copy(revision)
