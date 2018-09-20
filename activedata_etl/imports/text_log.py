@@ -56,6 +56,7 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
 
     process_head = True
     old_head = False
+    new_head = False
     accumulate_head = []
     action = Data()
     action.timings = []
@@ -150,25 +151,31 @@ def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
             # [taskcluster 2018-03-07T06:28:51.052Z]       "manifest": "https://github.com/mozilla-releng/OpenCloudConfig/blob/137c8c1b0e4b3927f15cf38ee4f9771894818221/userdata/Manifest/gecko-t-win10-64.json"
             # [taskcluster 2018-03-07T06:28:51.052Z]     }
             # [taskcluster 2018-03-07T06:28:51.052Z]   }
+            # [taskcluster 2018-05-14T19:35:39.375Z] Task ID: Yl5tnpaBQTGjduaj76r2PQ
             # [taskcluster 2018-03-07T06:28:51.052Z] === Task Starting ===
             #
             if curr_line.startswith("=== Task Starting ==="):
                 process_head = False
                 try:
-                    if not old_head:
+                    if new_head or not old_head:
+                        if accumulate_head[-1].startswith("Task ID:"):
+                            accumulate_head = accumulate_head[:-1]
                         if accumulate_head[0].endswith(" settings:"):
-                            set_default(task_record, {"run": json2value("".join(accumulate_head[1:]))})
-                            accumulate_head = None
-                            continue
-                        else:
-                            Log.warning("expecting JSON header at (url={{url}})", url=from_url)
+                            accumulate_head = accumulate_head[1:]
+                        set_default(task_record, {"run": json2value("".join(accumulate_head))})
+                        accumulate_head = None
+                        continue
                 except Exception as e:
-                    Log.warning("expecting JSON header at (url={{url}})", url=from_url, cause=e)
+                    Log.warning("Expecting JSON header at url={{url}}", url=from_url, cause=e)
             else:
                 accumulate_head.append(curr_line)
             try:
                 key, value = map(strings.trim, curr_line.split(": "))
-                if key == "Task ID":
+                if key.startswith('"'):
+                    # LOOKS LIKE JSON
+                    new_head = True
+                    pass
+                elif key == "Task ID":
                     old_head = True
                     if value != task_record.task.id:
                         Log.error("Task in log not matching task details")

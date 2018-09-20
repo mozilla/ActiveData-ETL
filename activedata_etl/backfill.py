@@ -28,8 +28,7 @@ from pyLibrary.env.git import get_remote_revision
 def diff(settings, please_stop=None):
     if not settings.elasticsearch.id_field:
         Log.error("Expecting an `id_field` property")
-    if settings.range.min == None:
-        settings.range.min = coalesce(settings.start, 0)
+    settings.range.min = coalesce(settings.range.min, settings.start, 0)
 
     # SHOULD WE PUSH?
     work_queue = aws.Queue(kwargs=settings.work_queue)
@@ -98,7 +97,7 @@ def get_all_in_es(esq, in_range, es_filter, field):
             range_filter.append({"lt": {field: in_range.max}})
 
     result = esq.query({
-        "from": "task",
+        "from": esq.es.settings.alias,
         "edges": {"name": "value", "value": field},
         "where": {"and": [es_filter] + range_filter},
         "limit": 100000,

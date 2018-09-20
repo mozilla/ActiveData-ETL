@@ -169,7 +169,9 @@ def read_actions(source_key, normalized, url):
         normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
-        if "Read timed out" in e:
+        if "'Connection aborted.', BadStatusLine" in e:
+            Log.error(TRY_AGAIN_LATER, reason="broken connection")
+        elif "Read timed out" in e:
             Log.error(TRY_AGAIN_LATER, reason="read timeout")
         elif "Failed to establish a new connection" in e:
             Log.error(TRY_AGAIN_LATER, reason="could not connect")

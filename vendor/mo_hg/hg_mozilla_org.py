@@ -200,7 +200,7 @@ class HgMozillaOrg(object):
         next_cache_miss = self.last_cache_miss + (Random.float(WAIT_AFTER_CACHE_MISS.seconds * 2) * SECOND)
         self.last_cache_miss = Date.now()
         if next_cache_miss > self.last_cache_miss:
-            Log.note("delaying next hg call for {{seconds|round(decimal=1)}} seconds", seconds=next_cache_miss - self.last_cache_miss)
+            Log.note("delaying next hg call for {{seconds|round(decimal=1)}}", seconds=next_cache_miss - self.last_cache_miss)
             Till(till=next_cache_miss.unix).wait()
 
         found_revision = copy(revision)
@@ -277,6 +277,8 @@ class HgMozillaOrg(object):
             try:
                 with self.es_locker:
                     docs = self.es.search(query).hits.hits
+                if len(docs) == 0:
+                    return None
                 best = docs[0]._source
                 if len(docs) > 1:
                     for d in docs:
@@ -286,21 +288,15 @@ class HgMozillaOrg(object):
                 return best
             except Exception as e:
                 e = Except.wrap(e)
-                if "NodeNotConnectedException" in e:
-                    # WE LOST A NODE, THIS MAY TAKE A WHILE
-                    Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
-                    continue
-                elif "EsRejectedExecutionException[rejected execution (queue capacity" in e:
+                if "EsRejectedExecutionException[rejected execution (queue capacity" in e:
                     (Till(seconds=Random.int(30))).wait()
                     continue
-                elif "NewConnectionError" in e:
-                    # WE LOST THE CLUSTER, THIS MAY TAKE A WHILE
+                else:
+                    Log.warning("Bad ES call, waiting for {{num}} seconds", num=WAIT_AFTER_NODE_FAILURE.seconds, cause=e)
                     Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
                     continue
-                else:
-                    Log.warning("Bad ES call, fall back to HG", cause=e)
-                    return None
 
+        Log.warning("ES did not deliver, fall back to HG")
         return None
 
 
@@ -377,7 +373,12 @@ class HgMozillaOrg(object):
     def _normalize_revision(self, r, found_revision, push, get_diff, get_moves):
         new_names = set(r.keys()) - KNOWN_TAGS
         if new_names and not r.tags:
-            Log.warning("hg is returning new property names ({{names}})", names=new_names)
+            Log.warning(
+                "hg is returning new property names {{names|quote}} for {{changeset}} from {{url}}",
+                names=new_names,
+                changeset=r.node,
+                url=found_revision.branch.url
+            )
 
         changeset = Changeset(
             id=r.node,
@@ -398,6 +399,7 @@ class HgMozillaOrg(object):
             push=push,
             phase=r.phase,
             bookmarks=unwraplist(r.bookmarks),
+            landingsystem=r.landingsystem,
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
 
@@ -414,6 +416,7 @@ class HgMozillaOrg(object):
         r.parents = None
         r.children = None
         r.bookmarks = None
+        r.landingsystem = None
 
         set_default(rev, r)
 
@@ -428,7 +431,11 @@ class HgMozillaOrg(object):
             with self.es_locker:
                 self.es.add({"id": _id, "value": rev})
         except Exception as e:
-            Log.warning("did not save to ES", cause=e)
+            e = Except.wrap(e)
+            Log.warning("Did not save to ES, waiting {{duration}}", duration=WAIT_AFTER_NODE_FAILURE, cause=e)
+            Till(seconds=WAIT_AFTER_NODE_FAILURE.seconds).wait()
+            if "FORBIDDEN/12/index read-only" in e:
+                pass  # KNOWN FAILURE MODE
 
         return rev
 
@@ -720,5 +727,6 @@ KNOWN_TAGS = {
     "pushdate",
     "pushid",
     "phase",
-    "bookmarks"
+    "bookmarks",
+    "landingsystem"
 }

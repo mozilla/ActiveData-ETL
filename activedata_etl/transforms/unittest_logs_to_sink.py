@@ -164,6 +164,13 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                             for s in sides
                         ]
                         log.test = " == ".join(sides)
+                    elif " != " in log.test and "/build/tests/reftest/tests/" in log.test:
+                        sides = log.test.split(" != ")
+                        sides = [
+                            s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
+                            for s in sides
+                        ]
+                        log.test = " != ".join(sides)
                     elif " == " in log.test and ":8854/tests/" in log.test:
                         # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
                         lhs, rhs = log.test.split(" == ")
@@ -194,8 +201,14 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                     elif log.test.startswith(("http://")):
                         # http://localhost:49391/1525812148499/12/752340.html
                         log.test = log.test.split("/")[-1]
+                    elif log.test.startswith(("http://")):
+                        # http://localhost:49391/1525812148499/12/752340.html
+                        log.test = log.test.split("/")[-1]
                     else:
                         Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
+
+                    if "task_" in log.test:
+                        Log.warning("did not scrub task name from test name: {{name}}", name=log.test)
                 except Exception as e:
                     Log.error("programming error", cause=e)
             try:

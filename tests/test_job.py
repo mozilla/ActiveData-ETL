@@ -32,3 +32,5 @@ class TestJobs(FuzzyTestCase):
         response = http.get(url)
         output = process_text_log(response.all_lines, url)
         Log.note("{{output|json}}", output=output)
+
+
