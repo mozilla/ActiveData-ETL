@@ -391,6 +391,7 @@ KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
     "ares6-sm",
+    "ares6-v8",
     "ARES6",
     "a11yr",
     "avcodec section sizes",
@@ -511,6 +512,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_no_auto_restore",
     "sessionrestore",
     "six-speed-sm",
+    "six-speed-v8",
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",

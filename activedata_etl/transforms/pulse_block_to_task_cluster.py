@@ -169,7 +169,9 @@ def read_actions(source_key, normalized, url):
         normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
-        if "'Connection aborted.', BadStatusLine" in e:
+        if "Connection broken: error(104," in e:
+            Log.error(TRY_AGAIN_LATER, reason="broken connection")
+        elif "'Connection aborted.', BadStatusLine" in e:
             Log.error(TRY_AGAIN_LATER, reason="broken connection")
         elif "Read timed out" in e:
             Log.error(TRY_AGAIN_LATER, reason="read timeout")
@@ -802,6 +804,7 @@ PAYLOAD_PROPERTIES = {
     "deadline",
     "description",
     "desiredResolution",
+    "dont_build",
     "download_domain",
     "dry_run",
     "encryptedEnv",
@@ -839,6 +842,7 @@ PAYLOAD_PROPERTIES = {
     "submission_entries",
     "summary",
     "supersederUrl",
+    "tag_info",
     "template_key",
     "THIS_CHUNK",
     "TOTAL_CHUNKS",
@@ -858,22 +862,15 @@ KNOWN_TAGS = {
     "action.context.taskId",
     "aus-server",
     "archive-prefix",
-    # "build_name",
-    # "build_type",
-    # "build_product",
-    # "build_props.branch",
+
+    "branch-prefix",
     "build_props.build_number",
     "build_props.release_eta",
     "build_props.locales",
     "build_props.mozharness_changeset",
     "build_props.partials",
-    # "build_props.platform",
-    # "build_props.product",
-    # "build_props.revision",
-    # "build_props.version",
 
     "chainOfTrust.inputs.docker-image",
-
 
     "chunks.current",
     "chunks.total",
