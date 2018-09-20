@@ -399,6 +399,7 @@ class HgMozillaOrg(object):
             push=push,
             phase=r.phase,
             bookmarks=unwraplist(r.bookmarks),
+            landingsystem=r.landingsystem,
             etl={"timestamp": Date.now().unix, "machine": machine_metadata}
         )
 
@@ -415,6 +416,7 @@ class HgMozillaOrg(object):
         r.parents = None
         r.children = None
         r.bookmarks = None
+        r.landingsystem = None
 
         set_default(rev, r)
 
@@ -725,5 +727,6 @@ KNOWN_TAGS = {
     "pushdate",
     "pushid",
     "phase",
-    "bookmarks"
+    "bookmarks",
+    "landingsystem"
 }
