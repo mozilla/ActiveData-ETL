@@ -334,6 +334,7 @@ BUILD_PLATFORM = {
     "android-x86_64": {"build": {"platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
+    "android-test-ccov": {"build": {"platform": "android", "type": ["ccov"]}, "run": {"suite": {"name": "android-test", "fullname": "android-test"}}},
     "android": {"build": {"platform": "android"}},
     "linux": {"build": {"platform": "linux"}},
     "linux64": {"build": {"platform": "linux64"}},
@@ -377,7 +378,6 @@ BUILD_OPTIONS = {
     "rusttests": {"build": {"type": ["rusttests"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
-    "test-ccov": {"build": {"type": ["ccov"]}},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {}

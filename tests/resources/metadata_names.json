@@ -89,7 +89,11 @@
         "build": {
             "platform": "android",
             "type": ["debug", "ccov"]
-        }
+        },
+        "run": {"suite": {
+                "fullname": "android-test",
+                "name": "android-test"
+            }}
     },
     "build-android-test/opt": {
         "action": {"type": "build"},
