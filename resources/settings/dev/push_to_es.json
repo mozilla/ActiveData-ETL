@@ -21,7 +21,7 @@
 				"port": 9200,
 				"index": "firefox-files",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "files",
 				"timeout": 300,
 				"consistency": "one",
@@ -57,7 +57,7 @@
 				"port": 9200,
 				"index": "fx-test",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "test_result",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -89,7 +89,7 @@
 				"port": 9200,
 				"index": "treeherder",
 				"id": "job.id",
-				"tjson": true,
+				"typed": true,
 				"type": "th_job",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -122,7 +122,7 @@
 				"port": 9200,
 				"index": "unittest",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "test_result",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -153,7 +153,7 @@
 				"port": 9200,
 				"index": "perf",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "perf_result",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -183,7 +183,7 @@
 				"port": 9200,
 				"index": "jobs",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "job",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -215,7 +215,7 @@
 				"port": 9200,
 				"index": "coverage",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "code_coverage",
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
@@ -246,7 +246,7 @@
 				"port": 9200,
 				"index": "task",
 				"id": "_id",
-				"tjson": true,
+				"typed": true,
 				"type": "task",
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
