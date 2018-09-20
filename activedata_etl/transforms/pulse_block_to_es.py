@@ -18,8 +18,7 @@ from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.revisions import Revision
 from mo_json import json2value
 from mo_logs import Log, strings
-from mo_threads.profiles import Profiler
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import git
 
 DEBUG = True
 bb = BuildbotTranslator()
@@ -41,21 +40,20 @@ def process(source_key, source, destination, resources, please_stop=None):
             if not pulse_record:
                 continue
 
-            with Profiler("transform_buildbot"):
-                record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
-                key = pulse_record._meta.routing_key
-                key_path = key.split(".")
-                pulse_id = ".".join(key_path[:-1])
-                pulse_action = key_path[-1]
+            record = transform_buildbot(source_key, pulse_record.payload, resources=resources)
+            key = pulse_record._meta.routing_key
+            key_path = key.split(".")
+            pulse_id = ".".join(key_path[:-1])
+            pulse_action = key_path[-1]
 
-                record.etl = {
-                    "id": i,
-                    "source": pulse_record.etl,
-                    "type": "join",
-                    "revision": get_git_revision(),
-                    "pulse_key": pulse_id,
-                    "pulse_action": pulse_action
-                }
+            record.etl = {
+                "id": i,
+                "source": pulse_record.etl,
+                "type": "join",
+                "revision": git.get_revision(),
+                "pulse_key": pulse_id,
+                "pulse_action": pulse_action
+            }
             key = etl2key(record.etl)
             keys.append(key)
             records.append({"id": key, "value": record})

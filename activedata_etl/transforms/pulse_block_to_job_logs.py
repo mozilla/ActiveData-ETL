@@ -10,16 +10,14 @@
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key, key2etl
-from mo_dots import Data, wrap, coalesce
-from mo_logs import Log
-
 from activedata_etl.imports.text_log import process_text_log
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
+from mo_dots import Data, wrap, coalesce
+from mo_logs import Log
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import http, git
 
 DEBUG = False
 
@@ -43,7 +41,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             "id": counter,
             "file": pulse_record.payload.logurl,
             "timestamp": Date.now().unix,
-            "revision": get_git_revision(),
+            "revision": git.get_revision(),
             "source": {
                 "id": 0,
                 "source": pulse_record.etl,
@@ -61,7 +59,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
         data = transform_buildbot(source_key, pulse_record.payload, resources)
         data.etl = etl
-        with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, debug=DEBUG) as timer:
+        with Timer("Read {{url}}", {"url": pulse_record.payload.logurl}, silent=not DEBUG) as timer:
             try:
                 if pulse_record.payload.logurl == None:
                     data.etl.error = "No logurl"

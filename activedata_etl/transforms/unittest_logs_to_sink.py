@@ -22,7 +22,7 @@ from mo_logs.exceptions import Except
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import git
 
 DEBUG = True
 ACCESS_DENIED = "Access Denied to {{url}}"
@@ -77,7 +77,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         "timestamp": Date.now().unix,
         "source": etl_header,
         "type": "join",
-        "revision": get_git_revision(),
+        "revision": git.get_revision(),
         "machine": machine_metadata,
         "duration": timer.duration
     }

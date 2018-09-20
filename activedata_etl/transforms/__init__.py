@@ -129,7 +129,7 @@ def verify_blobber_file(line_number, name, url):
     if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
         return None, 0
 
-    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
+    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, silent=not DEBUG):
         response = http.get(url)
 
         try:

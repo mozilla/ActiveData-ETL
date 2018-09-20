@@ -9,17 +9,15 @@
 from __future__ import unicode_literals
 
 from activedata_etl import etl2key
-from mo_future import text_type
-from mo_dots import Data, wrap, coalesce, Null
-from mo_json import json2value, utf82unicode
-from mo_logs import Log, strings
-
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
+from mo_dots import Data, wrap, coalesce, Null
+from mo_future import text_type
+from mo_json import json2value, utf82unicode
+from mo_logs import Log, strings
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import http, git
 
 DEBUG = False
 
@@ -55,7 +53,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
         etl_file = wrap({
             "id": counter,
             "timestamp": Date.now().unix,
-            "revision": get_git_revision(),
+            "revision": git.get_revision(),
             "source": pulse_record.etl,
             "type": "join"
         })
@@ -85,7 +83,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             }])
             continue
 
-        with Timer("Read {{url}}", {"url": log_url}, debug=DEBUG) as timer:
+        with Timer("Read {{url}}", {"url": log_url}, silent=not DEBUG) as timer:
             try:
                 response = http.get(log_url)
                 if response.status_code == 404:
