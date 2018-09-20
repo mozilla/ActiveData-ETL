@@ -517,9 +517,9 @@ KNOWN_PERFHERDER_TESTS = [
     "Strings",
     "stylebench",
     "Stylo",
-    "sunspider",
     "sunspider-sm",  # sm = spidermonkey
     "sunspider-v8",
+    "sunspider",
     "svgr-disabled",
     "svgr",
     "tabpaint",
