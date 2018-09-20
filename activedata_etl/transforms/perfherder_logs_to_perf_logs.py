@@ -510,8 +510,8 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
-    "six-speed",
     "six-speed-sm",
+    "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
     "Strings",
