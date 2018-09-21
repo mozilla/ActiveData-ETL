@@ -110,11 +110,14 @@ class MainThread(BaseThread):
         BLOCKS UNTIL ALL THREADS HAVE STOPPED
         THEN RUNS sys.exit(0)
         """
-        self.please_stop.go()
+        global DEBUG
 
         self_thread = Thread.current()
         if self_thread != MAIN_THREAD or self_thread != self:
             Log.error("Only the main thread can call stop() on main thread")
+
+        DEBUG = True
+        self.please_stop.go()
 
         join_errors = []
         with self.child_lock:
@@ -382,9 +385,6 @@ def stop_main_thread(*args):
     """
     CLEAN OF ALL THREADS CREATED WITH THIS LIBRARY
     """
-    global DEBUG
-
-    DEBUG = True
     try:
         if len(args) and args[0]:
             Log.warning("exit with {{value}}", value=_describe_exit_codes.get(args[0], args[0]))
