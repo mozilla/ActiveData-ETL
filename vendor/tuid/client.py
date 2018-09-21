@@ -79,8 +79,7 @@ class TuidClient(object):
         with Timer(
             "ask tuid service for {{num}} files at {{revision|left(12)}}",
             {"num": len(files), "revision": revision},
-            debug=DEBUG,
-            silent=not self.enabled
+            silent=not DEBUG or not self.enabled
         ):
             response = self.db.query(
                 "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +

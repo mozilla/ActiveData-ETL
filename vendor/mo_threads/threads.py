@@ -21,8 +21,8 @@ from copy import copy
 from datetime import datetime, timedelta
 from time import sleep
 
-from mo_dots import Data, unwraplist, Null
-from mo_future import get_ident, start_new_thread, interrupt_main, get_function_name, text_type, allocate_lock
+from mo_dots import Data, unwraplist
+from mo_future import get_ident, start_new_thread, get_function_name, text_type, allocate_lock
 from mo_logs import Log, Except
 from mo_threads.lock import Lock
 from mo_threads.profiles import CProfiler, write_profiles
@@ -167,7 +167,9 @@ class MainThread(BaseThread):
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
         if isinstance(please_stop, Signal):
+            # MUTUAL TRIGGERING, SO THEY ARE EFFECTIVELY THE SAME
             self.please_stop.on_go(please_stop.go)
+            please_stop.on_go(self.please_stop.go)
         else:
             please_stop = self.please_stop
 
@@ -403,11 +405,9 @@ _signal.signal(_signal.SIGINT, stop_main_thread)
 
 def _wait_for_exit(please_stop):
     """
-    /dev/null SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
+    /dev/null PIPED TO sys.stdin SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
     """
     cr_count = 0  # COUNT NUMBER OF BLANK LINES
-
-    please_stop.on_go(_interrupt_main_safely)
 
     while not please_stop:
         # if DEBUG:
@@ -441,14 +441,6 @@ def _wait_for_interrupt(please_stop):
             sleep(1)
         except Exception:
             pass
-
-
-def _interrupt_main_safely():
-    try:
-        interrupt_main()
-    except KeyboardInterrupt:
-        # WE COULD BE INTERRUPTING SELF
-        pass
 
 
 MAIN_THREAD = MainThread()
