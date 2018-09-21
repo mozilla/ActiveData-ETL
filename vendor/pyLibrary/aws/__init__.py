@@ -155,7 +155,7 @@ def capture_termination_signal(please_stop):
                     return
                 elif seen_problem:
                     # IGNORE THE FIRST PROBLEM
-                    Log.warning("AWS shutdown detection has problems, TWICE: ({{time|round(1)}} minutes since startup)", time=request_time, cause=e)
+                    Log.warning("AWS shutdown detection has more than one consecutive problem: (last request {{time|round(1)}} minutes since startup)", time=request_time, cause=e)
                 seen_problem = True
 
                 (Till(seconds=61) | please_stop).wait()
