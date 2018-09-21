@@ -12,9 +12,12 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import requests
+import time
 from boto import sqs
 from boto import utils as boto_utils
 from boto.sqs.message import Message
+from mo_times import timer
+
 from mo_dots import wrap, unwrap, coalesce
 from mo_json import value2json
 from mo_kwargs import override
@@ -137,6 +140,7 @@ def capture_termination_signal(please_stop):
     """
     def worker(please_stop):
         while not please_stop:
+            request_time = time.time() - timer.START
             try:
                 response = requests.get("http://169.254.169.254/latest/meta-data/spot/termination-time")
                 if response.status_code not in [400, 404]:
@@ -148,7 +152,7 @@ def capture_termination_signal(please_stop):
                     Log.note("AWS Spot Detection has shutdown, probably not a spot node, (http://169.254.169.254 is unreachable)")
                     return
                 else:
-                    Log.warning("AWS shutdown detection has problems", cause=e)
+                    Log.warning("AWS shutdown detection has problems ({{time|round(places=2)}} seconds since startup)", time=request_time, cause=e)
                 (Till(seconds=61) | please_stop).wait()
             (Till(seconds=11) | please_stop).wait()
 
