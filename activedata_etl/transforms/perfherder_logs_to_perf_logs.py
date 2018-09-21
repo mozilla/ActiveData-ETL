@@ -494,8 +494,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-tp6-youtube-firefox",
     "raptor-tp6-youtube-chrome",
     "raptor-wasm-misc-baseline-firefox",
-    "raptor-wasm-misc-chrome"
-    "raptor-wasm-misc-firefox"
+    "raptor-wasm-misc-chrome",
+    "raptor-wasm-misc-firefox",
     "raptor-wasm-misc-ion-firefox",
     "raptor-wasm-misc-ion-chrome",
     "raptor-webaudio-firefox",
