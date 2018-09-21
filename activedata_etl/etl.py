@@ -499,7 +499,7 @@ def etl_one(settings):
         resources=resources,
         please_stop=stopper
     )
-    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
+    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True, wait_forever=False)
 
 
 def parse_id_argument(id):
