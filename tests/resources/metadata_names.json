@@ -159,6 +159,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux64-fuzzing-ccov/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "ccov", "fuzzing"]
+        }
+    },
     "build-linux64-lto/opt": {
         "action": {"type": "build"},
         "build": {

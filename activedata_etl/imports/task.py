@@ -354,6 +354,7 @@ BUILD_OPTIONS = {
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
     "ccov": {"build": {"type": ["ccov"]}},
+    "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
     "checkstyle": {},
     "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
