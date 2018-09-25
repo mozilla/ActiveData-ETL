@@ -123,35 +123,25 @@ def process(source_key, source, destination, resources, please_stop=None):
                         please_stop
                     ))
                 elif "per-test-coverage-reports.zip" in artifact.name:
-                    coverage_artifact_exists = True
-                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-                    if DEBUG:
-                        Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
+                    try:
+                        Log.warning("start per-test for {{url}}", url=artifact.url)
+                        coverage_artifact_exists = True
+                        _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                        if DEBUG:
+                            Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
 
-                    keys.extend(process_per_test_artifact(
-                        source_key,
-                        resources,
-                        destination,
-                        task_cluster_record,
-                        artifact,
-                        artifact_etl,
-                        please_stop
-                    ))
-                # elif "gcda" in artifact.name:
-                #     coverage_artifact_exists = True
-                #     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-                #     if DEBUG:
-                #         Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
-                #
-                #     keys.extend(process_gcda_artifact(
-                #         source_key,
-                #         resources,
-                #         destination,
-                #         artifact,
-                #         task_cluster_record,
-                #         artifact_etl,
-                #         please_stop
-                #     ))
+                        keys.extend(process_per_test_artifact(
+                            source_key,
+                            resources,
+                            destination,
+                            task_cluster_record,
+                            artifact,
+                            artifact_etl,
+                            please_stop
+                        ))
+                    finally:
+                        Log.warning("done per-test for {{url}}", url=artifact.url)
+
             except Exception as e:
                 e = Except.wrap(e)
                 reason = "Problem processing coverage: {{url}} for key {{key}}"
