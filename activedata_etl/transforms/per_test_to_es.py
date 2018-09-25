@@ -170,7 +170,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
             for zip_name in zipped.namelist():
                 for record in stream.parse(zipped.open(zip_name), "report.source_files", {"report.source_files", "suite", "test"}):
                     if please_stop:
-                        Log.error("Shutdown detected. Stopping job ETL.")
+                        Log.error("Shutdown detected. Stopping per-test coverage ETL.")
 
                     try:
                         for d in process_source_file(
@@ -180,6 +180,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
                             record.test,
                             record.report.source_files
                         ):
+                            d._id = etl2key(d.etl)
                             yield d
                     except Exception as e:
                         Log.warning(
