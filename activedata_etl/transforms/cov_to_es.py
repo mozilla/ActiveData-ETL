@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_logs.strings import expand_template
+
 from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
@@ -17,7 +19,7 @@ from activedata_etl.transforms.jsdcov_to_es import process_jsdcov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from activedata_etl.transforms.per_test_to_es import process_per_test_artifact
 from mo_json import json2value
-from mo_logs import Log
+from mo_logs import Log, Except
 
 DEBUG = True
 
@@ -151,7 +153,12 @@ def process(source_key, source, destination, resources, please_stop=None):
                 #         please_stop
                 #     ))
             except Exception as e:
-                raise Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
+                e = Except.wrap(e)
+                reason = "Problem processing coverage: {{url}} for key {{key}}"
+                params = {"url": artifact.url, "key": source_key}
+                Log.warning(reason, params=params, cause=e)
+                expanded_reason = expand_template(reason, params)
+                raise Log.error(TRY_AGAIN_LATER, reason=expanded_reason, cause=e)
 
     if DEBUG and coverage_artifact_exists:
         Log.note("Done processing coverage artifacts")
