@@ -145,10 +145,8 @@ def process(source_key, source, destination, resources, please_stop=None):
             except Exception as e:
                 e = Except.wrap(e)
                 reason = "Problem processing coverage: {{url}} for key {{key}}"
-                params = {"url": artifact.url, "key": source_key}
-                Log.warning(reason, params=params, cause=e)
-                expanded_reason = expand_template(reason, params)
-                raise Log.error(TRY_AGAIN_LATER, reason=expanded_reason, cause=e)
+                Log.warning(reason, url=artifact.url, key=source_key, cause=e)
+                raise Log.error(TRY_AGAIN_LATER, reason="Problem processing coverage: " + artifact.url + " for key " + source_key, cause=e)
 
     if DEBUG and coverage_artifact_exists:
         Log.note("Done processing coverage artifacts")
