@@ -21,8 +21,9 @@ from copy import copy
 from datetime import datetime, timedelta
 from time import sleep
 
+
 from mo_dots import Data, unwraplist
-from mo_future import get_ident, start_new_thread, get_function_name, text_type, allocate_lock
+from mo_future import get_ident, start_new_thread, get_function_name, text_type, allocate_lock, PY3
 from mo_logs import Log, Except
 from mo_threads.lock import Lock
 from mo_threads.profiles import CProfiler, write_profiles
@@ -407,6 +408,12 @@ def _wait_for_exit(please_stop):
     """
     /dev/null PIPED TO sys.stdin SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
     """
+    try:
+        import msvcrt
+        _wait_for_exit_on_windows(please_stop)
+    except:
+        pass
+
     cr_count = 0  # COUNT NUMBER OF BLANK LINES
 
     while not please_stop:
@@ -432,6 +439,24 @@ def _wait_for_exit(please_stop):
         if line.strip() == "exit":
             Log.alert("'exit' Detected!  Stopping...")
             return
+
+
+def _wait_for_exit_on_windows(please_stop):
+    import msvcrt
+
+    line = ""
+    while not please_stop:
+        if msvcrt.kbhit():
+            chr = msvcrt.getche()
+            if ord(chr) == 13:
+                if line == "exit":
+                    Log.alert("'exit' Detected!  Stopping...")
+                    return
+            elif ord(chr) > 32:
+                line += chr
+        else:
+            sleep(1)
+
 
 
 def _wait_for_interrupt(please_stop):
