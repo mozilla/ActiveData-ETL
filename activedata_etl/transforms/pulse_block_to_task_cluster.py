@@ -896,6 +896,8 @@ KNOWN_TAGS = {
     "data.head.user.email",
     "description",
 
+    "notify.email.link.href",
+    "notify.email.link.text",
     "en_us_installer_binary_url",
 
     "funsize.partials",
