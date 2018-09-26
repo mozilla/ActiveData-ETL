@@ -294,6 +294,7 @@ TEST_SUITE = {
         "raptor-tp6-firefox",
         "raptor-unity-webgl-chrome",
         "raptor-unity-webgl-firefox",
+        "raptor-wasm-misc-chrome",
         "raptor-wasm-misc-firefox",
         "raptor-wasm-misc-baseline-firefox",
         "raptor-wasm-misc-ion-firefox",
