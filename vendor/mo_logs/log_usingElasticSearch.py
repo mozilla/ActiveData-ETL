@@ -127,7 +127,7 @@ def _deep_json_to_string(value, depth):
     elif isinstance(value, binary_type):
         return strings.limit(bytes2base64(value), LOG_STRING_LENGTH)
     else:
-        return strings.limit(value2json(value), LOG_STRING_LENGTH)
+        return strings.limit(text_type(value), LOG_STRING_LENGTH)
 
 
 SCHEMA = {
