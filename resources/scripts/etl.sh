@@ -9,4 +9,4 @@ python2 activedata_etl/etl.py --settings=resources/settings/staging/etl.json  --
 #tail -f  results/logs/etl.log
 
 # DO NOT HANG ONTO PROCESS (nohup)
-#nohup python27 activedata_etl/etl.py --settings=etl_settings.json &
+# nohup python27 activedata_etl/etl.py --settings=etl_settings.json &

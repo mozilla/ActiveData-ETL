@@ -448,6 +448,7 @@ KNOWN_PERFHERDER_TESTS = [
     "motionmark, transformed",
     "motionmark",
     "octane-sm",
+    "octane-v8",
     "other_nol64",
     "other_l64",
     "other",
