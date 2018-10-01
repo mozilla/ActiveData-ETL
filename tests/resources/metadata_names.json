@@ -2973,6 +2973,14 @@
             "type": ["chunked"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-unity-webgl-geckoview": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt", "aarch64"]
+        },
+        "run": {"suite": {"name": "raptor-unity-webgl-geckoview"}}
+    },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
         "action": {"type": "test"},
         "build": {
