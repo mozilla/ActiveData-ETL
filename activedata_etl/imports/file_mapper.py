@@ -206,6 +206,7 @@ KNOWN_FAILURES = {"or": [
         "resource://services-common/utils.js",
         "resource://services-crypto/utils.js"
     ]}},
+    {"suffix": {".": "libstd/io/mod.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
