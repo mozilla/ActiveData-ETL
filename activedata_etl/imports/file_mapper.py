@@ -215,7 +215,8 @@ KNOWN_FAILURES = {"or": [
     {"prefix": {".": "about:"}},
     {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
     {"prefix": {".": "https://example.com/MochiKit"}},
-    {"prefix": {".": "vs2017"}}
+    {"prefix": {".": "vs2017"}},
+    {"prefix": {".": "third_party/rust"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
