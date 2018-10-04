@@ -60,7 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if any(  # if we will be processing coverage, then prepare the resources
             a in artifact.name
             for artifact in artifacts
-            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm", "per-test-coverage-reports.zip")
+            for a in ("jsdcov_artifacts.zip", "code-coverage-grcov.zip", "code-coverage-jsvm.zip", "per-test-coverage-reports.zip")
         ):
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
@@ -83,7 +83,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-                elif "grcov" in artifact.name:
+                elif "code-coverage-grcov.zip" in artifact.name:
                     pass
                     if not task_cluster_record.repo.push.date:
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
@@ -103,7 +103,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-                elif "jsvm" in artifact.name:
+                elif "code-coverage-jsvm.zip" in artifact.name:
                     if not task_cluster_record.repo.push.date:
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
                         continue

@@ -99,5 +99,5 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
             with Timer("Processing grcov for key {{key}}", param={"key": etl_key}):
                 destination.write_lines(file_id, line_gen(tmpfile))
         except Exception as e:
-            Log.warning("problem processing grcov artifact for key {{key}}", key=source_key, cause=e)
+            Log.warning("problem processing grcov artifact {{url}} for key {{key}}", key=source_key, url=artifact.url, cause=e)
         return keys
