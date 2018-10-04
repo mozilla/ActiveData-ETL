@@ -19796,6 +19796,30 @@
             "suite": {"name": "mochitest-devtools-chrome"}
         }
     },
+    "test-linux64/debug-mochitest-devtools-chrome-sw-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-devtools-chrome"},
+            "type": ["service-worker", "e10s", "chunked"]
+        }
+    },
+    "test-linux64/debug-mochitest-devtools-chrome-sw-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-devtools-chrome"},
+            "type": ["service-worker", "e10s", "chunked"]
+        }
+    },
     "test-linux64/debug-mochitest-gpu": {
         "action": {"type": "test"},
         "build": {
@@ -19854,6 +19878,18 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-media"}
+        }
+    },
+    "test-linux64/debug-mochitest-media-sw-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-media"},
+            "type": ["service-worker", "e10s", "chunked"]
         }
     },
     "test-linux64/debug-mochitest-plain-headless-1": {
@@ -20030,6 +20066,54 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "mochitest-plain-headless"}
+        }
+    },
+    "test-linux64/debug-mochitest-plain-headless-sw-e10s-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "mochitest-plain-headless"},
+            "type": ["service-worker", "e10s", "chunked"]
+        }
+    },
+    "test-linux64/debug-mochitest-sw-e10s-15": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 15,
+            "suite": {"name": "mochitest"},
+            "type": ["service-worker", "e10s", "chunked"]
+        }
+    },
+    "test-linux64/debug-mochitest-sw-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest"},
+            "type": ["service-worker", "e10s", "chunked"]
+        }
+    },
+    "test-linux64/debug-mochitest-sw-e10s-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "mochitest"},
+            "type": ["service-worker", "e10s", "chunked"]
         }
     },
     "test-linux64/debug-mochitest-webgl-1": {
@@ -20327,6 +20411,18 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "reftest-no-accel"}
+        }
+    },
+    "test-linux64/debug-reftest-no-accel-sw-e10s-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "reftest-no-accel"},
+            "type": ["service-worker", "e10s", "chunked"]
         }
     },
     "test-linux64/debug-reftest-stylo-1": {

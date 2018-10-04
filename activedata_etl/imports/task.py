@@ -211,6 +211,8 @@ RUN_OPTIONS = {
     "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled"]}, "run": {"type": ["e10s"]}},
     "stylo-sequential": {},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
+    "sw-e10s": {"run": {"type": ["service-worker","e10s"]}},
+    "sw": {"run": {"type": ["service-worker"]}},
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
