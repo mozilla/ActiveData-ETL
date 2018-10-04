@@ -19,7 +19,7 @@ import signal as _signal
 import sys
 from copy import copy
 from datetime import datetime, timedelta
-from time import sleep
+from time import sleep, time
 
 
 from mo_dots import Data, unwraplist
@@ -148,7 +148,7 @@ class MainThread(BaseThread):
 
         write_profiles(self.cprofiler)
         DEBUG and Log.note("Thread {{name|quote}} now stopped", name=self.name)
-        sys.exit(0)
+        sys.exit()
 
     def wait_for_shutdown_signal(
         self,
@@ -171,7 +171,7 @@ class MainThread(BaseThread):
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
         if isinstance(please_stop, Signal):
-            # MUTUAL TRIGGERING, SO THEY ARE EFFECTIVELY THE SAME
+            # MUTUAL SIGNALING MAKES THESE TWO EFFECTIVELY THE SAME SIGNAL
             self.please_stop.on_go(please_stop.go)
             please_stop.on_go(self.please_stop.go)
         else:
@@ -181,9 +181,10 @@ class MainThread(BaseThread):
             # TRIGGER SIGNAL WHEN ALL CHILDREN THEADS ARE DONE
             with self_thread.child_lock:
                 pending = copy(self_thread.children)
-            all = AndSignals(please_stop, len(pending))
+            children_done = AndSignals(please_stop, len(pending))
+            children_done.signal.on_go(self.please_stop.go)
             for p in pending:
-                p.stopped.on_go(all.done)
+                p.stopped.on_go(children_done.done)
 
         try:
             if allow_exit:
@@ -333,7 +334,7 @@ class Thread(BaseThread):
             else:
                 Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
         else:
-            raise Except(type=THREAD_TIMEOUT)
+            raise Except(context=THREAD_TIMEOUT)
 
     @staticmethod
     def run(name, target, *args, **kwargs):
@@ -356,9 +357,13 @@ class Thread(BaseThread):
             output = ALL.get(ident)
 
         if output is None:
+            thread = BaseThread(ident)
+            thread.cprofiler = CProfiler()
+            thread.cprofiler.__enter__()
+            with ALL_LOCK:
+                ALL[ident] = thread
             Log.warning("this thread is not known. Register this thread at earliest known entry point.")
-            return BaseThread(get_ident())
-
+            return thread
         return output
 
 
