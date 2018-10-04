@@ -29,7 +29,19 @@ UNEXPECTED = "UNEXPECTED"
 NOTE = "NOTE"
 
 
-class Except(Exception):
+class LogItem(object):
+
+    def __init__(self, context, format, template, params):
+        self.context = context
+        self.format = format
+        self.template=template
+        self.params = params
+
+    def __data__(self):
+        return Data(self.__dict__)
+
+
+class Except(Exception, LogItem):
 
     @staticmethod
     def new_instance(desc):
@@ -136,17 +148,6 @@ class Except(Exception):
         output = Data({k:getattr(self,k) for k in vars(self)})
         output.cause=unwraplist([c.__data__() for c in listwrap(output.cause)])
         return output
-
-class LogItem(object):
-
-    def __init__(self, context, format, template, params):
-        self.context = context
-        self.format = format
-        self.template=template
-        self.params = params
-
-    def __data__(self):
-        return Data(self.__dict__)
 
 
 def extract_stack(start=0):
