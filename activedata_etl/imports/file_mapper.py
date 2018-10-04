@@ -19,7 +19,7 @@ from mo_files import TempFile
 from mo_future import text_type
 from mo_json import stream
 from mo_logs import Log
-from mo_times import Timer
+from mo_times import Timer, Date
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
@@ -44,7 +44,7 @@ class FileMapper(object):
                 "where": {"and": [
                     {"eq": {"name": "public/components.json.gz"}},
                     {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": timestamp}}
+                    {"lt": {"repo.push.date": coalesce(timestamp, Date.now())}}
                 ]},
                 "sort": {"repo.push.date": "desc"},
                 "limit": 1,
