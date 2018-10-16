@@ -135,8 +135,6 @@ def main():
         instances = _get_managed_instances(ec2_conn, settings.name)
 
         for i in instances:
-
-
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
