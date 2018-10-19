@@ -221,6 +221,7 @@ TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
         "awsy-base-dmd",
+        "awsy-dmd",
         "awsy-base",
         "awsy",
         "browser-instrumentation",
