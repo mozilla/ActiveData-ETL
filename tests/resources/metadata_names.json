@@ -35099,6 +35099,17 @@
         },
         "run": {"suite": {"name": "awsy"}}
     },
+    "test-windows7-32-pgo/opt-awsy-base-dmd-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "suite": {"name": "awsy-base-dmd"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows7-32-pgo/opt-cppunit": {
         "action": {"type": "test"},
         "build": {

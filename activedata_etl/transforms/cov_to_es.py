@@ -124,7 +124,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     ))
                 elif "per-test-coverage-reports.zip" in artifact.name:
                     try:
-                        Log.warning("start per-test for {{url}}", url=artifact.url)
+                        Log.note("start per-test for {{url}}", url=artifact.url)
                         coverage_artifact_exists = True
                         _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                         if DEBUG:
@@ -140,7 +140,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                             please_stop
                         ))
                     finally:
-                        Log.warning("done per-test for {{url}}", url=artifact.url)
+                        Log.note("done per-test for {{url}}", url=artifact.url)
 
             except Exception as e:
                 e = Except.wrap(e)
