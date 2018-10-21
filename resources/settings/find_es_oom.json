@@ -12,5 +12,5 @@
 		"keepalive": 1,
 		"banner_timeout": 30
 	},
-	"nodes":"http://54.149.21.8:9200/_nodes"
+	"nodes":"http://54.148.242.195:9200/_nodes"
 }
