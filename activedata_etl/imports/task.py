@@ -234,6 +234,7 @@ TEST_SUITE = {
         "geckoview-junit",
         "gtest",
         "jittest",
+        "jittgst",  # SPELLING MISTAKE
         "jsreftest",
         "marionette",
         "marionette-headless",
