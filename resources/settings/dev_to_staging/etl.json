@@ -22,11 +22,11 @@
 		//		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": {
-		"host": "http://54.149.21.8",
+		"host": "http://54.148.242.195",
 		"index": "task"
 	},
 	"tuid_client": {
-		"endpoint": "http://54.149.21.8/tuid",
+		"endpoint": "http://54.148.242.195/tuid",
 		"timeout": 30,
 		"push_queue": {
 			"name": "active-data-tuid-dev",

@@ -23,7 +23,7 @@
 		"index": "task"
 	},
 	"tuid_client": {
-		"endpoint": "http://54.149.21.8/tuid",
+		"endpoint": "http://54.148.242.195/tuid",
 		"timeout": 30,
 		"push_queue": {
 			"name": "active-data-tuid-dev",
