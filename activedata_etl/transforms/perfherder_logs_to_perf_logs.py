@@ -433,6 +433,7 @@ KNOWN_PERFHERDER_TESTS = [
     "h2",
     "Heap Unclassified",
     "Images",
+    "inspector-metrics",
     "installer size",
     "JetStream",
     "jittest.jittest.overall",
