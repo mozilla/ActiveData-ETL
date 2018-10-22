@@ -1,4 +1,5 @@
 {
+	"test-windows7-32/opt-raptor-wasm-godot-firefox-e10s":{},
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
