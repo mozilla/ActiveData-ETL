@@ -79,10 +79,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -109,10 +105,6 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -160,10 +152,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -191,10 +179,6 @@
 					"$ref": "file://~/private.json#aws_credentials"
 				},
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -216,10 +200,6 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -287,10 +267,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -314,10 +290,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -340,10 +312,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -365,10 +333,6 @@
 				"key_format": "t.a:b.c.d"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
