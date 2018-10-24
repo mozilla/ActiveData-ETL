@@ -284,6 +284,13 @@
 				"log_type": "console"
 			},
 			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "debug-etl",
+				"type": "active_data"
+			},
+			{
 				"class" : "logging.handlers.RotatingFileHandler",
 				"filename" : "logs/push_to_es_direct.log",
 				"maxBytes" : 10000000,

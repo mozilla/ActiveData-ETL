@@ -386,6 +386,13 @@
 				"log_type": "console"
 			},
 			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "debug-etl",
+				"type": "active_data"
+			},
+			{
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
