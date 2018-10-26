@@ -288,7 +288,7 @@
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "debug-etl",
-				"type": "active_data"
+				"type": "etl"
 			},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",

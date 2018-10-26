@@ -390,7 +390,7 @@
 				"host": "http://localhost",
 				"port": 9200,
 				"index": "debug-etl",
-				"type": "active_data"
+				"type": "etl"
 			},
 			{
 				"log_type": "ses",
