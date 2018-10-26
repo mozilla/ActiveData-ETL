@@ -68,14 +68,14 @@ def _disable_oom_on_es():
         candidates = [
             line
             for line in processes.split("\n")
-            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch") != -1
+            if "/usr/java/default/bin/java -Xms" in line and "org.elasticsearch.bootstrap.Elasticsearch" in line
         ]
         if not candidates:
             Log.error("Expecting to find some hint of Elasticsearch running")
         elif len(candidates) > 1:
             Log.error("Fond more than one Elasticsearch running, not sure what to do")
 
-        pid = candidates[0].split(" ")[0].strip()
+        pid = candidates[0].strip().split(" ")[0].strip()
         run("echo -16 > oom_adj")
         sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
