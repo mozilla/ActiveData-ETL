@@ -303,6 +303,7 @@ TEST_SUITE = {
         "raptor-wasm-godot-baseline",
         "raptor-wasm-godot-chrome",
         "raptor-wasm-godot-firefox",
+        "raptor-wasm-godot-ion-firefox",
         "raptor-wasm-misc-chrome",
         "raptor-wasm-misc-firefox",
         "raptor-wasm-misc-baseline-firefox",

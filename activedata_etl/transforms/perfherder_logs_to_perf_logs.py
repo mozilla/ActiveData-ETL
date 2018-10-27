@@ -500,6 +500,7 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-wasm-godot-baseline",
     "raptor-wasm-godot-firefox",
     "raptor-wasm-godot-chrome",
+    "raptor-wasm-godot-ion-firefox",
     "raptor-wasm-misc-baseline-firefox",
     "raptor-wasm-misc-chrome",
     "raptor-wasm-misc-firefox",

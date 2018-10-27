@@ -320,7 +320,8 @@ KNOWN_VALUES = [
     "Tests will be run from the following files:",
     "gaia_revlink: ",
     "Unknown: ",
-    "\t--this-chunk=1 --total-chunks=1 -- "
+    "\t--this-chunk=1 --total-chunks=1 -- ",
+    "\t--setenv=MOZ_BROWSER_XHTML=1 -- "
 ]
 
 
