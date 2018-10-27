@@ -497,6 +497,7 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-tp6-youtube-firefox",
     "raptor-tp6-youtube-chrome",
     "raptor-unity-webgl-geckoview",
+    "raptor-wasm-godot-baseline",
     "raptor-wasm-godot-firefox",
     "raptor-wasm-godot-chrome",
     "raptor-wasm-misc-baseline-firefox",

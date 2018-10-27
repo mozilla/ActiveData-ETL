@@ -300,6 +300,7 @@ TEST_SUITE = {
         "raptor-unity-webgl-chrome",
         "raptor-unity-webgl-firefox",
         "raptor-unity-webgl-geckoview",
+        "raptor-wasm-godot-baseline",
         "raptor-wasm-godot-chrome",
         "raptor-wasm-godot-firefox",
         "raptor-wasm-misc-chrome",
