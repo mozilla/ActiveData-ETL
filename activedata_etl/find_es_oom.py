@@ -145,16 +145,16 @@ def main():
                 if i.private_ip_address not in known_nodes.ip:
                     Log.note("Restarting ES on node because not visible to cluster: {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
 
-                    ES_CONFIG_FILE = "/usr/local/elasticsearch/config/elasticsearch.yml"
-                    MASTER_NODE = "172.31.0.196"
-                    with TempFile() as temp:
-                        get(ES_CONFIG_FILE, temp.abspath)
-                        content = temp.read()
-                        # CONVERT FROM ec2 DISCOVERY TO unicast
-                        # discovery.zen.ping.unicast.hosts: 172.31.0.196
-                        new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
-                        temp.write(new_content)
-                        put(temp.abspath, ES_CONFIG_FILE)
+                    # ES_CONFIG_FILE = "/usr/local/elasticsearch/config/elasticsearch.yml"
+                    # MASTER_NODE = "172.31.0.196"
+                    # with TempFile() as temp:
+                    #     get(ES_CONFIG_FILE, temp.abspath)
+                    #     content = temp.read()
+                    #     # CONVERT FROM ec2 DISCOVERY TO unicast
+                    #     # discovery.zen.ping.unicast.hosts: 172.31.0.196
+                    #     new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
+                    #     temp.write(new_content)
+                    #     put(temp.abspath, ES_CONFIG_FILE)
 
                     sudo("supervisorctl restart es")
                 else:
