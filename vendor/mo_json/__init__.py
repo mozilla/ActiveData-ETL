@@ -25,7 +25,7 @@ from mo_logs.strings import expand_template
 from mo_times import Date, Duration
 
 FIND_LOOPS = False
-SNAP_TO_BASE_10 = True  # Identify floats near a round base10 value (has 000 or 999) and shorten
+SNAP_TO_BASE_10 = False  # Identify floats near a round base10 value (has 000 or 999) and shorten
 CAN_NOT_DECODE_JSON = "Can not decode JSON"
 
 IS_NULL = '0'
@@ -203,7 +203,7 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
         for v in value:
             v = _scrub(v, is_done, stack, scrub_text, scrub_number)
             output.append(v)
-        return output
+        return output # if output else None
     elif type_ is type:
         return value.__name__
     elif type_.__name__ == "bool_":  # DEAR ME!  Numpy has it's own booleans (value==False could be used, but 0==False in Python.  DOH!)
@@ -396,6 +396,7 @@ python_type_to_json_type = {
     object: OBJECT,
     Mapping: OBJECT,
     list: NESTED,
+    # tuple: NESTED,  # DO NOT INCLUDE, WILL HIDE LOGIC ERRORS
     FlatList: NESTED,
     Date: NUMBER
 }

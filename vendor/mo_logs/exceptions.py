@@ -16,10 +16,9 @@ from __future__ import unicode_literals
 import sys
 from collections import Mapping
 
-from mo_dots import Data, listwrap, unwraplist, set_default, Null, coalesce, wrap
+from mo_dots import Data, listwrap, unwraplist, Null
 from mo_future import text_type, PY3
 from mo_logs.strings import indent, expand_template
-
 
 FATAL = "FATAL"
 ERROR = "ERROR"
@@ -34,7 +33,7 @@ class LogItem(object):
     def __init__(self, context, format, template, params):
         self.context = context
         self.format = format
-        self.template=template
+        self.template = template
         self.params = params
 
     def __data__(self):
@@ -46,14 +45,17 @@ class Except(Exception, LogItem):
     @staticmethod
     def new_instance(desc):
         return Except(
-            context=desc.type,
+            context=desc.context,
             template=desc.template,
             params=desc.params,
             cause=[Except.new_instance(c) for c in listwrap(desc.cause)],
             trace=desc.trace
         )
 
-    def __init__(self, context=ERROR, template=Null, params=Null, cause=Null, trace=Null, **kwargs):
+    def __init__(self, context=ERROR, template=Null, params=Null, cause=Null, trace=Null):
+        if context == None:
+            raise ValueError("expecting context to not be None")
+
         self.cause = Except.wrap(cause)
 
         Exception.__init__(self)
@@ -130,8 +132,10 @@ class Except(Exception, LogItem):
         if self.cause:
             cause_strings = []
             for c in listwrap(self.cause):
-                with suppress_exception:
+                try:
                     cause_strings.append(text_type(c))
+                except Exception as e:
+                    sys.stderr("Problem serializing cause"+text_type(c))
 
             output += "caused by\n\t" + "and caused by\n\t".join(cause_strings)
 
