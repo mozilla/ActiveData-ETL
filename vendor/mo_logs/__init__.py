@@ -17,7 +17,7 @@ import sys
 from collections import Mapping
 from datetime import datetime
 
-from mo_dots import coalesce, listwrap, wrap, unwrap, unwraplist, FlatList, DataObject
+from mo_dots import coalesce, listwrap, wrap, unwraplist, FlatList, Data
 from mo_future import text_type, PY3
 from mo_logs import constants
 from mo_logs.exceptions import Except, suppress_exception, LogItem
@@ -174,6 +174,7 @@ class Log(object):
         :param more_params: *any more parameters (which will overwrite default_params)
         :return:
         """
+        timestamp = datetime.utcnow()
         if not isinstance(template, text_type):
             Log.error("Log.note was expecting a unicode template")
 
@@ -184,7 +185,8 @@ class Log(object):
                 template=template,
                 params=dict(default_params, **more_params)
             ),
-            stack_depth=stack_depth+1
+            timestamp,
+            stack_depth+1
         )
 
     @classmethod
@@ -206,6 +208,7 @@ class Log(object):
         :param more_params: *any more parameters (which will overwrite default_params)
         :return:
         """
+        timestamp = datetime.utcnow()
         if not isinstance(template, text_type):
             Log.error("Log.warning was expecting a unicode template")
 
@@ -216,14 +219,15 @@ class Log(object):
         if "values" in more_params.keys():
             Log.error("Can not handle a logging parameter by name `values`")
 
-        params = dict(default_params, **more_params)
+        params = Data(dict(default_params, **more_params))
         cause = unwraplist([Except.wrap(c) for c in listwrap(cause)])
         trace = exceptions.extract_stack(stack_depth + 1)
 
         e = Except(exceptions.UNEXPECTED, template=template, params=params, cause=cause, trace=trace)
         Log._annotate(
             e,
-            stack_depth=stack_depth+1
+            timestamp,
+            stack_depth+1
         )
 
     @classmethod
@@ -243,6 +247,7 @@ class Log(object):
         :param more_params: more parameters (which will overwrite default_params)
         :return:
         """
+        timestamp = datetime.utcnow()
         format = ("*" * 80) + "\n" + indent(template, prefix="** ").strip() + "\n" + ("*" * 80)
         Log._annotate(
             LogItem(
@@ -251,7 +256,8 @@ class Log(object):
                 template=template,
                 params=dict(default_params, **more_params)
             ),
-            stack_depth=stack_depth + 1
+            timestamp,
+            stack_depth + 1
         )
 
     alert = alarm
@@ -275,6 +281,7 @@ class Log(object):
         :param more_params: *any more parameters (which will overwrite default_params)
         :return:
         """
+        timestamp = datetime.utcnow()
         if not isinstance(template, text_type):
             Log.error("Log.warning was expecting a unicode template")
 
@@ -285,14 +292,15 @@ class Log(object):
         if "values" in more_params.keys():
             Log.error("Can not handle a logging parameter by name `values`")
 
-        params = dict(default_params, **more_params)
+        params = Data(dict(default_params, **more_params))
         cause = unwraplist([Except.wrap(c) for c in listwrap(cause)])
         trace = exceptions.extract_stack(stack_depth + 1)
 
         e = Except(exceptions.WARNING, template=template, params=params, cause=cause, trace=trace)
         Log._annotate(
             e,
-            stack_depth=stack_depth+1
+            timestamp,
+            stack_depth+1
         )
 
     @classmethod
@@ -323,7 +331,7 @@ class Log(object):
             cause = default_params
             default_params = {}
 
-        params = dict(default_params, **more_params)
+        params = Data(dict(default_params, **more_params))
 
         add_to_trace = False
         if cause == None:
@@ -351,6 +359,7 @@ class Log(object):
     def _annotate(
         cls,
         item,
+        timestamp,
         stack_depth
     ):
         """
@@ -361,27 +370,24 @@ class Log(object):
         :param stack_depth: FOR TRACKING WHAT LINE THIS CAME FROM
         :return:
         """
-
+        item.timestamp = timestamp
+        item.machine = machine_metadata
         item.template = strings.limit(item.template, 10000)
-        item.format = strings.limit(item.format, 10000)
 
+        item.format = strings.limit(item.format, 10000)
         if item.format == None:
             format = text_type(item)
         else:
             format = item.format.replace("{{", "{{params.")
-
         if not format.startswith("\n") and format.find("\n") > -1:
             format = "\n" + format
 
-        item.timestamp = datetime.utcnow()
-        item.machine = machine_metadata
-
         if cls.trace:
-            log_format = item.format = "{{machine.name}} (pid {{machine.pid}}) - {{timestamp|datetime}} - {{thread.name}} - \"{{location.file}}:{{location.line}}\" ({{location.method}}) - " + format
+            log_format = item.format = "{{machine.name}} (pid {{machine.pid}}) - {{timestamp|datetime}} - {{thread.name}} - \"{{location.file}}:{{location.line}}\" - ({{location.method}}) - " + format
             f = sys._getframe(stack_depth + 1)
             item.location = {
                 "line": f.f_lineno,
-                "file": text_type(f.f_code.co_filename.split(os.sep)[-1]),
+                "file": text_type(f.f_code.co_filename),
                 "method": text_type(f.f_code.co_name)
             }
             thread = _Thread.current()

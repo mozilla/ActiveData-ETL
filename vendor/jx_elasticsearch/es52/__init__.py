@@ -203,7 +203,7 @@ class ES52(Container):
         # GET IDS OF DOCUMENTS
         query = {
             "from": command['update'],
-            "select": ["_id"] + [
+            "select": [{"value": "_id"}] + [
                 {"name": k, "value": v}
                 for k, v in command.set.items()
             ],
@@ -234,7 +234,7 @@ class ES52(Container):
                 Log.error("could not update: {{error}}", error=[e.error for i in response["items"] for e in i.values() if e.status not in (200, 201)])
 
         # DELETE BY QUERY, IF NEEDED
-        if '.' in listwrap(command.clear):
+        if "." in listwrap(command.clear):
             self.es.delete_record(es_filter)
             return
 

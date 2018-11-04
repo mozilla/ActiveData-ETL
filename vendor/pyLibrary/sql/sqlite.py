@@ -17,10 +17,10 @@ import re
 import sys
 from collections import Mapping, namedtuple
 
-import mo_json
 from mo_dots import Data, coalesce, unwraplist, Null
 from mo_files import File
 from mo_future import allocate_lock as _allocate_lock, text_type
+from mo_json import INTEGER, NUMBER, BOOLEAN, STRING, OBJECT, NESTED
 from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import Except, extract_stack, ERROR, format_trace
@@ -34,11 +34,11 @@ from pyLibrary.sql import DB, SQL, SQL_TRUE, SQL_FALSE, SQL_NULL, SQL_SELECT, sq
 DEBUG = False
 TRACE = True
 
-FORMAT_COMMAND = "Running command\n{{command|limit(100)|indent}}"
+FORMAT_COMMAND = "Running command\n{{command|limit(1000)|indent}}"
 DOUBLE_TRANSACTION_ERROR = "You can not query outside a transaction you have open already"
 TOO_LONG_TO_HOLD_TRANSACTION = 10
 
-sqlite3 = None
+_sqlite3 = None
 _load_extension_warning_sent = False
 _upgraded = False
 known_databases = {Null: None}
@@ -84,25 +84,25 @@ class Sqlite(DB):
         :param kwargs:
         """
         global _upgraded
-        global sqlite3
+        global _sqlite3
 
         self.settings = kwargs
         if not _upgraded:
             if upgrade:
                 _upgrade()
             _upgraded = True
-            import sqlite3
-            _ = sqlite3
+            import sqlite3 as _sqlite3
+            _ = _sqlite3
 
         self.filename = File(filename).abspath if filename else None
         if known_databases.get(self.filename):
             Log.error("Not allowed to create more than one Sqlite instance for {{file}}", file=self.filename)
 
         # SETUP DATABASE
-        DEBUG and Log.note("Sqlite version {{version}}", version=sqlite3.sqlite_version)
+        DEBUG and Log.note("Sqlite version {{version}}", version=_sqlite3.sqlite_version)
         try:
             if db == None:
-                self.db = sqlite3.connect(
+                self.db = _sqlite3.connect(
                     database=coalesce(self.filename, ":memory:"),
                     check_same_thread=False,
                     isolation_level=None
@@ -439,6 +439,8 @@ class Transaction(object):
         return output
 
     def execute(self, command):
+        if self.end_of_life:
+            Log.error("Transaction is dead")
         trace = extract_stack(1) if self.db.get_trace else None
         with self.locker:
             self.todo.append(CommandItem(command, None, None, trace, self))
@@ -527,7 +529,6 @@ def quote_value(value):
 def quote_list(list):
     return sql_iso(sql_list(map(quote_value, list)))
 
-
 def join_column(a, b):
     a = quote_column(a)
     b = quote_column(b)
@@ -541,7 +542,7 @@ ROLLBACK = "ROLLBACK"
 
 def _upgrade():
     global _upgraded
-    global sqlite3
+    global _sqlite3
 
     try:
         Log.note("sqlite not upgraded")
@@ -564,21 +565,17 @@ def _upgrade():
     except Exception as e:
         Log.warning("could not upgrade python's sqlite", cause=e)
 
-    import sqlite3
-    _ = sqlite3
+    import sqlite3 as _sqlite3
+    _ = _sqlite3
     _upgraded = True
 
 
 json_type_to_sqlite_type = {
-    mo_json.BOOLEAN: 'INTEGER',
-    mo_json.INTEGER: 'INTEGER',
-    mo_json.NUMBER: 'NUMBER',
-    mo_json.STRING: 'TEXT',
-    mo_json.EXISTS: "INTEGER"
+    BOOLEAN: "TINYINT",
+    INTEGER: "INTEGER",
+    NUMBER: "REAL",
+    STRING: "TEXT",
+    OBJECT: "TEXT",
+    NESTED: "TEXT"
 }
 
-sqlite_type_to_json_type = {
-    'INTEGER': mo_json.INTEGER,
-    'NUMBER': mo_json.NUMBER,
-    'TEXT': mo_json.STRING
-}
