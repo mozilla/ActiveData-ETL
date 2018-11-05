@@ -41,7 +41,6 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
-    "perfherder-data.json",
     ".apk",
     "/awsy_raw.log",
     "/buildbot_properties.json",
@@ -69,11 +68,13 @@ NOT_STRUCTURED_LOGS = [
     "/manifest.json",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    "perfherder-data.json",
     ".png",
     "/properties.json",
     "/log_raw.log",
     "/localconfig.json",
     "/raptor_raw.log",
+    "/single_locale_raw.log",
     "/talos_critical.log",
     "/talos_error.log",
     "/talos_fatal.log",
