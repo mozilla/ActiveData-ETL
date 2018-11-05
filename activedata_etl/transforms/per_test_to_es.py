@@ -21,7 +21,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 
 ENABLE_METHOD_COVERAGE = False
-
+FILE_TOO_LONG = 100*1000
 
 urls_w_uncoverable_lines = set()
 
@@ -83,6 +83,9 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         # turn covered into a set for use later
         file_covered = set(covered)
         coverable = set(coverable)
+
+        if len(coverable) > FILE_TOO_LONG:
+            return
 
         record = create_record(parent_etl, count, sf["name"], covered, uncovered)
         record.test = {
@@ -167,7 +170,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
             for zip_name in zipped.namelist():
                 for record in stream.parse(zipped.open(zip_name), "report.source_files", {"report.source_files", "suite", "test"}):
                     if please_stop:
-                        Log.error("Shutdown detected. Stopping job ETL.")
+                        Log.error("Shutdown detected. Stopping per-test coverage ETL.")
 
                     try:
                         for d in process_source_file(
@@ -177,6 +180,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
                             record.test,
                             record.report.source_files
                         ):
+                            d._id = etl2key(d.etl)
                             yield d
                     except Exception as e:
                         Log.warning(
@@ -196,6 +200,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
         with Timer("Processing per-test reports for key {{key}}", param={"key": key}):
             destination.write_lines(
                 key, map(value2json, tuid_batches(
+                    source_key,
                     task_cluster_record,
                     resources,
                     generator(),

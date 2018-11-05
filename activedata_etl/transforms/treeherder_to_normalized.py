@@ -12,16 +12,14 @@ from __future__ import unicode_literals
 from collections import Mapping
 
 from activedata_etl import etl2key, key2etl
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_dots import Data, listwrap, wrap, set_default
+from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings
 from mo_math import Math
-
-from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_hg.hg_mozilla_org import minimize_repo
 from mo_times.dates import Date
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import elasticsearch, git
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -50,7 +48,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 "id": line_number,
                 "timestamp": Date.now(),
                 "machine": machine_metadata,
-                "revision": get_git_revision(),
+                "revision": git.get_revision(),
                 "type": "join"
             }, etl_source)
             normalize(source_key, resources, raw_treeherder, normalized)
@@ -222,6 +220,7 @@ _option_map = {
     "gyp": ["gyp"],
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
+    "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
@@ -321,7 +320,8 @@ KNOWN_VALUES = [
     "Tests will be run from the following files:",
     "gaia_revlink: ",
     "Unknown: ",
-    "\t--this-chunk=1 --total-chunks=1 -- "
+    "\t--this-chunk=1 --total-chunks=1 -- ",
+    "\t--setenv=MOZ_BROWSER_XHTML=1 -- "
 ]
 
 

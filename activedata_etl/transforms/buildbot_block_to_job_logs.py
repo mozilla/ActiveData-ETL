@@ -22,8 +22,7 @@ from mo_logs.exceptions import Except
 from mo_times.dates import Date
 from mo_times.durations import MONTH
 from mo_times.timer import Timer
-from pyLibrary.env import elasticsearch, http
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import elasticsearch, http, git
 
 DEBUG = False
 TOO_OLD = (Date.today() - 3 * MONTH).unix
@@ -88,12 +87,12 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
             {
                 "file": url,
                 "timestamp": Date.now().unix,
-                "revision": get_git_revision(),
+                "revision": git.get_revision(),
             },
             buildbot_data.etl
         )
 
-        with Timer("Read {{url}}", {"url": url}, debug=DEBUG) as timer:
+        with Timer("Read {{url}}", {"url": url}, silent=not DEBUG) as timer:
             try:
                 if url == None:
                     data.etl.error = "No logurl"

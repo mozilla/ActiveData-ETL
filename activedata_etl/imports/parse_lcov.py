@@ -18,7 +18,6 @@ import sys
 
 from activedata_etl.imports.coverage_util import LANGUAGE_MAPPINGS
 from mo_dots import wrap, Null
-from mo_files import File
 from mo_logs import Log
 
 DEBUG = False

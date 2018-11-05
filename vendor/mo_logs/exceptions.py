@@ -16,10 +16,9 @@ from __future__ import unicode_literals
 import sys
 from collections import Mapping
 
-from mo_dots import Data, listwrap, unwraplist, set_default, Null
+from mo_dots import Data, listwrap, unwraplist, Null
 from mo_future import text_type, PY3
 from mo_logs.strings import indent, expand_template
-
 
 FATAL = "FATAL"
 ERROR = "ERROR"
@@ -29,27 +28,47 @@ UNEXPECTED = "UNEXPECTED"
 NOTE = "NOTE"
 
 
-class Except(Exception):
+class LogItem(object):
+
+    def __init__(self, context, format, template, params):
+        self.context = context
+        self.format = format
+        self.template = template
+        self.params = params
+
+    def __data__(self):
+        return Data(self.__dict__)
+
+
+class Except(Exception, LogItem):
 
     @staticmethod
     def new_instance(desc):
         return Except(
-            desc.type,
-            desc.template,
-            desc.params,
-            [Except.new_instance(c) for c in listwrap(desc.cause)],
-            desc.trace
+            context=desc.context,
+            template=desc.template,
+            params=desc.params,
+            cause=[Except.new_instance(c) for c in listwrap(desc.cause)],
+            trace=desc.trace
         )
 
-    def __init__(self, type=ERROR, template=Null, params=Null, cause=Null, trace=Null, **kwargs):
+    def __init__(self, context=ERROR, template=Null, params=Null, cause=Null, trace=Null):
+        if context == None:
+            raise ValueError("expecting context to not be None")
+
+        self.cause = Except.wrap(cause)
+
         Exception.__init__(self)
-        self.type = type
-        self.template = template
-        self.params = set_default(kwargs, params)
-        self.cause = cause
+        LogItem.__init__(
+            self,
+            context=context,
+            format=None,
+            template=template,
+            params=params
+        )
 
         if not trace:
-            self.trace=extract_stack(2)
+            self.trace = extract_stack(2)
         else:
             self.trace = trace
 
@@ -70,14 +89,21 @@ class Except(Exception):
             e.cause = unwraplist([Except.wrap(c) for c in listwrap(e.cause)])
             return Except(**e)
         else:
-            if hasattr(e, "message") and e.message:
-                cause = Except(ERROR, text_type(e.message), trace=_extract_traceback(0))
+            tb = getattr(e, '__traceback__', None)
+            if tb is not None:
+                trace = _parse_traceback(tb)
             else:
-                cause = Except(ERROR, text_type(e), trace=_extract_traceback(0))
+                trace = _extract_traceback(0)
+
+            cause = Except.wrap(getattr(e, '__cause__', None))
+            if hasattr(e, "message") and e.message:
+                output = Except(context=ERROR, template=text_type(e.message), trace=trace, cause=cause)
+            else:
+                output = Except(context=ERROR, template=text_type(e), trace=trace, cause=cause)
 
             trace = extract_stack(stack_depth + 2)  # +2 = to remove the caller, and it's call to this' Except.wrap()
-            cause.trace.extend(trace)
-            return cause
+            output.trace.extend(trace)
+            return output
 
     @property
     def message(self):
@@ -88,7 +114,7 @@ class Except(Exception):
             if self.template.find(value) >= 0 or self.message.find(value) >= 0:
                 return True
 
-        if self.type == value:
+        if self.context == value:
             return True
         for c in listwrap(self.cause):
             if value in c:
@@ -96,7 +122,7 @@ class Except(Exception):
         return False
 
     def __unicode__(self):
-        output = self.type + ": " + self.template + "\n"
+        output = self.context + ": " + self.template + "\n"
         if self.params:
             output = expand_template(output, self.params)
 
@@ -106,8 +132,10 @@ class Except(Exception):
         if self.cause:
             cause_strings = []
             for c in listwrap(self.cause):
-                with suppress_exception:
+                try:
                     cause_strings.append(text_type(c))
+                except Exception as e:
+                    sys.stderr("Problem serializing cause"+text_type(c))
 
             output += "caused by\n\t" + "and caused by\n\t".join(cause_strings)
 
@@ -121,13 +149,9 @@ class Except(Exception):
             return self.__unicode__().encode('latin1', 'replace')
 
     def __data__(self):
-        return Data(
-            type=self.type,
-            template=self.template,
-            params=self.params,
-            cause=self.cause,
-            trace=self.trace
-        )
+        output = Data({k:getattr(self,k) for k in vars(self)})
+        output.cause=unwraplist([c.__data__() for c in listwrap(output.cause)])
+        return output
 
 
 def extract_stack(start=0):
@@ -170,7 +194,10 @@ def _extract_traceback(start):
     tb = sys.exc_info()[2]
     for i in range(start):
         tb = tb.tb_next
+    return _parse_traceback(tb)
 
+
+def _parse_traceback(tb):
     trace = []
     while tb is not None:
         f = tb.tb_frame
@@ -185,11 +212,10 @@ def _extract_traceback(start):
 
 
 def format_trace(tbs, start=0):
-    trace = []
-    for d in tbs[start::]:
-        item = expand_template('File "{{file}}", line {{line}}, in {{method}}\n', d)
-        trace.append(item)
-    return "".join(trace)
+    return "".join(
+        expand_template('File "{{file}}", line {{line}}, in {{method}}\n', d)
+        for d in tbs[start::]
+    )
 
 
 class Suppress(object):
@@ -198,13 +224,13 @@ class Suppress(object):
     """
 
     def __init__(self, exception_type):
-        self.type = exception_type
+        self.context = exception_type
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if not exc_val or isinstance(exc_val, self.type):
+        if not exc_val or isinstance(exc_val, self.context):
             return True
 
 suppress_exception = Suppress(Exception)

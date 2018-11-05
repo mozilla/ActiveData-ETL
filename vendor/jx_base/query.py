@@ -15,16 +15,14 @@ from collections import Mapping
 from copy import copy
 
 import jx_base
-from jx_base import STRUCT
 from jx_base.dimensions import Dimension
 from jx_base.domains import Domain, SetDomain, DefaultDomain
 from jx_base.expressions import jx_expression, Expression, Variable, LeavesOp, ScriptOp, OffsetOp, TRUE, FALSE
 from jx_base.queries import is_variable_name
-from mo_dots import Data, relative_field, concat_field
-from mo_dots import coalesce, Null, set_default, unwraplist, literal_field
-from mo_dots import wrap, unwrap, listwrap
+from mo_dots import Data, relative_field, concat_field, coalesce, Null, set_default, unwraplist, literal_field, wrap, unwrap, listwrap
 from mo_dots.lists import FlatList
 from mo_future import text_type
+from mo_json import STRUCT
 from mo_json.typed_encoder import untype_path
 from mo_logs import Log
 from mo_math import AND, UNION, Math
@@ -103,7 +101,6 @@ class QueryOp(Expression):
             limit=copy(self.limit),
             format=copy(self.format)
         )
-
 
     def vars(self, exclude_where=False, exclude_select=False):
         """
@@ -264,7 +261,6 @@ class QueryOp(Expression):
     def column_names(self):
         return listwrap(self.select).name + self.edges.name + self.groupby.name
 
-
     def __getitem__(self, item):
         if item == "from":
             return self.frum
@@ -282,6 +278,7 @@ class QueryOp(Expression):
 
 
 canonical_aggregates = wrap({
+    "cardinality": {"name":"cardinality", "default": 0},
     "count": {"name": "count", "default": 0},
     "min": {"name": "minimum"},
     "max": {"name": "maximum"},
@@ -398,7 +395,7 @@ def _normalize_select_no_context(select, schema=None):
             return Null
     elif isinstance(select.value, text_type):
         if select.value.endswith(".*"):
-            name = select.value[:-2]
+            name = select.value[:-2].lstrip(".")
             output.name = coalesce(select.name,  name)
             output.value = LeavesOp("leaves", Variable(name), prefix=coalesce(select.prefix, name))
         else:
@@ -409,7 +406,7 @@ def _normalize_select_no_context(select, schema=None):
                 output.name = coalesce(select.name, select.aggregate, ".")
                 output.value = LeavesOp("leaves", Variable("."))
             else:
-                output.name = coalesce(select.name, select.value, select.aggregate)
+                output.name = coalesce(select.name, select.value.lstrip("."), select.aggregate)
                 output.value = jx_expression(select.value, schema=schema)
     elif isinstance(select.value, (int, float)):
         if not output.name:
@@ -442,7 +439,7 @@ def _normalize_edge(edge, dim_index, limit, schema=None):
     if not _Column:
         _late_import()
 
-    if edge == None:
+    if not edge:
         Log.error("Edge has no value, or expression is empty")
     elif isinstance(edge, text_type):
         if schema:
@@ -453,7 +450,8 @@ def _normalize_edge(edge, dim_index, limit, schema=None):
                         name=edge,
                         value=jx_expression(edge, schema=schema),
                         allowNulls=True,
-                        dim=dim_index
+                        dim=dim_index,
+                        domain=_normalize_domain(None, limit)
                     )
                 ]
             elif isinstance(leaves, _Column):
@@ -485,7 +483,8 @@ def _normalize_edge(edge, dim_index, limit, schema=None):
                     name=edge,
                     value=jx_expression(edge, schema=schema),
                     allowNulls=True,
-                    dim=dim_index
+                    dim=dim_index,
+                    domain=DefaultDomain()
                 )
             ]
     else:
@@ -521,8 +520,10 @@ def _normalize_edge(edge, dim_index, limit, schema=None):
 def _normalize_groupby(groupby, limit, schema=None):
     if groupby == None:
         return None
-    output = wrap([n for ie, e in enumerate(listwrap(groupby)) for n in _normalize_group(e, ie, limit, schema=schema) ])
-    if any(o==None for o in output):
+    output = wrap([n for e in listwrap(groupby) for n in _normalize_group(e, None, limit, schema=schema)])
+    for i, o in enumerate(output):
+        o.dim = i
+    if any(o == None for o in output):
         Log.error("not expected")
     return output
 
@@ -539,9 +540,9 @@ def _normalize_group(edge, dim_index, limit, schema=None):
             prefix = edge[:-2]
             if schema:
                 output = wrap([
-                    {
-                        "name": concat_field(prefix, literal_field(relative_field(untype_path(c.names["."]), prefix))),
-                        "put": {"name": literal_field(untype_path(c.names["."]))},
+                    {  # BECASUE THIS IS A GROUPBY, EARLY SPLIT INTO LEAVES WORKS JUST FINE
+                        "name": concat_field(prefix, literal_field(relative_field(untype_path(c.name), prefix))),
+                        "put": {"name": literal_field(untype_path(c.name))},
                         "value": jx_expression(c.es_column, schema=schema),
                         "allowNulls": True,
                         "domain": {"type": "default"}
@@ -553,7 +554,7 @@ def _normalize_group(edge, dim_index, limit, schema=None):
                 return wrap([{
                     "name": untype_path(prefix),
                     "put": {"name": literal_field(untype_path(prefix))},
-                    "value": jx_expression(prefix, schema=schema),
+                    "value": LeavesOp(None, Variable(prefix)),
                     "allowNulls": True,
                     "dim":dim_index,
                     "domain": {"type": "default"}
@@ -610,13 +611,15 @@ def _normalize_window(window, schema=None):
     try:
         expr = jx_expression(v, schema=schema)
     except Exception:
-        expr = ScriptOp("script", v)
-
+        if hasattr(v, "__call__"):
+            expr = v
+        else:
+            expr = ScriptOp("script", v)
 
     return Data(
         name=coalesce(window.name, window.value),
         value=expr,
-        edges=[n for e in listwrap(window.edges) for n in _normalize_edge(e, schema)],
+        edges=[n for i, e in enumerate(listwrap(window.edges)) for n in _normalize_edge(e, i, limit=None, schema=schema)],
         sort=_normalize_sort(window.sort),
         aggregate=window.aggregate,
         range=_normalize_range(window.range),

@@ -16,34 +16,52 @@ from mo_times import Timer
 from pyLibrary.env import http
 
 TUID_BLOCK_SIZE = 1000
-
+DEBUG = True
 LANGUAGE_MAPPINGS = [
     ("c/c++", (".c", ".cpp", ".h", ".cc", ".cxx", ".hh", ".hpp", ".hxx")),
     ("javascript", (".js", ".jsm", ".xul", ".xml", ".html", ".xhtml")),
-    ("python", (".py",))
+    ("python", (".py",)),
+    ("java", ("java",)),
 ]
 
 
-def tuid_batches(task_cluster_record, resources, iterator, path="file"):
+def tuid_batches(source_key, task_cluster_record, resources, iterator, path="file"):
+
+    def has_tuids(s):
+        return s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)
+
     def _annotate_sources(sources):
         """
-
         :param sources: LIST OF COVERAGE SOURCE STRUCTURES TO MARKUP
         :return: NOTHING, sources ARE MARKED UP
         """
         try:
+            branch = task_cluster_record.repo.branch.name
             revision = task_cluster_record.repo.changeset.id[:12]
             sources = listwrap(sources)
-            filenames = [s[path].name for s in sources if s[path].is_firefox and (s[path].total_covered != 0 or s[path].total_uncovered != 0)]
+            filenames = [
+                s[path].name
+                for s in sources
+                if has_tuids(s)
+            ]
 
             with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
                 # WHAT DO WE HAVE
-                found = resources.tuid_mapper.get_tuids(revision, filenames)
+                found = resources.tuid_mapper.get_tuids(branch, revision, filenames)
                 if found == None:
                     return  # THIS IS A FAILURE STATE, AND A WARNING HAS ALREADY BEEN RAISED, DO NOTHING
 
                 for source in sources:
-                    line_to_tuid = found[source[path].name]
+                    if DEBUG and source[path].total_covered+source[path].total_uncovered > 100000:
+                        Log.warning(
+                            "lines={{num}}, file={{name}}",
+                            name=source[path].name,
+                            num=source[path].total_covered + source[path].total_uncovered
+                        )
+
+                    if not has_tuids(source):
+                        continue
+                    line_to_tuid = found.get(source[path].name)
                     if line_to_tuid != None:
                         source[path].tuid_covered = [
                             line_to_tuid[line]
@@ -57,7 +75,7 @@ def tuid_batches(task_cluster_record, resources, iterator, path="file"):
                         ]
         except Exception as e:
             resources.tuid_mapper.enabled = False
-            Log.warning("unexpected failure", cause=e)
+            Log.warning("failure with TUID mapping with {{key}}", key=source_key, cause=e)
 
     for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
         _annotate_sources(records)

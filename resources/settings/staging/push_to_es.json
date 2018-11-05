@@ -20,7 +20,7 @@
 				"port": 9200,
 				"index": "firefox-files",
 				"type": "files",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",
 				"schema": {
@@ -55,7 +55,7 @@
 				"port": 9200,
 				"index": "fx-test",
 				"type": "test_result",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -87,7 +87,7 @@
 				"index": "treeherder",
 				"type": "th_job",
 				"id": "job.id",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -120,7 +120,7 @@
 				"port": 9200,
 				"index": "unittest",
 				"type": "test_result",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -154,7 +154,7 @@
 				"port": 9200,
 				"index": "perf",
 				"type": "perf_result",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -188,7 +188,7 @@
 				"port": 9200,
 				"index": "jobs",
 				"type": "job",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
@@ -224,7 +224,7 @@
 				"port": 9200,
 				"index": "coverage",
 				"type": "code_coverage",
-				"tjson": true,
+				"typed": true,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"timeout": 300,
 				"schema": {
@@ -255,7 +255,7 @@
 				"index": "task",
 				"type": "task",
 				"id": "task.id",
-				"tjson": true,
+				"typed": true,
 				"timeout": 300,
 				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {

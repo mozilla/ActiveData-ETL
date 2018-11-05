@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_logs.strings import expand_template
+
 from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER
@@ -17,7 +19,7 @@ from activedata_etl.transforms.jsdcov_to_es import process_jsdcov_artifact
 from activedata_etl.transforms.jsvm_to_es import process_jsvm_artifact
 from activedata_etl.transforms.per_test_to_es import process_per_test_artifact
 from mo_json import json2value
-from mo_logs import Log
+from mo_logs import Log, Except
 
 DEBUG = True
 
@@ -58,7 +60,7 @@ def process(source_key, source, destination, resources, please_stop=None):
         if any(  # if we will be processing coverage, then prepare the resources
             a in artifact.name
             for artifact in artifacts
-            for a in ("jsdcov_artifacts.zip", "grcov", "jsvm", "per-test-coverage-reports.zip")
+            for a in ("jsdcov_artifacts.zip", "code-coverage-grcov.zip", "code-coverage-jsvm.zip", "per-test-coverage-reports.zip")
         ):
             if not resources.file_mapper:
                 resources.file_mapper = FileMapper(task_cluster_record)
@@ -81,7 +83,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-                elif "grcov" in artifact.name:
+                elif "code-coverage-grcov.zip" in artifact.name:
                     pass
                     if not task_cluster_record.repo.push.date:
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
@@ -101,7 +103,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         artifact_etl,
                         please_stop
                     ))
-                elif "jsvm" in artifact.name:
+                elif "code-coverage-jsvm.zip" in artifact.name:
                     if not task_cluster_record.repo.push.date:
                         Log.warning("expecting a repo.push.date for all tasks source_key={{key}}", key=source_key)
                         continue
@@ -121,37 +123,30 @@ def process(source_key, source, destination, resources, please_stop=None):
                         please_stop
                     ))
                 elif "per-test-coverage-reports.zip" in artifact.name:
-                    coverage_artifact_exists = True
-                    _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-                    if DEBUG:
-                        Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
+                    try:
+                        Log.note("start per-test for {{url}}", url=artifact.url)
+                        coverage_artifact_exists = True
+                        _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
+                        if DEBUG:
+                            Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
 
-                    keys.extend(process_per_test_artifact(
-                        source_key,
-                        resources,
-                        destination,
-                        task_cluster_record,
-                        artifact,
-                        artifact_etl,
-                        please_stop
-                    ))
-                # elif "gcda" in artifact.name:
-                #     coverage_artifact_exists = True
-                #     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
-                #     if DEBUG:
-                #         Log.note("Processing gcda artifact: {{url}}", url=artifact.url)
-                #
-                #     keys.extend(process_gcda_artifact(
-                #         source_key,
-                #         resources,
-                #         destination,
-                #         artifact,
-                #         task_cluster_record,
-                #         artifact_etl,
-                #         please_stop
-                #     ))
+                        keys.extend(process_per_test_artifact(
+                            source_key,
+                            resources,
+                            destination,
+                            task_cluster_record,
+                            artifact,
+                            artifact_etl,
+                            please_stop
+                        ))
+                    finally:
+                        Log.note("done per-test for {{url}}", url=artifact.url)
+
             except Exception as e:
-                raise Log.error(TRY_AGAIN_LATER, reason="problem processing " + artifact.url + " for key " + source_key, cause=e)
+                e = Except.wrap(e)
+                reason = "Problem processing coverage: {{url}} for key {{key}}"
+                Log.warning(reason, url=artifact.url, key=source_key, cause=e)
+                raise Log.error(TRY_AGAIN_LATER, reason="Problem processing coverage: " + artifact.url + " for key " + source_key, cause=e)
 
     if DEBUG and coverage_artifact_exists:
         Log.note("Done processing coverage artifacts")

@@ -11,7 +11,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
-from jx_base import NESTED
 from jx_base.expressions import NULL
 from jx_base.query import DEFAULT_LIMIT
 from jx_elasticsearch import post as es_post
@@ -19,7 +18,9 @@ from jx_elasticsearch.es52.expressions import split_expression_by_depth, AndOp, 
 from jx_elasticsearch.es52.setop import format_dispatch, get_pull_function, get_pull
 from jx_elasticsearch.es52.util import jx_sort_to_es_sort, es_query_template
 from jx_python.expressions import compile_expression, jx_expression_to_function
-from mo_dots import split_field, FlatList, listwrap, literal_field, coalesce, Data, concat_field, set_default, relative_field, startswith_field
+from mo_dots import split_field, FlatList, listwrap, literal_field, coalesce, Data, concat_field, set_default, relative_field, startswith_field, wrap, unwrap
+from mo_future import zip_longest
+from mo_json import NESTED
 from mo_json.typed_encoder import untype_path
 from mo_logs import Log
 from mo_threads import Thread
@@ -60,11 +61,12 @@ def es_deepop(es, query):
 
     # SPLIT WHERE CLAUSE BY DEPTH
     wheres = split_expression_by_depth(query.where, schema)
-    for i, f in enumerate(es_filters):
-        script = AndOp("and", wheres[i]).partial_eval().to_esfilter(schema)
+    for f, w in zip_longest(es_filters, wheres):
+        script = AndOp("and", w).partial_eval().to_esfilter(schema)
         set_default(f, script)
 
     if not wheres[1]:
+        # INCLUDE DOCS WITH NO NESTED DOCS
         more_filter = {
             "bool": {
                 "filter": [AndOp("and", wheres[0]).partial_eval().to_esfilter(schema)],
@@ -85,17 +87,18 @@ def es_deepop(es, query):
 
     # es_query.sort = jx_sort_to_es_sort(query.sort)
     map_to_es_columns = schema.map_to_es()
-    # {c.names["."]: c.es_column for c in schema.leaves(".")}
+    # {c.name: c.es_column for c in schema.leaves(".")}
     query_for_es = query.map(map_to_es_columns)
     es_query.sort = jx_sort_to_es_sort(query_for_es.sort, schema)
 
     es_query.stored_fields = []
 
     is_list = isinstance(query.select, list)
+    selects = wrap([unwrap(s.copy()) for s in listwrap(query.select)])
     new_select = FlatList()
 
-    i = 0
-    for s in listwrap(query.select):
+    put_index = 0
+    for s in selects:
         if isinstance(s.value, LeavesOp) and isinstance(s.value.term, Variable):
             # IF THERE IS A *, THEN INSERT THE EXTRA COLUMNS
             leaves = schema.leaves(s.value.term.var)
@@ -105,15 +108,15 @@ def es_deepop(es, query):
                     if c.jx_type == NESTED:
                         continue
                     es_query.stored_fields += [c.es_column]
-                c_name = untype_path(c.names[query_path])
+                c_name = untype_path(relative_field(c.name, query_path))
                 col_names.add(c_name)
                 new_select.append({
                     "name": concat_field(s.name, c_name),
                     "nested_path": c.nested_path[0],
-                    "put": {"name": concat_field(s.name, literal_field(c_name)), "index": i, "child": "."},
+                    "put": {"name": concat_field(s.name, literal_field(c_name)), "index": put_index, "child": "."},
                     "pull": get_pull_function(c)
                 })
-                i += 1
+                put_index += 1
 
             # REMOVE DOTS IN PREFIX IF NAME NOT AMBIGUOUS
             for n in new_select:
@@ -126,7 +129,7 @@ def es_deepop(es, query):
                 new_select.append({
                     "name": s.name,
                     "nested_path": ".",
-                    "put": {"name": s.name, "index": i, "child": "."},
+                    "put": {"name": s.name, "index": put_index, "child": "."},
                     "pull": NULL
                 })
             else:
@@ -139,12 +142,14 @@ def es_deepop(es, query):
 
                     # WE MUST FIGURE OUT WHICH NAMESSPACE s.value.var IS USING SO WE CAN EXTRACT THE child
                     for np in n.nested_path:
-                        c_name = untype_path(n.names[np])
+                        c_name = untype_path(relative_field(n.name, np))
                         if startswith_field(c_name, s.value.var):
                             child = relative_field(c_name, s.value.var)
                             break
                     else:
-                        child = relative_field(untype_path(n.names[n.nested_path[0]]), s.value.var)
+                        continue
+                        # REMOVED BECAUSE SELECTING INNER PROPERTIES IS NOT ALLOWED
+                        # child = relative_field(untype_path(relative_field(n.name, n.nested_path[0])), s.value.var)
 
                     new_select.append({
                         "name": s.name,
@@ -152,11 +157,11 @@ def es_deepop(es, query):
                         "nested_path": n.nested_path[0],
                         "put": {
                             "name": s.name,
-                            "index": i,
+                            "index": put_index,
                             "child": child
                         }
                     })
-            i += 1
+            put_index += 1
         else:
             expr = s.value
             for v in expr.vars():
@@ -175,9 +180,9 @@ def es_deepop(es, query):
                 "name": s.name if is_list else ".",
                 "pull": pull,
                 "value": expr.__data__(),
-                "put": {"name": s.name, "index": i, "child": "."}
+                "put": {"name": s.name, "index": put_index, "child": "."}
             })
-            i += 1
+            put_index += 1
 
     # <COMPLICATED> ES needs two calls to get all documents
     more = []
@@ -208,7 +213,7 @@ def es_deepop(es, query):
             Thread.join(need_more)
             for t in more[0].hits.hits:
                 yield t
-    #</COMPLICATED>
+    # </COMPLICATED>
 
     try:
         formatter, groupby_formatter, mime_type = format_dispatch[query.format]

@@ -45,7 +45,7 @@
 			"port": 9200,
 			"index": "branches",
 			"type": "branch",
-			"tjson": false,
+			"typed": false,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
@@ -56,7 +56,7 @@
 			"port": 9200,
 			"index": "repo",
 			"type": "revision",
-			"tjson": false,
+			"typed": false,
 			"timeout": 300,
 			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 			"debug": false,
@@ -78,10 +78,6 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -109,10 +105,6 @@
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -191,10 +183,6 @@
 					"$ref": "file://~/private.json#aws_credentials"
 				},
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -216,10 +204,6 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -287,10 +271,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -314,10 +294,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -339,10 +315,6 @@
 				"key_format": "t.a:b.c"
 			},
 			"notify": [
-				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
 				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
@@ -366,10 +338,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -385,6 +353,17 @@
 			{
 				"log_type": "console"
 			},
+//			{
+//				"log_type": "elasticsearch",
+//				"host": {"$ref": "#local_es_node.host"},
+//				"index": "debug-etl",
+//				"type": "etl",
+//				"timeout": "5minute",
+//				"retry": {
+//					"times": 3,
+//					"sleep": "minute"
+//				}
+//			},
 			{
 				"log_type": "elasticsearch",
 				"host": "http://localhost",

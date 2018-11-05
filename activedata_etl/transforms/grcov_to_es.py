@@ -25,7 +25,7 @@ from pyLibrary.env.big_data import ibytes2ilines
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
 DEBUG = True
-
+FILE_TOO_LONG = 100*1000
 
 def process_grcov_artifact(source_key, resources, destination, artifact, task_cluster_record, artifact_etl, please_stop):
     """
@@ -68,7 +68,8 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
                             continue
                         if IGNORE_METHOD_COVERAGE and source.file.total_covered == None:
                             continue
-
+                        if FILE_TOO_LONG < source.file.total_covered + source.file.total_uncovered:
+                            continue
                         file_info = resources.file_mapper.find(source_key, source.file.name, artifact, task_cluster_record)
                         source.file = set_default(
                             file_info,
@@ -77,6 +78,7 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
                         yield source
 
                 for source in tuid_batches(
+                    source_key,
                     task_cluster_record,
                     resources,
                     renamed_files(),
@@ -97,5 +99,5 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
             with Timer("Processing grcov for key {{key}}", param={"key": etl_key}):
                 destination.write_lines(file_id, line_gen(tmpfile))
         except Exception as e:
-            Log.warning("problem processing grcov artifact for key {{key}}", key=source_key, cause=e)
+            Log.warning("problem processing grcov artifact {{url}} for key {{key}}", key=source_key, url=artifact.url, cause=e)
         return keys

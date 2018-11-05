@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Trung Do (chin.bimbo@gmail.com)
-#
 from __future__ import division
 from __future__ import unicode_literals
 
@@ -38,6 +36,7 @@ def minimize_task(task):
     task.task.command = None
     task.task.env = None
     task.task.expires = None
+    task.task.mounts = None
     task.task.retries = None
     task.task.routes = None
     task.task.run = None
@@ -137,8 +136,10 @@ CATEGORIES = {
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
     },
@@ -157,13 +158,23 @@ CATEGORIES = {
 TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
     "android-4.3-arm7-api-16": {"build": {"platform": "android"}},
+    "android-4.3-arm7-api-15": {"build": {"platform": "android"}},
+    "android-em-4.2-x86": {"build": {"platform": "android"}},
+    "android-em-4.3-arm7-api-16": {"build": {"platform": "android"}},
+    "android-em-7.0-x86": {"build": {"platform": "android"}},
+    "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
+    "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "maxosx64"}},
+    "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32", "type": ["ming32"]}},
     "windows10-64": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
@@ -172,10 +183,13 @@ TEST_PLATFORM = {
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
     for o in BUILD_TYPES + [
+        "aarch64",
         "asan",
         "gradle",
+        "lto",
         "mingw32",
         "ming32",
+        "msvc",
         "qr",
         "stylo-disabled",
         "stylo-sequential"
@@ -188,6 +202,7 @@ RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["e10s"]}},
+    "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "stylo": {"build": {"type": ["stylo"]}},
@@ -196,6 +211,8 @@ RUN_OPTIONS = {
     "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled"]}, "run": {"type": ["e10s"]}},
     "stylo-sequential": {},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
+    "sw-e10s": {"run": {"type": ["service-worker","e10s"]}},
+    "sw": {"run": {"type": ["service-worker"]}},
 }
 
 TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
@@ -203,6 +220,8 @@ TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERD
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
+        "awsy-base-dmd",
+        "awsy-dmd",
         "awsy-base",
         "awsy",
         "browser-instrumentation",
@@ -215,6 +234,7 @@ TEST_SUITE = {
         "geckoview-junit",
         "gtest",
         "jittest",
+        "jittgst",  # SPELLING MISTAKE
         "jsreftest",
         "marionette",
         "marionette-headless",
@@ -230,8 +250,68 @@ TEST_SUITE = {
         "mochitest-media",
         "mochitest-plain-headless",
         "mochitest-valgrind",
+        "mochitest-webgl1-core",
+        "mochitest-webgl1-ext",
+        "mochitest-webgl2-core",
+        "mochitest-webgl2-ext",
         "mochitest-webgl",
         "mozmill",
+        "raptor-assorted-dom-chrome",
+        "raptor-assorted-dom-firefox",
+        "raptor-chrome-motionmark-animometer",
+        "raptor-chrome-motionmark-htmlsuite",
+        "raptor-chrome-motionmark",
+        "raptor-chrome-speedometer",
+        "raptor-chrome-stylebench",
+        "raptor-chrome-sunspider",
+        "raptor-chrome-tp6",
+        "raptor-chromw-unity-webgl",
+        "raptor-chrome-webaudio",
+        "raptor-firefox-motionmark-animometer",
+        "raptor-firefox-motionmark-htmlsuite",
+        "raptor-firefox-motionmark",
+        "raptor-firefox-speedometer",
+        "raptor-firefox-stylebench",
+        "raptor-firefox-sunspider",
+        "raptor-firefox-tp6",
+        "raptor-firefox-unity-webgl",
+        "raptor-firefox-webaudio",
+
+        "raptor-gdocs-chrome",
+        "raptor-gdocs-firefox",
+        "raptor-motionmark-animometer-chrome",
+        "raptor-motionmark-animometer-firefox",
+        "raptor-motionmark-htmlsuite-chrome",
+        "raptor-motionmark-htmlsuite-firefox",
+        "raptor-motionmark-chrome",
+        "raptor-motionmark-firefox",
+        "raptor-motionmark-htmlsuite-chrome",
+        "raptor-motionmark-htmlsuite-firefox",
+        "raptor-motionmark-animometer-firefox",
+        "raptor-stylebench-chrome",
+        "raptor-stylebench-firefox",
+        "raptor-speedometer-chrome",
+        "raptor-speedometer-firefox",
+        "raptor-speedometer-geckoview",
+        "raptor-sunspider-chrome",
+        "raptor-sunspider-firefox",
+        "raptor-tp6-chrome",
+        "raptor-tp6-firefox",
+        "raptor-unity-webgl-chrome",
+        "raptor-unity-webgl-firefox",
+        "raptor-unity-webgl-geckoview",
+        "raptor-wasm-godot-baseline-firefox",
+        "raptor-wasm-godot-baseline",
+        "raptor-wasm-godot-chrome",
+        "raptor-wasm-godot-firefox",
+        "raptor-wasm-godot-ion-firefox",
+        "raptor-wasm-misc-chrome",
+        "raptor-wasm-misc-firefox",
+        "raptor-wasm-misc-baseline-firefox",
+        "raptor-wasm-misc-ion-firefox",
+        "raptor-webaudio-chrome",
+        "raptor-webaudio-firefox",
+
         "reftest",
         "reftest-fonts",
         "reftest-gpu",
@@ -239,6 +319,7 @@ TEST_SUITE = {
         "reftest-no-accel",
         "reftest-no-accel-fonts",
         "robocop",
+        "talos-bcv",
         "telemetry-tests-client",
         "test-coverage",
         "test-coverage-wpt",
@@ -251,34 +332,41 @@ TEST_SUITE = {
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(200)}
+TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
-    p: {"build": {"platform": p}}
-    for p in [
-        "android-hw-gs3-7-1-arm7-api-16",
-        "android-api-16",
-        "android-x86",
-        "android",
-        "linux",
-        "linux64",
-        "linux64-dmd",
-        "macosx64",
-        "macosx",
-        "win32",
-        "win64",
-        "win32-dmd"
-    ]
+    "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
+    "android-x86": {"build": {"platform": "android"}},
+    "android-x86_64": {"build": {"platform": "android"}},
+    "android-api-16-old-id": {"build": {"platform": "android"}},
+    "android-api-16": {"build": {"platform": "android"}},
+    "android-test-ccov": {"build": {"platform": "android", "type": ["ccov"]}, "run": {"suite": {"name": "android-test", "fullname": "android-test"}}},
+    "android": {"build": {"platform": "android"}},
+    "linux": {"build": {"platform": "linux"}},
+    "linux64": {"build": {"platform": "linux64"}},
+    "linux64-dmd": {"build": {"platform": "linux64"}},
+    "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx": {"build": {"platform": "maxosx"}},
+    "win32": {"build": {"platform": "win32"}},
+    "win32-dmd": {"build": {"platform": "win32"}},
+    "win64": {"build": {"platform": "win64"}},
+    "win64-dmd": {"build": {"platform": "win64"}}
 }
 
 BUILD_OPTIONS = {
     "aarch64": {},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
+    "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
     "ccov": {"build": {"type": ["ccov"]}},
+    "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
     "checkstyle": {},
     "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
@@ -288,7 +376,10 @@ BUILD_OPTIONS = {
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
     "lint": {},
+    "lto": {"build": {"type": ["lto"]}},  # LINK TIME OPTIMIZATION
     "mingw32": {},
+    "mingwclang": {"build": {"compiler": ["clang"]}},
+    "msvc": {},
     "noopt": {},
     "nightly": {},
     "old-id": {},

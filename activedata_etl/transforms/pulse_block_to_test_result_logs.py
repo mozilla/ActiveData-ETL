@@ -85,7 +85,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         "name": name,
                         "num_lines": num_lines
                     },
-                    debug=DEBUG
+                    silent=not DEBUG
                 ):
                     if not PARSE_TRY and buildbot_summary.build.branch == "try":
                         continue

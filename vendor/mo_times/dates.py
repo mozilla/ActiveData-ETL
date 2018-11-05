@@ -18,10 +18,11 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 from time import time as _time
 
-from mo_dots import Null
-from mo_future import unichr, text_type, long
+from mo_dots import Null, NullType
+from mo_future import unichr, text_type, long, none_type
 from mo_logs import Except
 from mo_logs.strings import deformat
+from mo_math import Math
 
 from mo_times.durations import Duration, MILLI_VALUES
 from mo_times.vendor.dateutil.parser import parse as parse_date
@@ -41,6 +42,7 @@ class Date(object):
 
     MIN = None
     MAX = None
+    EPOCH = None
 
     def __new__(cls, *args, **kwargs):
         if not args or (len(args) == 1 and args[0] == None):
@@ -50,6 +52,14 @@ class Date(object):
     def __init__(self, *args):
         if self.unix is None:
             self.unix = parse(*args).unix
+
+    def __hash__(self):
+        return self.unix.__hash__()
+
+    def __eq__(self, val):
+        if val is not None and type(val) == Date:
+            return self.unix == val.unix
+        return False
 
     def __nonzero__(self):
         return True
@@ -87,6 +97,13 @@ class Date(object):
         :return: HOUR (int) IN THE GMT DAY
         """
         return int(int(self.unix)/60/60 % 24)
+
+    @property
+    def dow(self):
+        """
+        :return: DAY-OF-WEEK  MONDAY=0, SUNDAY=6
+        """
+        return int(self.unix / 60 / 60 / 24 / 7 + 5) % 7
 
     def addDay(self):
         return Date(unix2datetime(self.unix) + timedelta(days=1))
@@ -134,7 +151,9 @@ class Date(object):
 
     @staticmethod
     def today():
-        return _unix2Date(math.floor(_time() / 86400) * 86400)
+        now = _utcnow()
+        now_unix = datetime2unix(now)
+        return _unix2Date(math.floor(now_unix / 86400) * 86400)
 
     @staticmethod
     def range(min, max, interval):
@@ -147,7 +166,7 @@ class Date(object):
         return str(unix2datetime(self.unix))
 
     def __repr__(self):
-        return unix2datetime(self.unix).__repr__()
+        unix2datetime(self.unix).__repr__()
 
     def __sub__(self, other):
         if other == None:
@@ -161,37 +180,73 @@ class Date(object):
 
     def __lt__(self, other):
         try:
+            type_ = other.__class__
+            if type_ in (none_type, NullType):
+                return False
+            elif type_ is Date:
+                return self.unix < other.unix
+            elif type_ in (float, int):
+                return self.unix < other
             other = Date(other)
+            return self.unix < other.unix
         except Exception:
             return False
 
-        return self.unix < other.unix
-
     def __eq__(self, other):
-        if other == None or other == '':
-            return Null
-
         try:
-            return other.unix == self.unix
-        except Exception:
-            pass
-
-        try:
-            return Date(other).unix == self.unix
+            type_ = other.__class__
+            if type_ in (none_type, NullType):
+                return False
+            elif type_ is Date:
+                return self.unix == other.unix
+            elif type_ in (float, int):
+                return self.unix == other
+            other = Date(other)
+            return self.unix == other.unix
         except Exception:
             return False
 
     def __le__(self, other):
-        other = Date(other)
-        return self.unix <= other.unix
+        try:
+            type_ = other.__class__
+            if type_ in (none_type, NullType):
+                return False
+            elif type_ is Date:
+                return self.unix <= other.unix
+            elif type_ in (float, int):
+                return self.unix <= other
+            other = Date(other)
+            return self.unix <= other.unix
+        except Exception:
+            return False
 
     def __gt__(self, other):
-        other = Date(other)
-        return self.unix > other.unix
+        try:
+            type_ = other.__class__
+            if type_ in (none_type, NullType):
+                return False
+            elif type_ is Date:
+                return self.unix > other.unix
+            elif type_ in (float, int):
+                return self.unix > other
+            other = Date(other)
+            return self.unix > other.unix
+        except Exception:
+            return False
 
     def __ge__(self, other):
-        other = Date(other)
-        return self.unix >= other.unix
+        try:
+            type_ = other.__class__
+            if type_ in (none_type, NullType):
+                return False
+            elif type_ is Date:
+                return self.unix >= other.unix
+            elif type_ in (float, int):
+                return self.unix >= other
+            other = Date(other)
+            return self.unix >= other.unix
+        except Exception:
+            return False
 
     def __add__(self, other):
         return self.add(other)
@@ -224,7 +279,7 @@ def parse(*args):
                     output = _unix2Date(a0 / 1000)
                 else:
                     output = _unix2Date(a0)
-            elif isinstance(a0, text_type) and len(a0) in [9, 10, 12, 13] and is_integer(a0):
+            elif isinstance(a0, text_type) and len(a0) in [9, 10, 12, 13] and Math.is_integer(a0):
                 a0 = float(a0)
                 if a0 > 9999999999:    # WAY TOO BIG IF IT WAS A UNIX TIMESTAMP
                     output = _unix2Date(a0 / 1000)
@@ -330,7 +385,7 @@ def unicode2Date(value, format=None):
     """
     CONVERT UNICODE STRING TO UNIX TIMESTAMP VALUE
     """
-    ## http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+    # http://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
     if value == None:
         return None
 
@@ -462,19 +517,7 @@ def deformat(value):
 
 Date.MIN = Date(datetime(1, 1, 1))
 Date.MAX = Date(datetime(2286, 11, 20, 17, 46, 39))
-
-
-def is_integer(s):
-    if s is True or s is False:
-        return False
-
-    try:
-        if float(s) == round(float(s), 0):
-            return True
-        return False
-    except Exception:
-        return False
-
+Date.EPOCH = _unix2Date(0)
 
 def _mod(value, mod=1):
     """

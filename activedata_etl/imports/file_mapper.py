@@ -19,7 +19,7 @@ from mo_files import TempFile
 from mo_future import text_type
 from mo_json import stream
 from mo_logs import Log
-from mo_times import Timer
+from mo_times import Timer, Date
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
@@ -44,7 +44,7 @@ class FileMapper(object):
                 "where": {"and": [
                     {"eq": {"name": "public/components.json.gz"}},
                     {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": timestamp}}
+                    {"lt": {"repo.push.date": coalesce(timestamp, Date.now())}}
                 ]},
                 "sort": {"repo.push.date": "desc"},
                 "limit": 1,
@@ -133,7 +133,7 @@ class FileMapper(object):
                 return {"name": filename}
 
         try:
-            found = KNOWN_MAPPINGS.get(filename);
+            found = KNOWN_MAPPINGS.get(filename)
             if found:
                 return {"name": found, "is_firefox": True, "old_name": filename}
             if self.predefined_failures(filename):
@@ -142,7 +142,7 @@ class FileMapper(object):
                 return {"name": filename}
             suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.run.suite.name})
 
-            filename = filename.split(' line ')[0].split(' -> ')[0].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+            filename = filename.split(' line ')[0].split(' -> ')[-1].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
             path = list(reversed(filename.split("/")))
             curr = self.lookup
             i = -1
@@ -206,6 +206,7 @@ KNOWN_FAILURES = {"or": [
         "resource://services-common/utils.js",
         "resource://services-crypto/utils.js"
     ]}},
+    {"suffix": {".": "libstd/io/mod.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
@@ -214,7 +215,8 @@ KNOWN_FAILURES = {"or": [
     {"prefix": {".": "about:"}},
     {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
     {"prefix": {".": "https://example.com/MochiKit"}},
-    {"prefix": {".": "vs2017"}}
+    {"prefix": {".": "vs2017"}},
+    {"prefix": {".": "third_party/rust"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"

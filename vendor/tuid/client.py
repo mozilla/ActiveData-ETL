@@ -14,20 +14,23 @@ from mo_dots import wrap, coalesce
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
+from mo_threads import Till
 from mo_times import Timer, Date
 from pyLibrary import aws
 from pyLibrary.env import http
 from pyLibrary.sql import sql_iso, sql_list
-from pyLibrary.sql.sqlite import Sqlite, quote_value
+from pyLibrary.sql.sqlite import Sqlite, quote_value, quote_list
 
 DEBUG = True
-
+SLEEP_ON_ERROR = 30
+MAX_BAD_REQUESTS = 3
 
 class TuidClient(object):
 
     @override
     def __init__(self, endpoint, push_queue=None, timeout=30, db=None, kwargs=None):
         self.enabled = True
+        self.num_bad_requests = 0
         self.endpoint = endpoint
         self.timeout = timeout
         self.push_queue = aws.Queue(push_queue) if push_queue else None
@@ -36,11 +39,11 @@ class TuidClient(object):
         self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), kwargs=db)
 
         if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
-            self._setup()
-        self.db.commit()
+            with self.db.transaction() as transaction:
+                self._setup(transaction)
 
-    def _setup(self):
-        self.db.execute("""
+    def _setup(self, transaction):
+        transaction.execute("""
         CREATE TABLE tuid (
             revision CHAR(12),
             file TEXT,
@@ -49,21 +52,23 @@ class TuidClient(object):
         )
         """)
 
-    def get_tuid(self, revision, file):
+    def get_tuid(self, branch, revision, file):
         """
+        :param branch: BRANCH TO FIND THE REVISION/FILE
         :param revision: THE REVISION NUNMBER
         :param file: THE FULL PATH TO A SINGLE FILE
         :return: A LIST OF TUIDS
         """
-        service_response = wrap(self.get_tuids(revision, [file]))
+        service_response = wrap(self.get_tuids(branch, revision, [file]))
         for f, t in service_response.items():
             return t
 
-    def get_tuids(self, revision, files):
+    def get_tuids(self, branch, revision, files):
         """
         GET TUIDS FROM ENDPOINT, AND STORE IN DB
-        :param revision:
-        :param files:
+        :param branch: BRANCH TO FIND THE REVISION/FILE
+        :param revision: THE REVISION NUNMBER
+        :param files: THE FULL PATHS TO THE FILES
         :return: MAP FROM FILENAME TO TUID LIST
         """
 
@@ -74,16 +79,15 @@ class TuidClient(object):
         with Timer(
             "ask tuid service for {{num}} files at {{revision|left(12)}}",
             {"num": len(files), "revision": revision},
-            debug=DEBUG,
-            silent=not self.enabled
+            silent=not DEBUG or not self.enabled
         ):
-            try:
-                response = self.db.query(
-                    "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
-                    " AND file in " + sql_iso(sql_list(map(quote_value, files)))
-                )
-                found = {file: json2value(tuids) for file, tuids in response.data}
+            response = self.db.query(
+                "SELECT file, tuids FROM tuid WHERE revision=" + quote_value(revision) +
+                " AND file IN " + quote_list(files)
+            )
+            found = {file: json2value(tuids) for file, tuids in response.data}
 
+            try:
                 remaining = set(files) - set(found.keys())
                 new_response = None
                 if remaining:
@@ -91,8 +95,10 @@ class TuidClient(object):
                         "from": "files",
                         "where": {"and": [
                             {"eq": {"revision": revision}},
-                            {"in": {"path": remaining}}
+                            {"in": {"path": remaining}},
+                            {"eq": {"branch": branch}}
                         ]},
+                        "branch": branch,
                         "meta": {
                             "format": "list",
                             "request_time": Date.now()
@@ -107,7 +113,7 @@ class TuidClient(object):
                             Log.note("no recorded tuid request")
 
                     if not self.enabled:
-                        return None
+                        return found
 
                     new_response = http.post_json(
                         self.endpoint,
@@ -115,19 +121,29 @@ class TuidClient(object):
                         timeout=self.timeout
                     )
 
-                    self.db.execute(
-                        "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
-                            sql_iso(sql_list(map(quote_value, (revision, r.path, value2json(r.tuids)))))
+                    with self.db.transaction() as transaction:
+                        command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
+                            quote_list((revision, r.path, value2json(r.tuids)))
                             for r in new_response.data
+                            if r.tuids != None
                         )
-                    )
-                    self.db.commit()
+                        if not command.endswith(" VALUES "):
+                            transaction.execute(command)
+                    self.num_bad_requests = 0
 
                 found.update({r.path: r.tuids for r in new_response.data} if new_response else {})
                 return found
 
             except Exception as e:
+                self.num_bad_requests += 1
                 if self.enabled:
-                    Log.warning("TUID service has problems.", cause=e)
-                self.enabled = False
-                return None
+                    if "502 Bad Gateway" in e:
+                        self.enabled = False
+                        Log.error("TUID service has problems.", cause=e)
+                    elif self.num_bad_requests >= MAX_BAD_REQUESTS:
+                        self.enabled = False
+                        Log.error("TUID service has problems.", cause=e)
+                    else:
+                        Log.warning("TUID service has problems.", cause=e)
+                        Till(seconds=SLEEP_ON_ERROR).wait()
+                return found

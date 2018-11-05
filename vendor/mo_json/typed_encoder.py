@@ -11,21 +11,19 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+import time
 from collections import Mapping
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from json.encoder import encode_basestring
 
-from datetime import date, datetime, timedelta
-import time
-from jx_base import Column, python_type_to_json_type, NESTED, EXISTS, STRING, NUMBER, INTEGER, BOOLEAN
-from mo_dots import Data, FlatList, NullType, join_field, split_field
-from mo_future import text_type, binary_type, sort_using_key
+from mo_dots import Data, FlatList, NullType, join_field, split_field, _get, SLOT, DataObject
+from mo_future import text_type, binary_type, sort_using_key, long, generator_types
+from mo_json import ESCAPE_DCT, float2json, BOOLEAN, INTEGER, NUMBER, STRING, EXISTS, NESTED, python_type_to_json_type
+from mo_json.encoder import UnicodeBuilder, COLON, COMMA, problem_serializing, json_encoder
 from mo_logs import Log
 from mo_logs.strings import quote, utf82unicode
 from mo_times import Date, Duration
-
-from mo_json import ESCAPE_DCT, float2json
-from mo_json.encoder import UnicodeBuilder, COLON, COMMA, problem_serializing, json_encoder
 
 
 def encode_property(name):
@@ -47,31 +45,75 @@ def untype_path(encoded):
 
 def unnest_path(encoded):
     if encoded.startswith(".."):
-        encoded = encoded.lstrip(".")
-        if not encoded:
-            encoded = "."
+        remainder = encoded.lstrip(".")
+        back = len(encoded) - len(remainder)
+        return ("." * back) + unnest_path(remainder)
 
-    return join_field(decode_property(c) for c in split_field(encoded) if c != NESTED_TYPE)
+    path = split_field(encoded)
+    if not path:
+        return "."
+    if path[-1] == NESTED_TYPE:
+        path = path[:-1]
+        if not path:
+            return "."
+
+    return join_field([decode_property(c) for c in path[:-1] if not c.startswith(TYPE_PREFIX)] + [decode_property(path[-1])])
 
 
 def untyped(value):
-    return _untype(value)
+    return _untype_value(value)
 
 
-def _untype(value):
-    if isinstance(value, Mapping):
-        output = {}
+def _untype_list(value):
+    if any(isinstance(v, Mapping) for v in value):
+        # MAY BE MORE TYPED OBJECTS IN THIS LIST
+        output = [_untype_value(v) for v in value]
+    else:
+        # LIST OF PRIMITIVE VALUES
+        output = value
 
-        for k, v in value.items():
+    if len(output) == 0:
+        return None
+    elif len(output) == 1:
+        return output[0]
+    else:
+        return output
+
+
+def _untype_dict(value):
+    output = {}
+
+    for k, v in value.items():
+        if k.startswith(TYPE_PREFIX):
             if k == EXISTS_TYPE:
                 continue
-            elif k.startswith(TYPE_PREFIX):
-                return v
+            elif k == NESTED_TYPE:
+                return _untype_list(v)
             else:
-                output[decode_property(k)] = _untype(v)
-        return output
-    elif isinstance(value, list):
-        return [_untype(v) for v in value]
+                return v
+        else:
+            new_v = _untype_value(v)
+            if new_v is not None:
+                output[decode_property(k)] = new_v
+    return output
+
+
+def _untype_value(value):
+    _type = _get(value, "__class__")
+    if _type is Data:
+        return _untype_dict(_get(value, SLOT))
+    elif _type is dict:
+        return _untype_dict(value)
+    elif _type is FlatList:
+        return _untype_list(value.list)
+    elif _type is list:
+        return _untype_list(value)
+    elif _type is NullType:
+        return None
+    elif _type is DataObject:
+        return _untype_value(_get(value, "_obj"))
+    elif _type in generator_types:
+        return _untype_list(value)
     else:
         return value
 
@@ -90,7 +132,7 @@ def encode(value):
 
 def typed_encode(value, sub_schema, path, net_new_properties, buffer):
     """
-    :param value: THE DATASCRUTURE TO ENCODE
+    :param value: THE DATA STRUCTURE TO ENCODE
     :param sub_schema: dict FROM PATH TO Column DESCRIBING THE TYPE
     :param path: list OF CURRENT PATH
     :param net_new_properties: list FOR ADDING NEW PROPERTIES NOT FOUND IN sub_schema
@@ -98,7 +140,8 @@ def typed_encode(value, sub_schema, path, net_new_properties, buffer):
     :return:
     """
     try:
-        if isinstance(sub_schema, Column):
+        # from jx_base import Column
+        if sub_schema.__class__.__name__=='Column':
             value_json_type = python_type_to_json_type[value.__class__]
             column_json_type = es_type_to_json_type[sub_schema.es_type]
 
@@ -109,7 +152,7 @@ def typed_encode(value, sub_schema, path, net_new_properties, buffer):
             else:
                 from mo_logs import Log
 
-                Log.error("Can not store {{value}} in {{column|quote}}", value=value, column=sub_schema.names['.'])
+                Log.error("Can not store {{value}} in {{column|quote}}", value=value, column=sub_schema.name)
 
             sub_schema = {json_type_to_inserter_type[value_json_type]: sub_schema}
 
@@ -135,7 +178,7 @@ def typed_encode(value, sub_schema, path, net_new_properties, buffer):
 
         _type = value.__class__
         if _type in (dict, Data):
-            if isinstance(sub_schema, Column):
+            if sub_schema.__class__.__name__ == 'Column':
                 from mo_logs import Log
                 Log.error("Can not handle {{column|json}}", column=sub_schema)
 
@@ -151,10 +194,14 @@ def typed_encode(value, sub_schema, path, net_new_properties, buffer):
                     append(buffer, text_type(len(value)))
                     append(buffer, '}')
                 else:
-                    # SINGLETON LISTS OF null SHOULD NOT EXIST
-                    from mo_logs import Log
-
-                    Log.error("should not happen")
+                    # SINGLETON LIST
+                    append(buffer, '{')
+                    append(buffer, QUOTED_NESTED_TYPE)
+                    append(buffer, '[{')
+                    append(buffer, QUOTED_EXISTS_TYPE)
+                    append(buffer, '1}]' + COMMA)
+                    append(buffer, QUOTED_EXISTS_TYPE)
+                    append(buffer, '1}')
             else:
                 if EXISTS_TYPE not in sub_schema:
                     sub_schema[EXISTS_TYPE] = {}
@@ -191,16 +238,16 @@ def typed_encode(value, sub_schema, path, net_new_properties, buffer):
             for c in value:
                 append(buffer, ESCAPE_DCT.get(c, c))
             append(buffer, '"}')
-        elif _type in (int, long, Decimal):
+        elif _type in (int, long):
             if NUMBER_TYPE not in sub_schema:
                 sub_schema[NUMBER_TYPE] = True
                 net_new_properties.append(path + [NUMBER_TYPE])
 
             append(buffer, '{')
             append(buffer, QUOTED_NUMBER_TYPE)
-            append(buffer, float2json(value))
+            append(buffer, text_type(value))
             append(buffer, '}')
-        elif _type is float:
+        elif _type in (float, Decimal):
             if NUMBER_TYPE not in sub_schema:
                 sub_schema[NUMBER_TYPE] = True
                 net_new_properties.append(path + [NUMBER_TYPE])
@@ -362,7 +409,7 @@ def _dict2json(value, sub_schema, path, net_new_properties, buffer):
         if k not in sub_schema:
             sub_schema[k] = {}
             net_new_properties.append(path + [k])
-        append(buffer, encode_basestring(k))
+        append(buffer, encode_basestring(encode_property(k)))
         append(buffer, COLON)
         typed_encode(v, sub_schema[k], path + [k], net_new_properties, buffer)
     if prefix is COMMA:
@@ -372,7 +419,9 @@ def _dict2json(value, sub_schema, path, net_new_properties, buffer):
     else:
         append(buffer, '{')
         append(buffer, QUOTED_EXISTS_TYPE)
-        append(buffer, '0}')
+        append(buffer, '1}')
+
+
 
 
 TYPE_PREFIX = "~"  # u'\u0442\u0443\u0440\u0435-'  # "туре"

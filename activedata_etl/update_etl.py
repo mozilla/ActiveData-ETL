@@ -13,16 +13,14 @@ import datetime
 
 from boto import ec2 as boto_ec2
 from boto.ec2 import cloudwatch
-from fabric.context_managers import cd
-from fabric.operations import run, sudo
-from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
-from mo_logs import Log
+from mo_fabric import Connection
+from mo_logs import Log, Except
 from mo_logs import startup, constants
-from mo_threads import MAIN_THREAD
+from mo_threads import MAIN_THREAD, Thread
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -43,38 +41,28 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
-def _config_fabric(connect, instance):
-    if not instance.ip_address:
-        Log.error("Expecting an ip address for {{instance_id}}", instance_id=instance.id)
 
-    for k, v in connect.items():
-        env[k] = v
-    env.host_string = instance.ip_address
-    env.abort_exception = Log.error
+def _refresh_etl(instance, settings, cw, please_stop):
+    with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
 
+        cpu_percent = get_cpu(cw, instance)
+        Log.note(
+            "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cpu=cpu_percent/100
+        )
 
-def _refresh_etl(instance, settings, conn):
-    cpu_percent = get_cpu(conn, instance)
-    Log.note(
-        "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
-        instance_id=instance.id,
-        name=instance.tags["Name"],
-        ip=instance.ip_address,
-        cpu=cpu_percent/100
-    )
-
-
-    _config_fabric(settings.fabric, instance)
-    # sudo("pip install pympler")
-    sudo("rm -fr /tmp/grcov*")
-    with cd("~/ActiveData-ETL/"):
-        result = run("git pull origin etl")
-        if result.find("Already up-to-date.") != -1:
-            Log.note("No change required")
-            if cpu_percent > 50:
-                return
-            Log.note("Low CPU implies problem, restarting anyway")
-        sudo("supervisorctl restart all")
+        conn.sudo("rm -fr /tmp/grcov*")
+        with conn.cd("~/ActiveData-ETL/"):
+            result = conn.run("git pull origin etl", warn=True)
+            if "Already up-to-date." in result:
+                Log.note("No change required")
+                if cpu_percent > 50:
+                    return
+                Log.note("Low CPU implies problem, restarting anyway")
+            conn.sudo("supervisorctl restart all")
 
 
 def get_cpu(conn, i):
@@ -113,10 +101,15 @@ def main():
         if not instances:
             Log.alert("No instances found. DONE.")
             return
-        for i in instances:
+        threads = [
+            Thread.run("refresh etl", _refresh_etl, i, settings, cw)
+            for i in instances
+        ]
+        for t in threads:
             try:
-                _refresh_etl(i, settings, cw)
+                t.join()
             except Exception as e:
+                e = Except.wrap(e)
                 ec2_conn.terminate_instances([i.id])
                 Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
     except Exception as e:

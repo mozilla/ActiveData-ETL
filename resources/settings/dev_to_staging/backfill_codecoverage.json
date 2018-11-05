@@ -3,7 +3,7 @@
 	"range":{"min":280695, "max":280696},
 	"no_checks": true,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
-		"name": "active-data-index",
+		"name": "active-data-index-es5",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {    //WHERE WE GET DATA FROM

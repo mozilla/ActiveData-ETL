@@ -14,20 +14,19 @@ import datetime
 from copy import copy
 from math import sqrt
 
-from mo_future import text_type
-from jx_python import jx
-from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
-from mo_json import json2value
-from mo_logs import Log
-from mo_math import MIN, MAX, Math
-from mo_threads import Lock
-
 import mo_math
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from jx_python import jx
+from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
+from mo_future import text_type
+from mo_json import json2value
+from mo_logs import Log
+from mo_math import MIN, MAX, Math
 from mo_math.stats import ZeroMoment2Stats, ZeroMoment
+from mo_threads import Lock
 from mo_times.dates import Date
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import git
 
 DEBUG = True
 ARRAY_TOO_BIG = 1000
@@ -61,11 +60,11 @@ def process(source_key, source, destination, resources, please_stop=None):
             if perfherder_record.suites:
                 Log.error("Should not happen, perfherder storage iterates through the suites")
 
-            if perfherder_record.task or perfherder_record.is_empty:
-                metadata, perfherder_record.task = perfherder_record.task, None
-            elif perfherder_record.pulse:
+            if perfherder_record.pulse:
                 metadata = transform_buildbot(source_key, perfherder_record.pulse, resources)
                 perfherder_record.pulse = None
+            elif perfherder_record.task or perfherder_record.is_empty:
+                metadata, perfherder_record.task = perfherder_record.task, None
             else:
                 Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
                 continue
@@ -79,7 +78,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "id": i,
                     "source": etl_source,
                     "type": "join",
-                    "revision": get_git_revision(),
+                    "revision": git.get_revision(),
                     "timestamp": Date.now()
                 }
                 key = source_key + "." + text_type(i)
@@ -390,9 +389,18 @@ KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_em
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
+    "ares6-sm",
+    "ares6-v8",
     "ARES6",
     "a11yr",
+    "avcodec section sizes",
+    "avutil section sizes",
+    "Base Content Explicit",
+    "Base Content Heap Unclassified",
+    "Base Content JS",
+    "Base Content Resident Unique Memory",
     "basic_compositor_video",
+    "BenchCollections",
     "bloom_basic_ref",
     "bloom_basic_singleton",
     "bloom_basic",
@@ -400,6 +408,7 @@ KNOWN_PERFHERDER_TESTS = [
     "cart",
     "chromez",
     "chrome",
+    "clone_errored",  # vcs
     "clone",   # vcs
     "compiler_metrics",
     "compiler warnings",
@@ -424,11 +433,14 @@ KNOWN_PERFHERDER_TESTS = [
     "h2",
     "Heap Unclassified",
     "Images",
+    "inspector-metrics",
     "installer size",
     "JetStream",
     "jittest.jittest.overall",
     "JS",
     "kraken",
+    "NSPR section sizes",
+    "NSS section sizes",
     "media_tests",
     "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
@@ -436,6 +448,8 @@ KNOWN_PERFHERDER_TESTS = [
     "motionmark_htmlsuite",
     "motionmark, transformed",
     "motionmark",
+    "octane-sm",
+    "octane-v8",
     "other_nol64",
     "other_l64",
     "other",
@@ -449,8 +463,55 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_facebook",
     "quantum_pageload_google",
     "quantum_pageload_youtube",
+    "raptor-assorted-dom-firefox",
+    "raptor-assorted-dom-chrome",
+    "raptor-firefox-tp6-amazon",
+    "raptor-firefox-tp6-facebook",
+    "raptor-firefox-tp6-google",
+    "raptor-firefox-tp6-youtube",
+    "raptor-google-docs-firefox",
+    "raptor-google-docs-chrome",
+    "raptor-google-sheets-firefox",
+    "raptor-google-sheets-chrome",
+    "raptor-google-slides-firefox",
+    "raptor-google-slides-chrome",
+    "raptor-motionmark-animometer-firefox",
+    "raptor-motionmark-animometer-chrome",
+    "raptor-motionmark-htmlsuite-firefox",
+    "raptor-motionmark-htmlsuite-chrome",
+    "raptor-unity-webgl-firefox",
+    "raptor-unity-webgl-chrome",
+    "raptor-speedometer-chrome",
+    "raptor-speedometer-firefox",
+    "raptor-speedometer-geckoview",
+    "raptor-stylebench-firefox",
+    "raptor-stylebench-chrome",
+    "raptor-sunspider-firefox",
+    "raptor-sunspider-chrome",
+    "raptor-tp6-amazon-firefox",
+    "raptor-tp6-amazon-chrome",
+    "raptor-tp6-facebook-firefox",
+    "raptor-tp6-facebook-chrome",
+    "raptor-tp6-google-firefox",
+    "raptor-tp6-google-chrome",
+    "raptor-tp6-youtube-firefox",
+    "raptor-tp6-youtube-chrome",
+    "raptor-unity-webgl-geckoview",
+    "raptor-wasm-godot-baseline-firefox",
+    "raptor-wasm-godot-baseline",
+    "raptor-wasm-godot-firefox",
+    "raptor-wasm-godot-chrome",
+    "raptor-wasm-godot-ion-firefox",
+    "raptor-wasm-misc-baseline-firefox",
+    "raptor-wasm-misc-chrome",
+    "raptor-wasm-misc-firefox",
+    "raptor-wasm-misc-ion-firefox",
+    "raptor-wasm-misc-ion-chrome",
+    "raptor-webaudio-firefox",
+    "raptor-webaudio-chrome",
     "rasterflood_gradient",
     "rasterflood_svg",
+    "removed_missing_shared_store",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",
@@ -458,11 +519,17 @@ KNOWN_PERFHERDER_TESTS = [
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
+    "six-speed-sm",
+    "six-speed-v8",
+    "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
     "Strings",
     "stylebench",
     "Stylo",
+    "sunspider-sm",  # sm = spidermonkey
+    "sunspider-v8",
+    "sunspider",
     "svgr-disabled",
     "svgr",
     "tabpaint",
@@ -504,5 +571,8 @@ KNOWN_PERFHERDER_TESTS = [
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
-    "xperf"
+    "web-tooling-benchmark-sm",
+    "web-tooling-benchmark-v8",
+    "xperf",
+    "XUL section sizes"
 ]

@@ -15,8 +15,7 @@ from mo_json import json2value
 from mo_logs import Log, strings
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
-from pyLibrary.env.git import get_git_revision
+from pyLibrary.env import http, git
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -42,44 +41,46 @@ STRUCTURED_LOG_ENDINGS = [
     '.jsonl'
 ]
 NOT_STRUCTURED_LOGS = [
-    "perfherder-data.json",
     ".apk",
     "/awsy_raw.log",
     "/buildbot_properties.json",
     "/buildprops.json",
     "/chain_of_trust.log",
     "/chainOfTrust.json.asc",
+    ".checksums.asc",
+    ".checksums",
     "/talos_raw.log",
     ".mozinfo.json",
     "_errorsummary.log",
     ".exe",
     ".extra",
     ".dmp",
+    "/live.log",
+    "/live_backing.log",
     "/log_critical.log",
     "/log_error.log",
     "/log_fatal.log",
     "/log_info.log",
     "/log_warning.log",
-    "/manifest.json",
+    ".mar",
+    "/master.tar.gz",
     "/mar.exe",
+    "/manifest.json",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    "perfherder-data.json",
     ".png",
     "/properties.json",
     "/log_raw.log",
     "/localconfig.json",
+    "/raptor_raw.log",
+    "/single_locale_raw.log",
     "/talos_critical.log",
     "/talos_error.log",
     "/talos_fatal.log",
     "/talos_info.log",
     "/talos_warning.log",
-    "/live.log",
-    "/live_backing.log",
-    ".mar",
-    "/master.tar.gz",
     ".tests.zip",
-    ".checksums.asc",
-    ".checksums",
     ".langpack.xpi",
     "/.tar.gz",
     ".test_packages.json",
@@ -129,7 +130,7 @@ def verify_blobber_file(line_number, name, url):
     if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
         return None, 0
 
-    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, debug=DEBUG):
+    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, silent=not DEBUG):
         response = http.get(url)
 
         try:
@@ -228,7 +229,7 @@ class EtlHeadGenerator(object):
                 "id": num,
                 "source": source_etl,
                 "type": "join",
-                "revision": get_git_revision(),
+                "revision": git.get_revision(),
                 "timestamp": Date.now().unix
             },
             kwargs

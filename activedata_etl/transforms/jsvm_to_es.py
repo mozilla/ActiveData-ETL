@@ -74,6 +74,7 @@ def process_jsvm_artifact(source_key, resources, destination, artifact, task_clu
                         yield source
 
                 for source in tuid_batches(
+                    source_key,
                     task_cluster_record,
                     resources,
                     renamed_files(),

@@ -3,7 +3,7 @@
 	"range": {"min":272000, "max":273000},
 	"limit": 10000,
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
-		"name": "active-data-index",
+		"name": "active-data-index-es5",
 		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {

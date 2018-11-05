@@ -27,7 +27,7 @@ from jx_elasticsearch.meta import ElasticsearchMetadata, Table
 from jx_python import jx
 from mo_dots import Data, Null, unwrap, coalesce, split_field, literal_field, unwraplist, join_field, wrap, listwrap, FlatList
 from mo_json import scrub, value2json
-from mo_json.typed_encoder import TYPE_PREFIX
+from mo_json.typed_encoder import EXISTS_TYPE
 from mo_kwargs import override
 from mo_logs import Log, Except
 from pyLibrary.env import elasticsearch, http
@@ -52,7 +52,6 @@ class ES14(Container):
         host,
         index,
         type=None,
-        alias=None,
         name=None,
         port=9200,
         read_only=True,
@@ -68,9 +67,9 @@ class ES14(Container):
                 "settings": unwrap(kwargs)
             }
         self.settings = kwargs
-        self.name = name = coalesce(name, alias, index)
+        self.name = name = coalesce(name, index)
         if read_only:
-            self.es = elasticsearch.Alias(alias=coalesce(alias, index), kwargs=kwargs)
+            self.es = elasticsearch.Alias(alias=index, kwargs=kwargs)
         else:
             self.es = elasticsearch.Cluster(kwargs=kwargs).get_index(read_only=read_only, kwargs=kwargs)
 
@@ -79,17 +78,20 @@ class ES14(Container):
         self.edges = Data()
         self.worker = None
 
-        columns = self._namespace.get_snowflake(self._es.settings.alias).columns  # ABSOLUTE COLUMNS
+        columns = self.snowflake.columns  # ABSOLUTE COLUMNS
+        is_typed = any(c.es_column == EXISTS_TYPE for c in columns)
 
         if typed == None:
             # SWITCH ON TYPED MODE
-            self.typed = any(c.es_column.find("."+TYPE_PREFIX) != -1 for c in columns)
+            self.typed = is_typed
         else:
+            if is_typed != typed:
+                Log.error("Expecting given typed {{typed}} to match {{is_typed}}", typed=typed, is_typed=is_typed)
             self.typed = typed
 
     @property
     def snowflake(self):
-        return self._namespace.get_snowflake(self._es.settings.alias)
+        return self._namespace.get_snowflake(self.es.settings.alias)
 
     @property
     def namespace(self):
@@ -158,7 +160,7 @@ class ES14(Container):
         except Exception as e:
             e = Except.wrap(e)
             if "Data too large, data for" in e:
-                http.post(self.es.cluster.path+"/_cache/clear")
+                http.post(self.es.cluster.url / "_cache/clear")
                 Log.error("Problem (Tried to clear Elasticsearch cache)", e)
             Log.error("problem", e)
 
@@ -199,9 +201,9 @@ class ES14(Container):
 
         # GET IDS OF DOCUMENTS
         results = self.es.search({
-            "fields": listwrap(schema._routing.path),
+            "fields": ["_id"],
             "query": {"filtered": {
-                "filter": jx_expression(command.where).to_esfilter(Null)
+                "filter": jx_expression(command.where).to_es14_filter(Null)
             }},
             "size": 10000
         })
@@ -215,13 +217,13 @@ class ES14(Container):
                 scripts.append({"doc": v.doc})
             else:
                 v = scrub(v)
-                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_es_script(schema).script(schema)})
+                scripts.append({"script": "ctx._source." + k + " = " + jx_expression(v).to_es14_script(schema).script(schema)})
 
         if results.hits.hits:
             updates = []
             for h in results.hits.hits:
                 for s in scripts:
-                    updates.append({"update": {"_id": h._id, "_routing": unwraplist(h.fields[literal_field(schema._routing.path)])}})
+                    updates.append({"update": {"_id": h._id}})
                     updates.append(s)
             content = ("\n".join(value2json(c) for c in updates) + "\n")
             response = self.es.cluster.post(

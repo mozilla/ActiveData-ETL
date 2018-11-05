@@ -103,7 +103,7 @@ class ETL(Thread):
 
         # loop called which pulls work off of the work_queue >>
         Thread.__init__(self, name, self.loop, please_stop=please_stop)
-        Log.note("--- finished ETL transform thread ---")
+        Log.note("--- finished ETL setup ---")
         self.start()
 
     def _dispatch_work(self, source_block):
@@ -499,7 +499,7 @@ def etl_one(settings):
         resources=resources,
         please_stop=stopper
     )
-    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True)
+    MAIN_THREAD.wait_for_shutdown_signal(stopper, allow_exit=True, wait_forever=False)
 
 
 def parse_id_argument(id):

@@ -312,7 +312,7 @@
 				"key_format": "t.a:b.c.d"
 			},
 			"notify": {
-				"name": "active-data-index",
+				"name": "active-data-index-es5",
 				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"transform_type": "bulk",

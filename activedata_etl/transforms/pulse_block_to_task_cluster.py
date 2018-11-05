@@ -108,14 +108,14 @@ def process(source_key, source, destination, resources, please_stop=None):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception as e:
-                        if "could not connect" in e and normalized.task.run.status != "completed":  # in ["deadline-exceeded"]:
+                        if normalized.task.run.status != "completed":
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
                             pass
                         elif TRY_AGAIN_LATER in e:
                             Log.error("Aborting processing of {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                         else:
                             # THIS IS EXPECTED WHEN THE TASK IS IN AN ERROR STATE, CHECK IT AND IGNORE
-                            Log.warning("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
+                            Log.error("Problem reading artifact {{url}} for key={{key}}", url=a.url, key=source_key, cause=e)
                 elif a.name.endswith("/resource-usage.json"):
                     with suppress_exception:
                         normalized.resource_usage = normalize_resource_usage(a.url)
@@ -169,7 +169,11 @@ def read_actions(source_key, normalized, url):
         normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
-        if "Read timed out" in e:
+        if "Connection broken: error(104," in e:
+            Log.error(TRY_AGAIN_LATER, reason="broken connection")
+        elif "'Connection aborted.', BadStatusLine" in e:
+            Log.error(TRY_AGAIN_LATER, reason="broken connection")
+        elif "Read timed out" in e:
             Log.error(TRY_AGAIN_LATER, reason="read timeout")
         elif "Failed to establish a new connection" in e:
             Log.error(TRY_AGAIN_LATER, reason="could not connect")
@@ -481,7 +485,8 @@ def set_build_info(source_key, normalized, task, env, resources):
             "channel": coalesce_w_conflict_detection(
                 source_key,
                 consume(task, "payload.properties.channels"),
-                consume(task, "extra.channel")
+                consume(task, "extra.channel"),
+                consume(task, "payload.channel")
             )
         }}
     )
@@ -498,6 +503,7 @@ def set_build_info(source_key, normalized, task, env, resources):
         consume(task, "tags.build_props.branch"),
         consume(task, "extra.build_props.branch"),
         consume(task, "payload.releaseProperties.branch"),
+        consume(task, "payload.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
         env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[-1],   # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
@@ -678,9 +684,27 @@ def verify_tag(source_key, task_id, t):
         KNOWN_TAGS.add(t["name"])
 
 
+null = Null
+KNOWN_COALESCE_CONFLICTS = {
+    (null, null, null, null, null, null, "firefox", null, null, null, "browser"): "firefox",
+    (null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null): "thunderbird",
+    (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-central", null, "try-comm-central"): "mozilla-central",
+    (null, null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
+    (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+}
+
+
 def coalesce_w_conflict_detection(source_key, *args):
     if len(args) < 2:
         Log.error("bad call to coalesce, expecting source_key as first parameter")
+
+    output = KNOWN_COALESCE_CONFLICTS.get(args, Null)
+    if output is not Null:
+        return output
+
     output = Null
     for a in args:
         if a == None:
@@ -752,6 +776,7 @@ BUILD_TYPES = {
     "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
+    "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
     "memleak": ["memleak"],
     "opt": ["opt"],
@@ -779,12 +804,15 @@ PAYLOAD_PROPERTIES = {
     "deadline",
     "description",
     "desiredResolution",
+    "dont_build",
     "download_domain",
     "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
+    "is_partner_repack_public",
+    "l10n_changesets",
     "locales",
     "locale",
     "mar_tools_url",
@@ -792,25 +820,29 @@ PAYLOAD_PROPERTIES = {
     "NO_BBCONFIG",
     "onExitStatus",
     "osGroups",
+    "partials",
     "partial_versions",
     "platforms",
     "purpose",
+    "release_name",
     "release_promotion",
 
     "releaseProperties.hashType",
     "repack_manifests_url",
     "require_mirrors",
+    "revision",
     "rules_to_update",
 
     "timeout",
-
 
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
     "stage-product",
+    "submission_entries",
     "summary",
     "supersederUrl",
+    "tag_info",
     "template_key",
     "THIS_CHUNK",
     "TOTAL_CHUNKS",
@@ -830,22 +862,15 @@ KNOWN_TAGS = {
     "action.context.taskId",
     "aus-server",
     "archive-prefix",
-    # "build_name",
-    # "build_type",
-    # "build_product",
-    # "build_props.branch",
+
+    "branch-prefix",
     "build_props.build_number",
     "build_props.release_eta",
     "build_props.locales",
     "build_props.mozharness_changeset",
     "build_props.partials",
-    # "build_props.platform",
-    # "build_props.product",
-    # "build_props.revision",
-    # "build_props.version",
 
     "chainOfTrust.inputs.docker-image",
-
 
     "chunks.current",
     "chunks.total",
@@ -871,6 +896,8 @@ KNOWN_TAGS = {
     "data.head.user.email",
     "description",
 
+    "notify.email.link.href",
+    "notify.email.link.text",
     "en_us_installer_binary_url",
 
     "funsize.partials",
@@ -956,6 +983,7 @@ KNOWN_TAGS = {
     "notifications.task-exception.subject",
 
     "notify.email.subject",
+    "notify.email.content",
     "npmCache.url",
     "npmCache.expires",
     "objective",
@@ -969,6 +997,7 @@ KNOWN_TAGS = {
     "partials.platform",
     "partials.previousBuildNumber",
     "partials.previousVersion",
+    "partner_path",
     "payload.dry_run",
     "payload.commit",
     "payload.release_name",

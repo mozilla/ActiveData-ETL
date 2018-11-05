@@ -12,9 +12,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
+from itertools import groupby
+from operator import itemgetter
+
 from mo_future import text_type, PY3
 from mo_logs import Log
 from mo_logs.strings import expand_template
+
+import pyLibrary.sql
 
 
 class SQL(text_type):
@@ -55,12 +60,20 @@ class SQL(text_type):
         return SQL(self.sql.join(list_))
 
     if PY3:
+        def __str__(self):
+            return self.sql
+
         def __bytes__(self):
             Log.error("do not do this")
     else:
+        def __unicode__(self):
+            return self.sql
+
         def __str__(self):
             Log.error("do not do this")
 
+    def __data__(self):
+        return self.sql
 
 
 SQL_STAR = SQL(" * ")
@@ -112,7 +125,7 @@ def sql_list(list_):
     list_ = list(list_)
     if not all(isinstance(s, SQL) for s in list_):
         Log.error("Can only join other SQL")
-    return SQL(", ".join(l.template for l in list_))
+    return SQL(" " + ", ".join(l.template for l in list_) + " ")
 
 
 def sql_iso(sql):
@@ -127,9 +140,14 @@ def sql_concat(list_):
     return SQL(" || ").join(sql_iso(l) for l in list_)
 
 
+def quote_set(list_):
+    return sql_iso(sql_list(map(pyLibrary.sql.sqlite.quote_value, list_)))
+
+
 def sql_alias(value, alias):
     return SQL(value.template + " AS " + alias.template)
 
 
 def sql_coalesce(list_):
     return "COALESCE(" + SQL_COMMA.join(list_) + ")"
+
