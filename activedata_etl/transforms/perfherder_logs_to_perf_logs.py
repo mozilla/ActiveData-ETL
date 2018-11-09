@@ -490,6 +490,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-sunspider-chrome",
     "raptor-tp6-amazon-firefox",
     "raptor-tp6-amazon-chrome",
+    "raptor-tp6-docs-firefox",
+    "raptor-tp6-docs-chrome",
     "raptor-tp6-facebook-firefox",
     "raptor-tp6-facebook-chrome",
     "raptor-tp6-google-firefox",
