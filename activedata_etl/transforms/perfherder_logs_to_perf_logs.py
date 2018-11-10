@@ -496,6 +496,8 @@ KNOWN_PERFHERDER_TESTS = [
     "raptor-tp6-facebook-chrome",
     "raptor-tp6-google-firefox",
     "raptor-tp6-google-chrome",
+    "raptor-tp6-slides-firefox",
+    "raptor-tp6-slides-chrome",
     "raptor-tp6-youtube-firefox",
     "raptor-tp6-youtube-chrome",
     "raptor-unity-webgl-geckoview",
