@@ -14,6 +14,7 @@ import datetime
 from boto import ec2 as boto_ec2
 from boto.ec2 import cloudwatch
 
+from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
@@ -21,6 +22,7 @@ from mo_fabric import Connection
 from mo_logs import Log, Except
 from mo_logs import startup, constants
 from mo_threads import MAIN_THREAD, Thread
+from mo_times import Timer
 
 
 def _get_managed_spot_requests(ec2_conn, name):
@@ -101,17 +103,22 @@ def main():
         if not instances:
             Log.alert("No instances found. DONE.")
             return
-        threads = [
-            Thread.run("refresh etl", _refresh_etl, i, settings, cw)
-            for i in instances
-        ]
-        for t in threads:
-            try:
-                t.join()
-            except Exception as e:
-                e = Except.wrap(e)
-                ec2_conn.terminate_instances([i.id])
-                Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
+        for g, members in jx.groupby(instances, size=40):
+            # TODO: A THREAD POOL WOULD BE NICE
+            # pool = Thread.pool(40)
+            # for i in instances: pool("refresh etl", _refresh_etl, i, settings, cw)
+            with Timer("block of {{num}} threads", {"num": len(members)}):
+                threads = [
+                    Thread.run("refresh etl", _refresh_etl, i, settings, cw)
+                    for i in members
+                ]
+                for t in threads:
+                    try:
+                        t.join()
+                    except Exception as e:
+                        e = Except.wrap(e)
+                        ec2_conn.terminate_instances([i.id])
+                        Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:

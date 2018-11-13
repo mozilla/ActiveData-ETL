@@ -1,5 +1,4 @@
 {
-	"test-windows7-32/opt-raptor-wasm-godot-firefox-e10s":{},
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
@@ -92,9 +91,9 @@
             "type": ["debug", "ccov"]
         },
         "run": {"suite": {
-                "fullname": "android-test",
-                "name": "android-test"
-            }}
+            "fullname": "android-test",
+            "name": "android-test"
+        }}
     },
     "build-android-test/opt": {
         "action": {"type": "build"},
@@ -17120,6 +17119,17 @@
             "chunk": 3,
             "suite": {"name": "mochitest-webgl"},
             "type": ["chunked"]
+        }
+    },
+    "test-linux64-qr/opt-raptor-wasm-godot-baseline-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-godot-baseline-firefox"},
+            "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-misc-firefox-e10s": {
@@ -38629,6 +38639,17 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mozmill"}
+        }
+    },
+    "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "raptor-wasm-godot-firefox"},
+            "type": ["e10s"]
         }
     },
     "test-windows7-32/opt-reftest-1": {
