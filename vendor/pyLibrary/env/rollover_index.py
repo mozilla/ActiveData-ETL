@@ -8,6 +8,8 @@
 #
 from __future__ import unicode_literals
 
+from mo_future import items
+
 from activedata_etl import etl2path
 from activedata_etl import key2etl
 from jx_python import jx
