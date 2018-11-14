@@ -12,15 +12,11 @@ from __future__ import unicode_literals
 import logging
 
 from boto import ec2 as boto_ec2
-from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd
-from fabric.operations import run, put, sudo
-from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap, DataObject
-from mo_files import File
+from mo_fabric import Connection
 from mo_logs import Log, startup, constants
 from pyLibrary.aws import aws_retry
 
@@ -45,26 +41,16 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
-def _config_fabric(connect, instance):
-    if not instance.ip_address:
-        Log.error("Expecting an ip address for {{instance_id}}", instance_id=instance.id)
+def _disable_oom_on_es(conn):
 
-    for k, v in connect.items():
-        env[k] = v
-    env.host_string = instance.ip_address
-    env.abort_exception = Log.error
+    with conn.warn_only():
+        conn.sudo("supervisorctl start es")
 
 
-def _disable_oom_on_es():
-
-    with fabric_settings(warn_only=True):
-        sudo("supervisorctl start es")
-
-
-    with cd("/home/ec2-user"):
-        run("mkdir -p temp")
-    with cd("/home/ec2-user/temp"):
-        processes = sudo("ps -eo pid,command | grep java")
+    with conn.cd("/home/ec2-user"):
+        conn.run("mkdir -p temp")
+    with conn.cd("/home/ec2-user/temp"):
+        processes = conn.sudo("ps -eo pid,command | grep java")
         candidates = [
             line
             for line in processes.split("\n")
@@ -76,43 +62,38 @@ def _disable_oom_on_es():
             Log.error("Fond more than one Elasticsearch running, not sure what to do")
 
         pid = candidates[0].strip().split(" ")[0].strip()
-        run("echo -16 > oom_adj")
-        sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
+        conn.run("echo -16 > oom_adj")
+        conn.sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
 
-def _refresh_indexer():
-    with cd("/usr/local/elasticsearch"):
-        sudo("rm -f java*.hprof")
+def _refresh_indexer(config, instance):
 
-    _disable_oom_on_es()
-    with cd("/home/ec2-user/ActiveData-ETL/"):
-        result = run("git pull origin push-to-es6")
-        if "Already up-to-date." in result:
-            Log.note("No change required")
-        else:
-            # RESTART ANYWAY, SO WE USE LATEST INDEX
-            run("~/pypy/bin/pypy -m pip install -r requirements.txt")
-            with fabric_settings(warn_only=True):
-                sudo("supervisorctl stop push_to_es:*")
-                sudo("supervisorctl start push_to_es:00")
+    with Connection(config) as conn:
+        with conn.cd("/usr/local/elasticsearch"):
+            conn.sudo("rm -f java*.hprof")
+
+        _disable_oom_on_es(conn)
+        with conn.cd("/home/ec2-user/ActiveData-ETL/"):
+            result = conn.run("git pull origin push-to-es6")
+            if "Already up-to-date." in result:
+                Log.note("No change required")
+            else:
+                # RESTART ANYWAY, SO WE USE LATEST INDEX
+                conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+                with conn.warn_only():
+                    conn.sudo("supervisorctl stop push_to_es:*")
+                    conn.sudo("supervisorctl start push_to_es:00")
 
 
-def _start_supervisor():
-    put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
+def _start_supervisor(conn):
+    conn.put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
 
     # START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
-    with fabric_settings(warn_only=True):
-        sudo("supervisord -c /etc/supervisord.conf")
+    with conn.warn_only():
+        conn.sudo("supervisord -c /etc/supervisord.conf")
 
-    sudo("supervisorctl reread")
-    sudo("supervisorctl update")
-
-
-def _run_remote(command, name):
-    File("./results/temp/" + name + ".sh").write("nohup " + command + " >& /dev/null < /dev/null &\nsleep 20")
-    put("./results/temp/" + name + ".sh", "" + name + ".sh")
-    run("chmod u+x " + name + ".sh")
-    run("./" + name + ".sh")
+    conn.sudo("supervisorctl reread")
+    conn.sudo("supervisorctl update")
 
 
 def main():
@@ -135,8 +116,8 @@ def main():
         for i in instances:
             try:
                 Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-                _config_fabric(settings.fabric, i)
-                _refresh_indexer()
+                # _config_fabric(settings.fabric, i)
+                _refresh_indexer(i)
             except Exception as e:
                 Log.warning(
                     "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
