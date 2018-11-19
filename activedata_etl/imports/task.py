@@ -295,6 +295,8 @@ TEST_SUITE = {
         "raptor-speedometer-geckoview",
         "raptor-sunspider-chrome",
         "raptor-sunspider-firefox",
+        "raptor-tp6-apple-chrome",
+        "raptor-tp6-apple-firefox",
         "raptor-tp6-docs-firefox",
         "raptor-tp6-docs-chrome",
         "raptor-tp6-1-chrome",
