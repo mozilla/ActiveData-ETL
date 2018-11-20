@@ -151,6 +151,7 @@ chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/MySQL-to-S3/resources/scripts/treeherder_extract.sh
 chmod u+x /home/ec2-user/coco-diff/resources/scripts/post_etl.sh
+chmod u+x /home/ec2-user/coco-diff/resources/scripts/status.sh
 chmod u+x /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 
 # CRON FILE (TURN "OFF" AND "ON", RESPECTIVLY)
