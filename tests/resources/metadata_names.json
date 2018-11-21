@@ -2961,13 +2961,14 @@
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "android",
             "type": ["opt"]
         },
         "run": {
             "browser": "geckoview",
+            "framework": "raptor",
             "suite": {"name": "speedometer"}
         }
     },
@@ -2984,24 +2985,26 @@
         }
     },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-unity-webgl-geckoview": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "android",
             "type": ["opt", "aarch64"]
         },
         "run": {
             "browser": "geckoview",
+            "framework": "raptor",
             "suite": {"name": "unity-webgl"}
         }
     },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "android",
             "type": ["opt"]
         },
         "run": {
             "browser": "geckoview",
+            "framework": "raptor",
             "suite": {"name": "speedometer"}
         }
     },
@@ -11042,148 +11045,202 @@
         }
     },
     "test-linux64-ccov/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-linux64-ccov/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-linux64-ccov/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-linux64-ccov/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-linux64-ccov/opt-talos-g3": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "g3"}
+        "run": {
+            "framework": "talos",
+            "suite": "g3"
+        }
     },
     "test-linux64-ccov/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-linux64-ccov/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-linux64-ccov/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-linux64-ccov/opt-talos-h2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "h2"}
+        "run": {
+            "framework": "talos",
+            "suite": "h2"
+        }
     },
     "test-linux64-ccov/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-linux64-ccov/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-linux64-ccov/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-linux64-ccov/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-linux64-ccov/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-linux64-ccov/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-linux64-ccov/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-linux64-ccov/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-linux64-ccov/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-linux64-ccov/opt-telemetry-tests-client": {
         "action": {"type": "test"},
@@ -14397,181 +14454,196 @@
         }
     },
     "test-linux64-nightly/opt-talos-chrome-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "chrome",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-dromaeojs-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "dromaeojs",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-g1-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g1",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-g2-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g2",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-g3-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g3",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-g4-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g4",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-g5-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g5",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-motionmark-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "motionmark",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-other-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "other",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-perf-reftest-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "perf_reftest",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-perf-reftest-singletons-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "perf_reftest_singletons",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-speedometer-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "speedometer",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-svgr-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "svgr",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-tp5o-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "tp5o",
             "type": ["profile"]
         }
     },
     "test-linux64-nightly/opt-talos-tp6-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "tp6",
             "type": ["profile"]
         }
@@ -15487,13 +15559,14 @@
         }
     },
     "test-linux64-pgo/opt-raptor-assorted-dom-firefox-e10": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "assorted-dom"},
             "type": ["e10s"]
         }
@@ -15715,148 +15788,202 @@
         }
     },
     "test-linux64-pgo/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-linux64-pgo/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-linux64-pgo/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-linux64-pgo/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-linux64-pgo/opt-talos-g3": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g3"}
+        "run": {
+            "framework": "talos",
+            "suite": "g3"
+        }
     },
     "test-linux64-pgo/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-linux64-pgo/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-linux64-pgo/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-linux64-pgo/opt-talos-h2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "h2"}
+        "run": {
+            "framework": "talos",
+            "suite": "h2"
+        }
     },
     "test-linux64-pgo/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-linux64-pgo/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-linux64-pgo/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-linux64-pgo/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-linux64-pgo/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-linux64-pgo/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-linux64-pgo/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-linux64-pgo/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-linux64-pgo/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-linux64-pgo/opt-telemetry-tests-client": {
         "action": {"type": "test"},
@@ -17119,7 +17246,7 @@
         }
     },
     "test-linux64-qr/opt-raptor-tp6-6-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
@@ -17127,42 +17254,46 @@
         "run": {
             "browser": "firefox",
             "chunk": 6,
+            "framework": "raptor",
             "suite": "tp6",
             "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-godot-baseline-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-godot-baseline"},
             "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-misc-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-misc-ion-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-misc-ion"},
             "type": ["e10s"]
         }
@@ -17264,124 +17395,169 @@
         }
     },
     "test-linux64-qr/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-linux64-qr/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-linux64-qr/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-linux64-qr/opt-talos-g3": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g3"}
+        "run": {
+            "framework": "talos",
+            "suite": "g3"
+        }
     },
     "test-linux64-qr/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-linux64-qr/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-linux64-qr/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-linux64-qr/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-linux64-qr/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-linux64-qr/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-linux64-qr/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-linux64-qr/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-linux64-qr/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-linux64-qr/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-linux64-qr/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-linux64-qr/opt-xpcshell-1": {
         "action": {"type": "test"},
@@ -22044,37 +22220,40 @@
         }
     },
     "test-linux64/opt-raptor-wasm-misc-baseline-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-misc-baseline"},
             "type": ["e10s"]
         }
     },
     "test-linux64/opt-raptor-wasm-misc-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },
     "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-misc-ion"},
             "type": ["e10s"]
         }
@@ -22352,156 +22531,213 @@
         }
     },
     "test-linux64/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-linux64/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-linux64/opt-talos-flex": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "flex"}
+        "run": {
+            "framework": "talos",
+            "suite": "flex"
+        }
     },
     "test-linux64/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-linux64/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-linux64/opt-talos-g3": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "g3"}
+        "run": {
+            "framework": "talos",
+            "suite": "g3"
+        }
     },
     "test-linux64/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-linux64/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-linux64/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-linux64/opt-talos-h2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "h2"}
+        "run": {
+            "framework": "talos",
+            "suite": "h2"
+        }
     },
     "test-linux64/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-linux64/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-linux64/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-linux64/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-linux64/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-linux64/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-linux64/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-linux64/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-linux64/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-linux64/opt-telemetry-tests-client": {
         "action": {"type": "test"},
@@ -23976,193 +24212,209 @@
         "run": {"suite": {"name": "reftest"}}
     },
     "test-macosx64-nightly/opt-talos-chrome-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "chrome",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-dromaeojs-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "dromaeojs",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-g1-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g1",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-g2-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g2",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-g3-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g3",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-g4-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g4",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-g5-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "g5",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-motionmark-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "motionmark",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-other-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "other",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-perf-reftest-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "perf_reftest",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-perf-reftest-profiling-e10s": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "perf_reftest",
             "type": ["profile", "e10s"]
         }
     },
     "test-macosx64-nightly/opt-talos-perf-reftest-singletons-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "perf_reftest_singletons",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-speedometer-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "speedometer",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-svgr-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "svgr",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-tp5o-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "tp5o",
             "type": ["profile"]
         }
     },
     "test-macosx64-nightly/opt-talos-tp6-profiling": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "train": "nightly",
             "type": ["opt"]
         },
         "run": {
+            "framework": "talos",
             "suite": "tp6",
             "type": ["profile"]
         }
@@ -25433,140 +25685,191 @@
         "run": {"suite": {"name": "reftest"}}
     },
     "test-macosx64/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-macosx64/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-macosx64/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-macosx64/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-macosx64/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-macosx64/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-macosx64/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-macosx64/opt-talos-h2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "h2"}
+        "run": {
+            "framework": "talos",
+            "suite": "h2"
+        }
     },
     "test-macosx64/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-macosx64/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-macosx64/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-macosx64/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-macosx64/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-macosx64/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-macosx64/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-macosx64/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-macosx64/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "maxosx64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-macosx64/opt-test-verify": {
         "action": {"type": "test"},
@@ -27986,132 +28289,180 @@
         }
     },
     "test-windows10-64-ccov/debug-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows10-64-ccov/debug-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows10-64-ccov/debug-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows10-64-ccov/debug-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-windows10-64-ccov/debug-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows10-64-ccov/debug-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-windows10-64-ccov/debug-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-windows10-64-ccov/debug-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows10-64-ccov/debug-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-windows10-64-ccov/debug-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows10-64-ccov/debug-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows10-64-ccov/debug-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows10-64-ccov/debug-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows10-64-ccov/debug-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows10-64-ccov/debug-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-windows10-64-ccov/debug-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-windows10-64-ccov/debug-test-coverage-e10s": {
         "action": {"type": "test"},
@@ -30420,140 +30771,191 @@
         "run": {"suite": {"name": "reftest"}}
     },
     "test-windows10-64-pgo/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows10-64-pgo/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows10-64-pgo/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows10-64-pgo/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-windows10-64-pgo/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows10-64-pgo/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-windows10-64-pgo/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-windows10-64-pgo/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows10-64-pgo/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-windows10-64-pgo/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows10-64-pgo/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows10-64-pgo/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows10-64-pgo/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows10-64-pgo/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows10-64-pgo/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-windows10-64-pgo/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-windows10-64-pgo/opt-talos-xperf": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "xperf"}
+        "run": {
+            "framework": "talos",
+            "suite": "xperf"
+        }
     },
     "test-windows10-64-pgo/opt-test-verify": {
         "action": {"type": "test"},
@@ -31004,84 +31406,114 @@
         "run": {"suite": {"name": "reftest"}}
     },
     "test-windows10-64-qr/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows10-64-qr/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows10-64-qr/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows10-64-qr/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows10-64-qr/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows10-64-qr/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows10-64-qr/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows10-64-qr/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows10-64-qr/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows10-64-qr/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt", "qr"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows10-64/debug-cppunit": {
         "action": {"type": "test"},
@@ -32638,132 +33070,180 @@
         }
     },
     "test-windows10-64/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows10-64/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows10-64/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows10-64/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-windows10-64/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows10-64/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-windows10-64/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-windows10-64/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows10-64/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-windows10-64/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows10-64/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows10-64/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows10-64/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows10-64/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows10-64/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-windows10-64/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win64",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-windows10-64/opt-test-verify": {
         "action": {"type": "test"},
@@ -36802,140 +37282,191 @@
         }
     },
     "test-windows7-32-pgo/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows7-32-pgo/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows7-32-pgo/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows7-32-pgo/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-windows7-32-pgo/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows7-32-pgo/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-windows7-32-pgo/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-windows7-32-pgo/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows7-32-pgo/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-windows7-32-pgo/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows7-32-pgo/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows7-32-pgo/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows7-32-pgo/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows7-32-pgo/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows7-32-pgo/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-windows7-32-pgo/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-windows7-32-pgo/opt-talos-xperf": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": "xperf"}
+        "run": {
+            "framework": "talos",
+            "suite": "xperf"
+        }
     },
     "test-windows7-32-pgo/opt-test-verify": {
         "action": {"type": "test"},
@@ -38658,13 +39189,14 @@
         }
     },
     "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {
-        "action": {"type": "raptor"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
         "run": {
             "browser": "firefox",
+            "framework": "raptor",
             "suite": {"name": "wasm-godot"},
             "type": ["e10s"]
         }
@@ -39737,140 +40269,191 @@
         }
     },
     "test-windows7-32/opt-talos-chrome": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "chrome"}
+        "run": {
+            "framework": "talos",
+            "suite": "chrome"
+        }
     },
     "test-windows7-32/opt-talos-dromaeojs": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "dromaeojs"}
+        "run": {
+            "framework": "talos",
+            "suite": "dromaeojs"
+        }
     },
     "test-windows7-32/opt-talos-g1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "g1"}
+        "run": {
+            "framework": "talos",
+            "suite": "g1"
+        }
     },
     "test-windows7-32/opt-talos-g2": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "g2"}
+        "run": {
+            "framework": "talos",
+            "suite": "g2"
+        }
     },
     "test-windows7-32/opt-talos-g4": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "g4"}
+        "run": {
+            "framework": "talos",
+            "suite": "g4"
+        }
     },
     "test-windows7-32/opt-talos-g5": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "g5"}
+        "run": {
+            "framework": "talos",
+            "suite": "g5"
+        }
     },
     "test-windows7-32/opt-talos-h1": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "h1"}
+        "run": {
+            "framework": "talos",
+            "suite": "h1"
+        }
     },
     "test-windows7-32/opt-talos-motionmark": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "motionmark"}
+        "run": {
+            "framework": "talos",
+            "suite": "motionmark"
+        }
     },
     "test-windows7-32/opt-talos-other": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "other"}
+        "run": {
+            "framework": "talos",
+            "suite": "other"
+        }
     },
     "test-windows7-32/opt-talos-perf-reftest": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest"
+        }
     },
     "test-windows7-32/opt-talos-perf-reftest-singletons": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "perf_reftest_singletons"}
+        "run": {
+            "framework": "talos",
+            "suite": "perf_reftest_singletons"
+        }
     },
     "test-windows7-32/opt-talos-speedometer": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "speedometer"}
+        "run": {
+            "framework": "talos",
+            "suite": "speedometer"
+        }
     },
     "test-windows7-32/opt-talos-svgr": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "svgr"}
+        "run": {
+            "framework": "talos",
+            "suite": "svgr"
+        }
     },
     "test-windows7-32/opt-talos-tp5o": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "tp5o"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp5o"
+        }
     },
     "test-windows7-32/opt-talos-tp6": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6"
+        }
     },
     "test-windows7-32/opt-talos-tp6-stylo-threads": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "tp6-stylo-threads"}
+        "run": {
+            "framework": "talos",
+            "suite": "tp6-stylo-threads"
+        }
     },
     "test-windows7-32/opt-talos-xperf": {
-        "action": {"type": "talos"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
-        "run": {"suite": "xperf"}
+        "run": {
+            "framework": "talos",
+            "suite": "xperf"
+        }
     },
     "test-windows7-32/opt-test-verify": {
         "action": {"type": "test"},

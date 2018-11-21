@@ -132,7 +132,6 @@ def transform(source_key, perfherder, metadata, resources):
                     metadata.run.type = unwraplist(listwrap(metadata.run.type) + [option])
                 suite_name = suite_name.replace("-" + option, "")
 
-
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
@@ -151,7 +150,9 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if not perfherder.is_empty and framework_name != "job_resource_usage":
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome")):
+                KNOWN_PERFHERDER_TESTS.append(suite_name)
+            elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -223,7 +224,7 @@ def transform(source_key, perfherder, metadata, resources):
                     total.append(new_record.result.stats)
 
         elif perfherder.results:
-            #RECORD TEST RESULTS
+            # RECORD TEST RESULTS
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 #RECORD ALL RESULTS

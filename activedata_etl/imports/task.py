@@ -123,10 +123,52 @@ CATEGORIES = {
     # MAYBE USE A FORMAL PARSER!!
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "talos"}
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
-            "action": {"type": "talos"}
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor", "suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor", "suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor", "suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor", "suite": "tp6"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -139,40 +181,6 @@ CATEGORIES = {
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "talos"}
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
-            "action": {"type": "talos"}
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "raptor"}
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
-            "action": {"type": "raptor"}
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "raptor"}
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
-            "action": {"type": "raptor"}
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
-            "action": {"type": "raptor"},
-            "run": {"suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "raptor"},
-            "run": {"suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
-            "action": {"type": "raptor"},
-            "run": {"suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "raptor"},
-            "run": {"suite": "tp6"},
-        },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "run": {"type": ["chunked"]},
             "action": {"type": "test"},
@@ -188,7 +196,6 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}": {"action": {"type": "test"}},
-
         # OUTDATED
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}-{{RUN_OPTIONS}}": {
             "action": {"type": "raptor"}
@@ -196,7 +203,6 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}": {
             "action": {"type": "raptor"}
         },
-
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
