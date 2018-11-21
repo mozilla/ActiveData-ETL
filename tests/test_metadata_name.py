@@ -1,4 +1,3 @@
-
 # encoding: utf-8
 #
 #
@@ -21,7 +20,6 @@ OVERWRITE_RESOURCE = True
 
 
 class TestMetadataName(FuzzyTestCase):
-
     def test_basic(self):
         resource = File("tests/resources/metadata_names.json")
         tests = unwrap(resource.read_json(leaves=False, flexible=False))
@@ -35,12 +33,21 @@ class TestMetadataName(FuzzyTestCase):
                 self.assertEqual(expected, result)
 
         if OVERWRITE_RESOURCE:
-            resource.write_bytes(value2json(tests, pretty=True).encode('utf8'))
-
+            resource.write_bytes(value2json(tests, pretty=True).encode("utf8"))
 
     def test_one(self):
-        test = decode_metatdata_name(Null, "build-win64-nightly/opt-upload-symbols")
-        expected = {"action": {"type": "build"}, "build": {"type": ["opt"], "platform": "win64", "trigger": "nightly"}}
+        test = decode_metatdata_name(
+            Null, "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s"
+        )
+        expected = {
+            "action": {"type": "raptor"},
+            "build": {"type": ["opt"], "platform": "linux64"},
+            "run": {
+                "type": ["e10s"],
+                "suite": {"name": "wasm-misc-ion"},
+                "browser": "firefox",
+            },
+        }
 
         self.assertEqual(test, expected)
         self.assertEqual(expected, test)
@@ -50,9 +57,8 @@ class TestMetadataName(FuzzyTestCase):
         expected = {
             "action": {"type": "test"},
             "build": {"type": ["stylo", "debug"], "platform": "linux64"},
-            "run": {"suite": {"name": "reftest"}, "chunk": 8, "type": ["chunked"]}
+            "run": {"suite": {"name": "reftest"}, "chunk": 8, "type": ["chunked"]},
         }
 
         self.assertEqual(test, expected)
         self.assertEqual(expected, test)
-

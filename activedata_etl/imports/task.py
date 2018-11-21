@@ -10,7 +10,9 @@ from __future__ import unicode_literals
 from mo_future import text_type
 
 from activedata_etl.imports.buildbot import BUILD_TYPES
-from activedata_etl.transforms.perfherder_logs_to_perf_logs import KNOWN_PERFHERDER_TESTS
+from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
+    KNOWN_PERFHERDER_TESTS,
+)
 from mo_dots import Data, coalesce, set_default
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import strings, Log
@@ -56,7 +58,7 @@ def decode_metatdata_name(source_key, name):
     for category, patterns in COMPILED_CATEGORIES.items():
         if name.startswith(category):
             for p, v in patterns:
-                result = p.match(name[len(category):])
+                result = p.match(name[len(category) :])
                 if result != None:
                     return set_default(result, v)
             else:
@@ -64,7 +66,7 @@ def decode_metatdata_name(source_key, name):
                     "{{name|quote}} can not be processed with {{category}} for key {{key}}",
                     key=source_key,
                     name=name,
-                    category=category
+                    category=category,
                 )
                 break
     return {}
@@ -83,22 +85,21 @@ NULL_TASKS = (
     "partials-",
     "repackage-l10n-",
     "nightly-l10n-",
-    "source-test-"
+    "source-test-",
 )
 
 
 class Matcher(object):
-
     def __init__(self, pattern):
         if pattern.startswith("{{"):
             var_name = strings.between(pattern, "{{", "}}")
             self.pattern = globals()[var_name]
             self.literal = None
-            remainder = pattern[len(var_name) + 4:]
+            remainder = pattern[len(var_name) + 4 :]
         else:
             self.pattern = None
             self.literal = coalesce(strings.between(pattern, None, "{{"), pattern)
-            remainder = pattern[len(self.literal):]
+            remainder = pattern[len(self.literal) :]
 
         if remainder:
             self.child = Matcher(remainder)
@@ -109,50 +110,146 @@ class Matcher(object):
         if self.pattern:
             for k, v in self.pattern.items():
                 if name.startswith(k):
-                    match = self.child.match(name[len(k):])
+                    match = self.child.match(name[len(k) :])
                     if match is not None:
                         return set_default(match, v)
         elif self.literal:
             if name.startswith(self.literal):
-                return self.child.match(name[len(self.literal):])
+                return self.child.match(name[len(self.literal) :])
         return None
 
 
 CATEGORIES = {
     "test-": {
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {"action": {"type": "talos"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "talos"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "talos"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {"action": {"type": "talos"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {"action": {"type": "talos"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}": {"action": {"type": "test"}}
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "talos"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "talos"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
+            "action": {"type": "raptor"},
+            "run": {"suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "raptor"},
+            "run": {"suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
+            "action": {"type": "raptor"},
+            "run": {"suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "raptor"},
+            "run": {"suite": "tp6"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}": {"action": {"type": "test"}},
+
+        # OUTDATED
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}": {
+            "action": {"type": "raptor"}
+        },
+
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {"build": {"trigger": "nightly"}, "action": {"type": "build"}}
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+            "action": {"type": "build"}
+        },
+        "{{BUILD_PLATFORM}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+            "build": {"trigger": "nightly"},
+            "action": {"type": "build"},
+        },
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {
+            "action": {"type": "build"}
+        },
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+            "build": {"trigger": "nightly"},
+            "action": {"type": "build"},
+        },
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
+            "build": {"trigger": "nightly"},
+            "action": {"type": "build"},
+        },
+        "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+            "build": {"trigger": "nightly"},
+            "action": {"type": "build"},
+        },
     },
     "desktop-test-": {
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"action": {"type": "test"}},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
+            "action": {"type": "test"}
+        },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}},
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {"run": {"type": ["chunked"]}, "action": {"type": "test"}}
-    }
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {
+            "action": {"type": "test"}
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
+            "run": {"type": ["chunked"]},
+            "action": {"type": "test"},
+        },
+    },
 }
 
 TEST_PLATFORM = {
@@ -182,7 +279,8 @@ TEST_PLATFORM = {
 
 TEST_OPTIONS = {
     o: {"build": {"type": [o]}}
-    for o in BUILD_TYPES + [
+    for o in BUILD_TYPES
+    + [
         "aarch64",
         "asan",
         "gradle",
@@ -192,7 +290,7 @@ TEST_OPTIONS = {
         "msvc",
         "qr",
         "stylo-disabled",
-        "stylo-sequential"
+        "stylo-sequential",
     ]
 }
 TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
@@ -208,14 +306,54 @@ RUN_OPTIONS = {
     "stylo": {"build": {"type": ["stylo"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
-    "stylo-disabled-e10s": {"build": {"type": ["stylo-disabled"]}, "run": {"type": ["e10s"]}},
+    "stylo-disabled-e10s": {
+        "build": {"type": ["stylo-disabled"]},
+        "run": {"type": ["e10s"]},
+    },
     "stylo-sequential": {},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
-    "sw-e10s": {"run": {"type": ["service-worker","e10s"]}},
+    "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
     "sw": {"run": {"type": ["service-worker"]}},
 }
 
-TALOS_TEST = {t.replace('_', '-'): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS}
+TALOS_TEST = {
+    t.replace("_", "-"): {"run": {"suite": t}} for t in KNOWN_PERFHERDER_TESTS
+}
+
+RAPTOR_TEST = {
+    t: {"run": {"suite": {"name": t}}}
+    for t in [
+        "assorted-dom",
+        "gdocs",
+        "motionmark-animometer",
+        "motionmark-htmlsuite",
+        "motionmark",
+        "stylebench",
+        "speedometer",
+        "sunspider",
+        "tp6-apple",
+        "tp6-docs",
+        "tp6-sheets",
+        "tp6-slides",
+        "tp6",
+        "unity-webgl",
+        "wasm-godot-baseline",
+        "wasm-godot-ion",
+        "wasm-godot",
+        "wasm-misc-baseline",
+        "wasm-misc-ion",
+        "wasm-misc",
+        "webaudio",
+    ]
+}
+
+
+BROWSER = {
+    "chrome": {"run": {"browser": "chrome"}},
+    "firefox": {"run": {"browser": "firefox"}},
+    "geckoview": {"run": {"browser": "geckoview"}},
+}
+
 
 TEST_SUITE = {
     t: {"run": {"suite": {"name": t}}}
@@ -256,74 +394,6 @@ TEST_SUITE = {
         "mochitest-webgl2-ext",
         "mochitest-webgl",
         "mozmill",
-        "raptor-assorted-dom-chrome",
-        "raptor-assorted-dom-firefox",
-        "raptor-chrome-motionmark-animometer",
-        "raptor-chrome-motionmark-htmlsuite",
-        "raptor-chrome-motionmark",
-        "raptor-chrome-speedometer",
-        "raptor-chrome-stylebench",
-        "raptor-chrome-sunspider",
-        "raptor-chrome-tp6",
-        "raptor-chromw-unity-webgl",
-        "raptor-chrome-webaudio",
-        "raptor-firefox-motionmark-animometer",
-        "raptor-firefox-motionmark-htmlsuite",
-        "raptor-firefox-motionmark",
-        "raptor-firefox-speedometer",
-        "raptor-firefox-stylebench",
-        "raptor-firefox-sunspider",
-        "raptor-firefox-tp6",
-        "raptor-firefox-unity-webgl",
-        "raptor-firefox-webaudio",
-
-        "raptor-gdocs-chrome",
-        "raptor-gdocs-firefox",
-        "raptor-motionmark-animometer-chrome",
-        "raptor-motionmark-animometer-firefox",
-        "raptor-motionmark-htmlsuite-chrome",
-        "raptor-motionmark-htmlsuite-firefox",
-        "raptor-motionmark-chrome",
-        "raptor-motionmark-firefox",
-        "raptor-motionmark-htmlsuite-chrome",
-        "raptor-motionmark-htmlsuite-firefox",
-        "raptor-motionmark-animometer-firefox",
-        "raptor-stylebench-chrome",
-        "raptor-stylebench-firefox",
-        "raptor-speedometer-chrome",
-        "raptor-speedometer-firefox",
-        "raptor-speedometer-geckoview",
-        "raptor-sunspider-chrome",
-        "raptor-sunspider-firefox",
-        "raptor-tp6-apple-chrome",
-        "raptor-tp6-apple-firefox",
-        "raptor-tp6-docs-firefox",
-        "raptor-tp6-docs-chrome",
-        "raptor-tp6-1-chrome",
-        "raptor-tp6-1-firefox",
-        "raptor-tp6-2-chrome",
-        "raptor-tp6-2-firefox",
-        "raptor-tp6-chrome",
-        "raptor-tp6-firefox",
-        "raptor-tp6-sheets-chrome",
-        "raptor-tp6-sheets-firefox",
-        "raptor-tp6-slides-chrome",
-        "raptor-tp6-slides-firefox",
-        "raptor-unity-webgl-chrome",
-        "raptor-unity-webgl-firefox",
-        "raptor-unity-webgl-geckoview",
-        "raptor-wasm-godot-baseline-firefox",
-        "raptor-wasm-godot-baseline",
-        "raptor-wasm-godot-chrome",
-        "raptor-wasm-godot-firefox",
-        "raptor-wasm-godot-ion-firefox",
-        "raptor-wasm-misc-chrome",
-        "raptor-wasm-misc-firefox",
-        "raptor-wasm-misc-baseline-firefox",
-        "raptor-wasm-misc-ion-firefox",
-        "raptor-webaudio-chrome",
-        "raptor-webaudio-firefox",
-
         "reftest",
         "reftest-fonts",
         "reftest-gpu",
@@ -340,7 +410,7 @@ TEST_SUITE = {
         "web-platform-tests",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
-        "xpcshell"
+        "xpcshell",
     ]
 }
 
@@ -356,7 +426,10 @@ BUILD_PLATFORM = {
     "android-x86_64": {"build": {"platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
-    "android-test-ccov": {"build": {"platform": "android", "type": ["ccov"]}, "run": {"suite": {"name": "android-test", "fullname": "android-test"}}},
+    "android-test-ccov": {
+        "build": {"platform": "android", "type": ["ccov"]},
+        "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
+    },
     "android": {"build": {"platform": "android"}},
     "linux": {"build": {"platform": "linux"}},
     "linux64": {"build": {"platform": "linux64"}},
@@ -366,7 +439,7 @@ BUILD_PLATFORM = {
     "win32": {"build": {"platform": "win32"}},
     "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
-    "win64-dmd": {"build": {"platform": "win64"}}
+    "win64-dmd": {"build": {"platform": "win64"}},
 }
 
 BUILD_OPTIONS = {
@@ -403,19 +476,18 @@ BUILD_OPTIONS = {
     "test": {},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
-    "without-google-play-services": {}
-
+    "without-google-play-services": {},
 }
 
 BUILD_TYPE = {
     "opt": {"build": {"type": ["opt"]}},
     "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
-    "debug": {"build": {"type": ["debug"]}}
+    "debug": {"build": {"type": ["debug"]}},
 }
 
-BUILD_STEPS = {
-    "upload-symbols": {}
-}
+BUILD_STEPS = {"upload-symbols": {}}
 
-COMPILED_CATEGORIES = {c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()}
+COMPILED_CATEGORIES = {
+    c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()
+}

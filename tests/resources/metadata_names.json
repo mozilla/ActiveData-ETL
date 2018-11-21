@@ -2954,12 +2954,15 @@
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "android",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "raptor-speedometer-geckoview"}}
+        "run": {
+            "browser": "geckoview",
+            "suite": {"name": "speedometer"}
+        }
     },
     "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {
         "action": {"type": "test"},
@@ -2974,20 +2977,26 @@
         }
     },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-unity-webgl-geckoview": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "android",
             "type": ["opt", "aarch64"]
         },
-        "run": {"suite": {"name": "raptor-unity-webgl-geckoview"}}
+        "run": {
+            "browser": "geckoview",
+            "suite": {"name": "unity-webgl"}
+        }
     },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "android",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "raptor-speedometer-geckoview"}}
+        "run": {
+            "browser": "geckoview",
+            "suite": {"name": "speedometer"}
+        }
     },
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
         "action": {"type": "test"},
@@ -15471,57 +15480,62 @@
         }
     },
     "test-linux64-pgo/opt-raptor-assorted-dom-firefox-e10": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
-            "suite": {"name": "raptor-assorted-dom-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "assorted-dom"},
             "type": ["e10s"]
         }
     },
     "test-linux64-pgo/opt-raptor-chrome-speedometer-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
-            "suite": {"name": "raptor-chrome-speedometer"},
+            "browser": "chrome",
+            "suite": {"name": "speedometer"},
             "type": ["e10s"]
         }
     },
     "test-linux64-pgo/opt-raptor-chrome-tp6-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
-            "suite": {"name": "raptor-chrome-tp6"},
+            "browser": "chrome",
+            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },
     "test-linux64-pgo/opt-raptor-firefox-speedometer-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
-            "suite": {"name": "raptor-firefox-speedometer"},
+            "browser": "firefox",
+            "suite": {"name": "speedometer"},
             "type": ["e10s"]
         }
     },
     "test-linux64-pgo/opt-raptor-firefox-tp6-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
         "run": {
-            "suite": {"name": "raptor-firefox-tp6"},
+            "browser": "firefox",
+            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },
@@ -17121,36 +17135,52 @@
             "type": ["chunked"]
         }
     },
-    "test-linux64-qr/opt-raptor-wasm-godot-baseline-firefox-e10s": {
-        "action": {"type": "test"},
+    "test-linux64-qr/opt-raptor-tp6-6-firefox-e10s": {
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-godot-baseline-firefox"},
+            "browser": "firefox",
+            "chunk": 6,
+            "suite": "tp6",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-qr/opt-raptor-wasm-godot-baseline-firefox-e10s": {
+        "action": {"type": "raptor"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "suite": {"name": "wasm-godot-baseline"},
             "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-misc-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-misc-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },
     "test-linux64-qr/opt-raptor-wasm-misc-ion-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt", "qr"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-misc-ion-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-misc-ion"},
             "type": ["e10s"]
         }
     },
@@ -19846,8 +19876,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["e10s"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "e10s"]
         }
     },
     "test-linux64/debug-mochitest-jetpack": {
@@ -22031,35 +22061,38 @@
         }
     },
     "test-linux64/opt-raptor-wasm-misc-baseline-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-misc-baseline-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-misc-baseline"},
             "type": ["e10s"]
         }
     },
     "test-linux64/opt-raptor-wasm-misc-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-misc-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },
     "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "linux64",
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-misc-ion-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-misc-ion"},
             "type": ["e10s"]
         }
     },
@@ -38642,13 +38675,14 @@
         }
     },
     "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "raptor"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "raptor-wasm-godot-firefox"},
+            "browser": "firefox",
+            "suite": {"name": "wasm-godot"},
             "type": ["e10s"]
         }
     },
