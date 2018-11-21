@@ -32980,6 +32980,20 @@
             "suite": {"name": "mozmill"}
         }
     },
+    "test-windows10-64/opt-raptor-tp6-6-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 6,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64/opt-reftest": {
         "action": {"type": "test"},
         "build": {
