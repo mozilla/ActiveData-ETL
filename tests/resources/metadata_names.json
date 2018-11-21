@@ -15510,18 +15510,6 @@
             "type": ["e10s"]
         }
     },
-    "test-linux64-pgo/opt-raptor-chrome-tp6-e10s": {
-        "action": {"type": "raptor"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt", "pgo"]
-        },
-        "run": {
-            "browser": "chrome",
-            "suite": {"name": "tp6"},
-            "type": ["e10s"]
-        }
-    },
     "test-linux64-pgo/opt-raptor-firefox-speedometer-e10s": {
         "action": {"type": "raptor"},
         "build": {
@@ -15531,18 +15519,6 @@
         "run": {
             "browser": "firefox",
             "suite": {"name": "speedometer"},
-            "type": ["e10s"]
-        }
-    },
-    "test-linux64-pgo/opt-raptor-firefox-tp6-e10s": {
-        "action": {"type": "raptor"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt", "pgo"]
-        },
-        "run": {
-            "browser": "firefox",
-            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },

@@ -336,7 +336,7 @@ RAPTOR_TEST = {
         "tp6-docs",
         "tp6-sheets",
         "tp6-slides",
-        "tp6",
+        "tp6-reddit",
         "unity-webgl",
         "wasm-godot-baseline",
         "wasm-godot-ion",
