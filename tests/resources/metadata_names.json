@@ -56,6 +56,13 @@
             "type": ["opt"]
         }
     },
+    "build-android-api-lint/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
     "build-android-checkstyle/opt": {
         "action": {"type": "build"},
         "build": {

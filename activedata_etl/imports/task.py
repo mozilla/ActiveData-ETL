@@ -120,6 +120,7 @@ class Matcher(object):
 
 
 CATEGORIES = {
+    # MAYBE USE A FORMAL PARSER!!
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
             "action": {"type": "talos"}
@@ -426,6 +427,7 @@ BUILD_PLATFORM = {
     "android-x86_64": {"build": {"platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
+    "android-api": {"build": {"platform": "android"}},
     "android-test-ccov": {
         "build": {"platform": "android", "type": ["ccov"]},
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
