@@ -7,6 +7,10 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from collections import Mapping
+
+from mo_logs.strings import between
+
 from mo_future import text_type
 
 from activedata_etl.imports.buildbot import BUILD_TYPES
@@ -109,10 +113,19 @@ class Matcher(object):
     def match(self, name):
         if self.pattern:
             for k, v in self.pattern.items():
-                if name.startswith(k):
-                    match = self.child.match(name[len(k) :])
-                    if match is not None:
-                        return set_default(match, v)
+                if isinstance(v, Mapping):
+                    # TODO: CONVERT THESE PREFIX MATCHES TO SHORT NAME PULLERS
+                    if name.startswith(k):
+                        match = self.child.match(name[len(k) :])
+                        if match is not None:
+                            return set_default(match, v)
+                else:
+                    l, v = v(name)
+                    if v is not None:
+                        match = self.child.match(name[l:])
+                        if match is not None:
+                            return set_default(match, v)
+
         elif self.literal:
             if name.startswith(self.literal):
                 return self.child.match(name[len(self.literal) :])
@@ -153,22 +166,6 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
-            "action": {"type": "perf"},
-            "run": {"framework": "raptor", "suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
-            "run": {"framework": "raptor", "suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}": {
-            "action": {"type": "perf"},
-            "run": {"framework": "raptor", "suite": "tp6"},
-        },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
-            "run": {"framework": "raptor", "suite": "tp6"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -338,11 +335,6 @@ RAPTOR_TEST = {
         "stylebench",
         "speedometer",
         "sunspider",
-        "tp6-apple",
-        "tp6-docs",
-        "tp6-sheets",
-        "tp6-slides",
-        "tp6-reddit",
         "unity-webgl",
         "wasm-godot-baseline",
         "wasm-godot-ion",
@@ -353,6 +345,22 @@ RAPTOR_TEST = {
         "webaudio",
     ]
 }
+
+
+def match_tp6(name):
+    if name.startswith("tp6-"):
+        for b in BROWSER.keys():
+            if "-" + b in name:
+                short_name = between(name, None, "-" + b)
+                suffix = short_name[4:]
+                if suffix in TEST_CHUNK:
+                    return len(short_name), {"run": {"suite": {"name": "tp6"}, "chunk": int(suffix)}}
+                return len(short_name), {"run": {"suite": {"name": short_name}}}
+    return None, None
+
+
+RAPTOR_TEST["tp6"] = match_tp6
+
 
 
 BROWSER = {
@@ -452,6 +460,7 @@ BUILD_PLATFORM = {
 
 BUILD_OPTIONS = {
     "aarch64": {},
+    "aarch64-msvc": {},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},

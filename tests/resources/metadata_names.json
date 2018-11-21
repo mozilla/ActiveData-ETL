@@ -292,6 +292,13 @@
             "type": ["opt"]
         }
     },
+    "build-win64-aarch64-msvc/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
     "build-win64-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -17255,7 +17262,7 @@
             "browser": "firefox",
             "chunk": 6,
             "framework": "raptor",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },
