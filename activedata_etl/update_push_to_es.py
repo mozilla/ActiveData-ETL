@@ -9,19 +9,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import logging
-
 from boto import ec2 as boto_ec2
-from fabric.api import settings as fabric_settings
-from fabric.context_managers import cd
-from fabric.operations import run, put, sudo
-from fabric.state import env
 
+from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap, DataObject
-from mo_files import File
+from mo_fabric import Connection
 from mo_logs import Log, startup, constants
+from mo_threads import Thread
 from pyLibrary.aws import aws_retry
 
 
@@ -45,26 +41,14 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
-def _config_fabric(connect, instance):
-    if not instance.ip_address:
-        Log.error("Expecting an ip address for {{instance_id}}", instance_id=instance.id)
+def _disable_oom_on_es(conn):
+    with conn.warn_only():
+        conn.sudo("supervisorctl start es")
 
-    for k, v in connect.items():
-        env[k] = v
-    env.host_string = instance.ip_address
-    env.abort_exception = Log.error
-
-
-def _disable_oom_on_es():
-
-    with fabric_settings(warn_only=True):
-        sudo("supervisorctl start es")
-
-
-    with cd("/home/ec2-user"):
-        run("mkdir -p temp")
-    with cd("/home/ec2-user/temp"):
-        processes = sudo("ps -eo pid,command | grep java")
+    with conn.cd("/home/ec2-user"):
+        conn.run("mkdir -p temp")
+    with conn.cd("/home/ec2-user/temp"):
+        processes = conn.sudo("ps -eo pid,command | grep java")
         candidates = [
             line
             for line in processes.split("\n")
@@ -76,52 +60,114 @@ def _disable_oom_on_es():
             Log.error("Fond more than one Elasticsearch running, not sure what to do")
 
         pid = candidates[0].strip().split(" ")[0].strip()
-        run("echo -16 > oom_adj")
-        sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
+        conn.run("echo -16 > oom_adj")
+        conn.sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
 
-def _refresh_indexer():
-    with cd("/usr/local/elasticsearch"):
-        sudo("rm -f java*.hprof")
+def _start_indexer(config, instance, please_stop):
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            conn.sudo("supervisorctl start push_to_es:*")
 
-    _disable_oom_on_es()
-    with cd("/home/ec2-user/ActiveData-ETL/"):
-        result = run("git pull origin push-to-es6")
-        if "Already up-to-date." in result:
-            Log.note("No change required")
-        else:
-            # RESTART ANYWAY, SO WE USE LATEST INDEX
-            run("~/pypy/bin/pypy -m pip install -r requirements.txt")
-            with fabric_settings(warn_only=True):
-                sudo("supervisorctl stop push_to_es:*")
-                sudo("supervisorctl start push_to_es:00")
+    except Exception as e:
+        Log.warning(
+            "could not start {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
 
 
-def _start_supervisor():
-    put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
+def _stop_indexer(config, instance, please_stop):
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            conn.sudo("supervisorctl stop push_to_es:*")
+
+    except Exception as e:
+        Log.warning(
+            "could not stop {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
+
+
+def _update_indexxer(config, instance, please_stop):
+    Log.note(
+        "Reset {{instance_id}} ({{name}}) at {{ip}}",
+        instance_id=instance.id,
+        name=instance.tags["Name"],
+        ip=instance.ip_address
+    )
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            with conn.cd("/usr/local/elasticsearch"):
+                conn.sudo("rm -f java*.hprof")
+
+            _disable_oom_on_es(conn)
+            with conn.cd("/home/ec2-user/ActiveData-ETL/"):
+                result = conn.run("git pull origin push-to-es6")
+                if "Already up-to-date." in result:
+                    Log.note("No change required")
+                else:
+                    # RESTART ANYWAY, SO WE USE LATEST INDEX
+                    conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+                    with conn.warn_only():
+                        conn.sudo("supervisorctl stop push_to_es:*")
+                        conn.sudo("supervisorctl start push_to_es:00")
+    except Exception as e:
+        Log.warning(
+            "could not update {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
+
+
+def _start_supervisor(conn):
+    conn.put("~/code/SpotManager/examples/config/es_supervisor.conf", "/etc/supervisord.conf", use_sudo=True)
 
     # START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
-    with fabric_settings(warn_only=True):
-        sudo("supervisord -c /etc/supervisord.conf")
+    with conn.warn_only():
+        conn.sudo("supervisord -c /etc/supervisord.conf")
 
-    sudo("supervisorctl reread")
-    sudo("supervisorctl update")
-
-
-def _run_remote(command, name):
-    File("./results/temp/" + name + ".sh").write("nohup " + command + " >& /dev/null < /dev/null &\nsleep 20")
-    put("./results/temp/" + name + ".sh", "" + name + ".sh")
-    run("chmod u+x " + name + ".sh")
-    run("./" + name + ".sh")
+    conn.sudo("supervisorctl reread")
+    conn.sudo("supervisorctl update")
 
 
 def main():
     try:
-        settings = startup.read_settings()
+        settings = startup.read_settings(defs=[
+            {
+                "name": ["--start"],
+                "help": "start the push_to_es processes",
+                "action": "store_true",
+                "dest": "start",
+                "default": False,
+                "required": False
+            },
+            {
+                "name": ["--stop"],
+                "help": "stop the push_to_es processes",
+                "action": "store_true",
+                "dest": "stop",
+                "default": False,
+                "required": False
+            },
+            {
+                "name": ["--update"],
+                "help": "update the push_to_es processes, and bounce",
+                "action": "store_true",
+                "dest": "update",
+                "default": False,
+                "required": False
+            }
+        ])
         constants.set(settings.constants)
         Log.start(settings.debug)
-
-        logging.getLogger('paramiko.transport').addHandler(LogTranslate())
 
         aws_args = dict(
             region_name=settings.aws.region,
@@ -129,41 +175,30 @@ def main():
             aws_secret_access_key=unwrap(settings.aws.aws_secret_access_key)
         )
         ec2_conn = boto_ec2.connect_to_region(**aws_args)
-
         instances = _get_managed_instances(ec2_conn, settings.name)
 
-        for i in instances:
-            try:
-                Log.note("Reset {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
-                _config_fabric(settings.fabric, i)
-                _refresh_indexer()
-            except Exception as e:
-                Log.warning(
-                    "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
-                    instance_id=i.id,
-                    name=i.tags["Name"],
-                    ip=i.ip_address,
-                    cause=e
-                )
+        if settings.args.stop:
+            method = _stop_indexer
+        elif settings.args.start:
+            method = _start_indexer
+        elif settings.args.update:
+            method = _update_indexxer
+        else:
+            Log.error("Expecting --start or --stop or --update")
+
+
+        for g, ii in jx.groupby(instances, size=1):
+            threads = [
+                Thread.run(i.name, method, settings.fabric, i)
+                for i in ii
+            ]
+
+            for t in threads:
+                t.join()
     except Exception as e:
         Log.error("Problem with etl", e)
     finally:
         Log.stop()
-
-
-class LogTranslate(object):
-
-    def __init__(self, level=0):
-        self.level=level
-
-    def emit(self, record):
-        Log.note("{{record}}", record=record)
-
-    def flush(self):
-        pass
-
-    def handle(self, record):
-        Log.note("{{record|json}}", record=DataObject(record))
 
 
 if __name__ == "__main__":

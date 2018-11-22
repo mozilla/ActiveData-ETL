@@ -8,19 +8,18 @@
 #
 from __future__ import unicode_literals
 
-from mo_future import text_type
 from math import log10
 
-from mo_kwargs import override
-
 from activedata_etl import etl2key, key2etl
-from activedata_etl.reset import Version
+from activedata_etl.s3_clear import Version
 from mo_collections import UniqueIndex
 from mo_dots import wrap
+from mo_future import text_type
+from mo_json import json2value, value2json
+from mo_kwargs import override
 from mo_logs import Log
 from mo_math import Math
 from mo_times.timer import Timer
-from mo_json import json2value, value2json
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
 

@@ -285,6 +285,14 @@
 				"log_type": "console"
 			},
 			{
+				"log_type": "elasticsearch",
+				"host": "http://54.148.242.195",
+				"port": 9200,
+				"index": "debug-etl",
+				"type": "etl",
+				"timeout": 600
+			},
+			{
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",

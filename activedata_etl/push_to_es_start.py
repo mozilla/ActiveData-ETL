@@ -45,7 +45,6 @@ def _config_fabric(connect, instance):
 
 def _stop_indexer():
     with fabric_settings(warn_only=True):
-        # sudo("supervisorctl stop es")
         sudo("supervisorctl stop push_to_es:*")
 
 
