@@ -136,6 +136,10 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
 def flatten_causal_chain(log_item, output=None):
     output = output or []
 
+    if isinstance(log_item, text_type):
+        output.append({"template": log_item})
+        return
+
     output.append(log_item)
     for c in listwrap(log_item.cause):
         flatten_causal_chain(c, output)
