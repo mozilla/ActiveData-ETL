@@ -64,7 +64,37 @@ def _disable_oom_on_es(conn):
         conn.sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
 
-def _refresh_indexer(config, instance, please_stop):
+def _start_indexer(config, instance, please_stop):
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            conn.sudo("supervisorctl start push_to_es:*")
+
+    except Exception as e:
+        Log.warning(
+            "could not start {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
+
+
+def _stop_indexer(config, instance, please_stop):
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            conn.sudo("supervisorctl stop push_to_es:*")
+
+    except Exception as e:
+        Log.warning(
+            "could not stop {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
+
+
+def _update_indexxer(config, instance, please_stop):
     Log.note(
         "Reset {{instance_id}} ({{name}}) at {{ip}}",
         instance_id=instance.id,
@@ -72,7 +102,7 @@ def _refresh_indexer(config, instance, please_stop):
         ip=instance.ip_address
     )
     try:
-        with Connection(config, host=instance.ip_address) as conn:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
             with conn.cd("/usr/local/elasticsearch"):
                 conn.sudo("rm -f java*.hprof")
 
@@ -89,7 +119,7 @@ def _refresh_indexer(config, instance, please_stop):
                         conn.sudo("supervisorctl start push_to_es:00")
     except Exception as e:
         Log.warning(
-            "could not refresh {{instance_id}} ({{name}}) at {{ip}}",
+            "could not update {{instance_id}} ({{name}}) at {{ip}}",
             instance_id=instance.id,
             name=instance.tags["Name"],
             ip=instance.ip_address,
@@ -110,7 +140,32 @@ def _start_supervisor(conn):
 
 def main():
     try:
-        settings = startup.read_settings()
+        settings = startup.read_settings(defs=[
+            {
+                "name": ["--start"],
+                "help": "start the push_to_es processes",
+                "action": "store_true",
+                "dest": "start",
+                "default": False,
+                "required": False
+            },
+            {
+                "name": ["--stop"],
+                "help": "stop the push_to_es processes",
+                "action": "store_true",
+                "dest": "stop",
+                "default": False,
+                "required": False
+            },
+            {
+                "name": ["--update"],
+                "help": "update the push_to_es processes, and bounce",
+                "action": "store_true",
+                "dest": "update",
+                "default": False,
+                "required": False
+            }
+        ])
         constants.set(settings.constants)
         Log.start(settings.debug)
 
@@ -122,9 +177,19 @@ def main():
         ec2_conn = boto_ec2.connect_to_region(**aws_args)
         instances = _get_managed_instances(ec2_conn, settings.name)
 
+        if settings.args.stop:
+            method = _stop_indexer
+        elif settings.args.start:
+            method = _start_indexer
+        elif settings.args.update:
+            method = _update_indexxer
+        else:
+            Log.error("Expecting --start or --stop or --update")
+
+
         for g, ii in jx.groupby(instances, size=1):
             threads = [
-                Thread.run(i.name, _refresh_indexer, settings.fabric, i)
+                Thread.run(i.name, method, settings.fabric, i)
                 for i in ii
             ]
 
