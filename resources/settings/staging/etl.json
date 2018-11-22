@@ -349,23 +349,16 @@
 			{
 				"log_type": "console"
 			},
-//			{
-//				"log_type": "elasticsearch",
-//				"host": {"$ref": "#local_es_node.host"},
-//				"index": "debug-etl",
-//				"type": "etl",
-//				"timeout": "5minute",
-//				"retry": {
-//					"times": 3,
-//					"sleep": "minute"
-//				}
-//			},
 			{
 				"log_type": "elasticsearch",
-				"host": "http://localhost",
-				"port": 9200,
+				"host": {"$ref": "#local_es_node.host"},
 				"index": "debug-etl",
-				"type": "etl"
+				"type": "etl",
+				"timeout": "5minute",
+				"retry": {
+					"times": 3,
+					"sleep": "minute"
+				}
 			},
 			{
 				"log_type": "ses",
