@@ -25,6 +25,7 @@ DEBUG = True
 SLEEP_ON_ERROR = 30
 MAX_BAD_REQUESTS = 3
 
+
 class TuidClient(object):
 
     @override
