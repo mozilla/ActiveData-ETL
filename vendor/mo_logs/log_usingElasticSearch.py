@@ -56,10 +56,9 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         kwargs.retry.times = coalesce(kwargs.retry.times, 3)
         kwargs.retry.sleep = Duration(coalesce(kwargs.retry.sleep, MINUTE)).seconds
 
-        host = Random.sample(listwrap(host), 1)[0]
+        kwargs.host = Random.sample(listwrap(host), 1)[0]
 
         self.es = Cluster(kwargs).get_or_create_index(
-            host=host,
             schema=json2value(value2json(SCHEMA), leaves=True),
             limit_replicas=True,
             typed=True,
