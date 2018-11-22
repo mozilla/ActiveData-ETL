@@ -12,6 +12,8 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import itertools
+from datetime import datetime, date
+from decimal import Decimal
 
 import jx_base
 from jx_base import TableDesc
@@ -20,9 +22,9 @@ from jx_base.query import QueryOp
 from jx_python import jx
 from jx_python.containers.list_usingPythonList import ListContainer
 from jx_python.meta import ColumnList, Column
-from mo_dots import Data, relative_field, ROOT_PATH, coalesce, set_default, Null, split_field, wrap, concat_field, startswith_field, literal_field, tail_field, join_field
+from mo_dots import Data, relative_field, ROOT_PATH, coalesce, set_default, Null, split_field, wrap, concat_field, startswith_field, literal_field, tail_field, join_field, NullType, FlatList
 from mo_files import URL
-from mo_future import text_type
+from mo_future import text_type, none_type, PY2
 from mo_json import OBJECT, EXISTS, STRUCT, BOOLEAN, STRING, INTEGER
 from mo_json.typed_encoder import EXISTS_TYPE, untype_path, unnest_path, STRING_TYPE, BOOLEAN_TYPE, NUMBER_TYPE
 from mo_kwargs import override
@@ -155,7 +157,9 @@ class ElasticsearchMetadata(Namespace):
         abs_columns = elasticsearch.parse_properties(alias, ".", ROOT_PATH, mapping.properties)
         if DEBUG and any(c.cardinality == 0 and c.name != '_id' for c in abs_columns):
             Log.warning(
-                "Some columns are not stored {{names}}",
+                "Some columns are not stored in {{url}} {{index|quote}} table:\n{{names}}",
+                url=self.es_cluster.url,
+                index=alias,
                 names=[
                     ".".join((c.es_index, c.name))
                     for c in abs_columns
@@ -369,7 +373,20 @@ class ElasticsearchMetadata(Namespace):
                 })
                 count = result.hits.total
                 cardinality = 2
-                multi = 1
+
+                DEBUG and Log.note("{{table}}.{{field}} has {{num}} parts", table=column.es_index, field=column.es_column, num=cardinality)
+                self.meta.columns.update({
+                    "set": {
+                        "count": count,
+                        "cardinality": cardinality,
+                        "partitions": [False, True],
+                        "multi": 1,
+                        "last_updated": now
+                    },
+                    "clear": ["partitions"],
+                    "where": {"eq": {"es_index": column.es_index, "es_column": column.es_column}}
+                })
+                return
             else:
                 es_query = {
                     "aggs": {
@@ -377,7 +394,7 @@ class ElasticsearchMetadata(Namespace):
                         "_filter": {
                             "aggs": {"multi": {"max": {"script": "doc[" + quote(column.es_column) + "].values.size()"}}},
                             "filter": {"bool": {"should": [
-                                {"term": {"etl.timestamp.~n~": (Date.today() - WEEK)}},
+                                {"range": {"etl.timestamp.~n~": {"gte": (Date.today() - WEEK)}}},
                                 {"bool": {"must_not": {"exists": {"field": "etl.timestamp.~n~"}}}}
                             ]}}
                         }
@@ -471,6 +488,7 @@ class ElasticsearchMetadata(Namespace):
             is_test_table = column.es_index.startswith((TEST_TABLE_PREFIX, TEST_TABLE))
             if is_missing_index:
                 # WE EXPECT TEST TABLES TO DISAPPEAR
+                Log.warning("Missing index {{col.es_index}}", col=column, cause=e)
                 self.meta.columns.update({
                     "clear": ".",
                     "where": {"eq": {"es_index": column.es_index}}
@@ -560,15 +578,24 @@ class ElasticsearchMetadata(Namespace):
             if column == THREAD_STOP:
                 break
 
-            if column.last_updated >= Date.now()-TOO_OLD:
+            if column.jx_type in STRUCT or split_field(column.es_column)[-1] == EXISTS_TYPE:
+                DEBUG and Log.note("{{column.es_column}} is a struct", column=column)
+                column.last_updated = Date.now()
+                continue
+            elif column.last_updated > Date.now() - TOO_OLD and column.cardinality is not None:
+                # DO NOT UPDATE FRESH COLUMN METADATA
+                DEBUG and Log.note("{{column.es_column}} is still fresh ({{ago}} ago)", column=column, ago=(Date.now()-Date(column.last_updated)).seconds)
                 continue
 
             with Timer("Update {{col.es_index}}.{{col.es_column}}", param={"col": column}, silent=not DEBUG, too_long=0.05):
-                if column.name in ["build.type", "run.type"]:
+                if untype_path(column.name) in ["build.type", "run.type"]:
                     try:
                         self._update_cardinality(column)
                     except Exception as e:
                         Log.warning("problem getting cardinality for {{column.name}}", column=column, cause=e)
+                else:
+                    column.last_updated = Date.now()
+
 
     def get_table(self, name):
         if name == "meta.columns":
@@ -868,6 +895,154 @@ def jx_type(column):
     if column.es_column.endswith(EXISTS_TYPE):
         return EXISTS
     return es_type_to_json_type[column.es_type]
+
+
+python_type_to_es_type = {
+    none_type: "undefined",
+    NullType: "undefined",
+    bool: "boolean",
+    str: "string",
+    text_type: "string",
+    int: "integer",
+    float: "double",
+    Data: "object",
+    dict: "object",
+    set: "nested",
+    list: "nested",
+    FlatList: "nested",
+    Date: "double",
+    Decimal: "double",
+    datetime: "double",
+    date: "double"
+}
+
+if PY2:
+    python_type_to_es_type[long] = "integer"
+
+_merge_es_type = {
+    "undefined": {
+        "undefined": "undefined",
+        "boolean": "boolean",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": "object",
+        "nested": "nested"
+    },
+    "boolean": {
+        "undefined": "boolean",
+        "boolean": "boolean",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "integer": {
+        "undefined": "integer",
+        "boolean": "integer",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "long": {
+        "undefined": "long",
+        "boolean": "long",
+        "integer": "long",
+        "long": "long",
+        "float": "double",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "float": {
+        "undefined": "float",
+        "boolean": "float",
+        "integer": "float",
+        "long": "double",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "double": {
+        "undefined": "double",
+        "boolean": "double",
+        "integer": "double",
+        "long": "double",
+        "float": "double",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "number": {
+        "undefined": "number",
+        "boolean": "number",
+        "integer": "number",
+        "long": "number",
+        "float": "number",
+        "double": "number",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "string": {
+        "undefined": "string",
+        "boolean": "string",
+        "integer": "string",
+        "long": "string",
+        "float": "string",
+        "double": "string",
+        "number": "string",
+        "string": "string",
+        "object": None,
+        "nested": None
+    },
+    "object": {
+        "undefined": "object",
+        "boolean": None,
+        "integer": None,
+        "long": None,
+        "float": None,
+        "double": None,
+        "number": None,
+        "string": None,
+        "object": "object",
+        "nested": "nested"
+    },
+    "nested": {
+        "undefined": "nested",
+        "boolean": None,
+        "integer": None,
+        "long": None,
+        "float": None,
+        "double": None,
+        "number": None,
+        "string": None,
+        "object": "nested",
+        "nested": "nested"
+    }
+}
+
+
 
 
 OBJECTS = (OBJECT, EXISTS)

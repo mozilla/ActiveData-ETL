@@ -216,7 +216,7 @@
 			"rollover": {
 				"field": "repo.push.date",
 				"interval": "day",
-				"max": "1day"
+				"max": "2week"
 			},
 			"sample_only": [],
 			"elasticsearch": {
@@ -230,7 +230,7 @@
 				"schema": {
 					"$ref": "//../../schema/code_coverage.json"
 				},
-				"debug": false,
+				"debug": true,
 				"limit_replicas": false
 			},
 			"source": {
@@ -282,6 +282,14 @@
 		"log": [
 			{
 				"log_type": "console"
+			},
+			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "debug-etl",
+				"type": "etl",
+				"timeout": 600
 			},
 			{
 				"class" : "logging.handlers.RotatingFileHandler",

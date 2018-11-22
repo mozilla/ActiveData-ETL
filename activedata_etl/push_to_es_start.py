@@ -52,7 +52,7 @@ def _stop_indexer():
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
-        sudo("supervisorctl start push_to_es:00")
+        sudo("supervisorctl start push_to_es:*")
 
 
 def main():

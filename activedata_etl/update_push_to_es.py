@@ -19,10 +19,9 @@ from fabric.state import env
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap
+from mo_dots.objects import datawrap, DataObject
 from mo_files import File
-from mo_logs import Log
-from mo_logs import startup, constants
+from mo_logs import Log, startup, constants
 from pyLibrary.aws import aws_retry
 
 
@@ -69,14 +68,14 @@ def _disable_oom_on_es():
         candidates = [
             line
             for line in processes.split("\n")
-            if line.find("/usr/java/default/bin/java -Xms") != -1 and line.find("org.elasticsearch.bootstrap.Elasticsearch") != -1
+            if "/usr/java/default/bin/java -Xms" in line and "org.elasticsearch.bootstrap.Elasticsearch" in line
         ]
         if not candidates:
             Log.error("Expecting to find some hint of Elasticsearch running")
         elif len(candidates) > 1:
             Log.error("Fond more than one Elasticsearch running, not sure what to do")
 
-        pid = candidates[0].split(" ")[0].strip()
+        pid = candidates[0].strip().split(" ")[0].strip()
         run("echo -16 > oom_adj")
         sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
@@ -88,15 +87,14 @@ def _refresh_indexer():
     _disable_oom_on_es()
     with cd("/home/ec2-user/ActiveData-ETL/"):
         result = run("git pull origin push-to-es6")
-        if result.find("Already up-to-date.") != -1:
+        if "Already up-to-date." in result:
             Log.note("No change required")
         else:
             # RESTART ANYWAY, SO WE USE LATEST INDEX
-            sudo("pip install -r requirements.txt")
+            run("~/pypy/bin/pypy -m pip install -r requirements.txt")
             with fabric_settings(warn_only=True):
                 sudo("supervisorctl stop push_to_es:*")
                 sudo("supervisorctl start push_to_es:00")
-
 
 
 def _start_supervisor():

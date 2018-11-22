@@ -1,5 +1,9 @@
 {
 	"settings": {
+		"index.translog.durability": "async",
+		"index.translog.flush_threshold_size": "1000mb",
+		"index.translog.sync_interval": "60s",
+		"index.max_inner_result_window": 100000,
 		"index.number_of_replicas": 1,
 		"index.number_of_shards": 20
 	},

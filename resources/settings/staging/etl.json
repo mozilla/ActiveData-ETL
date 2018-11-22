@@ -152,10 +152,6 @@
 			},
 			"notify": [
 				{
-					"name": "active-data-index",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
 					"name": "active-data-index-es5",
 					"$ref": "file://~/private.json#aws_credentials"
 				}
@@ -364,6 +360,13 @@
 //					"sleep": "minute"
 //				}
 //			},
+			{
+				"log_type": "elasticsearch",
+				"host": "http://localhost",
+				"port": 9200,
+				"index": "debug-etl",
+				"type": "etl"
+			},
 			{
 				"log_type": "ses",
 				"from_address": "klahnakoski@mozilla.com",

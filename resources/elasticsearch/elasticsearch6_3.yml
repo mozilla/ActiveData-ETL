@@ -20,7 +20,13 @@ script.painless.regex.enabled: true
 script.max_compilations_rate: 10000/1m
 
 bootstrap.memory_lock: true
-path.data: /data1
+path.data:
+  - /data1
+  - /data2
+  - /data3
+  - /data4
+  - /data5
+  - /data6
 path.logs: /data1/logs
 
 discovery.ec2.endpoint: ec2.us-west-2.amazonaws.com
