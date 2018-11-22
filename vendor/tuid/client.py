@@ -122,8 +122,8 @@ class TuidClient(object):
                         timeout=self.timeout
                     )
 
-                    with self.db.transaction() as transaction:
-                        try:
+                    try:
+                        with self.db.transaction() as transaction:
                             command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
                                 quote_list((revision, r.path, value2json(r.tuids)))
                                 for r in new_response.data
@@ -131,9 +131,9 @@ class TuidClient(object):
                             )
                             if not command.endswith(" VALUES "):
                                 transaction.execute(command)
-                        except Exception as e:
-                            Log.error("can not insert {{data|json}}", data=new_response.data, cause=e)
-                    self.num_bad_requests = 0
+                    except Exception as e:
+                        Log.error("can not insert {{data|json}}", data=new_response.data, cause=e)
+                self.num_bad_requests = 0
 
                 found.update({r.path: r.tuids for r in new_response.data} if new_response else {})
                 return found
