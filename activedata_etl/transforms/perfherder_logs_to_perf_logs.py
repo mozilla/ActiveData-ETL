@@ -132,7 +132,6 @@ def transform(source_key, perfherder, metadata, resources):
                     metadata.run.type = unwraplist(listwrap(metadata.run.type) + [option])
                 suite_name = suite_name.replace("-" + option, "")
 
-
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
@@ -151,7 +150,9 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if not perfherder.is_empty and framework_name != "job_resource_usage":
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome", "-geckoview")):  # ACCEPT ALL RAPTOR NAMES,
+                metadata.run.browser = suite_name.split("-")[-1]
+            elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -223,7 +224,7 @@ def transform(source_key, perfherder, metadata, resources):
                     total.append(new_record.result.stats)
 
         elif perfherder.results:
-            #RECORD TEST RESULTS
+            # RECORD TEST RESULTS
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 #RECORD ALL RESULTS
@@ -463,58 +464,6 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_facebook",
     "quantum_pageload_google",
     "quantum_pageload_youtube",
-    "raptor-assorted-dom-firefox",
-    "raptor-assorted-dom-chrome",
-    "raptor-firefox-tp6-amazon",
-    "raptor-firefox-tp6-facebook",
-    "raptor-firefox-tp6-google",
-    "raptor-firefox-tp6-youtube",
-    "raptor-google-docs-firefox",
-    "raptor-google-docs-chrome",
-    "raptor-google-sheets-firefox",
-    "raptor-google-sheets-chrome",
-    "raptor-google-slides-firefox",
-    "raptor-google-slides-chrome",
-    "raptor-motionmark-animometer-firefox",
-    "raptor-motionmark-animometer-chrome",
-    "raptor-motionmark-htmlsuite-firefox",
-    "raptor-motionmark-htmlsuite-chrome",
-    "raptor-unity-webgl-firefox",
-    "raptor-unity-webgl-chrome",
-    "raptor-speedometer-chrome",
-    "raptor-speedometer-firefox",
-    "raptor-speedometer-geckoview",
-    "raptor-stylebench-firefox",
-    "raptor-stylebench-chrome",
-    "raptor-sunspider-firefox",
-    "raptor-sunspider-chrome",
-    "raptor-tp6-amazon-firefox",
-    "raptor-tp6-amazon-chrome",
-    "raptor-tp6-docs-firefox",
-    "raptor-tp6-docs-chrome",
-    "raptor-tp6-facebook-firefox",
-    "raptor-tp6-facebook-chrome",
-    "raptor-tp6-google-chrome",
-    "raptor-tp6-google-firefox",
-    "raptor-tp6-sheets-chrome",
-    "raptor-tp6-sheets-firefox",
-    "raptor-tp6-slides-chrome",
-    "raptor-tp6-slides-firefox",
-    "raptor-tp6-youtube-chrome",
-    "raptor-tp6-youtube-firefox",
-    "raptor-unity-webgl-geckoview",
-    "raptor-wasm-godot-baseline-firefox",
-    "raptor-wasm-godot-baseline",
-    "raptor-wasm-godot-firefox",
-    "raptor-wasm-godot-chrome",
-    "raptor-wasm-godot-ion-firefox",
-    "raptor-wasm-misc-baseline-firefox",
-    "raptor-wasm-misc-chrome",
-    "raptor-wasm-misc-firefox",
-    "raptor-wasm-misc-ion-firefox",
-    "raptor-wasm-misc-ion-chrome",
-    "raptor-webaudio-firefox",
-    "raptor-webaudio-chrome",
     "rasterflood_gradient",
     "rasterflood_svg",
     "removed_missing_shared_store",

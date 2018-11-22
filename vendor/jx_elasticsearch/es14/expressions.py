@@ -13,13 +13,13 @@ from __future__ import unicode_literals
 
 import itertools
 
+from jx_base import first
 from jx_base.expressions import Variable, TupleOp, LeavesOp, BinaryOp, OrOp, ScriptOp, \
     WhenOp, InequalityOp, extend, Literal, NullOp, TrueOp, FalseOp, DivOp, FloorOp, \
     EqOp, NeOp, NotOp, LengthOp, NumberOp, StringOp, CountOp, MultiOp, RegExpOp, CoalesceOp, MissingOp, ExistsOp, \
     PrefixOp, NotLeftOp, InOp, CaseOp, AndOp, \
     ConcatOp, IsNumberOp, Expression, BasicIndexOfOp, MaxOp, MinOp, BasicEqOp, BooleanOp, IntegerOp, BasicSubstringOp, ZERO, NULL, FirstOp, FALSE, TRUE, SuffixOp, simplified, ONE
 from jx_elasticsearch.es14.util import es_not, es_script, es_or, es_and, es_missing
-from jx_python.jx import first
 from mo_dots import coalesce, wrap, Null, set_default, literal_field
 from mo_future import text_type
 from mo_json import NUMBER, STRING, BOOLEAN, OBJECT, INTEGER
@@ -394,7 +394,7 @@ def to_es14_filter(self, schema):
         if not cols:
             lhs = self.lhs.var  # HAPPENS DURING DEBUGGING, AND MAYBE IN REAL LIFE TOO
         elif len(cols) == 1:
-            lhs = schema.leaves(self.lhs.var)[0].es_column
+            lhs = first(cols).es_column
         else:
             Log.error("operator {{op|quote}} does not work on objects", op=self.op)
         return {"range": {lhs: {self.op: self.rhs.value}}}
@@ -557,7 +557,7 @@ def to_es14_script(self, schema, not_null=False, boolean=False, many=True):
         else:
             columns = schema.leaves(self.expr.var)
             if len(columns) == 1:
-                return EsScript(type=BOOLEAN, expr="doc[" + quote(columns[0].es_column) + "].isEmpty()", frum=self)
+                return EsScript(type=BOOLEAN, expr="doc[" + quote(first(columns).es_column) + "].isEmpty()", frum=self)
             else:
                 return AndOp("and", [
                     EsScript(
@@ -619,7 +619,7 @@ def to_es14_filter(self, schema):
         if len(columns) == 0:
             return {"match_all": {}}
         elif len(columns) == 1:
-            return es_not({"term": {columns[0].es_column: self.rhs.value}})
+            return es_not({"term": {first(columns).es_column: self.rhs.value}})
         else:
             Log.error("column split to multiple, not handled")
     else:
@@ -1032,7 +1032,7 @@ def to_es14_filter(self, schema):
     if not self.expr:
         return {"match_all": {}}
     elif isinstance(self.expr, Variable) and isinstance(self.prefix, Literal):
-        var = schema.leaves(self.expr.var)[0].es_column
+        var = first(schema.leaves(self.expr.var)).es_column
         return {"prefix": {var: self.prefix.value}}
     else:
         return ScriptOp("script",  self.to_es14_script(schema).script(schema)).to_es14_filter(schema)
@@ -1050,7 +1050,7 @@ def to_es14_filter(self, schema):
     if not self.suffix:
         return {"match_all": {}}
     elif isinstance(self.expr, Variable) and isinstance(self.suffix, Literal):
-        var = schema.leaves(self.expr.var)[0].es_column
+        var = first(schema.leaves(self.expr.var)).es_column
         return {"regexp": {var: ".*"+string2regexp(self.suffix.value)}}
     else:
         return ScriptOp("script",  self.to_es14_script(schema).script(schema)).to_es14_filter(schema)
@@ -1406,7 +1406,7 @@ def split_expression_by_depth(where, schema, output=None, var_to_depth=None):
         all_depths = set(var_to_depth[v.var] for v in vars_)
 
     if len(all_depths) == 1:
-        output[first(all_depths)] += [where]
+        output[list(all_depths)[0]] += [where]
     elif isinstance(where, AndOp):
         for a in where.terms:
             split_expression_by_depth(a, schema, output, var_to_depth)
