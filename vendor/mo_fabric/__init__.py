@@ -80,12 +80,7 @@ class Connection(object):
         """
         IGNORE WARNING IN THIS CONTEXT
         """
-        @contextmanager
-        def warning_set():
-            old, self.warn = self.warn, True
-            yield
-            self.warn = old
-        return warning_set
+        return Warning(self)
 
     def get(self, remote, local):
         self.conn.get(remote, File(local).abspath)
@@ -113,6 +108,19 @@ class Connection(object):
 
     def __getattr__(self, item):
         return getattr(self.conn, item)
+
+
+class Warning(object):
+
+    def __init__(self, conn):
+        self.conn=conn
+        self.old = None
+
+    def __enter__(self):
+        self.old, self.conn.warn = self.conn.warn, True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.warn = self.old
 
 
 @extend(Result)
