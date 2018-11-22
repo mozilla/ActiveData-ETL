@@ -12,14 +12,13 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from jx_python import jx
+from mo_logs import Log
+from mo_logs import startup
+from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws.s3 import Bucket
-from mo_logs import startup
-from mo_logs import Log
 from pyLibrary.convert import json2value
-from jx_python import jx
-from mo_times.timer import Timer
 
 
 def list_s3(settings, filter):
