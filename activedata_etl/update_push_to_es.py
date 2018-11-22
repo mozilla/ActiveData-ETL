@@ -14,7 +14,7 @@ from boto import ec2 as boto_ec2
 from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
-from mo_dots.objects import datawrap, DataObject
+from mo_dots.objects import datawrap
 from mo_fabric import Connection
 from mo_logs import Log, startup, constants
 from mo_threads import Thread
@@ -51,13 +51,13 @@ def _disable_oom_on_es(conn):
         processes = conn.sudo("ps -eo pid,command | grep java")
         candidates = [
             line
-            for line in processes.split("\n")
+            for line in processes.stdout.split("\n")
             if "/usr/java/default/bin/java -Xms" in line and "org.elasticsearch.bootstrap.Elasticsearch" in line
         ]
         if not candidates:
             Log.error("Expecting to find some hint of Elasticsearch running")
         elif len(candidates) > 1:
-            Log.error("Fond more than one Elasticsearch running, not sure what to do")
+            Log.error("Found more than one Elasticsearch running, not sure what to do")
 
         pid = candidates[0].strip().split(" ")[0].strip()
         conn.run("echo -16 > oom_adj")
