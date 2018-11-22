@@ -122,13 +122,16 @@ class TuidClient(object):
                     )
 
                     with self.db.transaction() as transaction:
-                        command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
-                            quote_list((revision, r.path, value2json(r.tuids)))
-                            for r in new_response.data
-                            if r.tuids != None
-                        )
-                        if not command.endswith(" VALUES "):
-                            transaction.execute(command)
+                        try:
+                            command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
+                                quote_list((revision, r.path, value2json(r.tuids)))
+                                for r in new_response.data
+                                if r.tuids != None
+                            )
+                            if not command.endswith(" VALUES "):
+                                transaction.execute(command)
+                        except Exception as e:
+                            Log.error("can not insert {{data|json}}", data=new_response.data, cause=e)
                     self.num_bad_requests = 0
 
                 found.update({r.path: r.tuids for r in new_response.data} if new_response else {})
