@@ -15,6 +15,8 @@ import sys
 from collections import Mapping
 from datetime import date, datetime
 
+from mo_math.randoms import Random
+
 from jx_python import jx
 from mo_dots import wrap, coalesce, FlatList, listwrap
 from mo_future import text_type, binary_type, number_types
@@ -54,7 +56,10 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         kwargs.retry.times = coalesce(kwargs.retry.times, 3)
         kwargs.retry.sleep = Duration(coalesce(kwargs.retry.sleep, MINUTE)).seconds
 
+        host = Random.sample(listwrap(host), 1)[0]
+
         self.es = Cluster(kwargs).get_or_create_index(
+            host=host,
             schema=json2value(value2json(SCHEMA), leaves=True),
             limit_replicas=True,
             typed=True,
