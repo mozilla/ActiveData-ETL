@@ -122,9 +122,11 @@ class TuidClient(object):
                         timeout=self.timeout
                     )
 
-                    if new_response.data:
+                    if new_response.data and any(r.tuids for r in new_response.data):
                         try:
                             with self.db.transaction() as transaction:
+
+
                                 command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
                                     quote_list((revision, r.path, value2json(r.tuids)))
                                     for r in new_response.data
