@@ -31522,6 +31522,19 @@
             "suite": "tp5o"
         }
     },
+    "test-windows10-64-ux/opt-raptor-sunspider-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "ux"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "sunspider"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64/debug-cppunit": {
         "action": {"type": "test"},
         "build": {

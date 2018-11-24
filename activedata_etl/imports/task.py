@@ -295,6 +295,7 @@ TEST_OPTIONS = {
         "qr",
         "stylo-disabled",
         "stylo-sequential",
+        "ux",
     ]
 }
 TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
