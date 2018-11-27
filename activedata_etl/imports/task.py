@@ -274,7 +274,7 @@ TEST_PLATFORM = {
     "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "macosx64": {"build": {"platform": "maxosx64"}},
+    "macosx64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32", "type": ["ming32"]}},
     "windows10-64": {"build": {"platform": "win64"}},
