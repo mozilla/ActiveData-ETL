@@ -26,7 +26,6 @@ from mo_math.randoms import Random
 
 
 class Connection(object):
-
     @override
     def __init__(
         self,
@@ -40,17 +39,31 @@ class Connection(object):
         connect_kwargs=None,
         inline_ssh_env=None,
         key_filename=None,  # part of connect_kwargs
-        kwargs=None
+        kwargs=None,
     ):
-        connect_kwargs = set_default({}, connect_kwargs, {"key_filename": File(key_filename).abspath})
+        connect_kwargs = set_default(
+            {}, connect_kwargs, {"key_filename": File(key_filename).abspath}
+        )
 
         self.stdout = LogStream(host, "stdout")
         self.stderr = LogStream(host, "stderr")
-        config = Config(**unwrap(set_default({}, config, {"overrides": {"run": {
-            # "hide": True,
-            "out_stream": self.stdout,
-            "err_stream": self.stderr
-        }}})))
+        config = Config(
+            **unwrap(
+                set_default(
+                    {},
+                    config,
+                    {
+                        "overrides": {
+                            "run": {
+                                # "hide": True,
+                                "out_stream": self.stdout,
+                                "err_stream": self.stderr,
+                            }
+                        }
+                    },
+                )
+            )
+        )
 
         self.warn = False
         self.conn = _Connection(
@@ -62,7 +75,7 @@ class Connection(object):
             forward_agent,
             connect_timeout,
             connect_kwargs,
-            inline_ssh_env
+            inline_ssh_env,
         )
 
     def exists(self, path):
@@ -86,8 +99,8 @@ class Connection(object):
         if use_sudo:
             filename = "/tmp/" + Random.hex(20)
             self.conn.put(File(local).abspath, filename)
-            self.sudo("cp "+filename+" "+remote)
-            self.sudo("rm "+filename)
+            self.sudo("cp " + filename + " " + remote)
+            self.sudo("rm " + filename)
         else:
             self.conn.put(File(local).abspath, remote)
 
@@ -108,9 +121,8 @@ class Connection(object):
 
 
 class Warning(object):
-
     def __init__(self, conn):
-        self.conn=conn
+        self.conn = conn
         self.old = None
 
     def __enter__(self):
@@ -135,7 +147,6 @@ CR = str("\n")
 
 
 class LogStream(object):
-
     def __init__(self, name, type):
         self.name = name
         self.type = type
@@ -150,7 +161,12 @@ class LogStream(object):
         prefix = self.part_line
         for line in lines[0:-1]:
             full_line = prefix + line
-            note(u"{{name}} ({{type}}): {{line}}", name=self.name, type=self.type, line=full_line)
+            note(
+                "{{name}} ({{type}}): {{line}}",
+                name=self.name,
+                type=self.type,
+                line=full_line,
+            )
             prefix = EMPTY
         self.part_line = lines[-1]
 
@@ -158,34 +174,36 @@ class LogStream(object):
         pass
 
 
-def note(
-    template,
-    **params
-):
+def note(template, **params):
     if not isinstance(template, text_type):
         Log.error("Log.note was expecting a unicode template")
 
     if len(template) > 10000:
         template = template[:10000]
 
-    log_params = wrap({
-        "template": template,
-        "params": params,
-        "timestamp": datetime.utcnow(),
-        "machine": machine_metadata,
-        "context": exceptions.NOTE
-    })
+    log_params = wrap(
+        {
+            "template": template,
+            "params": params,
+            "timestamp": datetime.utcnow(),
+            "machine": machine_metadata,
+            "context": exceptions.NOTE,
+        }
+    )
 
     if not template.startswith("\n") and template.find("\n") > -1:
         template = "\n" + template
 
     if Log.trace:
-        log_template = "{{machine.name}} (pid {{machine.pid}}) - {{timestamp|datetime}} - {{thread.name}} - \"{{location.file}}:{{location.line}}\" ({{location.method}}) - " + template.replace("{{", "{{params.")
+        log_template = (
+            '{{machine.name}} (pid {{machine.pid}}) - {{timestamp|datetime}} - {{thread.name}} - "{{location.file}}:{{location.line}}" ({{location.method}}) - '
+            + template.replace("{{", "{{params.")
+        )
         f = sys._getframe(1)
         log_params.location = {
             "line": f.f_lineno,
             "file": text_type(f.f_code.co_filename.split(os.sep)[-1]),
-            "method": text_type(f.f_code.co_name)
+            "method": text_type(f.f_code.co_name),
         }
     else:
         log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
