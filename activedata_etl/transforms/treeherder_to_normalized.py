@@ -44,20 +44,28 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl_source.source.type = "join"
 
             normalized = Data()
-            normalized.etl = set_default({
-                "id": line_number,
-                "timestamp": Date.now(),
-                "machine": machine_metadata,
-                "revision": git.get_revision(),
-                "type": "join"
-            }, etl_source)
+            normalized.etl = set_default(
+                {
+                    "id": line_number,
+                    "timestamp": Date.now(),
+                    "machine": machine_metadata,
+                    "revision": git.get_revision(),
+                    "type": "join",
+                },
+                etl_source,
+            )
             normalize(source_key, resources, raw_treeherder, normalized)
             normalized = elasticsearch.scrub(normalized)
             output.append(normalized)
         except Exception as e:
             if TRY_AGAIN_LATER in e:
                 raise e
-            Log.warning("Treeherder line for key {{key}} not processed: {{line|quote}}", key=source_key, line=line, cause=e)
+            Log.warning(
+                "Treeherder line for key {{key}} not processed: {{line|quote}}",
+                key=source_key,
+                line=line,
+                cause=e,
+            )
 
     keys = destination.extend({"id": etl2key(t.etl), "value": t} for t in output)
     return keys
@@ -71,18 +79,18 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.job.type.symbol = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "job_type.symbol"),
-        consume(raw_job, "signature.job_type_symbol")
+        consume(raw_job, "signature.job_type_symbol"),
     )
     new_treeherder.job.type.name = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "job_type.name"),
-        consume(raw_job, "signature.job_type_name")
+        consume(raw_job, "signature.job_type_name"),
     )
     new_treeherder.job.type.group.symbol = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "job_type.job_group.symbol"),
         consume(raw_job, "signature.job_group_symbol"),
-        consume(raw_job, "job_group.symbol")
+        consume(raw_job, "job_group.symbol"),
     )
 
     new_treeherder.job.type.group.name = coalesce_w_conflict_detection(
@@ -91,7 +99,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         consume(raw_job, "job_type.job_group"),
         consume(raw_job, "signature.job_group_name"),
         consume(raw_job, "job_group.name"),
-        consume(raw_job, "job_group")
+        consume(raw_job, "job_group"),
     )
 
     new_treeherder.job.guid = consume(raw_job, "guid")
@@ -102,7 +110,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.build.branch = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "repository"),
-        consume(raw_job, "signature.repository")
+        consume(raw_job, "signature.repository"),
     )
     new_treeherder.build.revision = consume(raw_job, "push.revision")
     new_treeherder.build.revision12 = new_treeherder.build.revision[0:12]
@@ -111,17 +119,17 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.build.platform = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "build_platform.platform"),
-        consume(raw_job, "signature.build_platform")
+        consume(raw_job, "signature.build_platform"),
     )
     new_treeherder.build.os = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "build_platform.os_name"),
-        consume(raw_job, "signature.build_os_name")
+        consume(raw_job, "signature.build_os_name"),
     )
     new_treeherder.build.architecture = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "build_platform.architecture"),
-        consume(raw_job, "signature.build_architecture")
+        consume(raw_job, "signature.build_architecture"),
     )
     new_treeherder.build.product = consume(raw_job, "product.name")
 
@@ -130,10 +138,20 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.tier = consume(raw_job, "tier")
     new_treeherder.run.result = consume(raw_job, "result")
     new_treeherder.run.state = consume(raw_job, "state")
-    if raw_treeherder.job.signature.build_system_type in ["taskcluster", "buildbot", "fx-test-jenkins", "fx-test-jenkins-dev", "qa-master", "qa-preprod-master"]:
+    if raw_treeherder.job.signature.build_system_type in [
+        "taskcluster",
+        "buildbot",
+        "fx-test-jenkins",
+        "fx-test-jenkins-dev",
+        "qa-master",
+        "qa-preprod-master",
+    ]:
         consume(raw_job, "signature.build_system_type")
     else:
-        Log.error("Know nothing about build_system_type=={{type}}", type=raw_treeherder.job.signature.build_system_type)
+        Log.error(
+            "Know nothing about build_system_type=={{type}}",
+            type=raw_treeherder.job.signature.build_system_type,
+        )
 
     # RUN MACHINE
     new_treeherder.run.machine.name = machine_name = consume(raw_job, "machine.name")
@@ -141,18 +159,22 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     if Math.is_integer(split_name[-1]):
         new_treeherder.run.machine.pool = "-".join(split_name[:-1])
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
-    new_treeherder.run.machine.architecture = consume(raw_job, "signature.machine_architecture")
+    new_treeherder.run.machine.architecture = consume(
+        raw_job, "signature.machine_architecture"
+    )
     new_treeherder.run.machine.platform = coalesce_w_conflict_detection(
         source_key,
         consume(raw_job, "machine_platform"),
-        consume(raw_job, "signature.machine_platform")
+        consume(raw_job, "signature.machine_platform"),
     )
 
     # ACTION
     new_treeherder.action.start_time = consume(raw_job, "start_time")
     new_treeherder.action.end_time = consume(raw_job, "end_time")
     new_treeherder.action.request_time = consume(raw_job, "submit_time")
-    new_treeherder.action.duration = new_treeherder.action.end_time - new_treeherder.action.start_time
+    new_treeherder.action.duration = (
+        new_treeherder.action.end_time - new_treeherder.action.start_time
+    )
     new_treeherder.last_modified = consume(raw_job, "last_modified")
 
     new_treeherder.failure.auto_classification = consume(raw_job, "autoclassify_status")
@@ -161,13 +183,19 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     new_treeherder.repo = {
         "branch": {"name": new_treeherder.build.branch},
-        "changeset": {"id": new_treeherder.build.revision}
+        "changeset": {"id": new_treeherder.build.revision},
     }
     try:
         if new_treeherder.build.branch not in NON_HG_BRANCHES:
-            new_treeherder.repo = minimize_repo(resources.hg.get_revision(new_treeherder.repo))
+            new_treeherder.repo = minimize_repo(
+                resources.hg.get_revision(new_treeherder.repo)
+            )
     except Exception as e:
-        Log.warning("Problem with getting info changeset {{changeset}}", changeset=new_treeherder.repo, cause=e)
+        Log.warning(
+            "Problem with getting info changeset {{changeset}}",
+            changeset=new_treeherder.repo,
+            cause=e,
+        )
 
     new_treeherder.bugs = consume(raw_job, "bug_job_map")
 
@@ -184,15 +212,21 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.run.taskcluster.id = coalesce_w_conflict_detection(
         source_key,
         new_treeherder.run.taskcluster.id,
-        consume(raw_job, "taskcluster_metadata.task_id")
+        consume(raw_job, "taskcluster_metadata.task_id"),
     )
-    new_treeherder.run.taskcluster.retry_id = consume(raw_job, "taskcluster_metadata.retry_id")
+    new_treeherder.run.taskcluster.retry_id = consume(
+        raw_job, "taskcluster_metadata.retry_id"
+    )
 
     pull_options(source_key, raw_treeherder, new_treeherder)
 
     remainder = raw_treeherder.leaves()
     if remainder:
-        Log.error("Did not process {{paths}} for key={{key}}", key=source_key, paths=[k for k, _ in remainder])
+        Log.error(
+            "Did not process {{paths}} for key={{key}}",
+            key=source_key,
+            paths=[k for k, _ in remainder],
+        )
 
 
 def pull_options(source_key, raw_treeherder, new_treeherder):
@@ -203,7 +237,11 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
         elif o in ["e10s"]:
             new_treeherder.run.type += [o]
         else:
-            Log.warning("not known option {{option|quote}} while processing {{key}}", key=source_key, option=o)
+            Log.warning(
+                "not known option {{option|quote}} while processing {{key}}",
+                key=source_key,
+                option=o,
+            )
 
 
 _option_map = {
@@ -224,7 +262,8 @@ _option_map = {
     "make": ["make"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
-    "pgo": ["pgo"]
+    "pgo": ["pgo"],
+    "x64": ["x64"],
 }
 
 
@@ -247,42 +286,79 @@ def pull_details(source_key, details, new_treeherder):
             new_treeherder.run.buildbot.id = d.value
         elif d.title == "Inspect Task":
             if d.url.startswith("https://tools.taskcluster.net/task-inspector/#"):
-                new_treeherder.run.taskcluster.id = strings.between(d.url, "https://tools.taskcluster.net/task-inspector/#", "/")
+                new_treeherder.run.taskcluster.id = strings.between(
+                    d.url, "https://tools.taskcluster.net/task-inspector/#", "/"
+                )
             else:
-                Log.warning("Can not extract task for ket {{key}} from {{url}}", key=source_key, url=d.url)
+                Log.warning(
+                    "Can not extract task for ket {{key}} from {{url}}",
+                    key=source_key,
+                    url=d.url,
+                )
         elif d.title == "CPU idle":
-            new_treeherder.stats.cpu_idle = float(d.value.split("(")[0].replace(",", ""))
+            new_treeherder.stats.cpu_idle = float(
+                d.value.split("(")[0].replace(",", "")
+            )
         elif d.title == "CPU user":
-            new_treeherder.stats.cpu_user = float(d.value.split("(")[0].replace(",", ""))
+            new_treeherder.stats.cpu_user = float(
+                d.value.split("(")[0].replace(",", "")
+            )
         elif d.title == "CPU system":
-            new_treeherder.stats.cpu_system = float(d.value.split("(")[0].replace(",", ""))
+            new_treeherder.stats.cpu_system = float(
+                d.value.split("(")[0].replace(",", "")
+            )
         elif d.title == "CPU iowait":
-            new_treeherder.stats.cpu_io_wait = float(d.value.split("(")[0].replace(",", ""))
+            new_treeherder.stats.cpu_io_wait = float(
+                d.value.split("(")[0].replace(",", "")
+            )
         elif d.title == "CPU usage":
             new_treeherder.stats.cpu_usage = float(d.value.strip("%").replace(",", ""))
         elif d.title == "I/O read bytes / time":
-            new_treeherder.stats.io_read_bytes = float(d.value.split("/")[0].strip().replace(",", ""))
-            new_treeherder.stats.io_read_time = float(d.value.split("/")[1].strip().replace(",", ""))
+            new_treeherder.stats.io_read_bytes = float(
+                d.value.split("/")[0].strip().replace(",", "")
+            )
+            new_treeherder.stats.io_read_time = float(
+                d.value.split("/")[1].strip().replace(",", "")
+            )
         elif d.title == "I/O write bytes / time":
-            new_treeherder.stats.io_write_bytes = float(d.value.split("/")[0].strip().replace(",", ""))
-            new_treeherder.stats.io_write_time = float(d.value.split("/")[1].strip().replace(",", ""))
+            new_treeherder.stats.io_write_bytes = float(
+                d.value.split("/")[0].strip().replace(",", "")
+            )
+            new_treeherder.stats.io_write_time = float(
+                d.value.split("/")[1].strip().replace(",", "")
+            )
         elif d.title == "Swap in / out":
-            new_treeherder.stats.swap_in = float(d.value.split("/")[0].strip().replace(",", ""))
-            new_treeherder.stats.swap_out = float(d.value.split("/")[1].strip().replace(",", ""))
+            new_treeherder.stats.swap_in = float(
+                d.value.split("/")[0].strip().replace(",", "")
+            )
+            new_treeherder.stats.swap_out = float(
+                d.value.split("/")[1].strip().replace(",", "")
+            )
         elif d.title in ["artifact uploaded", "One Click Loaner"]:
             pass
         elif d.title.find("-chunked"):
             pass
         elif d.title == None:
-            if d.value in ["auto clobber", "purged clobber", "periodic clobber", "forced clobber"]:
+            if d.value in [
+                "auto clobber",
+                "purged clobber",
+                "periodic clobber",
+                "forced clobber",
+            ]:
                 pass
             elif any(map(d.value.startswith, ["linker max vsize: ", "num_ctors: "])):
-                new_treeherder.stats.linker_max_vsize = int(d.value.split(":")[1].strip())
+                new_treeherder.stats.linker_max_vsize = int(
+                    d.value.split(":")[1].strip()
+                )
             elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
             else:
                 KNOWN_VALUES.append(d.value)
-                Log.warning("value has no title {{value|quote}} while processing {{key}}", key=source_key, value=d.value)
+                Log.warning(
+                    "value has no title {{value|quote}} while processing {{key}}",
+                    key=source_key,
+                    value=d.value,
+                )
         else:
             Log.warning("can not process detail with title of {{title}}", title=d.title)
     new_treeherder.job.details = details
@@ -298,7 +374,11 @@ def coalesce_w_conflict_detection(source_key, *args):
         if output == None:
             output = a
         elif a != output:
-            Log.warning("tried to coalesce {{values_|json}} while processing {{key}}", key=source_key, values_=args)
+            Log.warning(
+                "tried to coalesce {{values_|json}} while processing {{key}}",
+                key=source_key,
+                values_=args,
+            )
         else:
             pass
     return output
@@ -321,7 +401,7 @@ KNOWN_VALUES = [
     "gaia_revlink: ",
     "Unknown: ",
     "\t--this-chunk=1 --total-chunks=1 -- ",
-    "\t--setenv=MOZ_BROWSER_XHTML=1 -- "
+    "\t--setenv=MOZ_BROWSER_XHTML=1 -- ",
 ]
 
 
@@ -329,9 +409,10 @@ NON_HG_BRANCHES = [
     "bmo-master",
     "go-bouncer",
     "mozillians-tests",
+    "servo-auto",
     "snippets-service",
     "snippets-service",
     "snippets-tests",
     "socorro",
-    "stubattribution-tests"
+    "stubattribution-tests",
 ]
