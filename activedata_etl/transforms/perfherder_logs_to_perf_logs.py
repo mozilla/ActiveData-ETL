@@ -454,6 +454,11 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "overall_clone_fullcheckout",  # VCS
+    "overall_clone",  # VCS
+    "overall_nopull_fullcheckout",  # VCS
+    "overall_nopull_populatedwdir",  # VCS
+    "overall_nopull",
     "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
