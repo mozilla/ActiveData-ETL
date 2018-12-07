@@ -264,9 +264,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
 
-    artifacts = consume(task, "payload.artifacts")
     try:
-
+        artifacts = consume(task, "payload.artifacts")
         if isinstance(artifacts, list):
             for a in artifacts:
                 if not a.name:
@@ -277,6 +276,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             output.task.artifacts = artifacts
         else:
             output.task.artifacts = _object_to_array(artifacts, "name")
+
+        artifact_id = consume(task, "payload.artifact_id")
+        if artifact_id:
+            output.task.artifacts += [{"id": artifact_id}]
+
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = _object_to_array(task.payload.cache, "name", "path")
