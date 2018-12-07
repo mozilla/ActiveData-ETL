@@ -20,6 +20,7 @@ from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
+from mo_files import URL
 from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json
@@ -569,7 +570,7 @@ def get_build_task(source_key, resources, normalized_task):
         return Null
     try:
         response = http.post_json(
-            resources.local_es_node.host + ":9200/task/task/_search",
+            URL(value=resources.local_es_node.host, port=resources.local_es_node.port, path="task/task/_search"),
             headers={"Content-Type": "application/json"},
             data={
                 "query": {"terms": {
