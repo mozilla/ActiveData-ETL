@@ -458,7 +458,10 @@ KNOWN_PERFHERDER_TESTS = [
     "overall_clone",  # VCS
     "overall_nopull_fullcheckout",  # VCS
     "overall_nopull_populatedwdir",  # VCS
-    "overall_nopull",
+    "overall_nopull",  # VCS
+    "overall_pull_fullcheckout",
+    "overall_pull_emptywdir",
+    "overall_pull",  # VCS
     "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
