@@ -251,6 +251,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     # DELETE JUNK
     consume(task, "payload.routes")
     consume(task, "payload.log")
+    consume(task, "payload.suffixes")
     consume(task, "payload.upstreamArtifacts")
     consume(task, "extra.env")
     output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
