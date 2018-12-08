@@ -248,6 +248,7 @@ _option_map = {
     "addon": ["addon"],
     "aarch64-debug": ["aarch64", "debug"],
     "arm-debug": ["arm", "debug"],
+    "ARMv7": ["arm"],
     "all": ["all"],
     "asan": ["asan"],
     "ccov": ["ccov"],

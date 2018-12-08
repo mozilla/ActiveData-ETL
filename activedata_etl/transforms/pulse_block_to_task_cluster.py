@@ -571,7 +571,7 @@ def get_build_task(source_key, resources, normalized_task):
         return Null
     try:
         response = http.post_json(
-            URL(value=resources.local_es_node.host, port=resources.local_es_node.port, path="task/task/_search"),
+            URL(value=resources.local_es_node.host, port=coalesce(resources.local_es_node.port, 9200), path="task/task/_search"),
             headers={"Content-Type": "application/json"},
             data={
                 "query": {"terms": {
@@ -583,7 +583,7 @@ def get_build_task(source_key, resources, normalized_task):
             retry={"times": 3, "sleep": 15}
         )
     except Exception as e:
-        Log.warning("Failure to get build task", cause=e)
+        Log.warning("Failure to get build task while processing {{key}}", key=source_key, cause=e)
         return Null
 
     candidates = jx.sort(
