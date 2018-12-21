@@ -461,6 +461,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall_nopull",  # VCS
     "overall_pull_fullcheckout",
     "overall_pull_emptywdir",
+    "overall_pull_populatedwdir",
     "overall_pull",  # VCS
     "overall",  # VCS
     "perf_reftest_singletons",
