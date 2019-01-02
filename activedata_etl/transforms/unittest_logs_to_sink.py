@@ -204,6 +204,8 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                     elif log.test.startswith(("http://")):
                         # http://localhost:49391/1525812148499/12/752340.html
                         log.test = log.test.split("/")[-1]
+                    elif "about:blank" in log.test:
+                        pass  # IGNORE THIS
                     else:
                         Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
 

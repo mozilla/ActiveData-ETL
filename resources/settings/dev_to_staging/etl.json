@@ -22,7 +22,9 @@
 		//		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": {
-		"host": "http://54.148.242.195",
+		"host": "http://localhost",
+//		"host": "http://54.148.242.195",
+		"port": 9201,
 		"index": "task"
 	},
 	"tuid_client": {
@@ -33,7 +35,7 @@
 			"debug": true,
 			"$ref": "file://~/private.json#aws_credentials"
 		},
-		"db":{
+		"db": {
 			"load_functions": false
 		}
 	},
@@ -43,8 +45,7 @@
 			"url": "https://hg.mozilla.org"
 		},
 		"branches": {
-			"host": {"$ref": "#local_es_node.host"},
-			"port": 9200,
+			"$ref": "#local_es_node",
 			"index": "branches",
 			"type": "branch",
 			"typed": false,
@@ -54,8 +55,7 @@
 			"limit_replicas": false
 		},
 		"repo": {
-			"host": {"$ref": "#local_es_node.host"},
-			"port": 9200,
+			"$ref": "#local_es_node",
 			"index": "repo",
 			"type": "revision",
 			"typed": false,
@@ -123,8 +123,7 @@
 				"key_format": "t.a:b"
 			},
 			"destination": {
-				"host": {"$ref": "#local_es_node.host"},
-				"port": 9200,
+				"$ref": "#local_es_node",
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
@@ -357,7 +356,7 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": [{"$ref": "#local_es_node.host"}],
+				"$ref": "#local_es_node",
 				"index": "debug-etl",
 				"type": "etl",
 				"timeout": "5minute",
