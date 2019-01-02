@@ -713,6 +713,7 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
     (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60"): "mozilla-esr60",
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta"): "gecko-dev.git",
+    (null, null, null, null, null, "try", null, "try-comm-central"): "try",
 }
 
 
