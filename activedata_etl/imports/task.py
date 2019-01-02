@@ -202,27 +202,24 @@ CATEGORIES = {
         },
     },
     "build-": {
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {
             "action": {"type": "build"}
         },
-        "{{BUILD_PLATFORM}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "build": {"trigger": "nightly"},
-            "action": {"type": "build"},
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
+            "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}": {
             "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "build": {"trigger": "nightly"},
             "action": {"type": "build"},
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
-            "build": {"trigger": "nightly"},
+            "run": {"trigger": "nightly"},
             "action": {"type": "build"},
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "build": {"trigger": "nightly"},
+            "run": {"trigger": "nightly"},
             "action": {"type": "build"},
         },
     },
@@ -363,11 +360,11 @@ def match_tp6(name):
 RAPTOR_TEST["tp6"] = match_tp6
 
 
-
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
     "firefox": {"run": {"browser": "firefox"}},
     "geckoview": {"run": {"browser": "geckoview"}},
+    "geckoview-power": {"run": {"browser": "geckoview-power"}},
 }
 
 
