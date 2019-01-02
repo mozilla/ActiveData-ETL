@@ -51,7 +51,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             Log.error("Shutdown detected. Stopping early")
         try:
             tc_message = json2value(line)
-            task_id = consume(tc_message, "status.taskId")
+            task_id = consume(tc_message, "status.taskId")  # context.taskId
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
 
@@ -410,6 +410,15 @@ def _normalize_run(source_key, normalized, task, env):
     else:
         fullname = test + "-" + flavor
 
+    # TRIGGER
+    # trigger = coalesce_w_conflict_detection(
+    #     source_key,
+    #     consume(task, "context.triggeredBy"),
+    #     consume(task, "context.firedBy"),
+    #     consume(task, "triggeredBy"),
+    #     consume(task, "firedBy")
+    # )
+
     metadata_name = consume(task, "metadata.name")
     set_default(
         normalized,
@@ -420,6 +429,7 @@ def _normalize_run(source_key, normalized, task, env):
             "suite": {"name": test, "flavor": flavor, "fullname": fullname},
             "chunk": chunk,
             "type": unwraplist(list(set(run_type))),
+            # "trigger": trigger,
             "timestamp": normalized.task.run.start_time
         }},
         decode_metatdata_name(source_key, metadata_name)
@@ -521,7 +531,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         candidate = {"branch": {"name": normalized.build.branch}, "changeset": {"id": normalized.build.revision}}
         normalized.repo = minimize_repo(resources.hg.get_revision(wrap(candidate)))
         if not normalized.repo:
-            Log.warning("No repo found for {{rev}} while processing key={{key}}", key=source_key, rev=candidate)
+            if normalized.build.branch not in UNKNOWN_BRANCHES:
+                Log.warning("No repo found for {{rev}} while processing key={{key}}", key=source_key, rev=candidate)
             normalized.repo = candidate
             normalized.repo.changeset.id12 = normalized.build.revision[:12]
         elif not normalized.repo.push.date:
@@ -700,6 +711,8 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "mozilla-central", null, "try-comm-central"): "mozilla-central",
     (null, null, null, null, null, "mozilla-central", null, "comm-central"): "mozilla-central",
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60"): "mozilla-esr60",
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta"): "gecko-dev.git",
 }
 
 
@@ -785,11 +798,13 @@ BUILD_TYPES = {
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
     "memleak": ["memleak"],
+    "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
-    "nostylo": ["stylo-disabled"],
-    "ubsan": ["ubsan"]
+    "release": [],
+    "ubsan": ["ubsan"],
 }
+
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 
 PAYLOAD_PROPERTIES = {
@@ -883,7 +898,6 @@ KNOWN_TAGS = {
     "chunks",
     "CI",
     "context.flettenedDeep",
-    "context.triggeredBy",
     "context.valueFromContext",
     "crater.crateName",
     "crater.toolchain.customSha",
@@ -960,6 +974,8 @@ KNOWN_TAGS = {
     "mar-channel-id-override",
     "name",
 
+    "nc_asset_name",
+
     "notification.task-defined.irc.notify_nicks",
     "notification.task-defined.irc.message",
     "notification.task-defined.log_collect",
@@ -1020,7 +1036,6 @@ KNOWN_TAGS = {
 
     "tasks_for",
     "treeherderEnv",
-    "triggeredBy",
 
     "updater-platform",
     "upload_to_task_id",
@@ -1035,3 +1050,5 @@ def consume(props, key):
     output, props[key] = props[key], Null
     return output
 
+
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', ]
