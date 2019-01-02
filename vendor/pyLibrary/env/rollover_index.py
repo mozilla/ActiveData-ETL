@@ -42,15 +42,18 @@ class RolloverIndex(object):
         rollover_field,      # the FIELD with a timestamp to use for determining which index to push to
         rollover_interval,   # duration between roll-over to new index
         rollover_max,        # remove old indexes, do not add old records
+        schema,              # es schema
         queue_size=10000,    # number of documents to queue in memory
         batch_size=5000,     # number of documents to push at once
         typed=None,          # indicate if we are expected typed json
         kwargs=None          # plus additional ES settings
     ):
         if kwargs.tjson != None:
-            Log.error
+            Log.error("not expected")
         if typed == None:
             Log.error("not expected")
+
+        schema.settings.index.max_inner_result_window = 100000  # REQUIRED FOR ACTIVEDATA NESTED QUERIES
 
         self.settings = kwargs
         self.locker = Lock("lock for rollover_index")
