@@ -13,5 +13,5 @@
 		"banner_timeout": 30
 	},
 //	"nodes":"http://localhost:9201/_nodes"
-	"nodes":"http://54.148.242.195:9200/_nodes"
+	"nodes":"http://activedata.allizom.org:9200/_nodes"
 }

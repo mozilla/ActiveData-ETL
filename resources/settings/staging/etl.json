@@ -351,7 +351,11 @@
 			},
 			{
 				"log_type": "elasticsearch",
-				"host": {"$ref": "#local_es_node.host"},
+				"host": [
+					"http://172.31.1.114",
+					"http://172.31.1.72",
+					"http://172.31.1.95"
+				],
 				"index": "debug-etl",
 				"type": "etl",
 				"timeout": "5minute",

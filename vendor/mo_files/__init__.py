@@ -441,7 +441,7 @@ class TempDirectory(File):
     WILL BE DELETED WHEN EXITED
     """
     def __new__(cls):
-        return File.__new__(cls, None)
+        return object.__new__(cls)
 
     def __init__(self):
         File.__init__(self, mkdtemp())

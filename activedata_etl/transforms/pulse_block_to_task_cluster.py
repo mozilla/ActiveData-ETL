@@ -20,6 +20,7 @@ from activedata_etl.imports.text_log import process_tc_live_log
 from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
+from mo_files import URL
 from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json
@@ -250,6 +251,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     # DELETE JUNK
     consume(task, "payload.routes")
     consume(task, "payload.log")
+    consume(task, "payload.suffixes")
     consume(task, "payload.upstreamArtifacts")
     consume(task, "extra.env")
     output.task.signing.cert = coalesce(*listwrap(consume(task, "payload.signing_cert"))),  # OFTEN HAS NULLS
@@ -264,9 +266,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     # MOUNTS
     output.task.mounts = consume(task, "payload.mounts")
 
-    artifacts = consume(task, "payload.artifacts")
     try:
-
+        artifacts = consume(task, "payload.artifacts")
         if isinstance(artifacts, list):
             for a in artifacts:
                 if not a.name:
@@ -277,6 +278,11 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             output.task.artifacts = artifacts
         else:
             output.task.artifacts = _object_to_array(artifacts, "name")
+
+        artifact_id = consume(task, "payload.artifact_id")
+        if artifact_id:
+            output.task.artifacts += [{"id": artifact_id}]
+
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = _object_to_array(task.payload.cache, "name", "path")
@@ -565,7 +571,7 @@ def get_build_task(source_key, resources, normalized_task):
         return Null
     try:
         response = http.post_json(
-            resources.local_es_node.host + ":9200/task/task/_search",
+            URL(value=resources.local_es_node.host, port=coalesce(resources.local_es_node.port, 9200), path="task/task/_search"),
             headers={"Content-Type": "application/json"},
             data={
                 "query": {"terms": {
@@ -577,7 +583,7 @@ def get_build_task(source_key, resources, normalized_task):
             retry={"times": 3, "sleep": 15}
         )
     except Exception as e:
-        Log.warning("Failure to get build task", cause=e)
+        Log.warning("Failure to get build task while processing {{key}}", key=source_key, cause=e)
         return Null
 
     candidates = jx.sort(
