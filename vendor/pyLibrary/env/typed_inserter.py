@@ -7,27 +7,25 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 from collections import Mapping
 
-from jx_python.expressions import jx_expression_to_function
-from mo_dots import Data, unwrap, ROOT_PATH
-from pyLibrary.env.elasticsearch import parse_properties, random_id
-
-from mo_json import json2value, OBJECT, NESTED
+from jx_python import jx
+from mo_dots import Data, ROOT_PATH, unwrap
+from mo_json import NESTED, OBJECT, json2value
 from mo_json.encoder import UnicodeBuilder
 from mo_json.typed_encoder import typed_encode
+from pyLibrary.env.elasticsearch import parse_properties, random_id
 
 
 class TypedInserter(object):
-    def __init__(self, es=None, id_expression="_id"):
+    def __init__(self, es=None, id_info=None):
         self.es = es
-        self.id_column = id_expression
-        self.get_id = jx_expression_to_function(id_expression)
-        self.remove_id = True if id_expression == "_id" else False
+        self.id_info = id_info
+        self.get_id = jx.get(id_info.id)
+        self.get_version = jx.get(id_info.version)
+        self.remove_id = True if id_info.field == "_id" else False
 
         if es:
             _schema = Data()
@@ -70,7 +68,7 @@ class TypedInserter(object):
 
                     raise Log.error(
                         "expecting {{property}} of record ({{record_id|quote}}) to match one given ({{given|quote}})",
-                        property=self.id_column,
+                        property=self.id_info,
                         record_id=record_id,
                         given=given_id
                     )
@@ -81,6 +79,8 @@ class TypedInserter(object):
                 else:
                     given_id = random_id()
 
+            version = self.get_version(value)
+
             typed_encode(value, self.schema, path, net_new_properties, _buffer)
             json = _buffer.build()
 
@@ -88,7 +88,7 @@ class TypedInserter(object):
                 path, type = props[:-1], props[-1][1:]
                 # self.es.add_column(join_field(path), type)
 
-            return {"id": given_id, "json": json}
+            return given_id, version, json
         except Exception as e:
             # THE PRETTY JSON WILL PROVIDE MORE DETAIL ABOUT THE SERIALIZATION CONCERNS
             from mo_logs import Log

@@ -44,7 +44,6 @@ class RolloverIndex(object):
         rollover_interval,   # duration between roll-over to new index
         rollover_max,        # remove old indexes, do not add old records
         schema,              # es schema
-        _id="_id",           # field to use for _id
         queue_size=10000,    # number of documents to queue in memory
         batch_size=5000,     # number of documents to push at once
         typed=None,          # indicate if we are expected typed json
@@ -59,7 +58,6 @@ class RolloverIndex(object):
 
         self.settings = kwargs
         self.locker = Lock("lock for rollover_index")
-        self.id_field = jx.get(_id)
         self.rollover_field = jx.get(rollover_field)
         self.rollover_interval = self.settings.rollover_interval = Duration(rollover_interval)
         self.rollover_max = self.settings.rollover_max = Duration(rollover_max)
@@ -211,10 +209,9 @@ class RolloverIndex(object):
                         if insert_me == None:
                             continue
                         value = insert_me['value']
+
                         if '_id' not in value:
                             Log.warning("expecting an _id in all S3 records. If missing, there can be duplicates")
-                        insert_me['id'] = self.id_field(value)
-                        value['_id'] = None
 
                         if queue == None:
                             queue = self._get_queue(insert_me)

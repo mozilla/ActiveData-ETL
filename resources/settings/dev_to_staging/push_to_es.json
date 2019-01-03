@@ -85,8 +85,11 @@
 				"host": "http://54.148.242.195",
 				"port": 9200,
 				"index": "treeherder",
+				"id":{
+					"field": "job.id",
+					"version": "etl.timestamp"
+				},
 				"type": "th_job",
-				"id": "job.id",
 				"typed": true,
 				"timeout": 300,
 				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
@@ -94,8 +97,7 @@
 					"$ref": "//../../schema/treeherder.json"
 				},
 				"debug": false,
-				"limit_replicas": true,
-				"_id": "job.id"
+				"limit_replicas": true
 			},
 			"source": {
 				"$ref": "file://~/private.json#aws_credentials",
