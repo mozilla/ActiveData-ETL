@@ -13,21 +13,20 @@ from __future__ import unicode_literals
 
 from collections import Mapping
 
-from mo_future import text_type
+from jx_base.expressions import Variable, DateOp, TupleOp, LeavesOp, BaseBinaryOp, OrOp, ScriptOp, \
+    extend, RowsOp, OffsetOp, GetOp, Literal, NullOp, TrueOp, FalseOp, DivOp, FloorOp, \
+    EqOp, NeOp, NotOp, LengthOp, NumberOp, StringOp, CountOp, RegExpOp, CoalesceOp, MissingOp, ExistsOp, \
+    PrefixOp, NotLeftOp, RightOp, NotRightOp, FindOp, BetweenOp, RangeOp, CaseOp, AndOp, \
+    ConcatOp, InOp, jx_expression, Expression, WhenOp, MaxOp, SplitOp, NULL, SelectOp, SuffixOp, LastOp, IntegerOp, BasicEqOp, BaseInequalityOp, BaseMultiOp
+from jx_python.expression_compiler import compile_expression
 from mo_dots import split_field
 from mo_dots import unwrap
+from mo_future import text_type
 from mo_json import json2value
 from mo_logs import Log
 from mo_logs.strings import quote
-from pyLibrary import convert
-
-from jx_base.expressions import Variable, DateOp, TupleOp, LeavesOp, BinaryOp, OrOp, ScriptOp, \
-    InequalityOp, extend, RowsOp, OffsetOp, GetOp, Literal, NullOp, TrueOp, FalseOp, DivOp, FloorOp, \
-    EqOp, NeOp, NotOp, LengthOp, NumberOp, StringOp, CountOp, MultiOp, RegExpOp, CoalesceOp, MissingOp, ExistsOp, \
-    PrefixOp, NotLeftOp, RightOp, NotRightOp, FindOp, BetweenOp, RangeOp, CaseOp, AndOp, \
-    ConcatOp, InOp, jx_expression, Expression, WhenOp, MaxOp, SplitOp, NULL, SelectOp, SuffixOp, LastOp, IntegerOp, BasicEqOp
-from jx_python.expression_compiler import compile_expression
 from mo_times.dates import Date
+from pyLibrary import convert
 
 
 def jx_expression_to_function(expr):
@@ -83,7 +82,7 @@ def to_python(self, not_null=False, boolean=False, many=False):
 
 @extend(RowsOp)
 def to_python(self, not_null=False, boolean=False, many=False):
-    agg = "rows[rownum+" + IntegerOp("", self.offset).to_python() + "]"
+    agg = "rows[rownum+" + IntegerOp(self.offset).to_python() + "]"
     path = split_field(json2value(self.var.json))
     if not path:
         return agg
@@ -92,9 +91,11 @@ def to_python(self, not_null=False, boolean=False, many=False):
         agg = agg + ".get(" + convert.value2quote(p) + ", EMPTY_DICT)"
     return agg + ".get(" + convert.value2quote(path[-1]) + ")"
 
+
 @extend(IntegerOp)
 def to_python(self, not_null=False, boolean=False, many=False):
     return "int(" + self.term.to_python() + ")"
+
 
 @extend(GetOp)
 def to_python(self, not_null=False, boolean=False, many=False):
@@ -165,14 +166,14 @@ def to_python(self, not_null=False, boolean=False, many=False):
     return "Data(" + self.term.to_python() + ").leaves()"
 
 
-@extend(BinaryOp)
+@extend(BaseBinaryOp)
 def to_python(self, not_null=False, boolean=False, many=False):
-    return "(" + self.lhs.to_python() + ") " + BinaryOp.operators[self.op] + " (" + self.rhs.to_python() + ")"
+    return "(" + self.lhs.to_python() + ") " + _python_operators[self.op][0] + " (" + self.rhs.to_python() + ")"
 
 
-@extend(InequalityOp)
+@extend(BaseInequalityOp)
 def to_python(self, not_null=False, boolean=False, many=False):
-    return "(" + self.lhs.to_python() + ") " + InequalityOp.operators[self.op] + " (" + self.rhs.to_python() + ")"
+    return "(" + self.lhs.to_python() + ") " + _python_operators[self.op][0] + " (" + self.rhs.to_python() + ")"
 
 
 @extend(InOp)
@@ -258,26 +259,31 @@ def to_python(self, not_null=False, boolean=False, many=False):
     return "max(["+(','.join(t.to_python() for t in self.terms))+"])"
 
 
-
 _python_operators = {
     "add": (" + ", "0"),  # (operator, zero-array default value) PAIR
     "sum": (" + ", "0"),
     "mul": (" * ", "1"),
-    "mult": (" * ", "1"),
-    "multiply": (" * ", "1")
+    "sub": (" - ", None),
+    "div": (" / ", None),
+    "exp": (" ** ", None),
+    "mod": (" % ", None),
+    "gt": (" > ", None),
+    "gte": (" >= ", None),
+    "lte": (" <= ", None),
+    "lt": (" < ", None)
 }
 
 
-
-@extend(MultiOp)
+@extend(BaseMultiOp)
 def to_python(self, not_null=False, boolean=False, many=False):
-    sign, zero =_python_operators[self.op]
+    sign, zero = _python_operators[self.op]
     if len(self.terms) == 0:
         return self.default.to_python()
     elif self.default is NULL:
         return sign.join("coalesce(" + t.to_python() + ", " + zero + ")" for t in self.terms)
     else:
         return "coalesce(" + sign.join("(" + t.to_python() + ")" for t in self.terms) + ", " + self.default.to_python() + ")"
+
 
 @extend(RegExpOp)
 def to_python(self, not_null=False, boolean=False, many=False):
