@@ -29,7 +29,8 @@ from pyLibrary.env import elasticsearch
 
 MAX_RECORD_LENGTH = 400000
 DATA_TOO_OLD = "data is too old to be indexed"
-DEBUG=False
+DEBUG = False
+
 
 class RolloverIndex(object):
     """
@@ -210,6 +211,8 @@ class RolloverIndex(object):
                         if insert_me == None:
                             continue
                         value = insert_me['value']
+                        if '_id' not in value:
+                            Log.warning("expecting an _id in all S3 records. If missing, there can be duplicates")
                         insert_me['id'] = self.id_field(value)
                         value['_id'] = None
 
