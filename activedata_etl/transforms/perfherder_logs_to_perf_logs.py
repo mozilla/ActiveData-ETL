@@ -150,7 +150,7 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome", "-geckoview")):  # ACCEPT ALL RAPTOR NAMES,
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome", "-geckoview", "-geckoview-power")):  # ACCEPT ALL RAPTOR NAMES,
                 metadata.run.browser = suite_name.split("-")[-1]
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
@@ -456,6 +456,7 @@ KNOWN_PERFHERDER_TESTS = [
     "other",
     "overall_clone_fullcheckout_rmwdir",
     "overall_clone_fullcheckout",  # VCS
+    "overall_clone_rmwdir",
     "overall_clone",  # VCS
     "overall_nopull_fullcheckout",  # VCS
     "overall_nopull_populatedwdir",  # VCS
