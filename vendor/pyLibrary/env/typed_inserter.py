@@ -23,7 +23,7 @@ class TypedInserter(object):
     def __init__(self, es=None, id_info=None):
         self.es = es
         self.id_info = id_info
-        self.get_id = jx.get(id_info.id)
+        self.get_id = jx.get(id_info.field)
         self.get_version = jx.get(id_info.version)
 
         if es:
