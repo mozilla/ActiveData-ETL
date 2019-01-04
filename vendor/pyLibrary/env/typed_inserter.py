@@ -41,7 +41,7 @@ class TypedInserter(object):
         :return:  dict with id and json properties
         """
         try:
-            value = r['value']
+            value = r.get('value')
             if "json" in r:
                 value = json2value(r["json"])
             elif isinstance(value, Mapping) or value != None:
@@ -56,8 +56,10 @@ class TypedInserter(object):
             if isinstance(value, Mapping):
                 given_id = self.get_id(value)
                 value['_id'] = None
+                version = self.get_version(value)
             else:
                 given_id = None
+                version = None
 
             if given_id:
                 record_id = r.get('id')
@@ -77,14 +79,8 @@ class TypedInserter(object):
                 else:
                     given_id = random_id()
 
-            version = self.get_version(value)
-
             typed_encode(value, self.schema, path, net_new_properties, _buffer)
             json = _buffer.build()
-
-            for props in net_new_properties:
-                path, type = props[:-1], props[-1][1:]
-                # self.es.add_column(join_field(path), type)
 
             return given_id, version, json
         except Exception as e:
