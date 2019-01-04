@@ -25,7 +25,6 @@ class TypedInserter(object):
         self.id_info = id_info
         self.get_id = jx.get(id_info.id)
         self.get_version = jx.get(id_info.version)
-        self.remove_id = True if id_info.field == "_id" else False
 
         if es:
             _schema = Data()
@@ -56,8 +55,7 @@ class TypedInserter(object):
             path = []
             if isinstance(value, Mapping):
                 given_id = self.get_id(value)
-                if self.remove_id:
-                    value['_id'] = None
+                value['_id'] = None
             else:
                 given_id = None
 
