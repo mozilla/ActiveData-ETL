@@ -68,6 +68,7 @@ NOT_STRUCTURED_LOGS = [
     "/manifest.json",
     "/mbsdiff.exe",
     "/mozharness.zip",
+    "partner_repack_raw.log",
     "perfherder-data.json",
     ".png",
     "/properties.json",
