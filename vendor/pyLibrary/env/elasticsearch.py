@@ -7,31 +7,28 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
-import re
 from collections import Mapping
 from copy import deepcopy
+import re
 
 from jx_python import jx
-from jx_python.expressions import jx_expression_to_function
 from jx_python.meta import Column
-from mo_dots import wrap, FlatList, coalesce, Null, Data, set_default, listwrap, literal_field, ROOT_PATH, concat_field, split_field, SLOT, join_field
+from mo_dots import Data, FlatList, Null, ROOT_PATH, SLOT, coalesce, concat_field, listwrap, literal_field, set_default, split_field, wrap
 from mo_files.url import URL
-from mo_future import text_type, binary_type, items
-from mo_json import value2json, json2value
-from mo_json.typed_encoder import json_type_to_inserter_type, EXISTS_TYPE, BOOLEAN_TYPE, STRING_TYPE, NUMBER_TYPE, NESTED_TYPE, TYPE_PREFIX
+from mo_future import binary_type, items, text_type
+from mo_json import BOOLEAN, EXISTS, NESTED, NUMBER, OBJECT, STRING, json2value, value2json
+from mo_json.typed_encoder import BOOLEAN_TYPE, EXISTS_TYPE, NESTED_TYPE, NUMBER_TYPE, STRING_TYPE, TYPE_PREFIX, json_type_to_inserter_type
 from mo_kwargs import override
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
-from mo_logs.strings import utf82unicode, unicode2utf8
+from mo_logs.strings import unicode2utf8, utf82unicode
 from mo_math import Math
 from mo_math.randoms import Random
 from mo_threads import Lock, ThreadedQueue, Till
-from mo_times import Date, Timer, MINUTE
-from pyLibrary import convert
+from mo_times import Date, MINUTE, Timer
+from pyLibrary.convert import quote2string, value2number
 from pyLibrary.env import http
 
 DEBUG_METADATA_UPDATE = False
@@ -39,11 +36,12 @@ DEBUG_METADATA_UPDATE = False
 ES_STRUCT = ["object", "nested"]
 ES_NUMERIC_TYPES = ["long", "integer", "double", "float"]
 ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
+
 INDEX_DATE_FORMAT = "%Y%m%d_%H%M%S"
 SUFFIX_PATTERN = r'\d{8}_\d{6}'
+ID = Data(field='_id')
 
 STALE_METADATA = 10 * MINUTE
-
 DATA_KEY = text_type("data")
 
 
@@ -70,7 +68,7 @@ class Index(Features):
     def __init__(
         self,
         index,  # NAME OF THE INDEX, EITHER ALIAS NAME OR FULL VERSION NAME
-        id_column="_id",
+        id=ID,  # CUSTOM FIELD FOR _id AND version
         type=None,  # SCHEMA NAME, (DEFAULT TO TYPE IN INDEX, IF ONLY ONE)
         alias=None,
         explore_metadata=True,  # PROBING THE CLUSTER FOR METADATA IS ALLOWED
@@ -130,12 +128,17 @@ class Index(Features):
                 typed = kwargs.typed = False
 
         if not read_only:
+            if isinstance(id, text_type):
+                id_info = set_default({"id": id}, ID)
+            else:
+                id_info = set_default(id, ID)
+
             if typed:
                 from pyLibrary.env.typed_inserter import TypedInserter
 
-                self.encode = TypedInserter(self, id_column).typed_encode
+                self.encode = TypedInserter(self, id_info).typed_encode
             else:
-                self.encode = get_encoder(id_column)
+                self.encode = get_encoder(id_info)
 
     @property
     def url(self):
@@ -306,9 +309,14 @@ class Index(Features):
             for r in records:
                 if '_id' in r or 'value' not in r:  # I MAKE THIS MISTAKE SO OFTEN, I NEED A CHECK
                     Log.error('Expecting {"id":id, "value":document} form.  Not expecting _id')
-                rec = self.encode(r)
-                json_bytes = rec['json']
-                lines.append('{"index":{"_id": ' + convert.value2json(rec['id']) + '}}')
+                id, version, json_bytes = self.encode(r)
+                if '"_id":' in json_bytes:
+                    id, version, json_bytes = self.encode(r)
+
+                if version:
+                    lines.append(value2json({"index": {"_id": id, "version": int(version), "version_type": "external_gte"}}))
+                else:
+                    lines.append('{"index":{"_id": ' + value2json(id) + '}}')
                 lines.append(json_bytes)
 
             del records
@@ -344,7 +352,10 @@ class Index(Features):
                             fails.append(i)
                 elif self.cluster.version.startswith(("1.4.", "1.5.", "1.6.", "1.7.", "5.", "6.")):
                     for i, item in enumerate(items):
-                        if item.index.status not in [200, 201]:
+                        if item.index.status == 409:  # 409 ARE VERSION CONFLICTS
+                            if "version conflict" not in item.index.error.reason:
+                                fails.append(i)  # IF NOT A VERSION CONFLICT, REPORT AS FAILURE
+                        elif item.index.status not in [200, 201]:
                             fails.append(i)
                 else:
                     Log.error("version not supported {{version}}", version=self.cluster.version)
@@ -553,6 +564,13 @@ class Cluster(object):
         self.debug = debug
         self._version = None
         self.url = URL(host, port=port)
+        self.lang = None
+        if self.version.startswith("6."):
+            from jx_elasticsearch.es52.expressions import ES52
+            self.lang = ES52
+        else:
+            Log.error("Not a know version: {{version}}", version=self.version)
+
 
     @override
     def get_or_create_index(
@@ -905,7 +923,7 @@ class Cluster(object):
             self.debug and Log.note("response: {{response}}", response=utf82unicode(response.content)[:130])
             details = json2value(utf82unicode(response.content))
             if details.error:
-                Log.error(convert.quote2string(details.error))
+                Log.error(quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error(
                     "Shard failures {{failures|indent}}",
@@ -986,7 +1004,7 @@ class Cluster(object):
         if data == None:
             pass
         elif isinstance(data, Mapping):
-            kwargs[DATA_KEY] = unicode2utf8(convert.value2json(data))
+            kwargs[DATA_KEY] = unicode2utf8(value2json(data))
         elif isinstance(kwargs[DATA_KEY], text_type):
             pass
         else:
@@ -1003,7 +1021,7 @@ class Cluster(object):
 
             details = json2value(utf82unicode(response.content))
             if details.error:
-                Log.error(convert.quote2string(details.error))
+                Log.error(quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error(
                     "Shard failures {{failures|indent}}",
@@ -1050,7 +1068,7 @@ def _scrub(r):
                 return None
             return r
         elif Math.is_number(r):
-            return convert.value2number(r)
+            return value2number(r)
         elif isinstance(r, Mapping):
             if isinstance(r, Data):
                 r = object.__getattribute__(r, SLOT)
@@ -1253,7 +1271,7 @@ def parse_properties(parent_index_name, parent_name, nested_path, esProperties):
                 es_index=index_name,
                 es_column=column_name,
                 es_type="nested",
-                jx_type='nested',
+                jx_type=NESTED,
                 last_updated=Date.now(),
                 nested_path=nested_path
             ))
@@ -1268,7 +1286,7 @@ def parse_properties(parent_index_name, parent_name, nested_path, esProperties):
                 es_index=index_name,
                 es_column=column_name,
                 es_type="source" if property.enabled == False else "object",
-                jx_type='object',
+                jx_type=OBJECT,
                 last_updated=Date.now(),
                 nested_path=nested_path
             ))
@@ -1315,7 +1333,7 @@ def parse_properties(parent_index_name, parent_name, nested_path, esProperties):
                 es_index=index_name,
                 es_column=column_name,
                 es_type="source" if property.enabled == False else "object",
-                jx_type=es_type_to_json_type['object'],
+                jx_type=OBJECT,
                 cardinality=0 if property.store else None,
                 last_updated=Date.now(),
                 nested_path=nested_path
@@ -1345,8 +1363,9 @@ def _get_best_type_from_mapping(mapping):
     return best_type_name, best_mapping
 
 
-def get_encoder(id_expression="_id"):
-    get_id = jx_expression_to_function(id_expression)
+def get_encoder(id_info):
+    get_id = jx.get(id_info.field)
+    get_version = jx.get(id_info.version)
 
     def _encoder(r):
         id = r.get("id")
@@ -1361,15 +1380,17 @@ def get_encoder(id_expression="_id"):
         if id == None:
             id = random_id()
 
+        version = get_version(r_value)
+
         if "json" in r:
             Log.error("can not handle pure json inserts anymore")
             json = r["json"]
         elif r_value or isinstance(r_value, (dict, Data)):
-            json = convert.value2json(r_value)
+            json = value2json(r_value)
         else:
             raise Log.error("Expecting every record given to have \"value\" or \"json\" property")
 
-        return {"id": id, "json": json}
+        return id, version, json
 
     return _encoder
 
@@ -1606,18 +1627,18 @@ DEFAULT_DYNAMIC_TEMPLATES = wrap([
 
 
 es_type_to_json_type = {
-    "text": "string",
-    "string": "string",
-    "keyword": "string",
-    "float": "number",
-    "double": "number",
-    "long": "number",
-    "integer": "number",
-    "object": "object",
-    "nested": "nested",
+    "text": STRING,
+    "string": STRING,
+    "keyword": STRING,
+    "float": NUMBER,
+    "double": NUMBER,
+    "long": NUMBER,
+    "integer": NUMBER,
+    "object": OBJECT,
+    "nested": NESTED,
     "source": "json",
-    "boolean": "boolean",
-    "exists": "exists"
+    "boolean": BOOLEAN,
+    "exists": EXISTS
 }
 
 
