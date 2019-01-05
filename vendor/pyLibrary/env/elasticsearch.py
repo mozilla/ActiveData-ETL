@@ -39,7 +39,7 @@ ES_PRIMITIVE_TYPES = ["string", "boolean", "integer", "date", "long", "double"]
 
 INDEX_DATE_FORMAT = "%Y%m%d_%H%M%S"
 SUFFIX_PATTERN = r'\d{8}_\d{6}'
-ID = Data(field='_id', version="etl.timestamp")
+ID = Data(field='_id')
 
 STALE_METADATA = 10 * MINUTE
 DATA_KEY = text_type("data")
@@ -85,9 +85,6 @@ class Index(Features):
         if index==None:
             Log.error("not allowed")
 
-        if isinstance(id, text_type):
-            id = set_default({"id": id}, ID)
-
         self.info = None
         self.debug = debug
         self.settings = kwargs
@@ -131,12 +128,17 @@ class Index(Features):
                 typed = kwargs.typed = False
 
         if not read_only:
+            if isinstance(id, text_type):
+                id_info = set_default({"id": id}, ID)
+            else:
+                id_info = set_default(id, ID)
+
             if typed:
                 from pyLibrary.env.typed_inserter import TypedInserter
 
-                self.encode = TypedInserter(self, id).typed_encode
+                self.encode = TypedInserter(self, id_info).typed_encode
             else:
-                self.encode = get_encoder(id)
+                self.encode = get_encoder(id_info)
 
     @property
     def url(self):
