@@ -827,6 +827,7 @@ PAYLOAD_PROPERTIES = {
     "description",
     "desiredResolution",
     "dont_build",
+    "dontbuild",
     "download_domain",
     "dry_run",
     "encryptedEnv",

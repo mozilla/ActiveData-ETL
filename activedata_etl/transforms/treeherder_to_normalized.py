@@ -266,6 +266,7 @@ _option_map = {
     "pgo": ["pgo"],
     "x64": ["x64"],
     "x86": ["x86"],
+    "release": ["release"],
 }
 
 
@@ -412,6 +413,8 @@ NON_HG_BRANCHES = [
     "go-bouncer",
     "mozillians-tests",
     "servo-auto",
+    "servo-master",
+    "servo-try",
     "snippets-service",
     "snippets-service",
     "snippets-tests",
