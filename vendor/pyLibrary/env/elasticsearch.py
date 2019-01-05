@@ -312,7 +312,7 @@ class Index(Features):
                     id, version, json_bytes = self.encode(r)
 
                 if version:
-                    lines.append(value2json({"index": {"_id": id, "version": int(version), "version_type": "external"}}))
+                    lines.append(value2json({"index": {"_id": id, "version": int(version), "version_type": "external_gte"}}))
                 else:
                     lines.append('{"index":{"_id": ' + value2json(id) + '}}')
                 lines.append(json_bytes)
@@ -350,7 +350,10 @@ class Index(Features):
                             fails.append(i)
                 elif self.cluster.version.startswith(("1.4.", "1.5.", "1.6.", "1.7.", "5.", "6.")):
                     for i, item in enumerate(items):
-                        if item.index.status not in [200, 201]:
+                        if item.index.status == 409:  # 409 ARE VERSION CONFLICTS
+                            if "version conflict" not in item.index.error.reason:
+                                fails.append(i)  # IF NOT A VERSION CONFLICT, REPORT AS FAILURE
+                        elif item.index.status not in [200, 201]:
                             fails.append(i)
                 else:
                     Log.error("version not supported {{version}}", version=self.cluster.version)

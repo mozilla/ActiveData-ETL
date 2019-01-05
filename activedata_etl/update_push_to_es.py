@@ -66,6 +66,7 @@ def _disable_oom_on_es(conn):
 
 def _start_indexer(config, instance, please_stop):
     try:
+        Log.note("Start push_to_es at {{ip}}", ip=instance.ip_address)
         with Connection(kwargs=config, host=instance.ip_address) as conn:
             conn.sudo("supervisorctl start push_to_es:*")
 
@@ -184,10 +185,9 @@ def main():
         elif settings.args.update:
             method = _update_indexxer
         else:
-            Log.error("Expecting --start or --stop or --update")
+            raise Log.error("Expecting --start or --stop or --update")
 
-
-        for g, ii in jx.groupby(instances, size=1):
+        for g, ii in jx.groupby(instances, size=20):
             threads = [
                 Thread.run(i.name, method, settings.fabric, i)
                 for i in ii
