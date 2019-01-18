@@ -27,7 +27,6 @@ java -version
 
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.5.4.tar.gz
 tar zxfv elasticsearch-6.5.4.tar.gz
 sudo mkdir /usr/local/elasticsearch
 sudo cp -R elasticsearch-6.5.4/* /usr/local/elasticsearch/
@@ -121,7 +120,11 @@ sudo -i -u ec2-user
 #INSTALL GIT
 sudo yum install -y git-core
 
-#CLONE THE primary BRANCH
+# INSTALL SUPERVISOR
+sudo easy_install pip
+sudo pip install supervisor
+
+# CLONE ActiveData-ETL
 cd ~
 rm -fr ~/ActiveData-ETL
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
@@ -129,45 +132,21 @@ cd ~/ActiveData-ETL
 git checkout backup-machines
 
 # COPY CONFIG FILES TO ES DIR
+sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 cd ~/ActiveData-ETL/
 git pull origin backup-machines
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup2.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm_backup.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
-sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
-
-#INSTALL PYTHON27
-sudo yum -y install python27
-sudo pip install --upgrade pip
-#rm -fr /home/ec2-user/temp
-#mkdir  /home/ec2-user/temp
-#cd /home/ec2-user/temp
-#wget https://bootstrap.pypa.io/get-pip.py
-#sudo python27 get-pip.py
-#sudo ln -s /usr/local/bin/pip /usr/bin/pip
-
-#INSTALL MODIFIED SUPERVISOR
-sudo yum install -y libffi-devel
-sudo yum install -y openssl-devel
-sudo yum groupinstall -y "Development tools"
-
-sudo /usr/local/bin/pip install pyopenssl
-sudo /usr/local/bin/pip install ndg-httpsclient
-sudo /usr/local/bin/pip install pyasn1
-sudo /usr/local/bin/pip install requests
-sudo /usr/local/bin/pip install fabric==1.10.2
-sudo /usr/local/bin/pip install supervisor-plus-cron
-
-cd /usr/bin
-sudo ln -s /usr/local/bin/supervisorctl supervisorctl
-
+# SUPERVISOR CONFIG
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
-sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
+sudo /usr/bin/supervisord -c /etc/supervisord.conf
 sudo supervisorctl reread
 sudo supervisorctl update
+sudo supervisorctl
 
 
 # ONLY FOR TEST STARTUP

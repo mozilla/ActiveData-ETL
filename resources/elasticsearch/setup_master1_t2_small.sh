@@ -82,15 +82,15 @@ ln -s  /data1/logs /home/ec2-user/logs
 
 # CLONE ActiveData-ETL
 cd ~
+rm -fr ~/ActiveData-ETL
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
-git checkout dev
+cd ~/ActiveData-ETL
+git checkout backup-machines
 
-###############################################################################
-# PLACE ALL CONFIG FILES
-###############################################################################
-
-# ELASTICSEARCH CONFIG
+# COPY CONFIG FILES TO ES DIR
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
+cd ~/ActiveData-ETL/
+git pull origin backup-machines
 cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_master1.yml     /usr/local/elasticsearch/config/elasticsearch.yml
 cp ~/ActiveData-ETL/resources/elasticsearch/jvm_master.options             /usr/local/elasticsearch/config/jvm.options
 cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties              /usr/local/elasticsearch/config/log4j2.properties
@@ -100,8 +100,6 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/supervisord.conf /etc/superviso
 
 # START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/bin/supervisord -c /etc/supervisord.conf
-
-# READ CONFIG
 sudo /usr/bin/supervisorctl reread
 sudo /usr/bin/supervisorctl update
 
