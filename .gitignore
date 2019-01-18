@@ -17,3 +17,5 @@ log.txt
 *.sqlite
 /*.tab
 /result/output.txt
+/resources/binaries/elasticsearch-6.5.4.tar.gz
+/resources/binaries

@@ -88,7 +88,7 @@ ln -s  /data1/logs /home/ec2-user/logs
 # CLONE ActiveData-ETL
 cd ~
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
-git checkout push-to-es6
+git checkout dev
 
 ###############################################################################
 # PLACE ALL CONFIG FILES
@@ -96,12 +96,12 @@ git checkout push-to-es6
 
 # ELASTICSEARCH CONFIG
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
-cp ~/TUID/resources/config/elasticsearch.yml     /usr/local/elasticsearch/config/elasticsearch.yml
-cp ~/TUID/resources/config/es6_jvm.options       /usr/local/elasticsearch/config/jvm.options
-cp ~/TUID/resources/config/es6_log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
+cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_master1.yml     /usr/local/elasticsearch/config/elasticsearch.yml
+cp ~/ActiveData-ETL/resources/elasticsearch/jvm_master.options             /usr/local/elasticsearch/config/jvm.options
+cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties              /usr/local/elasticsearch/config/log4j2.properties
 
 # SUPERVISOR CONFIG
-sudo cp ~/TUID/resources/config/supervisord.conf /etc/supervisord.conf
+sudo cp ~/ActiveData-ETL/resources/config/supervisord.conf /etc/supervisord.conf
 
 # START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
 sudo /usr/bin/supervisord -c /etc/supervisord.conf
