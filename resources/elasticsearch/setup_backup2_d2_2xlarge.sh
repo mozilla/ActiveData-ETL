@@ -126,11 +126,11 @@ cd ~
 rm -fr ~/ActiveData-ETL
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
 cd ~/ActiveData-ETL
-git checkout push-to-es6
+git checkout backup-machines
 
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
-git pull origin push-to-es6
+git pull origin backup-machines
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup2.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm_backup.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
@@ -172,7 +172,7 @@ sudo supervisorctl update
 
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
-git pull origin push-to-es6
+git pull origin backup-machines
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup2.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm_backup.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
