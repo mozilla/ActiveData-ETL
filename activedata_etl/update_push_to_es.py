@@ -94,6 +94,12 @@ def _stop_indexer(config, instance, please_stop):
             cause=e
         )
 
+def _update_elasticsearch(config, instance, please_stop):
+    # copy image of new es
+    # copy new config file(s)
+    # bounce es
+
+
 
 def _update_indexxer(config, instance, please_stop):
     Log.note(

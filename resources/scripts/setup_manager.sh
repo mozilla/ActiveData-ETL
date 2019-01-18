@@ -148,7 +148,7 @@ sudo /usr/local/bin/pip install -r requirements.txt
 # CRON JOBS
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
-chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_etl.sh
+chmod u+x /home/ec2-user/SpotManager-ETL/examples/scripts/run_etl.sh
 chmod u+x /home/ec2-user/MySQL-to-S3/resources/scripts/treeherder_extract.sh
 chmod u+x /home/ec2-user/coco-diff/resources/scripts/post_etl.sh
 chmod u+x /home/ec2-user/coco-diff/resources/scripts/status.sh
