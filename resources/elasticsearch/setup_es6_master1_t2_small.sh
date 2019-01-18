@@ -38,11 +38,6 @@ sudo sed -i '$ a\ec2-user hard memlock unlimited' /etc/security/limits.conf
 sudo sysctl -p
 sudo su ec2-user
 
-# MANUALLY PUT A COPY OF THE JRE .RPM INSTALLATION FILE INTO THIS TEMP DIR
-cd /home/ec2-user/
-mkdir temp
-cd temp
-
 # INSTALL JAVA 8
 sudo rpm -i jre-8u201-linux-x64.rpm
 sudo alternatives --install /usr/bin/java java /usr/java/default/bin/java 20000

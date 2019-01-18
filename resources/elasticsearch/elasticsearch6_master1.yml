@@ -4,7 +4,7 @@ node.name: master1
 node.master: true
 node.data: false
 node.ingest: false
-node.attr.zone: primary
+node.attr.zone: spot
 
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.enable: none
