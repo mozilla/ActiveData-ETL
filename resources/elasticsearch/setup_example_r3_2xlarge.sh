@@ -16,9 +16,9 @@
 
 # NOTE: NODE DISCOVERY WILL ONLY WORK IF PORT 9300 IS OPEN BETWEEN THEM
 
-# PUT A COPY OF jre-8u131-linux-x64.rpm IN /home/ec2-user/
+# PUT A COPY OF jre-8u201-linux-x64.rpm IN /home/ec2-user/
 cd /home/ec2-user/
-sudo rpm -i jre-8u131-linux-x64.rpm
+sudo rpm -i jre-8u201-linux-x64.rpm
 sudo alternatives --install /usr/bin/java java /usr/java/default/bin/java 20000
 export JAVA_HOME=/usr/java/default
 
@@ -27,10 +27,10 @@ java -version
 
 # INSTALL ELASTICSEARCH
 cd /home/ec2-user/
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.3.tar.gz
-tar zxfv elasticsearch-6.2.3.tar.gz
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.5.4.tar.gz
+tar zxfv elasticsearch-6.5.4.tar.gz
 sudo mkdir /usr/local/elasticsearch
-sudo cp -R elasticsearch-6.2.3/* /usr/local/elasticsearch/
+sudo cp -R elasticsearch-6.5.4/* /usr/local/elasticsearch/
 
 
 
@@ -109,7 +109,7 @@ git checkout push-to-es6
 # COPY CONFIG FILES TO ES DIR
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
@@ -151,7 +151,7 @@ sudo supervisorctl update
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_3.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup1.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch

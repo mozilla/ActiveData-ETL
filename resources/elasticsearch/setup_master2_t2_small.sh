@@ -84,6 +84,7 @@ ln -s  /data1/logs /home/ec2-user/logs
 cd ~
 git clone https://github.com/klahnakoski/ActiveData-ETL.git
 git checkout dev
+git pull origin dev
 
 ###############################################################################
 # PLACE ALL CONFIG FILES
@@ -105,5 +106,6 @@ sudo /usr/bin/supervisord -c /etc/supervisord.conf
 sudo /usr/bin/supervisorctl reread
 sudo /usr/bin/supervisorctl update
 
+sudo supervisorctl
 
 
