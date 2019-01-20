@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from boto import ec2 as boto_ec2
+from mo_json import json2value
 
 from jx_python import jx
 from mo_collections import UniqueIndex
@@ -65,7 +66,7 @@ def _disable_oom_on_es(conn):
         conn.sudo("sudo cp oom_adj /proc/" + pid + "/oom_adj")
 
 
-def _start_indexer(config, instance, please_stop):
+def _start_indexer(ec2_conn, config, instance, please_stop):
     try:
         Log.note("Start push_to_es at {{ip}}", ip=instance.ip_address)
         with Connection(kwargs=config, host=instance.ip_address) as conn:
@@ -81,7 +82,7 @@ def _start_indexer(config, instance, please_stop):
         )
 
 
-def _stop_indexer(config, instance, please_stop):
+def _stop_indexer(ec2_conn, config, instance, please_stop):
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
             conn.sudo("supervisorctl stop push_to_es:*")
@@ -95,38 +96,69 @@ def _stop_indexer(config, instance, please_stop):
             cause=e
         )
 
-def _upgrade_elasticsearch(config, instance, please_stop):
-    # copy image of new es
 
-
-    # copy new config file(s)
-    # ENSURE CONFIG EXPECTS TWO MASTERS
-
-
-    # bounce es
+def _upgrade_elasticsearch(ec2_conn, config, instance, please_stop):
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
-            # stop es instance
-            conn.sudo("supervisorctl stop es")
+            result = conn.run("curl http://localhost:9200/", warn=True)
+            if result.failed:
+                Log.note(
+                    "ES not running {{instance_id}} ({{name}}) at {{ip}}",
+                    instance_id=instance.id,
+                    name=instance.tags["Name"],
+                    ip=instance.ip_address
+                )
+                ec2_conn.terminate_instances(instance_ids=[instance.id])
+                return
 
-            # backup config file
-            conn.run("rm -fr ~/temp", warn=True)
-            conn.run("mkdir ~/temp")
-            with TempFile() as tempfile:
-                conn.get("/usr/local/elasticsearch/config/elasticsearch.yml", tempfile)
-                # ENSURE CONFIG EXPECTS TWO MASTERS
-                tempfile.write(tempfile.read().replace("discovery.zen.minimum_master_nodes: 1", "discovery.zen.minimum_master_nodes: 2"))
-                conn.put(tempfile, "/usr/local/elasticsearch/config/elasticsearch.yml")
-            conn.run("cp /usr/local/elasticsearch/config/* ~/temp")
+            result = json2value(result.stdout)
+            if result.version.number == "6.5.4":
+                Log.note(
+                    "upgrade already complete {{instance_id}} ({{name}}) at {{ip}}",
+                    instance_id=instance.id,
+                    name=instance.tags["Name"],
+                    ip=instance.ip_address
+                )
+                return
 
-            # copy image of new es
-            conn.put("resources/binaries/elasticsearch-6.5.4.tar.gz", "~/elasticsearch-6.5.4.tar.gz")
+            # STOP ES INSTANCE
+            es_down = conn.sudo("supervisorctl stop es")
+            if "supervisor.sock no such file" in es_down.stdout:
+                Log.note(
+                    "could not stop ES {{instance_id}} ({{name}}) at {{ip}}",
+                    instance_id=instance.id,
+                    name=instance.tags["Name"],
+                    ip=instance.ip_address
+                )
+                ec2_conn.terminate_instances(instance_ids=[instance.id])
+                return
+
+            # BACKUP CONFIG FILE
+            if not conn.exists("backup_es"):
+                conn.run("mkdir ~/backup_es")
+                with TempFile() as tempfile:
+                    conn.get("/usr/local/elasticsearch/config/elasticsearch.yml", tempfile)
+                    # ENSURE CONFIG EXPECTS TWO MASTERS
+                    tempfile.write(tempfile.read().replace("discovery.zen.minimum_master_nodes: 1", "discovery.zen.minimum_master_nodes: 2"))
+                    conn.put(tempfile, "/usr/local/elasticsearch/config/elasticsearch.yml")
+                conn.sudo("chown -R ec2-user:ec2-user /usr/local/elasticsearch")
+                conn.run("cp /usr/local/elasticsearch/config/* ~/backup_es", warn=True)
+
+            # COPY IMAGE OF NEW ES
+            conn.put("resources/binaries/elasticsearch-6.5.4.tar.gz", ".")
             conn.run("tar zxfv elasticsearch-6.5.4.tar.gz")
-            conn.run("cp -R elasticsearch-6.5.4/* /usr/local/elasticsearch/")
+            conn.sudo("rm -fr /usr/local/elasticsearch/")
+            conn.sudo("mv elasticsearch-6.5.4 /usr/local/elasticsearch")
             conn.run("rm -fr elasticsearch*")
 
+            conn.sudo("chown -R ec2-user:ec2-user /usr/local/elasticsearch/")
+
+            # RE-INSTALL CLOUD PLUGIN
+            with conn.cd("/usr/local/elasticsearch/"):
+                conn.run("bin/elasticsearch-plugin install -b discovery-ec2")
+
             # COPY CONFIG FILES
-            conn.run("cp  ~/temp/* /usr/local/elasticsearch/config")
+            conn.run("cp ~/backup_es/* /usr/local/elasticsearch/config")
 
             # START ES
             conn.sudo("supervisorctl start es")
@@ -141,8 +173,7 @@ def _upgrade_elasticsearch(config, instance, please_stop):
         )
 
 
-
-def _update_indexxer(config, instance, please_stop):
+def _update_indexxer(ec2_conn, config, instance, please_stop):
     Log.note(
         "Reset {{instance_id}} ({{name}}) at {{ip}}",
         instance_id=instance.id,
@@ -206,6 +237,14 @@ def main():
                 "required": False
             },
             {
+                "name": ["--upgrade"],
+                "help": "upgrade es to next version (hardcoded)",
+                "action": "store_true",
+                "dest": "upgrade",
+                "default": False,
+                "required": False
+            },
+            {
                 "name": ["--update"],
                 "help": "update the push_to_es processes, and bounce",
                 "action": "store_true",
@@ -229,14 +268,16 @@ def main():
             method = _stop_indexer
         elif settings.args.start:
             method = _start_indexer
-        elif settings.args.update:
+        elif settings.args['update']:
             method = _update_indexxer
+        elif settings.args.upgrade:
+            method = _upgrade_elasticsearch
         else:
             raise Log.error("Expecting --start or --stop or --update")
 
-        for g, ii in jx.groupby(instances, size=20):
+        for g, ii in jx.groupby(instances, size=1):
             threads = [
-                Thread.run(i.name, method, settings.fabric, i)
+                Thread.run(i.name, method, ec2_conn, settings.fabric, i)
                 for i in ii
             ]
 
@@ -250,5 +291,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
