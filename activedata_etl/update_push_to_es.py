@@ -100,6 +100,17 @@ def _stop_indexer(ec2_conn, config, instance, please_stop):
 def _upgrade_elasticsearch(ec2_conn, config, instance, please_stop):
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
+            supervisorctl = conn.sudo("supervisorctl status", warn=True)
+            if "supervisor.sock no such file" in supervisorctl.stdout:
+                Log.note(
+                    "supervisor is broken {{instance_id}} ({{name}}) at {{ip}}",
+                    instance_id=instance.id,
+                    name=instance.tags["Name"],
+                    ip=instance.ip_address
+                )
+                ec2_conn.terminate_instances(instance_ids=[instance.id])
+                return
+
             result = conn.run("curl http://localhost:9200/", warn=True)
             if result.failed:
                 Log.note(
@@ -121,17 +132,9 @@ def _upgrade_elasticsearch(ec2_conn, config, instance, please_stop):
                 )
                 return
 
-            # STOP ES INSTANCE
-            es_down = conn.sudo("supervisorctl stop es")
-            if "supervisor.sock no such file" in es_down.stdout:
-                Log.note(
-                    "could not stop ES {{instance_id}} ({{name}}) at {{ip}}",
-                    instance_id=instance.id,
-                    name=instance.tags["Name"],
-                    ip=instance.ip_address
-                )
-                ec2_conn.terminate_instances(instance_ids=[instance.id])
-                return
+            # COPY IMAGE OF NEW ES
+            conn.put("resources/binaries/elasticsearch-6.5.4.tar.gz", ".")
+            conn.run("tar zxfv elasticsearch-6.5.4.tar.gz")
 
             # BACKUP CONFIG FILE
             if not conn.exists("backup_es"):
@@ -144,13 +147,13 @@ def _upgrade_elasticsearch(ec2_conn, config, instance, please_stop):
                 conn.sudo("chown -R ec2-user:ec2-user /usr/local/elasticsearch")
                 conn.run("cp /usr/local/elasticsearch/config/* ~/backup_es", warn=True)
 
-            # COPY IMAGE OF NEW ES
-            conn.put("resources/binaries/elasticsearch-6.5.4.tar.gz", ".")
-            conn.run("tar zxfv elasticsearch-6.5.4.tar.gz")
+            # STOP ES INSTANCE
+            conn.sudo("supervisorctl stop es")
+
+            # UPDATE ES FILES
             conn.sudo("rm -fr /usr/local/elasticsearch/")
             conn.sudo("mv elasticsearch-6.5.4 /usr/local/elasticsearch")
             conn.run("rm -fr elasticsearch*")
-
             conn.sudo("chown -R ec2-user:ec2-user /usr/local/elasticsearch/")
 
             # RE-INSTALL CLOUD PLUGIN
