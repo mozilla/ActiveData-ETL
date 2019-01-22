@@ -3003,6 +3003,20 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-tp6m-1-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt", "aarch64"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 1,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-unity-webgl-geckoview": {
         "action": {"type": "perf"},
         "build": {

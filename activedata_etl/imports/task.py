@@ -346,18 +346,21 @@ RAPTOR_TEST = {
 
 
 def match_tp6(name):
-    if name.startswith("tp6-"):
-        for b in BROWSER.keys():
-            if "-" + b in name:
-                short_name = between(name, None, "-" + b)
-                suffix = short_name[4:]
-                if suffix in TEST_CHUNK:
-                    return len(short_name), {"run": {"suite": {"name": "tp6"}, "chunk": int(suffix)}}
-                return len(short_name), {"run": {"suite": {"name": short_name}}}
+    for suite in ["tp6", "tp6m"]:
+        prefix = suite + "-"
+        if name.startswith(prefix):
+            for b in BROWSER.keys():
+                if "-" + b in name:
+                    short_name = between(name, None, "-" + b)
+                    suffix = short_name[len(prefix):]
+                    if suffix in TEST_CHUNK:
+                        return len(short_name), {"run": {"suite": {"name": suite}, "chunk": int(suffix)}}
+                    return len(short_name), {"run": {"suite": {"name": short_name}}}
     return None, None
 
 
 RAPTOR_TEST["tp6"] = match_tp6
+RAPTOR_TEST["tp6m"] = match_tp6
 
 
 BROWSER = {
