@@ -303,8 +303,10 @@ RUN_OPTIONS = {
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
+    "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
@@ -366,6 +368,7 @@ RAPTOR_TEST["tp6m"] = match_tp6
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
     "firefox": {"run": {"browser": "firefox"}},
+    "fennec":  {"run": {"browser": "fennec"}},
     "geckoview": {"run": {"browser": "geckoview"}},
     "geckoview-power": {"run": {"browser": "geckoview-power"}},
 }

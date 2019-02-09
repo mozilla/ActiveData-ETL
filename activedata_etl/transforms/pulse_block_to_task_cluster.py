@@ -833,6 +833,7 @@ PAYLOAD_PROPERTIES = {
     "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
+    "expires",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "is_partner_repack_public",
@@ -922,6 +923,7 @@ KNOWN_TAGS = {
 
     "notify.email.link.href",
     "notify.email.link.text",
+    "notify.ircChannelMessage",
     "en_us_installer_binary_url",
 
     "funsize.partials",

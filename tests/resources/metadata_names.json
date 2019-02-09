@@ -3029,6 +3029,19 @@
             "suite": {"name": "unity-webgl"}
         }
     },
+    "test-android-hw-p2-8-0-arm7-api-16-nightly/opt-raptor-speedometer-fennec": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "nightly",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"}
+        }
+    },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
         "action": {"type": "perf"},
         "build": {
@@ -8468,6 +8481,18 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-media"}
+        }
+    },
+    "test-linux32/opt-mochitest-media-e10s-spi-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux32",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "spi", "chunked"]
         }
     },
     "test-linux32/opt-mochitest-webgl-1": {
@@ -15555,6 +15580,18 @@
             "type": ["chunked"]
         }
     },
+    "test-linux64-pgo/opt-mochitest-media-spi-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "spi", "chunked"]
+        }
+    },
     "test-linux64-pgo/opt-mochitest-webgl-1": {
         "action": {"type": "test"},
         "build": {
@@ -20111,6 +20148,18 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-media"}
+        }
+    },
+    "test-linux64/debug-mochitest-media-e10s-spi-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "spi", "chunked"]
         }
     },
     "test-linux64/debug-mochitest-media-sw-e10s-3": {
@@ -32832,6 +32881,17 @@
         },
         "run": {"suite": {"name": "mochitest-media"}}
     },
+    "test-windows10-64/opt-mochitest-media-spi-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "spi"]
+        }
+    },
     "test-windows10-64/opt-mochitest-plain-headless-1": {
         "action": {"type": "test"},
         "build": {
@@ -36091,6 +36151,18 @@
             "chunk": 3,
             "suite": {"name": "mochitest-media"},
             "type": ["chunked"]
+        }
+    },
+    "test-windows7-32-pgo/opt-mochitest-media-e10s-spi-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "spi", "chunked"]
         }
     },
     "test-windows7-32-pgo/opt-mochitest-webgl-1": {

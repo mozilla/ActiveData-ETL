@@ -204,7 +204,10 @@ KNOWN_FAILURES = {"or": [
         "https://example.com/tests/SimpleTest/TestRunner.js",
         "resource://gre/modules/workers/require.js",
         "resource://services-common/utils.js",
-        "resource://services-crypto/utils.js"
+        "resource://services-crypto/utils.js",
+
+        "numerics/safe_conversions_impl.h",
+        "decode.h"
     ]}},
     {"suffix": {".": "libstd/io/mod.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
