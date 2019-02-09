@@ -2955,6 +2955,29 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-android-em-7.0-x86_64/debug-jsreftest-e10s-6": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 6,
+            "suite": {"name": "jsreftest"},
+            "type": ["e10s", "chunked"]
+        }
+    },
+    "test-android-em-7.0-x86_64/opt-crashtest-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "crashtest"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16/opt-mochitest-9": {
         "action": {"type": "test"},
         "build": {
@@ -25685,6 +25708,17 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest-devtools-chrome"}
+        }
+    },
+    "test-macosx64/opt-mochitest-devtools-webreplay-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-devtools-webreplay"},
+            "type": ["e10s"]
         }
     },
     "test-macosx64/opt-mochitest-gpu": {
