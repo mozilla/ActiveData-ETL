@@ -215,6 +215,11 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
+    {"suffix": {".": "/ui.js"}},
+    {"suffix": {".": "/safe_conversions_impl.h"}},
+    {"suffix": {".": "/safe_conversions.h"}},
+    {"suffix": {".": "/./decode.h"}},
+
     {"prefix": {".": "data:"}},
     {"prefix": {".": "javascript:"}},
     {"prefix": {".": "about:"}},
