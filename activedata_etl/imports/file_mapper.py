@@ -216,6 +216,7 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
     {"suffix": {".": "/ui.js"}},
+    {"suffix": {".": "/utils/utils.js"}},
     {"suffix": {".": "/safe_conversions_impl.h"}},
     {"suffix": {".": "/safe_conversions.h"}},
     {"suffix": {".": "/./decode.h"}},
@@ -227,7 +228,7 @@ KNOWN_FAILURES = {"or": [
     {"prefix": {".": "https://example.com/MochiKit"}},
     {"prefix": {".": "vs2017"}},
     {"prefix": {".": "third_party/rust"}},
-    {"prefix": {".": "third_party/dav1d"}}
+    {"prefix": {".": "third_party/dav1d"}},
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
