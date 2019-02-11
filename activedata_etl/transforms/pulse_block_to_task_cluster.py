@@ -815,6 +815,7 @@ PAYLOAD_PROPERTIES = {
     "appVersion",
     "archive_domain",
     "artifactsTaskId",
+    "artifactMap",
     "balrog_api_root",
     "build_number",
     "chain",
@@ -882,8 +883,9 @@ PAYLOAD_PROPERTIES = {
 KNOWN_TAGS = {
     "action.name",
     "action.context",
-    "action.context.taskGroupId",
+    "action.context.clientId",
     "action.context.input.tasks",
+    "action.context.taskGroupId",
     "action.context.taskId",
     "android-stuff",
     "aus-server",
@@ -1057,4 +1059,4 @@ def consume(props, key):
     return output
 
 
-UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', ]
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'fxapom']
