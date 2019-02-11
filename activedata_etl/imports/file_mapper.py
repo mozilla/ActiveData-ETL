@@ -215,11 +215,11 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},
     {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
-    {"suffix": {".": "/ui.js"}},
-    {"suffix": {".": "/utils/utils.js"}},
-    {"suffix": {".": "/safe_conversions_impl.h"}},
-    {"suffix": {".": "/safe_conversions.h"}},
-    {"suffix": {".": "/./decode.h"}},
+    # {"suffix": {".": "/ui.js"}},
+    # {"suffix": {".": "/utils/utils.js"}},
+    # {"suffix": {".": "/safe_conversions_impl.h"}},
+    # {"suffix": {".": "/safe_conversions.h"}},
+    # {"suffix": {".": "/./decode.h"}},
 
     {"prefix": {".": "data:"}},
     {"prefix": {".": "javascript:"}},
@@ -229,6 +229,7 @@ KNOWN_FAILURES = {"or": [
     {"prefix": {".": "vs2017"}},
     {"prefix": {".": "third_party/rust"}},
     {"prefix": {".": "third_party/dav1d"}},
+    {"prefix": {".": "devtools/client/"}}
 ]}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
