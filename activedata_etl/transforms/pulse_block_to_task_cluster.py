@@ -549,7 +549,7 @@ def set_build_info(source_key, normalized, task, env, resources):
     normalized.task.kind = consume(task, "tags.kind")
 
     # BUILD TYPES ARE SEPARATED BY DASH (-) AND SLASH (/)
-    collection = wrap({
+    collection = normalized.treeherder.collection = wrap({
         kkk: v
         for k, v in treeherder.collection.items()
         for kk in k.split("/")
