@@ -9105,10 +9105,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "cppunit"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "cppunit"}}
     },
     "test-linux64-asan/opt-crashtest": {
         "action": {"type": "test"},
@@ -9116,10 +9113,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "crashtest"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "crashtest"}}
     },
     "test-linux64-asan/opt-firefox-ui-functional-local": {
         "action": {"type": "test"},
@@ -9127,10 +9121,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "firefox-ui-functional-local"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "firefox-ui-functional-local"}}
     },
     "test-linux64-asan/opt-firefox-ui-functional-remote": {
         "action": {"type": "test"},
@@ -9138,10 +9129,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "firefox-ui-functional-remote"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "firefox-ui-functional-remote"}}
     },
     "test-linux64-asan/opt-gtest": {
         "action": {"type": "test"},
@@ -9149,10 +9137,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "gtest"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "gtest"}}
     },
     "test-linux64-asan/opt-jittest-1": {
         "action": {"type": "test"},
@@ -9163,7 +9148,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jittest-2": {
@@ -9175,7 +9160,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jittest-3": {
@@ -9187,7 +9172,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jittest-4": {
@@ -9199,7 +9184,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jittest-5": {
@@ -9211,7 +9196,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jittest-6": {
@@ -9223,7 +9208,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "jittest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jsreftest-1": {
@@ -9235,7 +9220,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "jsreftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jsreftest-2": {
@@ -9247,7 +9232,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "jsreftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-jsreftest-3": {
@@ -9259,7 +9244,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "jsreftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-marionette": {
@@ -9268,10 +9253,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "marionette"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "marionette"}}
     },
     "test-linux64-asan/opt-marionette-headless": {
         "action": {"type": "test"},
@@ -9279,10 +9261,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "marionette-headless"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "marionette-headless"}}
     },
     "test-linux64-asan/opt-mochitest-1": {
         "action": {"type": "test"},
@@ -9293,7 +9272,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-10": {
@@ -9305,7 +9284,7 @@
         "run": {
             "chunk": 10,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-2": {
@@ -9317,7 +9296,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-3": {
@@ -9329,7 +9308,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-4": {
@@ -9341,7 +9320,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-5": {
@@ -9353,7 +9332,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-6": {
@@ -9365,7 +9344,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-7": {
@@ -9377,7 +9356,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-8": {
@@ -9389,7 +9368,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-9": {
@@ -9401,7 +9380,7 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "mochitest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-a11y": {
@@ -9410,10 +9389,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "mochitest-a11y"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "mochitest-a11y"}}
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-1": {
         "action": {"type": "test"},
@@ -9424,7 +9400,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-10": {
@@ -9436,7 +9412,7 @@
         "run": {
             "chunk": 10,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-11": {
@@ -9448,7 +9424,7 @@
         "run": {
             "chunk": 11,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-12": {
@@ -9460,7 +9436,7 @@
         "run": {
             "chunk": 12,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-13": {
@@ -9472,7 +9448,7 @@
         "run": {
             "chunk": 13,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-14": {
@@ -9484,7 +9460,7 @@
         "run": {
             "chunk": 14,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-15": {
@@ -9496,7 +9472,7 @@
         "run": {
             "chunk": 15,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-16": {
@@ -9508,7 +9484,7 @@
         "run": {
             "chunk": 16,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-2": {
@@ -9520,7 +9496,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-3": {
@@ -9532,7 +9508,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-4": {
@@ -9544,7 +9520,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-5": {
@@ -9556,7 +9532,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-6": {
@@ -9568,7 +9544,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-7": {
@@ -9580,7 +9556,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-8": {
@@ -9592,7 +9568,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-browser-chrome-9": {
@@ -9604,7 +9580,7 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "mochitest-browser-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-chrome-1": {
@@ -9616,7 +9592,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-chrome-2": {
@@ -9628,7 +9604,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-chrome-3": {
@@ -9640,7 +9616,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-clipboard": {
@@ -9649,10 +9625,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "mochitest-clipboard"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "mochitest-clipboard"}}
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-1": {
         "action": {"type": "test"},
@@ -9663,7 +9636,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-2": {
@@ -9675,7 +9648,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-3": {
@@ -9687,7 +9660,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-4": {
@@ -9699,7 +9672,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-5": {
@@ -9711,7 +9684,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-6": {
@@ -9723,7 +9696,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-7": {
@@ -9735,7 +9708,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-devtools-chrome-8": {
@@ -9747,7 +9720,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest-devtools-chrome"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-gpu": {
@@ -9756,10 +9729,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "mochitest-gpu"}}
     },
     "test-linux64-asan/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -9770,7 +9740,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest-media"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-media-2": {
@@ -9782,7 +9752,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-media"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-media-3": {
@@ -9794,7 +9764,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-media"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-webgl-1": {
@@ -9806,7 +9776,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "mochitest-webgl"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-webgl-2": {
@@ -9818,7 +9788,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "mochitest-webgl"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-mochitest-webgl-3": {
@@ -9830,7 +9800,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-webgl"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-1": {
@@ -9842,7 +9812,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-2": {
@@ -9854,7 +9824,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-3": {
@@ -9866,7 +9836,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-4": {
@@ -9878,7 +9848,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-5": {
@@ -9890,7 +9860,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-6": {
@@ -9902,7 +9872,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-7": {
@@ -9914,7 +9884,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-8": {
@@ -9926,7 +9896,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "reftest"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-1": {
@@ -9938,7 +9908,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-2": {
@@ -9950,7 +9920,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-3": {
@@ -9962,7 +9932,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-4": {
@@ -9974,7 +9944,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-5": {
@@ -9986,7 +9956,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-6": {
@@ -9998,7 +9968,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-7": {
@@ -10010,7 +9980,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-reftest-no-accel-8": {
@@ -10022,7 +9992,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "reftest-no-accel"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-telemetry-tests-client": {
@@ -10031,10 +10001,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "telemetry-tests-client"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "telemetry-tests-client"}}
     },
     "test-linux64-asan/opt-test-verify": {
         "action": {"type": "test"},
@@ -10042,10 +10009,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "test-verify"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "test-verify"}}
     },
     "test-linux64-asan/opt-test-verify-wpt": {
         "action": {"type": "test"},
@@ -10053,10 +10017,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "test-verify-wpt"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "test-verify-wpt"}}
     },
     "test-linux64-asan/opt-web-platform-tests-1": {
         "action": {"type": "test"},
@@ -10067,7 +10028,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-10": {
@@ -10079,7 +10040,7 @@
         "run": {
             "chunk": 10,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-11": {
@@ -10091,7 +10052,7 @@
         "run": {
             "chunk": 11,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-12": {
@@ -10103,7 +10064,7 @@
         "run": {
             "chunk": 12,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-2": {
@@ -10115,7 +10076,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-3": {
@@ -10127,7 +10088,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-4": {
@@ -10139,7 +10100,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-5": {
@@ -10151,7 +10112,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-6": {
@@ -10163,7 +10124,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-7": {
@@ -10175,7 +10136,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-8": {
@@ -10187,7 +10148,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-9": {
@@ -10199,7 +10160,7 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "web-platform-tests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-1": {
@@ -10211,7 +10172,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-2": {
@@ -10223,7 +10184,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-3": {
@@ -10235,7 +10196,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-4": {
@@ -10247,7 +10208,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-5": {
@@ -10259,7 +10220,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-reftests-6": {
@@ -10271,7 +10232,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "web-platform-tests-reftests"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-web-platform-tests-wdspec": {
@@ -10280,10 +10241,7 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "web-platform-tests-wdspec"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "web-platform-tests-wdspec"}}
     },
     "test-linux64-asan/opt-xpcshell-1": {
         "action": {"type": "test"},
@@ -10294,7 +10252,7 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-2": {
@@ -10306,7 +10264,7 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-3": {
@@ -10318,7 +10276,7 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-4": {
@@ -10330,7 +10288,7 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-5": {
@@ -10342,7 +10300,7 @@
         "run": {
             "chunk": 5,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-6": {
@@ -10354,7 +10312,7 @@
         "run": {
             "chunk": 6,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-7": {
@@ -10366,7 +10324,7 @@
         "run": {
             "chunk": 7,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-asan/opt-xpcshell-8": {
@@ -10378,7 +10336,7 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "xpcshell"},
-            "type": ["asan", "chunked"]
+            "type": ["chunked"]
         }
     },
     "test-linux64-ccov/opt-awsy": {
@@ -28035,10 +27993,7 @@
             "platform": "win64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "test-verify"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "test-verify"}}
     },
     "test-windows10-64-asan/opt-test-verify-wpt": {
         "action": {"type": "test"},
@@ -28046,10 +28001,7 @@
             "platform": "win64",
             "type": ["opt", "asan"]
         },
-        "run": {
-            "suite": {"name": "test-verify-wpt"},
-            "type": ["asan"]
-        }
+        "run": {"suite": {"name": "test-verify-wpt"}}
     },
     "test-windows10-64-ccov/debug-awsy": {
         "action": {"type": "test"},
