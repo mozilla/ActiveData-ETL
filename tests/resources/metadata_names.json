@@ -166,6 +166,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux64-base-toolchains-clang/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        }
+    },
     "build-linux64-fuzzing-ccov/opt": {
         "action": {"type": "build"},
         "build": {

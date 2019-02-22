@@ -450,6 +450,7 @@ KNOWN_PERFHERDER_TESTS = [
     "motionmark_htmlsuite",
     "motionmark, transformed",
     "motionmark",
+    "netmonitor-metrics",
     "octane-sm",
     "octane-v8",
     "other_nol64",

@@ -307,9 +307,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             if pair[0] == output.treeherder.machine.platform and output.treeherder.collection[pair[1]]:
                 pass
             else:
-                Log.warning("extra.treeherder platform does not match treeherder")
+                Log.warning("extra.treeherder platform does not match treeherder for key {{key}}", key=source_key)
         except Exception:
-            Log.warning("extra.treeherder platform does not match treeherder")
+            Log.warning("extra.treeherder platform does not match treeherder for key {{key}}", key=source_key)
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 

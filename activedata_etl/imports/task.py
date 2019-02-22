@@ -450,6 +450,7 @@ BUILD_OPTIONS = {
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
+    "base-toolchains-clang": {},
     "ccov": {"build": {"type": ["ccov"]}},
     "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
     "checkstyle": {},
