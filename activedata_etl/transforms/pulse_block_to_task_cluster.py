@@ -283,6 +283,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         if artifact_id:
             output.task.artifacts += [{"id": artifact_id}]
 
+        consume(task, "payload.artifactMap")
+
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = _object_to_array(task.payload.cache, "name", "path")
@@ -546,11 +548,18 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     normalized.task.kind = consume(task, "tags.kind")
 
+    # BUILD TYPES ARE SEPARATED BY DASH (-) AND SLASH (/)
+    collection = wrap({
+        kkk: v
+        for k, v in treeherder.collection.items()
+        for kk in k.split("/")
+        for kkk in kk.split("-")
+    })
     for k, v in BUILD_TYPES.items():
-        if treeherder.collection[k]:
+        if collection[k]:
             normalized.build.type += v
 
-    diff = treeherder.collection.keys() - BUILD_TYPE_KEYS
+    diff = collection.keys() - BUILD_TYPE_KEYS
     if diff:
         Log.warning("new collection type of {{type}} while processing key {{key}}", type=diff, key=source_key)
 
@@ -786,15 +795,12 @@ SIMPLER_PLATFORMS = {
 
 BUILD_TYPES = {
     "all": ["all"],
-    "arm-debug": ["debug", "arm"],
-    "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
     "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
-    "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
@@ -890,7 +896,6 @@ KNOWN_TAGS = {
     "android-stuff",
     "aus-server",
     "archive-prefix",
-
     "branch-prefix",
     "build_props.build_number",
     "build_props.release_eta",

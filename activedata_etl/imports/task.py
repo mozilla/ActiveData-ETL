@@ -4,22 +4,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 from collections import Mapping
 
-from mo_logs.strings import between
-
-from mo_future import text_type
-
-from activedata_etl.imports.buildbot import BUILD_TYPES
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
 from mo_dots import Data, coalesce, set_default
+from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
-from mo_logs import strings, Log
+from mo_logs import Log, strings
+from mo_logs.strings import between
 
 
 def minimize_task(task):
@@ -279,26 +275,6 @@ TEST_PLATFORM = {
     "windows7-32": {"build": {"platform": "win32"}},
 }
 
-TEST_OPTIONS = {
-    o: {"build": {"type": [o]}}
-    for o in BUILD_TYPES
-    + [
-        "aarch64",
-        "asan",
-        "gradle",
-        "lto",
-        "mingw32",
-        "ming32",
-        "msvc",
-        "qr",
-        "stylo-disabled",
-        "stylo-sequential",
-        "ux",
-    ]
-}
-TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
-TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
-
 RUN_OPTIONS = {
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
@@ -510,6 +486,23 @@ BUILD_TYPE = {
     "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["debug"]}},
 }
+
+TEST_OPTIONS = set_default({
+    "aarch64": {"run": {"type": ["aarch64"]}},
+    "asan": {},
+    "gradle": {"run": {"type": ["gradle"]}},
+    "lto": {"run": {"type": ["lto"]}},
+    "mingw32": {"run": {"type": ["mingw32"]}},
+    "ming32": {"run": {"type": ["mingw32"]}},
+    "msvc": {"run": {"type": ["msvc"]}},
+    "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
+    "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+    "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
+    "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
+    "ux": {"run": {"type": ["ux"]}},
+    "nightly": {"build": {"train": "nightly"}},
+    "devedition": {"build": {"train": "devedition"}}
+}, BUILD_OPTIONS)
 
 BUILD_STEPS = {"upload-symbols": {}}
 

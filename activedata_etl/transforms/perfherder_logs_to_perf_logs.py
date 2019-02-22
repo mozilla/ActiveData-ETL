@@ -415,6 +415,7 @@ KNOWN_PERFHERDER_TESTS = [
     "compiler warnings",
     "cpstartup",
     "damp",
+    "debugger-metrics",
     "displaylist_mutate",
     "dromaeo_css",
     "dromaeo_dom",
