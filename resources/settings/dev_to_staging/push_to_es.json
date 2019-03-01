@@ -48,8 +48,7 @@
 				"interval": "3month",
 				"max": "2year"
 			},
-			"sample_only": [
-			],
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://54.148.242.195",
 				"port": 9200,
@@ -79,8 +78,7 @@
 				"interval": "3month",
 				"max": "2year"
 			},
-			"sample_only": [
-			],
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://54.148.242.195",
 				"port": 9200,
@@ -114,9 +112,12 @@
 				"interval": "week",
 				"max": "5week"
 			},
-			"sample_only": [
-				"try"
-			],
+			"sample_only": {
+				"and": [
+					{"eq": {"build.branch": "try"}},
+					{"ne": {"repo.push.user": "bclary@mozilla.com"}}
+				]
+			},
 			"elasticsearch": {
 				"host": "http://54.148.242.195",
 				"port": 9200,
@@ -150,7 +151,7 @@
 			},
 			"batch_size": 1000,
 			"queue_size": 2000,
-			"sample_only": ["try"],
+			"sample_only": {"eq": {"build.branch": "try"}},
 			"elasticsearch": {
 				"host": "http://54.148.242.195",
 				"port": 9200,

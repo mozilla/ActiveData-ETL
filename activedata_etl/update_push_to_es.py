@@ -83,7 +83,15 @@ def _start_indexer(config, instance, please_stop):
 def _stop_indexer(config, instance, please_stop):
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
-            conn.sudo("supervisorctl stop push_to_es:*")
+            result = conn.sudo("supervisorctl stop push_to_es:*")
+            if "unix:///tmp/supervisor.sock no such file" not in result:
+                return
+
+            result = conn.run("ps -eo pid,command | grep pypy")
+            for line in result:
+                if "/home/ec2-user/pypy/bin/pypy" in line:
+                    user, pid, rest = line.split(" ", 3)
+                    conn.run("kill -SIGINT "+pid)
 
     except Exception as e:
         Log.warning(
@@ -93,6 +101,18 @@ def _stop_indexer(config, instance, please_stop):
             ip=instance.ip_address,
             cause=e
         )
+
+
+def _restart_indexxer(conn):
+    result = conn.sudo("supervisorctl restart push_to_es:*")
+    if "unix:///tmp/supervisor.sock no such file" not in result:
+        return
+
+    result = conn.run("ps -eo pid,command | grep pypy")
+    for line in result:
+        if "/home/ec2-user/pypy/bin/pypy" in line:
+            user, pid, rest = line.split(" ", 3)
+            conn.run("kill -SIGINT "+pid)
 
 
 def _update_indexxer(config, instance, please_stop):
@@ -116,8 +136,7 @@ def _update_indexxer(config, instance, please_stop):
                     # RESTART ANYWAY, SO WE USE LATEST INDEX
                     conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
                     with conn.warn_only():
-                        conn.sudo("supervisorctl stop push_to_es:*")
-                        conn.sudo("supervisorctl start push_to_es:00")
+                        _restart_indexxer(conn)
     except Exception as e:
         Log.warning(
             "could not update {{instance_id}} ({{name}}) at {{ip}}",

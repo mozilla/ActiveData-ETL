@@ -67,7 +67,7 @@ def splitter(work_queue, please_stop):
                 continue
 
             if settings.sample_only:
-                sample_filter = {"terms": {"build.branch": settings.sample_only}}
+                sample_filter = settings.sample_only
             elif settings.sample_size:
                 sample_filter = True
             else:
