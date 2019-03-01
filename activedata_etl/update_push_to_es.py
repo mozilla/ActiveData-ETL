@@ -83,15 +83,7 @@ def _start_indexer(config, instance, please_stop):
 def _stop_indexer(config, instance, please_stop):
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
-            result = conn.sudo("supervisorctl stop push_to_es:*")
-            if "unix:///tmp/supervisor.sock no such file" not in result:
-                return
-
-            result = conn.run("ps -eo pid,command | grep pypy")
-            for line in result:
-                if "/home/ec2-user/pypy/bin/pypy" in line:
-                    user, pid, rest = line.split(" ", 3)
-                    conn.run("kill -SIGINT "+pid)
+            conn.sudo("supervisorctl stop push_to_es:*")
 
     except Exception as e:
         Log.warning(
@@ -108,16 +100,17 @@ def _restart_indexxer(conn):
     if "unix:///tmp/supervisor.sock no such file" not in result:
         return
 
+    # HUNT DOWN THE PROCESS AND TELL IT TO EXIT
     result = conn.run("ps -eo pid,command | grep pypy")
-    for line in result:
+    for line in result.stdout.split("\n"):
         if "/home/ec2-user/pypy/bin/pypy" in line:
-            user, pid, rest = line.split(" ", 3)
+            pid, _ = line.split(" ", 1)
             conn.run("kill -SIGINT "+pid)
 
 
 def _update_indexxer(config, instance, please_stop):
     Log.note(
-        "Reset {{instance_id}} ({{name}}) at {{ip}}",
+        "Reset indexing {{instance_id}} ({{name}}) at {{ip}}",
         instance_id=instance.id,
         name=instance.tags["Name"],
         ip=instance.ip_address
