@@ -909,7 +909,10 @@ KNOWN_TAGS = {
     "chunks.total",
     "chunks",
     "CI",
+    "context.firedBy",
+    "context.flattenedDeep",
     "context.flettenedDeep",
+    "context.taskId",
     "context.valueFromContext",
     "crater.crateName",
     "crater.toolchain.customSha",
@@ -968,12 +971,14 @@ KNOWN_TAGS = {
     "imageMeta.level",
     "include-version",
     "index.data.hello",
+    "index.data.nix_hash",
+    "index.data.revision",
     "index.expires",
     "index.rank",
     "installer_path",
     "l10n_changesets",
 
-    "label",  #
+    "label",
     "last-watershed",
     "link",
     "locations.mozharness",
@@ -1064,4 +1069,4 @@ def consume(props, key):
     return output
 
 
-UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'fxapom']
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom']

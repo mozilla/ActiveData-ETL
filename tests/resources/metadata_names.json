@@ -3,9 +3,9 @@
         "action": {"type": "build"},
         "build": {
             "platform": "android",
+            "train": "nightly",
             "type": ["opt"]
-        },
-        "run": {"trigger": "nightly"}
+        }
     },
     "build-android-aarch64/opt": {
         "action": {"type": "build"},
@@ -25,6 +25,7 @@
         "action": {"type": "build"},
         "build": {
             "platform": "android",
+            "train": "nightly",
             "type": ["opt"]
         }
     },
@@ -113,9 +114,9 @@
         "action": {"type": "build"},
         "build": {
             "platform": "android",
+            "train": "nightly",
             "type": ["opt"]
-        },
-        "run": {"trigger": "nightly"}
+        }
     },
     "build-android-x86-old-id/opt": {
         "action": {"type": "build"},
@@ -3004,6 +3005,19 @@
         },
         "run": {
             "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"}
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-nightly/opt-raptor-speedometer-fennec": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "nightly",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
             "framework": "raptor",
             "suite": {"name": "speedometer"}
         }
@@ -26228,7 +26242,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "cppunit"},
@@ -26239,7 +26253,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "crashtest"},
@@ -26250,7 +26264,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "firefox-ui-functional-local"},
@@ -26261,7 +26275,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "firefox-ui-functional-remote"},
@@ -26272,7 +26286,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "gtest"},
@@ -26283,7 +26297,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "jittest"},
@@ -26294,7 +26308,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26306,7 +26320,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26318,7 +26332,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "marionette"},
@@ -26329,7 +26343,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "marionette-headless"},
@@ -26340,7 +26354,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26352,7 +26366,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26364,7 +26378,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26376,7 +26390,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26388,7 +26402,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26400,7 +26414,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "mochitest-a11y"},
@@ -26411,7 +26425,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26423,7 +26437,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26435,7 +26449,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26447,7 +26461,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26459,7 +26473,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26471,7 +26485,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 6,
@@ -26483,7 +26497,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 7,
@@ -26495,7 +26509,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26507,7 +26521,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26519,7 +26533,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26531,7 +26545,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "mochitest-clipboard"},
@@ -26542,7 +26556,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26554,7 +26568,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26566,7 +26580,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26578,7 +26592,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26590,7 +26604,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26602,7 +26616,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 6,
@@ -26614,7 +26628,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 7,
@@ -26626,7 +26640,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 8,
@@ -26638,7 +26652,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "mochitest-gpu"},
@@ -26649,7 +26663,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26661,7 +26675,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26673,7 +26687,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26685,7 +26699,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26697,7 +26711,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26709,7 +26723,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26721,7 +26735,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26733,7 +26747,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26745,7 +26759,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26757,7 +26771,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26769,7 +26783,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26781,7 +26795,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26793,7 +26807,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 6,
@@ -26805,7 +26819,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 7,
@@ -26817,7 +26831,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26829,7 +26843,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26841,7 +26855,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -26853,7 +26867,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -26865,7 +26879,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -26877,7 +26891,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 6,
@@ -26889,7 +26903,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 7,
@@ -26901,7 +26915,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 8,
@@ -26913,7 +26927,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "test-verify"},
@@ -26924,7 +26938,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "test-verify-wpt"},
@@ -26935,7 +26949,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 1,
@@ -26947,7 +26961,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 10,
@@ -26959,7 +26973,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 11,
@@ -26971,7 +26985,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 12,
@@ -26983,7 +26997,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 2,
@@ -26995,7 +27009,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 3,
@@ -27007,7 +27021,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 4,
@@ -27019,7 +27033,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 5,
@@ -27031,7 +27045,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 6,
@@ -27043,7 +27057,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 7,
@@ -27055,7 +27069,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 8,
@@ -27067,7 +27081,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "chunk": 9,
@@ -27079,7 +27093,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "web-platform-tests-reftests"},
@@ -27090,7 +27104,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["debug", "ming32"]
+            "type": ["debug"]
         },
         "run": {
             "suite": {"name": "xpcshell"},
@@ -27101,7 +27115,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "cppunit"},
@@ -27112,7 +27126,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "crashtest"},
@@ -27123,7 +27137,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "firefox-ui-functional-local"},
@@ -27134,7 +27148,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "firefox-ui-functional-remote"},
@@ -27145,7 +27159,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "gtest"},
@@ -27156,7 +27170,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "jittest"},
@@ -27167,7 +27181,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27179,7 +27193,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27191,7 +27205,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "marionette"},
@@ -27202,7 +27216,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "marionette-headless"},
@@ -27213,7 +27227,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27225,7 +27239,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27237,7 +27251,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27249,7 +27263,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27261,7 +27275,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27273,7 +27287,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "mochitest-a11y"},
@@ -27284,7 +27298,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27296,7 +27310,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27308,7 +27322,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27320,7 +27334,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27332,7 +27346,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27344,7 +27358,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 6,
@@ -27356,7 +27370,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 7,
@@ -27368,7 +27382,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27380,7 +27394,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27392,7 +27406,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27404,7 +27418,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "mochitest-clipboard"},
@@ -27415,7 +27429,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27427,7 +27441,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27439,7 +27453,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27451,7 +27465,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27463,7 +27477,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27475,7 +27489,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 6,
@@ -27487,7 +27501,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 7,
@@ -27499,7 +27513,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 8,
@@ -27511,7 +27525,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "mochitest-gpu"},
@@ -27522,7 +27536,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27534,7 +27548,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27546,7 +27560,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27558,7 +27572,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27570,7 +27584,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27582,7 +27596,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27594,7 +27608,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27606,7 +27620,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27618,7 +27632,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27630,7 +27644,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27642,7 +27656,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27654,7 +27668,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27666,7 +27680,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27678,7 +27692,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 6,
@@ -27690,7 +27704,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 7,
@@ -27702,7 +27716,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 8,
@@ -27714,7 +27728,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27726,7 +27740,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27738,7 +27752,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27750,7 +27764,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27762,7 +27776,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27774,7 +27788,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 6,
@@ -27786,7 +27800,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 7,
@@ -27798,7 +27812,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 8,
@@ -27810,7 +27824,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "test-verify"},
@@ -27821,7 +27835,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "test-verify-wpt"},
@@ -27832,7 +27846,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 1,
@@ -27844,7 +27858,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 10,
@@ -27856,7 +27870,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 11,
@@ -27868,7 +27882,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 12,
@@ -27880,7 +27894,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 2,
@@ -27892,7 +27906,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 3,
@@ -27904,7 +27918,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 4,
@@ -27916,7 +27930,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 5,
@@ -27928,7 +27942,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 6,
@@ -27940,7 +27954,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 7,
@@ -27952,7 +27966,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 8,
@@ -27964,7 +27978,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "chunk": 9,
@@ -27976,7 +27990,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "web-platform-tests-reftests"},
@@ -27987,7 +28001,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "ming32"]
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "xpcshell"},
@@ -33242,6 +33256,14 @@
             "suite": {"name": "mochitest-plain-headless"}
         }
     },
+    "test-windows10-64/opt-mochitest-thunderbird": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {"suite": {"name": "mochitest-thunderbird"}}
+    },
     "test-windows10-64/opt-mochitest-webgl-1": {
         "action": {"type": "test"},
         "build": {
@@ -33866,6 +33888,18 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "xpcshell"}
+        }
+    },
+    "test-windows10-aarch64/opt-talos-tps-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "tps",
+            "type": ["e10s", "aarch64"]
         }
     },
     "test-windows7-32-devedition/opt-cppunit": {
@@ -40685,13 +40719,14 @@
         }
     },
     "test-windows7-32/opt-talos-bcv-e10s": {
-        "action": {"type": "test"},
+        "action": {"type": "perf"},
         "build": {
             "platform": "win32",
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "talos-bcv"},
+            "framework": "talos",
+            "suite": "bcv",
             "type": ["e10s"]
         }
     },

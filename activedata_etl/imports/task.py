@@ -211,11 +211,11 @@ CATEGORIES = {
             "action": {"type": "build"},
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
-            "run": {"trigger": "nightly"},
+            "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "run": {"trigger": "nightly"},
+            "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
     },
@@ -270,8 +270,9 @@ TEST_PLATFORM = {
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
-    "windows10-32": {"build": {"platform": "win32", "type": ["ming32"]}},
+    "windows10-32": {"build": {"platform": "win32"}},
     "windows10-64": {"build": {"platform": "win64"}},
+    "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
 }
 
@@ -384,6 +385,7 @@ TEST_SUITE = {
         "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-thunderbird",
         "mochitest-valgrind",
         "mochitest-webgl1-core",
         "mochitest-webgl1-ext",
@@ -399,7 +401,6 @@ TEST_SUITE = {
         "reftest-no-accel",
         "reftest-no-accel-fonts",
         "robocop",
-        "talos-bcv",
         "telemetry-tests-client",
         "test-coverage",
         "test-coverage-wpt",
@@ -443,6 +444,7 @@ BUILD_PLATFORM = {
 
 BUILD_OPTIONS = {
     "aarch64": {},
+    "aarch64-nightly": {"build": {"train": "nightly"}},
     "aarch64-msvc": {},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
@@ -468,7 +470,8 @@ BUILD_OPTIONS = {
     "mingwclang": {"build": {"compiler": ["clang"]}},
     "msvc": {},
     "noopt": {},
-    "nightly": {},
+    "nightly": {"build": {"train": "nightly"}},
+    "opt": {"build": {"type": ["opt"]}},
     "old-id": {},
     "pgo": {"build": {"type": ["pgo"]}},
     "plain": {},

@@ -396,6 +396,7 @@ KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "avcodec section sizes",
     "avutil section sizes",
+    "bcv",
     "Base Content Explicit",
     "Base Content Heap Unclassified",
     "Base Content JS",
@@ -470,6 +471,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "PermissionManager",
     "pull",  # VCS
     "purge",  # VCS
     "Quantum_1",
@@ -501,6 +503,7 @@ KNOWN_PERFHERDER_TESTS = [
     "svgr-disabled",
     "svgr",
     "tabpaint",
+    "tabswitch",
     "tart_flex",
     "tart",
     "TestStandardURL",
@@ -539,6 +542,7 @@ KNOWN_PERFHERDER_TESTS = [
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
+    "webconsole-metrics",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
     "xperf",
