@@ -107,15 +107,15 @@
 			"name": "unittest",
 			"batch_size": 1000,
 			"skip": 0,
-			"rollover":{
-				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
+			"rollover": {
+				"field": {"coalesce": ["build.date", "repo.push.date", "run.timestamp"]},
 				"interval": "week",
 				"max": "5week"
 			},
 			"sample_only": {
 				"and": [
 					{"eq": {"build.branch": "try"}},
-					{"ne": {"repo.push.user": "bclary@mozilla.com"}}
+					{"not": {"in": {"repo.push.user": ["bclary@mozilla.com", "bclary@bclary.com"]}}}
 				]
 			},
 			"elasticsearch": {
@@ -125,7 +125,7 @@
 				"type": "test_result",
 				"typed": true,
 				"timeout": 300,
-				"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/test_results.json"
 				},

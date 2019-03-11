@@ -115,7 +115,7 @@
 			"sample_only": {
 				"and": [
 					{"eq": {"build.branch": "try"}},
-					{"ne": {"repo.push.user": "bclary@mozilla.com"}}
+					{"not": {"in": {"repo.push.user": ["bclary@mozilla.com", "bclary@bclary.com"]}}}
 				]
 			},
 			"elasticsearch": {
