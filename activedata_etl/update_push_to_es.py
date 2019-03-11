@@ -105,7 +105,7 @@ def _restart_indexxer(conn):
     for line in result.stdout.split("\n"):
         if "/home/ec2-user/pypy/bin/pypy" in line:
             pid, _ = line.split(" ", 1)
-            conn.run("kill -SIGINT "+pid)
+            conn.run("kill -SIGINT " + pid)
 
 
 def _update_indexxer(config, instance, please_stop):
@@ -123,7 +123,7 @@ def _update_indexxer(config, instance, please_stop):
             _disable_oom_on_es(conn)
             with conn.cd("/home/ec2-user/ActiveData-ETL/"):
                 result = conn.run("git pull origin push-to-es6")
-                if "Already up-to-date." in result:
+                if "Already up-to-date." in result or "Already up to date." in result:
                     Log.note("No change required")
                 else:
                     # RESTART ANYWAY, SO WE USE LATEST INDEX
@@ -199,7 +199,7 @@ def main():
         else:
             raise Log.error("Expecting --start or --stop or --update")
 
-        for g, ii in jx.groupby(instances, size=20):
+        for g, ii in jx.groupby(instances, size=1):
             threads = [
                 Thread.run(i.name, method, settings.fabric, i)
                 for i in ii
@@ -215,5 +215,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
