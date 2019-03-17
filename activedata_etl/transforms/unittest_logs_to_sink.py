@@ -31,7 +31,7 @@ ACCESS_DENIED = "Access Denied to {{url}}"
 def last(l):
     if not l:
         return None
-    return l[-1]
+    return l[len(l)-1]
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
@@ -129,7 +129,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 def accumulate_logs(source_key, url, lines, suite_name, please_stop):
     accumulator = LogSummary(url)
     last_line_was_json = True
-    for line in lines:
+    for line_num, line in enumerate(lines):
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
@@ -158,7 +158,7 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
                 accumulator.stats.action[log.action] += 1
 
             if log.subtest:
-                accumulator.last_subtest = log.time
+                accumulator.end_time = log.time
         except Exception as e:
             e = Except.wrap(e)
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
@@ -198,24 +198,44 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
 class LogSummary(Data):
     def __init__(self, url):
         Data.__init__(self)
-        self.tests = Data()
-        self.logs = Data()
-        self.last_subtest = None
+        self.suite_name = None
+        self.tests = {}
+        self.logs = {}
+        self.start_time=None
+        self.end_time = None
         self.url = url
 
     def suite_start(self, log):
+        self.suite_name = log.name
+        self.start_time = log.time
         for k, v in log.items():
-            if k not in ["action", "tests", "time"]:
+            if k in KNOWN_SUITE_PROPERTIES:
                 setattr(self, k, v)
+            elif k in ["action", "tests", "time", "name"]:
+                pass
+            else:
+                KNOWN_SUITE_PROPERTIES.add(k)
+                Log.warning("do not know about new suite property {{name|quote}} in {{url}} ", name=k, url=self.url)
 
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[literal_field(log.test)] += [Data(
+        test = Data(
             test=log.test,
             start_time=log.time
-        )]
-        self.last_subtest = log.time
+        )
+        for k,v in log.items():
+            if k in KNOWN_TEST_PROPERTIES:
+                if v != None and v != "": test[k] = v
+            elif k in ["action", "test", "time"]:
+                pass
+            else:
+                KNOWN_TEST_PROPERTIES.add(k)
+                Log.warning("do not know about new test property {{name|quote}} in {{url}} ", name=k, url=self.url)
+
+        self.tests[log.test] += [test]
+        self.end_time = log.time
+
 
     def test_status(self, log):
         self.stats.action.test_status += 1
@@ -237,7 +257,7 @@ class LogSummary(Data):
         self.logs[literal_field(log.test)] += [log]
         test = self._get_test(log)
         test.stats.action.test_status += 1
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.stats[log.status.lower()] += 1
 
         if log.subtest:
@@ -275,7 +295,7 @@ class LogSummary(Data):
         self.logs[literal_field(log.test)] += [log]
         test = self._get_test(log)
         test.stats.action.log += 1
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.stats.action.log += 1
 
     def crash(self, log):
@@ -290,7 +310,7 @@ class LogSummary(Data):
         test.crash=True,
         test.result = log.status   #TODO: REMOVE ME AFTER November 2015
         test.status = log.status
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.missing_test_end = True
 
         #RECORD THE CRASH RESULTS
@@ -310,14 +330,14 @@ class LogSummary(Data):
         test.extra = test.extra
 
     def _get_test(self, log):
-        test = last(self.tests[literal_field(log.test)])
+        test = last(self.tests[log.test])
         if not test:
             test = Data(
                 test=log.test,
                 start_time=log.time,
                 missing_test_start=True
             )
-            self.tests[literal_field(log.test)] = [test]
+            self.tests[log.test] = [test]
         return test
 
     def suite_end(self, log):
@@ -327,12 +347,12 @@ class LogSummary(Data):
         self.tests = tests = wrap([vv for v in self.tests.values() for vv in v])
 
         for t in tests:
+            t.duration = t.end_time - t.start_time
             if t.status:
                 continue
 
             t.ok = False
-            t.end_time = t.last_log_time
-            t.duration = t.end_time - t.start_time
+
             t.missing_test_end = True
 
         self.stats.total = len(tests)
@@ -416,3 +436,20 @@ def fix_reftest_names(log):
     except Exception as e:
         Log.error("programming error", cause=e)
 
+
+KNOWN_SUITE_PROPERTIES = {
+    "extra",
+    "pid",
+    "run_info",
+    "source",
+    "thread",
+    "runinfo",
+}
+
+KNOWN_TEST_PROPERTIES = {
+    "pid",
+    "source",
+    "thread",
+    "js_source",
+    "jitflags"
+}
