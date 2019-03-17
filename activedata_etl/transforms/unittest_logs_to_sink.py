@@ -262,9 +262,9 @@ class LogSummary(object):
             ok = True if log.expected == None or log.expected == log.status else False
             if not ok:
                 if test.subtests:
-                    last = test.subtests.last()
-                    if last.name == log.subtest:
-                        last.repeat += 1
+                    last_test = last(test.subtests)
+                    if last_test.name == log.subtest:
+                        last_test.repeat += 1
                         return
 
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
@@ -306,7 +306,7 @@ class LogSummary(object):
         test = self._get_test(log)
         test.ok = False
         test.crash=True,
-        test.result = log.status   #TODO: REMOVE ME AFTER November 2015
+
         test.status = log.status
         test.end_time = log.time
         test.missing_test_end = True
@@ -442,6 +442,7 @@ KNOWN_SUITE_PROPERTIES = {
     "source",
     "thread",
     "runinfo",
+    "version_info"
 }
 
 KNOWN_TEST_PROPERTIES = {
