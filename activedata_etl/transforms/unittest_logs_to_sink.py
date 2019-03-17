@@ -443,7 +443,8 @@ KNOWN_SUITE_PROPERTIES = {
     "source",
     "thread",
     "runinfo",
-    "version_info"
+    "version_info",
+    "component"
 }
 
 KNOWN_TEST_PROPERTIES = {
