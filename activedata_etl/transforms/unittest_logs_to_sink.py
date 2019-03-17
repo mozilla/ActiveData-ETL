@@ -6,19 +6,16 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import division
-from __future__ import unicode_literals
-
-from mo_future import text_type
-from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
-from mo_json import json2value
-from mo_json import scrub
-from mo_logs import Log, strings, machine_metadata
-from mo_math import MAX, MIN
+from __future__ import division, unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from mo_dots import Data, Null, coalesce, set_default, wrap
+from mo_future import text_type
+from mo_json import json2value, scrub
+from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import Except
+from mo_math import MAX, MIN
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
@@ -195,15 +192,15 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
     return output
 
 
-class LogSummary(Data):
+class LogSummary(object):
     def __init__(self, url):
-        Data.__init__(self)
         self.suite_name = None
-        self.tests = {}
-        self.logs = {}
-        self.start_time=None
+        self.start_time = None
         self.end_time = None
         self.url = url
+        self.tests = {}
+        self.logs = {}
+        self.stats = Data()
 
     def suite_start(self, log):
         self.suite_name = log.name
@@ -233,7 +230,8 @@ class LogSummary(Data):
                 KNOWN_TEST_PROPERTIES.add(k)
                 Log.warning("do not know about new test property {{name|quote}} in {{url}} ", name=k, url=self.url)
 
-        self.tests[log.test] += [test]
+        tests = self.tests.setdefault(log.test, [])
+        tests.append(test)
         self.end_time = log.time
 
 
@@ -254,7 +252,7 @@ class LogSummary(Data):
             Log.warning("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
             return
 
-        self.logs[literal_field(log.test)] += [log]
+        self.logs.setdefault(log.test, []).append(log)
         test = self._get_test(log)
         test.stats.action.test_status += 1
         test.end_time = log.time
@@ -284,7 +282,7 @@ class LogSummary(Data):
     def process_output(self, log):
         self.stats.action.process_output += 1
         if log.test:
-            self.logs[literal_field(log.test)] += [log]
+            self.logs.setdefault(log.test, []).append(log)
         pass
 
     def log(self, log):
@@ -292,7 +290,7 @@ class LogSummary(Data):
         if not log.test:
             return
 
-        self.logs[literal_field(log.test)] += [log]
+        self.logs.setdefault(log.test, []).append(log)
         test = self._get_test(log)
         test.stats.action.log += 1
         test.end_time = log.time
@@ -303,7 +301,7 @@ class LogSummary(Data):
         if not log.test:
             log.test = "!!SUITE CRASH!!"
 
-        self.logs[literal_field(log.test)] += [log]
+        self.logs.setdefault(log.test, []).append(log)
 
         test = self._get_test(log)
         test.ok = False
@@ -318,7 +316,7 @@ class LogSummary(Data):
         # test.crash_result.action = None
 
     def test_end(self, log):
-        self.logs[literal_field(log.test)] += [log]
+        self.logs.setdefault(log.test, []).append(log)
         test = self._get_test(log)
         test.ok = True if log.expected == None or log.expected == log.status else False
         if not all(test.subtests.ok):
@@ -330,7 +328,7 @@ class LogSummary(Data):
         test.extra = test.extra
 
     def _get_test(self, log):
-        test = last(self.tests[log.test])
+        test = last(self.tests.get(log.test))
         if not test:
             test = Data(
                 test=log.test,
