@@ -22,7 +22,7 @@ from mo_times.timer import Timer
 from pyLibrary.env import git
 
 DEBUG = True
-ACCESS_DENIED = "Access Denied to {{url}}"
+ACCESS_DENIED = "Access Denied to {{url}} in {{key}}"
 
 
 def last(l):
@@ -124,7 +124,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 
 def accumulate_logs(source_key, url, lines, suite_name, please_stop):
-    accumulator = LogSummary(url)
+    accumulator = LogSummary(source_key, url)
     last_line_was_json = True
     for line_num, line in enumerate(lines):
         if please_stop:
@@ -161,7 +161,7 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 content = "\n".join(lines)
                 if "<Code>AccessDenied</Code>" in content:
-                    Log.error(ACCESS_DENIED, url=accumulator.url)
+                    Log.error(ACCESS_DENIED, url=accumulator.url, key=source_key)
                 else:
                     Log.error(TRY_AGAIN_LATER, reason="Remote content is not ready")
             prefix = strings.limit(line, 500)
@@ -193,11 +193,12 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
 
 
 class LogSummary(object):
-    def __init__(self, url):
+    def __init__(self, source_key, url):
+        self.source_key = source_key
+        self.url = url
         self.suite_name = None
         self.start_time = None
         self.end_time = None
-        self.url = url
         self.tests = {}
         self.logs = {}
         self.stats = Data()
@@ -212,7 +213,7 @@ class LogSummary(object):
                 pass
             else:
                 KNOWN_SUITE_PROPERTIES.add(k)
-                Log.warning("do not know about new suite property {{name|quote}} in {{url}} ", name=k, url=self.url)
+                Log.warning("do not know about new suite property {{name|quote}} in {{key}} ", name=k, key=self.source_key)
 
     def test_start(self, log):
         if isinstance(log.test, list):
@@ -228,7 +229,7 @@ class LogSummary(object):
                 pass
             else:
                 KNOWN_TEST_PROPERTIES.add(k)
-                Log.warning("do not know about new test property {{name|quote}} in {{url}} ", name=k, url=self.url)
+                Log.warning("do not know about new test property {{name|quote}} in  {{key}} ", name=k, key=self.source_key)
 
         tests = self.tests.setdefault(log.test, [])
         tests.append(test)
@@ -249,7 +250,7 @@ class LogSummary(object):
             #     "action": "test_status",
             #     "message": ""
             # }
-            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
+            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{key}} ", name=k, key=self.source_key)
             return
 
         self.logs.setdefault(log.test, []).append(log)
