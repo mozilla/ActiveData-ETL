@@ -315,6 +315,7 @@ RAPTOR_TEST = {
         "sunspider",
         "unity-webgl",
         "wasm-godot-baseline",
+        "wasm-godot-cranelift",
         "wasm-godot-ion",
         "wasm-godot",
         "wasm-misc-cranelift",

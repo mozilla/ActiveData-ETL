@@ -445,6 +445,7 @@ def fix_reftest_names(log):
 
 KNOWN_SUITE_PROPERTIES = {
     "component",
+    "device_info",
     "extra",
     "pid",
     "run_info",
