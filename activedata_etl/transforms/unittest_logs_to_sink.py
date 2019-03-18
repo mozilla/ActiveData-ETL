@@ -6,26 +6,29 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import division
-from __future__ import unicode_literals
-
-from mo_future import text_type
-from mo_dots import Data, wrap, coalesce, set_default, literal_field, Null
-from mo_json import json2value
-from mo_json import scrub
-from mo_logs import Log, strings, machine_metadata
-from mo_math import MAX, MIN
+from __future__ import division, unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from mo_dots import Data, Null, coalesce, set_default, wrap
+from mo_future import text_type
+from mo_json import json2value, scrub
+from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import Except
+from mo_math import MAX, MIN
 from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
 from pyLibrary.env import git
 
 DEBUG = True
-ACCESS_DENIED = "Access Denied to {{url}}"
+ACCESS_DENIED = "Access Denied to {{url}} in {{key}}"
+
+
+def last(l):
+    if not l:
+        return None
+    return l[len(l)-1]
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
@@ -121,9 +124,9 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
 
 
 def accumulate_logs(source_key, url, lines, suite_name, please_stop):
-    accumulator = LogSummary(url)
+    accumulator = LogSummary(source_key, url)
     last_line_was_json = True
-    for line in lines:
+    for line_num, line in enumerate(lines):
         if please_stop:
             Log.error("Shutdown detected.  Structured log iterator is stopped.")
         accumulator.stats.bytes += len(line) + 1  # INCLUDE THE \n THAT WOULD HAVE BEEN AT END OF EACH LINE
@@ -142,90 +145,23 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
 
             # FIX log.test TO BE A STRING
             if isinstance(log.test, list):
-                test_name = log.test
                 log.test = " ".join(log.test)
 
             if suite_name.startswith("reftest"):
-                try:
-                    # FIXES FOR REFTESTS
-                    if not log.test:
-                        pass
-                    elif "/jsreftest.html?test=" in log.test:
-                        # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
-                        log.test = log.test.split("/jsreftest.html?test=")[1]
-                    elif " == " in log.test and "/build/tests/reftest/tests/" in log.test:
-                        # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
-                        # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
-                        # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
-                        # about:blank == file:///Z:/task_1525695436/build/tests/reftest/tests/layout/reftests/reftest-sanity/blank.html
-                        sides = log.test.split(" == ")
-                        sides = [
-                            s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
-                            for s in sides
-                        ]
-                        log.test = " == ".join(sides)
-                    elif " != " in log.test and "/build/tests/reftest/tests/" in log.test:
-                        sides = log.test.split(" != ")
-                        sides = [
-                            s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
-                            for s in sides
-                        ]
-                        log.test = " != ".join(sides)
-                    elif " == " in log.test and ":8854/tests/" in log.test:
-                        # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
-                        lhs, rhs = log.test.split(" == ")
-                        log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
-                    elif " == " in log.test and ":8888/tests/" in log.test:
-                        # "view-source:http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2.html == http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2-ref.html
-                        lhs, rhs = log.test.split(" == ")
-                        log.test = lhs.split(":8888/tests/")[-1] + " == " + rhs.split(":8888/tests/")[-1]
-                    elif "/build/tests/reftest/tests/" in log.test:
-                        # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
-                        log.test = log.test.split("/build/tests/reftest/tests/")[1]
-                    elif " == " in log.test and log.test.startswith(("http://", "file:///")):
-                        # REMOVE host:port/timestamp/test_num/ PREFIX
-                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
-                        lhs, rhs = log.test.split(" == ")
-                        log.test = lhs.split("/")[-1] + " == " + rhs.split("/")[-1]
-                    elif " != " in log.test and log.test.startswith(("http://", "file:///")):
-                        # REMOVE host:port/timestamp/test_num/ PREFIX
-                        # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
-                        lhs, rhs = log.test.split(" != ")
-                        log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
-                    elif " != http://10.0.2.2:8888/tests/" in log.test:
-                        log.test = log.test.split(" != http://10.0.2.2:8888/tests/")[1]
-                    elif " == http://localhost:" in log.test:
-                        # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
-                        lhs, rhs = log.test.split(" == ")
-                        log.test = lhs + " == " + rhs.split("/")[-1]
-                    elif log.test.startswith(("http://")):
-                        # http://localhost:49391/1525812148499/12/752340.html
-                        log.test = log.test.split("/")[-1]
-                    elif log.test.startswith(("http://")):
-                        # http://localhost:49391/1525812148499/12/752340.html
-                        log.test = log.test.split("/")[-1]
-                    elif "about:blank" in log.test:
-                        pass  # IGNORE THIS
-                    else:
-                        Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
-
-                    if "task_" in log.test:
-                        Log.warning("did not scrub task name from test name: {{name}}", name=log.test)
-                except Exception as e:
-                    Log.error("programming error", cause=e)
+                fix_reftest_names(log)
             try:
                 accumulator.__getattribute__(log.action)(log)
             except AttributeError:
                 accumulator.stats.action[log.action] += 1
 
             if log.subtest:
-                accumulator.last_subtest = log.time
+                accumulator.end_time = log.time
         except Exception as e:
             e = Except.wrap(e)
             if line.startswith('<!DOCTYPE html>') or line.startswith('<?xml version="1.0"'):
                 content = "\n".join(lines)
                 if "<Code>AccessDenied</Code>" in content:
-                    Log.error(ACCESS_DENIED, url=accumulator.url)
+                    Log.error(ACCESS_DENIED, url=accumulator.url, key=source_key)
                 else:
                     Log.error(TRY_AGAIN_LATER, reason="Remote content is not ready")
             prefix = strings.limit(line, 500)
@@ -256,27 +192,50 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
     return output
 
 
-class LogSummary(Data):
-    def __init__(self, url):
-        Data.__init__(self)
-        self.tests = Data()
-        self.logs = Data()
-        self.last_subtest = None
+class LogSummary(object):
+    def __init__(self, source_key, url):
+        self.source_key = source_key
         self.url = url
+        self.suite_name = None
+        self.start_time = None
+        self.end_time = None
+        self.tests = {}
+        self.logs = {}
+        self.stats = Data()
 
     def suite_start(self, log):
+        self.suite_name = log.name
+        self.start_time = log.time
         for k, v in log.items():
-            if k not in ["action", "tests", "time"]:
+            if k in KNOWN_SUITE_PROPERTIES:
+                k = fix_suite_property_name(k)
                 setattr(self, k, v)
+            elif k in ["action", "tests", "time", "name"]:
+                pass
+            else:
+                KNOWN_SUITE_PROPERTIES.add(k)
+                Log.warning("do not know about new suite property {{name|quote}} in {{key}} ", name=k, key=self.source_key)
 
     def test_start(self, log):
         if isinstance(log.test, list):
             log.test = " ".join(log.test)
-        self.tests[literal_field(log.test)] = Data(
+        test = Data(
             test=log.test,
             start_time=log.time
         )
-        self.last_subtest=log.time
+        for k,v in log.items():
+            if k in KNOWN_TEST_PROPERTIES:
+                if v != None and v != "": test[k] = v
+            elif k in ["action", "test", "time"]:
+                pass
+            else:
+                KNOWN_TEST_PROPERTIES.add(k)
+                Log.warning("do not know about new test property {{name|quote}} in  {{key}} ", name=k, key=self.source_key)
+
+        tests = self.tests.setdefault(log.test, [])
+        tests.append(test)
+        self.end_time = log.time
+
 
     def test_status(self, log):
         self.stats.action.test_status += 1
@@ -292,28 +251,22 @@ class LogSummary(Data):
             #     "action": "test_status",
             #     "message": ""
             # }
-            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{url}}", url=self.url)
+            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{key}} ", name=k, key=self.source_key)
             return
 
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
+        self.logs.setdefault(log.test, []).append(log)
+        test = self._get_test(log)
         test.stats.action.test_status += 1
-        if not test:
-            self.tests[literal_field(log.test)] = test = Data(
-                test=log.test,
-                start_time=log.time,
-                missing_test_start=True
-            )
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.stats[log.status.lower()] += 1
 
         if log.subtest:
             ok = True if log.expected == None or log.expected == log.status else False
             if not ok:
                 if test.subtests:
-                    last = test.subtests.last()
-                    if last.name == log.subtest:
-                        last.repeat += 1
+                    last_test = last(test.subtests)
+                    if last_test.name == log.subtest:
+                        last_test.repeat += 1
                         return
 
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
@@ -331,7 +284,7 @@ class LogSummary(Data):
     def process_output(self, log):
         self.stats.action.process_output += 1
         if log.test:
-            self.logs[literal_field(log.test)] += [log]
+            self.logs.setdefault(log.test, []).append(log)
         pass
 
     def log(self, log):
@@ -339,39 +292,25 @@ class LogSummary(Data):
         if not log.test:
             return
 
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
+        self.logs.setdefault(log.test, []).append(log)
+        test = self._get_test(log)
         test.stats.action.log += 1
-        if not test:
-            self.tests[literal_field(log.test)] = test = wrap({
-                "test": log.test,
-                "start_time": log.time,
-                "missing_test_start": True,
-            })
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.stats.action.log += 1
 
     def crash(self, log):
         self.stats.action.crash += 1
         if not log.test:
-            test_name = "!!SUITE CRASH!!"
-        else:
-            test_name = literal_field(log.test)
+            log.test = "!!SUITE CRASH!!"
 
-        self.logs[test_name] += [log]
-        test = self.tests[test_name]
-        if not test:
-            self.tests[test_name] = test = Data(
-                test=log.test,
-                start_time=log.time,
-                crash=True,
-                missing_test_start=True
-            )
+        self.logs.setdefault(log.test, []).append(log)
 
+        test = self._get_test(log)
         test.ok = False
-        test.result = log.status   #TODO: REMOVE ME AFTER November 2015
+        test.crash=True,
+
         test.status = log.status
-        test.last_log_time = log.time
+        test.end_time = log.time
         test.missing_test_end = True
 
         #RECORD THE CRASH RESULTS
@@ -379,49 +318,150 @@ class LogSummary(Data):
         # test.crash_result.action = None
 
     def test_end(self, log):
-        self.logs[literal_field(log.test)] += [log]
-        test = self.tests[literal_field(log.test)]
-        if not test:
-            self.tests[literal_field(log.test)] = test = Data(
-                test=log.test,
-                start_time=log.time,
-                missing_test_start=True
-            )
-
+        self.logs.setdefault(log.test, []).append(log)
+        test = self._get_test(log)
         test.ok = True if log.expected == None or log.expected == log.status else False
         if not all(test.subtests.ok):
             test.ok = False
-        test.result = log.status   #TODO: REMOVE ME AFTER November 2015
         test.status = log.status
         test.expected = coalesce(log.expected, log.status)
         test.end_time = log.time
         test.duration = coalesce(test.end_time - test.start_time, log.extra.runtime)
         test.extra = test.extra
 
+    def _get_test(self, log):
+        test = last(self.tests.get(log.test))
+        if not test:
+            test = Data(
+                test=log.test,
+                start_time=log.time,
+                missing_test_start=True
+            )
+            self.tests[log.test] = [test]
+        return test
+
     def suite_end(self, log):
         pass
 
     def summary(self):
-        self.tests = tests = wrap(list(self.tests.values()))
+        self.tests = tests = wrap([vv for v in self.tests.values() for vv in v])
 
         for t in tests:
+            t.duration = t.end_time - t.start_time
             if t.status:
                 continue
 
-            t.result = "NONE"  #TODO Remove November 2015
-            t.status = "NONE"  #TODO Remove November 2015
             t.ok = False
-            t.end_time = t.last_log_time
-            t.duration = t.end_time - t.start_time
+
             t.missing_test_end = True
 
         self.stats.total = len(tests)
         # COUNT THE NUMBER OF EACH RESULT
-        try:
-            for t in tests:
-                self.stats.status[t.status.lower()] += 1
-        except Exception as e:
-            Log.error("problem", e)
+        for t in tests:
+            try:
+                if t.status:
+                    self.stats.status[t.status.lower()] += 1
+            except Exception as e:
+                Log.warning("problem with key {{key}}", key=self.source_key, cause=e)
+                break
 
         self.stats.ok = sum(1 for t in tests if t.ok)
         return self
+
+
+def fix_suite_property_name(k):
+    if k == "runinfo":
+        return "run_info"
+    return k
+
+
+def fix_reftest_names(log):
+    try:
+        # FIXES FOR REFTESTS
+        if not log.test:
+            pass
+        elif "/jsreftest.html?test=" in log.test:
+            # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
+            log.test = log.test.split("/jsreftest.html?test=")[1]
+        elif " == " in log.test and "/build/tests/reftest/tests/" in log.test:
+            # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
+            # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
+            # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
+            # about:blank == file:///Z:/task_1525695436/build/tests/reftest/tests/layout/reftests/reftest-sanity/blank.html
+            sides = log.test.split(" == ")
+            sides = [
+                s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
+                for s in sides
+            ]
+            log.test = " == ".join(sides)
+        elif " != " in log.test and "/build/tests/reftest/tests/" in log.test:
+            sides = log.test.split(" != ")
+            sides = [
+                s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
+                for s in sides
+            ]
+            log.test = " != ".join(sides)
+        elif " == " in log.test and ":8854/tests/" in log.test:
+            # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
+            lhs, rhs = log.test.split(" == ")
+            log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
+        elif " == " in log.test and ":8888/tests/" in log.test:
+            # "view-source:http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2.html == http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2-ref.html
+            lhs, rhs = log.test.split(" == ")
+            log.test = lhs.split(":8888/tests/")[-1] + " == " + rhs.split(":8888/tests/")[-1]
+        elif "/build/tests/reftest/tests/" in log.test:
+            # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
+            log.test = log.test.split("/build/tests/reftest/tests/")[1]
+        elif " == " in log.test and log.test.startswith(("http://", "file:///")):
+            # REMOVE host:port/timestamp/test_num/ PREFIX
+            # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+            lhs, rhs = log.test.split(" == ")
+            log.test = lhs.split("/")[-1] + " == " + rhs.split("/")[-1]
+        elif " != " in log.test and log.test.startswith(("http://", "file:///")):
+            # REMOVE host:port/timestamp/test_num/ PREFIX
+            # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
+            lhs, rhs = log.test.split(" != ")
+            log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
+        elif " != http://10.0.2.2:8888/tests/" in log.test:
+            log.test = log.test.split(" != http://10.0.2.2:8888/tests/")[1]
+        elif " == http://localhost:" in log.test:
+            # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
+            lhs, rhs = log.test.split(" == ")
+            log.test = lhs + " == " + rhs.split("/")[-1]
+        elif log.test.startswith(("http://")):
+            # http://localhost:49391/1525812148499/12/752340.html
+            log.test = log.test.split("/")[-1]
+        elif log.test.startswith(("http://")):
+            # http://localhost:49391/1525812148499/12/752340.html
+            log.test = log.test.split("/")[-1]
+        elif "about:blank" in log.test:
+            pass  # IGNORE THIS
+        else:
+            Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
+
+        if "task_" in log.test:
+            Log.warning("did not scrub task name from test name: {{name}}", name=log.test)
+    except Exception as e:
+        Log.error("programming error", cause=e)
+
+
+KNOWN_SUITE_PROPERTIES = {
+    "component",
+    "device_info",
+    "extra",
+    "pid",
+    "run_info",
+    "runinfo",
+    "source",
+    "thread",
+    "version_info",
+}
+
+KNOWN_TEST_PROPERTIES = {
+    "component",
+    "jitflags",
+    "js_source",
+    "pid",
+    "source",
+    "thread",
+}

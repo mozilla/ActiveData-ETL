@@ -150,7 +150,7 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome", "-geckoview", "-geckoview-power")):  # ACCEPT ALL RAPTOR NAMES,
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-firefox-live", "-chrome", "-geckoview", "-geckoview-power", "-fennec")):  # ACCEPT ALL RAPTOR NAMES,
                 metadata.run.browser = suite_name.split("-")[-1]
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
@@ -396,6 +396,7 @@ KNOWN_PERFHERDER_TESTS = [
     "a11yr",
     "avcodec section sizes",
     "avutil section sizes",
+    "bcv",
     "Base Content Explicit",
     "Base Content Heap Unclassified",
     "Base Content JS",
@@ -415,6 +416,7 @@ KNOWN_PERFHERDER_TESTS = [
     "compiler warnings",
     "cpstartup",
     "damp",
+    "debugger-metrics",
     "displaylist_mutate",
     "dromaeo_css",
     "dromaeo_dom",
@@ -449,6 +451,7 @@ KNOWN_PERFHERDER_TESTS = [
     "motionmark_htmlsuite",
     "motionmark, transformed",
     "motionmark",
+    "netmonitor-metrics",
     "octane-sm",
     "octane-v8",
     "other_nol64",
@@ -468,6 +471,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "PermissionManager",
     "pull",  # VCS
     "purge",  # VCS
     "Quantum_1",
@@ -490,6 +494,7 @@ KNOWN_PERFHERDER_TESTS = [
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
+    "startup_about_home_paint",
     "Strings",
     "stylebench",
     "Stylo",
@@ -499,6 +504,7 @@ KNOWN_PERFHERDER_TESTS = [
     "svgr-disabled",
     "svgr",
     "tabpaint",
+    "tabswitch",
     "tart_flex",
     "tart",
     "TestStandardURL",
@@ -534,9 +540,11 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvgr_opacity",
     "tsvg_static",
     "tsvgx",
+    "twinopen",
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
+    "webconsole-metrics",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
     "xperf",

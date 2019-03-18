@@ -43,7 +43,6 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
-
 def _refresh_etl(instance, settings, cw, please_stop):
     with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
 

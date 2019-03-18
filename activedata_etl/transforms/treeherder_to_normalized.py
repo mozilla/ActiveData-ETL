@@ -405,6 +405,7 @@ KNOWN_VALUES = [
     "Unknown: ",
     "\t--this-chunk=1 --total-chunks=1 -- ",
     "\t--setenv=MOZ_BROWSER_XHTML=1 -- ",
+    "\t--setenv=MOZ_QUIET=1 -- ",
 ]
 
 

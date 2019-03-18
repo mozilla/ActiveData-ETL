@@ -283,6 +283,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         if artifact_id:
             output.task.artifacts += [{"id": artifact_id}]
 
+        consume(task, "payload.artifactMap")
+
     except Exception as e:
         Log.warning("artifact format problem in {{key}}:\n{{artifact|json|indent}}", key=source_key, artifact=task.payload.artifacts, cause=e)
     output.task.cache = _object_to_array(task.payload.cache, "name", "path")
@@ -305,9 +307,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             if pair[0] == output.treeherder.machine.platform and output.treeherder.collection[pair[1]]:
                 pass
             else:
-                Log.warning("extra.treeherder platform does not match treeherder")
+                Log.warning("extra.treeherder platform does not match treeherder for key {{key}}", key=source_key)
         except Exception:
-            Log.warning("extra.treeherder platform does not match treeherder")
+            Log.warning("extra.treeherder platform does not match treeherder for key {{key}}", key=source_key)
 
     output.task.tags = get_tags(source_key, output.task.id, task)
 
@@ -546,11 +548,18 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     normalized.task.kind = consume(task, "tags.kind")
 
+    # BUILD TYPES ARE SEPARATED BY DASH (-) AND SLASH (/)
+    collection = normalized.treeherder.collection = wrap({
+        kkk: v
+        for k, v in treeherder.collection.items()
+        for kk in k.split("/")
+        for kkk in kk.split("-")
+    })
     for k, v in BUILD_TYPES.items():
-        if treeherder.collection[k]:
+        if collection[k]:
             normalized.build.type += v
 
-    diff = treeherder.collection.keys() - BUILD_TYPE_KEYS
+    diff = collection.keys() - BUILD_TYPE_KEYS
     if diff:
         Log.warning("new collection type of {{type}} while processing key {{key}}", type=diff, key=source_key)
 
@@ -713,6 +722,7 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
     (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60"): "mozilla-esr60",
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta"): "gecko-dev.git",
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release"): "gecko-dev.git",
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
 }
 
@@ -785,15 +795,12 @@ SIMPLER_PLATFORMS = {
 
 BUILD_TYPES = {
     "all": ["all"],
-    "arm-debug": ["debug", "arm"],
-    "arm-opt": ["opt", "arm"],
     "asan": ["asan"],
     "ccov": ["ccov"],
     "debug": ["debug"],
     "fips": ["fips"],
     "fuzz": ["fuzz"],
     "gyp": ["gyp"],
-    "gyp-asan": ["gyp", "asan"],
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
@@ -814,6 +821,7 @@ PAYLOAD_PROPERTIES = {
     "appVersion",
     "archive_domain",
     "artifactsTaskId",
+    "artifactMap",
     "balrog_api_root",
     "build_number",
     "chain",
@@ -832,6 +840,7 @@ PAYLOAD_PROPERTIES = {
     "dry_run",
     "encryptedEnv",
     "en_us_binary_url",
+    "expires",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "is_partner_repack_public",
@@ -880,12 +889,13 @@ PAYLOAD_PROPERTIES = {
 KNOWN_TAGS = {
     "action.name",
     "action.context",
-    "action.context.taskGroupId",
+    "action.context.clientId",
     "action.context.input.tasks",
+    "action.context.taskGroupId",
     "action.context.taskId",
+    "android-stuff",
     "aus-server",
     "archive-prefix",
-
     "branch-prefix",
     "build_props.build_number",
     "build_props.release_eta",
@@ -899,7 +909,10 @@ KNOWN_TAGS = {
     "chunks.total",
     "chunks",
     "CI",
+    "context.firedBy",
+    "context.flattenedDeep",
     "context.flettenedDeep",
+    "context.taskId",
     "context.valueFromContext",
     "crater.crateName",
     "crater.toolchain.customSha",
@@ -920,6 +933,7 @@ KNOWN_TAGS = {
 
     "notify.email.link.href",
     "notify.email.link.text",
+    "notify.ircChannelMessage",
     "en_us_installer_binary_url",
 
     "funsize.partials",
@@ -957,12 +971,14 @@ KNOWN_TAGS = {
     "imageMeta.level",
     "include-version",
     "index.data.hello",
+    "index.data.nix_hash",
+    "index.data.revision",
     "index.expires",
     "index.rank",
     "installer_path",
     "l10n_changesets",
 
-    "label",  #
+    "label",
     "last-watershed",
     "link",
     "locations.mozharness",
@@ -1053,4 +1069,4 @@ def consume(props, key):
     return output
 
 
-UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', ]
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom']

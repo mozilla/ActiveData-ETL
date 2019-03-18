@@ -567,7 +567,6 @@ BUILD_TYPES = [
     "ccov",   # C/C++ CODE COVERAGE
     "ubsan",  #
     "jsdcov"  # JAVASCRIPT CODE COVERAGE
-
 ]
 
 TEST_PLATFORMS = {
@@ -613,7 +612,7 @@ TEST_PLATFORMS = {
     "Ubuntu TSAN VM large 12.04 x64": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["tsan"]}},
     "Ubuntu HW 12.04": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux32"}},
     "Ubuntu HW 12.04 x64": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
-    "Ubuntu HW 12.04 x64 qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
+    "Ubuntu HW 12.04 x64 qr": {"run": {"type": ["qr"], "machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "Ubuntu HW 12.04 x64 stylo": {"run": {"machine": {"os": "ubuntu"}, "type":["stylo"]}, "build": {"platform": "linux64"}},
     "Ubuntu HW 12.04 x64 stylo-sequential": {"run": {"machine": {"os": "ubuntu"}, "type":["stylo"]}, "build": {"platform": "linux64", "type": ["sequential"]}},
     "Ubuntu HW 12.04 x64 devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
@@ -769,7 +768,7 @@ KNOWN_PLATFORM = {
     "ubuntu64-asan_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux64", "type": ["asan"]}},
     "ubuntu64_hw": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_hw_devedition": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["devedition"]}},
-    "ubuntu64_hw_qr": {"run": {"machine": {"os": "ubuntu"}}, "build": {"platform": "linux64", "type": ["qr"]}},
+    "ubuntu64_hw_qr": {"run": {"type": ["qr"], "machine": {"os": "ubuntu"}}, "build": {"platform": "linux64"}},
     "ubuntu64_hw_stylo": {"run": {"machine": {"os": "ubuntu"}, "type": ["stylo"]}, "build": {"platform": "linux64"}},
     "ubuntu64_hw_styloseq": {"run": {"machine": {"os": "ubuntu"}, "type": ["stylo"]}, "build": {"platform": "linux64", "type": ["sequential"]}},
     "ubuntu32_vm": {"run": {"machine": {"os": "ubuntu", "type": "vm"}}, "build": {"platform": "linux32"}},

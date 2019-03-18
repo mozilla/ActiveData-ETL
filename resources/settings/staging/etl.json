@@ -352,9 +352,9 @@
 			{
 				"log_type": "elasticsearch",
 				"host": [
-					"http://172.31.1.114",
-					"http://172.31.1.72",
-					"http://172.31.1.95"
+					"http://172.31.1.122",
+					"http://172.31.1.7",
+					"http://172.31.1.139"
 				],
 				"index": "debug-etl",
 				"type": "etl",
