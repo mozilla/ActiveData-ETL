@@ -357,11 +357,12 @@ class LogSummary(object):
 
         self.stats.total = len(tests)
         # COUNT THE NUMBER OF EACH RESULT
-        try:
-            for t in tests:
+        for t in tests:
+            try:
                 self.stats.status[t.status.lower()] += 1
-        except Exception as e:
-            Log.error("problem", e)
+            except Exception as e:
+                Log.warning("problem", e)
+                break
 
         self.stats.ok = sum(1 for t in tests if t.ok)
         return self
