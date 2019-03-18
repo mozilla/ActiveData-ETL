@@ -361,7 +361,7 @@ class LogSummary(object):
             try:
                 self.stats.status[t.status.lower()] += 1
             except Exception as e:
-                Log.warning("problem", e)
+                Log.warning("problem with key {{key}}", key=self.source_key, cause=e)
                 break
 
         self.stats.ok = sum(1 for t in tests if t.ok)

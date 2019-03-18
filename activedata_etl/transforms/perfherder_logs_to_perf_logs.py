@@ -150,7 +150,7 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-firefox-live", "-chrome", "-geckoview", "-geckoview-power")):  # ACCEPT ALL RAPTOR NAMES,
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-firefox-live", "-chrome", "-geckoview", "-geckoview-power", "-fennec")):  # ACCEPT ALL RAPTOR NAMES,
                 metadata.run.browser = suite_name.split("-")[-1]
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
