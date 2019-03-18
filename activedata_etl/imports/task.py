@@ -317,6 +317,7 @@ RAPTOR_TEST = {
         "wasm-godot-baseline",
         "wasm-godot-ion",
         "wasm-godot",
+        "wasm-misc-cranelift",
         "wasm-misc-baseline",
         "wasm-misc-ion",
         "wasm-misc",
@@ -341,7 +342,6 @@ def match_tp6(name):
 
 RAPTOR_TEST["tp6"] = match_tp6
 RAPTOR_TEST["tp6m"] = match_tp6
-
 
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
@@ -444,6 +444,7 @@ BUILD_PLATFORM = {
 
 BUILD_OPTIONS = {
     "aarch64": {},
+    "aarch64-eme": {},
     "aarch64-nightly": {"build": {"train": "nightly"}},
     "aarch64-msvc": {},
     "add-on-devel": {},
@@ -501,6 +502,7 @@ TEST_OPTIONS = set_default({
     "msvc": {"run": {"type": ["msvc"]}},
     "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
     "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+    "shippable": {},
     "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
     "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
     "ux": {"run": {"type": ["ux"]}},

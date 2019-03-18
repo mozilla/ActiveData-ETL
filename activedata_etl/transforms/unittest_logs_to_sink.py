@@ -208,6 +208,7 @@ class LogSummary(object):
         self.start_time = log.time
         for k, v in log.items():
             if k in KNOWN_SUITE_PROPERTIES:
+                k = fix_suite_property_name(k)
                 setattr(self, k, v)
             elif k in ["action", "tests", "time", "name"]:
                 pass
@@ -366,6 +367,12 @@ class LogSummary(object):
         return self
 
 
+def fix_suite_property_name(k):
+    if k == "runinfo":
+        return "run_info"
+    return k
+
+
 def fix_reftest_names(log):
     try:
         # FIXES FOR REFTESTS
@@ -437,20 +444,21 @@ def fix_reftest_names(log):
 
 
 KNOWN_SUITE_PROPERTIES = {
+    "component",
     "extra",
     "pid",
     "run_info",
+    "runinfo",
     "source",
     "thread",
-    "runinfo",
     "version_info",
-    "component"
 }
 
 KNOWN_TEST_PROPERTIES = {
+    "component",
+    "jitflags",
+    "js_source",
     "pid",
     "source",
     "thread",
-    "js_source",
-    "jitflags"
 }

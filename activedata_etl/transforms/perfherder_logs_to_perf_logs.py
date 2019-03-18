@@ -150,7 +150,7 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-chrome", "-geckoview", "-geckoview-power")):  # ACCEPT ALL RAPTOR NAMES,
+            if suite_name.startswith("raptor-") and suite_name.endswith(("-firefox", "-firefox-live", "-chrome", "-geckoview", "-geckoview-power")):  # ACCEPT ALL RAPTOR NAMES,
                 metadata.run.browser = suite_name.split("-")[-1]
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
@@ -494,6 +494,7 @@ KNOWN_PERFHERDER_TESTS = [
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
+    "startup_about_home_paint",
     "Strings",
     "stylebench",
     "Stylo",
@@ -539,6 +540,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvgr_opacity",
     "tsvg_static",
     "tsvgx",
+    "twinopen",
     "update_sparse",  #VCS
     "update",  # VCS
     "v8_7",
