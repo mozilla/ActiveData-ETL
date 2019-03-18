@@ -300,6 +300,13 @@
             "type": ["opt"]
         }
     },
+    "build-win64-aarch64-eme/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        }
+    },
     "build-win64-aarch64-msvc/opt": {
         "action": {"type": "build"},
         "build": {
@@ -15743,6 +15750,19 @@
             "type": ["e10s"]
         }
     },
+    "test-linux64-pgo/opt-raptor-wasm-misc-cranelift-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "wasm-misc-cranelift"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux64-pgo/opt-reftest-1": {
         "action": {"type": "test"},
         "build": {
@@ -17849,6 +17869,18 @@
             "chunk": 8,
             "suite": {"name": "xpcshell"},
             "type": ["qr", "chunked"]
+        }
+    },
+    "test-linux64-shippable/opt-mochitest-plain-headless-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-plain-headless"},
+            "type": ["e10s", "chunked"]
         }
     },
     "test-linux64-stylo-disabled/debug-browser-screenshots": {
@@ -30617,6 +30649,20 @@
             "type": ["opt"]
         },
         "run": {"suite": {"name": "xpcshell"}}
+    },
+    "test-windows10-64-pgo-qr/opt-raptor-tp6-5-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "pgo"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 5,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["e10s", "qr"]
+        }
     },
     "test-windows10-64-pgo-qr/opt-reftest-e10s-1": {
         "action": {"type": "test"},
