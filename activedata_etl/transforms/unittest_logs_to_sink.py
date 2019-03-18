@@ -359,7 +359,8 @@ class LogSummary(object):
         # COUNT THE NUMBER OF EACH RESULT
         for t in tests:
             try:
-                self.stats.status[t.status.lower()] += 1
+                if t.status:
+                    self.stats.status[t.status.lower()] += 1
             except Exception as e:
                 Log.warning("problem with key {{key}}", key=self.source_key, cause=e)
                 break
