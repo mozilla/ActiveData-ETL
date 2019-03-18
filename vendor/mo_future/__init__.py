@@ -7,13 +7,10 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 import json
 import sys
-
 
 PY3 = sys.version_info[0] == 3
 PY2 = sys.version_info[0] == 2
@@ -36,6 +33,7 @@ if PY3:
     from configparser import ConfigParser
     from itertools import zip_longest
     from functools import reduce
+    import builtins as __builtin__
 
     izip = zip
     zip_longest = itertools.zip_longest
@@ -43,7 +41,7 @@ if PY3:
     text_type = str
     string_types = str
     binary_type = bytes
-    integer_types = int
+    integer_types = (int, )
     number_types = (int, float)
     long = int
     unichr = chr
@@ -56,7 +54,8 @@ if PY3:
         type(_gen()),
         type(filter(lambda x: True, [])),
         type({}.items()),
-        type({}.values())
+        type({}.values()),
+        type(map(lambda: 0, []))
     )
     unichr = chr
 
@@ -93,6 +92,18 @@ if PY3:
 
     def sort_using_key(data, key):
         return sorted(data, key=key)
+
+    def first(values):
+        try:
+            return iter(values).__next__()
+        except StopIteration:
+            return None
+
+    def is_text(t):
+        return t.__class__ is str
+
+    def is_binary(b):
+        return b.__class__ is bytes
 
     utf8_json_encoder = json.JSONEncoder(
         skipkeys=False,
@@ -163,6 +174,18 @@ else:
         #     ((key(d), d) for d in data),
         #     lambda a, b: (1 if (a[0]>b[0]) else (-1 if (a[0]<b[0]) else 0))
         # )
+
+    def first(values):
+        try:
+            return iter(values).next()
+        except StopIteration:
+            return None
+
+    def is_text(t):
+        return t.__class__ is unicode
+
+    def is_binary(b):
+        return b.__class__ is str
 
     utf8_json_encoder = json.JSONEncoder(
         skipkeys=False,
@@ -239,4 +262,4 @@ else:
                 d[key] = value
             return d
 
-
+_keep_imports = (ConfigParser, zip_longest, reduce, transpose, izip, HTMLParser, urlparse, StringIO, BytesIO, allocate_lock, get_ident, start_new_thread, interrupt_main)

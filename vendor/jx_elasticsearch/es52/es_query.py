@@ -5,14 +5,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http:# mozilla.org/MPL/2.0/.
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
-
-from collections import Mapping
+from __future__ import absolute_import, division, unicode_literals
 
 from jx_elasticsearch.es52.expressions import ES52
-from mo_dots import startswith_field
+from jx_elasticsearch.es52.util import MATCH_ALL
+from mo_dots import is_data, is_list, startswith_field
 from mo_future import text_type
 from mo_json import value2json
 from mo_logs import Log
@@ -71,6 +68,9 @@ class ExprAggs(Aggs):
     def __init__(self, name, expr, select):
         Aggs.__init__(self, name)
         self.expr = expr
+        if not select:
+            Log.error("Expecting a select")
+
         self.selects = [select]
 
     def __eq__(self, other):
@@ -97,11 +97,29 @@ class ExprAggs(Aggs):
         return output
 
 
+class CountAggs(Aggs):
+    # DO A DOC COUNT
+
+    def __init__(self, select):
+        Aggs.__init__(self, None)
+        if not select:
+            Log.error("Expecting a select")
+        self.selects = [select]
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        return all(s is t for s, t in zip(self.selects, other.selects))
+
+    def to_es(self, schema, query_path="."):
+        return None  # NO NEED TO WRITE ANYTHING
+
+
 class FilterAggs(Aggs):
     def __init__(self, name, filter, decoder):
         Aggs.__init__(self, name)
         self.filter = filter
-        if isinstance(filter, Mapping):
+        if is_data(filter):
             Log.error("programming error")
         self.decoders = [decoder] if decoder else []
 
@@ -128,32 +146,12 @@ class FilterAggs(Aggs):
         return output
 
 
-class ComplexAggs(FilterAggs):
-    """
-    FOR COMPLICATED AGGREGATIONS
-    """
-
-    def __init__(self, select):
-        Aggs.__init__(self, "_filter")
-        self.expr = {"filter": {"match_all": {}}}
-        self.selects = [select]
-
-    def to_es(self, schema, query_path="."):
-        self.expr['aggs'] = Aggs.to_es(self, schema, query_path).get('aggs')
-        return self.expr
-
-    def copy(self):
-        output = Aggs.copy(self)
-        output.expr = self.expr
-        return output
-
-
 class FiltersAggs(Aggs):
     def __init__(self, name, filters, decoder):
         Aggs.__init__(self, name)
         self.filters = filters
         self.decoders = [decoder] if decoder else []
-        if not isinstance(filters, list):
+        if not is_list(filters):
             Log.error("expecting a list")
 
     def __eq__(self, other):

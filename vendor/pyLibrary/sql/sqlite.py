@@ -8,28 +8,27 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
+from mo_future import is_text, is_binary
+from collections import Mapping, namedtuple
 import os
 import re
 import sys
-from collections import Mapping, namedtuple
 
-from mo_dots import Data, coalesce, unwraplist, Null
+from mo_dots import Data, coalesce, unwraplist
 from mo_files import File
 from mo_future import allocate_lock as _allocate_lock, text_type
-from mo_json import INTEGER, NUMBER, BOOLEAN, STRING, OBJECT, NESTED
+from mo_json import BOOLEAN, INTEGER, NESTED, NUMBER, OBJECT, STRING
 from mo_kwargs import override
 from mo_logs import Log
-from mo_logs.exceptions import Except, extract_stack, ERROR, format_trace
+from mo_logs.exceptions import ERROR, Except, extract_stack, format_trace
 from mo_logs.strings import quote
 from mo_math.stats import percentile
-from mo_threads import Queue, Thread, Lock, Till
+from mo_threads import Lock, Queue, Thread, Till
 from mo_times import Date, Duration, Timer
 from pyLibrary import convert
-from pyLibrary.sql import DB, SQL, SQL_TRUE, SQL_FALSE, SQL_NULL, SQL_SELECT, sql_iso, sql_list
+from pyLibrary.sql import DB, SQL, SQL_FALSE, SQL_NULL, SQL_SELECT, SQL_TRUE, sql_iso, sql_list
 
 DEBUG = False
 TRACE = True
@@ -41,7 +40,7 @@ TOO_LONG_TO_HOLD_TRANSACTION = 10
 _sqlite3 = None
 _load_extension_warning_sent = False
 _upgraded = False
-known_databases = {Null: None}
+known_databases = {None: None}
 
 
 def _upgrade():
@@ -323,7 +322,7 @@ class Sqlite(DB):
                     with self.locker:
                         if self.too_long is None:
                             self.too_long = Till(seconds=TOO_LONG_TO_HOLD_TRANSACTION)
-                            self.too_long.on_go(self.show_transactions_blocked_warning)
+                            self.too_long.then(self.show_transactions_blocked_warning)
                         self.delayed_queries.append(command_item)
                     return
             elif self.transaction_stack and self.transaction_stack[-1] not in [transaction, transaction.parent]:
@@ -331,7 +330,7 @@ class Sqlite(DB):
                 with self.locker:
                     if self.too_long is None:
                         self.too_long = Till(seconds=TOO_LONG_TO_HOLD_TRANSACTION)
-                        self.too_long.on_go(self.show_transactions_blocked_warning)
+                        self.too_long.then(self.show_transactions_blocked_warning)
                     self.delayed_transactions.append(command_item)
                 return
             else:
@@ -497,7 +496,7 @@ def quote_column(column_name, table=None):
     if isinstance(column_name, SQL):
         return column_name
 
-    if not isinstance(column_name, text_type):
+    if not is_text(column_name):
         Log.error("expecting a name")
     if table != None:
         return SQL(" d" + quote(table) + "." + quote(column_name) + " ")
@@ -514,7 +513,7 @@ def quote_value(value):
         return SQL(text_type(value.unix))
     elif isinstance(value, Duration):
         return SQL(text_type(value.seconds))
-    elif isinstance(value, text_type):
+    elif is_text(value):
         return SQL("'" + value.replace("'", "''") + "'")
     elif value == None:
         return SQL_NULL
@@ -532,7 +531,7 @@ def quote_list(list):
 def join_column(a, b):
     a = quote_column(a)
     b = quote_column(b)
-    return SQL(a.template.rstrip() + "." + b.template.lstrip())
+    return SQL(a.value.rstrip() + "." + b.value.lstrip())
 
 
 BEGIN = "BEGIN"

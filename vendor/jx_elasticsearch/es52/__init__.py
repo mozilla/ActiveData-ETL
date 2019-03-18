@@ -7,30 +7,26 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
-import itertools
-
-from mo_future import sort_using_key
-
-from jx_base import container, Column
+from jx_base import Column, container
 from jx_base.container import Container
 from jx_base.dimensions import Dimension
 from jx_base.expressions import jx_expression
+from jx_base.language import is_op
 from jx_base.query import QueryOp
 from jx_elasticsearch.es52.aggs import es_aggsop, is_aggsop
-from jx_elasticsearch.es52.deep import is_deepop, es_deepop
-from jx_elasticsearch.es52.setop import is_setop, es_setop
+from jx_elasticsearch.es52.deep import es_deepop, is_deepop
+from jx_elasticsearch.es52.setop import es_setop, is_setop
 from jx_elasticsearch.es52.util import aggregates
 from jx_elasticsearch.meta import ElasticsearchMetadata, Table
 from jx_python import jx
-from mo_dots import Data, unwrap, coalesce, split_field, join_field, wrap, listwrap, startswith_field
-from mo_json import value2json, OBJECT, EXISTS
+from mo_dots import Data, coalesce, is_list, join_field, listwrap, split_field, startswith_field, unwrap, wrap
+from mo_future import sort_using_key
+from mo_json import EXISTS, OBJECT, value2json
 from mo_json.typed_encoder import EXISTS_TYPE
 from mo_kwargs import override
-from mo_logs import Log, Except
+from mo_logs import Except, Log
 from mo_times import Date
 from pyLibrary.env import elasticsearch, http
 
@@ -52,9 +48,10 @@ class ES52(Container):
     def __init__(
         self,
         host,
-        index,
+        index,  # THE NAME OF THE SNOWFLAKE (IF WRITING)
+        alias=None,  # THE NAME OF THE SNOWFLAKE (FOR READING)
         type=None,
-        name=None,
+        name=None,  # THE FULL NAME OF THE TABLE (THE NESTED PATH INTO THE SNOWFLAKE)
         port=9200,
         read_only=True,
         timeout=None,  # NUMBER OF SECONDS TO WAIT FOR RESPONSE, OR SECONDS TO WAIT FOR DOWNLOAD (PASSED TO requests)
@@ -68,17 +65,18 @@ class ES52(Container):
                 "type": "elasticsearch",
                 "settings": unwrap(kwargs)
             }
+        self.edges = Data()  # SET EARLY, SO OTHER PROCESSES CAN REQUEST IT
+        self.worker = None
         self.settings = kwargs
-        self.name = name = coalesce(name, index)
+        self._namespace = ElasticsearchMetadata(kwargs=kwargs)
+        self.name = name = self._namespace._find_alias(coalesce(alias, index, name))
         if read_only:
-            self.es = elasticsearch.Alias(alias=index, kwargs=kwargs)
+            self.es = elasticsearch.Alias(alias=name, index=None, kwargs=kwargs)
         else:
             self.es = elasticsearch.Cluster(kwargs=kwargs).get_index(read_only=read_only, kwargs=kwargs)
 
-        self._namespace = ElasticsearchMetadata(kwargs=kwargs)
+        self._ensure_max_result_window_set(name)
         self.settings.type = self.es.settings.type
-        self.edges = Data()
-        self.worker = None
 
         columns = self.snowflake.columns  # ABSOLUTE COLUMNS
         is_typed = any(c.es_column == EXISTS_TYPE for c in columns)
@@ -93,13 +91,14 @@ class ES52(Container):
 
         if not typed:
             # ADD EXISTENCE COLUMNS
-            all_paths = {".": None}  # MAP FROM path TO parent TO MAKE A TREE
+            all_paths = {'.': None}  # MAP FROM path TO parent TO MAKE A TREE
 
             def nested_path_of(v):
-                if not v:
-                    return []
+                parent = all_paths[v]
+                if parent is None:
+                    return ['.']
                 else:
-                    return [v] + nested_path_of(all_paths[v])
+                    return [parent] + nested_path_of(parent)
 
             all = sort_using_key(set(step for path in self.snowflake.query_paths for step in path), key=lambda p: len(split_field(p)))
             for step in sorted(all):
@@ -113,15 +112,13 @@ class ES52(Container):
                                 best = candidate
                     all_paths[step] = best
             for p in all_paths.keys():
-                nested_path = nested_path_of(all_paths[p])
-                if not nested_path:
-                    nested_path = ['.']
+                nested_path = nested_path_of(p)
                 self.namespace.meta.columns.add(Column(
                     name=p,
                     es_column=p,
                     es_index=self.name,
                     es_type=OBJECT,
-                    jx_type=EXISTS,
+                    jx_type=OBJECT,
                     nested_path=nested_path,
                     last_updated=Date.now()
                 ))
@@ -167,6 +164,18 @@ class ES52(Container):
     def url(self):
         return self.es.url
 
+    def _ensure_max_result_window_set(self, name):
+        # TODO : CHECK IF THIS IS ALREADY SET, IT TAKES TOO LONG
+        for i, s in self.es.cluster.get_metadata().indices.items():
+            if name == i or name in s.aliases:
+                if s.settings.index.max_result_window != '100000' or s.settings.index.max_inner_result_window != '100000':
+                    Log.note("setting max_result_window")
+                    self.es.cluster.put("/" + name + "/_settings", data={"index": {
+                        "max_inner_result_window": 100000,
+                        "max_result_window": 100000
+                    }})
+                    break
+
     def query(self, _query):
         try:
             query = QueryOp.wrap(_query, container=self, namespace=self.namespace)
@@ -180,7 +189,7 @@ class ES52(Container):
                     )
 
             frum = query["from"]
-            if isinstance(frum, QueryOp):
+            if is_op(frum, QueryOp):
                 result = self.query(frum)
                 q2 = query.copy()
                 q2.frum = result
@@ -201,7 +210,7 @@ class ES52(Container):
             Log.error("problem", e)
 
     def addDimension(self, dim):
-        if isinstance(dim, list):
+        if is_list(dim):
             Log.error("Expecting dimension to be a object, not a list:\n{{dim}}",  dim= dim)
         self._addDimension(dim, [])
 
@@ -265,7 +274,6 @@ class ES52(Container):
             response = self.es.cluster.post(
                 es_index.path + "/" + "_bulk",
                 data=content,
-                headers={"Content-Type": "application/json"},
                 timeout=self.settings.timeout,
                 params={"wait_for_active_shards": self.settings.wait_for_active_shards}
             )

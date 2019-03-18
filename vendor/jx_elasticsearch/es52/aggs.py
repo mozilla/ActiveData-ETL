@@ -14,23 +14,23 @@ from collections import deque
 from jx_base.domains import SetDomain
 from jx_base.expressions import NULL, TupleOp, Variable as Variable_
 from jx_base.query import DEFAULT_LIMIT
+from jx_base.language import is_op
 from jx_elasticsearch import post as es_post
 from jx_elasticsearch.es52.decoders import AggsDecoder
-from jx_elasticsearch.es52.es_query import Aggs, ComplexAggs, ExprAggs, FilterAggs, NestedAggs, TermsAggs, simplify
+from jx_elasticsearch.es52.es_query import Aggs, ExprAggs, FilterAggs, NestedAggs, TermsAggs, simplify, CountAggs
 from jx_elasticsearch.es52.expressions import AndOp, ES52, split_expression_by_path
 from jx_elasticsearch.es52.painless import Painless
 from jx_elasticsearch.es52.setop import get_pull_stats
 from jx_elasticsearch.es52.util import aggregates
 from jx_python import jx
 from jx_python.expressions import jx_expression_to_function
-from jx_python.jx import first
-from mo_dots import Data, Null, coalesce, join_field, listwrap, literal_field, unwrap, unwraplist, wrap
-from mo_future import text_type
+from mo_dots import Data, Null, coalesce, join_field, listwrap, literal_field, unwrap, unwraplist, wrap, concat_field
+from mo_future import first, is_text, text_type
 from mo_json import EXISTS, NESTED, OBJECT
 from mo_json.typed_encoder import encode_property
 from mo_logs import Log
 from mo_logs.strings import expand_template, quote
-from mo_math import Math
+import mo_math
 from mo_times.timer import Timer
 
 DEBUG = False
@@ -179,7 +179,7 @@ def es_aggsop(es, frum, query):
     new_select = Data()  # MAP FROM canonical_name (USED FOR NAMES IN QUERY) TO SELECT MAPPING
     formula = []
     for s in select:
-        if isinstance(s.value, Variable_):
+        if is_op(s.value, Variable_):
             s.query_path = query_path
             if s.aggregate == "count":
                 new_select["count_"+literal_field(s.value.var)] += [s]
@@ -211,7 +211,7 @@ def es_aggsop(es, frum, query):
                         if column.nested_path[0] == query_path:
                             canonical_names.append("doc_count")
                             acc.add(NestedAggs(column.nested_path[0]).add(
-                                ComplexAggs(s)
+                                CountAggs(s)
                             ))
                     else:
                         canonical_names.append("value")
@@ -237,9 +237,9 @@ def es_aggsop(es, frum, query):
                     Log.error("Do not know how to count columns with more than one type (script probably)")
                 # ES USES DIFFERENT METHOD FOR PERCENTILES
                 key = canonical_name + " percentile"
-                if isinstance(s.percentile, text_type) or s.percetile < 0 or 1 < s.percentile:
+                if is_text(s.percentile) or s.percetile < 0 or 1 < s.percentile:
                     Log.error("Expecting percentile to be a float from 0.0 to 1.0")
-                percent = Math.round(s.percentile * 100, decimal=6)
+                percent = mo_math.round(s.percentile * 100, decimal=6)
 
                 acc.add(ExprAggs(key, {"percentiles": {
                     "field": first(columns).es_column,
@@ -256,17 +256,18 @@ def es_aggsop(es, frum, query):
                 if len(columns) > 1:
                     Log.error("Do not know how to count columns with more than one type (script probably)")
                 # REGULAR STATS
-                stats_name = literal_field(canonical_name)
-                complex = ComplexAggs(s).add(ExprAggs(canonical_name, {"extended_stats": {"field": first(columns).es_column}}, None))
+                acc.add(ExprAggs(canonical_name, {"extended_stats": {"field": first(columns).es_column}}, s))
+                s.pull = get_pull_stats()
+
                 # GET MEDIAN TOO!
-                median_name = literal_field(canonical_name + "_percentile")
-                complex.add(ExprAggs(canonical_name + "_percentile", {"percentiles": {
+                select_median = s.copy()
+                select_median.pull = jx_expression_to_function({"select": [{"name": "median", "value": "values.50\\.0"}]})
+
+                acc.add(ExprAggs(canonical_name + "_percentile", {"percentiles": {
                     "field": first(columns).es_column,
                     "percents": [50]
-                }}, None))
+                }}, select_median))
 
-                acc.add(complex)
-                s.pull = get_pull_stats(stats_name, median_name)
             elif s.aggregate == "union":
                 for column in columns:
                     script = {"scripted_metric": {
@@ -326,7 +327,7 @@ def es_aggsop(es, frum, query):
             Log.error("do not know how to handle")
 
         canonical_name = s.name
-        if isinstance(s.value, TupleOp):
+        if is_op(s.value, TupleOp):
             if s.aggregate == "count":
                 # TUPLES ALWAYS EXIST, SO COUNTING THEM IS EASY
                 s.pull = jx_expression_to_function("doc_count")
@@ -367,7 +368,7 @@ def es_aggsop(es, frum, query):
         elif s.aggregate == "percentile":
             # ES USES DIFFERENT METHOD FOR PERCENTILES THAN FOR STATS AND COUNT
             key = literal_field(canonical_name + " percentile")
-            percent = Math.round(s.percentile * 100, decimal=6)
+            percent = mo_math.round(s.percentile * 100, decimal=6)
             nest.add(ExprAggs(key, {"percentiles": {
                 "script": text_type(Painless[s.value].to_es_script(schema)),
                 "percents": [percent]
@@ -380,16 +381,18 @@ def es_aggsop(es, frum, query):
             s.pull = jx_expression_to_function("value")
         elif s.aggregate == "stats":
             # REGULAR STATS
-            stats_name = canonical_name
-            nest.add(ComplexAggs(s).add(ExprAggs(stats_name, {"extended_stats": {"script": text_type(Painless[s.value].to_es_script(schema))}}, None)))
+            nest.add(ExprAggs(canonical_name, {"extended_stats": {"script": text_type(Painless[s.value].to_es_script(schema))}}, s))
+            s.pull = get_pull_stats()
 
             # GET MEDIAN TOO!
-            median_name = canonical_name + " percentile"
-            nest.add(ExprAggs(median_name, {"percentiles": {
+            select_median = s.copy()
+            select_median.pull = jx_expression_to_function({"select": [{"name": "median", "value": "values.50\\.0"}]})
+
+            nest.add(ExprAggs(canonical_name + "_percentile", {"percentiles": {
                 "script": text_type(Painless[s.value].to_es_script(schema)),
                 "percents": [50]
-            }}, s))
-            s.pull = get_pull_stats(None, stats_name, median_name)
+            }}, select_median))
+            s.pull = get_pull_stats()
         elif s.aggregate == "union":
             # USE TERMS AGGREGATE TO SIMULATE union
             nest.add(TermsAggs(canonical_name, {"script_field": text_type(Painless[s.value].to_es_script(schema))}, s))
@@ -470,6 +473,10 @@ def drill(agg):
 def _children(agg, children):
     for child in children:
         name = child.name
+        if name is None:
+            yield None, agg, child, None
+            continue
+
         v = agg[name]
         if name == "_match":
             for i, b in enumerate(v.get("buckets", EMPTY_LIST)):
@@ -545,8 +552,13 @@ def count_dim(aggs, es_query, decoders):
 
         for child in children:
             name = child.name
+            if not name:
+                if aggs.get('doc_count') != 0:
+                    _count_dim(parts, aggs, child)
+                continue
+
             agg = aggs[name]
-            if agg.get('doc_count')==0:
+            if agg.get('doc_count') == 0:
                 continue
             elif name == "_match":
                 for i, b in enumerate(agg.get("buckets", EMPTY_LIST)):
