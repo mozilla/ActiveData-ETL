@@ -17,7 +17,7 @@ from mo_future import text_type
 from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
-from mo_math import Math, MAX, MIN
+from mo_math import MAX, MIN, ceiling, log10
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import aws
@@ -124,7 +124,7 @@ def get_all_s3(in_es, in_range, settings):
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
     max_allowed = MAX([settings.range.max, MAX(in_es)])
-    extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
+    extra_digits = ceiling(log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
     prefix = text_type(max(in_range - in_es))[:-extra_digits]

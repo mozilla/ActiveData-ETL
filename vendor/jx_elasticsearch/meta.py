@@ -35,7 +35,7 @@ from pyLibrary.env import elasticsearch
 from pyLibrary.env.elasticsearch import _get_best_type_from_mapping, es_type_to_json_type
 
 DEBUG = False
-ENABLE_META_SCAN = True
+ENABLE_META_SCAN = False
 TOO_OLD = 24*HOUR
 OLD_METADATA = MINUTE
 MAX_COLUMN_METADATA_AGE = 12 * HOUR

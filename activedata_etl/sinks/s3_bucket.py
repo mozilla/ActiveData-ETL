@@ -18,7 +18,7 @@ from mo_future import text_type
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
-from mo_math import Math
+from mo_math import ceiling
 from mo_times.timer import Timer
 from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
@@ -48,7 +48,7 @@ class S3Bucket(object):
         return set(metas.key)
 
     def find_keys(self, start, count, filter=None):
-        digits = int(Math.ceiling(log10(count - 1)))
+        digits = int(ceiling(log10(count - 1)))
         prefix = text_type(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
