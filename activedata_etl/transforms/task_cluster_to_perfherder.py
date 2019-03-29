@@ -181,7 +181,7 @@ def extract_perfherder(
 
             log_line = strings.strip(log_line[s + len(prefix) :])
             try:
-                log_line = log_line.split("\\n' err=b'' timestamp='")[0]
+                log_line = log_line.split("\\n' err=b'' timestamp='")[0]  # PERFHERDER LINE IN A TRING
                 perf = json2value(log_line, leaves=False, flexible=False)
             except Exception as e:
                 Log.warning(

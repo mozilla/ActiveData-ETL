@@ -252,7 +252,7 @@ class LogSummary(object):
             #     "action": "test_status",
             #     "message": ""
             # }
-            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{key}} ", name=k, key=self.source_key)
+            Log.warning("Log has blank 'test' property! Do not know how to handle. In {{key}} ", key=self.source_key)
             return
 
         self.logs.setdefault(log.test, []).append(log)
@@ -270,6 +270,10 @@ class LogSummary(object):
                         last_test.repeat += 1
                         return
 
+                message = scrub(log.message)
+                if isinstance(message, text_type):
+                    message = strings.limit(message, 6000)
+                    
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
                 test.subtests += [{
                     "name": log.subtest,
@@ -278,7 +282,7 @@ class LogSummary(object):
                     "status": log.status.lower(),
                     "expected": log.expected.lower(),
                     "timestamp": log.time,
-                    "message": scrub(log.message),
+                    "message": message,
                     "ordering": len(test.subtests)
                 }]
 
