@@ -86,6 +86,8 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
 
                         continue
                     seen, more_perf = extract_perfherder(
+                        source_key,
+                        log_url,
                         response.get_all_lines(flexible=True),
                         etl_task,
                         etl_header_gen,
@@ -124,7 +126,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
     return output
 
 
-def extract_perfherder(all_log_lines, etl_job, etl_header_gen, please_stop, pulse_record):
+def extract_perfherder(source_key, url, all_log_lines, etl_job, etl_header_gen, please_stop, pulse_record):
     perfherder_exists = False
     all_perf = []
     line_number = Null
@@ -147,7 +149,7 @@ def extract_perfherder(all_log_lines, etl_job, etl_header_gen, please_stop, puls
             try:
                 perf = json2value(log_line, leaves=False, flexible=False)
             except Exception as e:
-                Log.warning("can not process perfherder line {{line}}", line=log_line, cause=e)
+                Log.warning("can not process perfherder line {{line|quote}} in file {{file}} for key {{key}}", line=log_line, file=url, key=source_key, cause=e)
                 continue
 
             if "TALOS" in prefix:
