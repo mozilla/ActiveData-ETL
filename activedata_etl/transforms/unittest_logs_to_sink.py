@@ -149,10 +149,12 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
 
             if suite_name.startswith("reftest"):
                 fix_reftest_names(log)
+
+            accumulator.stats.action[log.action] += 1
             try:
                 accumulator.__getattribute__(log.action)(log)
             except AttributeError:
-                accumulator.stats.action[log.action] += 1
+                pass
 
             if log.subtest:
                 accumulator.end_time = log.time
@@ -238,7 +240,6 @@ class LogSummary(object):
 
 
     def test_status(self, log):
-        self.stats.action.test_status += 1
         if not log.test:
             # {
             #     "status": "PASS",
@@ -282,13 +283,11 @@ class LogSummary(object):
                 }]
 
     def process_output(self, log):
-        self.stats.action.process_output += 1
         if log.test:
             self.logs.setdefault(log.test, []).append(log)
         pass
 
     def log(self, log):
-        self.stats.action.log += 1
         if not log.test:
             return
 
@@ -299,7 +298,6 @@ class LogSummary(object):
         test.stats.action.log += 1
 
     def crash(self, log):
-        self.stats.action.crash += 1
         if not log.test:
             log.test = "!!SUITE CRASH!!"
 
@@ -357,12 +355,12 @@ class LogSummary(object):
 
         self.stats.total = len(tests)
         # COUNT THE NUMBER OF EACH RESULT
-        for t in tests:
+        for i, t in enumerate(tests):
             try:
                 if t.status:
                     self.stats.status[t.status.lower()] += 1
             except Exception as e:
-                Log.warning("problem with key {{key}}", key=self.source_key, cause=e)
+                Log.warning("problem with key {{key}} on item {{i}}", key=self.source_key, i=i, cause=e)
                 break
 
         self.stats.ok = sum(1 for t in tests if t.ok)

@@ -87,7 +87,7 @@ NOT_STRUCTURED_LOGS = [
     ".test_packages.json",
     "/xvfb.log",
     "/xsession-errors.log",
-    "/resource-usage.json",
+    "resource-usage.json",
     ".html",
     ".pom.sha1",
     ".pom",
