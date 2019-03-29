@@ -144,7 +144,11 @@ def extract_perfherder(all_log_lines, etl_job, etl_header_gen, please_stop, puls
                 continue
 
             log_line = strings.strip(log_line[s + len(prefix):])
-            perf = json2value(log_line, leaves=False, flexible=False)
+            try:
+                perf = json2value(log_line, leaves=False, flexible=False)
+            except Exception as e:
+                Log.warning("can not process perfherder line {{line}}", line=log_line, cause=e)
+                continue
 
             if "TALOS" in prefix:
                 for t in perf:
@@ -157,6 +161,7 @@ def extract_perfherder(all_log_lines, etl_job, etl_header_gen, please_stop, puls
                     t.task = pulse_record
                     _, t.etl = etl_header_gen.next(etl_job, name="PerfHerder")
                 all_perf.extend(perf.suites)
+
     except Exception as e:
         Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
     return perfherder_exists, all_perf

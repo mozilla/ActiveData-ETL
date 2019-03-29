@@ -16,7 +16,7 @@ import requests
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.task import decode_metatdata_name, minimize_task
-from activedata_etl.imports.text_log import process_tc_live_log
+from activedata_etl.imports.text_log import process_tc_live_backing_log
 from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
@@ -105,7 +105,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for a in artifacts:
                 a.url = strings.expand_template(TC_ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
-                if a.name.endswith("/live.log"):
+                if a.name.endswith("/live_backing.log"):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception as e:
@@ -167,7 +167,7 @@ def read_actions(source_key, normalized, url):
         return
     try:
         all_log_lines = http.get(url).get_all_lines(encoding=Null)
-        normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
+        normalized.action = process_tc_live_backing_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
         if "Connection broken: error(104," in e:
