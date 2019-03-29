@@ -13,9 +13,9 @@ from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from activedata_etl.transforms.pulse_block_to_perfherder_logs import PERFHERDER_PREFIXES
-from mo_dots import Data, wrap, Null, unwraplist, FlatList
+from mo_dots import Data, FlatList, Null, unwraplist, wrap
 from mo_future import text_type
-from mo_json import json2value, utf82unicode
+from mo_json import json2value
 from mo_logs import Log, strings, suppress_exception
 from mo_times import Date
 from mo_times.timer import Timer
@@ -57,10 +57,12 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         i=i,
                         num=len(perf.suites),
                         framework=perf.framework.name,
-                        url=artifact.url
+                        url=artifact.url,
                     )
 
-            log_url = wrap([a.url for a in artifacts if a.name.endswith("/live_backing.log")])[0]
+            log_url = wrap(
+                [a.url for a in artifacts if a.name.endswith("/live_backing.log")]
+            )[0]
 
             # PULL PERFHERDER/TALOS OUT OF LOG
             if log_url:
@@ -74,15 +76,24 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                             dest_bucket.get_key(k)
                             output |= {k}  # FOR DENSITY CALCULATIONS
                         except Exception:
-                            _, dest_etl = etl_header_gen.next(etl_task, name="PerfHerder", url=log_url, error="PerfHerder log missing")
-                            output |= dest_bucket.extend([{
-                                "id": etl2key(dest_etl),
-                                "value": {
-                                    "etl": dest_etl,
-                                    "task": pulse_record,
-                                    "is_empty": True
-                                }
-                            }])
+                            _, dest_etl = etl_header_gen.next(
+                                etl_task,
+                                name="PerfHerder",
+                                url=log_url,
+                                error="PerfHerder log missing",
+                            )
+                            output |= dest_bucket.extend(
+                                [
+                                    {
+                                        "id": etl2key(dest_etl),
+                                        "value": {
+                                            "etl": dest_etl,
+                                            "task": pulse_record,
+                                            "is_empty": True,
+                                        },
+                                    }
+                                ]
+                            )
 
                         continue
                     seen, more_perf = extract_perfherder(
@@ -92,7 +103,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                         etl_task,
                         etl_header_gen,
                         please_stop,
-                        pulse_record
+                        pulse_record,
                     )
                     all_perf.extend(more_perf)
                 except Exception as e:
@@ -108,25 +119,48 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 i=i,
                 framework=unwraplist(list(set(all_perf.framework.name))),
                 num=len(all_perf),
-                url=log_url
+                url=log_url,
             )
-            output |= dest_bucket.extend([{"id": etl2key(t.etl), "value": t} for t in all_perf])
+            output |= dest_bucket.extend(
+                [{"id": etl2key(t.etl), "value": t} for t in all_perf]
+            )
         else:
-            Log.note("Found zero PerfHerder records while processing {{key}} {{i}}: {{url}}", key=source_key, i=i, url=log_url)
+            Log.note(
+                "Found zero PerfHerder records while processing {{key}} {{i}}: {{url}}",
+                key=source_key,
+                i=i,
+                url=log_url,
+            )
             _, dest_etl = etl_header_gen.next(etl_task, name="PerfHerder")
-            output |= dest_bucket.extend([{
-                "id": etl2key(dest_etl),
-                "value": {
-                    "etl": {"id": 0, "source": dest_etl, "timestamp": Date.now()},
-                    "task": pulse_record,
-                    "is_empty": True
-                }
-            }])
+            output |= dest_bucket.extend(
+                [
+                    {
+                        "id": etl2key(dest_etl),
+                        "value": {
+                            "etl": {
+                                "id": 0,
+                                "source": dest_etl,
+                                "timestamp": Date.now(),
+                            },
+                            "task": pulse_record,
+                            "is_empty": True,
+                        },
+                    }
+                ]
+            )
 
     return output
 
 
-def extract_perfherder(source_key, url, all_log_lines, etl_job, etl_header_gen, please_stop, pulse_record):
+def extract_perfherder(
+    source_key,
+    source_url,
+    all_log_lines,
+    etl_job,
+    etl_header_gen,
+    please_stop,
+    pulse_record,
+):
     perfherder_exists = False
     all_perf = []
     line_number = Null
@@ -145,11 +179,18 @@ def extract_perfherder(source_key, url, all_log_lines, etl_job, etl_header_gen, 
             else:
                 continue
 
-            log_line = strings.strip(log_line[s + len(prefix):])
+            log_line = strings.strip(log_line[s + len(prefix) :])
             try:
+                # log_line = log_line.split("\\n' err=b'' timestamp='")[0]
                 perf = json2value(log_line, leaves=False, flexible=False)
             except Exception as e:
-                Log.warning("can not process perfherder line {{line|quote}} in file {{file}} for key {{key}}", line=log_line, file=url, key=source_key, cause=e)
+                Log.warning(
+                    "can not process perfherder line {{line|quote}} in file {{file}} for key {{key}}",
+                    line=log_line,
+                    file=source_url,
+                    key=source_key,
+                    cause=e,
+                )
                 continue
 
             if "TALOS" in prefix:
@@ -165,5 +206,10 @@ def extract_perfherder(source_key, url, all_log_lines, etl_job, etl_header_gen, 
                 all_perf.extend(perf.suites)
 
     except Exception as e:
-        Log.error("Can not read line after #{{num}}\nPrevious line = {{line|quote}}", num=line_number, line=log_line, cause=e)
+        Log.error(
+            "Can not read line after #{{num}}\nPrevious line = {{line|quote}}",
+            num=line_number,
+            line=log_line,
+            cause=e,
+        )
     return perfherder_exists, all_perf
