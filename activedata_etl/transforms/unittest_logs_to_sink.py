@@ -273,7 +273,7 @@ class LogSummary(object):
                 message = scrub(log.message)
                 if isinstance(message, text_type):
                     message = strings.limit(message, 6000)
-                    
+
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
                 test.subtests += [{
                     "name": log.subtest,
