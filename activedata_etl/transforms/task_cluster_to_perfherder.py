@@ -183,6 +183,8 @@ def extract_perfherder(
             try:
                 if "}\\n' err=b" in log_line:
                     log_line = log_line.split("\\n' err=b")[0]  # PERFHERDER LINE IN A STRING
+                if "} (timestamp='" in log_line:
+                    log_line = log_line.split(" (timestamp='")[0]  # PERFHERDER LINE FOLLOWED BY TIMESTAMP
                 perf = json2value(log_line, leaves=False, flexible=False)
             except Exception as e:
                 Log.warning(
