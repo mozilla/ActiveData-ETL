@@ -151,6 +151,6 @@ class TuidClient(object):
                         self.enabled = False
                         Log.error("TUID service has problems.", cause=e)
                     else:
-                        Log.warning("TUID service has problems.", cause=e)
+                        Log.alert("TUID service has problems.", cause=e)
                         Till(seconds=SLEEP_ON_ERROR).wait()
                 return found
