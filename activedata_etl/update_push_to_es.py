@@ -104,13 +104,13 @@ def _restart_indexxer(conn):
     result = conn.run("ps -eo pid,command | grep pypy")
     for line in result.stdout.split("\n"):
         if "/home/ec2-user/pypy/bin/pypy" in line:
-            pid, _ = line.split(" ", 1)
+            pid, _ = line.strip().split(" ", 1)
             conn.run("kill -SIGINT " + pid)
 
 
 def _update_indexxer(config, instance, please_stop):
     Log.note(
-        "Reset indexing {{instance_id}} ({{name}}) at {{ip}}",
+        "Update indexing {{instance_id}} ({{name}}) at {{ip}}",
         instance_id=instance.id,
         name=instance.tags["Name"],
         ip=instance.ip_address
@@ -123,13 +123,13 @@ def _update_indexxer(config, instance, please_stop):
             _disable_oom_on_es(conn)
             with conn.cd("/home/ec2-user/ActiveData-ETL/"):
                 result = conn.run("git pull origin push-to-es6")
-                if "Already up-to-date." in result or "Already up to date." in result:
-                    Log.note("No change required")
-                else:
-                    # RESTART ANYWAY, SO WE USE LATEST INDEX
-                    conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
-                    with conn.warn_only():
-                        _restart_indexxer(conn)
+                # if "Already up-to-date." in result or "Already up to date." in result:
+                #     Log.note("No change required")
+                # else:
+                # RESTART ANYWAY, SO WE USE LATEST INDEX
+                conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+                with conn.warn_only():
+                    _restart_indexxer(conn)
     except Exception as e:
         Log.warning(
             "could not update {{instance_id}} ({{name}}) at {{ip}}",
