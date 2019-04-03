@@ -9,7 +9,10 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
+
 from boto import ec2 as boto_ec2
+from pyLibrary import convert
 
 from jx_python import jx
 from mo_collections import UniqueIndex
@@ -95,17 +98,23 @@ def _stop_indexer(config, instance, please_stop):
         )
 
 
+WHITESPACE = re.compile(r"\s+")
+
+
 def _restart_indexxer(conn):
     result = conn.sudo("supervisorctl restart push_to_es:*")
     if "unix:///tmp/supervisor.sock no such file" not in result:
         return
 
     # HUNT DOWN THE PROCESS AND TELL IT TO EXIT
-    result = conn.run("ps -eo pid,command | grep pypy")
+    result = conn.run("ps -eo pid,%cpu,%mem,command | grep pypy")
     for line in result.stdout.split("\n"):
         if "/home/ec2-user/pypy/bin/pypy" in line:
-            pid, _ = line.strip().split(" ", 1)
-            conn.run("kill -SIGINT " + pid)
+            pid, cpu, mem, _ = WHITESPACE.split(line.strip(), 3)
+            if float(cpu) < 10:  # ASSUME THIS IS NOT WORKING (WE SHOULD LOOK AT THE LOGS)
+                conn.run("kill -9 " + pid)
+            else:
+                conn.run("kill -SIGINT " + pid)
 
 
 def _update_indexxer(config, instance, please_stop):
@@ -123,13 +132,13 @@ def _update_indexxer(config, instance, please_stop):
             _disable_oom_on_es(conn)
             with conn.cd("/home/ec2-user/ActiveData-ETL/"):
                 result = conn.run("git pull origin push-to-es6")
-                # if "Already up-to-date." in result or "Already up to date." in result:
-                #     Log.note("No change required")
-                # else:
-                # RESTART ANYWAY, SO WE USE LATEST INDEX
-                conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
-                with conn.warn_only():
-                    _restart_indexxer(conn)
+                if "Already up-to-date." in result or "Already up to date." in result:
+                    Log.note("No change required")
+                else:
+                    # RESTART ANYWAY, SO WE USE LATEST INDEX
+                    conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+                    with conn.warn_only():
+                        _restart_indexxer(conn)
     except Exception as e:
         Log.warning(
             "could not update {{instance_id}} ({{name}}) at {{ip}}",
