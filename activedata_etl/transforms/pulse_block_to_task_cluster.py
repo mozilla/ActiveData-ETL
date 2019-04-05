@@ -1031,6 +1031,7 @@ KNOWN_TAGS = {
     "npmCache.expires",
     "objective",
     "os",
+    "override-certs",
     "owner",
     "partial_versions",
     "partials",
