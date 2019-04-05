@@ -452,6 +452,8 @@ NEW_MOZLOG_END_STEP = [
     re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] (.*) ()summary:"),
     re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Finished (.*) step \((.*)\)")  # example: [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
 ]
+
+# 16:16:40     INFO - [mozharness: 2019-03-29 16:16:40.033128Z] Config File 1: test/test.json
 NEW_MOZLOG_IGNORE_STEP = [
     re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Config File"),
     re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Not from any config file"),

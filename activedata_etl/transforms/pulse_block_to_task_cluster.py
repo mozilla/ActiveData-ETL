@@ -814,7 +814,6 @@ BUILD_TYPES = {
 }
 
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
-
 PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
@@ -823,6 +822,7 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "artifactMap",
     "balrog_api_root",
+    "bouncer_products",
     "build_number",
     "chain",
     "CHANNEL",
@@ -854,8 +854,11 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
+
     "platforms",
+    "publish_rules",
     "purpose",
+    "release_eta"
     "release_name",
     "release_promotion",
 
@@ -1069,4 +1072,4 @@ def consume(props, key):
     return output
 
 
-UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom']
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom', 'reference-browser', 'fenix']

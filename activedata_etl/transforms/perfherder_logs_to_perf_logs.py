@@ -18,7 +18,17 @@ import mo_math
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from jx_python import jx
-from mo_dots import literal_field, Data, FlatList, coalesce, unwrap, set_default, listwrap, unwraplist, wrap
+from mo_dots import (
+    literal_field,
+    Data,
+    FlatList,
+    coalesce,
+    unwrap,
+    set_default,
+    listwrap,
+    unwraplist,
+    wrap,
+)
 from mo_future import text_type
 from mo_json import json2value
 from mo_logs import Log
@@ -58,15 +68,22 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl_source = perfherder_record.etl
 
             if perfherder_record.suites:
-                Log.error("Should not happen, perfherder storage iterates through the suites")
+                Log.error(
+                    "Should not happen, perfherder storage iterates through the suites"
+                )
 
             if perfherder_record.pulse:
-                metadata = transform_buildbot(source_key, perfherder_record.pulse, resources)
+                metadata = transform_buildbot(
+                    source_key, perfherder_record.pulse, resources
+                )
                 perfherder_record.pulse = None
             elif perfherder_record.task or perfherder_record.is_empty:
                 metadata, perfherder_record.task = perfherder_record.task, None
             else:
-                Log.warning("Expecting some task/job information. key={{key}}", key=perfherder_record._id)
+                Log.warning(
+                    "Expecting some task/job information. key={{key}}",
+                    key=perfherder_record._id,
+                )
                 continue
 
             if not isinstance(metadata.run.suite, text_type):
@@ -79,7 +96,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "source": etl_source,
                     "type": "join",
                     "revision": git.get_revision(),
-                    "timestamp": Date.now()
+                    "timestamp": Date.now(),
                 }
                 key = source_key + "." + text_type(i)
                 records.append({"id": key, "value": p})
@@ -88,7 +105,11 @@ def process(source_key, source, destination, resources, please_stop=None):
             if TRY_AGAIN_LATER:
                 Log.error("Did not finish processing {{key}}", key=source_key, cause=e)
 
-            Log.warning("Problem with pulse payload {{pulse|json}}", pulse=perfherder_record, cause=e)
+            Log.warning(
+                "Problem with pulse payload {{pulse|json}}",
+                pulse=perfherder_record,
+                cause=e,
+            )
 
     if not records:
         Log.warning("No perfherder records are found in {{key}}", key=source_key)
@@ -97,7 +118,12 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.extend(records, overwrite=True)
         return [source_key]
     except Exception as e:
-        Log.error("Could not add {{num}} documents when processing key {{key}}", key=source_key, num=len(records), cause=e)
+        Log.error(
+            "Could not add {{num}} documents when processing key {{key}}",
+            key=source_key,
+            num=len(records),
+            cause=e,
+        )
 
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
@@ -107,42 +133,55 @@ def transform(source_key, perfherder, metadata, resources):
 
     try:
         framework_name = perfherder.framework.name
-        suite_name = coalesce(perfherder.testrun.suite, perfherder.name, metadata.run.suite)
+        suite_name = coalesce(
+            perfherder.testrun.suite, perfherder.name, metadata.run.suite
+        )
         if not suite_name:
             if perfherder.is_empty:
                 # RETURN A PLACEHOLDER
-                metadata.run.timestamp = coalesce(perfherder.testrun.date, metadata.run.timestamp, metadata.action.timestamp, metadata.action.start_time)
+                metadata.run.timestamp = coalesce(
+                    perfherder.testrun.date,
+                    metadata.run.timestamp,
+                    metadata.action.timestamp,
+                    metadata.action.start_time,
+                )
                 return [metadata]
             else:
                 Log.error("Can not process: no suite name is found")
 
         for option in KNOWN_PERFHERDER_OPTIONS:
             if suite_name.find("-" + option) >= 0:
-                if option == 'coverage':
+                if option == "coverage":
                     pass  # coverage matches "jsdcov" and many others, do not bother sending warnings if not found
-                elif option not in listwrap(metadata.run.type) + listwrap(metadata.build.type) and framework_name != 'job_resource_usage':
+                elif (
+                    option
+                    not in listwrap(metadata.run.type) + listwrap(metadata.build.type)
+                    and framework_name != "job_resource_usage"
+                ):
                     Log.warning(
                         "While processing {{uid}}, found {{option|quote}} in {{name|quote}} but not in run.type (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                         uid=source_key,
                         metadata=metadata,
                         name=suite_name,
                         perfherder=perfherder,
-                        option=option
+                        option=option,
                     )
-                    metadata.run.type = unwraplist(listwrap(metadata.run.type) + [option])
+                    metadata.run.type = unwraplist(
+                        listwrap(metadata.run.type) + [option]
+                    )
                 suite_name = suite_name.replace("-" + option, "")
 
         # RECOGNIZE SUITE
         for s in KNOWN_PERFHERDER_TESTS:
             if suite_name == s:
                 break
-            elif suite_name.startswith(s) and framework_name != 'job_resource_usage':
+            elif suite_name.startswith(s) and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framwork {{framework}}",
                     uid=source_key,
-                    suffix=suite_name[len(s)::],
+                    suffix=suite_name[len(s) : :],
                     suite=suite_name,
-                    framework=framework_name
+                    framework=framework_name,
                 )
                 suite_name = s
                 break
@@ -150,7 +189,9 @@ def transform(source_key, perfherder, metadata, resources):
                 suite_name = "remote-" + s
                 break
         else:
-            if suite_name.startswith("raptor-") and suite_name.endswith(("-geckoview-cold", "-firefox", "-firefox-live", "-chrome", "-geckoview", "-geckoview-power", "-fennec")):  # ACCEPT ALL RAPTOR NAMES,
+            if suite_name.startswith("raptor-") and suite_name.endswith(
+                tuple(RAPTOR_BROWSERS)
+            ):  # ACCEPT ALL RAPTOR NAMES,
                 metadata.run.browser = suite_name.split("-")[-1]
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
@@ -158,12 +199,17 @@ def transform(source_key, perfherder, metadata, resources):
                     uid=source_key,
                     metadata=metadata,
                     name=suite_name,
-                    perfherder=perfherder
+                    perfherder=perfherder,
                 )
                 KNOWN_PERFHERDER_TESTS.append(suite_name)
 
         # UPDATE metadata PROPERTIES TO BETTER VALUES
-        metadata.run.timestamp = coalesce(perfherder.testrun.date, metadata.run.timestamp, metadata.action.timestamp, metadata.action.start_time)
+        metadata.run.timestamp = coalesce(
+            perfherder.testrun.date,
+            metadata.run.timestamp,
+            metadata.action.timestamp,
+            metadata.action.start_time,
+        )
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
         metadata.result.extraOptions = perfherder.extraOptions
@@ -185,20 +231,29 @@ def transform(source_key, perfherder, metadata, resources):
 
         if perfherder.subtests:
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
-                #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
+                # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
                     for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
-                            {"result": set_default(
-                                stats(source_key, sub_replicates, subtest.name, suite_name),
-                                {
-                                    "test": text_type(subtest.name) + "." + text_type(g),
-                                    "ordering": i,
-                                    "unit": subtest.unit,
-                                    "lower_is_better": subtest.lowerIsBetter
-                                }
-                            )},
-                            metadata
+                            {
+                                "result": set_default(
+                                    stats(
+                                        source_key,
+                                        sub_replicates,
+                                        subtest.name,
+                                        suite_name,
+                                    ),
+                                    {
+                                        "test": text_type(subtest.name)
+                                        + "."
+                                        + text_type(g),
+                                        "ordering": i,
+                                        "unit": subtest.unit,
+                                        "lower_is_better": subtest.lowerIsBetter,
+                                    },
+                                )
+                            },
+                            metadata,
                         )
                         new_records.append(new_record)
                         total.append(new_record.result.stats)
@@ -206,19 +261,21 @@ def transform(source_key, perfherder, metadata, resources):
                 for i, subtest in enumerate(perfherder.subtests):
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
-                        {"result": set_default(
-                            stats(source_key, samples, subtest.name, suite_name),
-                            {
-                                "test": subtest.name,
-                                "ordering": i,
-                                "unit": subtest.unit,
-                                "lower_is_better": subtest.lowerIsBetter,
-                                "raw_replicates": subtest.ref_replicates,
-                                "control_replicates": subtest.base_replicates,
-                                "value": samples[0] if len(samples) == 1 else None
-                            }
-                        )},
-                        metadata
+                        {
+                            "result": set_default(
+                                stats(source_key, samples, subtest.name, suite_name),
+                                {
+                                    "test": subtest.name,
+                                    "ordering": i,
+                                    "unit": subtest.unit,
+                                    "lower_is_better": subtest.lowerIsBetter,
+                                    "raw_replicates": subtest.ref_replicates,
+                                    "control_replicates": subtest.base_replicates,
+                                    "value": samples[0] if len(samples) == 1 else None,
+                                },
+                            )
+                        },
+                        metadata,
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
@@ -226,47 +283,59 @@ def transform(source_key, perfherder, metadata, resources):
         elif perfherder.results:
             # RECORD TEST RESULTS
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
-                #dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
-                #RECORD ALL RESULTS
+                # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
+                # RECORD ALL RESULTS
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     for g, sub_replicates in jx.groupby(replicates, size=5):
                         new_record = set_default(
-                            {"result": set_default(
-                                stats(source_key, sub_replicates, test_name, suite_name),
-                                {
-                                    "test": text_type(test_name) + "." + text_type(g),
-                                    "ordering": i
-                                }
-                            )},
-                            metadata
+                            {
+                                "result": set_default(
+                                    stats(
+                                        source_key,
+                                        sub_replicates,
+                                        test_name,
+                                        suite_name,
+                                    ),
+                                    {
+                                        "test": text_type(test_name)
+                                        + "."
+                                        + text_type(g),
+                                        "ordering": i,
+                                    },
+                                )
+                            },
+                            metadata,
                         )
                         new_records.append(new_record)
                         total.append(new_record.result.stats)
             else:
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
                     new_record = set_default(
-                        {"result": set_default(
-                            stats(source_key, replicates, test_name, suite_name),
-                            {
-                                "test": test_name,
-                                "ordering": i
-                            }
-                        )},
-                        metadata
+                        {
+                            "result": set_default(
+                                stats(source_key, replicates, test_name, suite_name),
+                                {"test": test_name, "ordering": i},
+                            )
+                        },
+                        metadata,
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
-        elif perfherder.value != None:  # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
+        elif (
+            perfherder.value != None
+        ):  # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
             new_record = set_default(
-                {"result": set_default(
-                    stats(source_key, [perfherder.value], None, suite_name),
-                    {
-                        "unit": perfherder.unit,
-                        "lower_is_better": perfherder.lowerIsBetter,
-                        "value": perfherder.value
-                    }
-                )},
-                metadata
+                {
+                    "result": set_default(
+                        stats(source_key, [perfherder.value], None, suite_name),
+                        {
+                            "unit": perfherder.unit,
+                            "lower_is_better": perfherder.lowerIsBetter,
+                            "value": perfherder.value,
+                        },
+                    )
+                },
+                metadata,
             )
             new_records.append(new_record)
             total.append(new_record.result.stats)
@@ -279,7 +348,7 @@ def transform(source_key, perfherder, metadata, resources):
             Log.warning(
                 "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
                 uid=source_key,
-                name=suite_name
+                name=suite_name,
             )
 
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
@@ -289,7 +358,7 @@ def transform(source_key, perfherder, metadata, resources):
             uid=source_key,
             framework=framework_name,
             name=suite_name,
-            num=len(new_records)
+            num=len(new_records),
         )
         return new_records
     except Exception as e:
@@ -337,8 +406,16 @@ def stats(source_key, given_values, test, suite):
         if given_values == None:
             return None
 
-        rejects = unwraplist([text_type(v) for v in given_values if Math.is_nan(v) or not Math.is_finite(v)])
-        clean_values = wrap([float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)])
+        rejects = unwraplist(
+            [
+                text_type(v)
+                for v in given_values
+                if Math.is_nan(v) or not Math.is_finite(v)
+            ]
+        )
+        clean_values = wrap(
+            [float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)]
+        )
 
         z = ZeroMoment.new_instance(clean_values)
         s = Data()
@@ -357,17 +434,19 @@ def stats(source_key, given_values, test, suite):
         good_excuse = [
             not rejects,
             suite in ["basic_compositor_video"],
-            test in ["sessionrestore_no_auto_restore"]
+            test in ["sessionrestore_no_auto_restore"],
         ]
 
         if not any(good_excuse):
-            Log.warning("{{test}} in suite {{suite}} in {{key}} has rejects {{samples|json}}", test=test, suite=suite, key=source_key, samples=given_values)
+            Log.warning(
+                "{{test}} in suite {{suite}} in {{key}} has rejects {{samples|json}}",
+                test=test,
+                suite=suite,
+                key=source_key,
+                samples=given_values,
+            )
 
-        return {
-            "stats": s,
-            "samples": clean_values,
-            "rejects": rejects
-        }
+        return {"stats": s, "samples": clean_values, "rejects": rejects}
     except Exception as e:
         Log.warning("can not reduce series to moments", e)
         return {}
@@ -381,12 +460,45 @@ def geo_mean(values):
     for d in values:
         for k, v in d.items():
             if v != 0:
-                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + Math.log(Math.abs(v))
+                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + Math.log(
+                    Math.abs(v)
+                )
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
 
+RAPTOR_BROWSERS = [
+    "-chromium",
+    "-chrome",
+    "-fennec",
+    "-firefox",
+    "-firefox-live",
+    "-geckoview-cold",
+    "-geckoview-memory",
+    "-geckoview-power",
+    "-geckoview",
+    "-refbrow",
+]
+
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
-KNOWN_PERFHERDER_PROPERTIES = {"_id", "etl", "extraOptions", "framework", "is_empty", "lowerIsBetter", "name", "pulse", "results", "talos_counters", "test_build", "test_machine", "testrun", "shouldAlert", "subtests", "summary", "value"}
+KNOWN_PERFHERDER_PROPERTIES = {
+    "_id",
+    "etl",
+    "extraOptions",
+    "framework",
+    "is_empty",
+    "lowerIsBetter",
+    "name",
+    "pulse",
+    "results",
+    "talos_counters",
+    "test_build",
+    "test_machine",
+    "testrun",
+    "shouldAlert",
+    "subtests",
+    "summary",
+    "value",
+}
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
     "about_preferences_basic",
@@ -411,7 +523,7 @@ KNOWN_PERFHERDER_TESTS = [
     "chromez",
     "chrome",
     "clone_errored",  # vcs
-    "clone",   # vcs
+    "clone",  # vcs
     "compiler_metrics",
     "compiler warnings",
     "cpstartup",
@@ -541,12 +653,12 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvg_static",
     "tsvgx",
     "twinopen",
-    "update_sparse",  #VCS
+    "update_sparse",  # VCS
     "update",  # VCS
     "v8_7",
     "webconsole-metrics",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
     "xperf",
-    "XUL section sizes"
+    "XUL section sizes",
 ]

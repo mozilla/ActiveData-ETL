@@ -404,8 +404,10 @@ KNOWN_VALUES = [
     "gaia_revlink: ",
     "Unknown: ",
     "\t--this-chunk=1 --total-chunks=1 -- ",
-    "\t--setenv=MOZ_BROWSER_XHTML=1 -- ",
-    "\t--setenv=MOZ_QUIET=1 -- ",
+    "\t--setenv=MOZ_BROWSER_XHTML=",
+    "\t--setenv=MOZ_QUIET=",
+    "\t--setenv=MOZ_DISABLE_CONTENT_SANDBOX=",
+    "\t--setenv=MOZ_LOG="
 ]
 
 
