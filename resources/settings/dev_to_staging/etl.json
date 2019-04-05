@@ -160,33 +160,33 @@
 //			"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
 //			"type": "join"
 //		},
-//		{
-//			"name": "tc_pulse to TC Normalized",
-//			"source": {
-//				"bucket": "active-data-task-cluster-logger",
-//				"public": true,
-//				"key_format": "t.a:b",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"destination": {
-//				"bucket": "active-data-task-cluster-normalized",
-//				"public": true,
-//				"key_format": "t.a:b",
-//				"$ref": "file://~/private.json#aws_credentials"
-//			},
-//			"notify": [
-//				{
-//					"name": "active-data-etl",
-//					"$ref": "file://~/private.json#aws_credentials"
-//				},
-//				{
-//					"name": "active-data-index-es5",
-//					"$ref": "file://~/private.json#aws_credentials"
-//				}
-//			],
-//			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
-//			"type": "join"
-//		},
+		{
+			"name": "tc_pulse to TC Normalized",
+			"source": {
+				"bucket": "active-data-task-cluster-logger",
+				"public": true,
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"destination": {
+				"bucket": "active-data-task-cluster-normalized",
+				"public": true,
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
+			},
+			"notify": [
+				{
+					"name": "active-data-etl",
+					"$ref": "file://~/private.json#aws_credentials"
+				},
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
+			"type": "join"
+		},
 //		{
 //			"name": "taskcluster to test_result",
 //			"source": {
@@ -231,28 +231,28 @@
 //			"type": "join",
 //			"transform_type": "bulk"
 //		},
-		{
-			"name": "taskcluster to perfherder",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-task-cluster-normalized",
-				"public": true,
-				"key_format": "t.a:b"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perfherder",
-				"public": true,
-				"key_format": "t.a:b.c"
-			},
-			"notify": {
-				"name": "active-data-etl",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"transformer": "activedata_etl.transforms.task_cluster_to_perfherder.process",
-			"type": "join",
-			"transform_type": "bulk"
-		},
+//		{
+//			"name": "taskcluster to perfherder",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-task-cluster-normalized",
+//				"public": true,
+//				"key_format": "t.a:b"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perfherder",
+//				"public": true,
+//				"key_format": "t.a:b.c"
+//			},
+//			"notify": {
+//				"name": "active-data-etl",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"transformer": "activedata_etl.transforms.task_cluster_to_perfherder.process",
+//			"type": "join",
+//			"transform_type": "bulk"
+//		},
 //		{
 //			"name": "bbb2jobs",
 //			"source": {
@@ -276,28 +276,28 @@
 //			"type": "join",
 //			"transform_type": "bulk"
 //		},
-		{
-			"name": "perfherder2perf",
-			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perfherder",
-				"key_format": "t.a:b.c"
-			},
-			"destination": {
-				"$ref": "file://~/private.json#aws_credentials",
-				"bucket": "active-data-perf",
-				"public": true,
-				"key_format": "t.a:b.c"
-			},
-			"notify": [
-				{
-					"name": "active-data-index-es5",
-					"$ref": "file://~/private.json#aws_credentials"
-				}
-			],
-			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
-			"type": "join"
-		},
+//		{
+//			"name": "perfherder2perf",
+//			"source": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perfherder",
+//				"key_format": "t.a:b.c"
+//			},
+//			"destination": {
+//				"$ref": "file://~/private.json#aws_credentials",
+//				"bucket": "active-data-perf",
+//				"public": true,
+//				"key_format": "t.a:b.c"
+//			},
+//			"notify": [
+//				{
+//					"name": "active-data-index-es5",
+//					"$ref": "file://~/private.json#aws_credentials"
+//				}
+//			],
+//			"transformer": "activedata_etl.transforms.perfherder_logs_to_perf_logs.process",
+//			"type": "join"
+//		},
 //		{
 //			"name": "pulse2test_result",
 //			"source": {
