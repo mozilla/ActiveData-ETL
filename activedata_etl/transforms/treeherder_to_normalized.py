@@ -412,11 +412,16 @@ KNOWN_VALUES = [
 
 
 NON_HG_BRANCHES = [
+    'ci-taskgraph',
     "bmo-master",
+    "fenix",
+    'fxapom',
     "go-bouncer",
     "mozillians-tests",
+    'reference-browser',
     "servo-auto",
     "servo-master",
+    'servo-prs',
     "servo-try",
     "snippets-service",
     "snippets-service",
