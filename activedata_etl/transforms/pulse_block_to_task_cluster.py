@@ -206,10 +206,16 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.env = _object_to_array(env, "name", "value")
 
     features = consume(task, "payload.features")
-    if all(isinstance(v, bool) for v in features.values()):
-        output.task.features = [k if v else "!" + k for k, v in features.items()]
-    else:
-        Log.error("Unexpected features: {{features|json}}", features=features)
+    try:
+        if isinstance(features, text_type):
+            output.task.features = [features]
+        elif all(isinstance(v, bool) for v in features.values()):
+            output.task.features = [k if v else "!" + k for k, v in features.items()]
+        else:
+            Log.error("Unexpected features: {{features|json}}", features=features)
+    except Exception:
+        Log.warning("Unexpected features: {{features|json}}", features=features)
+
     output.task.cache = _object_to_array(consume(task, "payload.cache"), "name", "value")
     output.task.requires = consume(task, "requires")
     output.task.capabilities = consume(task, "payload.capabilities")
@@ -509,11 +515,11 @@ def set_build_info(source_key, normalized, task, env, resources):
         }}
     )
 
-    if normalized.build.platform.endswith("-ccov"):
-        normalized.build.platform = normalized.build.platform.split("-")[0]
+    if "-ccov" in normalized.build.platform:
+        normalized.build.platform = normalized.build.platform.replace("-ccov", "")
         normalized.build.type += ["ccov"]
-    if normalized.build.platform.endswith("-jsdcov"):
-        normalized.build.platform = normalized.build.platform.split("-")[0]
+    if "-jsdcov" in normalized.build.platform:
+        normalized.build.platform = normalized.build.platform.replace("-jsdcov", "")
         normalized.build.type += ["jsdcov"]
 
     normalized.build.branch = coalesce_w_conflict_detection(
@@ -774,14 +780,14 @@ def _object_to_array(value, key_name, value_name=None):
     except Exception as e:
         Log.error("unexpected", cause=e)
 
-
 def _simplify_platform(platform):
     """
     Used to simplify the number of distracting warnings
     :param platform: a string
     :return: A simpler version of platform, or itself
-    return SIMPLER_PLATFORMS.get(platform, platform)
     """
+    return SIMPLER_PLATFORMS.get(platform, platform)
+
 
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
@@ -789,9 +795,9 @@ SIMPLER_PLATFORMS = {
     "linux": "linux32",
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
-    "windows2012-64": "win64"
+    "windows2012-64": "win64",
+    "windows2012-64-devedition", "win64-devedition"
 }
-
 
 BUILD_TYPES = {
     "all": ["all"],
