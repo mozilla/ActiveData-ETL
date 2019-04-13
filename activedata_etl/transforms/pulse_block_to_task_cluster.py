@@ -794,12 +794,18 @@ def _simplify_platform(platform):
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
     "android-4-0-armv7-api16": "android-api-16",
-    "linux": "linux32",
     "osx-cross": "macosx64",
+    "osx-shippable": "macosx64",
+    "macosx64-shippable": "macosx64",
     "windows2012-32": "win32",
     "windows2012-64": "win64",
     "windows2012-64-devedition": "win64-devedition",
-    "linux32-shippable": "linux32"
+    "windows2012-64-shippable": "win64",
+    "windows2012-32-shippable": "win32",
+    "linux32-shippable": "linux32",
+    "linux64-shippable": "linux64",
+    "linux": "linux32",
+    "linux-devedition": "linux32",
 }
 
 BUILD_TYPES = {
