@@ -13,13 +13,14 @@ import re
 
 from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.transforms import ACTIVE_DATA_QUERY
+from jx_base.expressions import last
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
 from mo_files import TempFile
 from mo_future import text_type
 from mo_json import stream
 from mo_logs import Log
-from mo_times import Timer, Date
+from mo_times import Timer, Date, Duration
 from pyLibrary.env import http
 from pyLibrary.env.big_data import scompressed2ibytes
 
@@ -29,14 +30,14 @@ class FileMapper(object):
     MAP FROM COVERAGE FILE RESOURCE NAME TO SOURCE FILENAME
     """
 
-    def __init__(self, task_cluster_record):
+    def __init__(self, source_key, task_cluster_record):
         """
         :param task_cluster_record: EXPECTING TC RECORD WITH repo.push.date SO AN APPROXIMATE SOURCE FILE LIST CAN BE FOUND
         """
 
         # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
         # FIND RECENT FILE LISTING
-        timestamp = coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date)
+        timestamp = Date(coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date, Date.now())) -Duration("hour")
         result = http.post_json(
             ACTIVE_DATA_QUERY,
             json={
@@ -44,33 +45,39 @@ class FileMapper(object):
                 "where": {"and": [
                     {"eq": {"name": "public/components.json.gz"}},
                     {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": coalesce(timestamp, Date.now())}}
+                    {"lt": {"repo.push.date": timestamp}},
                 ]},
                 "sort": {"repo.push.date": "desc"},
-                "limit": 1,
+                "limit": 100,
                 "select": ["url", "repo.push.date"],
                 "format": "list"
             }
         )
-        files_url = result.data[0].url
 
         self.predefined_failures = jx_expression_to_function(KNOWN_FAILURES)
         self.known_failures = set()
         self.lookup = {}
-        with TempFile() as tempfile:
-            Log.note("download {{url}}", url=files_url)
-            download_file(files_url, tempfile.abspath)
-            with open(tempfile.abspath, b"rb") as fstream:
-                with Timer("process {{url}}", param={"url": files_url}):
-                    count = 0
-                    for data in stream.parse(
-                        scompressed2ibytes(fstream),
-                        {"items": "."},
-                        {"name"}
-                    ):
-                        self._add(data.name)
-                        count += 1
-                    Log.note("{{count}} files in {{file}}", count=count, file=files_url)
+        for files_url in result.data.url:
+            try:
+                with TempFile() as tempfile:
+                    Log.note("download {{url}}", url=files_url)
+                    download_file(files_url, tempfile.abspath)
+                    with open(tempfile.abspath, b"rb") as fstream:
+                        with Timer("process {{url}}", param={"url": files_url}):
+                            count = 0
+                            for data in stream.parse(
+                                scompressed2ibytes(fstream),
+                                {"items": "."},
+                                {"name"}
+                            ):
+                                self._add(data.name)
+                                count += 1
+                            Log.note("{{count}} files in {{file}}", count=count, file=files_url)
+                return
+            except Exception as e:
+                Log.note("Can not read {{url}} for key {{key}}", url=files_url, key=source_key)
+        else:
+            Log.error("Can not read FileMapper {{url}} (and {{others}} others) for key {{key}}", url=last(result.data).url, others=len(result.data.url) - 1, key=source_key, cause=e)
 
     def _add(self, filename):
         if filename.startswith(EXCLUDE):
@@ -211,6 +218,7 @@ KNOWN_FAILURES = {"or": [
     ]}},
 
     {"suffix": {".": "libstd/io/mod.rs"}},
+    {"suffix": {".": "collections/mod.rs"}},
     {"suffix": {".": "/error.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},

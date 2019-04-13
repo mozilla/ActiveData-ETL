@@ -265,7 +265,7 @@ TEST_PLATFORM = {
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
-    "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {"build": {"cpu": "aarch64", "platform": "android"}},
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
@@ -346,10 +346,16 @@ RAPTOR_TEST["tp6m"] = match_tp6
 
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
+    "chromium": {"run": {"browser": "chromium"}},
+    "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
+    "fenix": {"run": {"browser": "fenix"}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec":  {"run": {"browser": "fennec"}},
     "geckoview": {"run": {"browser": "geckoview"}},
-    "geckoview-power": {"run": {"browser": "geckoview-power"}},
+    "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cold": {"run": {"browser": "geckoview"}},
+    "geckoview-memory": {"run": {"browser": "geckoview"}},
+    "refbrow": {"run": {"browser": "reference browser"}},
 }
 
 
@@ -359,6 +365,7 @@ TEST_SUITE = {
         "awsy-base-dmd",
         "awsy-dmd",
         "awsy-base",
+        "awsy-tp6",
         "awsy",
         "browser-instrumentation",
         "browser-screenshots",
@@ -366,14 +373,18 @@ TEST_SUITE = {
         "crashtest",
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
-        "geckoview",
         "geckoview-junit",
+        "geckoview-cold",
+        "geckoview-memory",
+        "geckoview",
         "gtest",
         "jittest",
         "jittgst",  # SPELLING MISTAKE
         "jsreftest",
-        "marionette",
         "marionette-headless",
+        "marionette-media",
+        "marionette-stream",
+        "marionette",
         "mochitest",
         "mochitest-a11y",
         "mochitest-browser-chrome",
@@ -422,8 +433,8 @@ BUILD_PLATFORM = {
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
-    "android-x86": {"build": {"platform": "android"}},
-    "android-x86_64": {"build": {"platform": "android"}},
+    "android-x86": {"build": {"cpu": "x86", "platform": "android"}},
+    "android-x86_64": {"build": {"cpu": "x86-64", "platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
@@ -444,10 +455,15 @@ BUILD_PLATFORM = {
 }
 
 BUILD_OPTIONS = {
-    "aarch64": {},
-    "aarch64-eme": {},
-    "aarch64-nightly": {"build": {"train": "nightly"}},
-    "aarch64-msvc": {},
+    "aarch64-eme": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},  # ENCRYPTED MEDIA EXTENSIONS
+    "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
+    "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-msvc": {"build": {"cpu": "aarch64", }},
+    "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
+    "aarch64": {"build": {"cpu": "aarch64"}},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
@@ -463,6 +479,8 @@ BUILD_OPTIONS = {
     "dmd": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
+    "gcp": {"run": {"cloud": "gcp"}},
+    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"type": ["shippable"]}},
     "geckoview-docs": {},
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
@@ -471,6 +489,7 @@ BUILD_OPTIONS = {
     "mingw32": {},
     "mingwclang": {"build": {"compiler": ["clang"]}},
     "msvc": {},
+    "no-eme": {},
     "noopt": {},
     "nightly": {"build": {"train": "nightly"}},
     "opt": {"build": {"type": ["opt"]}},
@@ -479,6 +498,7 @@ BUILD_OPTIONS = {
     "plain": {},
     "pytests": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
+    "shippable": {"build": {"type": ["shippable"]}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
     "tup": {"build": {"type": ["tup"]}},
@@ -494,8 +514,9 @@ BUILD_TYPE = {
 }
 
 TEST_OPTIONS = set_default({
-    "aarch64": {"run": {"type": ["aarch64"]}},
-    "asan": {},
+    "aarch64": {"build":{"cpu": "aarch64"}},
+    "asan": {"build": {"type": ["asan"]}},
+    "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
     "gradle": {"run": {"type": ["gradle"]}},
     "lto": {"run": {"type": ["lto"]}},
     "mingw32": {"run": {"type": ["mingw32"]}},
@@ -503,7 +524,8 @@ TEST_OPTIONS = set_default({
     "msvc": {"run": {"type": ["msvc"]}},
     "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
     "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
-    "shippable": {},
+    "shippable-qr": {"run": {"type": ["qr"]}, "build": {"type": ["shippable"]}},  # QUANTUM RENDER
+    "shippable": {"build": {"type": ["shippable"]}},
     "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
     "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
     "ux": {"run": {"type": ["ux"]}},

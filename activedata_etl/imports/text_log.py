@@ -24,12 +24,12 @@ from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 from pyLibrary.convert import quote2string
 
-DEBUG = True
+DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
 
-def process_tc_live_log(source_key, all_log_lines, from_url, task_record):
+def process_tc_live_backing_log(source_key, all_log_lines, from_url, task_record):
     """
         [taskcluster 2016-10-04 17:09:02.626Z] Task ID: abzkq-CjS_KJzNEhE6nVhA
         [taskcluster 2016-10-04 17:09:02.626Z] Worker ID: i-0348d7e9408f77f42
@@ -453,6 +453,12 @@ NEW_MOZLOG_END_STEP = [
     re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Finished (.*) step \((.*)\)")  # example: [mozharness: 2016-07-11 21:35:08.292Z] Finished run-tests step (success)
 ]
 
+# 16:16:40     INFO - [mozharness: 2019-03-29 16:16:40.033128Z] Config File 1: test/test.json
+NEW_MOZLOG_IGNORE_STEP = [
+    re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Config File"),
+    re.compile(r"\d\d:\d\d:\d\d     INFO - \[mozharness\: (.*)Z\] Not from any config file"),
+]
+
 
 class NewHarnessLines(object):
 
@@ -496,7 +502,13 @@ class NewHarnessLines(object):
                 timestamp = self.utc_to_timestamp(_utc_time, last_timestamp)
                 result = result.strip().lower()
                 return timestamp, None, result, message
-        Log.warning("unexpected log line in {{source}}\n{{line}}", source=source, line=curr_line)
+
+        for p in NEW_MOZLOG_IGNORE_STEP:
+            match = p.match(curr_line)
+            if match:
+                break
+        else:
+            Log.warning("unexpected [mozharness] line in {{source}}\n{{line}}", source=source, line=curr_line)
         return None
 
     def utc_to_timestamp(self, _utc_time, last_timestamp):

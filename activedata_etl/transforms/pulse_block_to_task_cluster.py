@@ -16,7 +16,7 @@ import requests
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
 from activedata_etl.imports.task import decode_metatdata_name, minimize_task
-from activedata_etl.imports.text_log import process_tc_live_log
+from activedata_etl.imports.text_log import process_tc_live_backing_log
 from activedata_etl.transforms import TRY_AGAIN_LATER, TC_ARTIFACT_URL, TC_ARTIFACTS_URL, TC_STATUS_URL, TC_RETRY, TC_MAIN_URL
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
 
-            Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
+            Log.note("{{id}} found (line #{{num}}) for {{key}}", key=source_key, id=task_id, num=line_number, artifact=tc_message.artifact.name)
             task_url = strings.expand_template(TC_MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=TC_RETRY, session=session)
             if task.code == u'ResourceNotFound':
@@ -105,7 +105,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for a in artifacts:
                 a.url = strings.expand_template(TC_ARTIFACT_URL, {"task_id": task_id, "path": a.name})
                 a.expires = Date(a.expires)
-                if a.name.endswith("/live.log"):
+                if a.name.endswith("/live_backing.log"):
                     try:
                         read_actions(source_key, normalized, a.url)
                     except Exception as e:
@@ -167,7 +167,7 @@ def read_actions(source_key, normalized, url):
         return
     try:
         all_log_lines = http.get(url).get_all_lines(encoding=Null)
-        normalized.action = process_tc_live_log(source_key, all_log_lines, url, normalized)
+        normalized.action = process_tc_live_backing_log(source_key, all_log_lines, url, normalized)
     except Exception as e:
         e = Except.wrap(e)
         if "Connection broken: error(104," in e:
@@ -206,10 +206,16 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.env = _object_to_array(env, "name", "value")
 
     features = consume(task, "payload.features")
-    if all(isinstance(v, bool) for v in features.values()):
-        output.task.features = [k if v else "!" + k for k, v in features.items()]
-    else:
-        Log.error("Unexpected features: {{features|json}}", features=features)
+    try:
+        if isinstance(features, text_type):
+            output.task.features = [features]
+        elif all(isinstance(v, bool) for v in features.values()):
+            output.task.features = [k if v else "!" + k for k, v in features.items()]
+        else:
+            Log.error("Unexpected features: {{features|json}}", features=features)
+    except Exception:
+        Log.warning("Unexpected features: {{features|json}}", features=features)
+
     output.task.cache = _object_to_array(consume(task, "payload.cache"), "name", "value")
     output.task.requires = consume(task, "requires")
     output.task.capabilities = consume(task, "payload.capabilities")
@@ -355,6 +361,8 @@ def _normalize_run(source_key, normalized, task, env):
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
+    if isinstance(suite, text_type):
+        suite = wrap({"name": suite})
     test = suite.name.lower()
 
     # FLAVOR
@@ -469,7 +477,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "extra.build_product").lower(),
                 consume(task, "extra.product").lower().replace("devedition", "firefox"),
                 consume(task, "payload.product").lower(),
-                "firefox" if task.extra.suite.name.startswith("firefox") else Null,
+                "firefox" if isinstance(task.extra.suite, Mapping) and task.extra.suite.name.startswith("firefox") else Null,
                 "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null,
                 consume(task, "extra.app-name")
             ),
@@ -509,11 +517,11 @@ def set_build_info(source_key, normalized, task, env, resources):
         }}
     )
 
-    if normalized.build.platform.endswith("-ccov"):
-        normalized.build.platform = normalized.build.platform.split("-")[0]
+    if "-ccov" in normalized.build.platform:
+        normalized.build.platform = normalized.build.platform.replace("-ccov", "")
         normalized.build.type += ["ccov"]
-    if normalized.build.platform.endswith("-jsdcov"):
-        normalized.build.platform = normalized.build.platform.split("-")[0]
+    if "-jsdcov" in normalized.build.platform:
+        normalized.build.platform = normalized.build.platform.replace("-jsdcov", "")
         normalized.build.type += ["jsdcov"]
 
     normalized.build.branch = coalesce_w_conflict_detection(
@@ -774,14 +782,14 @@ def _object_to_array(value, key_name, value_name=None):
     except Exception as e:
         Log.error("unexpected", cause=e)
 
-
 def _simplify_platform(platform):
     """
     Used to simplify the number of distracting warnings
     :param platform: a string
     :return: A simpler version of platform, or itself
-    return SIMPLER_PLATFORMS.get(platform, platform)
     """
+    return SIMPLER_PLATFORMS.get(platform, platform)
+
 
 SIMPLER_PLATFORMS = {
     "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
@@ -789,9 +797,10 @@ SIMPLER_PLATFORMS = {
     "linux": "linux32",
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
-    "windows2012-64": "win64"
+    "windows2012-64": "win64",
+    "windows2012-64-devedition": "win64-devedition",
+    "linux32-shippable": "linux32"
 }
-
 
 BUILD_TYPES = {
     "all": ["all"],
@@ -814,7 +823,6 @@ BUILD_TYPES = {
 }
 
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
-
 PAYLOAD_PROPERTIES = {
     "apks.armv7_v15",
     "apks.x86",
@@ -823,6 +831,7 @@ PAYLOAD_PROPERTIES = {
     "artifactsTaskId",
     "artifactMap",
     "balrog_api_root",
+    "bouncer_products",
     "build_number",
     "chain",
     "CHANNEL",
@@ -854,8 +863,11 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
+
     "platforms",
+    "publish_rules",
     "purpose",
+    "release_eta"
     "release_name",
     "release_promotion",
 
@@ -1028,6 +1040,7 @@ KNOWN_TAGS = {
     "npmCache.expires",
     "objective",
     "os",
+    "override-certs",
     "owner",
     "partial_versions",
     "partials",
@@ -1069,4 +1082,4 @@ def consume(props, key):
     return output
 
 
-UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom']
+UNKNOWN_BRANCHES = ['ci-taskgraph', 'servo-master', 'servo-try', 'servo-prs', 'fxapom', 'reference-browser', 'fenix']

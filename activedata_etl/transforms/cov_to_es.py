@@ -63,7 +63,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             for a in ("jsdcov_artifacts.zip", "code-coverage-grcov.zip", "code-coverage-jsvm.zip", "per-test-coverage-reports.zip")
         ):
             if not resources.file_mapper:
-                resources.file_mapper = FileMapper(task_cluster_record)
+                resources.file_mapper = FileMapper(source_key, task_cluster_record)
 
         for artifact in artifacts:
             try:
@@ -72,7 +72,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing jsdcov artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing jsdcov artifact: {{url}} for key {{key}}", key=source_key, url=artifact.url)
 
                     keys.extend(process_jsdcov_artifact(
                         source_key,
@@ -92,7 +92,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     coverage_artifact_exists = True
                     _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                     if DEBUG:
-                        Log.note("Processing grcov artifact: {{url}}", url=artifact.url)
+                        Log.note("Processing grcov artifact: {{url}} for key {{key}}", key=source_key, url=artifact.url)
 
                     keys.extend(process_grcov_artifact(
                         source_key,
@@ -128,7 +128,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         coverage_artifact_exists = True
                         _, artifact_etl = etl_header_gen.next(source_etl=parent_etl, url=artifact.url)
                         if DEBUG:
-                            Log.note("Processing per-test artifact: {{url}}", url=artifact.url)
+                            Log.note("Processing per-test artifact: {{url}} for key {{key}}", key=source_key, url=artifact.url)
 
                         keys.extend(process_per_test_artifact(
                             source_key,

@@ -19,6 +19,16 @@ from mo_times import Timer
 
 OVERWRITE_RESOURCE = True
 
+# FIND MORE NAMES:
+# {
+#     "from":"debug-etl",
+#     "groupby":"params.name",
+#     "where":{"and":[
+#         {"eq":{"template":"{{name|quote}} can not be processed with {{category}} for key {{key}}"}},
+#         {"gte":{"timestamp":{"date":"today-2week"}}}
+#     ]},
+#     "limit":1000
+# }
 
 class TestMetadataName(FuzzyTestCase):
     def test_basic(self):
