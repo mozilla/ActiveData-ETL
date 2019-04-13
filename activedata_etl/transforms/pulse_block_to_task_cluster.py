@@ -361,6 +361,8 @@ def _normalize_run(source_key, normalized, task, env):
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
+    if isinstance(suite, text_type):
+        suite = wrap({"name": suite})
     test = suite.name.lower()
 
     # FLAVOR
@@ -475,7 +477,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                 consume(task, "extra.build_product").lower(),
                 consume(task, "extra.product").lower().replace("devedition", "firefox"),
                 consume(task, "payload.product").lower(),
-                "firefox" if task.extra.suite.name.startswith("firefox") else Null,
+                "firefox" if isinstance(task.extra.suite, Mapping) and task.extra.suite.name.startswith("firefox") else Null,
                 "firefox" if any(r.startswith("index.gecko.v2.try.latest.firefox.") for r in normalized.task.routes) else Null,
                 consume(task, "extra.app-name")
             ),
