@@ -796,7 +796,7 @@ SIMPLER_PLATFORMS = {
     "osx-cross": "macosx64",
     "windows2012-32": "win32",
     "windows2012-64": "win64",
-    "windows2012-64-devedition", "win64-devedition"
+    "windows2012-64-devedition": "win64-devedition"
 }
 
 BUILD_TYPES = {
