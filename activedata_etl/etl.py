@@ -324,7 +324,7 @@ class ETL(Thread):
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])
                         elif previous_attempts > 10:
-                            #GIVE UP
+                            # GIVE UP
                             Log.warning(
                                 "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
                                 tries=todo.previous_attempts,

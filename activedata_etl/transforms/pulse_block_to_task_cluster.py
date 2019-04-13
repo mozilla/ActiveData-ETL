@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             etl = consume(tc_message, "etl")
             consume(tc_message, "_meta")
 
-            Log.note("{{id}} found (line #{{num}})", id=task_id, num=line_number, artifact=tc_message.artifact.name)
+            Log.note("{{id}} found (line #{{num}}) for {{key}}", key=source_key, id=task_id, num=line_number, artifact=tc_message.artifact.name)
             task_url = strings.expand_template(TC_MAIN_URL, {"task_id": task_id})
             task = http.get_json(task_url, retry=TC_RETRY, session=session)
             if task.code == u'ResourceNotFound':

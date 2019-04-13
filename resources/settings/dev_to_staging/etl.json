@@ -160,33 +160,33 @@
 //			"transformer": "activedata_etl.transforms.treeherder_to_normalized.process",
 //			"type": "join"
 //		},
-		{
-			"name": "tc_pulse to TC Normalized",
-			"source": {
-				"bucket": "active-data-task-cluster-logger",
-				"public": true,
-				"key_format": "t.a:b",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"destination": {
-				"bucket": "active-data-task-cluster-normalized",
-				"public": true,
-				"key_format": "t.a:b",
-				"$ref": "file://~/private.json#aws_credentials"
-			},
-			"notify": [
-				{
-					"name": "active-data-etl",
-					"$ref": "file://~/private.json#aws_credentials"
-				},
-				{
-					"name": "active-data-index-es5",
-					"$ref": "file://~/private.json#aws_credentials"
-				}
-			],
-			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
-			"type": "join"
-		},
+//		{
+//			"name": "tc_pulse to TC Normalized",
+//			"source": {
+//				"bucket": "active-data-task-cluster-logger",
+//				"public": true,
+//				"key_format": "t.a:b",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"destination": {
+//				"bucket": "active-data-task-cluster-normalized",
+//				"public": true,
+//				"key_format": "t.a:b",
+//				"$ref": "file://~/private.json#aws_credentials"
+//			},
+//			"notify": [
+//				{
+//					"name": "active-data-etl",
+//					"$ref": "file://~/private.json#aws_credentials"
+//				},
+//				{
+//					"name": "active-data-index-es5",
+//					"$ref": "file://~/private.json#aws_credentials"
+//				}
+//			],
+//			"transformer": "activedata_etl.transforms.pulse_block_to_task_cluster.process",
+//			"type": "join"
+//		},
 //		{
 //			"name": "taskcluster to test_result",
 //			"source": {
@@ -320,29 +320,29 @@
 //			"transformer": "activedata_etl.transforms.pulse_block_to_test_result_logs.process",
 //			"type": "join"
 //		},
-//		{
-//			"name": "codecoverage",
-//			"source": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-task-cluster-normalized",
-//				"key_format": "t.a:b"
-//			},
-//			"destination": {
-//				"$ref": "file://~/private.json#aws_credentials",
-//				"bucket": "active-data-codecoverage",
-//				"public": true,
-//				"key_format": "t.a:b.c.d"
-//			},
-//			"notify": [
-//				{
-//					"name": "active-data-index-es5",
-//					"$ref": "file://~/private.json#aws_credentials"
-//				}
-//			],
-//			"transform_type": "bulk",
-//			"transformer": "activedata_etl.transforms.cov_to_es.process",
-//			"type": "join"
-//		}
+		{
+			"name": "codecoverage",
+			"source": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-task-cluster-normalized",
+				"key_format": "t.a:b"
+			},
+			"destination": {
+				"$ref": "file://~/private.json#aws_credentials",
+				"bucket": "active-data-codecoverage",
+				"public": true,
+				"key_format": "t.a:b.c.d"
+			},
+			"notify": [
+				{
+					"name": "active-data-index-es5",
+					"$ref": "file://~/private.json#aws_credentials"
+				}
+			],
+			"transform_type": "bulk",
+			"transformer": "activedata_etl.transforms.cov_to_es.process",
+			"type": "join"
+		}
 	],
 	"debug": {
 		"trace": true,

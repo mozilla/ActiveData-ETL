@@ -24,7 +24,7 @@ from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 from pyLibrary.convert import quote2string
 
-DEBUG = True
+DEBUG = False
 MAX_TIMING_ERROR = SECOND  # SOME TIMESTAMPS ARE ONLY ACCURATE TO ONE SECOND
 MAX_HARNESS_TIMING_ERROR = 5 * MINUTE
 
