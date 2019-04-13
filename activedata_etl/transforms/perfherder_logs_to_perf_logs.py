@@ -345,11 +345,19 @@ def transform(source_key, perfherder, metadata, resources):
             pass
         else:
             new_records.append(metadata)
-            Log.warning(
-                "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
-                uid=source_key,
-                name=suite_name,
-            )
+            if suite_name == "sessionrestore_no_auto_restore":
+                # OFTEN HAS NOTHING
+                Log.note(
+                    "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
+                    uid=source_key,
+                    name=suite_name,
+                )
+            else:
+                Log.warning(
+                    "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
+                    uid=source_key,
+                    name=suite_name,
+                )
 
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
         metadata.run.stats = geo_mean(total)
