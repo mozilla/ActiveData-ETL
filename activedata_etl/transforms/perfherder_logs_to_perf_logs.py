@@ -628,6 +628,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tart_flex",
     "tart",
     "TestStandardURL",
+    "total-after-gc",
     "TreeTraversal",
     "tcanvasmark",
     "tcheck2",
