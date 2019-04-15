@@ -183,10 +183,12 @@ def extract_perfherder(
             try:
                 if "}\\n' err=b" in log_line:
                     log_line = log_line.split("\\n' err=b")[0]  # PERFHERDER LINE IN A STRING
-                if "}\\n' timestamp='" in log_line:
+                elif "}\\n' timestamp='" in log_line:
                     log_line = log_line.split("\\n' timestamp='")[0]  # PERFHERDER LINE IN SOMETHING COMPLICATED
-                if "} (timestamp='" in log_line:
+                elif "} (timestamp='" in log_line:
                     log_line = log_line.split(" (timestamp='")[0]  # PERFHERDER LINE FOLLOWED BY TIMESTAMP
+                elif "}', b\"(using Mercurial 4.8)" in log_line:
+                    log_line = log_line.split("', b\"(using Mercurial 4.8)")[0]  # ERROR DURING HG UPDATE
                 perf = json2value(log_line, leaves=False, flexible=False)
             except Exception as e:
                 Log.warning(
