@@ -61,7 +61,7 @@ def splitter(work_queue, please_stop):
 
         with extend_time:
             if settings.skip and Random.float() < settings.skip:
-                Log.note("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
+                Log.alert("Skipping {{key}} from bucket {{bucket}}", key=key, bucket=source_bucket.name)
                 work_queue.add(payload)
                 message.delete()
                 continue
