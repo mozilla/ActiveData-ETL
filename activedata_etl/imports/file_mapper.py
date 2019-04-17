@@ -220,6 +220,7 @@ KNOWN_FAILURES = {"or": [
     {"suffix": {".": "libstd/io/mod.rs"}},
     {"suffix": {".": "collections/mod.rs"}},
     {"suffix": {".": "/actions/index.js"}},
+    {"suffix": {".": "/reducers/index.js"}},
     {"suffix": {".": "/error.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},

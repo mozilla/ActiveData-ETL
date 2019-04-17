@@ -3188,6 +3188,18 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-android-em-4.3-arm7-api-16/pgo-mochitest-1proc-19": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "chunk": 19,
+            "suite": {"name": "mochitest"},
+            "type": ["1proc", "chunked"]
+        }
+    },
     "test-android-em-7.0-x86_64/debug-jsreftest-e10s-6": {
         "action": {"type": "test"},
         "build": {
@@ -21561,6 +21573,18 @@
         "run": {
             "chunk": 1,
             "suite": {"name": "jittest"}
+        }
+    },
+    "test-linux64/debug-jittest-1proc-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "jittest"},
+            "type": ["1proc", "chunked"]
         }
     },
     "test-linux64/debug-jittest-2": {

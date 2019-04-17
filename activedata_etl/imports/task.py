@@ -277,6 +277,7 @@ TEST_PLATFORM = {
 }
 
 RUN_OPTIONS = {
+    "1proc": {"run": {"type": ["1proc"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "e10s": {"run": {"type": ["e10s"]}},
@@ -385,7 +386,6 @@ TEST_SUITE = {
         "marionette-media",
         "marionette-stream",
         "marionette",
-        "mochitest",
         "mochitest-a11y",
         "mochitest-browser-chrome",
         "mochitest-browser-screenshots",
@@ -404,6 +404,7 @@ TEST_SUITE = {
         "mochitest-webgl2-core",
         "mochitest-webgl2-ext",
         "mochitest-webgl",
+        "mochitest",
 
         "mozmill",
         "reftest",
