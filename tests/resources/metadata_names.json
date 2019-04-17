@@ -23333,6 +23333,18 @@
             "suite": {"name": "xpcshell"}
         }
     },
+    "test-linux64/debug-xpcshell-sw-1proc-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"},
+            "type": ["service-worker", "1proc", "chunked"]
+        }
+    },
     "test-linux64/opt-awsy": {
         "action": {"type": "test"},
         "build": {

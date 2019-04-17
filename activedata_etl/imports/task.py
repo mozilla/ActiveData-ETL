@@ -280,16 +280,21 @@ RUN_OPTIONS = {
     "1proc": {"run": {"type": ["1proc"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
+    "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
+    "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "gpu": {"run": {"type": ["gpu"]}},
+    "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "no-accel": {"run": {"type": ["no-accel"]}},
+    "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
     "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
+    "stylo-1proc": {"build": {"type": ["stylo"]}, "run": {"type": ["1proc"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
     "stylo-disabled-e10s": {
@@ -297,8 +302,10 @@ RUN_OPTIONS = {
         "run": {"type": ["e10s"]},
     },
     "stylo-sequential": {},
+    "stylo-sequential-1proc": {"run": {"type": ["1proc"]}},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
+    "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
 }
 
