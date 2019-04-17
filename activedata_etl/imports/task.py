@@ -284,8 +284,11 @@ RUN_OPTIONS = {
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
+    "gpu": {"run": {"type": ["gpu"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "no-accel": {"run": {"type": ["no-accel"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
+    "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},

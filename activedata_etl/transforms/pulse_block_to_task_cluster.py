@@ -802,17 +802,19 @@ SIMPLER_PLATFORMS = {
     "win32-shippable": "win32",
     "win64-aarch64": "win64",
     "win64-shippable": "win64",
-    "windows2012-32": "win32",
     "windows2012-32-shippable": "win32",
-    "windows2012-64": "win64",
+    "windows2012-32-devedition": "win32",
+    "windows2012-32": "win32",
     "windows2012-64-devedition": "win64",
     "windows2012-64-shippable": "win64",
+    "windows2012-64": "win64",
     "windows2012-aarch64-shippable": "win64",
+    "windows2012-aarch64": "win64",
     "linux32-devedition": "linux32",
     "linux32-shippable": "linux32",
     "linux64-shippable": "linux64",
-    "linux": "linux32",
     "linux-devedition": "linux32",
+    "linux": "linux32",
 }
 
 BUILD_TYPES = {
