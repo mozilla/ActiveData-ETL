@@ -1,4 +1,13 @@
 {
+    "build-android-aarch64-gcp/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {"cloud": "gcp"}
+    },
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
@@ -425,7 +434,7 @@
         "build": {
             "cpu": "aarch64",
             "platform": "win64",
-            "type": ["opt", "asan", "fuzzing"]
+            "type": ["opt", "eme"]
         }
     },
     "build-win64-aarch64-msvc/opt": {

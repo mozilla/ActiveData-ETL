@@ -477,14 +477,17 @@ def geo_mean(values):
 RAPTOR_BROWSERS = [
     "-chromium",
     "-chrome",
+    "-fenix",
     "-fennec",
-    "-firefox",
     "-firefox-live",
+    "-firefox",
     "-geckoview-cold",
     "-geckoview-memory",
     "-geckoview-power",
     "-geckoview",
+    "-refbrow-power",
     "-refbrow",
+
 ]
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
@@ -577,6 +580,7 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "overall_clone_fullcheckout_rmstore",  # VCS
     "overall_clone_fullcheckout_rmwdir",
     "overall_clone_fullcheckout",  # VCS
     "overall_clone_rmwdir",
@@ -602,6 +606,7 @@ KNOWN_PERFHERDER_TESTS = [
     "rasterflood_gradient",
     "rasterflood_svg",
     "removed_missing_shared_store",
+    "remove_shared_store_active_lock",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",

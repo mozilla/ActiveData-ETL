@@ -359,13 +359,14 @@ BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
     "chromium": {"run": {"browser": "chromium"}},
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
+    "fenix-cold": {"run": {"browser": "fenix"}},
     "fenix": {"run": {"browser": "fenix"}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec":  {"run": {"browser": "fennec"}},
-    "geckoview": {"run": {"browser": "geckoview"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
+    "geckoview": {"run": {"browser": "geckoview"}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }
 
@@ -466,11 +467,12 @@ BUILD_PLATFORM = {
 }
 
 BUILD_OPTIONS = {
-    "aarch64-eme": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},  # ENCRYPTED MEDIA EXTENSIONS
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
+    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-eme": {"build": {"cpu": "aarch64", "type": ["eme"]}},  # ENCRYPTED MEDIA EXTENSIONS
+    "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
-    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-msvc": {"build": {"cpu": "aarch64", }},
     "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
     "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},

@@ -428,6 +428,7 @@ def _normalize_run(source_key, normalized, task, env):
     #     consume(task, "triggeredBy"),
     #     consume(task, "firedBy")
     # )
+    consume(task, "tags.retrigger")
 
     metadata_name = consume(task, "metadata.name")
     set_default(
