@@ -3505,6 +3505,20 @@
             "suite": {"name": "tp6m"}
         }
     },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-tp6m-5-fennec64-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 5,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {
         "action": {"type": "test"},
         "build": {
