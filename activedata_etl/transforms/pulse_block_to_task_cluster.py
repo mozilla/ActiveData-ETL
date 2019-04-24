@@ -372,10 +372,20 @@ def _normalize_run(source_key, normalized, task, env):
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1::]
 
+    if "-no-accel" in test:
+        # reftest-no-accel
+        test = test.replace("-no-accel", "").strip()
+        run_type += ["no-accel"]
+    if "-chunked" in test:
+        # mochitest-plain-chunked
+        test = test.replace("-chunked", "").strip()
+        run_type += ["chunked"]
+
     if test.startswith("mochitest-"):
         # mochitest-chrome
         # mochitest-media-2
         # mochitest-plain-clipboard
+        # mochitest-plain-chunked
         path = test.split("-")
         test = path[0]
         flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
@@ -386,7 +396,7 @@ def _normalize_run(source_key, normalized, task, env):
             flavor = Null
         run_type += ["e10s"]
 
-    if flavor=="chunked":
+    if flavor == "chunked":
         flavor = Null
         run_type += ["chunked"]
     elif flavor and "-chunked" in flavor:
@@ -733,6 +743,7 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta"): "gecko-dev.git",
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release"): "gecko-dev.git",
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
+    ("jsreftest", "reftest"): "jsreftest",
 }
 
 

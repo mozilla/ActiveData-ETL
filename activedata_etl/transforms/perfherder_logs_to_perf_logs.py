@@ -478,6 +478,7 @@ RAPTOR_BROWSERS = [
     "-chromium",
     "-chrome",
     "-fenix",
+    "-fenix-cold",
     "-fennec",
     "-firefox-live",
     "-firefox",

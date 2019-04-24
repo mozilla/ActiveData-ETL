@@ -129,7 +129,7 @@ class Matcher(object):
 
 
 CATEGORIES = {
-    # MAYBE USE A FORMAL PARSER!!
+    # TODO: USE A FORMAL PARSER??
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
