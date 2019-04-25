@@ -372,14 +372,11 @@ def _normalize_run(source_key, normalized, task, env):
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1::]
 
-    if "-no-accel" in test:
-        # reftest-no-accel
-        test = test.replace("-no-accel", "").strip()
-        run_type += ["no-accel"]
-    if "-chunked" in test:
-        # mochitest-plain-chunked
-        test = test.replace("-chunked", "").strip()
-        run_type += ["chunked"]
+    for modifier in ["no-accel", "chunked", "gpu"]:
+        mod = "-" + modifier
+        if mod in test:
+            test = test.replace(mod, "").strip()
+            run_type += [modifier]
 
     if test.startswith("mochitest-"):
         # mochitest-chrome
