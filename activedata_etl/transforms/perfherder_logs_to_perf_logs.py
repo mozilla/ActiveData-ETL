@@ -480,6 +480,7 @@ RAPTOR_BROWSERS = [
     "-fenix",
     "-fenix-cold",
     "-fennec",
+    "-fennec-cold",
     "-firefox-live",
     "-firefox",
     "-geckoview-cold",

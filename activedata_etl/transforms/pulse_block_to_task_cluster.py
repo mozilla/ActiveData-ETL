@@ -741,6 +741,7 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release"): "gecko-dev.git",
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
     ("jsreftest", "reftest"): "jsreftest",
+    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null): "win64-aarch64-devedition",
 }
 
 
@@ -801,15 +802,22 @@ def _simplify_platform(platform):
 
 
 SIMPLER_PLATFORMS = {
-    "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
-    "android-4-0-armv7-api16": "android-api-16",
+    "android-aarch64": "android",
+    "android-4-2-x86": "android",
+    "android-5-0-aarch64": "android",
+    "android-4-0-armv7-api16-old-id": "android",
+    "android-4-0-armv7-api16": "android",
+    "android-x86": "android",
     "osx-cross": "macosx64",
     "osx-shippable": "macosx64",
     "osx-cross-devedition": "macosx64",
     "macosx64-devedition": "macosx64",
     "macosx64-shippable": "macosx64",
+    "win32-devedition": "win32",
     "win32-shippable": "win32",
+    "win64-aarch64-devedition": "win64",
     "win64-aarch64": "win64",
+    "win64-devedition": "win64",
     "win64-shippable": "win64",
     "windows2012-32-shippable": "win32",
     "windows2012-32-devedition": "win32",
@@ -817,12 +825,15 @@ SIMPLER_PLATFORMS = {
     "windows2012-64-devedition": "win64",
     "windows2012-64-shippable": "win64",
     "windows2012-64": "win64",
+    "windows2012-aarch64-devedition": "win64",
     "windows2012-aarch64-shippable": "win64",
     "windows2012-aarch64": "win64",
     "linux32-devedition": "linux32",
     "linux32-shippable": "linux32",
     "linux64-shippable": "linux64",
+    "linux64-snap": "linux64",
     "linux-devedition": "linux32",
+    "linux-shippable": "linux32",
     "linux": "linux32",
 }
 

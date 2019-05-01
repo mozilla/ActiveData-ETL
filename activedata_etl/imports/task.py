@@ -364,6 +364,7 @@ BROWSER = {
     "firefox": {"run": {"browser": "firefox"}},
     "fennec":  {"run": {"browser": "fennec"}},
     "fennec64":  {"run": {"browser": "fennec"}},
+    "fennec64-cold":  {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},

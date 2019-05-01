@@ -3415,6 +3415,21 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-tp6m-13-fennec64-cold-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 13,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-unity-webgl-geckoview": {
         "action": {"type": "perf"},
         "build": {
