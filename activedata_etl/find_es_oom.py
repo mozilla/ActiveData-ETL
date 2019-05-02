@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
+
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo, put
 from fabric.state import env
@@ -125,6 +127,9 @@ def _get_es_restart_time(instance):
     result = sudo("supervisorctl status")
     for r in result.split("\n"):
         try:
+            if "unix:///tmp/supervisor.sock no such file" in r:
+                _fix_supervisor()
+
             if r.startswith("es"):
                 days = int(coalesce(strings.between(r, "uptime ", " days"), "0"))
                 duration = sum(
@@ -139,8 +144,41 @@ def _get_es_restart_time(instance):
                 )
                 last_restart_time = now - days * DAY - duration
                 return last_restart_time
-        except Exception:
-            pass
+        except Exception as e:
+            Log.warning("problem", cause=e)
+
+
+WHITESPACE = re.compile(r"\s+")
+
+
+def _fix_supervisor():
+    result = sudo("ps -eo pid,command | grep supervisord")
+    for line in result.stdout.split("\n"):
+        if "/etc/supervisord.conf" in line:
+            pid, _ = WHITESPACE.split(line.strip(), 1)
+            sudo("kill -SIGINT " + pid)
+
+    with TempFile as temp:
+        sudo("cp /etc/supervisord.conf ~")
+        sudo("chown ec2-user:ec2-user ~/supervisord.conf")
+        get("~/supervisord.conf", temp.abspath)
+        content = temp.read()
+        content = content.replace("/tmp/", "/etc/")
+        temp.write(content)
+        put(temp.abspath, "~/supervisord.conf")
+        sudo("chown root:root ~/supervisord.conf")
+        sudo("cp ~/supervisord.conf /etc")
+
+    # WAIT FOR SHUTDOWN
+    while True:
+        result = sudo("ps -eo pid,command | grep supervisord")
+        for line in result.stdout.split("\n"):
+            if "/etc/supervisord.conf" in line:
+                break
+        else:
+            break
+
+    sudo("/usr/local/bin/supervisord -c /etc/supervisord.conf")
 
 
 def _restart_es(instance):
@@ -156,6 +194,7 @@ def _restart_es(instance):
         ip=instance.ip_address,
     )
     num_restarts -= 1
+
     sudo("supervisorctl restart es")
 
 
