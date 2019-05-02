@@ -361,6 +361,7 @@ BROWSER = {
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
     "fenix-cold": {"run": {"browser": "fenix"}},
     "fenix": {"run": {"browser": "fenix"}},
+    "firefox-cold": {"run": {"browser": "firefox"}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec":  {"run": {"browser": "fennec"}},
     "fennec64":  {"run": {"browser": "fennec"}},

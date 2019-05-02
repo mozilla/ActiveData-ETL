@@ -557,6 +557,8 @@ def set_build_info(source_key, normalized, task, env, resources):
             Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
 
+    normalized.run.phabricator_diff = consume(task, "extra.code-review.phabricator-diff")
+
     treeherder = consume(task, "extra.treeherder")
     if treeherder:
         for l, v in treeherder.leaves():
@@ -927,6 +929,7 @@ PAYLOAD_PROPERTIES = {
     "TOTAL_CHUNKS",
     "tuxedo_server_url",
     "unsignedArtifacts",
+    "update_line",
     "upload_date",
     "VERIFY_CONFIG",
     "version"

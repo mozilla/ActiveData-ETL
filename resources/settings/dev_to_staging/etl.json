@@ -22,9 +22,9 @@
 		//		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR
 	},
 	"local_es_node": {
-		"host": "http://localhost",
-//		"host": "http://54.148.242.195",
-		"port": 9201,
+//		"host": "http://localhost",
+		"host": "http://54.148.242.195",
+		"port": 9200,
 		"index": "task"
 	},
 	"tuid_client": {

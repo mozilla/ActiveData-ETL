@@ -34493,6 +34493,20 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-windows10-64-shippable-qr/opt-raptor-tp6-4-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 4,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-windows10-64-shippable-qr/opt-raptor-tp6-4-firefox-e10s": {
         "action": {"type": "perf"},
         "build": {
