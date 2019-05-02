@@ -158,16 +158,19 @@ def _fix_supervisor():
             pid, _ = WHITESPACE.split(line.strip(), 1)
             sudo("kill -SIGINT " + pid)
 
-    with TempFile as temp:
-        sudo("cp /etc/supervisord.conf ~")
-        sudo("chown ec2-user:ec2-user ~/supervisord.conf")
-        get("~/supervisord.conf", temp.abspath)
-        content = temp.read()
-        content = content.replace("/tmp/", "/etc/")
-        temp.write(content)
-        put(temp.abspath, "~/supervisord.conf")
-        sudo("chown root:root ~/supervisord.conf")
-        sudo("cp ~/supervisord.conf /etc")
+    with TempFile() as temp:
+        try:
+            sudo("cp /etc/supervisord.conf /home/ec2-user")
+            sudo("chown ec2-user:ec2-user /home/ec2-user/supervisord.conf")
+            get("/home/ec2-user/supervisord.conf", temp.abspath)
+            content = temp.read()
+            content = content.replace("/tmp/", "/etc/")
+            temp.write(content)
+            put(temp.abspath, "/home/ec2-user/supervisord.conf")
+            sudo("chown root:root /home/ec2-user/supervisord.conf")
+            sudo("cp /home/ec2-user/supervisord.conf /etc")
+        except Exception as e:
+            Log.error("could not fix conf file", cause=e)
 
     # WAIT FOR SHUTDOWN
     while True:
@@ -178,7 +181,7 @@ def _fix_supervisor():
         else:
             break
 
-    sudo("/usr/local/bin/supervisord -c /etc/supervisord.conf")
+    sudo("/usr/bin/supervisord -c /etc/supervisord.conf")
 
 
 def _restart_es(instance):
@@ -214,10 +217,12 @@ def main():
         known_nodes = _get_known_es_nodes(settings.nodes)
         instances = _get_managed_instances(ec2_conn, settings.name)
 
-        for i in instances:
+        for ii, i in enumerate(instances):
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
+            if not i.tags["Name"].startswith("ActiveData ES6 Spot"):
+                continue
 
             try:
                 Log.note(
@@ -245,8 +250,8 @@ def main():
                     #     new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
                     #     temp.write(new_content)
                     #     put(temp.abspath, ES_CONFIG_FILE)
-
-                    sudo("supervisorctl restart es")
+                    _fix_supervisor()
+                    # sudo("supervisorctl restart es")
                 else:
                     _find_oom(i)
                     pass
