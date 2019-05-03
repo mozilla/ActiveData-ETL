@@ -475,6 +475,7 @@ def geo_mean(values):
 
 
 RAPTOR_BROWSERS = [
+    "-chromium-cold",
     "-chromium",
     "-chrome",
     "-fenix-cold",

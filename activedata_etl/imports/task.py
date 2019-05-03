@@ -357,6 +357,7 @@ RAPTOR_TEST["tp6m"] = match_tp6
 
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
+    "chromium-cold": {"run": {"browser": "chromium"}},
     "chromium": {"run": {"browser": "chromium"}},
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
     "fenix-cold": {"run": {"browser": "fenix"}},
