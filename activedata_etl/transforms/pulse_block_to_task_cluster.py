@@ -900,9 +900,9 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
-
     "platforms",
     "publish_rules",
+    "purge-caches-exit-status",
     "purpose",
     "release_eta"
     "release_name",
