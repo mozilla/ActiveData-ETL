@@ -932,6 +932,7 @@ PAYLOAD_PROPERTIES = {
     "update_line",
     "upload_date",
     "VERIFY_CONFIG",
+    "version_bump_info",
     "version"
 
 }
@@ -986,6 +987,7 @@ KNOWN_TAGS = {
     "notify.ircChannelMessage",
     "en_us_installer_binary_url",
 
+    "firedBy",
     "funsize.partials",
     "funsize.partials.branch",
     "funsize.partials.dest_mar",
