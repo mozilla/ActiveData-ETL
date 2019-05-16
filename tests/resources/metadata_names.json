@@ -318,6 +318,7 @@
             "type": ["opt"]
         }
     },
+    "build-reference-browser-geckoNightlyX86Release": {},
     "build-win32-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -25451,6 +25452,31 @@
             "suite": {"name": "xpcshell"}
         }
     },
+    "test-macosx1010-64-shippable/opt-raptor-motionmark-htmlsuite-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "motionmark-htmlsuite"},
+            "type": ["e10s"]
+        }
+    },
+    "test-macosx1010-64-shippable/opt-web-platform-tests-e10s-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable", "shippable"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "web-platform-tests"},
+            "type": ["e10s", "chunked"]
+        }
+    },
     "test-macosx64-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -27038,6 +27064,19 @@
             "chunk": 2,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr", "chunked"]
+        }
+    },
+    "test-macosx64-shippable/opt-raptor-youtube-playback-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
         }
     },
     "test-macosx64/debug-cppunit": {
@@ -41345,6 +41384,19 @@
             "type": ["opt", "pgo"]
         },
         "run": {"suite": {"name": "xpcshell"}}
+    },
+    "test-windows7-32-shippable/opt-raptor-youtube-playback-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt", "shippable", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
+        }
     },
     "test-windows7-32/debug-cppunit": {
         "action": {"type": "test"},

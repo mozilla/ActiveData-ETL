@@ -804,6 +804,7 @@ def _simplify_platform(platform):
 
 
 SIMPLER_PLATFORMS = {
+    "android-api-16": "android",
     "android-aarch64": "android",
     "android-4-2-x86": "android",
     "android-5-0-aarch64": "android",
@@ -861,6 +862,7 @@ BUILD_TYPES = {
 
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
+    "aliases_entries",
     "apks.armv7_v15",
     "apks.x86",
     "appVersion",
@@ -904,13 +906,14 @@ PAYLOAD_PROPERTIES = {
     "publish_rules",
     "purge-caches-exit-status",
     "purpose",
-    "release_eta"
+    "release_eta",
     "release_name",
     "release_promotion",
 
     "releaseProperties.hashType",
     "repack_manifests_url",
     "require_mirrors",
+    "retry-exit-status",
     "revision",
     "rules_to_update",
 

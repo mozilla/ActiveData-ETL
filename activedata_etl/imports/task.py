@@ -269,6 +269,7 @@ TEST_PLATFORM = {
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx1010-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32"}},
     "windows10-64": {"build": {"platform": "win64"}},
@@ -334,6 +335,7 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback",
     ]
 }
 
@@ -464,6 +466,7 @@ BUILD_PLATFORM = {
     "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
+    "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
     "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
@@ -499,6 +502,7 @@ BUILD_OPTIONS = {
     "fuzzing": {"build": {"type": ["fuzzing"]}},
     "gcp": {"run": {"cloud": "gcp"}},
     "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"type": ["shippable"]}},
+    "geckoNightlyX86Release": {},
     "geckoview-docs": {},
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
