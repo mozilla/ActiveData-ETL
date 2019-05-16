@@ -198,9 +198,7 @@ CATEGORIES = {
         },
     },
     "build-": {
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {
-            "action": {"type": "build"}
-        },
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
             "action": {"type": "build"}
         },
@@ -208,7 +206,7 @@ CATEGORIES = {
             "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "action": {"type": "build"},
+            "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
             "build": {"train": "nightly"},
@@ -218,6 +216,7 @@ CATEGORIES = {
             "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
+        "{{SPECIAL}}": {"action": {"type": "build"}},
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
@@ -265,7 +264,9 @@ TEST_PLATFORM = {
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
-    "android-hw-pix-7-1-android-aarch64": {"build": {"cpu": "aarch64", "platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {
+        "build": {"cpu": "aarch64", "platform": "android"}
+    },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
@@ -347,9 +348,12 @@ def match_tp6(name):
             for b in BROWSER.keys():
                 if "-" + b in name:
                     short_name = between(name, None, "-" + b)
-                    suffix = short_name[len(prefix):]
+                    suffix = short_name[len(prefix) :]
                     if suffix in TEST_CHUNK:
-                        return len(short_name), {"run": {"suite": {"name": suite}, "chunk": int(suffix)}}
+                        return (
+                            len(short_name),
+                            {"run": {"suite": {"name": suite}, "chunk": int(suffix)}},
+                        )
                     return len(short_name), {"run": {"suite": {"name": short_name}}}
     return None, None
 
@@ -366,9 +370,10 @@ BROWSER = {
     "fenix": {"run": {"browser": "fenix"}},
     "firefox-cold": {"run": {"browser": "firefox"}},
     "firefox": {"run": {"browser": "firefox"}},
-    "fennec":  {"run": {"browser": "fennec"}},
-    "fennec64":  {"run": {"browser": "fennec"}},
-    "fennec64-cold":  {"run": {"browser": "fennec"}},
+    "fennec": {"run": {"browser": "fennec"}},
+    "fennec-cold": {"run": {"browser": "fennec"}},
+    "fennec64": {"run": {"browser": "fennec"}},
+    "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
@@ -422,7 +427,6 @@ TEST_SUITE = {
         "mochitest-webgl2-ext",
         "mochitest-webgl",
         "mochitest",
-
         "mozmill",
         "reftest",
         "reftest-fonts",
@@ -476,11 +480,13 @@ BUILD_PLATFORM = {
 BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
-    "aarch64-eme": {"build": {"cpu": "aarch64", "type": ["eme"]}},  # ENCRYPTED MEDIA EXTENSIONS
+    "aarch64-eme": {
+        "build": {"cpu": "aarch64", "type": ["eme"]}
+    },  # ENCRYPTED MEDIA EXTENSIONS
     "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
-    "aarch64-msvc": {"build": {"cpu": "aarch64", }},
+    "aarch64-msvc": {"build": {"cpu": "aarch64"}},
     "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
     "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
     "aarch64": {"build": {"cpu": "aarch64"}},
@@ -535,27 +541,39 @@ BUILD_TYPE = {
     "debug": {"build": {"type": ["debug"]}},
 }
 
-TEST_OPTIONS = set_default({
-    "aarch64": {"build":{"cpu": "aarch64"}},
-    "asan": {"build": {"type": ["asan"]}},
-    "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
-    "gradle": {"run": {"type": ["gradle"]}},
-    "lto": {"run": {"type": ["lto"]}},
-    "mingw32": {"run": {"type": ["mingw32"]}},
-    "ming32": {"run": {"type": ["mingw32"]}},
-    "msvc": {"run": {"type": ["msvc"]}},
-    "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
-    "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
-    "shippable-qr": {"run": {"type": ["qr"]}, "build": {"type": ["shippable"]}},  # QUANTUM RENDER
-    "shippable": {"build": {"type": ["shippable"]}},
-    "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
-    "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
-    "ux": {"run": {"type": ["ux"]}},
-    "nightly": {"build": {"train": "nightly"}},
-    "devedition": {"build": {"train": "devedition"}}
-}, BUILD_OPTIONS)
+TEST_OPTIONS = set_default(
+    {
+        "aarch64": {"build": {"cpu": "aarch64"}},
+        "asan": {"build": {"type": ["asan"]}},
+        "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+        "gradle": {"run": {"type": ["gradle"]}},
+        "lto": {"run": {"type": ["lto"]}},
+        "mingw32": {"run": {"type": ["mingw32"]}},
+        "ming32": {"run": {"type": ["mingw32"]}},
+        "msvc": {"run": {"type": ["msvc"]}},
+        "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
+        "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+        "shippable-qr": {
+            "run": {"type": ["qr"]},  # QUANTUM RENDER
+            "build": {"type": ["shippable"]},
+        },
+        "shippable": {"build": {"type": ["shippable"]}},
+        "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
+        "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
+        "ux": {"run": {"type": ["ux"]}},
+        "nightly": {"build": {"train": "nightly"}},
+        "devedition": {"build": {"train": "devedition"}},
+    },
+    BUILD_OPTIONS,
+)
 
 BUILD_STEPS = {"upload-symbols": {}}
+
+SPECIAL = {
+    "reference-browser-geckoNightlyX86Release": {
+        "build": {"product": "reference-braoswer", "train": "release"}
+    }
+}
 
 COMPILED_CATEGORIES = {
     c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()

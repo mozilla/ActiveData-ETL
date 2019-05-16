@@ -318,7 +318,13 @@
             "type": ["opt"]
         }
     },
-    "build-reference-browser-geckoNightlyX86Release": {},
+    "build-reference-browser-geckoNightlyX86Release": {
+        "action": {"type": "build"},
+        "build": {
+            "product": "reference-braoswer",
+            "train": "release"
+        }
+    },
     "build-win32-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -3337,6 +3343,20 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6m"}
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-raptor-tp6m-3-fennec-cold-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 3,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["1proc"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64-nightly/opt-raptor-speedometer-fennec": {
