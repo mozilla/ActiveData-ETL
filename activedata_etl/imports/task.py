@@ -323,6 +323,7 @@ RAPTOR_TEST = {
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-power-idle",
         "stylebench",
         "speedometer",
         "sunspider",

@@ -3473,6 +3473,20 @@
             "suite": {"name": "unity-webgl"}
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-scn-power-idle-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "scn-power-idle"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-arm7-api-16-nightly/opt-raptor-speedometer-fennec": {
         "action": {"type": "perf"},
         "build": {
@@ -19198,9 +19212,9 @@
             "type": ["opt", "shippable"]
         },
         "run": {
-            "browser": "firefox",
+            "browser": "baseline-firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc-baseline"},
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s", "qr"]
         }
     },
@@ -24628,9 +24642,9 @@
             "type": ["opt"]
         },
         "run": {
-            "browser": "firefox",
+            "browser": "baseline-firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc-baseline"},
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },

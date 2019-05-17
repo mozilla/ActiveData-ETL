@@ -808,6 +808,7 @@ SIMPLER_PLATFORMS = {
     "android-aarch64": "android",
     "android-4-2-x86": "android",
     "android-5-0-aarch64": "android",
+    "android-5-0-x86_64": "android",
     "android-4-0-armv7-api16-old-id": "android",
     "android-4-0-armv7-api16": "android",
     "android-x86": "android",
