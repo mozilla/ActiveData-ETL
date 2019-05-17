@@ -221,8 +221,6 @@ def main():
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
-            if not i.tags["Name"].startswith("ActiveData ES6 Spot"):
-                continue
 
             try:
                 Log.note(

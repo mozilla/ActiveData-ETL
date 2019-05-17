@@ -49,7 +49,6 @@ def _stop_indexer():
         sudo("supervisorctl stop push_to_es:*")
 
 
-
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
