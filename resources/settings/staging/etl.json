@@ -361,6 +361,16 @@
 				"retry": {
 					"times": 3,
 					"sleep": "minute"
+				},
+				"schema": {
+					"settings": {
+						"index.number_of_replicas": 1,
+						"index.number_of_shards": 6
+					}
+				},
+				"rollover": {
+					"interval": "month",
+					"max":"year"
 				}
 			},
 			{

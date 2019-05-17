@@ -7,29 +7,26 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
-import sys
 from collections import Mapping
 from datetime import date, datetime
-
-from mo_math.randoms import Random
+import sys
 
 from jx_python import jx
-from mo_dots import wrap, coalesce, FlatList, listwrap, Null
-from mo_future import text_type, binary_type, number_types
-from mo_json import value2json, json2value, datetime2unix
+from mo_dots import FlatList, coalesce, listwrap, set_default, wrap
+from mo_future import binary_type, number_types, text_type
+from mo_json import datetime2unix, json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log, strings
-from mo_logs.exceptions import suppress_exception, Except
+from mo_logs.exceptions import Except, suppress_exception
 from mo_logs.log_usingNothing import StructuredLogger
-from mo_threads import Thread, Queue, Till, THREAD_STOP
-from mo_times import MINUTE, Duration
+from mo_math.randoms import Random
+from mo_threads import Queue, THREAD_STOP, Thread, Till
+from mo_times import Duration, MINUTE
 from mo_times.dates import datetime2unix
 from pyLibrary.convert import bytes2base64
-from pyLibrary.env.elasticsearch import Cluster
+from pyLibrary.env.rollover_index import RolloverIndex
 
 MAX_BAD_COUNT = 5
 LOG_STRING_LENGTH = 2000
@@ -58,15 +55,20 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
 
         kwargs.host = Random.sample(listwrap(host), 1)[0]
 
-        self.es = Cluster(kwargs).get_or_create_index(
-            schema=json2value(value2json(SCHEMA), leaves=True),
+        rollover_interval = coalesce(kwargs.rollover.interval, kwargs.rollover.max, "year")
+        rollover_max = coalesce(kwargs.rollover.max, kwargs.rollover.interval, "year")
+
+        self.es = RolloverIndex(
+            rollover_field={"get": [{"first": "."}, {"literal": "timestamp"}]},
+            rollover_interval=rollover_interval,
+            rollover_max=rollover_max,
+            schema=set_default(kwargs.schema, json2value(value2json(SCHEMA), leaves=True)),
             limit_replicas=True,
             typed=True,
             id={"id": "_id"},  # USE DEFAULT id AND version
             kwargs=kwargs,
         )
         self.batch_size = batch_size
-        self.es.add_alias(coalesce(kwargs.alias, kwargs.index))
         self.queue = Queue("debug logs to es", max=queue_size, silent=True)
 
         self.worker = Thread.run("add debug logs to es", self._insert_loop)

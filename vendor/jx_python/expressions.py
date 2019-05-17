@@ -231,9 +231,10 @@ class IntegerOp(IntegerOp_):
 
 class GetOp(GetOp_):
     def to_python(self, not_null=False, boolean=False, many=False):
-        obj = Python[self.var].to_python()
-        code = Python[self.offset].to_python()
-        return "listwrap(" + obj + ")[" + code + "]"
+        output = ["(" + Python[self.var].to_python() + ")"]
+        for o in self.offsets:
+            output.append("[" + Python[o].to_python() + "]")
+        return "".join(output)
 
 
 class LastOp(LastOp_):
@@ -456,7 +457,7 @@ class LengthOp(LengthOp_):
 class FirstOp(FirstOp_):
     def to_python(self, not_null=False, boolean=False, many=False):
         value = Python[self.term].to_python()
-        return "listwrap(" + value + ").first()"
+        return "first(listwrap(" + value + "))"
 
 
 class NumberOp(NumberOp_):

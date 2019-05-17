@@ -24,6 +24,12 @@ null = None
 EMPTY_DICT = {}
 
 
+def first(many):
+    for i in many:
+        return i
+    return None
+
+
 def compile_expression(source):
     """
     THIS FUNCTION IS ON ITS OWN FOR MINIMAL GLOBAL NAMESPACE
@@ -42,6 +48,7 @@ def compile_expression(source):
     _ = EMPTY_DICT
     _ = re
     _ = wrap_leaves
+    _ = first
 
     fake_locals = {}
     try:
