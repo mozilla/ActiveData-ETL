@@ -6,20 +6,18 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 import re
 
 from boto import ec2 as boto_ec2
-from pyLibrary import convert
 
 from jx_python import jx
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
-from mo_logs import Log, startup, constants
+from mo_logs import Log, constants, startup
 from mo_threads import Thread
 from pyLibrary.aws import aws_retry
 
@@ -85,6 +83,7 @@ def _start_indexer(config, instance, please_stop):
 
 def _stop_indexer(config, instance, please_stop):
     try:
+        Log.note("Stop push_to_es at {{ip}}", ip=instance.ip_address)
         with Connection(kwargs=config, host=instance.ip_address) as conn:
             conn.sudo("supervisorctl stop push_to_es:*")
 
@@ -208,7 +207,7 @@ def main():
         else:
             raise Log.error("Expecting --start or --stop or --update")
 
-        for g, ii in jx.groupby(instances, size=1):
+        for g, ii in jx.groupby(instances, size=10):
             threads = [
                 Thread.run(i.name, method, settings.fabric, i)
                 for i in ii
