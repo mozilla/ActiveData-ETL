@@ -247,6 +247,7 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
 _option_map = {
     "addon": ["addon"],
     "aarch64-debug": ["aarch64", "debug"],
+    "aarch64": ["aarch64"],
     "arm-debug": ["arm", "debug"],
     "ARMv7": ["arm"],
     "all": ["all"],
