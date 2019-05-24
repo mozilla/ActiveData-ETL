@@ -1,4 +1,13 @@
 {
+    "build-android-aarch64-beta/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "beta",
+            "type": ["debug"]
+        }
+    },
     "build-android-aarch64-gcp/opt": {
         "action": {"type": "build"},
         "build": {

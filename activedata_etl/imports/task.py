@@ -380,6 +380,7 @@ BROWSER = {
     "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
+    "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
     "refbrow": {"run": {"browser": "reference browser"}},
@@ -483,6 +484,7 @@ BUILD_PLATFORM = {
 
 BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
+    "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
