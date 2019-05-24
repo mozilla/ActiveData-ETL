@@ -287,6 +287,8 @@ RUN_OPTIONS = {
     "e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
+    "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
+    "fis": {"run": {"type": ["fis"]}},  # fission
     "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
     "gpu": {"run": {"type": ["gpu"]}},
@@ -411,7 +413,6 @@ TEST_SUITE = {
         "marionette-stream",
         "marionette",
         "mochitest-a11y",
-        "mochitest-browser-chrome-fis",
         "mochitest-browser-chrome",
         "mochitest-browser-screenshots",
         "mochitest-chrome",
@@ -420,7 +421,6 @@ TEST_SUITE = {
         "mochitest-devtools-chrome",
         "mochitest-jetpack",
         "mochitest-gpu",
-        "mochitest-media-fis",
         "mochitest-media",
         "mochitest-plain-headless",
         "mochitest-thunderbird",

@@ -30334,8 +30334,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "mochitest-browser-chrome-fis"},
-            "type": ["e10s", "chunked"]
+            "suite": {"name": "mochitest-browser-chrome"},
+            "type": ["e10s", "fis", "chunked"]
         }
     },
     "test-windows10-64-asan/opt-test-verify": {
@@ -30949,8 +30949,8 @@
             "type": ["debug", "ccov"]
         },
         "run": {
-            "suite": {"name": "mochitest-media-fis"},
-            "type": ["e10s"]
+            "suite": {"name": "mochitest-media"},
+            "type": ["e10s", "fis"]
         }
     },
     "test-windows10-64-ccov/debug-reftest-1": {
