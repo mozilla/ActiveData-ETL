@@ -11,7 +11,7 @@ from collections import Mapping
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
-from mo_dots import Data, coalesce, set_default
+from mo_dots import Data, coalesce, set_default, unwrap
 from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import Log, strings
@@ -545,30 +545,27 @@ BUILD_TYPE = {
     "debug": {"build": {"type": ["debug"]}},
 }
 
-TEST_OPTIONS = set_default(
-    {
-        "aarch64": {"build": {"cpu": "aarch64"}},
-        "asan": {"build": {"type": ["asan"]}},
-        "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
-        "gradle": {"run": {"type": ["gradle"]}},
-        "lto": {"run": {"type": ["lto"]}},
-        "mingw32": {"run": {"type": ["mingw32"]}},
-        "ming32": {"run": {"type": ["mingw32"]}},
-        "msvc": {"run": {"type": ["msvc"]}},
-        "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
-        "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
-        "shippable-qr": {
-            "run": {"type": ["qr"]},  # QUANTUM RENDER
-            "build": {"type": ["shippable"]},
+TEST_OPTIONS = unwrap(
+    set_default(
+        {  # NOTICE THESE ALL INCLUDE run.type
+            "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+            "gradle": {"run": {"type": ["gradle"]}},
+            "lto": {"run": {"type": ["lto"]}},
+            "mingw32": {"run": {"type": ["mingw32"]}},
+            "ming32": {"run": {"type": ["mingw32"]}},
+            "msvc": {"run": {"type": ["msvc"]}},
+            "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
+            "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+            "shippable-qr": {
+                "run": {"type": ["qr"]},  # QUANTUM RENDER
+                "build": {"type": ["shippable"]},
+            },
+            "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
+            "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
+            "ux": {"run": {"type": ["ux"]}},
         },
-        "shippable": {"build": {"type": ["shippable"]}},
-        "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
-        "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
-        "ux": {"run": {"type": ["ux"]}},
-        "nightly": {"build": {"train": "nightly"}},
-        "devedition": {"build": {"train": "devedition"}},
-    },
-    BUILD_OPTIONS,
+        BUILD_OPTIONS,
+    )
 )
 
 BUILD_STEPS = {"upload-symbols": {}}

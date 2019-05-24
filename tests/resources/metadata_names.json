@@ -9717,7 +9717,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "cppunit"}}
     },
@@ -9725,7 +9725,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "crashtest"}}
     },
@@ -9733,7 +9733,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "firefox-ui-functional-local"}}
     },
@@ -9741,7 +9741,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "firefox-ui-functional-remote"}}
     },
@@ -9749,7 +9749,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "gtest"}}
     },
@@ -9757,7 +9757,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -9769,7 +9769,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -9781,7 +9781,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -9793,7 +9793,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -9805,7 +9805,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -9817,7 +9817,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -9829,7 +9829,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -9841,7 +9841,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -9853,7 +9853,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -9865,7 +9865,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "marionette"}}
     },
@@ -9873,7 +9873,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "marionette-headless"}}
     },
@@ -9881,7 +9881,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -9893,7 +9893,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 10,
@@ -9905,7 +9905,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -9917,7 +9917,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -9929,7 +9929,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -9941,7 +9941,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -9953,7 +9953,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -9965,7 +9965,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -9977,7 +9977,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -9989,7 +9989,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 9,
@@ -10001,7 +10001,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "mochitest-a11y"}}
     },
@@ -10009,7 +10009,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10021,7 +10021,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 10,
@@ -10033,7 +10033,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 11,
@@ -10045,7 +10045,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 12,
@@ -10057,7 +10057,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 13,
@@ -10069,7 +10069,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 14,
@@ -10081,7 +10081,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 15,
@@ -10093,7 +10093,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 16,
@@ -10105,7 +10105,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10117,7 +10117,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10129,7 +10129,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10141,7 +10141,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10153,7 +10153,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10165,7 +10165,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10177,7 +10177,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -10189,7 +10189,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 9,
@@ -10201,7 +10201,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10213,7 +10213,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10225,7 +10225,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10237,7 +10237,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "mochitest-clipboard"}}
     },
@@ -10245,7 +10245,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10257,7 +10257,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10269,7 +10269,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10281,7 +10281,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10293,7 +10293,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10305,7 +10305,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10317,7 +10317,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10329,7 +10329,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -10341,7 +10341,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "mochitest-gpu"}}
     },
@@ -10349,7 +10349,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10361,7 +10361,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10373,7 +10373,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10385,7 +10385,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10397,7 +10397,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10409,7 +10409,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10421,7 +10421,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10433,7 +10433,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10445,7 +10445,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10457,7 +10457,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10469,7 +10469,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10481,7 +10481,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10493,7 +10493,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10505,7 +10505,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -10517,7 +10517,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10529,7 +10529,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10541,7 +10541,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10553,7 +10553,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10565,7 +10565,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10577,7 +10577,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10589,7 +10589,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10601,7 +10601,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -10613,7 +10613,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "telemetry-tests-client"}}
     },
@@ -10621,7 +10621,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "test-verify"}}
     },
@@ -10629,7 +10629,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "test-verify-wpt"}}
     },
@@ -10637,7 +10637,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10649,7 +10649,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 10,
@@ -10661,7 +10661,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 11,
@@ -10673,7 +10673,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 12,
@@ -10685,7 +10685,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10697,7 +10697,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10709,7 +10709,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10721,7 +10721,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10733,7 +10733,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10745,7 +10745,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10757,7 +10757,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -10769,7 +10769,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 9,
@@ -10781,7 +10781,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10793,7 +10793,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10805,7 +10805,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10817,7 +10817,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10829,7 +10829,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10841,7 +10841,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10853,7 +10853,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "web-platform-tests-wdspec"}}
     },
@@ -10861,7 +10861,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -10873,7 +10873,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 2,
@@ -10885,7 +10885,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 3,
@@ -10897,7 +10897,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 4,
@@ -10909,7 +10909,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 5,
@@ -10921,7 +10921,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 6,
@@ -10933,7 +10933,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 7,
@@ -10945,7 +10945,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 8,
@@ -19898,7 +19898,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "chunk": 3,
@@ -19910,7 +19910,7 @@
         "action": {"type": "perf"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "browser": "chromium",
@@ -19924,7 +19924,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "suite": {"name": "test-verify"},
@@ -25490,7 +25490,7 @@
         "action": {"type": "perf"},
         "build": {
             "platform": "macosx64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "browser": "firefox",
@@ -25503,7 +25503,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "macosx64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "chunk": 11,
@@ -25533,6 +25533,33 @@
             "chunk": 7,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr", "chunked"]
+        }
+    },
+    "test-macosx1014-64-shippable/opt-raptor-tp6-3-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 3,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-macosx1014-64-shippable/opt-raptor-youtube-playback-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
         }
     },
     "test-macosx64-devedition/opt-cppunit": {
@@ -27128,7 +27155,7 @@
         "action": {"type": "perf"},
         "build": {
             "platform": "macosx64",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "browser": "firefox",
@@ -30330,7 +30357,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {
             "chunk": 1,
@@ -30342,7 +30369,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "test-verify"}}
     },
@@ -30350,7 +30377,7 @@
         "action": {"type": "test"},
         "build": {
             "platform": "win64",
-            "type": ["opt", "asan", "asan"]
+            "type": ["opt", "asan"]
         },
         "run": {"suite": {"name": "test-verify-wpt"}}
     },
@@ -41470,7 +41497,7 @@
         "action": {"type": "perf"},
         "build": {
             "platform": "win32",
-            "type": ["opt", "shippable", "shippable"]
+            "type": ["opt", "shippable"]
         },
         "run": {
             "browser": "firefox",
