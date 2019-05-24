@@ -479,6 +479,7 @@ RAPTOR_BROWSERS = [
     "-chromium",
     "-chrome",
     "-fenix-cold",
+    "-fenix-power",
     "-fenix",
     "-fennec-cold",
     "-fennec",
@@ -491,7 +492,6 @@ RAPTOR_BROWSERS = [
     "-geckoview",
     "-refbrow-power",
     "-refbrow",
-
 ]
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]

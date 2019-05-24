@@ -25511,6 +25511,30 @@
             "type": ["e10s", "chunked"]
         }
     },
+    "test-macosx1014-64-qr/debug-reftest-e10s-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr", "chunked"]
+        }
+    },
+    "test-macosx1014-64-shippable-qr/opt-reftest-e10s-7": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt", "shippable"]
+        },
+        "run": {
+            "chunk": 7,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr", "chunked"]
+        }
+    },
     "test-macosx64-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -30302,6 +30326,18 @@
             "type": ["mingw32"]
         }
     },
+    "test-windows10-64-asan/opt-mochitest-browser-chrome-fis-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt", "asan", "asan"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-browser-chrome-fis"},
+            "type": ["e10s", "chunked"]
+        }
+    },
     "test-windows10-64-asan/opt-test-verify": {
         "action": {"type": "test"},
         "build": {
@@ -30905,6 +30941,17 @@
             "type": ["debug", "ccov"]
         },
         "run": {"suite": {"name": "mochitest-media"}}
+    },
+    "test-windows10-64-ccov/debug-mochitest-media-fis-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug", "ccov"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-media-fis"},
+            "type": ["e10s"]
+        }
     },
     "test-windows10-64-ccov/debug-reftest-1": {
         "action": {"type": "test"},
