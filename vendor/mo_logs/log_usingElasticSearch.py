@@ -117,8 +117,6 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
                     )
                 Till(seconds=PAUSE_AFTER_BAD_INSERT).wait()
 
-        self.es.flush()
-
         # CONTINUE TO DRAIN THIS QUEUE
         while not please_stop:
             try:
