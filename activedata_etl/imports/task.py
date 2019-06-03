@@ -326,6 +326,7 @@ RAPTOR_TEST = {
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-power-idle-bg",
         "scn-power-idle",
         "stylebench",
         "speedometer",
@@ -383,6 +384,7 @@ BROWSER = {
     "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
+    "refbrow-cold": {"run": {"browser": "reference browser"}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }
 
@@ -574,8 +576,11 @@ BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL = {
     "reference-browser-geckoNightlyX86Release": {
-        "build": {"product": "reference-braoswer", "train": "release"}
-    }
+        "build": {"product": "reference-browser", "train": "release"}
+    },
+    "android-geckoview-fat-aar/opt": {
+        "build": {"platform": "android", "product": "geckoview", "type": ["opt"]}
+    },
 }
 
 COMPILED_CATEGORIES = {

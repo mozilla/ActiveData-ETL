@@ -105,6 +105,14 @@
             "type": ["opt"]
         }
     },
+    "build-android-geckoview-fat-aar/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "product": "geckoview",
+            "type": ["opt"]
+        }
+    },
     "build-android-lint/opt": {
         "action": {"type": "build"},
         "build": {
@@ -330,7 +338,7 @@
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
         "build": {
-            "product": "reference-braoswer",
+            "product": "reference-browser",
             "train": "release"
         }
     },
@@ -3368,6 +3376,20 @@
             "type": ["1proc"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-raptor-tp6m-5-fennec-cold-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 5,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-nightly/opt-raptor-speedometer-fennec": {
         "action": {"type": "perf"},
         "build": {
@@ -3454,6 +3476,21 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-tp6m-1-refbrow-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "reference browser",
+            "chunk": 1,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-tp6m-13-fennec64-cold-1proc": {
         "action": {"type": "perf"},
         "build": {
@@ -3480,6 +3517,20 @@
             "browser": "geckoview",
             "framework": "raptor",
             "suite": {"name": "unity-webgl"}
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-scn-power-idle-bg-fennec-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "raptor",
+            "suite": {"name": "scn-power-idle-bg"},
+            "type": ["1proc"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-scn-power-idle-geckoview-e10s": {
@@ -3585,6 +3636,19 @@
             "framework": "raptor",
             "suite": {"name": "tp6m"},
             "type": ["1proc"]
+        }
+    },
+    "test-android-hw-p2-8-0-arm7-api-16/pgo-raptor-scn-power-idle-bg-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "raptor",
+            "suite": {"name": "scn-power-idle-bg"},
+            "type": ["e10s"]
         }
     },
     "test-android-hw-p2-8-1-arm7-api-16/opt-xpcshell-6": {

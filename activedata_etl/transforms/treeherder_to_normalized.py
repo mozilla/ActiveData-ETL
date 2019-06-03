@@ -250,6 +250,7 @@ _option_map = {
     "aarch64": ["aarch64"],
     "arm-debug": ["arm", "debug"],
     "ARMv7": ["arm"],
+    "arm64": ["arm64"],
     "all": ["all"],
     "asan": ["asan"],
     "ccov": ["ccov"],
@@ -262,6 +263,7 @@ _option_map = {
     "jsdcov": ["jsdcov"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
+    "Nightlies": ["Nightlies"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],

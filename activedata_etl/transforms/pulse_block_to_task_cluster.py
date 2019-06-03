@@ -1036,6 +1036,7 @@ KNOWN_TAGS = {
 
     "label",
     "last-watershed",
+    "limit-locales",
     "link",
     "locations.mozharness",
     "locations.test_packages",
