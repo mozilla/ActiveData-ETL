@@ -105,13 +105,20 @@
             "type": ["opt"]
         }
     },
-    "build-android-geckoview-fat-aar/opt": {
+    "build-android-geckoview-fat-aar-nightly/opt-upload-symbols": {
         "action": {"type": "build"},
         "build": {
-            "platform": "android",
-            "product": "geckoview",
+            "train": "nightly",
             "type": ["opt"]
-        }
+        },
+        "platform": "android",
+        "product": "geckoview"
+    },
+    "build-android-geckoview-fat-aar/opt": {
+        "action": {"type": "build"},
+        "build": {"type": ["opt"]},
+        "platform": "android",
+        "product": "geckoview"
     },
     "build-android-lint/opt": {
         "action": {"type": "build"},

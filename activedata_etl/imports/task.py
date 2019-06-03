@@ -457,6 +457,7 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
+    "android-geckoview": {"platform": "android", "product": "geckoview"},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -512,6 +513,7 @@ BUILD_OPTIONS = {
     "debug": {"build": {"type": ["debug"]}},
     "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
+    "fat-aar": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
     "gcp": {"run": {"cloud": "gcp"}},
@@ -577,9 +579,6 @@ BUILD_STEPS = {"upload-symbols": {}}
 SPECIAL = {
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
-    },
-    "android-geckoview-fat-aar/opt": {
-        "build": {"platform": "android", "product": "geckoview", "type": ["opt"]}
     },
 }
 
