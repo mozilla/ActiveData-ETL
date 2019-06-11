@@ -248,8 +248,8 @@ def main():
                     #     new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
                     #     temp.write(new_content)
                     #     put(temp.abspath, ES_CONFIG_FILE)
-                    _fix_supervisor()
-                    # sudo("supervisorctl restart es")
+                    # _fix_supervisor()
+                    sudo("supervisorctl restart es")
                 else:
                     _find_oom(i)
                     pass
