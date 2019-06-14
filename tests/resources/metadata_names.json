@@ -34,6 +34,14 @@
             "type": ["opt"]
         }
     },
+    "build-android-api-16-beta-test/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "train": "beta",
+            "type": ["opt"]
+        }
+    },
     "build-android-api-16-gradle/opt": {
         "action": {"type": "build"},
         "build": {
@@ -105,6 +113,15 @@
             "type": ["opt"]
         }
     },
+    "build-android-geckoview-fat-aar-nightly/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "train": "nightly",
+            "type": ["opt"]
+        },
+        "platform": "android",
+        "product": "geckoview"
+    },
     "build-android-geckoview-fat-aar-nightly/opt-upload-symbols": {
         "action": {"type": "build"},
         "build": {
@@ -145,6 +162,15 @@
             "type": ["opt"]
         }
     },
+    "build-android-x86-beta-test/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "x86",
+            "platform": "android",
+            "train": "beta",
+            "type": ["opt"]
+        }
+    },
     "build-android-x86-old-id-nightly/opt": {
         "action": {"type": "build"},
         "build": {
@@ -167,6 +193,15 @@
         "build": {
             "cpu": "x86",
             "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-x86_64-beta-test/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "x86-64",
+            "platform": "android",
+            "train": "beta",
             "type": ["opt"]
         }
     },

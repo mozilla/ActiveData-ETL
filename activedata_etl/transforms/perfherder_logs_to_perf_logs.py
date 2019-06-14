@@ -177,7 +177,7 @@ def transform(source_key, perfherder, metadata, resources):
                 break
             elif suite_name.startswith(s) and framework_name != "job_resource_usage":
                 Log.warning(
-                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framwork {{framework}}",
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framework {{framework}}",
                     uid=source_key,
                     suffix=suite_name[len(s) : :],
                     suite=suite_name,
@@ -565,6 +565,7 @@ KNOWN_PERFHERDER_TESTS = [
     "h1",
     "h2",
     "Heap Unclassified",
+    "ImageDecodersPerf_PNG_RgbAlpha",
     "Images",
     "inspector-metrics",
     "installer size",
@@ -603,6 +604,7 @@ KNOWN_PERFHERDER_TESTS = [
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "PermissionManager",
+    "pull_errored",  # VCS
     "pull",  # VCS
     "purge",  # VCS
     "Quantum_1",

@@ -506,6 +506,7 @@ BUILD_OPTIONS = {
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
     "base-toolchains-clang": {},
+    "beta-test": {"build": {"train": "beta"}},
     "beta": {"build": {"train": "beta"}},
     "ccov": {"build": {"type": ["ccov"]}},
     "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
