@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 
 from jx_python import jx
 from mo_dots import listwrap
-from mo_logs import Log
+from mo_logs import Log, Except
 from mo_times import Timer
 from pyLibrary.env import http
 
@@ -78,10 +78,14 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                             if line_to_tuid[line]
                         ]
         except Exception as e:
+            e = Except.wrap(e)
             resources.tuid_mapper.enabled = False
-            Log.warning(
-                "failure with TUID mapping with {{key}}", key=source_key, cause=e
-            )
+            if "database is closed" not in e:
+                Log.warning(
+                    "failure with TUID mapping with {{key}}",
+                    key=source_key,
+                    cause=e
+                )
 
     for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
         _annotate_sources(records)

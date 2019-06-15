@@ -11,6 +11,7 @@ from __future__ import absolute_import, division
 
 import re
 
+from jx_base.expressions import EMPTY_DICT
 from mo_dots import Data, coalesce, is_data, listwrap, wrap_leaves
 from mo_logs import Log, strings
 from mo_times.dates import Date
@@ -31,6 +32,12 @@ GLOBALS = {
 }
 
 
+def first(many):
+    for i in many:
+        return i
+    return None
+
+
 def compile_expression(source):
     """
     THIS FUNCTION IS ON ITS OWN FOR MINIMAL GLOBAL NAMESPACE
@@ -38,6 +45,18 @@ def compile_expression(source):
     :param source:  PYTHON SOURCE CODE
     :return:  PYTHON FUNCTION
     """
+
+    # FORCE MODULES TO BE IN NAMESPACE
+    _ = coalesce
+    _ = listwrap
+    _ = Date
+    _ = Log
+    _ = Data
+    _ = EMPTY_DICT
+    _ = re
+    _ = wrap_leaves
+    _ = first
+
     fake_locals = {}
     try:
         exec(

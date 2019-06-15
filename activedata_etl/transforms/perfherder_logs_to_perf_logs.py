@@ -177,7 +177,7 @@ def transform(source_key, perfherder, metadata, resources):
                 break
             elif suite_name.startswith(s) and framework_name != "job_resource_usage":
                 Log.warning(
-                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framwork {{framework}}",
+                    "While processing {{uid}}, removing suite suffix of {{suffix|quote}} for {{suite}} in framework {{framework}}",
                     uid=source_key,
                     suffix=suite_name[len(s) : :],
                     suite=suite_name,
@@ -345,11 +345,19 @@ def transform(source_key, perfherder, metadata, resources):
             pass
         else:
             new_records.append(metadata)
-            Log.warning(
-                "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
-                uid=source_key,
-                name=suite_name,
-            )
+            if suite_name == "sessionrestore_no_auto_restore":
+                # OFTEN HAS NOTHING
+                Log.note(
+                    "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
+                    uid=source_key,
+                    name=suite_name,
+                )
+            else:
+                Log.warning(
+                    "While processing {{uid}}, no `results` or `subtests` found in {{name|quote}}",
+                    uid=source_key,
+                    name=suite_name,
+                )
 
         # ADD RECORD FOR GEOMETRIC MEAN SUMMARY
         metadata.run.stats = geo_mean(total)
@@ -467,15 +475,26 @@ def geo_mean(values):
 
 
 RAPTOR_BROWSERS = [
+    "-chromium-cold",
     "-chromium",
     "-chrome",
+    "-fenix-cold-live",
+    "-fenix-cold",
+    "-fenix-live",
+    "-fenix-power",
+    "-fenoix",
+    "-fenix",
+    "-fennec-cold",
     "-fennec",
-    "-firefox",
     "-firefox-live",
+    "-firefox-cold",
+    "-firefox",
     "-geckoview-cold",
+    "-geckoview-live",
     "-geckoview-memory",
     "-geckoview-power",
     "-geckoview",
+    "-refbrow-power",
     "-refbrow",
 ]
 
@@ -547,6 +566,18 @@ KNOWN_PERFHERDER_TESTS = [
     "h1",
     "h2",
     "Heap Unclassified",
+    "ImageDecodersPerf_GIF_Rgb",
+    "ImageDecodersPerf_JPG_YCbCr",
+    "ImageDecodersPerf_JPG_Cmyk",
+    "ImageDecodersPerf_JPG_Gray",
+    "ImageDecodersPerf_PNG_RgbAlpha",
+    "ImageDecodersPerf_PNG_Rgb",
+    "ImageDecodersPerf_PNG_GrayAlpha",
+    "ImageDecodersPerf_PNG_Gray",
+    "ImageDecodersPerf_WebP_RgbLossless",
+    "ImageDecodersPerf_WebP_RgbLossy",
+    "ImageDecodersPerf_WebP_RgbAlphaLossless",
+    "ImageDecodersPerf_WebP_RgbAlphaLossy",
     "Images",
     "inspector-metrics",
     "installer size",
@@ -569,6 +600,7 @@ KNOWN_PERFHERDER_TESTS = [
     "other_nol64",
     "other_l64",
     "other",
+    "overall_clone_fullcheckout_rmstore",  # VCS
     "overall_clone_fullcheckout_rmwdir",
     "overall_clone_fullcheckout",  # VCS
     "overall_clone_rmwdir",
@@ -584,6 +616,7 @@ KNOWN_PERFHERDER_TESTS = [
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "PermissionManager",
+    "pull_errored",  # VCS
     "pull",  # VCS
     "purge",  # VCS
     "Quantum_1",
@@ -594,6 +627,7 @@ KNOWN_PERFHERDER_TESTS = [
     "rasterflood_gradient",
     "rasterflood_svg",
     "removed_missing_shared_store",
+    "remove_shared_store_active_lock",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",
@@ -620,6 +654,7 @@ KNOWN_PERFHERDER_TESTS = [
     "tart_flex",
     "tart",
     "TestStandardURL",
+    "total-after-gc",
     "TreeTraversal",
     "tcanvasmark",
     "tcheck2",

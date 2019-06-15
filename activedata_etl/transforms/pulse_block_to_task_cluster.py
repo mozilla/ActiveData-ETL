@@ -372,10 +372,17 @@ def _normalize_run(source_key, normalized, task, env):
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1::]
 
+    for modifier in ["no-accel", "chunked", "gpu"]:
+        mod = "-" + modifier
+        if mod in test:
+            test = test.replace(mod, "").strip()
+            run_type += [modifier]
+
     if test.startswith("mochitest-"):
         # mochitest-chrome
         # mochitest-media-2
         # mochitest-plain-clipboard
+        # mochitest-plain-chunked
         path = test.split("-")
         test = path[0]
         flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
@@ -386,7 +393,7 @@ def _normalize_run(source_key, normalized, task, env):
             flavor = Null
         run_type += ["e10s"]
 
-    if flavor=="chunked":
+    if flavor == "chunked":
         flavor = Null
         run_type += ["chunked"]
     elif flavor and "-chunked" in flavor:
@@ -428,6 +435,7 @@ def _normalize_run(source_key, normalized, task, env):
     #     consume(task, "triggeredBy"),
     #     consume(task, "firedBy")
     # )
+    consume(task, "tags.retrigger")
 
     metadata_name = consume(task, "metadata.name")
     set_default(
@@ -548,6 +556,8 @@ def set_build_info(source_key, normalized, task, env, resources):
         elif not normalized.repo.push.date:
             Log.warning("did not assign a repo.push.date for source_key={{key}}", key=source_key)
         normalized.build.date = normalized.repo.push.date
+
+    normalized.run.phabricator_diff = consume(task, "extra.code-review.phabricator-diff")
 
     treeherder = consume(task, "extra.treeherder")
     if treeherder:
@@ -732,6 +742,8 @@ KNOWN_COALESCE_CONFLICTS = {
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta"): "gecko-dev.git",
     (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release"): "gecko-dev.git",
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
+    ("jsreftest", "reftest"): "jsreftest",
+    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null): "win64-aarch64-devedition",
 }
 
 
@@ -792,14 +804,41 @@ def _simplify_platform(platform):
 
 
 SIMPLER_PLATFORMS = {
-    "android-4-0-armv7-api16-old-id": "android-api-16-old-id",
-    "android-4-0-armv7-api16": "android-api-16",
-    "linux": "linux32",
+    "android-api-16": "android",
+    "android-aarch64": "android",
+    "android-4-2-x86": "android",
+    "android-5-0-aarch64": "android",
+    "android-5-0-x86_64": "android",
+    "android-4-0-armv7-api16-old-id": "android",
+    "android-4-0-armv7-api16": "android",
+    "android-x86": "android",
     "osx-cross": "macosx64",
+    "osx-shippable": "macosx64",
+    "osx-cross-devedition": "macosx64",
+    "macosx64-devedition": "macosx64",
+    "macosx64-shippable": "macosx64",
+    "win32-devedition": "win32",
+    "win32-shippable": "win32",
+    "win64-aarch64-devedition": "win64",
+    "win64-aarch64": "win64",
+    "win64-devedition": "win64",
+    "win64-shippable": "win64",
+    "windows2012-32-shippable": "win32",
+    "windows2012-32-devedition": "win32",
     "windows2012-32": "win32",
+    "windows2012-64-devedition": "win64",
+    "windows2012-64-shippable": "win64",
     "windows2012-64": "win64",
-    "windows2012-64-devedition": "win64-devedition",
-    "linux32-shippable": "linux32"
+    "windows2012-aarch64-devedition": "win64",
+    "windows2012-aarch64-shippable": "win64",
+    "windows2012-aarch64": "win64",
+    "linux32-devedition": "linux32",
+    "linux32-shippable": "linux32",
+    "linux64-shippable": "linux64",
+    "linux64-snap": "linux64",
+    "linux-devedition": "linux32",
+    "linux-shippable": "linux32",
+    "linux": "linux32",
 }
 
 BUILD_TYPES = {
@@ -824,6 +863,7 @@ BUILD_TYPES = {
 
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
+    "aliases_entries",
     "apks.armv7_v15",
     "apks.x86",
     "appVersion",
@@ -863,17 +903,18 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
-
     "platforms",
     "publish_rules",
+    "purge-caches-exit-status",
     "purpose",
-    "release_eta"
+    "release_eta",
     "release_name",
     "release_promotion",
 
     "releaseProperties.hashType",
     "repack_manifests_url",
     "require_mirrors",
+    "retry-exit-status",
     "revision",
     "rules_to_update",
 
@@ -892,8 +933,10 @@ PAYLOAD_PROPERTIES = {
     "TOTAL_CHUNKS",
     "tuxedo_server_url",
     "unsignedArtifacts",
+    "update_line",
     "upload_date",
     "VERIFY_CONFIG",
+    "version_bump_info",
     "version"
 
 }
@@ -948,6 +991,7 @@ KNOWN_TAGS = {
     "notify.ircChannelMessage",
     "en_us_installer_binary_url",
 
+    "firedBy",
     "funsize.partials",
     "funsize.partials.branch",
     "funsize.partials.dest_mar",
@@ -992,6 +1036,7 @@ KNOWN_TAGS = {
 
     "label",
     "last-watershed",
+    "limit-locales",
     "link",
     "locations.mozharness",
     "locations.test_packages",

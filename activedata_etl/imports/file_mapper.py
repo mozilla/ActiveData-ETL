@@ -37,7 +37,7 @@ class FileMapper(object):
 
         # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
         # FIND RECENT FILE LISTING
-        timestamp = Date(coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date, Date.now())) -Duration("hour")
+        timestamp = Date(coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date, Date.now())) - Duration("hour")
         result = http.post_json(
             ACTIVE_DATA_QUERY,
             json={
@@ -219,6 +219,9 @@ KNOWN_FAILURES = {"or": [
 
     {"suffix": {".": "libstd/io/mod.rs"}},
     {"suffix": {".": "collections/mod.rs"}},
+    {"suffix": {".": "/actions/index.js"}},
+    {"suffix": {".": "/components/App.js"}},
+    {"suffix": {".": "/reducers/index.js"}},
     {"suffix": {".": "/error.rs"}},
     {"suffix": {".": "/build/tests/xpcshell/head.js"}},
     {"suffix": {".": "/shared/tests/browser/head.js"}},

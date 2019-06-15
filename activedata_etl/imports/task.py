@@ -11,7 +11,7 @@ from collections import Mapping
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
-from mo_dots import Data, coalesce, set_default
+from mo_dots import Data, coalesce, set_default, unwrap
 from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import Log, strings
@@ -129,7 +129,7 @@ class Matcher(object):
 
 
 CATEGORIES = {
-    # MAYBE USE A FORMAL PARSER!!
+    # TODO: USE A FORMAL PARSER??
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
@@ -198,9 +198,7 @@ CATEGORIES = {
         },
     },
     "build-": {
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {
-            "action": {"type": "build"}
-        },
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
             "action": {"type": "build"}
         },
@@ -208,7 +206,7 @@ CATEGORIES = {
             "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "action": {"type": "build"},
+            "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
             "build": {"train": "nightly"},
@@ -218,6 +216,7 @@ CATEGORIES = {
             "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
+        "{{SPECIAL}}": {"action": {"type": "build"}},
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
@@ -265,10 +264,14 @@ TEST_PLATFORM = {
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
-    "android-hw-pix-7-1-android-aarch64": {"build": {"cpu": "aarch64", "platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {
+        "build": {"cpu": "aarch64", "platform": "android"}
+    },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx1010-64": {"build": {"platform": "macosx64"}},
+    "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32"}},
     "windows10-64": {"build": {"platform": "win64"}},
@@ -277,24 +280,37 @@ TEST_PLATFORM = {
 }
 
 RUN_OPTIONS = {
+    "1proc": {"run": {"type": ["1proc"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
+    "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
+    "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
+    "fis": {"run": {"type": ["fis"]}},  # fission
+    "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
+    "gpu": {"run": {"type": ["gpu"]}},
+    "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "no-accel": {"run": {"type": ["no-accel"]}},
+    "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
+    "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
+    "stylo-1proc": {"build": {"type": ["stylo"]}, "run": {"type": ["1proc"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
     "stylo-disabled-e10s": {
         "build": {"type": ["stylo-disabled"]},
         "run": {"type": ["e10s"]},
     },
-    "stylo-sequential": {},
+    "stylo-sequential-1proc": {"run": {"type": ["1proc"]}},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
+    "stylo-sequential": {},
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
+    "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
 }
 
@@ -310,6 +326,8 @@ RAPTOR_TEST = {
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-power-idle-bg",
+        "scn-power-idle",
         "stylebench",
         "speedometer",
         "sunspider",
@@ -323,6 +341,7 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback",
     ]
 }
 
@@ -334,9 +353,12 @@ def match_tp6(name):
             for b in BROWSER.keys():
                 if "-" + b in name:
                     short_name = between(name, None, "-" + b)
-                    suffix = short_name[len(prefix):]
+                    suffix = short_name[len(prefix) :]
                     if suffix in TEST_CHUNK:
-                        return len(short_name), {"run": {"suite": {"name": suite}, "chunk": int(suffix)}}
+                        return (
+                            len(short_name),
+                            {"run": {"suite": {"name": suite}, "chunk": int(suffix)}},
+                        )
                     return len(short_name), {"run": {"suite": {"name": short_name}}}
     return None, None
 
@@ -346,15 +368,23 @@ RAPTOR_TEST["tp6m"] = match_tp6
 
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
+    "chromium-cold": {"run": {"browser": "chromium"}},
     "chromium": {"run": {"browser": "chromium"}},
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
+    "fenix-cold": {"run": {"browser": "fenix"}},
     "fenix": {"run": {"browser": "fenix"}},
+    "firefox-cold": {"run": {"browser": "firefox"}},
     "firefox": {"run": {"browser": "firefox"}},
-    "fennec":  {"run": {"browser": "fennec"}},
-    "geckoview": {"run": {"browser": "geckoview"}},
+    "fennec": {"run": {"browser": "fennec"}},
+    "fennec-cold": {"run": {"browser": "fennec"}},
+    "fennec64": {"run": {"browser": "fennec"}},
+    "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
+    "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
+    "geckoview": {"run": {"browser": "geckoview"}},
+    "refbrow-cold": {"run": {"browser": "reference browser"}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }
 
@@ -385,7 +415,6 @@ TEST_SUITE = {
         "marionette-media",
         "marionette-stream",
         "marionette",
-        "mochitest",
         "mochitest-a11y",
         "mochitest-browser-chrome",
         "mochitest-browser-screenshots",
@@ -404,7 +433,7 @@ TEST_SUITE = {
         "mochitest-webgl2-core",
         "mochitest-webgl2-ext",
         "mochitest-webgl",
-
+        "mochitest",
         "mozmill",
         "reftest",
         "reftest-fonts",
@@ -428,6 +457,7 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
+    "android-geckoview": {"platform": "android", "product": "geckoview"},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -448,6 +478,7 @@ BUILD_PLATFORM = {
     "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
+    "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
     "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
@@ -455,12 +486,16 @@ BUILD_PLATFORM = {
 }
 
 BUILD_OPTIONS = {
-    "aarch64-eme": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},  # ENCRYPTED MEDIA EXTENSIONS
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
+    "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
+    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-eme": {
+        "build": {"cpu": "aarch64", "type": ["eme"]}
+    },  # ENCRYPTED MEDIA EXTENSIONS
+    "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
-    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
-    "aarch64-msvc": {"build": {"cpu": "aarch64", }},
+    "aarch64-msvc": {"build": {"cpu": "aarch64"}},
     "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
     "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
     "aarch64": {"build": {"cpu": "aarch64"}},
@@ -471,16 +506,20 @@ BUILD_OPTIONS = {
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
     "base-toolchains-clang": {},
+    "beta-test": {"build": {"train": "beta"}},
+    "beta": {"build": {"train": "beta"}},
     "ccov": {"build": {"type": ["ccov"]}},
     "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
     "checkstyle": {},
     "debug": {"build": {"type": ["debug"]}},
     "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
+    "fat-aar": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
     "gcp": {"run": {"cloud": "gcp"}},
     "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"type": ["shippable"]}},
+    "geckoNightlyX86Release": {},
     "geckoview-docs": {},
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
@@ -513,27 +552,36 @@ BUILD_TYPE = {
     "debug": {"build": {"type": ["debug"]}},
 }
 
-TEST_OPTIONS = set_default({
-    "aarch64": {"build":{"cpu": "aarch64"}},
-    "asan": {"build": {"type": ["asan"]}},
-    "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
-    "gradle": {"run": {"type": ["gradle"]}},
-    "lto": {"run": {"type": ["lto"]}},
-    "mingw32": {"run": {"type": ["mingw32"]}},
-    "ming32": {"run": {"type": ["mingw32"]}},
-    "msvc": {"run": {"type": ["msvc"]}},
-    "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
-    "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
-    "shippable-qr": {"run": {"type": ["qr"]}, "build": {"type": ["shippable"]}},  # QUANTUM RENDER
-    "shippable": {"build": {"type": ["shippable"]}},
-    "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
-    "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
-    "ux": {"run": {"type": ["ux"]}},
-    "nightly": {"build": {"train": "nightly"}},
-    "devedition": {"build": {"train": "devedition"}}
-}, BUILD_OPTIONS)
+TEST_OPTIONS = unwrap(
+    set_default(
+        {  # NOTICE THESE ALL INCLUDE run.type
+            "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+            "gradle": {"run": {"type": ["gradle"]}},
+            "lto": {"run": {"type": ["lto"]}},
+            "mingw32": {"run": {"type": ["mingw32"]}},
+            "ming32": {"run": {"type": ["mingw32"]}},
+            "msvc": {"run": {"type": ["msvc"]}},
+            "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
+            "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+            "shippable-qr": {
+                "run": {"type": ["qr"]},  # QUANTUM RENDER
+                "build": {"type": ["shippable"]},
+            },
+            "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
+            "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
+            "ux": {"run": {"type": ["ux"]}},
+        },
+        BUILD_OPTIONS,
+    )
+)
 
 BUILD_STEPS = {"upload-symbols": {}}
+
+SPECIAL = {
+    "reference-browser-geckoNightlyX86Release": {
+        "build": {"product": "reference-browser", "train": "release"}
+    },
+}
 
 COMPILED_CATEGORIES = {
     c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()
