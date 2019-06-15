@@ -538,6 +538,11 @@ class PythonScript(Expression):
     pass
 
 
+class SQLScript(Expression):
+    """
+    REPRESENT A SQL SCRIPT
+    """
+    pass
 
 
 _json_encoder = utf8_json_encoder
@@ -706,6 +711,10 @@ class NullOp(Literal):
 
     def __str__(self):
         return b"null"
+
+    @property
+    def type(self):
+        return IS_NULL
 
     def __hash__(self):
         return id(None)
@@ -973,10 +982,10 @@ class DivOp(BaseBinaryOp):
     op = "div"
 
     def missing(self):
-        return AndOp([
+        return self.lang[AndOp([
             self.default.missing(),
-            self.lang[OrOp([self.lhs.missing(), self.rhs.missing(), EqOp([self.rhs, ZERO])])]
-        ]).partial_eval()
+            OrOp([self.lhs.missing(), self.rhs.missing(), EqOp([self.rhs, ZERO])])
+        ])].partial_eval()
 
     def partial_eval(self):
         default = self.default.partial_eval()
@@ -1222,7 +1231,7 @@ class NotOp(Expression):
                     term.when,
                     **{"then": inverse(term.then), "else": inverse(term.els_)}
                 )].partial_eval()
-            elif is_op(term, CaseOp):
+            elif is_op(term, CaseOp):  # REWRITING
                 output = self.lang[CaseOp(
                     [
                         WhenOp(w.when, **{"then": inverse(w.then)}) if is_op(w, WhenOp) else inverse(w)
@@ -1453,11 +1462,22 @@ class FirstOp(Expression):
     @simplified
     def partial_eval(self):
         term = self.lang[self.term].partial_eval()
-        if is_op(self.term, FirstOp):
+        if is_op(term, FirstOp):
             return term
+        elif is_op(term, CaseOp):  # REWRITING
+            return self.lang[CaseOp(
+                [
+                    WhenOp(
+                        t.when,
+                        **{"then": FirstOp(t.then)}
+                    )
+                    for t in term.whens[:-1]
+                ] +
+                [FirstOp(term.whens[-1])]
+            )].partial_eval()
+        elif is_op(term, WhenOp):
+            return self.lang[WhenOp(term.when, **{"then": FirstOp(term.then), "else": FirstOp(term.els_)})].partial_eval()
         elif term.type != OBJECT and not term.many:
-            return term
-        elif term is NULL:
             return term
         elif is_literal(term):
             Log.error("not handled yet")
@@ -1624,9 +1644,36 @@ class NumberOp(Expression):
     @simplified
     def partial_eval(self):
         term = self.lang[FirstOp(self.term)].partial_eval()
-        if is_op(term, CoalesceOp):
+
+        if is_literal(term):
+            if term is NULL:
+                return NULL
+            elif term is FALSE:
+                return ZERO
+            elif term is TRUE:
+                return ONE
+            elif isinstance(term.value, text_type):
+                return Literal(float(text_type))
+            elif isinstance(term.value, (int, float)):
+                return term
+            else:
+                Log.error("can not convert {{value|json}} to number", value=term.value)
+        elif is_op(term, CaseOp):  # REWRITING
+            return self.lang[CaseOp(
+                [
+                    WhenOp(
+                        t.when,
+                        **{"then": NumberOp(t.then)}
+                    )
+                    for t in term.whens[:-1]
+                ] +
+                [NumberOp(term.whens[-1])]
+            )].partial_eval()
+        elif is_op(term, WhenOp):  # REWRITING
+            return self.lang[WhenOp(term.when, **{"then": NumberOp(term.then), "else": NumberOp(term.els_)})].partial_eval()
+        elif is_op(term, CoalesceOp):
             return self.lang[CoalesceOp([NumberOp(t) for t in term.terms])]
-        return self
+        return self.lang[NumberOp(term)]
 
 
 class IsNumberOp(Expression):
@@ -2106,8 +2153,8 @@ class PrefixOp(Expression):
     def __init__(self, term):
         Expression.__init__(self, term)
         if not term:
-            self.expr = None
-            self.prefix = None
+            self.expr = NULL
+            self.prefix = NULL
         elif is_data(term):
             self.expr, self.prefix = term.items()[0]
         else:
@@ -2122,7 +2169,7 @@ class PrefixOp(Expression):
             return {"prefix": [self.expr.__data__(), self.prefix.__data__()]}
 
     def vars(self):
-        if not self.expr:
+        if self.expr is NULL:
             return set()
         return self.expr.vars() | self.prefix.vars()
 
@@ -2136,13 +2183,11 @@ class PrefixOp(Expression):
         return FALSE
 
     def partial_eval(self):
-        if not self.expr:
-            return TRUE
-
-        return WhenOp(
-            self.lang[AndOp([self.expr.exists(), self.prefix.exists()])],
-            **{"then": self.lang[BasicStartsWithOp([self.expr, self.prefix])], "else": FALSE}
-        ).partial_eval()
+        return self.lang[CaseOp([
+            WhenOp(self.prefix.missing(), then=TRUE),
+            WhenOp(self.expr.missing(), then=FALSE),
+            BasicStartsWithOp([self.expr, self.prefix])
+        ])].partial_eval()
 
 
 class SuffixOp(Expression):

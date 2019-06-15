@@ -13,14 +13,14 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-import signal as _signal
-import sys
 from copy import copy
 from datetime import datetime, timedelta
+import signal as _signal
+import sys
 from time import sleep
 
 from mo_dots import Data, coalesce, unwraplist
-from mo_future import allocate_lock, get_function_name, get_ident, start_new_thread, text_type
+from mo_future import allocate_lock, get_function_name, get_ident, start_new_thread, text_type, decorate
 from mo_logs import Except, Log
 from mo_threads.lock import Lock
 from mo_threads.profiles import CProfiler, write_profiles
@@ -102,13 +102,13 @@ class MainThread(BaseThread):
         BaseThread.__init__(self, get_ident())
         self.name = "Main Thread"
         self.please_stop = Signal()
+        self.stopped = Signal()
         self.stop_logging = Log.stop
         self.timers = None
 
     def stop(self):
         """
-        BLOCKS UNTIL ALL THREADS HAVE STOPPED
-        THEN RUNS sys.exit(0)
+        BLOCKS UNTIL ALL KNOWN THREADS, EXCEPT MainThread, HAVE STOPPED
         """
         global DEBUG
 
@@ -147,7 +147,7 @@ class MainThread(BaseThread):
 
         write_profiles(self.cprofiler)
         DEBUG and Log.note("Thread {{name|quote}} now stopped", name=self.name)
-        sys.exit()
+        self.stopped.go()
 
     def wait_for_shutdown_signal(
         self,
@@ -367,6 +367,11 @@ class Thread(BaseThread):
 
 
 class RegisterThread(object):
+    """
+    A context manager to handle threads spawned by other libs
+    This will ensure the thread has unregistered, or
+    has completed before MAIN_THREAD is shutdown
+    """
 
     def __init__(self, thread=None):
         if thread is None:
@@ -384,6 +389,18 @@ class RegisterThread(object):
         self.thread.cprofiler.__exit__(exc_type, exc_val, exc_tb)
         with ALL_LOCK:
             del ALL[self.thread.id]
+
+
+def register_thread(func):
+    """
+    Call `with RegisterThread():`
+    """
+
+    @decorate(func)
+    def output(*args, **kwargs):
+        with RegisterThread():
+            return func(*args, **kwargs)
+    return output
 
 
 def stop_main_thread(*args):

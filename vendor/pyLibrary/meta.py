@@ -10,6 +10,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from collections import namedtuple
+import gc
 from types import FunctionType
 
 from mo_dots import Null, _get_attr, set_default
@@ -84,9 +85,6 @@ def get_function_by_name(full_name):
         return output
     except Exception as e:
         Log.error("Can not find function {{name}}",  name= full_name, cause=e)
-
-
-
 
 
 class cache(object):

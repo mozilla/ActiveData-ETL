@@ -11,7 +11,7 @@ from __future__ import absolute_import, division
 
 import re
 
-from jx_base.expressions import EMPTY_DICT
+from mo_future import first
 from mo_dots import Data, coalesce, is_data, listwrap, wrap_leaves
 from mo_logs import Log, strings
 from mo_times.dates import Date
@@ -28,40 +28,25 @@ GLOBALS = {
     "Data": Data,
     "re": re,
     "wrap_leaves": wrap_leaves,
-    "is_data": is_data
+    "is_data": is_data,
+    "first": first
 }
 
 
-def first(many):
-    for i in many:
-        return i
-    return None
-
-
-def compile_expression(source):
+def compile_expression(source, function_name="output"):
     """
     THIS FUNCTION IS ON ITS OWN FOR MINIMAL GLOBAL NAMESPACE
 
     :param source:  PYTHON SOURCE CODE
+    :param function_name:  OPTIONAL NAME TO GIVE TO OUTPUT FUNCTION
     :return:  PYTHON FUNCTION
     """
-
-    # FORCE MODULES TO BE IN NAMESPACE
-    _ = coalesce
-    _ = listwrap
-    _ = Date
-    _ = Log
-    _ = Data
-    _ = EMPTY_DICT
-    _ = re
-    _ = wrap_leaves
-    _ = first
 
     fake_locals = {}
     try:
         exec(
             (
-                "def output(row, rownum=None, rows=None):\n" +
+                "def " + function_name + "(row, rownum=None, rows=None):\n" +
                 "    _source = " + strings.quote(source) + "\n" +
                 "    try:\n" +
                 "        return " + source + "\n" +
