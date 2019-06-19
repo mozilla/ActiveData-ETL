@@ -426,6 +426,7 @@ TEST_SUITE = {
         "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-remote-sw",
         "mochitest-remote",
         "mochitest-thunderbird",
         "mochitest-valgrind",

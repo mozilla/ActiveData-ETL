@@ -22773,6 +22773,17 @@
             "type": ["e10s"]
         }
     },
+    "test-linux64/debug-mochitest-remote-sw-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-remote"},
+            "type": ["service-worker", "e10s"]
+        }
+    },
     "test-linux64/debug-mochitest-sw-e10s-15": {
         "action": {"type": "test"},
         "build": {
