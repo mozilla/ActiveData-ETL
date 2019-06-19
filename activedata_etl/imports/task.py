@@ -321,6 +321,7 @@ TALOS_TEST = {
 RAPTOR_TEST = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
+        "ares6",
         "assorted-dom",
         "gdocs",
         "motionmark-animometer",
@@ -332,7 +333,6 @@ RAPTOR_TEST = {
         "speedometer",
         "sunspider",
         "unity-webgl",
-        "wasm-godot-baseline",
         "wasm-godot-cranelift",
         "wasm-godot-ion",
         "wasm-godot",
@@ -426,6 +426,7 @@ TEST_SUITE = {
         "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-remote",
         "mochitest-thunderbird",
         "mochitest-valgrind",
         "mochitest-webgl1-core",
