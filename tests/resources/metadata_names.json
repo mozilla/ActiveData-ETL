@@ -3557,6 +3557,20 @@
             "type": ["chunked"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-scn-cpu-idle-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "raptor",
+            "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-raptor-speedometer-geckoview-power-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -3726,6 +3740,19 @@
             "suite": {"name": "tp6m"}
         }
     },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-scn-cpu-idle-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "raptor",
+            "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview": {
         "action": {"type": "perf"},
         "build": {
@@ -3736,6 +3763,19 @@
             "browser": "geckoview",
             "framework": "raptor",
             "suite": {"name": "speedometer"}
+        }
+    },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-speedometer-geckoview-cpu-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
         }
     },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-tp6m-1-fenix": {

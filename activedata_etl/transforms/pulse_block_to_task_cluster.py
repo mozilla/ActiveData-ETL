@@ -919,6 +919,7 @@ PAYLOAD_PROPERTIES = {
     "require_mirrors",
     "retry-exit-status",
     "revision",
+    "rollout_percentage",
     "rules_to_update",
 
     "timeout",
