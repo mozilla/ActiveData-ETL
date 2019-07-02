@@ -559,6 +559,7 @@ KNOWN_PERFHERDER_TESTS = [
     "Explicit Memory",
     "flex",
     "GfxBench",
+    "GfxQcmsPerf_Rgba",
     "g1",
     "g2",
     "g3",

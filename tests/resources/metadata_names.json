@@ -274,6 +274,22 @@
             "type": ["opt", "asan", "fuzzing"]
         }
     },
+    "build-linux64-armel/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "arm",
+            "platform": "linux64",
+            "type": ["opt"]
+        }
+    },
+    "build-linux64-armhf/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "arm",
+            "platform": "linux64",
+            "type": ["opt"]
+        }
+    },
     "build-linux64-base-toolchains-clang/debug": {
         "action": {"type": "build"},
         "build": {
@@ -295,11 +311,51 @@
             "type": ["opt", "lto"]
         }
     },
+    "build-linux64-mips/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "mips",
+            "platform": "linux64",
+            "type": ["opt"]
+        }
+    },
+    "build-linux64-mips64el/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "mips64",
+            "platform": "linux64",
+            "type": ["opt"]
+        }
+    },
+    "build-linux64-mipsel/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "mips",
+            "platform": "linux64",
+            "type": ["opt"]
+        }
+    },
     "build-linux64-plain/debug": {
         "action": {"type": "build"},
         "build": {
             "platform": "linux64",
             "type": ["debug"]
+        }
+    },
+    "build-linux64-ppc64el/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "cpu": "ppc"
+    },
+    "build-linux64-s390x/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "s390",
+            "platform": "linux64",
+            "type": ["opt"]
         }
     },
     "build-linux64-shippable/opt": {
