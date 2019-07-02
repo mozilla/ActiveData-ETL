@@ -499,8 +499,8 @@ BUILD_OPTIONS = {
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-msvc": {"build": {"cpu": "aarch64"}},
-    "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
-    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
+    "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64": {"build": {"cpu": "aarch64"}},
     "add-on-devel": {},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
@@ -521,7 +521,7 @@ BUILD_OPTIONS = {
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
     "gcp": {"run": {"cloud": "gcp"}},
-    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"type": ["shippable"]}},
+    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"train": "shippable"}},
     "geckoNightlyX86Release": {},
     "geckoview-docs": {},
     "gradle": {},
@@ -540,7 +540,7 @@ BUILD_OPTIONS = {
     "plain": {},
     "pytests": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
-    "shippable": {"build": {"type": ["shippable"]}},
+    "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "test": {},
     "tup": {"build": {"type": ["tup"]}},
@@ -568,12 +568,12 @@ TEST_OPTIONS = unwrap(
             "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
             "shippable-qr": {
                 "run": {"type": ["qr"]},  # QUANTUM RENDER
-                "build": {"type": ["shippable"]},
+                "build": {"train": "shippable"},
             },
             "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
             "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
             "ux": {"run": {"type": ["ux"]}},
-            "release": {}
+            "release": {"build": {"train": "release"}},
         },
         BUILD_OPTIONS,
     )
