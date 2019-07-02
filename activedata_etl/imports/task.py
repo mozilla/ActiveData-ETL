@@ -274,6 +274,7 @@ TEST_PLATFORM = {
     "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32"}},
+    "windows10-64-ref-hw-2017": {"build": {"platform": "win64"}},
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
@@ -572,6 +573,7 @@ TEST_OPTIONS = unwrap(
             "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
             "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
             "ux": {"run": {"type": ["ux"]}},
+            "release": {}
         },
         BUILD_OPTIONS,
     )

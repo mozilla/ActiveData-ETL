@@ -3294,6 +3294,18 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-android-em-4.3-arm7-api-16-release/debug-xpcshell-1proc-99": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 99,
+            "suite": {"name": "xpcshell"},
+            "type": ["1proc", "chunked"]
+        }
+    },
     "test-android-em-4.3-arm7-api-16/pgo-mochitest-1proc-19": {
         "action": {"type": "test"},
         "build": {
@@ -34458,6 +34470,20 @@
             "framework": "talos",
             "suite": "tp5o",
             "type": ["qr"]
+        }
+    },
+    "test-windows10-64-ref-hw-2017/opt-raptor-tp6-7-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 7,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
         }
     },
     "test-windows10-64-shippable-qr/opt-awsy-base-dmd-e10s": {
