@@ -550,6 +550,7 @@ BUILD_OPTIONS = {
     "pgo": {"build": {"type": ["pgo"]}},
     "plain": {},
     "pytests": {},
+    "release-test": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
