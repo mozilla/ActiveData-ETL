@@ -455,6 +455,7 @@ TEST_SUITE = {
         "web-platform-tests",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
+        "web-platform-tests-wdspec-headless",
         "xpcshell",
     ]
 }
