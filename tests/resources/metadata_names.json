@@ -222,6 +222,15 @@
             "type": ["opt"]
         }
     },
+    "build-android-x86_64-release/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "x86-64",
+            "platform": "android",
+            "train": "release",
+            "type": ["debug"]
+        }
+    },
     "build-android-x86_64/opt": {
         "action": {"type": "build"},
         "build": {

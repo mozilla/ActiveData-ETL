@@ -551,6 +551,7 @@ BUILD_OPTIONS = {
     "plain": {},
     "pytests": {},
     "release-test": {},
+    "release": {"build": {"train": "release"}},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
