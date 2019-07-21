@@ -55,6 +55,8 @@ class FileMapper(object):
         )
 
         self.predefined_failures = jx_expression_to_function(KNOWN_FAILURES)
+        # REPLACE THIS WITH predefined failures, once dev has been merged
+        self.complicated_failures = lambda filename: 'cargo/registry/src/github.com' in filename
         self.known_failures = set()
         self.lookup = {}
         for files_url in result.data.url:
@@ -143,6 +145,8 @@ class FileMapper(object):
             found = KNOWN_MAPPINGS.get(filename)
             if found:
                 return {"name": found, "is_firefox": True, "old_name": filename}
+            if self.complicated_failures(filename):
+                return {"name": filename}
             if self.predefined_failures(filename):
                 return {"name": filename}
             if filename in self.known_failures:
