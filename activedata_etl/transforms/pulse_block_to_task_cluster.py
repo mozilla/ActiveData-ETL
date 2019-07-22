@@ -194,6 +194,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         task.extra.partials = set_default({}, *task.extra.partials)
 
     output.task.id = task_id
+    output.task.kind = coalesce_w_conflict_detection(source_key, consume(task, "tags.kind"), consume(tc_message, "task.tags.kind"))
+    output.task.test_type = coalesce_w_conflict_detection(source_key, consume(task, "tags.test-type"), consume(tc_message, "task.tags.test-type"))
     output.task.created = Date(consume(task, "created"))
     output.task.deadline = Date(consume(task, "deadline"))
     output.task.dependencies = unwraplist(consume(task, "dependencies"))
@@ -317,7 +319,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         except Exception:
             Log.warning("extra.treeherder platform does not match treeherder for key {{key}}", key=source_key)
 
-    output.task.tags = get_tags(source_key, output.task.id, task)
+    output.task.tags = get_tags(source_key, output.task.id, task, tc_message)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
     output.run.type = unwraplist(list(set(listwrap(output.run.type))))
@@ -564,8 +566,6 @@ def set_build_info(source_key, normalized, task, env, resources):
         for l, v in treeherder.leaves():
             normalized.treeherder[l] = v
 
-    normalized.task.kind = consume(task, "tags.kind")
-
     # BUILD TYPES ARE SEPARATED BY DASH (-) AND SLASH (/)
     collection = normalized.treeherder.collection = wrap({
         kkk: v
@@ -663,7 +663,7 @@ def get_build_task(source_key, resources, normalized_task):
     return candidate
 
 
-def get_tags(source_key, task_id, task, parent=None):
+def get_tags(source_key, task_id, task, tc_message, parent=None):
     tags = []
     # SPECIAL CASES
     platforms = consume(task, "payload.properties.platforms")
@@ -682,6 +682,7 @@ def get_tags(source_key, task_id, task, parent=None):
     m = consume(task, "metadata").leaves()
     e = consume(task, "extra").leaves()
     p = consume(task, "payload.properties").leaves()
+    i = consume(tc_message, "task.tags").leaves()
     g = [(k, consume(task.payload, k)) for k in PAYLOAD_PROPERTIES]
 
     tags.extend({"name": k, "value": v} for k, v in t)
@@ -689,6 +690,7 @@ def get_tags(source_key, task_id, task, parent=None):
     tags.extend({"name": k, "value": v} for k, v in e)
     tags.extend({"name": k, "value": v} for k, v in p)
     tags.extend({"name": k, "value": v} for k, v in g)
+    tags.extend({"name": k, "value": v} for k, v in i)
 
     clean_tags = []
     for t in tags:
@@ -702,7 +704,7 @@ def get_tags(source_key, task_id, task, parent=None):
             if len(v) == 1:
                 v = v[0]
                 if isinstance(v, Mapping):
-                    for tt in get_tags(source_key, task_id, Data(tags=v), parent=t['name']):
+                    for tt in get_tags(source_key, task_id, Data(tags=v), Null, parent=t['name']):
                         clean_tags.append(tt)
                     continue
                 elif not isinstance(v, text_type):
@@ -1107,6 +1109,7 @@ KNOWN_TAGS = {
     "previous-archive-prefix",
 
     "repack_id",
+    "retrigger",
     "schedule_at",
     "signed_installer_url",
     "signing.signature",
@@ -1115,6 +1118,7 @@ KNOWN_TAGS = {
     "suite.name",
 
     "tasks_for",
+    "test-type",
     "treeherderEnv",
 
     "updater-platform",
