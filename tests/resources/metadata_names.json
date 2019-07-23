@@ -26,6 +26,14 @@
             "type": ["opt"]
         }
     },
+    "build-android-aarch64-release/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "train": "release",
+            "type": ["debug", "aarch64"]
+        }
+    },
     "build-android-aarch64/opt": {
         "action": {"type": "build"},
         "build": {
@@ -116,26 +124,28 @@
     "build-android-geckoview-fat-aar-nightly/opt": {
         "action": {"type": "build"},
         "build": {
+            "platform": "android",
+            "product": "geckoview",
             "train": "nightly",
             "type": ["opt"]
-        },
-        "platform": "android",
-        "product": "geckoview"
+        }
     },
     "build-android-geckoview-fat-aar-nightly/opt-upload-symbols": {
         "action": {"type": "build"},
         "build": {
+            "platform": "android",
+            "product": "geckoview",
             "train": "nightly",
             "type": ["opt"]
-        },
-        "platform": "android",
-        "product": "geckoview"
+        }
     },
     "build-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
-        "build": {"type": ["opt"]},
-        "platform": "android",
-        "product": "geckoview"
+        "build": {
+            "platform": "android",
+            "product": "geckoview",
+            "type": ["opt"]
+        }
     },
     "build-android-lint/opt": {
         "action": {"type": "build"},
@@ -3405,6 +3415,19 @@
         "run": {
             "chunk": 19,
             "suite": {"name": "mochitest"},
+            "type": ["1proc", "chunked"]
+        }
+    },
+    "test-android-em-7.0-x86_64/debug-fennec-xpcshell-1proc-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "product": "fennec",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"},
             "type": ["1proc", "chunked"]
         }
     },

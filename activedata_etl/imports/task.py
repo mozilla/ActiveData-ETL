@@ -463,7 +463,8 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
-    "android-geckoview": {"platform": "android", "product": "geckoview"},
+    "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -567,6 +568,7 @@ BUILD_TYPE = {
     "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["debug"]}},
+    "debug-fennec": {"build": {"type": ["debug"], "product": "fennec"}},
 }
 
 TEST_OPTIONS = unwrap(
