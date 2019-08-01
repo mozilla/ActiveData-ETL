@@ -3406,6 +3406,19 @@
             "type": ["1proc", "chunked"]
         }
     },
+    "test-android-em-4.3-arm7-api-16/opt-fennec-reftest-1proc-24": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 24,
+            "suite": {"name": "reftest"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-em-4.3-arm7-api-16/pgo-mochitest-1proc-19": {
         "action": {"type": "test"},
         "build": {
@@ -8462,7 +8475,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-2": {
@@ -8473,7 +8487,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-3": {
@@ -8484,7 +8499,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-4": {
@@ -8495,7 +8511,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-5": {
@@ -8506,7 +8523,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-6": {
@@ -8517,7 +8535,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-7": {
@@ -8528,7 +8547,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-reftest-no-accel-8": {
@@ -8539,7 +8559,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/debug-web-platform-tests-1": {
@@ -9525,7 +9546,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-2": {
@@ -9536,7 +9558,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-3": {
@@ -9547,7 +9570,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-4": {
@@ -9558,7 +9582,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-5": {
@@ -9569,7 +9594,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-6": {
@@ -9580,7 +9606,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-7": {
@@ -9591,7 +9618,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-reftest-no-accel-8": {
@@ -9602,7 +9630,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux32/opt-web-platform-tests-1": {
@@ -23327,7 +23356,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-2": {
@@ -23338,7 +23368,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-3": {
@@ -23349,7 +23380,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-4": {
@@ -23360,7 +23392,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-5": {
@@ -23371,7 +23404,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-6": {
@@ -23382,7 +23416,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-7": {
@@ -23393,7 +23428,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-8": {
@@ -23404,7 +23440,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/debug-reftest-no-accel-sw-e10s-6": {
@@ -25234,7 +25271,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-2": {
@@ -25245,7 +25283,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-3": {
@@ -25256,7 +25295,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-4": {
@@ -25267,7 +25307,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-5": {
@@ -25278,7 +25319,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-6": {
@@ -25289,7 +25331,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-7": {
@@ -25300,7 +25343,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-no-accel-8": {
@@ -25311,7 +25355,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-linux64/opt-reftest-stylo-1": {
@@ -36446,7 +36491,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-2": {
@@ -36457,7 +36503,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-3": {
@@ -36468,7 +36515,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-4": {
@@ -36479,7 +36527,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-5": {
@@ -36490,7 +36539,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-6": {
@@ -36501,7 +36551,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-7": {
@@ -36512,7 +36563,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-reftest-no-accel-8": {
@@ -36523,7 +36575,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/debug-test-verify": {
@@ -37390,7 +37443,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-2": {
@@ -37401,7 +37455,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-3": {
@@ -37412,7 +37467,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-4": {
@@ -37423,7 +37479,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-5": {
@@ -37434,7 +37491,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-6": {
@@ -37445,7 +37503,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-7": {
@@ -37456,7 +37515,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-reftest-no-accel-8": {
@@ -37467,7 +37527,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows10-64/opt-talos-chrome": {
@@ -42711,7 +42772,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-2": {
@@ -42722,7 +42784,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-3": {
@@ -42733,7 +42796,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-4": {
@@ -42744,7 +42808,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-5": {
@@ -42755,7 +42820,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-6": {
@@ -42766,7 +42832,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-7": {
@@ -42777,7 +42844,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-gpu-8": {
@@ -42788,7 +42856,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-1": {
@@ -42799,7 +42868,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-2": {
@@ -42810,7 +42880,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-3": {
@@ -42821,7 +42892,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-4": {
@@ -42832,7 +42904,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-5": {
@@ -42843,7 +42916,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-6": {
@@ -42854,7 +42928,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-7": {
@@ -42865,7 +42940,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-reftest-no-accel-8": {
@@ -42876,7 +42952,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/debug-test-verify": {
@@ -44007,7 +44084,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-10": {
@@ -44018,7 +44096,8 @@
         },
         "run": {
             "chunk": 10,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-11": {
@@ -44029,7 +44108,8 @@
         },
         "run": {
             "chunk": 11,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-12": {
@@ -44040,7 +44120,8 @@
         },
         "run": {
             "chunk": 12,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-13": {
@@ -44051,7 +44132,8 @@
         },
         "run": {
             "chunk": 13,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-14": {
@@ -44062,7 +44144,8 @@
         },
         "run": {
             "chunk": 14,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-15": {
@@ -44073,7 +44156,8 @@
         },
         "run": {
             "chunk": 15,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-16": {
@@ -44084,7 +44168,8 @@
         },
         "run": {
             "chunk": 16,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-17": {
@@ -44095,7 +44180,8 @@
         },
         "run": {
             "chunk": 17,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-18": {
@@ -44106,7 +44192,8 @@
         },
         "run": {
             "chunk": 18,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-19": {
@@ -44117,7 +44204,8 @@
         },
         "run": {
             "chunk": 19,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-2": {
@@ -44128,7 +44216,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-20": {
@@ -44139,7 +44228,8 @@
         },
         "run": {
             "chunk": 20,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-21": {
@@ -44150,7 +44240,8 @@
         },
         "run": {
             "chunk": 21,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-22": {
@@ -44161,7 +44252,8 @@
         },
         "run": {
             "chunk": 22,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-23": {
@@ -44172,7 +44264,8 @@
         },
         "run": {
             "chunk": 23,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-24": {
@@ -44183,7 +44276,8 @@
         },
         "run": {
             "chunk": 24,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-25": {
@@ -44194,7 +44288,8 @@
         },
         "run": {
             "chunk": 25,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-26": {
@@ -44205,7 +44300,8 @@
         },
         "run": {
             "chunk": 26,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-27": {
@@ -44216,7 +44312,8 @@
         },
         "run": {
             "chunk": 27,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-28": {
@@ -44227,7 +44324,8 @@
         },
         "run": {
             "chunk": 28,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-29": {
@@ -44238,7 +44336,8 @@
         },
         "run": {
             "chunk": 29,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-3": {
@@ -44249,7 +44348,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-30": {
@@ -44260,7 +44360,8 @@
         },
         "run": {
             "chunk": 30,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-31": {
@@ -44271,7 +44372,8 @@
         },
         "run": {
             "chunk": 31,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-32": {
@@ -44282,7 +44384,8 @@
         },
         "run": {
             "chunk": 32,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-4": {
@@ -44293,7 +44396,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-5": {
@@ -44304,7 +44408,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-6": {
@@ -44315,7 +44420,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-7": {
@@ -44326,7 +44432,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-8": {
@@ -44337,7 +44444,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-gpu-9": {
@@ -44348,7 +44456,8 @@
         },
         "run": {
             "chunk": 9,
-            "suite": {"name": "reftest-gpu"}
+            "suite": {"name": "reftest"},
+            "type": ["gpu", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-1": {
@@ -44359,7 +44468,8 @@
         },
         "run": {
             "chunk": 1,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-10": {
@@ -44370,7 +44480,8 @@
         },
         "run": {
             "chunk": 10,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-11": {
@@ -44381,7 +44492,8 @@
         },
         "run": {
             "chunk": 11,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-12": {
@@ -44392,7 +44504,8 @@
         },
         "run": {
             "chunk": 12,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-13": {
@@ -44403,7 +44516,8 @@
         },
         "run": {
             "chunk": 13,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-14": {
@@ -44414,7 +44528,8 @@
         },
         "run": {
             "chunk": 14,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-15": {
@@ -44425,7 +44540,8 @@
         },
         "run": {
             "chunk": 15,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-16": {
@@ -44436,7 +44552,8 @@
         },
         "run": {
             "chunk": 16,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-17": {
@@ -44447,7 +44564,8 @@
         },
         "run": {
             "chunk": 17,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-18": {
@@ -44458,7 +44576,8 @@
         },
         "run": {
             "chunk": 18,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-19": {
@@ -44469,7 +44588,8 @@
         },
         "run": {
             "chunk": 19,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-2": {
@@ -44480,7 +44600,8 @@
         },
         "run": {
             "chunk": 2,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-20": {
@@ -44491,7 +44612,8 @@
         },
         "run": {
             "chunk": 20,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-21": {
@@ -44502,7 +44624,8 @@
         },
         "run": {
             "chunk": 21,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-22": {
@@ -44513,7 +44636,8 @@
         },
         "run": {
             "chunk": 22,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-23": {
@@ -44524,7 +44648,8 @@
         },
         "run": {
             "chunk": 23,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-24": {
@@ -44535,7 +44660,8 @@
         },
         "run": {
             "chunk": 24,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-25": {
@@ -44546,7 +44672,8 @@
         },
         "run": {
             "chunk": 25,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-26": {
@@ -44557,7 +44684,8 @@
         },
         "run": {
             "chunk": 26,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-27": {
@@ -44568,7 +44696,8 @@
         },
         "run": {
             "chunk": 27,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-28": {
@@ -44579,7 +44708,8 @@
         },
         "run": {
             "chunk": 28,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-29": {
@@ -44590,7 +44720,8 @@
         },
         "run": {
             "chunk": 29,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-3": {
@@ -44601,7 +44732,8 @@
         },
         "run": {
             "chunk": 3,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-30": {
@@ -44612,7 +44744,8 @@
         },
         "run": {
             "chunk": 30,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-31": {
@@ -44623,7 +44756,8 @@
         },
         "run": {
             "chunk": 31,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-32": {
@@ -44634,7 +44768,8 @@
         },
         "run": {
             "chunk": 32,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-4": {
@@ -44645,7 +44780,8 @@
         },
         "run": {
             "chunk": 4,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-5": {
@@ -44656,7 +44792,8 @@
         },
         "run": {
             "chunk": 5,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-6": {
@@ -44667,7 +44804,8 @@
         },
         "run": {
             "chunk": 6,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-7": {
@@ -44678,7 +44816,8 @@
         },
         "run": {
             "chunk": 7,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-8": {
@@ -44689,7 +44828,8 @@
         },
         "run": {
             "chunk": 8,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-reftest-no-accel-9": {
@@ -44700,7 +44840,8 @@
         },
         "run": {
             "chunk": 9,
-            "suite": {"name": "reftest-no-accel"}
+            "suite": {"name": "reftest"},
+            "type": ["no-accel", "chunked"]
         }
     },
     "test-windows7-32/opt-talos-bcv-e10s": {
