@@ -128,6 +128,13 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, metadata, resources):
+
+    def check_subtest(subtest):
+        unknown = subtest.keys()-KNOWN_SUBTEST_PROPERTIES
+        if unknown:
+            Log.warning("unknown properties {{props}} in subtest while processing {{key}}", props=unknown, key=source_key)
+            KNOWN_SUBTEST_PROPERTIES.update(unknown)
+
     if perfherder.is_empty:
         return [metadata]
 
@@ -220,12 +227,16 @@ def transform(source_key, perfherder, metadata, resources):
         new_records = FlatList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
-        if perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES:
-            remainder = copy(perfherder)
-            for k in KNOWN_PERFHERDER_PROPERTIES:
-                remainder[k] = None
-            if any(remainder.values()):
-                new_records.append(set_default(remainder, metadata))
+        unknown_props = perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES
+        if unknown_props:
+            # IF YOU ARE HERE, BE SURE THESE PROPERTIES ARE PUT INT THE result OBJECT (below)
+            Log.warning("unknown property {{unknown_props}} while processing key=={{key}}", key=source_key, unknown_props=unknown_props)
+
+        result_template = {
+            "alert_threshold": perfherder.alertThreshold,
+            "type": perfherder.type,
+            "server_url": perfherder.serverUrl
+        }
 
         total = FlatList()
 
@@ -233,6 +244,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
+                    check_subtest(subtest)
                     for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
                             {
@@ -248,9 +260,10 @@ def transform(source_key, perfherder, metadata, resources):
                                         + "."
                                         + text_type(g),
                                         "ordering": i,
-                                        "unit": subtest.unit,
+                                        "unit": coalesce(subtest.unit, subtest.units),
                                         "lower_is_better": subtest.lowerIsBetter,
                                     },
+                                    result_template,
                                 )
                             },
                             metadata,
@@ -259,6 +272,7 @@ def transform(source_key, perfherder, metadata, resources):
                         total.append(new_record.result.stats)
             else:
                 for i, subtest in enumerate(perfherder.subtests):
+                    check_subtest(subtest)
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
                         {
@@ -267,12 +281,13 @@ def transform(source_key, perfherder, metadata, resources):
                                 {
                                     "test": subtest.name,
                                     "ordering": i,
-                                    "unit": subtest.unit,
+                                    "unit": coalesce(subtest.unit, subtest.units),
                                     "lower_is_better": subtest.lowerIsBetter,
                                     "raw_replicates": subtest.ref_replicates,
                                     "control_replicates": subtest.base_replicates,
                                     "value": samples[0] if len(samples) == 1 else None,
                                 },
+                                result_template,
                             )
                         },
                         metadata,
@@ -302,6 +317,7 @@ def transform(source_key, perfherder, metadata, resources):
                                         + text_type(g),
                                         "ordering": i,
                                     },
+                                    result_template,
                                 )
                             },
                             metadata,
@@ -315,6 +331,7 @@ def transform(source_key, perfherder, metadata, resources):
                             "result": set_default(
                                 stats(source_key, replicates, test_name, suite_name),
                                 {"test": test_name, "ordering": i},
+                                result_template,
                             )
                         },
                         metadata,
@@ -328,11 +345,7 @@ def transform(source_key, perfherder, metadata, resources):
                 {
                     "result": set_default(
                         stats(source_key, [perfherder.value], None, suite_name),
-                        {
-                            "unit": perfherder.unit,
-                            "lower_is_better": perfherder.lowerIsBetter,
-                            "value": perfherder.value,
-                        },
+                        result_template,
                     )
                 },
                 metadata,
@@ -400,7 +413,6 @@ def mainthread_transform(r):
     r.mainthread_writecount = None
 
     r.mainthread = output.values()
-
 
 def stats(source_key, given_values, test, suite):
     """
@@ -503,8 +515,20 @@ RAPTOR_BROWSERS = [
 ]
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
+
+KNOWN_SUBTEST_PROPERTIES = {
+    "alertThreshold",
+    "lowerIsBetter",
+    "name",
+    "replicates",
+    "shouldAlert",
+    "unit",
+    "units",
+    "value",
+}
 KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
+    "alertThreshold",
     "etl",
     "extraOptions",
     "framework",
@@ -517,9 +541,13 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "test_build",
     "test_machine",
     "testrun",
+    "serverUrl",
     "shouldAlert",
     "subtests",
     "summary",
+    "type",
+    "unit",
+    "units",
     "value",
 }
 KNOWN_PERFHERDER_TESTS = [
@@ -623,6 +651,7 @@ KNOWN_PERFHERDER_TESTS = [
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "PermissionManager",
+    "pdfpaint",
     "pull_errored",  # VCS
     "pull",  # VCS
     "purge",  # VCS

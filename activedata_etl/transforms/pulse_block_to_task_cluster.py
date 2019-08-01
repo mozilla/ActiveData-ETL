@@ -722,17 +722,17 @@ def set_build_info(source_key, normalized, task, env, resources):
         )
 
     # FIND BUILD TASK
-    if treeherder.jobKind == "test":
-        build_task = get_build_task(source_key, resources, normalized)
-        if build_task:
-            if DEBUG:
-                Log.note(
-                    "Got build {{build}} for test {{test}}",
-                    build=build_task.task.id,
-                    test=normalized.task.id,
-                )
-            minimize_task(build_task)
-            set_default(normalized.build, build_task)
+    # if treeherder.jobKind == "test":
+    #     build_task = get_build_task(source_key, resources, normalized)
+    #     if build_task:
+    #         if DEBUG:
+    #             Log.note(
+    #                 "Got build {{build}} for test {{test}}",
+    #                 build=build_task.task.id,
+    #                 test=normalized.task.id,
+    #             )
+    #         minimize_task(build_task)
+    #         set_default(normalized.build, build_task)
 
 
 MISSING_BUILDS = set()
@@ -997,6 +997,20 @@ KNOWN_COALESCE_CONFLICTS = {
         null,
         null,
     ): "win64-aarch64-devedition",
+    ("android-x86_64", null, "android", null, null): "android-x86_64",
+    (
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "thunderbird",
+        null,
+        null,
+        null,
+        "mail",
+    ): "thunderbird",
 }
 
 
@@ -1222,6 +1236,7 @@ KNOWN_TAGS = {
     "chunks.total",
     "chunks",
     "CI",
+    "code-review.phabricator-build-target",
     "context.firedBy",
     "context.flattenedDeep",
     "context.flettenedDeep",
