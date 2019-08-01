@@ -129,11 +129,17 @@ def process(source_key, source, destination, resources, please_stop=None):
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, metadata, resources):
 
-    def check_subtest(subtest):
-        unknown = subtest.keys()-KNOWN_SUBTEST_PROPERTIES
+    def scrub_subtest(subtest):
+        unknown = subtest.keys()-set(KNOWN_SUBTEST_PROPERTIES.keys())
         if unknown:
             Log.warning("unknown properties {{props}} in subtest while processing {{key}}", props=unknown, key=source_key)
-            KNOWN_SUBTEST_PROPERTIES.update(unknown)
+            KNOWN_SUBTEST_PROPERTIES[unknown] = unknown
+
+        output = Data()
+        for k, v in subtest.items():
+            a = KNOWN_SUBTEST_PROPERTIES[k]
+            output[a] = coalesce(output[a], v)
+        return output
 
     if perfherder.is_empty:
         return [metadata]
@@ -230,10 +236,14 @@ def transform(source_key, perfherder, metadata, resources):
         unknown_props = perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES
         if unknown_props:
             # IF YOU ARE HERE, BE SURE THESE PROPERTIES ARE PUT INT THE result OBJECT (below)
-            Log.warning("unknown property {{unknown_props}} while processing key=={{key}}", key=source_key, unknown_props=unknown_props)
+            Log.warning("unknown perfherder property {{unknown_props}} while processing key=={{key}}", key=source_key, unknown_props=unknown_props)
 
         result_template = {
-            "alert_threshold": perfherder.alertThreshold,
+            "alert": {
+                "enabled": perfherder.shouldAlert,
+                "threshold": perfherder.alertThreshold,
+                "change_type": perfherder.alertChangeType,
+            },
             "type": perfherder.type,
             "server_url": perfherder.serverUrl
         }
@@ -244,7 +254,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
-                    check_subtest(subtest)
+                    subtest_template = scrub_subtest(subtest)
                     for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
                         new_record = set_default(
                             {
@@ -260,9 +270,8 @@ def transform(source_key, perfherder, metadata, resources):
                                         + "."
                                         + text_type(g),
                                         "ordering": i,
-                                        "unit": coalesce(subtest.unit, subtest.units),
-                                        "lower_is_better": subtest.lowerIsBetter,
                                     },
+                                    subtest_template,
                                     result_template,
                                 )
                             },
@@ -272,21 +281,19 @@ def transform(source_key, perfherder, metadata, resources):
                         total.append(new_record.result.stats)
             else:
                 for i, subtest in enumerate(perfherder.subtests):
-                    check_subtest(subtest)
+                    subtest_template = scrub_subtest(subtest)
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
                         {
                             "result": set_default(
                                 stats(source_key, samples, subtest.name, suite_name),
                                 {
-                                    "test": subtest.name,
                                     "ordering": i,
-                                    "unit": coalesce(subtest.unit, subtest.units),
-                                    "lower_is_better": subtest.lowerIsBetter,
                                     "raw_replicates": subtest.ref_replicates,
                                     "control_replicates": subtest.base_replicates,
                                     "value": samples[0] if len(samples) == 1 else None,
                                 },
+                                subtest_template,
                                 result_template,
                             )
                         },
@@ -517,17 +524,20 @@ RAPTOR_BROWSERS = [
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
 
 KNOWN_SUBTEST_PROPERTIES = {
-    "alertThreshold",
-    "lowerIsBetter",
-    "name",
-    "replicates",
-    "shouldAlert",
-    "unit",
-    "units",
-    "value",
+    "alertChangeType": "alert.change_type",
+    "alertThreshold": "alert.threshold",
+    "lowerIsBetter": "lower_is_better",
+    "name": "test",
+    "replicates": None,
+    "shouldAlert": "alert.enabled",
+    "unit": "unit",
+    "units": "unit",
+    "value": None,
 }
+
 KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
+    "alertChangeType",
     "alertThreshold",
     "etl",
     "extraOptions",
