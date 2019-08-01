@@ -526,8 +526,10 @@ KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
 KNOWN_SUBTEST_PROPERTIES = {
     "alertChangeType": "alert.change_type",
     "alertThreshold": "alert.threshold",
+    "base_replicates": "base_replicates",
     "lowerIsBetter": "lower_is_better",
     "name": "test",
+    "ref_replicates": "ref_replicates",
     "replicates": None,
     "shouldAlert": "alert.enabled",
     "unit": "unit",

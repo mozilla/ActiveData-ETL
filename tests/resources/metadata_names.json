@@ -3793,6 +3793,19 @@
             "suite": {"name": "tp6m"}
         }
     },
+    "test-android-hw-p2-8-0-arm7-api-16-qr/debug-geckoview-reftest-e10s-3": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 3,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-scn-cpu-idle-fenix-e10s": {
         "action": {"type": "perf"},
         "build": {
