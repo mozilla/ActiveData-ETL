@@ -249,6 +249,14 @@
             "type": ["opt"]
         }
     },
+    "build-fat-aar-android-geckoview-fat-aar/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "product": "geckoview",
+            "type": ["opt"]
+        }
+    },
     "build-linux-rusttests/debug": {
         "action": {"type": "build"},
         "build": {

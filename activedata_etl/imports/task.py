@@ -492,6 +492,7 @@ BUILD_PLATFORM = {
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
+    "fat-aar-android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "linux": {"build": {"platform": "linux"}},
     "linux64": {"build": {"platform": "linux64"}},
     "linux64-dmd": {"build": {"platform": "linux64"}},
@@ -518,7 +519,6 @@ BUILD_OPTIONS = {
     "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64": {"build": {"cpu": "aarch64"}},
-
 
     "add-on-devel": {},
     "armel": {"build": {"cpu": "arm"}},
