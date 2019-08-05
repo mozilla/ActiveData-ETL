@@ -289,8 +289,6 @@ def transform(source_key, perfherder, metadata, resources):
                                 stats(source_key, samples, subtest.name, suite_name),
                                 {
                                     "ordering": i,
-                                    "raw_replicates": subtest.ref_replicates,
-                                    "control_replicates": subtest.base_replicates,
                                     "value": samples[0] if len(samples) == 1 else None,
                                 },
                                 subtest_template,
@@ -319,10 +317,9 @@ def transform(source_key, perfherder, metadata, resources):
                                         suite_name,
                                     ),
                                     {
-                                        "test": text_type(test_name)
-                                        + "."
-                                        + text_type(g),
+                                        "test": text_type(test_name) + "." + text_type(g),
                                         "ordering": i,
+                                        "value": replicates[0] if len(sub_replicates) == 1 else None,
                                     },
                                     result_template,
                                 )
@@ -337,7 +334,11 @@ def transform(source_key, perfherder, metadata, resources):
                         {
                             "result": set_default(
                                 stats(source_key, replicates, test_name, suite_name),
-                                {"test": test_name, "ordering": i},
+                                {
+                                    "test": test_name,
+                                    "ordering": i,
+                                    "value": replicates[0] if len(replicates) == 1 else None,
+                                },
                                 result_template,
                             )
                         },
@@ -345,13 +346,13 @@ def transform(source_key, perfherder, metadata, resources):
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
-        elif (
-            perfherder.value != None
-        ):  # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
+        elif (perfherder.value != None):
+            # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
             new_record = set_default(
                 {
                     "result": set_default(
                         stats(source_key, [perfherder.value], None, suite_name),
+                        {"value": perfherder.value},
                         result_template,
                     )
                 },

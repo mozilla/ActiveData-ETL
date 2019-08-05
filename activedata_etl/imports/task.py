@@ -131,6 +131,7 @@ class Matcher(object):
 CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
+        "debug": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
         },
