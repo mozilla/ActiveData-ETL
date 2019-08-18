@@ -101,6 +101,8 @@ WHITESPACE = re.compile(r"\s+")
 
 
 def _restart_indexxer(conn):
+    conn.sudo("supervisorctl status")
+
     result = conn.sudo("supervisorctl restart push_to_es:*")
     if "unix:///tmp/supervisor.sock no such file" not in result:
         return
