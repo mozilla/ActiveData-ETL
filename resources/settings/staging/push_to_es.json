@@ -146,7 +146,7 @@
 			"name": "perf",
 			"rollover":{
 				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
-				"interval": "year",
+				"interval": "6month",
 				"max":"2year"
 			},
 			"batch_size": 1000,
@@ -213,7 +213,7 @@
 		},
 		{
 			"name": "code coverage",
-			"skip": 0,
+			"skip": 0.9,
 			"queue_size": 1000,
 			"batch_size": 500,
 			"rollover": {
