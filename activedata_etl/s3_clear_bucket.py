@@ -50,7 +50,7 @@ def main():
                 Log.note("will remove {{key}}", key=k)
                 delete_me.append(k)
 
-        for g, kk in jx.groupby(delete_me, size=1000):
+        for g, kk in jx.chunk(delete_me, size=1000):
             Log.note("delete {{num}} keys", num=len(kk))
             bucket.delete_keys(kk)
 

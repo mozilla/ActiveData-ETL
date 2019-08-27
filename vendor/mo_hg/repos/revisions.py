@@ -9,9 +9,7 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-from mo_future import is_text, is_binary
 from mo_dots import Data
-from mo_files import File
 
 
 class Revision(Data):
@@ -21,7 +19,69 @@ class Revision(Data):
     def __eq__(self, other):
         if other == None:
             return False
-        return (self.branch.name.lower(), self.changeset.id[:12]) == (other.branch.name.lower(), other.changeset.id[:12])
+        return (self.branch.name.lower(), self.changeset.id[:12]) == (
+            other.branch.name.lower(),
+            other.changeset.id[:12],
+        )
 
 
-revision_schema = (File(__file__).parent / "revision_schema.json").read_json()
+revision_schema = {
+    "settings": {
+        "index.number_of_replicas": 1,
+        "index.number_of_shards": 6,
+        "analysis": {
+            "tokenizer": {"left250": {"type": "pattern", "pattern": "^.{1,250}"}},
+            "analyzer": {
+                "description_limit": {
+                    "type": "custom",
+                    "tokenizer": "left250",
+                    "filter": ["lowercase", "asciifolding"],
+                }
+            },
+        },
+    },
+    "mappings": {
+        "revision": {
+            "_all": {"enabled": False},
+            "properties": {
+                "changeset": {
+                    "type": "object",
+                    "properties": {
+                        "description": {
+                            "store": True,
+                            "index": True,
+                            "type": "text",
+                            "fields": {"raw": {"type": "text", "analyzer": "description_limit"}},
+                        },
+                        "diff": {
+                            "type": "nested",
+                            "dynamic": True,
+                            "properties": {
+                                "changes": {
+                                    "type": "nested",
+                                    "dynamic": True,
+                                    "properties": {
+                                        "new": {
+                                            "type": "object",
+                                            "dynamic": True,
+                                            "properties": {
+                                                "content": {"store": True, "type": "keyword"}
+                                            },
+                                        },
+                                        "old": {
+                                            "type": "object",
+                                            "dynamic": True,
+                                            "properties": {
+                                                "content": {"store": True, "type": "keyword"}
+                                            },
+                                        },
+                                    },
+                                }
+                            },
+                        },
+                    },
+                }
+            },
+        }
+    },
+}

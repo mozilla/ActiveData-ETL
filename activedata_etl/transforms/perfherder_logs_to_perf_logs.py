@@ -233,7 +233,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
-                    for g, sub_replicates in jx.groupby(subtest.replicates, size=5):
+                    for g, sub_replicates in jx.chunk(subtest.replicates, size=5):
                         new_record = set_default(
                             {
                                 "result": set_default(
@@ -286,7 +286,7 @@ def transform(source_key, perfherder, metadata, resources):
                 # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 # RECORD ALL RESULTS
                 for i, (test_name, replicates) in enumerate(perfherder.results.items()):
-                    for g, sub_replicates in jx.groupby(replicates, size=5):
+                    for g, sub_replicates in jx.chunk(replicates, size=5):
                         new_record = set_default(
                             {
                                 "result": set_default(

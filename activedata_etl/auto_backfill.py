@@ -123,7 +123,7 @@ def backfill_recent(cache, settings, index_queue, please_stop):
                 })
         if invalid:
             Log.note("{{num}} invalid keys", num=len(invalid))
-            for g, some in jx.groupby(invalid, size=100):
+            for g, some in jx.chunk(invalid, size=100):
                 db.execute(
                     "UPDATE files SET annotate=" + QUOTED_INVALID + " WHERE key in (" +
                     ",".join(db.quote_value(k) for k in some) +

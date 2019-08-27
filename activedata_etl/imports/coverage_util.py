@@ -87,7 +87,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                     cause=e
                 )
 
-    for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
+    for g, records in jx.chunk(iterator, size=TUID_BLOCK_SIZE):
         _annotate_sources(records)
         for r in records:
             yield r

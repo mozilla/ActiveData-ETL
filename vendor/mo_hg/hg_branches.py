@@ -71,14 +71,14 @@ def _get_branches_from_hg(kwarg):
         branches.extend(b)
 
     # branches.add(set_default({"name": "release-mozilla-beta"}, branches["mozilla-beta", DEFAULT_LOCALE]))
-    for b in list(branches["mozilla-beta", ]):
+    for b in list(branches["mozilla-beta",]):
         branches.add(set_default({"name": "release-mozilla-beta"}, b))  # THIS IS THE l10n "name"
-        b.url = "https://hg.mozilla.org/releases/mozilla-beta"          # THIS IS THE
+        b.url = "https://hg.mozilla.org/releases/mozilla-beta"  # THIS IS THE
 
-    for b in list(branches["mozilla-release", ]):
+    for b in list(branches["mozilla-release",]):
         branches.add(set_default({"name": "release-mozilla-release"}, b))
 
-    for b in list(branches["mozilla-aurora", ]):
+    for b in list(branches["mozilla-aurora",]):
         if b.locale == "en-US":
             continue
         branches.add(set_default({"name": "comm-aurora"}, b))
@@ -89,7 +89,7 @@ def _get_branches_from_hg(kwarg):
             branches.add(set_default({"name": "release-" + b.name}, b))  # THIS IS THE l10n "name"
             b.url = "https://hg.mozilla.org/releases/" + b.name
 
-    #CHECKS
+    # CHECKS
     for b in branches:
         if b.name != b.name.lower():
             Log.error("Expecting lowercase name")
@@ -121,13 +121,13 @@ def _get_single_branch_from_hg(settings, description, dir):
         columns = b("td")
 
         try:
-            path = columns[0].a.get('href')
+            path = columns[0].a.get("href")
             if path == "/":
                 continue
 
             name, desc, last_used = [c.text.strip() for c in columns][0:3]
 
-            if last_used.startswith('at'):
+            if last_used.startswith("at"):
                 last_used = last_used[2:]
 
             detail = Data(
@@ -137,23 +137,23 @@ def _get_single_branch_from_hg(settings, description, dir):
                 url=settings.url + path,
                 description=desc,
                 last_used=Date(last_used),
-                etl={"timestamp": Date.now()}
+                etl={"timestamp": Date.now()},
             )
             if detail.description == "unknown":
                 detail.description = None
 
             # SOME BRANCHES HAVE NAME COLLISIONS, IGNORE LEAST POPULAR
             if path in [
-                "/projects/dxr/",                   # moved to webtools
-                "/build/compare-locales/",          # ?build team likes to clone?
-                "/build/puppet/",                   # ?build team likes to clone?
-                "/SeaMonkey/puppet/",               # looses the popularity contest
+                "/projects/dxr/",  # moved to webtools
+                "/build/compare-locales/",  # ?build team likes to clone?
+                "/build/puppet/",  # ?build team likes to clone?
+                "/SeaMonkey/puppet/",  # looses the popularity contest
                 "/releases/gaia-l10n/v1_2/en-US/",  # use default branch
                 "/releases/gaia-l10n/v1_3/en-US/",  # use default branch
                 "/releases/gaia-l10n/v1_4/en-US/",  # use default branch
                 "/releases/gaia-l10n/v2_0/en-US/",  # use default branch
                 "/releases/gaia-l10n/v2_1/en-US/",  # use default branch
-                "/build/autoland/"
+                "/build/autoland/",
             ]:
                 continue
 
@@ -193,17 +193,8 @@ def _get_single_branch_from_hg(settings, description, dir):
 
 
 branches_schema = {
-    "settings": {
-        "index.number_of_replicas": 1,
-        "index.number_of_shards": 1
-    },
-    "mappings": {
-        "branch": {
-            "_all": {
-                "enabled": False
-            }
-        }
-    }
+    "settings": {"index.number_of_replicas": 1, "index.number_of_shards": 1},
+    "mappings": {"branch": {"_all": {"enabled": False}}},
 }
 
 
@@ -216,7 +207,9 @@ def main():
 
         branches = _get_branches_from_hg(settings.hg)
 
-        es = elasticsearch.Cluster(kwargs=settings.hg.branches).get_or_create_index(kwargs=settings.hg.branches)
+        es = elasticsearch.Cluster(kwargs=settings.hg.branches).get_or_create_index(
+            kwargs=settings.hg.branches
+        )
         es.add_alias()
         es.extend({"id": b.name + " " + b.locale, "value": b} for b in branches)
         Log.alert("DONE!")

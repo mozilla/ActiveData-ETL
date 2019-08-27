@@ -234,7 +234,7 @@ def main():
         else:
             raise Log.error("Expecting --start or --stop or --update")
 
-        for g, ii in jx.groupby(instances, size=20):
+        for g, ii in jx.chunk(instances, size=20):
             threads = [
                 Thread.run(i.name, method, settings.fabric, i)
                 for i in ii

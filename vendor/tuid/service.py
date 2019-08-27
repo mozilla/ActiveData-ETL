@@ -476,7 +476,7 @@ class TUIDService:
 
         if len(latestFileMod_inserts) > 0:
             with self.conn.transaction() as transaction:
-                for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                     transaction.execute(
                         "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                         sql_list(quote_list(i) for i in inserts_list)
@@ -514,7 +514,7 @@ class TUIDService:
                 Log.note("Finished updating frontiers. Updating DB table `latestFileMod`...")
                 if len(latestFileMod_inserts) > 0:
                     with self.conn.transaction() as transaction:
-                        for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                        for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                             transaction.execute(
                                 "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                                 sql_list(quote_list(i) for i in inserts_list)
@@ -620,7 +620,7 @@ class TUIDService:
 
         if len(list_to_insert) > 0:
             count = 0
-            for _, inserts_list in jx.groupby(list_to_insert, size=SQL_BATCH_SIZE):
+            for _, inserts_list in jx.chunk(list_to_insert, size=SQL_BATCH_SIZE):
                 transaction.execute(
                     "INSERT INTO temporal (tuid, revision, file, line)"
                     " VALUES " +
@@ -807,7 +807,7 @@ class TUIDService:
             anns_added_by_other_thread = {}
             if len(ann_inserts) > 0:
                 ann_inserts = list(set(ann_inserts))
-                for _, tmp_inserts in jx.groupby(ann_inserts, size=SQL_ANN_BATCH_SIZE):
+                for _, tmp_inserts in jx.chunk(ann_inserts, size=SQL_ANN_BATCH_SIZE):
                     # Check if any were added in the mean time by another thread
                     recomputed_inserts = []
                     for rev, filename, tuids in tmp_inserts:
@@ -1220,7 +1220,7 @@ class TUIDService:
             # No need to double-check if latesteFileMods has been updated before,
             # we perform an insert or replace any way.
             if len(latestFileMod_inserts) > 0:
-                for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                     transaction.execute(
                         "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                         sql_list(quote_list(i) for i in inserts_list)
@@ -1229,7 +1229,7 @@ class TUIDService:
             anns_added_by_other_thread = {}
             if len(ann_inserts) > 0:
                 ann_inserts = list(set(ann_inserts))
-                for _, tmp_inserts in jx.groupby(ann_inserts, size=SQL_ANN_BATCH_SIZE):
+                for _, tmp_inserts in jx.chunk(ann_inserts, size=SQL_ANN_BATCH_SIZE):
                     # Check if any were added in the mean time by another thread
                     recomputed_inserts = []
                     for rev, filename, string_tuids in tmp_inserts:
@@ -1288,7 +1288,7 @@ class TUIDService:
         if repo is None:
             repo = self.config.hg.branch
 
-        for _, new_files in jx.groupby(files, size=chunk):
+        for _, new_files in jx.chunk(files, size=chunk):
             for count, file in enumerate(new_files):
                 new_files[count] = file.lstrip('/')
 
@@ -1489,7 +1489,7 @@ class TUIDService:
                     else:
                         lines_to_insert = new_line_origins.values()
 
-                    for _, part_of_insert in jx.groupby(lines_to_insert, size=SQL_BATCH_SIZE):
+                    for _, part_of_insert in jx.chunk(lines_to_insert, size=SQL_BATCH_SIZE):
                         transaction.execute(
                             "INSERT INTO temporal (tuid, file, revision, line)"
                             " VALUES " +

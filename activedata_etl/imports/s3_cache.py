@@ -103,7 +103,7 @@ class S3Cache(object):
                 else:
                     biggest = None
             bad_count = 0
-            for g, metas in jx.groupby(bucket.bucket.list(prefix=prefix, marker=biggest), size=100):
+            for g, metas in jx.chunk(bucket.bucket.list(prefix=prefix, marker=biggest), size=100):
                 if please_stop:
                     Log.error("Request to stop encountered")
                 if bad_count > 100:

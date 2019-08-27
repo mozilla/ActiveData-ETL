@@ -96,7 +96,7 @@ def parse_day(settings, p, force=False):
     )
     tasks = get_all_tasks(day_url)
     first = None
-    for group_number, ts in jx.groupby(tasks, size=100):
+    for group_number, ts in jx.chunk(tasks, size=100):
         if DEBUG:
             Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
 

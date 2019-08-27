@@ -36,7 +36,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
         work_queue = None
 
     try:
-        for i, g in jx.groupby(queue, size=settings.param.size):
+        for i, g in jx.chunk(queue, size=settings.param.size):
             Log.note(
                 "Preparing {{num}} pulse messages to bucket={{bucket}}",
                 num=len(g),

@@ -6,7 +6,6 @@
 #
 from __future__ import absolute_import, division, unicode_literals
 
-from mo_future import is_text, is_binary
 from mo_logs import Log
 from mo_threads import Lock, Thread, Till
 from mo_times import Date, SECOND
@@ -16,7 +15,6 @@ METRIC_REPORT_PERIOD = 10 * SECOND
 
 
 class RateLogger(object):
-
     def __init__(self, name):
         self.name = name
         self.lock = Lock("rate locker")
@@ -28,7 +26,7 @@ class RateLogger(object):
     def add(self, timestamp):
         with self.lock:
             decay = METRIC_DECAY_RATE ** (timestamp - self.last_request).seconds
-            self.request_rate = decay*self.request_rate + 1
+            self.request_rate = decay * self.request_rate + 1
             self.last_request = timestamp
 
     def _daemon(self, please_stop):
@@ -39,6 +37,9 @@ class RateLogger(object):
                 request_rate = self.request_rate = decay * self.request_rate
                 self.last_request = timestamp
 
-            Log.note("{{name}} request rate: {{rate|round(places=2)}} requests per second", name=self.name, rate=request_rate)
+            Log.note(
+                "{{name}} request rate: {{rate|round(places=2)}} requests per second",
+                name=self.name,
+                rate=request_rate,
+            )
             (please_stop | Till(seconds=METRIC_REPORT_PERIOD.seconds)).wait()
-

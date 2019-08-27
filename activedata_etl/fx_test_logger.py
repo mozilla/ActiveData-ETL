@@ -46,7 +46,7 @@ def loop(settings):
 
     # FILL SQLITE
     dirty = []
-    for g, cs in jx.groupby(source.list(), size=100):
+    for g, cs in jx.chunk(source.list(), size=100):
         Log.note("scanning {{num}} files in {{source}}", num=100, source=source.url)
         result = db.query("SELECT filename, timestamp FROM content WHERE filename in (" + ",".join(map(db.quote_value, cs.key)) + ")")
         existing = [d[0] for d in result.data]
