@@ -205,7 +205,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name.startswith("raptor-") and suite_name.endswith(
                 tuple(RAPTOR_BROWSERS)
             ):  # ACCEPT ALL RAPTOR NAMES,
-                metadata.run.browser = suite_name.split("-")[-1]
+                pass
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
@@ -513,10 +513,12 @@ RAPTOR_BROWSERS = [
     "-firefox-live",
     "-firefox-cold",
     "-firefox",
+    "-geckoview-cpu"
     "-geckoview-cold",
     "-geckoview-live",
     "-geckoview-memory",
     "-geckoview-power",
+    "-geckoview-%change-power",
     "-geckoview",
     "-refbrow-power",
     "-refbrow",
@@ -645,6 +647,7 @@ KNOWN_PERFHERDER_TESTS = [
     "netmonitor-metrics",
     "octane-sm",
     "octane-v8",
+    "os-baseline-power",
     "other_nol64",
     "other_l64",
     "other",

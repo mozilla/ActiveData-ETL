@@ -3591,6 +3591,19 @@
             "type": ["1proc"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-nightly/opt-raptor-speedometer-fennec": {
         "action": {"type": "perf"},
         "build": {
@@ -3824,6 +3837,19 @@
             "browser": "fenix",
             "framework": "raptor",
             "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-scn-cpu-memory-idle-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "scn-cpu-memory-idle"},
             "type": ["e10s"]
         }
     },
@@ -26055,6 +26081,20 @@
             "type": ["e10s", "qr", "chunked"]
         }
     },
+    "test-macosx1014-64-shippable/opt-raptor-jetstream2-chromium-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chromium",
+            "framework": "raptor",
+            "suite": {"name": "jetstream2"},
+            "type": ["e10s"]
+        }
+    },
     "test-macosx1014-64-shippable/opt-raptor-tp6-3-firefox-cold-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -35086,6 +35126,20 @@
             "chunk": 4,
             "suite": {"name": "mochitest-webgl2-ext"},
             "type": ["e10s", "qr", "chunked"]
+        }
+    },
+    "test-windows10-64-shippable-qr/opt-raptor-jetstream2-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "jetstream2"},
+            "type": ["e10s", "qr"]
         }
     },
     "test-windows10-64-shippable-qr/opt-raptor-motionmark-animometer-firefox-e10s": {
