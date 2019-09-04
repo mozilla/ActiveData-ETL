@@ -227,12 +227,13 @@ class LogSummary(object):
         )
         for k,v in log.items():
             if k in KNOWN_TEST_PROPERTIES:
-                if v != None and v != "": test[k] = v
+                if v != None and v != "":
+                    test[k] = v
             elif k in ["action", "test", "time"]:
                 pass
             else:
                 KNOWN_TEST_PROPERTIES.add(k)
-                Log.warning("do not know about new test property {{name|quote}} in  {{key}} ", name=k, key=self.source_key)
+                Log.warning("do not know about new test property {{name|quote}} in {{key}} ", name=k, key=self.source_key)
 
         tests = self.tests.setdefault(log.test, [])
         tests.append(test)

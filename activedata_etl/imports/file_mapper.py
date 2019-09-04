@@ -37,24 +37,36 @@ class FileMapper(object):
 
         # TODO: THERE IS A RISK THE FILE MAPPING MAY CHANGE
         # FIND RECENT FILE LISTING
-        timestamp = Date(coalesce(task_cluster_record.repo.push.date, task_cluster_record.repo.changeset.date, Date.now())) - Duration("hour")
+        timestamp = Date(
+            coalesce(
+                task_cluster_record.repo.push.date,
+                task_cluster_record.repo.changeset.date,
+                Date.now(),
+            )
+        ) - Duration("hour")
         result = http.post_json(
             ACTIVE_DATA_QUERY,
             json={
                 "from": "task.task.artifacts",
-                "where": {"and": [
-                    {"eq": {"name": "public/components.json.gz"}},
-                    {"eq": {"treeherder.symbol": "Bugzilla"}},
-                    {"lt": {"repo.push.date": timestamp}},
-                ]},
+                "where": {
+                    "and": [
+                        {"eq": {"name": "public/components.json.gz"}},
+                        {"eq": {"treeherder.symbol": "Bugzilla"}},
+                        {"lt": {"repo.push.date": timestamp}},
+                    ]
+                },
                 "sort": {"repo.push.date": "desc"},
                 "limit": 100,
                 "select": ["url", "repo.push.date"],
-                "format": "list"
-            }
+                "format": "list",
+            },
         )
 
         self.predefined_failures = jx_expression_to_function(KNOWN_FAILURES)
+        # REPLACE THIS WITH predefined failures, once dev has been merged
+        self.complicated_failures = (
+            lambda filename: "cargo/registry/src/github.com" in filename
+        )
         self.known_failures = set()
         self.lookup = {}
         for files_url in result.data.url:
@@ -66,18 +78,30 @@ class FileMapper(object):
                         with Timer("process {{url}}", param={"url": files_url}):
                             count = 0
                             for data in stream.parse(
-                                scompressed2ibytes(fstream),
-                                {"items": "."},
-                                {"name"}
+                                scompressed2ibytes(fstream), {"items": "."}, {"name"}
                             ):
                                 self._add(data.name)
                                 count += 1
-                            Log.note("{{count}} files in {{file}}", count=count, file=files_url)
+                            Log.note(
+                                "{{count}} files in {{file}}",
+                                count=count,
+                                file=files_url,
+                            )
                 return
             except Exception as e:
-                Log.note("Can not read {{url}} for key {{key}}", url=files_url, key=source_key)
+                Log.note(
+                    "Can not read {{url}} for key {{key}}",
+                    url=files_url,
+                    key=source_key,
+                )
         else:
-            Log.error("Can not read FileMapper {{url}} (and {{others}} others) for key {{key}}", url=last(result.data).url, others=len(result.data.url) - 1, key=source_key, cause=e)
+            Log.error(
+                "Can not read FileMapper {{url}} (and {{others}} others) for key {{key}}",
+                url=last(result.data).url,
+                others=len(result.data.url) - 1,
+                key=source_key,
+                cause=e,
+            )
 
     def _add(self, filename):
         if filename.startswith(EXCLUDE):
@@ -108,8 +132,11 @@ class FileMapper(object):
         :param task_cluster_record: FOR OTHER INFO THAT MAY HELP IDENTIFYING THE RIGHT SOURCE FILE
         :return: {"name":name, "old_name":old_name, "is_firefox":boolean}
         """
+
         def find_best(files, complain):
-            filename_words = set(n for n in re.split(r"\W", filename) if n) | suite_names
+            filename_words = (
+                set(n for n in re.split(r"\W", filename) if n) | suite_names
+            )
             best = None
             best_score = 0
             peer = None
@@ -135,7 +162,7 @@ class FileMapper(object):
                         key=source_key,
                         url=artifact.url,
                         filename=filename,
-                        list=files
+                        list=files,
                     )
                 return {"name": filename}
 
@@ -143,13 +170,22 @@ class FileMapper(object):
             found = KNOWN_MAPPINGS.get(filename)
             if found:
                 return {"name": found, "is_firefox": True, "old_name": filename}
+            if self.complicated_failures(filename):
+                return {"name": filename}
             if self.predefined_failures(filename):
                 return {"name": filename}
             if filename in self.known_failures:
                 return {"name": filename}
-            suite_names = SUITES.get(task_cluster_record.suite.name, {task_cluster_record.run.suite.name})
+            suite_names = SUITES.get(
+                task_cluster_record.suite.name, {task_cluster_record.run.suite.name}
+            )
 
-            filename = filename.split(' line ')[0].split(' -> ')[-1].split('?')[0].split('#')[0]  # FOR URLS WITH PARAMETERS
+            filename = (
+                filename.split(" line ")[0]
+                .split(" -> ")[-1]
+                .split("?")[0]
+                .split("#")[0]
+            )  # FOR URLS WITH PARAMETERS
             path = list(reversed(filename.split("/")))
             curr = self.lookup
             i = -1
@@ -176,7 +212,7 @@ class FileMapper(object):
                 key=source_key,
                 url=artifact.url,
                 filename=filename,
-                cause=ee
+                cause=ee,
             )
 
 
@@ -189,66 +225,68 @@ def _values(curr):
                 yield u
 
 
-KNOWN_FAILURES = {"or": [
-    {"in": {".": [
-        "chrome://damp/content/framescript.js",
-        "chrome://global/content/bindings/tree.xml",
-        "chrome://mochitests/content/browser/devtools/client/netmonitor/test/shared-head.js",
-        "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
-        "chrome://pageloader/content/utils.js",
-        "chrome://pageloader/content/Profiler.js",
-        "chrome://workerbootstrap/content/worker.js",
-        "decorators.py",
-        "http://example.com/tests/SimpleTest/SimpleTest.js",
-        "http://mochi.test:8888/resources/testharnessreport.js",
-        "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
-        "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
-        "http://web-platform.test:8000/dom/common.js",
-        "http://web-platform.test:8000/dom/historical.html",
-        "http://web-platform.test:8000/dom/interfaces.html",
-        "http://web-platform.test:8000/testharness_runner.html",
-        "https://example.com/tests/SimpleTest/SimpleTest.js",
-        "https://example.com/tests/SimpleTest/TestRunner.js",
-        "resource://gre/modules/workers/require.js",
-        "resource://services-common/utils.js",
-        "resource://services-crypto/utils.js",
-
-        "numerics/safe_conversions_impl.h",
-        "decode.h"
-    ]}},
-
-    {"suffix": {".": "libstd/io/mod.rs"}},
-    {"suffix": {".": "collections/mod.rs"}},
-    {"suffix": {".": "/actions/index.js"}},
-    {"suffix": {".": "/components/App.js"}},
-    {"suffix": {".": "/reducers/index.js"}},
-    {"suffix": {".": "/error.rs"}},
-    {"suffix": {".": "/build/tests/xpcshell/head.js"}},
-    {"suffix": {".": "/shared/tests/browser/head.js"}},
-    {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
-    {"suffix": {".": "/src/test.rs"}},
-    # {"suffix": {".": "/ui.js"}},
-    {"suffix": {".": "/utils/utils.js"}},
-    {"suffix": {".": "/safe_conversions_impl.h"}},
-    {"suffix": {".": "/safe_conversions.h"}},
-    {"suffix": {".": "/./decode.h"}},
-
-    {"prefix": {".": "data:"}},
-    {"prefix": {".": "javascript:"}},
-    {"prefix": {".": "about:"}},
-    {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
-    {"prefix": {".": "https://example.com/MochiKit"}},
-    {"prefix": {".": "vs2017"}},
-    {"prefix": {".": "third_party/rust"}},
-    {"prefix": {".": "third_party/dav1d"}},
-    {"prefix": {".": "devtools/client/"}}
-]}
+KNOWN_FAILURES = {
+    "or": [
+        {
+            "in": {
+                ".": [
+                    "chrome://damp/content/framescript.js",
+                    "chrome://global/content/bindings/tree.xml",
+                    "chrome://mochitests/content/browser/devtools/client/netmonitor/test/shared-head.js",
+                    "chrome://mochitests/content/browser/devtools/shared/worker/tests/browser/head.js",
+                    "chrome://pageloader/content/utils.js",
+                    "chrome://pageloader/content/Profiler.js",
+                    "chrome://workerbootstrap/content/worker.js",
+                    "decorators.py",
+                    "http://example.com/tests/SimpleTest/SimpleTest.js",
+                    "http://mochi.test:8888/resources/testharnessreport.js",
+                    "http://mochi.test:8888/tests/SimpleTest/SimpleTest.js",
+                    "http://mochi.test:8888/tests/SimpleTest/TestRunner.js",
+                    "http://web-platform.test:8000/dom/common.js",
+                    "http://web-platform.test:8000/dom/historical.html",
+                    "http://web-platform.test:8000/dom/interfaces.html",
+                    "http://web-platform.test:8000/testharness_runner.html",
+                    "https://example.com/tests/SimpleTest/SimpleTest.js",
+                    "https://example.com/tests/SimpleTest/TestRunner.js",
+                    "resource://gre/modules/workers/require.js",
+                    "resource://services-common/utils.js",
+                    "resource://services-crypto/utils.js",
+                    "numerics/safe_conversions_impl.h",
+                    "decode.h",
+                ]
+            }
+        },
+        {"suffix": {".": "libstd/io/mod.rs"}},
+        {"suffix": {".": "collections/mod.rs"}},
+        {"suffix": {".": "/actions/index.js"}},
+        {"suffix": {".": "/components/App.js"}},
+        {"suffix": {".": "/reducers/index.js"}},
+        {"suffix": {".": "/error.rs"}},
+        {"suffix": {".": "/build/tests/xpcshell/head.js"}},
+        {"suffix": {".": "/shared/tests/browser/head.js"}},
+        {"suffix": {".": "mozilla.org.xpi!/bootstrap.js"}},
+        {"suffix": {".": "/src/test.rs"}},
+        # {"suffix": {".": "/ui.js"}},
+        {"suffix": {".": "/utils/utils.js"}},
+        {"suffix": {".": "/safe_conversions_impl.h"}},
+        {"suffix": {".": "/safe_conversions.h"}},
+        {"suffix": {".": "/./decode.h"}},
+        {"prefix": {".": "data:"}},
+        {"prefix": {".": "javascript:"}},
+        {"prefix": {".": "about:"}},
+        {"prefix": {".": "http://mochi.test:8888/MochiKit/"}},
+        {"prefix": {".": "https://example.com/MochiKit"}},
+        {"prefix": {".": "vs2017"}},
+        {"prefix": {".": "third_party/rust"}},
+        {"prefix": {".": "third_party/dav1d"}},
+        {"prefix": {".": "devtools/client/"}},
+    ]
+}
 KNOWN_MAPPINGS = {
     "http://example.org/tests/SimpleTest/TestRunner.js": "dom/tests/mochitest/ajax/mochikit/tests/SimpleTest/TestRunner.js"
 }
-EXCLUDE = ('mobile',)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
+EXCLUDE = ("mobile",)  # TUPLE OF SOURCE DIRECTORIES TO EXCLUDE
 SUITES = {  # SOME SUITES ARE RELATED TO A NUMBER OF OTHER NAMES, WHICH CAN IMPROVE SCORING
     "web-platform-tests": {"web", "platform", "tests", "test", "wpt"},
-    "mochitest": {"mochitest", "mochitests"}
+    "mochitest": {"mochitest", "mochitests"},
 }
-

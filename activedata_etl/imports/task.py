@@ -131,21 +131,18 @@ class Matcher(object):
 CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+        "debug": {},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
@@ -195,6 +192,22 @@ CATEGORIES = {
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}": {
             "action": {"type": "raptor"}
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
         },
     },
     "build-": {
@@ -274,6 +287,7 @@ TEST_PLATFORM = {
     "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32"}},
+    "windows10-64-ref-hw-2017": {"build": {"platform": "win64"}},
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
@@ -321,18 +335,21 @@ TALOS_TEST = {
 RAPTOR_TEST = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
+        "ares6",
         "assorted-dom",
         "gdocs",
+        "jetstream2",
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-cpu-memory-idle",
+        "scn-cpu-idle",
         "scn-power-idle-bg",
         "scn-power-idle",
         "stylebench",
         "speedometer",
         "sunspider",
         "unity-webgl",
-        "wasm-godot-baseline",
         "wasm-godot-cranelift",
         "wasm-godot-ion",
         "wasm-godot",
@@ -380,6 +397,8 @@ BROWSER = {
     "fennec64": {"run": {"browser": "fennec"}},
     "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
     "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
@@ -426,6 +445,8 @@ TEST_SUITE = {
         "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-remote-sw",
+        "mochitest-remote",
         "mochitest-thunderbird",
         "mochitest-valgrind",
         "mochitest-webgl1-core",
@@ -450,6 +471,7 @@ TEST_SUITE = {
         "web-platform-tests",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
+        "web-platform-tests-wdspec-headless",
         "xpcshell",
     ]
 }
@@ -457,7 +479,8 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
-    "android-geckoview": {"platform": "android", "product": "geckoview"},
+    "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -473,6 +496,7 @@ BUILD_PLATFORM = {
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
+    "fat-aar-android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "linux": {"build": {"platform": "linux"}},
     "linux64": {"build": {"platform": "linux64"}},
     "linux64-dmd": {"build": {"platform": "linux64"}},
@@ -496,10 +520,13 @@ BUILD_OPTIONS = {
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
     "aarch64-msvc": {"build": {"cpu": "aarch64"}},
-    "aarch64-shippable": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
-    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "type": ["shippable"]}},
+    "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64": {"build": {"cpu": "aarch64"}},
+
     "add-on-devel": {},
+    "armel": {"build": {"cpu": "arm"}},
+    "armhf": {"build": {"cpu": "arm"}},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
@@ -518,7 +545,7 @@ BUILD_OPTIONS = {
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
     "gcp": {"run": {"cloud": "gcp"}},
-    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"type": ["shippable"]}},
+    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"train": "shippable"}},
     "geckoNightlyX86Release": {},
     "geckoview-docs": {},
     "gradle": {},
@@ -527,18 +554,25 @@ BUILD_OPTIONS = {
     "lto": {"build": {"type": ["lto"]}},  # LINK TIME OPTIMIZATION
     "mingw32": {},
     "mingwclang": {"build": {"compiler": ["clang"]}},
+    "mips": {"build": {"cpu": "mips"}},
+    "mipsel": {"build": {"cpu": "mips"}},
+    "mips64el": {"build": {"cpu": "mips64"}},
     "msvc": {},
     "no-eme": {},
     "noopt": {},
     "nightly": {"build": {"train": "nightly"}},
     "opt": {"build": {"type": ["opt"]}},
     "old-id": {},
+    "ppc64el": {"cpu": "ppc"},
     "pgo": {"build": {"type": ["pgo"]}},
     "plain": {},
     "pytests": {},
+    "release-test": {},
+    "release": {"build": {"train": "release"}},
     "rusttests": {"build": {"type": ["rusttests"]}},
-    "shippable": {"build": {"type": ["shippable"]}},
+    "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
+    "s390x": {"build": {"cpu": "s390"}},
     "test": {},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
@@ -550,6 +584,7 @@ BUILD_TYPE = {
     "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["debug"]}},
+    "debug-fennec": {"build": {"type": ["debug"], "product": "fennec"}},
 }
 
 TEST_OPTIONS = unwrap(
@@ -565,11 +600,12 @@ TEST_OPTIONS = unwrap(
             "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
             "shippable-qr": {
                 "run": {"type": ["qr"]},  # QUANTUM RENDER
-                "build": {"type": ["shippable"]},
+                "build": {"train": "shippable"},
             },
             "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
             "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
             "ux": {"run": {"type": ["ux"]}},
+            "release": {"build": {"train": "release"}},
         },
         BUILD_OPTIONS,
     )

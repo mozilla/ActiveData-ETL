@@ -128,6 +128,19 @@ def process(source_key, source, destination, resources, please_stop=None):
 
 # CONVERT THE TESTS (WHICH ARE IN A dict) TO MANY RECORDS WITH ONE result EACH
 def transform(source_key, perfherder, metadata, resources):
+
+    def scrub_subtest(subtest):
+        unknown = subtest.keys()-set(KNOWN_SUBTEST_PROPERTIES.keys())
+        if unknown:
+            Log.warning("unknown properties {{props}} in subtest while processing {{key}}", props=unknown, key=source_key)
+            KNOWN_SUBTEST_PROPERTIES[unknown] = unknown
+
+        output = Data()
+        for k, v in subtest.items():
+            a = KNOWN_SUBTEST_PROPERTIES[k]
+            output[a] = coalesce(output[a], v)
+        return output
+
     if perfherder.is_empty:
         return [metadata]
 
@@ -192,7 +205,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name.startswith("raptor-") and suite_name.endswith(
                 tuple(RAPTOR_BROWSERS)
             ):  # ACCEPT ALL RAPTOR NAMES,
-                metadata.run.browser = suite_name.split("-")[-1]
+                pass
             elif not perfherder.is_empty and framework_name != "job_resource_usage":
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
@@ -220,12 +233,20 @@ def transform(source_key, perfherder, metadata, resources):
         new_records = FlatList()
 
         # RECORD THE UNKNOWN PART OF THE TEST RESULTS
-        if perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES:
-            remainder = copy(perfherder)
-            for k in KNOWN_PERFHERDER_PROPERTIES:
-                remainder[k] = None
-            if any(remainder.values()):
-                new_records.append(set_default(remainder, metadata))
+        unknown_props = perfherder.keys() - KNOWN_PERFHERDER_PROPERTIES
+        if unknown_props:
+            # IF YOU ARE HERE, BE SURE THESE PROPERTIES ARE PUT INT THE result OBJECT (below)
+            Log.warning("unknown perfherder property {{unknown_props}} while processing key=={{key}}", key=source_key, unknown_props=unknown_props)
+
+        result_template = {
+            "alert": {
+                "enabled": perfherder.shouldAlert,
+                "threshold": perfherder.alertThreshold,
+                "change_type": perfherder.alertChangeType,
+            },
+            "type": perfherder.type,
+            "server_url": perfherder.serverUrl
+        }
 
         total = FlatList()
 
@@ -233,6 +254,7 @@ def transform(source_key, perfherder, metadata, resources):
             if suite_name in ["dromaeo_css", "dromaeo_dom"]:
                 # dromaeo IS SPECIAL, REPLICATES ARE IN SETS OF FIVE
                 for i, subtest in enumerate(perfherder.subtests):
+                    subtest_template = scrub_subtest(subtest)
                     for g, sub_replicates in jx.chunk(subtest.replicates, size=5):
                         new_record = set_default(
                             {
@@ -248,9 +270,9 @@ def transform(source_key, perfherder, metadata, resources):
                                         + "."
                                         + text_type(g),
                                         "ordering": i,
-                                        "unit": subtest.unit,
-                                        "lower_is_better": subtest.lowerIsBetter,
                                     },
+                                    subtest_template,
+                                    result_template,
                                 )
                             },
                             metadata,
@@ -259,20 +281,18 @@ def transform(source_key, perfherder, metadata, resources):
                         total.append(new_record.result.stats)
             else:
                 for i, subtest in enumerate(perfherder.subtests):
+                    subtest_template = scrub_subtest(subtest)
                     samples = coalesce(subtest.replicates, [subtest.value])
                     new_record = set_default(
                         {
                             "result": set_default(
                                 stats(source_key, samples, subtest.name, suite_name),
                                 {
-                                    "test": subtest.name,
                                     "ordering": i,
-                                    "unit": subtest.unit,
-                                    "lower_is_better": subtest.lowerIsBetter,
-                                    "raw_replicates": subtest.ref_replicates,
-                                    "control_replicates": subtest.base_replicates,
                                     "value": samples[0] if len(samples) == 1 else None,
                                 },
+                                subtest_template,
+                                result_template,
                             )
                         },
                         metadata,
@@ -297,11 +317,11 @@ def transform(source_key, perfherder, metadata, resources):
                                         suite_name,
                                     ),
                                     {
-                                        "test": text_type(test_name)
-                                        + "."
-                                        + text_type(g),
+                                        "test": text_type(test_name) + "." + text_type(g),
                                         "ordering": i,
+                                        "value": replicates[0] if len(sub_replicates) == 1 else None,
                                     },
+                                    result_template,
                                 )
                             },
                             metadata,
@@ -314,25 +334,26 @@ def transform(source_key, perfherder, metadata, resources):
                         {
                             "result": set_default(
                                 stats(source_key, replicates, test_name, suite_name),
-                                {"test": test_name, "ordering": i},
+                                {
+                                    "test": test_name,
+                                    "ordering": i,
+                                    "value": replicates[0] if len(replicates) == 1 else None,
+                                },
+                                result_template,
                             )
                         },
                         metadata,
                     )
                     new_records.append(new_record)
                     total.append(new_record.result.stats)
-        elif (
-            perfherder.value != None
-        ):  # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
+        elif (perfherder.value != None):
+            # SUITE CAN HAVE A SINGLE VALUE, AND NO SUB-TESTS
             new_record = set_default(
                 {
                     "result": set_default(
                         stats(source_key, [perfherder.value], None, suite_name),
-                        {
-                            "unit": perfherder.unit,
-                            "lower_is_better": perfherder.lowerIsBetter,
-                            "value": perfherder.value,
-                        },
+                        {"value": perfherder.value},
+                        result_template,
                     )
                 },
                 metadata,
@@ -400,7 +421,6 @@ def mainthread_transform(r):
     r.mainthread_writecount = None
 
     r.mainthread = output.values()
-
 
 def stats(source_key, given_values, test, suite):
     """
@@ -483,24 +503,47 @@ RAPTOR_BROWSERS = [
     "-fenix-live",
     "-fenix-power",
     "-fenoix",
+    "-fenix-cold",
     "-fenix",
+    "-fennec64-cold",
+    "-fennec64",
+    "-fennec-power",
     "-fennec-cold",
     "-fennec",
     "-firefox-live",
     "-firefox-cold",
     "-firefox",
+    "-geckoview-cpu"
     "-geckoview-cold",
     "-geckoview-live",
     "-geckoview-memory",
     "-geckoview-power",
+    "-geckoview-%change-power",
     "-geckoview",
     "-refbrow-power",
     "-refbrow",
 ]
 
 KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
+
+KNOWN_SUBTEST_PROPERTIES = {
+    "alertChangeType": "alert.change_type",
+    "alertThreshold": "alert.threshold",
+    "base_replicates": "base_replicates",
+    "lowerIsBetter": "lower_is_better",
+    "name": "test",
+    "ref_replicates": "ref_replicates",
+    "replicates": None,
+    "shouldAlert": "alert.enabled",
+    "unit": "unit",
+    "units": "unit",
+    "value": None,
+}
+
 KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
+    "alertChangeType",
+    "alertThreshold",
     "etl",
     "extraOptions",
     "framework",
@@ -513,9 +556,13 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "test_build",
     "test_machine",
     "testrun",
+    "serverUrl",
     "shouldAlert",
     "subtests",
     "summary",
+    "type",
+    "unit",
+    "units",
     "value",
 }
 KNOWN_PERFHERDER_TESTS = [
@@ -555,6 +602,9 @@ KNOWN_PERFHERDER_TESTS = [
     "Explicit Memory",
     "flex",
     "GfxBench",
+    "GfxQcmsPerf_Bgra",
+    "GfxQcmsPerf_Rgba",
+    "GfxQcmsPerf_Rgb",
     "g1",
     "g2",
     "g3",
@@ -597,6 +647,7 @@ KNOWN_PERFHERDER_TESTS = [
     "netmonitor-metrics",
     "octane-sm",
     "octane-v8",
+    "os-baseline-power",
     "other_nol64",
     "other_l64",
     "other",
@@ -616,6 +667,7 @@ KNOWN_PERFHERDER_TESTS = [
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
     "PermissionManager",
+    "pdfpaint",
     "pull_errored",  # VCS
     "pull",  # VCS
     "purge",  # VCS

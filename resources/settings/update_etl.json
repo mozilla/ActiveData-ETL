@@ -4,7 +4,7 @@
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
 		"user": "ubuntu",
-		"key_filename": "~/keys/aws-pulse-logger.pem",
+		"$ref": "~/private.json#fabric",
 		"disable_known_hosts": true,
 		"port": 22,
 		"password": "password",
@@ -12,6 +12,4 @@
 		"timeout": 60,
 		"connection_attempts": 3
 	}
-
-
 }

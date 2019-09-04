@@ -43,27 +43,35 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
-def _refresh_etl(instance, settings, cw, please_stop):
-    with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
+def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
+    try:
+        with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
 
-        cpu_percent = get_cpu(cw, instance)
-        Log.note(
-            "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
-            instance_id=instance.id,
-            name=instance.tags["Name"],
-            ip=instance.ip_address,
-            cpu=cpu_percent/100
-        )
+            cpu_percent = get_cpu(cw, instance)
+            Log.note(
+                "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
+                instance_id=instance.id,
+                name=instance.tags["Name"],
+                ip=instance.ip_address,
+                cpu=cpu_percent/100
+            )
 
-        conn.sudo("rm -fr /tmp/grcov*")
-        with conn.cd("~/ActiveData-ETL/"):
-            result = conn.run("git pull origin etl", warn=True)
-            if "Already up-to-date." in result:
-                Log.note("No change required")
-                if cpu_percent > 50:
-                    return
-                Log.note("Low CPU implies problem, restarting anyway")
-            conn.sudo("supervisorctl restart all")
+            conn.sudo("rm -fr /tmp/grcov*")
+            with conn.cd("~/ActiveData-ETL/"):
+                result = conn.run("git pull origin etl", warn=True)
+                if "Already up-to-date." in result:
+                    Log.note("No change required")
+                    if cpu_percent > 50:
+                        return
+                    Log.note("{{ip}} - Low CPU implies problem, restarting anyway", ip=instance.ip_address)
+                conn.sudo("supervisorctl restart all")
+    except Exception as e:
+        e = Except.wrap(e)
+        if "No authentication methods available":
+            Log.warning("Missing private key to coonect?", cause=e)
+        else:
+            ec2_conn.terminate_instances([instance.id])
+            Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
 
 
 def get_cpu(conn, i):
@@ -108,18 +116,13 @@ def main():
             # for i in instances: pool("refresh etl", _refresh_etl, i, settings, cw)
             with Timer("block of {{num}} threads", {"num": len(members)}):
                 threads = [
-                    Thread.run("refresh etl", _refresh_etl, i, settings, cw)
+                    Thread.run("refresh etl", _refresh_etl, i, settings, cw, ec2_conn)
                     for i in members
                 ]
                 for t in threads:
-                    try:
-                        t.join()
-                    except Exception as e:
-                        e = Except.wrap(e)
-                        ec2_conn.terminate_instances([i.id])
-                        Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
+                    t.join()
     except Exception as e:
-        Log.error("Problem with etl", e)
+        Log.error("Problem with etl", cause=e)
     finally:
         MAIN_THREAD.stop()
 
