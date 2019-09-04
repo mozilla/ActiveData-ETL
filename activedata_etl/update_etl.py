@@ -67,8 +67,11 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
                 conn.sudo("supervisorctl restart all")
     except Exception as e:
         e = Except.wrap(e)
-        ec2_conn.terminate_instances([instance.id])
-        Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
+        if "No authentication methods available":
+            Log.warning("Missing private key to coonect?", cause=e)
+        else:
+            ec2_conn.terminate_instances([instance.id])
+            Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
 
 
 def get_cpu(conn, i):
