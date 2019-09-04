@@ -66,7 +66,7 @@ def loop(settings):
     result = db.query(
         "SELECT filename, key1, key2, timestamp" +
         " FROM content" +
-        " WHERE key1 IS NULL " + ("" if not dirty else ("or filename in (" + ",".join(dirty) + ")")) +
+        " WHERE key1 IS NULL " + ("" if not dirty else ("or filename in (" + ",".join(db.quote_value(d) for d in dirty) + ")")) +
         " ORDER BY timestamp, filename"
     )
     data = wrap([{k: d[i] for i, k in enumerate(result.header)} for d in result.data])
