@@ -513,7 +513,7 @@ RAPTOR_BROWSERS = [
     "-firefox-live",
     "-firefox-cold",
     "-firefox",
-    "-geckoview-cpu"
+    "-geckoview-cpu",
     "-geckoview-cold",
     "-geckoview-live",
     "-geckoview-memory",
