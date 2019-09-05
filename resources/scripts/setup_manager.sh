@@ -102,8 +102,8 @@ cp ~/private_active_data_etl.json ~/private.json
 chmod 600 ~/private_active_data_etl.json
 chmod 600 ~/private.json
 
-#put ~/.ssh/aws-pulse-logger.pem ~/.ssh/aws-pulse-logger.pem
-chmod 600 ~/.ssh/aws-pulse-logger.pem
+#put ~/.ssh/activedata.pem ~/.ssh/activedata.pem
+chmod 600 ~/.ssh/activedata.pem
 
 
 # INSTALL esShardBalancer

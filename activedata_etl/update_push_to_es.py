@@ -17,6 +17,7 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
+from mo_files import File
 from mo_logs import Log, constants, startup
 from mo_threads import Thread
 from pyLibrary.aws import aws_retry
@@ -24,7 +25,11 @@ from pyLibrary.aws import aws_retry
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([
+        datawrap(r)
+        for r in ec2_conn.get_all_spot_instance_requests()
+        if not r.tags.get("Name") or r.tags.get("Name").startswith(name)
+    ])
     return output
 
 
@@ -127,6 +132,7 @@ def _update_indexxer(config, instance, please_stop):
     )
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
+            # _update_ssh(conn)
             with conn.cd("/usr/local/elasticsearch"):
                 conn.sudo("rm -f java*.hprof")
 
@@ -148,6 +154,13 @@ def _update_indexxer(config, instance, please_stop):
             ip=instance.ip_address,
             cause=e
         )
+
+
+def _update_ssh(conn):
+    public_key = File("d:/activedata.pub.ssh")
+    with conn.cd("/home/ec2-user"):
+        conn.put(public_key, ".ssh/authorized_keys")
+        conn.run("chmod 600 .ssh/authorized_keys")
 
 
 def _start_supervisor(conn):
