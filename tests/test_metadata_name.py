@@ -14,14 +14,26 @@ from activedata_etl.imports.task import decode_metatdata_name
 from mo_dots import Null, unwrap
 from mo_files import File
 from mo_json import value2json
+from mo_logs import Log
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from mo_times import Timer
 
 OVERWRITE_RESOURCE = True
 
+# FIND MORE NAMES:
+# {
+#     "from":"debug-etl",
+#     "groupby":"params.name",
+#     "where":{"and":[
+#         {"eq":{"template":"{{name|quote}} can not be processed with {{category}} for key {{key}}"}},
+#         {"gte":{"timestamp":{"date":"today-2week"}}}
+#     ]},
+#     "limit":1000
+# }
 
 class TestMetadataName(FuzzyTestCase):
     def test_basic(self):
+        Log.alert("If you see any results, then you have OVERWRITE_RESOURCE = True and tests are not passing")
         with Timer("test time"):
             resource = File("tests/resources/metadata_names.json")
             tests = unwrap(resource.read_json(leaves=False, flexible=False))

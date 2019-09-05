@@ -34,7 +34,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     run_info.packages = [{"name":k, "version":v} for k,v in run_info.packages.items()]
     run_info.plugins = [{"name":k, "version":v} for k,v in run_info.plugins.items()]
 
-    ## READ SOURCE FILE
+    # READ SOURCE FILE
     normalized = []
     for line_number, record in enumerate(test_results.tests):
         test_path = record.test.split("::")

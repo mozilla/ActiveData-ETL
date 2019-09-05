@@ -19,6 +19,7 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
+from mo_files import File
 from mo_logs import Log, Except
 from mo_logs import startup, constants
 from mo_threads import MAIN_THREAD, Thread
@@ -43,28 +44,42 @@ def _get_managed_instances(ec2_conn, name):
     return wrap(output)
 
 
+def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
+    try:
+        with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
+            # _update_ssh(conn)
 
-def _refresh_etl(instance, settings, cw, please_stop):
-    with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
+            cpu_percent = get_cpu(cw, instance)
+            Log.note(
+                "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
+                instance_id=instance.id,
+                name=instance.tags["Name"],
+                ip=instance.ip_address,
+                cpu=cpu_percent/100
+            )
 
-        cpu_percent = get_cpu(cw, instance)
-        Log.note(
-            "Reset {{instance_id}} (name={{name}}, cpu={{cpu|percent}}) at {{ip}}",
-            instance_id=instance.id,
-            name=instance.tags["Name"],
-            ip=instance.ip_address,
-            cpu=cpu_percent/100
-        )
+            conn.sudo("rm -fr /tmp/grcov*")
+            with conn.cd("~/ActiveData-ETL/"):
+                result = conn.run("git pull origin etl", warn=True)
+                if "Already up-to-date." in result:
+                    Log.note("No change required")
+                    if cpu_percent > 50:
+                        return
+                    Log.note("{{ip}} - Low CPU implies problem, restarting anyway", ip=instance.ip_address)
+                conn.sudo("supervisorctl restart all")
+    except Exception as e:
+        e = Except.wrap(e)
+        if "No authentication methods available" in e:
+            Log.warning("Missing private key to connect?", cause=e)
+        else:
+            ec2_conn.terminate_instances([instance.id])
+            Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
 
-        conn.sudo("rm -fr /tmp/grcov*")
-        with conn.cd("~/ActiveData-ETL/"):
-            result = conn.run("git pull origin etl", warn=True)
-            if "Already up-to-date." in result:
-                Log.note("No change required")
-                if cpu_percent > 50:
-                    return
-                Log.note("Low CPU implies problem, restarting anyway")
-            conn.sudo("supervisorctl restart all")
+def _update_ssh(conn):
+    public_key = File("d:/activedata.pub.ssh")
+    with conn.cd("/home/ubuntu"):
+        conn.put(public_key, ".ssh/authorized_keys")
+        conn.run("chmod 600 .ssh/authorized_keys")
 
 
 def get_cpu(conn, i):
@@ -103,24 +118,19 @@ def main():
         if not instances:
             Log.alert("No instances found. DONE.")
             return
-        for g, members in jx.groupby(instances, size=40):
+        for g, members in jx.groupby(instances, size=1):
             # TODO: A THREAD POOL WOULD BE NICE
             # pool = Thread.pool(40)
             # for i in instances: pool("refresh etl", _refresh_etl, i, settings, cw)
             with Timer("block of {{num}} threads", {"num": len(members)}):
                 threads = [
-                    Thread.run("refresh etl", _refresh_etl, i, settings, cw)
+                    Thread.run("refresh etl", _refresh_etl, i, settings, cw, ec2_conn)
                     for i in members
                 ]
                 for t in threads:
-                    try:
-                        t.join()
-                    except Exception as e:
-                        e = Except.wrap(e)
-                        ec2_conn.terminate_instances([i.id])
-                        Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=i.id, cause=e)
+                    t.join()
     except Exception as e:
-        Log.error("Problem with etl", e)
+        Log.error("Problem with etl", cause=e)
     finally:
         MAIN_THREAD.stop()
 

@@ -247,8 +247,10 @@ def pull_options(source_key, raw_treeherder, new_treeherder):
 _option_map = {
     "addon": ["addon"],
     "aarch64-debug": ["aarch64", "debug"],
+    "aarch64": ["aarch64"],
     "arm-debug": ["arm", "debug"],
     "ARMv7": ["arm"],
+    "arm64": ["arm64"],
     "all": ["all"],
     "asan": ["asan"],
     "ccov": ["ccov"],
@@ -261,11 +263,13 @@ _option_map = {
     "jsdcov": ["jsdcov"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
+    "Nightlies": ["Nightlies"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
     "x64": ["x64"],
     "x86": ["x86"],
+    "release": ["release"],
 }
 
 
@@ -403,15 +407,25 @@ KNOWN_VALUES = [
     "gaia_revlink: ",
     "Unknown: ",
     "\t--this-chunk=1 --total-chunks=1 -- ",
-    "\t--setenv=MOZ_BROWSER_XHTML=1 -- ",
+    "\t--setenv=MOZ_BROWSER_XHTML=",
+    "\t--setenv=MOZ_QUIET=",
+    "\t--setenv=MOZ_DISABLE_CONTENT_SANDBOX=",
+    "\t--setenv=MOZ_LOG="
 ]
 
 
 NON_HG_BRANCHES = [
+    'ci-taskgraph',
     "bmo-master",
+    "fenix",
+    'fxapom',
     "go-bouncer",
     "mozillians-tests",
+    'reference-browser',
     "servo-auto",
+    "servo-master",
+    'servo-prs',
+    "servo-try",
     "snippets-service",
     "snippets-service",
     "snippets-tests",

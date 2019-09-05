@@ -1,6 +1,6 @@
 {
 	"no_checks": true,
-	"range": {"min":1535015, "max":1545300},
+	"range": {"min":2186240, "max":2186754},
 	"limit": 10000,
 	"git":{
 		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",

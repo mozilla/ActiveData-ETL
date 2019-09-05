@@ -106,9 +106,6 @@ def _find_oom(instance):
                 try:
                     oom_timestamp = Date(strings.between(line, "[", "]").split(",")[0])
                     if oom_timestamp:
-                        found_oom = False
-                    if oom_timestamp > last_restart_time:
-                        # IT IS GOOD TO BOUNCE A ES NODE IF IT HAS HAD A OOM
                         Log.note(
                             "OOM at {{timestamp}} on {{instance_id}} ({{name}}) at {{ip}}",
                             timestamp=oom_timestamp,
@@ -116,6 +113,10 @@ def _find_oom(instance):
                             name=instance.tags["Name"],
                             ip=instance.ip_address,
                         )
+                        found_oom = False
+                    if oom_timestamp > last_restart_time:
+                        # IT IS GOOD TO BOUNCE A ES NODE IF IT HAS HAD A OOM
+                        Log.note("restart")
                         _restart_es(instance)
                         return
                 except Exception:

@@ -146,11 +146,11 @@ class TuidClient(object):
                 if self.enabled:
                     if "502 Bad Gateway" in e:
                         self.enabled = False
-                        Log.error("TUID service has problems.", cause=e)
+                        Log.alert("TUID service has problems (502 Bad Gateway)", cause=e)
                     elif self.num_bad_requests >= MAX_BAD_REQUESTS:
                         self.enabled = False
-                        Log.error("TUID service has problems.", cause=e)
+                        Log.alert("TUID service has problems (given up trying to use it)", cause=e)
                     else:
-                        Log.warning("TUID service has problems.", cause=e)
+                        Log.alert("TUID service has problems.", cause=e)
                         Till(seconds=SLEEP_ON_ERROR).wait()
                 return found

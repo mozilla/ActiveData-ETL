@@ -92,7 +92,7 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify)) # notify tells which queue to put in
+                w._notify.append(aws.Queue(notify))  # notify tells which queue to put in
 
         self.resources = resources
         self.settings = kwargs
@@ -324,7 +324,7 @@ class ETL(Thread):
                                 self.work_queue.rollback()
                                 Log.warning("Could not annotate todo", cause=[f, e])
                         elif previous_attempts > 10:
-                            #GIVE UP
+                            # GIVE UP
                             Log.warning(
                                 "After {{tries}} attempts, still could not process {{key}}.  ***REJECTED***",
                                 tries=todo.previous_attempts,
@@ -362,8 +362,6 @@ def get_container(settings):
 
     if settings == None:
         return DummySink()
-    elif settings.type == "redshift":
-        Log.error("not supported, removed oct2015")
     elif coalesce(settings.aws_access_key_id, settings.aws_access_key_id, settings.region):
         # ASSUME BUCKET NAME
         with sinks_locker:
@@ -371,7 +369,7 @@ def get_container(settings):
                 with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-            output =  S3Bucket(settings)
+            output = S3Bucket(settings)
             sinks.append((settings, output))
             return output
     else:

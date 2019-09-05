@@ -4,22 +4,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 from collections import Mapping
 
-from mo_logs.strings import between
-
-from mo_future import text_type
-
-from activedata_etl.imports.buildbot import BUILD_TYPES
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
-from mo_dots import Data, coalesce, set_default
+from mo_dots import Data, coalesce, set_default, unwrap
+from mo_future import text_type
 from mo_hg.hg_mozilla_org import minimize_repo
-from mo_logs import strings, Log
+from mo_logs import Log, strings
+from mo_logs.strings import between
 
 
 def minimize_task(task):
@@ -133,23 +129,20 @@ class Matcher(object):
 
 
 CATEGORIES = {
-    # MAYBE USE A FORMAL PARSER!!
+    # TODO: USE A FORMAL PARSER??
     "test-": {
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+        "debug": {},
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
-        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
-            "run": {"framework": "talos"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
@@ -200,11 +193,25 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{BROWSER}}-{{RAPTOR_TEST}}": {
             "action": {"type": "raptor"}
         },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-talos-{{TALOS_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "talos"},
+        },
     },
     "build-": {
-        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {
-            "action": {"type": "build"}
-        },
+        "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
             "action": {"type": "build"}
         },
@@ -212,16 +219,17 @@ CATEGORIES = {
             "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "action": {"type": "build"},
+            "action": {"type": "build"}
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}": {
-            "run": {"trigger": "nightly"},
+            "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
         "{{BUILD_PLATFORM}}-{{BUILD_OPTIONS}}-nightly/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
-            "run": {"trigger": "nightly"},
+            "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
+        "{{SPECIAL}}": {"action": {"type": "build"}},
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
@@ -260,6 +268,7 @@ TEST_PLATFORM = {
     "android-em-4.2-x86": {"build": {"platform": "android"}},
     "android-em-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-em-7.0-x86": {"build": {"platform": "android"}},
+    "android-em-7.0-x86_64": {"build": {"platform": "android"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
@@ -268,53 +277,54 @@ TEST_PLATFORM = {
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
-    "android-hw-pix-7-1-android-aarch64": {"build": {"platform": "android"}},
+    "android-hw-pix-7-1-android-aarch64": {
+        "build": {"cpu": "aarch64", "platform": "android"}
+    },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
+    "macosx1010-64": {"build": {"platform": "macosx64"}},
+    "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
-    "windows10-32": {"build": {"platform": "win32", "type": ["ming32"]}},
+    "windows10-32": {"build": {"platform": "win32"}},
+    "windows10-64-ref-hw-2017": {"build": {"platform": "win64"}},
     "windows10-64": {"build": {"platform": "win64"}},
+    "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
 }
 
-TEST_OPTIONS = {
-    o: {"build": {"type": [o]}}
-    for o in BUILD_TYPES
-    + [
-        "aarch64",
-        "asan",
-        "gradle",
-        "lto",
-        "mingw32",
-        "ming32",
-        "msvc",
-        "qr",
-        "stylo-disabled",
-        "stylo-sequential",
-        "ux",
-    ]
-}
-TEST_OPTIONS["nightly"] = {"build": {"train": "nightly"}}
-TEST_OPTIONS["devedition"] = {"build": {"train": "devedition"}}
-
 RUN_OPTIONS = {
+    "1proc": {"run": {"type": ["1proc"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
+    "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
     "e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
+    "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
+    "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
+    "fis": {"run": {"type": ["fis"]}},  # fission
+    "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
+    "gpu": {"run": {"type": ["gpu"]}},
+    "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
+    "no-accel": {"run": {"type": ["no-accel"]}},
+    "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
+    "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
+    "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
+    "stylo-1proc": {"build": {"type": ["stylo"]}, "run": {"type": ["1proc"]}},
     "stylo-e10s": {"build": {"type": ["stylo"]}, "run": {"type": ["e10s"]}},
     "stylo-disabled": {"build": {"type": ["stylo-disabled"]}},
     "stylo-disabled-e10s": {
         "build": {"type": ["stylo-disabled"]},
         "run": {"type": ["e10s"]},
     },
-    "stylo-sequential": {},
+    "stylo-sequential-1proc": {"run": {"type": ["1proc"]}},
     "stylo-sequential-e10s": {"run": {"type": ["e10s"]}},
+    "stylo-sequential": {},
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
+    "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
 }
 
@@ -325,46 +335,76 @@ TALOS_TEST = {
 RAPTOR_TEST = {
     t: {"run": {"suite": {"name": t}}}
     for t in [
+        "ares6",
         "assorted-dom",
         "gdocs",
+        "jetstream2",
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-cpu-memory-idle",
+        "scn-cpu-idle",
+        "scn-power-idle-bg",
+        "scn-power-idle",
         "stylebench",
         "speedometer",
         "sunspider",
         "unity-webgl",
-        "wasm-godot-baseline",
+        "wasm-godot-cranelift",
         "wasm-godot-ion",
         "wasm-godot",
+        "wasm-misc-cranelift",
         "wasm-misc-baseline",
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback",
     ]
 }
 
 
 def match_tp6(name):
-    if name.startswith("tp6-"):
-        for b in BROWSER.keys():
-            if "-" + b in name:
-                short_name = between(name, None, "-" + b)
-                suffix = short_name[4:]
-                if suffix in TEST_CHUNK:
-                    return len(short_name), {"run": {"suite": {"name": "tp6"}, "chunk": int(suffix)}}
-                return len(short_name), {"run": {"suite": {"name": short_name}}}
+    for suite in ["tp6", "tp6m"]:
+        prefix = suite + "-"
+        if name.startswith(prefix):
+            for b in BROWSER.keys():
+                if "-" + b in name:
+                    short_name = between(name, None, "-" + b)
+                    suffix = short_name[len(prefix) :]
+                    if suffix in TEST_CHUNK:
+                        return (
+                            len(short_name),
+                            {"run": {"suite": {"name": suite}, "chunk": int(suffix)}},
+                        )
+                    return len(short_name), {"run": {"suite": {"name": short_name}}}
     return None, None
 
 
 RAPTOR_TEST["tp6"] = match_tp6
-
+RAPTOR_TEST["tp6m"] = match_tp6
 
 BROWSER = {
     "chrome": {"run": {"browser": "chrome"}},
+    "chromium-cold": {"run": {"browser": "chromium"}},
+    "chromium": {"run": {"browser": "chromium"}},
+    "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
+    "fenix-cold": {"run": {"browser": "fenix"}},
+    "fenix": {"run": {"browser": "fenix"}},
+    "firefox-cold": {"run": {"browser": "firefox"}},
     "firefox": {"run": {"browser": "firefox"}},
+    "fennec": {"run": {"browser": "fennec"}},
+    "fennec-cold": {"run": {"browser": "fennec"}},
+    "fennec64": {"run": {"browser": "fennec"}},
+    "fennec64-cold": {"run": {"browser": "fennec"}},
+    "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu": {"run": {"browser": "geckoview"}},
+    "geckoview-cold": {"run": {"browser": "geckoview"}},
+    "geckoview-live": {"run": {"browser": "geckoview"}},
+    "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
-    "geckoview-power": {"run": {"browser": "geckoview-power"}},
+    "refbrow-cold": {"run": {"browser": "reference browser"}},
+    "refbrow": {"run": {"browser": "reference browser"}},
 }
 
 
@@ -374,6 +414,7 @@ TEST_SUITE = {
         "awsy-base-dmd",
         "awsy-dmd",
         "awsy-base",
+        "awsy-tp6",
         "awsy",
         "browser-instrumentation",
         "browser-screenshots",
@@ -381,31 +422,39 @@ TEST_SUITE = {
         "crashtest",
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
-        "geckoview",
         "geckoview-junit",
+        "geckoview-cold",
+        "geckoview-memory",
+        "geckoview",
         "gtest",
         "jittest",
         "jittgst",  # SPELLING MISTAKE
         "jsreftest",
-        "marionette",
         "marionette-headless",
-        "mochitest",
+        "marionette-media",
+        "marionette-stream",
+        "marionette",
         "mochitest-a11y",
         "mochitest-browser-chrome",
         "mochitest-browser-screenshots",
         "mochitest-chrome",
         "mochitest-clipboard",
+        "mochitest-devtools-webreplay",
         "mochitest-devtools-chrome",
         "mochitest-jetpack",
         "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-remote-sw",
+        "mochitest-remote",
+        "mochitest-thunderbird",
         "mochitest-valgrind",
         "mochitest-webgl1-core",
         "mochitest-webgl1-ext",
         "mochitest-webgl2-core",
         "mochitest-webgl2-ext",
         "mochitest-webgl",
+        "mochitest",
         "mozmill",
         "reftest",
         "reftest-fonts",
@@ -414,7 +463,6 @@ TEST_SUITE = {
         "reftest-no-accel",
         "reftest-no-accel-fonts",
         "robocop",
-        "talos-bcv",
         "telemetry-tests-client",
         "test-coverage",
         "test-coverage-wpt",
@@ -423,6 +471,7 @@ TEST_SUITE = {
         "web-platform-tests",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
+        "web-platform-tests-wdspec-headless",
         "xpcshell",
     ]
 }
@@ -430,13 +479,15 @@ TEST_SUITE = {
 TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
+    "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
-    "android-x86": {"build": {"platform": "android"}},
-    "android-x86_64": {"build": {"platform": "android"}},
+    "android-x86": {"build": {"cpu": "x86", "platform": "android"}},
+    "android-x86_64": {"build": {"cpu": "x86-64", "platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
@@ -445,11 +496,13 @@ BUILD_PLATFORM = {
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
+    "fat-aar-android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "linux": {"build": {"platform": "linux"}},
     "linux64": {"build": {"platform": "linux64"}},
     "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
+    "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
     "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
@@ -457,21 +510,43 @@ BUILD_PLATFORM = {
 }
 
 BUILD_OPTIONS = {
-    "aarch64": {},
-    "aarch64-msvc": {},
+    "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
+    "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
+    "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-eme": {
+        "build": {"cpu": "aarch64", "type": ["eme"]}
+    },  # ENCRYPTED MEDIA EXTENSIONS
+    "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
+    "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-msvc": {"build": {"cpu": "aarch64"}},
+    "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64": {"build": {"cpu": "aarch64"}},
+
     "add-on-devel": {},
+    "armel": {"build": {"cpu": "arm"}},
+    "armhf": {"build": {"cpu": "arm"}},
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
+    "base-toolchains-clang": {},
+    "beta-test": {"build": {"train": "beta"}},
+    "beta": {"build": {"train": "beta"}},
     "ccov": {"build": {"type": ["ccov"]}},
     "fuzzing-ccov": {"build": {"type": ["ccov", "fuzzing"]}},
     "checkstyle": {},
+    "debug": {"build": {"type": ["debug"]}},
     "devedition": {"build": {"train": "devedition"}},
     "dmd": {},
+    "fat-aar": {},
     "findbugs": {},
     "fuzzing": {"build": {"type": ["fuzzing"]}},
+    "gcp": {"run": {"cloud": "gcp"}},
+    "gcp-shippable": {"run": {"cloud": "gcp"}, "build": {"train": "shippable"}},
+    "geckoNightlyX86Release": {},
     "geckoview-docs": {},
     "gradle": {},
     "jsdcov": {"build": {"type": ["jsdcov"]}},
@@ -479,15 +554,25 @@ BUILD_OPTIONS = {
     "lto": {"build": {"type": ["lto"]}},  # LINK TIME OPTIMIZATION
     "mingw32": {},
     "mingwclang": {"build": {"compiler": ["clang"]}},
+    "mips": {"build": {"cpu": "mips"}},
+    "mipsel": {"build": {"cpu": "mips"}},
+    "mips64el": {"build": {"cpu": "mips64"}},
     "msvc": {},
+    "no-eme": {},
     "noopt": {},
-    "nightly": {},
+    "nightly": {"build": {"train": "nightly"}},
+    "opt": {"build": {"type": ["opt"]}},
     "old-id": {},
+    "ppc64el": {"cpu": "ppc"},
     "pgo": {"build": {"type": ["pgo"]}},
     "plain": {},
     "pytests": {},
+    "release-test": {},
+    "release": {"build": {"train": "release"}},
     "rusttests": {"build": {"type": ["rusttests"]}},
+    "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
+    "s390x": {"build": {"cpu": "s390"}},
     "test": {},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
@@ -499,9 +584,40 @@ BUILD_TYPE = {
     "pgo": {"build": {"type": ["pgo"]}},
     "noopt": {"build": {"type": ["noopt"]}},
     "debug": {"build": {"type": ["debug"]}},
+    "debug-fennec": {"build": {"type": ["debug"], "product": "fennec"}},
 }
 
+TEST_OPTIONS = unwrap(
+    set_default(
+        {  # NOTICE THESE ALL INCLUDE run.type
+            "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+            "gradle": {"run": {"type": ["gradle"]}},
+            "lto": {"run": {"type": ["lto"]}},
+            "mingw32": {"run": {"type": ["mingw32"]}},
+            "ming32": {"run": {"type": ["mingw32"]}},
+            "msvc": {"run": {"type": ["msvc"]}},
+            "pgo-qr": {"run": {"type": ["qr"]}, "build": {"type": ["pgo"]}},
+            "qr": {"run": {"type": ["qr"]}},  # QUANTUM RENDER
+            "shippable-qr": {
+                "run": {"type": ["qr"]},  # QUANTUM RENDER
+                "build": {"train": "shippable"},
+            },
+            "stylo-disabled": {"run": {"type": ["stylo-disabled"]}},
+            "stylo-sequential": {"run": {"type": ["stylo-sequential"]}},
+            "ux": {"run": {"type": ["ux"]}},
+            "release": {"build": {"train": "release"}},
+        },
+        BUILD_OPTIONS,
+    )
+)
+
 BUILD_STEPS = {"upload-symbols": {}}
+
+SPECIAL = {
+    "reference-browser-geckoNightlyX86Release": {
+        "build": {"product": "reference-browser", "train": "release"}
+    },
+}
 
 COMPILED_CATEGORIES = {
     c: [(Matcher(k), v) for k, v in p.items()] for c, p in CATEGORIES.items()
