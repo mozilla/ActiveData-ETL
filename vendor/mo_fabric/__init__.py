@@ -13,6 +13,7 @@ import os
 import sys
 
 from fabric2 import Config, Connection as _Connection, Result
+from mo_logs.exceptions import Except
 
 from mo_dots import set_default, unwrap, wrap, listwrap, coalesce
 from mo_files import File
@@ -40,9 +41,6 @@ class Connection(object):
     ):
         connect_kwargs = wrap(coalesce(connect_kwargs, {}))
         key_filenames = listwrap(coalesce(connect_kwargs.key_filename, key_filename))
-        if not key_filenames:
-            Log.error("expecting some private key to connect")
-
 
         self.stdout = LogStream(host, "stdout")
         self.stderr = LogStream(host, "stderr")
@@ -57,6 +55,7 @@ class Connection(object):
         )))
 
         self.warn = False
+        cause = Except("expecting some private key to connect")
         for key_file in key_filenames:
             try:
                 connect_kwargs.key_filename=File(key_file).abspath
