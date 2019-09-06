@@ -22,8 +22,7 @@
 //				"interval": "3month",
 //				"max": "2year"
 //			},
-//			"sample_only": [
-//			],
+//			"sample_only": [],
 //			"elasticsearch": {
 //				"host": "http://activedata.allizom.org",
 //				"port": 9200,
@@ -56,8 +55,7 @@
 //				"interval": "week",
 //				"max": "5week"
 //			},
-//			"sample_only": [
-//			],
+//			"sample_only": [],
 //			"elasticsearch": {
 //				"host": "http://activedata.allizom.org",
 //				"port": 9200,

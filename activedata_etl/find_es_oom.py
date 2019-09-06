@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import re
+
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo, put
 from fabric.state import env
@@ -126,6 +128,9 @@ def _get_es_restart_time(instance):
     result = sudo("supervisorctl status")
     for r in result.split("\n"):
         try:
+            if "unix:///tmp/supervisor.sock no such file" in r:
+                _fix_supervisor()
+
             if r.startswith("es"):
                 days = int(coalesce(strings.between(r, "uptime ", " days"), "0"))
                 duration = sum(
@@ -140,8 +145,44 @@ def _get_es_restart_time(instance):
                 )
                 last_restart_time = now - days * DAY - duration
                 return last_restart_time
-        except Exception:
-            pass
+        except Exception as e:
+            Log.warning("problem", cause=e)
+
+
+WHITESPACE = re.compile(r"\s+")
+
+
+def _fix_supervisor():
+    result = sudo("ps -eo pid,command | grep supervisord")
+    for line in result.stdout.split("\n"):
+        if "/etc/supervisord.conf" in line:
+            pid, _ = WHITESPACE.split(line.strip(), 1)
+            sudo("kill -SIGINT " + pid)
+
+    with TempFile() as temp:
+        try:
+            sudo("cp /etc/supervisord.conf /home/ec2-user")
+            sudo("chown ec2-user:ec2-user /home/ec2-user/supervisord.conf")
+            get("/home/ec2-user/supervisord.conf", temp.abspath)
+            content = temp.read()
+            content = content.replace("/tmp/", "/etc/")
+            temp.write(content)
+            put(temp.abspath, "/home/ec2-user/supervisord.conf")
+            sudo("chown root:root /home/ec2-user/supervisord.conf")
+            sudo("cp /home/ec2-user/supervisord.conf /etc")
+        except Exception as e:
+            Log.error("could not fix conf file", cause=e)
+
+    # WAIT FOR SHUTDOWN
+    while True:
+        result = sudo("ps -eo pid,command | grep supervisord")
+        for line in result.stdout.split("\n"):
+            if "/etc/supervisord.conf" in line:
+                break
+        else:
+            break
+
+    sudo("/usr/bin/supervisord -c /etc/supervisord.conf")
 
 
 def _restart_es(instance):
@@ -157,6 +198,7 @@ def _restart_es(instance):
         ip=instance.ip_address,
     )
     num_restarts -= 1
+
     sudo("supervisorctl restart es")
 
 
@@ -176,7 +218,7 @@ def main():
         known_nodes = _get_known_es_nodes(settings.nodes)
         instances = _get_managed_instances(ec2_conn, settings.name)
 
-        for i in instances:
+        for ii, i in enumerate(instances):
             if num_restarts <= 0:
                 Log.note("No more restarts, exiting")
                 return
@@ -207,7 +249,7 @@ def main():
                     #     new_content = content.replace("discovery.type: ec2", "discovery.zen.ping.unicast.hosts: "+MASTER_NODE)
                     #     temp.write(new_content)
                     #     put(temp.abspath, ES_CONFIG_FILE)
-
+                    # _fix_supervisor()
                     sudo("supervisorctl restart es")
                 else:
                     _find_oom(i)

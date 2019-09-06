@@ -18,11 +18,11 @@ from mo_dots import coalesce, wrap, Null
 from mo_json import json2value, value2json, CAN_NOT_DECODE_JSON
 from mo_kwargs import override
 from mo_logs import Log
-from mo_logs.exceptions import suppress_exception, Except
+from mo_logs.exceptions import suppress_exception, Except, Explanation
 from mo_math.randoms import Random
 from mo_threads import Lock
 from mo_times.dates import Date, unicode2Date, unix2Date
-from mo_times.durations import Duration
+from mo_times.durations import Duration, MINUTE
 from mo_times.timer import Timer
 from pyLibrary.aws.s3 import strip_extension, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
@@ -108,8 +108,10 @@ class RolloverIndex(object):
             else:
                 es = self.cluster.get_or_create_index(read_only=False, alias=best.alias, index=best.index, kwargs=self.settings)
 
-            with suppress_exception:
-                es.set_refresh_interval(seconds=60 * 5, timeout=5)
+            try:
+                es.set_refresh_interval(seconds=60 * 10, timeout=5)
+            except Exception as e:
+                Log.warning("Could not set refresh interval for {{index}}", index=es.settings.index, cause=e)
 
             self._delete_old_indexes(candidates)
             threaded_queue = es.threaded_queue(max_size=self.settings.queue_size, batch_size=self.settings.batch_size, silent=True)
