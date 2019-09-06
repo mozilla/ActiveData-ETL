@@ -130,7 +130,7 @@ def main():
                 for t in threads:
                     t.join()
     except Exception as e:
-        Log.error("Problem with etl", cause=e)
+        Log.warning("Problem with etl! Shutting down.", cause=e)
     finally:
         MAIN_THREAD.stop()
 
