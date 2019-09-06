@@ -496,6 +496,7 @@ def geo_mean(values):
 
 RAPTOR_BROWSERS = [
     "-chromium-cold",
+    "-chromium-live",
     "-chromium",
     "-chrome",
     "-fenix-cold-live",
@@ -678,6 +679,7 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
+    "realworld-webextensions",
     "removed_missing_shared_store",
     "remove_shared_store_active_lock",
     "Resident Memory",

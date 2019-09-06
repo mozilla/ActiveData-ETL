@@ -1011,6 +1011,10 @@ KNOWN_COALESCE_CONFLICTS = {
         null,
         "mail",
     ): "thunderbird",
+    (
+        null, null, null, null,
+        null, "mozilla-esr68", null, "comm-esr68"
+    ): "mozilla-esr68",
 }
 
 

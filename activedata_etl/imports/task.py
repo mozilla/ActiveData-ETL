@@ -211,6 +211,7 @@ CATEGORIES = {
         },
     },
     "build-": {
+        "debug": {},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
             "action": {"type": "build"}
@@ -397,6 +398,7 @@ BROWSER = {
     "fennec64": {"run": {"browser": "fennec"}},
     "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu-memory-power":{"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
     "geckoview-cpu": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},

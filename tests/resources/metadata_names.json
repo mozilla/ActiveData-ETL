@@ -249,6 +249,7 @@
             "type": ["opt"]
         }
     },
+    "build-debug": {},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
         "build": {
@@ -3414,6 +3415,19 @@
             "type": ["1proc", "chunked"]
         }
     },
+    "test-android-em-4.3-arm7-api-16/opt-fennec-mochitest-1proc-21": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 21,
+            "suite": {"name": "mochitest"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-em-4.3-arm7-api-16/opt-fennec-reftest-1proc-24": {
         "action": {"type": "perf"},
         "build": {
@@ -3592,6 +3606,19 @@
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-power-e10s": {
         "action": {"type": "perf"},
         "build": {
             "platform": "android",
@@ -42217,6 +42244,19 @@
             "browser": "firefox",
             "framework": "raptor",
             "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-talos-realworld-webextensions-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "realworld-webextensions",
             "type": ["e10s"]
         }
     },
