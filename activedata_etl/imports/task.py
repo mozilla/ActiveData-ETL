@@ -211,6 +211,7 @@ CATEGORIES = {
         },
     },
     "build-": {
+        "bundle-debug": {},
         "debug": {},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {

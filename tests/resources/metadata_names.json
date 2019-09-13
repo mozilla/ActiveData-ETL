@@ -249,6 +249,7 @@
             "type": ["opt"]
         }
     },
+    "build-bundle-debug": {},
     "build-debug": {},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
@@ -3669,6 +3670,20 @@
             "browser": "fenix",
             "framework": "raptor",
             "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-speedometer-geckoview-cpu-memory-power-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
             "type": ["e10s"]
         }
     },

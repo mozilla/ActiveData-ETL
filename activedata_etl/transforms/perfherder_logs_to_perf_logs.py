@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import datetime
-from copy import copy
 from math import sqrt
 
 import mo_math
@@ -694,6 +693,7 @@ KNOWN_PERFHERDER_TESTS = [
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
+    "startup_about_home_paint_realworld_webextensions",
     "startup_about_home_paint",
     "Strings",
     "stylebench",
