@@ -249,8 +249,9 @@
             "type": ["opt"]
         }
     },
-    "build-bundle-debug": {},
-    "build-debug": {},
+    "build-bundle-debug": {"action": {"type": "build"}},
+    "build-concept-sync": {"action": {"type": "build"}},
+    "build-debug": {"action": {"type": "build"}},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
         "build": {
@@ -19018,6 +19019,36 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-linux64-shippable-qr/opt-browsertime-tp6-1-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-browsertime-tp6-1-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-linux64-shippable-qr/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -35954,6 +35985,35 @@
             "chunk": 2,
             "suite": {"name": "web-platform-tests-wdspec"},
             "type": ["e10s", "qr", "chunked"]
+        }
+    },
+    "test-windows10-64-shippable/opt-browsertime-speedometer-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-browsertime-tp6-1-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
         }
     },
     "test-windows10-64-shippable/opt-web-platform-tests-wdspec-headless-e10s-2": {

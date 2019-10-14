@@ -492,7 +492,6 @@ def geo_mean(values):
                 )
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
-
 RAPTOR_BROWSERS = [
     "-chromium-cold",
     "-chromium-live",
@@ -510,6 +509,8 @@ RAPTOR_BROWSERS = [
     "-fennec-power",
     "-fennec-cold",
     "-fennec",
+    "-firefox-live-cumulative-power",
+    "-firefox-live-utilization-power",
     "-firefox-live",
     "-firefox-cold",
     "-firefox",

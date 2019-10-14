@@ -1136,6 +1136,7 @@ BUILD_TYPES = {
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
+    "raptor": ["raptor"],
     "release": [],
     "ubsan": ["ubsan"],
 }

@@ -132,6 +132,7 @@ CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
         "debug": {},
+        "ui": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
         },
@@ -159,6 +160,22 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -211,8 +228,6 @@ CATEGORIES = {
         },
     },
     "build-": {
-        "bundle-debug": {},
-        "debug": {},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}-{{BUILD_STEPS}}": {
             "action": {"type": "build"}
@@ -617,6 +632,11 @@ TEST_OPTIONS = unwrap(
 BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL = {
+    "browser-state":{},
+    "bundle-debug":{},
+    "debug": {},
+    "concept-sync": {},
+    "feature-session": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
