@@ -632,14 +632,32 @@ TEST_OPTIONS = unwrap(
 BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL = {
-    "browser-state":{},
-    "bundle-debug":{},
+    "browser-domains": {},
+    "browser-state": {},
+    "bundle-debug": {},
     "debug": {},
+    "concept-awesomebar": {},
+    "concept-storage": {},
     "concept-sync": {},
+    "feature-prompts": {},
     "feature-session": {},
+    "feature-tab-collections": {},
+    "lib-publicsuffixlist": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
+    "samples-browser-release": {},
+    "samples-crash": {},
+    "samples-firefox-accounts": {},
+    "samples-glean": {},
+    "samples-sync": {},
+    "samples-sync-logins": {},
+    "samples-toolbar": {},
+    "service-fretboard": {},
+    "tooling-detekt": {},
+    "tooling-lint": {},
+    "ui-tabcounter": {},
+
 }
 
 COMPILED_CATEGORIES = {
