@@ -15,7 +15,7 @@ import requests
 
 from activedata_etl import etl2key
 from activedata_etl.imports.resource_usage import normalize_resource_usage
-from activedata_etl.imports.task import decode_metatdata_name, minimize_task
+from activedata_etl.imports.task import decode_metatdata_name
 from activedata_etl.imports.text_log import process_tc_live_backing_log
 from activedata_etl.transforms import (
     TRY_AGAIN_LATER,
@@ -566,6 +566,7 @@ def _normalize_run(source_key, normalized, task, env):
 def set_build_info(source_key, normalized, task, env, resources):
     """
     Get a build object that describes the build
+    :type normalized: Data
     :param task: The task definition
     :return: The build object
     """
@@ -1011,6 +1012,10 @@ KNOWN_COALESCE_CONFLICTS = {
         null,
         "mail",
     ): "thunderbird",
+    (
+        null, null, null, null,
+        null, "mozilla-esr68", null, "comm-esr68"
+    ): "mozilla-esr68",
 }
 
 
@@ -1131,6 +1136,7 @@ BUILD_TYPES = {
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
+    "raptor": ["raptor"],
     "release": [],
     "ubsan": ["ubsan"],
 }
@@ -1277,6 +1283,7 @@ KNOWN_TAGS = {
     "funsize.partials.update_number",
     "github.branches",
     "github.events",
+    "github_event",
     "github.env",
     "github.excludeBranches",
     "github.headBranch",

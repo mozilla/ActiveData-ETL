@@ -132,6 +132,8 @@ CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
         "debug": {},
+        "ui": {},
+        "nightly": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "perf"},
         },
@@ -159,6 +161,22 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -397,6 +415,7 @@ BROWSER = {
     "fennec64": {"run": {"browser": "fennec"}},
     "fennec64-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu-memory-power":{"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
     "geckoview-cpu": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
@@ -614,9 +633,47 @@ TEST_OPTIONS = unwrap(
 BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL = {
+    "browser-domains": {},
+    "browser-engine-gecko-beta": {},
+    "browser-icons": {},
+    "browser-menu": {},
+    "browser-state": {},
+    "browser-storage-memory": {},
+    "bundle-debug": {},
+    "debug": {},
+    "concept-awesomebar": {},
+    "concept-storage": {},
+    "concept-sync": {},
+    "feature-awesomebar": {},
+    "feature-contextmenu": {},
+    "feature-customtabs": {},
+    "feature-prompts": {},
+    "feature-qr": {},
+    "feature-session": {},
+    "feature-tab-collections": {},
+    "feature-webcompat": {},
+    "feature-webnotifications": {},
+    "lib-publicsuffixlist": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
+    "samples-browser-release": {},
+    "samples-crash": {},
+    "samples-firefox-accounts": {},
+    "samples-glean": {},
+    "samples-sync": {},
+    "samples-sync-logins": {},
+    "samples-toolbar": {},
+    "service-firefox-accounts": {},
+    "service-fretboard": {},
+    "service-pocket": {},
+    "support-test-appservices": {},
+    "support-test": {},
+    "tooling-detekt": {},
+    "tooling-lint": {},
+    "ui-autocomplete": {},
+    "ui-fonts": {},
+    "ui-tabcounter": {},
 }
 
 COMPILED_CATEGORIES = {

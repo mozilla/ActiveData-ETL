@@ -33,7 +33,7 @@ OVERWRITE_RESOURCE = True
 
 class TestMetadataName(FuzzyTestCase):
     def test_basic(self):
-        Log.alert("If you see any results, then you have OVERWRITE_RESOURCE = True and tests are not passing")
+        Log.alert("If you see any results, then you have OVERWRITE_RESOURCE = True and tests are FAILING")
         with Timer("test time"):
             resource = File("tests/resources/metadata_names.json")
             tests = unwrap(resource.read_json(leaves=False, flexible=False))

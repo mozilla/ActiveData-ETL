@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import datetime
-from copy import copy
 from math import sqrt
 
 import mo_math
@@ -493,9 +492,9 @@ def geo_mean(values):
                 )
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
-
 RAPTOR_BROWSERS = [
     "-chromium-cold",
+    "-chromium-live",
     "-chromium",
     "-chrome",
     "-fenix-cold-live",
@@ -510,10 +509,12 @@ RAPTOR_BROWSERS = [
     "-fennec-power",
     "-fennec-cold",
     "-fennec",
+    "-firefox-live-cumulative-power",
+    "-firefox-live-utilization-power",
     "-firefox-live",
     "-firefox-cold",
     "-firefox",
-    "-geckoview-cpu"
+    "-geckoview-cpu",
     "-geckoview-cold",
     "-geckoview-live",
     "-geckoview-memory",
@@ -678,6 +679,7 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
+    "realworld-webextensions",
     "removed_missing_shared_store",
     "remove_shared_store_active_lock",
     "Resident Memory",
@@ -692,6 +694,7 @@ KNOWN_PERFHERDER_TESTS = [
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
+    "startup_about_home_paint_realworld_webextensions",
     "startup_about_home_paint",
     "Strings",
     "stylebench",

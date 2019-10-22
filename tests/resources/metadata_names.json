@@ -249,6 +249,9 @@
             "type": ["opt"]
         }
     },
+    "build-bundle-debug": {"action": {"type": "build"}},
+    "build-concept-sync": {"action": {"type": "build"}},
+    "build-debug": {"action": {"type": "build"}},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
         "build": {
@@ -3414,6 +3417,19 @@
             "type": ["1proc", "chunked"]
         }
     },
+    "test-android-em-4.3-arm7-api-16/opt-fennec-mochitest-1proc-21": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 21,
+            "suite": {"name": "mochitest"},
+            "type": ["1proc"]
+        }
+    },
     "test-android-em-4.3-arm7-api-16/opt-fennec-reftest-1proc-24": {
         "action": {"type": "perf"},
         "build": {
@@ -3604,6 +3620,19 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-power-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-nightly/opt-raptor-speedometer-fennec": {
         "action": {"type": "perf"},
         "build": {
@@ -3642,6 +3671,20 @@
             "browser": "fenix",
             "framework": "raptor",
             "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-speedometer-geckoview-cpu-memory-power-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "speedometer"},
             "type": ["e10s"]
         }
     },
@@ -18973,6 +19016,36 @@
         },
         "run": {
             "suite": {"name": "awsy"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-browsertime-tp6-1-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-browsertime-tp6-1-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
             "type": ["e10s", "qr"]
         }
     },
@@ -35914,6 +35987,35 @@
             "type": ["e10s", "qr", "chunked"]
         }
     },
+    "test-windows10-64-shippable/opt-browsertime-speedometer-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-browsertime-tp6-1-firefox-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-shippable/opt-web-platform-tests-wdspec-headless-e10s-2": {
         "action": {"type": "test"},
         "build": {
@@ -42217,6 +42319,19 @@
             "browser": "firefox",
             "framework": "raptor",
             "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-talos-realworld-webextensions-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "realworld-webextensions",
             "type": ["e10s"]
         }
     },

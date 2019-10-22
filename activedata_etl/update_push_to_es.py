@@ -6,8 +6,9 @@
 #
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
+
+import re
 
 from boto import ec2 as boto_ec2
 
@@ -16,7 +17,7 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
-from mo_files import TempFile
+from mo_files import TempFile, File
 from mo_logs import Log, startup, constants
 from mo_threads import Thread
 from pyLibrary.aws import aws_retry
@@ -24,7 +25,11 @@ from pyLibrary.aws import aws_retry
 
 @aws_retry
 def _get_managed_spot_requests(ec2_conn, name):
-    output = wrap([datawrap(r) for r in ec2_conn.get_all_spot_instance_requests() if not r.tags.get("Name") or r.tags.get("Name").startswith(name)])
+    output = wrap([
+        datawrap(r)
+        for r in ec2_conn.get_all_spot_instance_requests()
+        if not r.tags.get("Name") or r.tags.get("Name").startswith(name)
+    ])
     return output
 
 
@@ -83,6 +88,7 @@ def _start_indexer(config, instance, please_stop):
 
 def _stop_indexer(config, instance, please_stop):
     try:
+        Log.note("Stop push_to_es at {{ip}}", ip=instance.ip_address)
         with Connection(kwargs=config, host=instance.ip_address) as conn:
             conn.sudo("supervisorctl stop push_to_es:*")
 
@@ -142,29 +148,50 @@ def _upgrade_elasticsearch(config, instance, please_stop):
 
 
 
+WHITESPACE = re.compile(r"\s+")
+
+
+def _restart_indexxer(conn):
+    conn.sudo("supervisorctl status")
+
+    result = conn.sudo("supervisorctl restart push_to_es:*")
+    if "unix:///tmp/supervisor.sock no such file" not in result:
+        return
+
+    # HUNT DOWN THE PROCESS AND TELL IT TO EXIT
+    result = conn.run("ps -eo pid,%cpu,%mem,command | grep pypy")
+    for line in result.stdout.split("\n"):
+        if "/home/ec2-user/pypy/bin/pypy" in line:
+            pid, cpu, mem, _ = WHITESPACE.split(line.strip(), 3)
+            if float(cpu) < 10:  # ASSUME THIS IS NOT WORKING (WE SHOULD LOOK AT THE LOGS)
+                conn.run("kill -9 " + pid)
+            else:
+                conn.run("kill -SIGINT " + pid)
+
+
 def _update_indexxer(config, instance, please_stop):
     Log.note(
-        "Reset {{instance_id}} ({{name}}) at {{ip}}",
+        "Update indexing {{instance_id}} ({{name}}) at {{ip}}",
         instance_id=instance.id,
         name=instance.tags["Name"],
         ip=instance.ip_address
     )
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
+            # _update_ssh(conn)
             with conn.cd("/usr/local/elasticsearch"):
                 conn.sudo("rm -f java*.hprof")
 
             _disable_oom_on_es(conn)
             with conn.cd("/home/ec2-user/ActiveData-ETL/"):
                 result = conn.run("git pull origin push-to-es6")
-                if "Already up-to-date." in result:
+                if "Already up-to-date." in result or "Already up to date." in result:
                     Log.note("No change required")
                 else:
                     # RESTART ANYWAY, SO WE USE LATEST INDEX
                     conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
                     with conn.warn_only():
-                        conn.sudo("supervisorctl stop push_to_es:*")
-                        conn.sudo("supervisorctl start push_to_es:00")
+                        _restart_indexxer(conn)
     except Exception as e:
         Log.warning(
             "could not update {{instance_id}} ({{name}}) at {{ip}}",
@@ -173,6 +200,13 @@ def _update_indexxer(config, instance, please_stop):
             ip=instance.ip_address,
             cause=e
         )
+
+
+def _update_ssh(conn):
+    public_key = File("d:/activedata.pub.ssh")
+    with conn.cd("/home/ec2-user"):
+        conn.put(public_key, ".ssh/authorized_keys")
+        conn.run("chmod 600 .ssh/authorized_keys")
 
 
 def _start_supervisor(conn):
@@ -250,5 +284,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

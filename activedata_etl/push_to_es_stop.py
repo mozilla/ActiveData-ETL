@@ -49,7 +49,6 @@ def _stop_indexer():
         sudo("supervisorctl stop push_to_es:*")
 
 
-
 def _start_indexer():
     with fabric_settings(warn_only=True):
         # sudo("supervisorctl start es")
@@ -94,7 +93,6 @@ def main():
                 _config_fabric(settings.fabric, i)
                 Log.note("Stop indexing {{instance_id}} ({{name}}) at {{ip}}", instance_id=i.id, name=i.tags["Name"], ip=i.ip_address)
                 _stop_indexer()
-                _restart_es()
             except Exception as e:
                 Log.warning("Problem with stopping", e)
     except Exception as e:

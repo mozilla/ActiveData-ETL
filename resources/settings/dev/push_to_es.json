@@ -50,8 +50,7 @@
 				"interval": "3month",
 				"max": "2year"
 			},
-			"sample_only": [
-			],
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,
@@ -82,8 +81,7 @@
 				"interval": "3month",
 				"max": "2year"
 			},
-			"sample_only": [
-			],
+			"sample_only": [],
 			"elasticsearch": {
 				"host": "http://localhost",
 				"port": 9200,

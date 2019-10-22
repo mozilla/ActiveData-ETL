@@ -19,6 +19,7 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
+from mo_files import File
 from mo_logs import Log, Except
 from mo_logs import startup, constants
 from mo_threads import MAIN_THREAD, Thread
@@ -46,6 +47,7 @@ def _get_managed_instances(ec2_conn, name):
 def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
     try:
         with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
+            # _update_ssh(conn)
 
             cpu_percent = get_cpu(cw, instance)
             Log.note(
@@ -67,11 +69,17 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
                 conn.sudo("supervisorctl restart all")
     except Exception as e:
         e = Except.wrap(e)
-        if "No authentication methods available":
-            Log.warning("Missing private key to coonect?", cause=e)
+        if "No authentication methods available" in e:
+            Log.warning("Missing private key to connect?", cause=e)
         else:
             ec2_conn.terminate_instances([instance.id])
             Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
+
+def _update_ssh(conn):
+    public_key = File("d:/activedata.pub.ssh")
+    with conn.cd("/home/ubuntu"):
+        conn.put(public_key, ".ssh/authorized_keys")
+        conn.run("chmod 600 .ssh/authorized_keys")
 
 
 def get_cpu(conn, i):
@@ -122,7 +130,7 @@ def main():
                 for t in threads:
                     t.join()
     except Exception as e:
-        Log.error("Problem with etl", cause=e)
+        Log.warning("Problem with etl! Shutting down.", cause=e)
     finally:
         MAIN_THREAD.stop()
 
