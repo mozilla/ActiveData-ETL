@@ -213,7 +213,7 @@
 		},
 		{
 			"name": "code coverage",
-			"skip": 0.9,
+			"skip": 0,
 			"queue_size": 1000,
 			"batch_size": 500,
 			"rollover": {
