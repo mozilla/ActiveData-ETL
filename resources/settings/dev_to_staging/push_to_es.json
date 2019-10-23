@@ -115,7 +115,7 @@
 			"sample_only": {
 				"and": [
 					{"eq": {"build.branch": "try"}},
-					{"not": {"in": {"repo.push.user": ["bclary@mozilla.com", "bclary@bclary.com"]}}}
+					{"not": {"in": {"repo.push.user": ["bclary@mozilla.com", "bclary@bclary.com", "jmaher@mozilla.com"]}}}
 				]
 			},
 			"elasticsearch": {
@@ -144,10 +144,10 @@
 		},
 		{
 			"name": "perf",
-			"rollover": {
-				"field": {"coalesce": ["build.date", "repo.push.date", "run.timestamp"]},
-				"interval": "year",
-				"max": "2year"
+			"rollover":{
+				"field": {"coalesce":["build.date","repo.push.date", "run.timestamp"]},
+				"interval": "6month",
+				"max":"2year"
 			},
 			"batch_size": 1000,
 			"queue_size": 2000,
@@ -213,7 +213,7 @@
 		},
 		{
 			"name": "code coverage",
-			"skip": 0.0,
+			"skip": 0,
 			"queue_size": 1000,
 			"batch_size": 500,
 			"rollover": {

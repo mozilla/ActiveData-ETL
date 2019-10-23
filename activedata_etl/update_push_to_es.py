@@ -231,7 +231,7 @@ def main():
             for t in threads:
                 t.join()
     except Exception as e:
-        Log.error("Problem with etl", e)
+        Log.error("Problem with update", e)
     finally:
         Log.stop()
 
