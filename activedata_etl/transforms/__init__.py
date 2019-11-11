@@ -24,15 +24,13 @@ TOO_MANY_FAILS = 5  # STOP LOOKING AT AN ARTIFACT AFTER THIS MANY WITH NON-JSON 
 
 ACTIVE_DATA_QUERY = "https://activedata.allizom.org/query"
 
-TC_MAIN_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}"
-TC_STATUS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/status"
-TC_ARTIFACTS_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts"
-TC_ARTIFACT_URL = "https://queue.taskcluster.net/v1/task/{{task_id}}/artifacts/{{path}}"
+TC_MAIN_URL = "https://firefox-ci-tc.services.mozilla.com/api/queue/v1/task/{{task_id}}"
+TC_STATUS_URL = "https://firefox-ci-tc.services.mozilla.com/api/queue/v1/task/{{task_id}}/status"
+TC_ARTIFACTS_URL = "https://firefox-ci-tc.services.mozilla.com/api/queue/v1/task/{{task_id}}/artifacts"
+TC_ARTIFACT_URL = "https://firefox-ci-tc.services.mozilla.com/api/queue/v1/task/{{task_id}}/artifacts/{{path}}"
 TC_RETRY = {"times": 3, "sleep": 5}
 
-
 TRY_AGAIN_LATER = "{{reason}}, try again later"
-
 
 STRUCTURED_LOG_ENDINGS = [
     "structured_logs.log",
@@ -55,6 +53,8 @@ NOT_STRUCTURED_LOGS = [
     ".exe",
     ".extra",
     ".dmp",
+    "-grcov.zip",
+    "-jsvm.zip",
     "/live.log",
     "/live_backing.log",
     "/log_critical.log",
@@ -67,6 +67,7 @@ NOT_STRUCTURED_LOGS = [
     "/mar.exe",
     "/manifest.json",
     "/mbsdiff.exe",
+    "/mitmproxy.log",
     "/mozharness.zip",
     "partner_repack_raw.log",
     "perfherder-data.json",
@@ -81,6 +82,7 @@ NOT_STRUCTURED_LOGS = [
     "/talos_fatal.log",
     "/talos_info.log",
     "/talos_warning.log",
+    ".tests.tar.gz",
     ".tests.zip",
     ".langpack.xpi",
     "/.tar.gz",
@@ -160,7 +162,7 @@ def verify_blobber_file(line_number, name, url):
 
     # DETECT IF THIS IS A STRUCTURED LOG
 
-    with Timer("Structured log detection {{name}}:", {"name": name}):
+    with Timer("Structured log detection {{name}} {{url}}:", {"name": name, "url": url}):
         try:
             total = 0  # ENSURE WE HAVE A SIDE EFFECT
             count = 0
