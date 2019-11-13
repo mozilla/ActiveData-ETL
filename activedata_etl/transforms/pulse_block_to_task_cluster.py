@@ -485,15 +485,6 @@ def _normalize_run(source_key, normalized, task, env):
             test = test.replace(mod, "").strip()
             run_type += [modifier]
 
-    if test.startswith("mochitest-"):
-        # mochitest-chrome
-        # mochitest-media-2
-        # mochitest-plain-clipboard
-        # mochitest-plain-chunked
-        path = test.split("-")
-        test = path[0]
-        flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
-
     if flavor and "-e10s" in flavor:
         flavor = flavor.replace("-e10s", "").strip()
         if not flavor:
