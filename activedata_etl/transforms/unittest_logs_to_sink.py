@@ -204,6 +204,7 @@ class LogSummary(object):
         self.tests = {}
         self.logs = {}
         self.stats = Data()
+        self.test_to_group = {}   # MAP FROM TEST NAME TO GROUP NAME
 
     def suite_start(self, log):
         self.suite_name = log.name
@@ -212,7 +213,21 @@ class LogSummary(object):
             if k in KNOWN_SUITE_PROPERTIES:
                 k = fix_suite_property_name(k)
                 setattr(self, k, v)
-            elif k in ["action", "tests", "time", "name"]:
+            elif k == "tests":
+                # EXPECTING A DICT OF LISTS
+                try:
+                    for group, tests in v.items():
+                        if group == "default":
+                            continue
+                        for test in tests:
+                            self.test_to_group[test] = group
+                except Exception as e:
+                    Log.warning(
+                        "can not process the suite_start.tests dictionary\n{{example|json|indent}}",
+                        example=v,
+                        cause=e
+                    )
+            elif k in ["action", "time", "name"]:
                 pass
             else:
                 KNOWN_SUITE_PROPERTIES.add(k)
@@ -223,7 +238,8 @@ class LogSummary(object):
             log.test = " ".join(log.test)
         test = Data(
             test=log.test,
-            start_time=log.time
+            start_time=log.time,
+            group=self.test_to_group.get(log.test)
         )
         for k,v in log.items():
             if k in KNOWN_TEST_PROPERTIES:
