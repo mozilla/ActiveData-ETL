@@ -204,6 +204,7 @@ class LogSummary(object):
         self.tests = {}
         self.logs = {}
         self.stats = Data()
+        self.groups = None
         self.test_to_group = {}   # MAP FROM TEST NAME TO GROUP NAME
 
     def suite_start(self, log):
@@ -221,6 +222,7 @@ class LogSummary(object):
                             continue
                         for test in tests:
                             self.test_to_group[test] = group
+                    self.groups = v.keys()
                 except Exception as e:
                     Log.warning(
                         "can not process the suite_start.tests dictionary\n{{example|json|indent}}",
@@ -385,6 +387,7 @@ class LogSummary(object):
                 break
 
         self.stats.ok = sum(1 for t in tests if t.ok)
+        self.test_to_group = None  # REMOVED
         return self
 
 

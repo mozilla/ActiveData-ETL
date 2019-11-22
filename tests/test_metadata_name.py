@@ -51,7 +51,7 @@ class TestMetadataName(FuzzyTestCase):
 
     def test_one(self):
         test = decode_metatdata_name(
-            Null, "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s"
+            Null, "test-windows10-64-shippable/opt-browsertime-tp6-1-chrome-cold-e10s"
         )
         expected = {
             "action": {"type": "raptor"},
