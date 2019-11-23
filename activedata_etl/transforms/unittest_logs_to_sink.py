@@ -86,6 +86,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     }
     buildbot_summary.run.stats = summary.stats
     buildbot_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
+    buildbot_summary.run.groups = summary.groups
 
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time)
