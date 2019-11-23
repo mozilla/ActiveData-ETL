@@ -1130,6 +1130,7 @@ BUILD_TYPES = {
     "pgo": ["pgo"],
     "raptor": ["raptor"],
     "release": [],
+    "tsan": ["tsan"],
     "ubsan": ["ubsan"],
 }
 

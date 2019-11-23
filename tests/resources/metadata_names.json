@@ -412,6 +412,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux64-tsan/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "tsan"]
+        }
+    },
     "build-macosx64-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {

@@ -256,9 +256,7 @@ KNOWN_FAILURES = {
                 ]
             }
         },
-        {"suffix": {".": "libstd/io/mod.rs"}},
-        {"suffix": {".": "collections/mod.rs"}},
-        {"suffix": {".": "/net/mod.rs"}},
+        {"suffix": {".": "/mod.rs"}},
         {"suffix": {".": "/actions/index.js"}},
         {"suffix": {".": "/components/App.js"}},
         {"suffix": {".": "/reducers/index.js"}},
