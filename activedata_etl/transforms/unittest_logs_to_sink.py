@@ -226,8 +226,9 @@ class LogSummary(object):
                     self.groups = v.keys()
                 except Exception as e:
                     Log.warning(
-                        "can not process the suite_start.tests dictionary\n{{example|json|indent}}",
+                        "can not process the suite_start.tests dictionary for {{key}}\n{{example|json|indent}}",
                         example=v,
+                        key=self.source_key,
                         cause=e
                     )
             elif k in ["action", "time", "name"]:
