@@ -20,6 +20,7 @@ from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
 from pyLibrary.env import git
+from mo_times.dates import parse
 
 DEBUG = True
 ACCESS_DENIED = "Access Denied to {{url}} in {{key}}"
@@ -140,7 +141,7 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
             last_line_was_json = False
             log = json2value(line)
             last_line_was_json = True
-            log.time = log.time / 1000
+            log.time = parse(log.time)
             accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])
             accumulator.stats.end_time = MAX([accumulator.stats.end_time, log.time])
 
@@ -218,12 +219,13 @@ class LogSummary(object):
             elif k == "tests":
                 # EXPECTING A DICT OF LISTS
                 try:
-                    for group, tests in v.items():
-                        if group == "default":
-                            continue
-                        for test in tests:
-                            self.test_to_group[test] = group
-                    self.groups = v.keys()
+                    if v:
+                        for group, tests in v.items():
+                            if group == "default":
+                                continue
+                            for test in tests:
+                                self.test_to_group[test] = group
+                        self.groups = v.keys()
                 except Exception as e:
                     Log.warning(
                         "can not process the suite_start.tests dictionary for {{key}}\n{{example|json|indent}}",

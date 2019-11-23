@@ -517,6 +517,9 @@ RAPTOR_BROWSERS = [
     "-fennec",
     "-firefox-live-cumulative-power",
     "-firefox-live-utilization-power",
+    "-firefox-live-watts-power"
+    "-firefox-live-frequency-cpu-power",
+    "-firefox-live-frequency-gpu-power",
     "-firefox-live",
     "-firefox-cold",
     "-firefox",

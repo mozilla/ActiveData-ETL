@@ -260,6 +260,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux-reproduced/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
+            "type": ["opt"]
+        }
+    },
     "build-linux-rusttests/debug": {
         "action": {"type": "build"},
         "build": {

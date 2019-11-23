@@ -604,6 +604,7 @@ BUILD_OPTIONS = {
     "pytests": {},
     "release-test": {},
     "release": {"build": {"train": "release"}},
+    "reproduced": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
