@@ -609,6 +609,7 @@ BUILD_OPTIONS = {
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "s390x": {"build": {"cpu": "s390"}},
     "test": {},
+    "tsan-fuzzing": {"build": {"type": ["tsan", "fuzzing"]}},
     "tsan": {"build": {"type": ["tsan"]}},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},

@@ -267,6 +267,7 @@ _option_map = {
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
+    "tsan": ["tsan"],
     "x64": ["x64"],
     "x86": ["x86"],
     "release": ["release"],

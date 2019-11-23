@@ -412,6 +412,13 @@
             "type": ["opt"]
         }
     },
+    "build-linux64-tsan-fuzzing/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "tsan", "fuzzing"]
+        }
+    },
     "build-linux64-tsan/opt": {
         "action": {"type": "build"},
         "build": {
