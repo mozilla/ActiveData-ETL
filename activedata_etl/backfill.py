@@ -51,7 +51,11 @@ def diff(settings, please_stop=None):
     if settings.range:
         max_in_es = MAX(in_es)
         _min = coalesce(settings.range.min, 0)
-        _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
+        _max = coalesce(
+            settings.range.max,
+            coalesce(settings.limit, 0) + max_in_es + 1,
+            _min + coalesce(settings.limit, 1000000)
+        )
         in_range = set(range(_min, _max))
         in_es &= in_range
 
