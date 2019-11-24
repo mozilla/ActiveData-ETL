@@ -23,7 +23,7 @@ from mo_dots import (
     unwraplist,
     wrap,
 )
-from mo_future import binary_type, is_text, text_type
+from mo_future import binary_type, is_text, text
 from mo_hg.parse import diff_to_json, diff_to_moves
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
@@ -233,7 +233,7 @@ class HgMozillaOrg(object):
             Till(till=next_cache_miss.unix).wait()
 
         found_revision = copy(revision)
-        if isinstance(found_revision.branch, (text_type, binary_type)):
+        if isinstance(found_revision.branch, (text, binary_type)):
             lower_name = found_revision.branch.lower()
         else:
             lower_name = found_revision.branch.name.lower()
@@ -605,7 +605,7 @@ class HgMozillaOrg(object):
         threads = []
         for i in range(3):
             threads.append(
-                Thread.run("find changeset " + text_type(i), _find, please_stop=please_stop)
+                Thread.run("find changeset " + text(i), _find, please_stop=please_stop)
             )
 
         for t in threads:
@@ -749,7 +749,7 @@ class HgMozillaOrg(object):
                 moves = http.get(url).content.decode(
                     "latin1"
                 )  # THE ENCODING DOES NOT MATTER BECAUSE WE ONLY USE THE '+', '-' PREFIXES IN THE DIFF
-                return diff_to_moves(text_type(moves))
+                return diff_to_moves(text(moves))
             except Exception as e:
                 Log.warning("could not get unified diff from {{url}}", url=url, cause=e)
 

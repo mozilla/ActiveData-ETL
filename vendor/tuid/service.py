@@ -12,7 +12,7 @@ import gc
 from mo_times import Timer
 from jx_python import jx
 from mo_dots import Null, coalesce, wrap
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_files.url import URL
 from mo_kwargs import override
@@ -314,7 +314,7 @@ class TUIDService:
         try:
             Log.note("Searching through changelog {{url}}", url=clog_url)
             clog_obj = http.get_json(clog_url, retry=RETRY)
-            if isinstance(clog_obj, (text_type, str)):
+            if isinstance(clog_obj, (text, str)):
                 Log.note(
                     "Revision {{cset}} does not exist in the {{branch}} branch",
                     cset=revision, branch=branch
@@ -685,7 +685,7 @@ class TUIDService:
             try:
                 Log.note("Searching through changelog {{url}}", url=jsonrev_url)
                 clog_obj = http.get_json(jsonrev_url, retry=RETRY)
-                if isinstance(clog_obj, (text_type, str)):
+                if isinstance(clog_obj, (text, str)):
                     Log.error(
                         "Revision {{cset}} does not exist in the {{branch}} branch",
                         cset=curr_rev, branch=repo
@@ -899,7 +899,7 @@ class TUIDService:
             try:
                 Log.note("Searching through changelog {{url}}", url=clog_url)
                 clog_obj = http.get_json(clog_url, retry=RETRY)
-                if isinstance(clog_obj, (text_type, str)):
+                if isinstance(clog_obj, (text, str)):
                     Log.error(
                         "Revision {{cset}} does not exist in the {{branch}} branch",
                         cset=final_rev, branch=self.config.hg.branch
@@ -1382,7 +1382,7 @@ class TUIDService:
 
             # If it's not defined at this revision, we need to add it in
             errored = False
-            if isinstance(annotated_object, (text_type, str)):
+            if isinstance(annotated_object, (text, str)):
                 errored = True
                 Log.warning(
                     "{{file}} does not exist in the revision={{cset}} branch={{branch_name}}",

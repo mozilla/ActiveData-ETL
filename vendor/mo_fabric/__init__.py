@@ -18,7 +18,7 @@ from mo_logs.exceptions import Except
 
 from mo_dots import set_default, unwrap, wrap, listwrap, coalesce
 from mo_files import File
-from mo_future import text_type
+from mo_future import text
 from mo_kwargs import override
 from mo_logs import Log, exceptions, machine_metadata
 from mo_math.randoms import Random
@@ -217,8 +217,8 @@ def note(template, **params):
         f = sys._getframe(1)
         log_params.location = {
             "line": f.f_lineno,
-            "file": text_type(f.f_code.co_filename.split(os.sep)[-1]),
-            "method": text_type(f.f_code.co_name),
+            "file": text(f.f_code.co_filename.split(os.sep)[-1]),
+            "method": text(f.f_code.co_name),
         }
     else:
         log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")
