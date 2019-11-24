@@ -672,6 +672,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall_pull_fullcheckout",
     "overall_pull_emptywdir",
     "overall_pull_populatedwdir",
+    "overall_pull_rmwdir",
     "overall_pull",  # VCS
     "overall",  # VCS
     "perf_reftest_singletons",
@@ -690,6 +691,7 @@ KNOWN_PERFHERDER_TESTS = [
     "rasterflood_svg",
     "realworld-webextensions",
     "removed_missing_shared_store",
+    "remove_locked_wdir",
     "remove_shared_store_active_lock",
     "Resident Memory",
     "sccache cache_write_errors",
