@@ -71,7 +71,7 @@ class Connection(object):
                     connect_kwargs,
                     inline_ssh_env,
                 )
-                self.conn.run("ls")  # verify we can connect
+                self.conn.run("echo")  # verify we can connect
                 return
             except Exception as e:
                 cause = e

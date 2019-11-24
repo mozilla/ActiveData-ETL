@@ -20,6 +20,7 @@ from mo_times.dates import Date
 from mo_times.durations import DAY
 from mo_times.timer import Timer
 from pyLibrary.env import git
+from mo_times.dates import parse
 
 DEBUG = True
 ACCESS_DENIED = "Access Denied to {{url}} in {{key}}"
@@ -86,6 +87,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
     }
     buildbot_summary.run.stats = summary.stats
     buildbot_summary.run.stats.duration = summary.stats.end_time - summary.stats.start_time
+    buildbot_summary.run.suite.groups = summary.groups
 
     if DEBUG:
         age = Date.now() - Date(buildbot_summary.run.stats.start_time)
@@ -139,7 +141,7 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
             last_line_was_json = False
             log = json2value(line)
             last_line_was_json = True
-            log.time = log.time / 1000
+            log.time = parse(log.time)
             accumulator.stats.start_time = MIN([accumulator.stats.start_time, log.time])
             accumulator.stats.end_time = MAX([accumulator.stats.end_time, log.time])
 
@@ -204,6 +206,8 @@ class LogSummary(object):
         self.tests = {}
         self.logs = {}
         self.stats = Data()
+        self.groups = None
+        self.test_to_group = {}   # MAP FROM TEST NAME TO GROUP NAME
 
     def suite_start(self, log):
         self.suite_name = log.name
@@ -212,7 +216,24 @@ class LogSummary(object):
             if k in KNOWN_SUITE_PROPERTIES:
                 k = fix_suite_property_name(k)
                 setattr(self, k, v)
-            elif k in ["action", "tests", "time", "name"]:
+            elif k == "tests":
+                # EXPECTING A DICT OF LISTS
+                try:
+                    if v:
+                        for group, tests in v.items():
+                            if group == "default":
+                                continue
+                            for test in tests:
+                                self.test_to_group[test] = group
+                        self.groups = v.keys()
+                except Exception as e:
+                    Log.warning(
+                        "can not process the suite_start.tests dictionary for {{key}}\n{{example|json|indent}}",
+                        example=v,
+                        key=self.source_key,
+                        cause=e
+                    )
+            elif k in ["action", "time", "name"]:
                 pass
             else:
                 KNOWN_SUITE_PROPERTIES.add(k)
@@ -223,7 +244,8 @@ class LogSummary(object):
             log.test = " ".join(log.test)
         test = Data(
             test=log.test,
-            start_time=log.time
+            start_time=log.time,
+            group=self.test_to_group.get(log.test)
         )
         for k,v in log.items():
             if k in KNOWN_TEST_PROPERTIES:
@@ -369,6 +391,7 @@ class LogSummary(object):
                 break
 
         self.stats.ok = sum(1 for t in tests if t.ok)
+        self.test_to_group = None  # REMOVED
         return self
 
 

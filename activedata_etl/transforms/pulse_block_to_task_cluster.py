@@ -485,15 +485,6 @@ def _normalize_run(source_key, normalized, task, env):
             test = test.replace(mod, "").strip()
             run_type += [modifier]
 
-    if test.startswith("mochitest-"):
-        # mochitest-chrome
-        # mochitest-media-2
-        # mochitest-plain-clipboard
-        # mochitest-plain-chunked
-        path = test.split("-")
-        test = path[0]
-        flavor = "-".join(path[:-1]) + ("-" + flavor if flavor else "")
-
     if flavor and "-e10s" in flavor:
         flavor = flavor.replace("-e10s", "").strip()
         if not flavor:
@@ -1131,6 +1122,7 @@ BUILD_TYPES = {
     "jsdcov": ["jsdcov"],
     "lsan": ["lsan"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
+    "nightly": [],
     "make": ["make"],
     "memleak": ["memleak"],
     "nostylo": ["stylo-disabled"],
@@ -1138,6 +1130,7 @@ BUILD_TYPES = {
     "pgo": ["pgo"],
     "raptor": ["raptor"],
     "release": [],
+    "tsan": ["tsan"],
     "ubsan": ["ubsan"],
 }
 
@@ -1173,6 +1166,7 @@ PAYLOAD_PROPERTIES = {
     "entitlements-url",
     "en_us_binary_url",
     "expires",
+    "fake",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
     "is_partner_repack_public",
@@ -1200,7 +1194,9 @@ PAYLOAD_PROPERTIES = {
     "revision",
     "rollout_percentage",
     "rules_to_update",
+    "target_store",
     "timeout",
+    "see",
     "script_repo_revision",
     "signingManifest",
     "sourcestamp.repository",
@@ -1371,6 +1367,8 @@ KNOWN_TAGS = {
     "platforms",
     "previous-archive-prefix",
     "repack_id",
+    "repack_ids",
+    "repack_suffix",
     "retrigger",
     "schedule_at",
     "signed_installer_url",

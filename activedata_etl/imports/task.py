@@ -76,9 +76,21 @@ NULL_TASKS = (
     "Buildbot/mozharness S3 uploader",
     "balrog-",
     "beetmover-",
-    "build-signing-",
+    "build-browser-",
+    "build-bundle-debug",
+    "build-concept-",
+    "build-debug",
     "build-docker_image-",
     "build-docker-image-",
+    "build-feature-",
+    "build-lib-",
+    "build-samples-",
+    "build-service-",
+    "build-signing-",
+    "build-snapshot-",
+    "build-support-",
+    "build-tooling-",
+    "build-ui-",
     "checksums-signing-",
     "Cron task for ",
     "partials-signing-",
@@ -247,7 +259,7 @@ CATEGORIES = {
             "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
-        "{{SPECIAL}}": {"action": {"type": "build"}},
+        "{{SPECIAL_BUILDS}}": {"action": {"type": "build"}},
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
@@ -313,6 +325,7 @@ TEST_PLATFORM = {
 
 RUN_OPTIONS = {
     "1proc": {"run": {"type": ["1proc"]}},
+    "condprof-e10s": {"run": {"type": ["condprof", "e10s"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
@@ -402,6 +415,7 @@ RAPTOR_TEST["tp6"] = match_tp6
 RAPTOR_TEST["tp6m"] = match_tp6
 
 BROWSER = {
+    "chrome-cold": {"run": {"browser": "chrome"}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium"}},
     "chromium": {"run": {"browser": "chromium"}},
@@ -414,6 +428,8 @@ BROWSER = {
     "fennec-cold": {"run": {"browser": "fennec"}},
     "fennec64": {"run": {"browser": "fennec"}},
     "fennec64-cold": {"run": {"browser": "fennec"}},
+    "fennec68": {"run": {"browser": "fennec"}},
+    "fennec68-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory-power":{"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
@@ -588,11 +604,14 @@ BUILD_OPTIONS = {
     "pytests": {},
     "release-test": {},
     "release": {"build": {"train": "release"}},
+    "reproduced": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "s390x": {"build": {"cpu": "s390"}},
     "test": {},
+    "tsan-fuzzing": {"build": {"type": ["tsan", "fuzzing"]}},
+    "tsan": {"build": {"type": ["tsan"]}},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {},
@@ -632,48 +651,11 @@ TEST_OPTIONS = unwrap(
 
 BUILD_STEPS = {"upload-symbols": {}}
 
-SPECIAL = {
-    "browser-domains": {},
-    "browser-engine-gecko-beta": {},
-    "browser-icons": {},
-    "browser-menu": {},
-    "browser-state": {},
-    "browser-storage-memory": {},
-    "bundle-debug": {},
-    "debug": {},
-    "concept-awesomebar": {},
-    "concept-storage": {},
-    "concept-sync": {},
-    "feature-awesomebar": {},
-    "feature-contextmenu": {},
-    "feature-customtabs": {},
-    "feature-prompts": {},
-    "feature-qr": {},
-    "feature-session": {},
-    "feature-tab-collections": {},
-    "feature-webcompat": {},
-    "feature-webnotifications": {},
-    "lib-publicsuffixlist": {},
+SPECIAL_BUILDS = {
+    "nightly": {"build": {"train": "nightly"}},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
-    "samples-browser-release": {},
-    "samples-crash": {},
-    "samples-firefox-accounts": {},
-    "samples-glean": {},
-    "samples-sync": {},
-    "samples-sync-logins": {},
-    "samples-toolbar": {},
-    "service-firefox-accounts": {},
-    "service-fretboard": {},
-    "service-pocket": {},
-    "support-test-appservices": {},
-    "support-test": {},
-    "tooling-detekt": {},
-    "tooling-lint": {},
-    "ui-autocomplete": {},
-    "ui-fonts": {},
-    "ui-tabcounter": {},
 }
 
 COMPILED_CATEGORIES = {

@@ -249,14 +249,21 @@
             "type": ["opt"]
         }
     },
-    "build-bundle-debug": {"action": {"type": "build"}},
-    "build-concept-sync": {"action": {"type": "build"}},
-    "build-debug": {"action": {"type": "build"}},
+    "build-bundle-debug": {},
+    "build-concept-sync": {},
+    "build-debug": {},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
         "build": {
             "platform": "android",
             "product": "geckoview",
+            "type": ["opt"]
+        }
+    },
+    "build-linux-reproduced/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux",
             "type": ["opt"]
         }
     },
@@ -410,6 +417,20 @@
             "platform": "linux64",
             "train": "shippable",
             "type": ["opt"]
+        }
+    },
+    "build-linux64-tsan-fuzzing/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "tsan", "fuzzing"]
+        }
+    },
+    "build-linux64-tsan/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "tsan"]
         }
     },
     "build-macosx64-add-on-devel/opt": {
@@ -3956,6 +3977,20 @@
         "run": {
             "browser": "fennec",
             "chunk": 5,
+            "framework": "raptor",
+            "suite": {"name": "tp6m"},
+            "type": ["1proc"]
+        }
+    },
+    "test-android-hw-p2-8-0-arm7-api-16/opt-raptor-tp6m-6-fennec68-cold-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "chunk": 6,
             "framework": "raptor",
             "suite": {"name": "tp6m"},
             "type": ["1proc"]
@@ -26154,6 +26189,21 @@
             "type": ["e10s", "qr", "chunked"]
         }
     },
+    "test-macosx1014-64-shippable/opt-browsertime-tp6-1-chrome-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
     "test-macosx1014-64-shippable/opt-raptor-jetstream2-chromium-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -36001,6 +36051,21 @@
             "type": ["e10s"]
         }
     },
+    "test-windows10-64-shippable/opt-browsertime-tp6-1-chrome-cold-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "chunk": 1,
+            "framework": "browsertime",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-shippable/opt-browsertime-tp6-1-firefox-cold-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -43899,6 +43964,20 @@
         "run": {
             "chunk": 4,
             "suite": {"name": "mozmill"}
+        }
+    },
+    "test-windows7-32/opt-raptor-tp6-1-firefox-condprof-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "chunk": 1,
+            "framework": "raptor",
+            "suite": {"name": "tp6"},
+            "type": ["condprof", "e10s"]
         }
     },
     "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {
