@@ -77,7 +77,7 @@ NULL_TASKS = (
     "balrog-",
     "beetmover-",
     "build-browser-",
-    "build-bundle-debug",
+    "build-bundle-",
     "build-concept-",
     "build-debug",
     "build-docker_image-",

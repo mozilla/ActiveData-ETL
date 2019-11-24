@@ -263,7 +263,8 @@ _option_map = {
     "jsdcov": ["jsdcov"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
-    "Nightlies": ["Nightlies"],
+    "nightly": ["nightly"],
+    "Nightlies": ["nightly"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
