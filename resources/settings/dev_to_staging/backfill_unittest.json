@@ -1,16 +1,23 @@
 {
-	"limit": 1000,
-	"range": {"min": 2186240},
+	"limit": 1,
+	"range": {
+		"min": 2715218
+	},
 	"source": {
+		"prefix": "tc.",
 		"$ref": "file://~/private.json#aws_credentials",
-		"bucket": "activedata-test-result",
+		"bucket": "active-data-test-result",
 		"key_format": "a:b.c"
+	},
+	"git": {
+		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
+		"branch": "etl"
 	},
 	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
-		"id_field": "etl.source.source.id",
-		"host": "http://activedata.allizom.org",
-		"port": 9200,
+		"id_field": "etl.source.source.source.id",
+		"host": "http://localhost",
+		"port": 9201,
 		"index": "unittest",
 		"type": "test_result",
 		"timeout": 300,
@@ -20,7 +27,7 @@
 		"debug": false,
 		"limit_replicas": false
 	},
-	"work_queue":{
+	"work_queue": {
 		"name": "active-data-index-es5",
 		"debug": true,
 		"$ref": "file://~/private.json#aws_credentials"
