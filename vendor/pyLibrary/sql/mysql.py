@@ -17,12 +17,11 @@ from pymysql import InterfaceError, connect, cursors
 
 import mo_json
 from jx_python import jx
-from mo_dots import coalesce, is_data, listwrap, unwrap, wrap
+from mo_dots import coalesce, is_data, listwrap, unwrap, wrap, Data
 from mo_files import File
 from mo_future import is_binary, is_text, text, transpose, utf8_json_encoder
 from mo_kwargs import override
-from mo_logs import Log
-from mo_logs.exceptions import Except, suppress_exception
+from mo_logs import Log, Except, suppress_exception
 from mo_logs.strings import expand_template, indent, outdent
 from mo_math import is_number
 from mo_times import Date
@@ -256,7 +255,12 @@ class MySQL(object):
 
     def query(self, sql, param=None, stream=False, row_tuples=False):
         """
-        RETURN LIST OF dicts
+        RETURN A LIST OF dicts
+
+        :param sql:  SQL TEMPLATE TO SEND
+        :param param: PARAMETERS TO INJECT INTO SQL TEMPLATE
+        :param stream: STREAM OUTPUT
+        :param row_tuples: DO NOT RETURN dicts
         """
         if not self.cursor:  # ALLOW NON-TRANSACTIONAL READS
             Log.error("must perform all queries inside a transaction")
@@ -275,11 +279,18 @@ class MySQL(object):
                 else:
                     result = wrap(list(self.cursor))
             else:
-                columns = [utf8_to_unicode(d[0]) for d in coalesce(self.cursor.description, [])]
+                columns = tuple(utf8_to_unicode(d[0]) for d in coalesce(self.cursor.description, []))
+                def streamer():
+                    for row in self.cursor:
+                        output = Data()
+                        for c, v in zip(columns, row):
+                            output[c] = v
+                        yield output
+
                 if stream:
-                    result = (wrap({c: utf8_to_unicode(v) for c, v in zip(columns, row)}) for row in self.cursor)
+                    result = streamer()
                 else:
-                    result = wrap([{c: utf8_to_unicode(v) for c, v in zip(columns, row)} for row in self.cursor])
+                    result = wrap(streamer())
 
             return result
         except Exception as e:
