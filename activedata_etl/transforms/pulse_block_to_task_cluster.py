@@ -479,12 +479,7 @@ def _normalize_run(source_key, normalized, task, env):
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1 : :]
 
-    for modifier in ["no-accel", "chunked", "gpu"]:
-        mod = "-" + modifier
-        if mod in test:
-            test = test.replace(mod, "").strip()
-            run_type += [modifier]
-
+    # FLAVOURS
     if flavor and "-e10s" in flavor:
         flavor = flavor.replace("-e10s", "").strip()
         if not flavor:
@@ -493,12 +488,10 @@ def _normalize_run(source_key, normalized, task, env):
 
     if flavor == "chunked":
         flavor = Null
-        run_type += ["chunked"]
     elif flavor and "-chunked" in flavor:
         flavor = flavor.replace("-chunked", "").strip()
         if not flavor:
             flavor = Null
-        run_type += ["chunked"]
 
     # CHUNK NUMBER
     chunk = Null
@@ -1394,6 +1387,7 @@ def consume(props, key):
 
 
 UNKNOWN_BRANCHES = [
+    "android-components",
     "ci-taskgraph",
     "servo-master",
     "servo-try",

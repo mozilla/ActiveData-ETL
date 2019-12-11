@@ -422,6 +422,7 @@ KNOWN_VALUES = [
 
 
 NON_HG_BRANCHES = [
+    "android-components",
     'ci-taskgraph',
     "bmo-master",
     "fenix",
