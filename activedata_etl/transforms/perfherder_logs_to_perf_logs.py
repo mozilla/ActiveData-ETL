@@ -244,7 +244,8 @@ def transform(source_key, perfherder, metadata, resources):
                 "change_type": perfherder.alertChangeType,
             },
             "type": perfherder.type,
-            "server_url": perfherder.serverUrl
+            "server_url": perfherder.serverUrl,
+            "tags": perfherder.tags
         }
 
         total = FlatList()
@@ -570,6 +571,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "shouldAlert",
     "subtests",
     "summary",
+    "tags",
     "type",
     "unit",
     "units",
