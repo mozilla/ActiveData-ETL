@@ -531,6 +531,7 @@ RAPTOR_BROWSERS = [
     "-geckoview-power",
     "-geckoview-%change-power",
     "-geckoview",
+    "-refbrow-cold",
     "-refbrow-power",
     "-refbrow",
 ]
