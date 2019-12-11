@@ -409,14 +409,14 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                 key=source_key,
             )
 
-    output.task.tags = get_tags(source_key, output.task.id, task, tc_message)
+    output.task.tags = get_tags(source_key, output.task.id, task)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
     output.run.type = unwraplist(list(set(listwrap(output.run.type))))
 
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = (
-        set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()])
+        set(k for k, v in task.leaves())
         - new_seen_tc_properties
     )
     if remaining_keys:
@@ -804,7 +804,7 @@ def get_build_task(source_key, resources, normalized_task):
     return candidate
 
 
-def get_tags(source_key, task_id, task, tc_message, parent=None):
+def get_tags(source_key, task_id, task, parent=None):
     tags = []
     # SPECIAL CASES
     platforms = consume(task, "payload.properties.platforms")
@@ -823,7 +823,6 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
     m = consume(task, "metadata").leaves()
     e = consume(task, "extra").leaves()
     p = consume(task, "payload.properties").leaves()
-    i = consume(tc_message, "task.tags").leaves()
     g = [(k, consume(task.payload, k)) for k in PAYLOAD_PROPERTIES]
 
     tags.extend({"name": k, "value": v} for k, v in t)
@@ -831,7 +830,6 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
     tags.extend({"name": k, "value": v} for k, v in e)
     tags.extend({"name": k, "value": v} for k, v in p)
     tags.extend({"name": k, "value": v} for k, v in g)
-    tags.extend({"name": k, "value": v} for k, v in i)
 
     clean_tags = []
     for t in tags:
@@ -846,7 +844,7 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
                 v = v[0]
                 if isinstance(v, Mapping):
                     for tt in get_tags(
-                        source_key, task_id, Data(tags=v), Null, parent=t["name"]
+                        source_key, task_id, Data(tags=v), parent=t["name"]
                     ):
                         clean_tags.append(tt)
                     continue
