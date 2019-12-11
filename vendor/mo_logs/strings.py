@@ -82,7 +82,7 @@ def datetime(value):
 
     output = datetime2string(value, "%Y-%m-%d %H:%M:%S.%f")
     if output.endswith(".000000"):
-        return output[:-6]
+        return output[:-7]
     elif output.endswith("000"):
         return output[:-3]
     else:
