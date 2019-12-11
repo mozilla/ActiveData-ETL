@@ -1,6 +1,11 @@
 {
-	"limit": 1000,
 	"range": {"min": 2186240},
+	"limit": 1000,
+	"work_queue":{ //FILL THIS TO TRIGGER ETL ACTION
+		"name": "active-data-index-es5",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
+	},
 	"source": {
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "activedata-test-result",
@@ -20,11 +25,6 @@
 		"debug": false,
 		"limit_replicas": false
 	},
-	"work_queue":{
-		"name": "active-data-index-es5",
-		"debug": true,
-		"$ref": "file://~/private.json#aws_credentials"
-	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
@@ -32,16 +32,10 @@
 		}
 	},
 	"debug": {
+		"trace": true,
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"log_type": "ses",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Backfill unittest",
-				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}
