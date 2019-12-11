@@ -1,17 +1,22 @@
 {
-	"limit": 1,
 	"range": {
 		"min": 2715218
+	},
+	"limit": 1000,
+	"git": {
+		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
+		"branch": "etl"
+	},
+	"work_queue":{ //FILL THIS TO TRIGGER ETL ACTION
+		"name": "active-data-index-es5",
+		"debug": true,
+		"$ref": "file://~/private.json#aws_credentials"
 	},
 	"source": {
 		"prefix": "tc.",
 		"$ref": "file://~/private.json#aws_credentials",
 		"bucket": "active-data-test-result",
 		"key_format": "a:b.c"
-	},
-	"git": {
-		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
-		"branch": "etl"
 	},
 	"elasticsearch": {
 		// ES USED TO DETERMINE WHAT IS MISSING
@@ -27,11 +32,6 @@
 		"debug": false,
 		"limit_replicas": false
 	},
-	"work_queue": {
-		"name": "active-data-index-es5",
-		"debug": true,
-		"$ref": "file://~/private.json#aws_credentials"
-	},
 	"constants": {
 		"pyLibrary.env.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
@@ -39,16 +39,10 @@
 		}
 	},
 	"debug": {
+		"trace": true,
 		"log": [
 			{
 				"log_type": "console"
-			},
-			{
-				"log_type": "ses",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][DEV]Problem in Backfill unittest",
-				"$ref": "file://~/private.json#aws_credentials"
 			}
 		]
 	}

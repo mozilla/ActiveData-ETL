@@ -47,6 +47,10 @@ def diff(settings, please_stop=None):
 
     # EVERYTHING FROM ELASTICSEARCH
     in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
+    if not in_es:
+        Log.alert("nothing in es to backfill")
+        return
+
     in_range = None
     if settings.range:
         max_in_es = MAX(in_es)
