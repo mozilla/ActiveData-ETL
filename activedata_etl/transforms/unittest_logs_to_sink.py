@@ -225,7 +225,7 @@ class LogSummary(object):
                                 continue
                             for test in tests:
                                 self.test_to_group[test] = group
-                        self.groups = v.keys()
+                        self.groups = set(v.keys()) - {"default"}
                 except Exception as e:
                     Log.warning(
                         "can not process the suite_start.tests dictionary for {{key}}\n{{example|json|indent}}",
