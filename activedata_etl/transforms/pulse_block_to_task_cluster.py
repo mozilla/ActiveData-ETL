@@ -259,14 +259,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         task.extra.partials = set_default({}, *task.extra.partials)
 
     output.task.id = task_id
-    output.task.kind = coalesce_w_conflict_detection(
-        source_key, consume(task, "tags.kind"), consume(tc_message, "task.tags.kind")
-    )
-    output.task.test_type = coalesce_w_conflict_detection(
-        source_key,
-        consume(task, "tags.test-type"),
-        consume(tc_message, "task.tags.test-type"),
-    )
+    output.task.label = task.tags.label  # CONSUMED AGAIN, AS run.key
+    output.task.kind = consume(task, "tags.kind")
+    output.task.test_type = consume(task, "tags.test-type")
     output.task.created = Date(consume(task, "created"))
     output.task.deadline = Date(consume(task, "deadline"))
     output.task.dependencies = unwraplist(consume(task, "dependencies"))
@@ -1296,7 +1291,6 @@ KNOWN_TAGS = {
     "index.rank",
     "installer_path",
     "l10n_changesets",
-    "label",
     "last-watershed",
     "limit-locales",
     "link",
