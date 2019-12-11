@@ -259,14 +259,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         task.extra.partials = set_default({}, *task.extra.partials)
 
     output.task.id = task_id
-    output.task.kind = coalesce_w_conflict_detection(
-        source_key, consume(task, "tags.kind"), consume(tc_message, "task.tags.kind")
-    )
-    output.task.test_type = coalesce_w_conflict_detection(
-        source_key,
-        consume(task, "tags.test-type"),
-        consume(tc_message, "task.tags.test-type"),
-    )
+    output.task.label = task.tags.label  # CONSUMED AGAIN, AS run.key
+    output.task.kind = consume(task, "tags.kind")
+    output.task.test_type = consume(task, "tags.test-type")
     output.task.created = Date(consume(task, "created"))
     output.task.deadline = Date(consume(task, "deadline"))
     output.task.dependencies = unwraplist(consume(task, "dependencies"))
@@ -414,14 +409,14 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                 key=source_key,
             )
 
-    output.task.tags = get_tags(source_key, output.task.id, task, tc_message)
+    output.task.tags = get_tags(source_key, output.task.id, task)
 
     output.build.type = unwraplist(list(set(listwrap(output.build.type))))
     output.run.type = unwraplist(list(set(listwrap(output.run.type))))
 
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
     remaining_keys = (
-        set([k for k, v in task.leaves()] + [k for k, v in tc_message.leaves()])
+        set(k for k, v in task.leaves())
         - new_seen_tc_properties
     )
     if remaining_keys:
@@ -479,12 +474,7 @@ def _normalize_run(source_key, normalized, task, env):
     elif flavor.startswith(test + "-"):
         flavor = flavor[len(test) + 1 : :]
 
-    for modifier in ["no-accel", "chunked", "gpu"]:
-        mod = "-" + modifier
-        if mod in test:
-            test = test.replace(mod, "").strip()
-            run_type += [modifier]
-
+    # FLAVOURS
     if flavor and "-e10s" in flavor:
         flavor = flavor.replace("-e10s", "").strip()
         if not flavor:
@@ -493,12 +483,10 @@ def _normalize_run(source_key, normalized, task, env):
 
     if flavor == "chunked":
         flavor = Null
-        run_type += ["chunked"]
     elif flavor and "-chunked" in flavor:
         flavor = flavor.replace("-chunked", "").strip()
         if not flavor:
             flavor = Null
-        run_type += ["chunked"]
 
     # CHUNK NUMBER
     chunk = Null
@@ -816,7 +804,7 @@ def get_build_task(source_key, resources, normalized_task):
     return candidate
 
 
-def get_tags(source_key, task_id, task, tc_message, parent=None):
+def get_tags(source_key, task_id, task, parent=None):
     tags = []
     # SPECIAL CASES
     platforms = consume(task, "payload.properties.platforms")
@@ -835,7 +823,6 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
     m = consume(task, "metadata").leaves()
     e = consume(task, "extra").leaves()
     p = consume(task, "payload.properties").leaves()
-    i = consume(tc_message, "task.tags").leaves()
     g = [(k, consume(task.payload, k)) for k in PAYLOAD_PROPERTIES]
 
     tags.extend({"name": k, "value": v} for k, v in t)
@@ -843,7 +830,6 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
     tags.extend({"name": k, "value": v} for k, v in e)
     tags.extend({"name": k, "value": v} for k, v in p)
     tags.extend({"name": k, "value": v} for k, v in g)
-    tags.extend({"name": k, "value": v} for k, v in i)
 
     clean_tags = []
     for t in tags:
@@ -858,7 +844,7 @@ def get_tags(source_key, task_id, task, tc_message, parent=None):
                 v = v[0]
                 if isinstance(v, Mapping):
                     for tt in get_tags(
-                        source_key, task_id, Data(tags=v), Null, parent=t["name"]
+                        source_key, task_id, Data(tags=v), parent=t["name"]
                     ):
                         clean_tags.append(tt)
                     continue
@@ -1303,7 +1289,6 @@ KNOWN_TAGS = {
     "index.rank",
     "installer_path",
     "l10n_changesets",
-    "label",
     "last-watershed",
     "limit-locales",
     "link",
@@ -1394,6 +1379,7 @@ def consume(props, key):
 
 
 UNKNOWN_BRANCHES = [
+    "android-components",
     "ci-taskgraph",
     "servo-master",
     "servo-try",

@@ -77,13 +77,14 @@ NULL_TASKS = (
     "balrog-",
     "beetmover-",
     "build-browser-",
-    "build-bundle-debug",
+    "build-bundle-",
     "build-concept-",
     "build-debug",
     "build-docker_image-",
     "build-docker-image-",
     "build-feature-",
     "build-lib-",
+    "build-release-",
     "build-samples-",
     "build-service-",
     "build-signing-",
@@ -147,17 +148,18 @@ CATEGORIES = {
         "ui": {},
         "nightly": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"},
         },
+
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
@@ -174,6 +176,7 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
         },
+
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
             "run": {"framework": "browsertime"},
@@ -190,6 +193,26 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "browsertime"},
         },
+
+        # UNUSUAL
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6-{{BROWSER}}-amazon-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime", "suite": "tp6", "site": "amazon"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6-{{BROWSER}}-amazon": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime", "suite": "tp6", "site": "amazon"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6-{{BROWSER}}-amazon-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime", "suite": "tp6", "site": "amazon"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6-{{BROWSER}}-amazon": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime", "suite": "tp6", "site": "amazon"},
+        },
+
+        # BASIC TEST FORMAT
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
         },
@@ -197,16 +220,13 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
@@ -263,7 +283,6 @@ CATEGORIES = {
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
@@ -277,15 +296,12 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
             "action": {"type": "test"},
         },
     },
@@ -315,6 +331,7 @@ TEST_PLATFORM = {
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx1010-64": {"build": {"platform": "macosx64"}},
     "macosx1014-64": {"build": {"platform": "macosx64"}},
+    "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
     "windows10-32": {"build": {"platform": "win32"}},
     "windows10-64-ref-hw-2017": {"build": {"platform": "win64"}},
@@ -389,12 +406,19 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback-h264-power",
         "youtube-playback",
     ]
 }
 
 
 def match_tp6(name):
+    """
+    MATCH tp6-<TEST>-<TEST_CHUNK>-<BROWSER>
+    :param name:
+    :return:
+    """
+
     for suite in ["tp6", "tp6m"]:
         prefix = suite + "-"
         if name.startswith(prefix):
@@ -422,7 +446,9 @@ BROWSER = {
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
     "fenix-cold": {"run": {"browser": "fenix"}},
     "fenix": {"run": {"browser": "fenix"}},
+    "firefox-cold-condprof": {"run": {"browser": "firefox", "type": ["condprof"]}},  # https://searchfox.org/mozilla-central/source/testing/condprofile/README.rst
     "firefox-cold": {"run": {"browser": "firefox"}},
+    "firefox-condprof": {"run": {"browser": "firefox", "type": ["condprof"]}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec": {"run": {"browser": "fennec"}},
     "fennec-cold": {"run": {"browser": "fennec"}},
@@ -491,12 +517,12 @@ TEST_SUITE = {
         "mochitest-webgl",
         "mochitest",
         "mozmill",
-        "reftest",
         "reftest-fonts",
         "reftest-gpu",
         "reftest-gpu-fonts",
         "reftest-no-accel",
         "reftest-no-accel-fonts",
+        "reftest",
         "robocop",
         "telemetry-tests-client",
         "test-coverage",

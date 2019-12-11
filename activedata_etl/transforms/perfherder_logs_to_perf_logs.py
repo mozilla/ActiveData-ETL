@@ -244,7 +244,8 @@ def transform(source_key, perfherder, metadata, resources):
                 "change_type": perfherder.alertChangeType,
             },
             "type": perfherder.type,
-            "server_url": perfherder.serverUrl
+            "server_url": perfherder.serverUrl,
+            "tags": perfherder.tags
         }
 
         total = FlatList()
@@ -517,7 +518,7 @@ RAPTOR_BROWSERS = [
     "-fennec",
     "-firefox-live-cumulative-power",
     "-firefox-live-utilization-power",
-    "-firefox-live-watts-power"
+    "-firefox-live-watts-power",
     "-firefox-live-frequency-cpu-power",
     "-firefox-live-frequency-gpu-power",
     "-firefox-live",
@@ -530,6 +531,7 @@ RAPTOR_BROWSERS = [
     "-geckoview-power",
     "-geckoview-%change-power",
     "-geckoview",
+    "-refbrow-cold",
     "-refbrow-power",
     "-refbrow",
 ]
@@ -570,6 +572,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "shouldAlert",
     "subtests",
     "summary",
+    "tags",
     "type",
     "unit",
     "units",
@@ -672,6 +675,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall_pull_fullcheckout",
     "overall_pull_emptywdir",
     "overall_pull_populatedwdir",
+    "overall_pull_rmwdir",
     "overall_pull",  # VCS
     "overall",  # VCS
     "perf_reftest_singletons",
@@ -690,6 +694,7 @@ KNOWN_PERFHERDER_TESTS = [
     "rasterflood_svg",
     "realworld-webextensions",
     "removed_missing_shared_store",
+    "remove_locked_wdir",
     "remove_shared_store_active_lock",
     "Resident Memory",
     "sccache cache_write_errors",
