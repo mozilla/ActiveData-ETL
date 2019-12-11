@@ -149,14 +149,14 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
-            if suite_name.startswith("reftest"):
-                fix_reftest_names(log)
-
             accumulator.stats.action[log.action] += 1
             try:
                 accumulator.__getattribute__(log.action)(log)
             except AttributeError:
                 pass
+
+            if suite_name.startswith("reftest"):
+                fix_reftest_names(log)
 
             if log.subtest:
                 accumulator.end_time = log.time
