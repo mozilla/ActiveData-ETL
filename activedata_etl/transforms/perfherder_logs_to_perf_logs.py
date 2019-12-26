@@ -225,6 +225,7 @@ def transform(source_key, perfherder, metadata, resources):
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
         metadata.result.extraOptions = perfherder.extraOptions
+        metadata.result.hgVersion = perfherder.hgVersion
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -559,6 +560,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "etl",
     "extraOptions",
     "framework",
+    "hgVersion",
     "is_empty",
     "lowerIsBetter",
     "name",
