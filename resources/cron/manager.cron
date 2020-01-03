@@ -1,8 +1,9 @@
-
+0 * * * * /home/ec2-user/remove_mail_file.sh
 10 0,6,12,18 * * * /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 3,13,23,33,43,53 * * * * /home/ec2-user/SpotManager/examples/scripts/run_es6.sh
 8,18,28,38,48,58 * * * * /home/ec2-user/SpotManager-ETL/examples/scripts/run_etl.sh
-0 8 * * * /home/ec2-user/coco-diff/resources/scripts/status.sh
+#0 8 * * * /home/ec2-user/coco-diff/resources/scripts/status.sh
 #1,11,21,31,41,51 * * * * /home/ec2-user/coco-diff/resources/scripts/post_etl.sh
 #2 7,19 * * * /home/ec2-user/TestFailures/resources/scripts/agg_job.sh
 2,12,22,32,42,52 * * * * /home/ec2-user/MySQL-to-S3/resources/scripts/treeherder_extract.sh
+

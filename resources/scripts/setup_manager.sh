@@ -145,6 +145,11 @@ cd ~/MySQL-to-S3
 git checkout master
 sudo /usr/local/bin/pip install -r requirements.txt
 
+# REMOVE THE SENDMAIL FILE
+echo "sudo rm -r /var/spool/mail/ec2-user" > /home/ec2-user/remove_mail_file.sh
+chmod u+x /home/ec2-user/remove_mail_file.sh
+
+
 # CRON JOBS
 chmod u+x /home/ec2-user/ActiveData-ETL/resources/scripts/run_buildbot_json_logs.sh
 chmod u+x /home/ec2-user/SpotManager/examples/scripts/run_es.sh
