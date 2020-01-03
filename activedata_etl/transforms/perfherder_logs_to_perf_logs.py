@@ -702,6 +702,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sccache cache_write_errors",
     "sccache hit rate",
     "sccache requests_not_cacheable",
+    "sessionrestore-many-windows",
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",

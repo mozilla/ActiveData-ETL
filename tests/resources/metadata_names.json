@@ -3392,6 +3392,9 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "raptor-speedometer-geckoview-avg-cpu": {},
+    "raptor-speedometer-geckoview-max-cpu": {},
+    "raptor-speedometer-geckoview-min-cpu": {},
     "test-android-4.3-arm7-api-15/debug-jsreftest-70": {
         "action": {"type": "test"},
         "build": {
@@ -4028,6 +4031,42 @@
         },
         "run": {"suite": {"name": "cppunit"}}
     },
+    "test-linux1804-32-shippable/opt-web-platform-tests-e10s-11": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 11,
+            "suite": {"name": "web-platform-tests"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux1804-64-shippable/opt-awsy-tp6-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "awsy-tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux1804-64/debug-crashtest-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "crashtest"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux32-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -4482,7 +4521,10 @@
             "train": "devedition",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux32-devedition/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -5540,7 +5582,10 @@
             "train": "nightly",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux32-nightly/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -6606,8 +6651,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["stylo-disabled"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "stylo-disabled"]
         }
     },
     "test-linux32-stylo-disabled/debug-mochitest-media-1": {
@@ -7236,8 +7281,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["stylo-disabled"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "stylo-disabled"]
         }
     },
     "test-linux32-stylo-disabled/opt-mochitest-media-1": {
@@ -10583,7 +10628,10 @@
             "platform": "linux64",
             "type": ["opt", "asan"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux64-asan/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -11668,7 +11716,10 @@
             "platform": "linux64",
             "type": ["opt", "ccov"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux64-ccov/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -12883,7 +12934,10 @@
             "train": "devedition",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux64-devedition/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -14370,7 +14424,10 @@
             "train": "nightly",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux64-nightly/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -16137,7 +16194,10 @@
             "platform": "linux64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-linux64-pgo/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -17343,8 +17403,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["qr"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "qr"]
         }
     },
     "test-linux64-qr/debug-mochitest-media-1": {
@@ -17864,8 +17924,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["qr"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "qr"]
         }
     },
     "test-linux64-qr/opt-mochitest-media-1": {
@@ -18480,7 +18540,7 @@
             "browser": "firefox",
             "framework": "browsertime",
             "site": "amazon",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
             "type": ["e10s", "condprof", "qr"]
         }
     },
@@ -19891,7 +19951,67 @@
             "browser": "chrome",
             "framework": "browsertime",
             "site": "amazon",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-browsertime-tp6-chrome-cold-facebook-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "facebook",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-browsertime-tp6-chrome-cold-google-search-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "google-search",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-browsertime-tp6-chrome-cold-wikipedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "wikipedia",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-browsertime-tp6-chrome-cold-youtube-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "youtube",
+            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },
@@ -19906,7 +20026,22 @@
             "browser": "firefox",
             "framework": "browsertime",
             "site": "amazon",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-browsertime-tp6-firefox-cold-bing-search-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "bing-search",
+            "suite": {"name": "tp6"},
             "type": ["e10s"]
         }
     },
@@ -19936,6 +20071,19 @@
             "framework": "raptor",
             "suite": {"name": "tp6"},
             "type": ["e10s"]
+        }
+    },
+    "test-linux64-shippable/opt-talos-sessionrestore-many-windows-profiling-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "sessionrestore_many_windows",
+            "type": ["profile", "fis", "e10s"]
         }
     },
     "test-linux64-shippable/opt-test-verify-gpu": {
@@ -20541,8 +20689,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["stylo-disabled"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "stylo-disabled"]
         }
     },
     "test-linux64-stylo-disabled/debug-mochitest-media-1": {
@@ -21278,8 +21426,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["stylo-disabled"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "stylo-disabled"]
         }
     },
     "test-linux64-stylo-disabled/opt-mochitest-media-1": {
@@ -26047,7 +26195,10 @@
             "train": "devedition",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-macosx64-devedition/opt-mochitest-media": {
         "action": {"type": "test"},
@@ -26689,7 +26840,10 @@
             "train": "nightly",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-macosx64-nightly/opt-mochitest-media": {
         "action": {"type": "test"},
@@ -28604,6 +28758,20 @@
             "suite": {"name": "xpcshell"}
         }
     },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/pgo-browsertime-tp6m-geckoview-cold-youtube": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "browsertime",
+            "site": "youtube",
+            "suite": {"name": "tp6m"}
+        }
+    },
     "test-vismet-macosx1014-64-shippable/opt-browsertime-tp6-firefox-condprof-amazon": {
         "action": {"type": "perf"},
         "build": {
@@ -28615,8 +28783,22 @@
             "browser": "firefox",
             "framework": "browsertime",
             "site": "amazon",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
             "type": ["condprof"]
+        }
+    },
+    "test-vismet-windows7-32-shippable/opt-browsertime-tp6-firefox-amazon": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "amazon",
+            "suite": {"name": "tp6"}
         }
     },
     "test-windows10-32-mingw32/debug-cppunit": {
@@ -29036,8 +29218,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["mingw32"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "mingw32"]
         }
     },
     "test-windows10-32-mingw32/debug-mochitest-media-1": {
@@ -29909,8 +30091,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["mingw32"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "mingw32"]
         }
     },
     "test-windows10-32-mingw32/opt-mochitest-media-1": {
@@ -30954,7 +31136,10 @@
             "platform": "win64",
             "type": ["debug", "ccov"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows10-64-ccov/debug-mochitest-media": {
         "action": {"type": "test"},
@@ -31844,7 +32029,10 @@
             "train": "devedition",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows10-64-devedition/opt-mochitest-media": {
         "action": {"type": "test"},
@@ -32570,7 +32758,10 @@
             "train": "nightly",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows10-64-nightly/opt-mochitest-media": {
         "action": {"type": "test"},
@@ -33253,7 +33444,10 @@
             "platform": "win64",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows10-64-pgo/opt-mochitest-media": {
         "action": {"type": "test"},
@@ -33728,8 +33922,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["qr"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "qr"]
         }
     },
     "test-windows10-64-qr/debug-mochitest-media": {
@@ -33892,8 +34086,8 @@
             "type": ["opt"]
         },
         "run": {
-            "suite": {"name": "mochitest-gpu"},
-            "type": ["qr"]
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "qr"]
         }
     },
     "test-windows10-64-qr/opt-mochitest-media": {
@@ -34923,6 +35117,18 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-windows10-64-shippable-qr/opt-web-platform-tests-crashtests-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "web-platform-tests-crashtests"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-windows10-64-shippable-qr/opt-web-platform-tests-e10s-1": {
         "action": {"type": "test"},
         "build": {
@@ -35225,6 +35431,49 @@
             "framework": "browsertime",
             "suite": {"name": "tp6"},
             "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-browsertime-tp6-firefox-cold-bing-search-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "bing-search",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-browsertime-tp6-firefox-cold-wikipedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "wikipedia",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-talos-bcv-profiling-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "bcv",
+            "type": ["profile", "fis", "e10s"]
         }
     },
     "test-windows10-64-shippable/opt-web-platform-tests-wdspec-headless-e10s-2": {
@@ -37688,7 +37937,10 @@
             "train": "devedition",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows7-32-devedition/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -38715,7 +38967,10 @@
             "train": "nightly",
             "type": ["opt"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows7-32-nightly/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -39705,7 +39960,10 @@
             "platform": "win32",
             "type": ["opt", "pgo"]
         },
-        "run": {"suite": {"name": "mochitest-gpu"}}
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu"]
+        }
     },
     "test-windows7-32-pgo/opt-mochitest-media-1": {
         "action": {"type": "test"},
@@ -41311,6 +41569,21 @@
         },
         "run": {"suite": {"name": "xpcshell"}}
     },
+    "test-windows7-32-shippable/opt-browsertime-tp6-chrome-cold-google-search-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "google-search",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows7-32-shippable/opt-browsertime-tp6-firefox-cold-condprof-amazon-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -41322,8 +41595,38 @@
             "browser": "firefox",
             "framework": "browsertime",
             "site": "amazon",
-            "suite": "tp6",
+            "suite": {"name": "tp6"},
             "type": ["e10s", "condprof"]
+        }
+    },
+    "test-windows7-32-shippable/opt-browsertime-tp6-firefox-cold-wikipedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "wikipedia",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-browsertime-tp6-firefox-cold-yahoo-news-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "yahoo-news",
+            "suite": {"name": "tp6"},
+            "type": ["e10s"]
         }
     },
     "test-windows7-32-shippable/opt-raptor-youtube-playback-firefox-e10s": {
