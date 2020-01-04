@@ -365,6 +365,8 @@ def pull_details(source_key, details, new_treeherder):
                 )
             elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
+            elif d.value in d.url:
+                pass
             else:
                 KNOWN_VALUES.append(d.value)
                 Log.warning(
