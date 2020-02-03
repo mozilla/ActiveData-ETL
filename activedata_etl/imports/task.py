@@ -316,6 +316,7 @@ TEST_PLATFORM = {
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android-aarch64": {"build": {"cpu": "aarch64", "platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
@@ -376,6 +377,7 @@ RUN_OPTIONS = {
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
     "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
+    "webgpu-e10s": {"run": {"type": ["webgpu", "e10s"]}}
 }
 
 TALOS_TEST = {

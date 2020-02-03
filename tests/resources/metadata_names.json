@@ -3671,6 +3671,20 @@
             "suite": {"name": "speedometer"}
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64-qr/opt-geckoview-reftest-e10s-4": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 4,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {
         "action": {"type": "test"},
         "build": {
@@ -4042,6 +4056,17 @@
             "chunk": 11,
             "suite": {"name": "web-platform-tests"},
             "type": ["e10s"]
+        }
+    },
+    "test-linux1804-64-qr/debug-mochitest-webgpu-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["webgpu", "e10s", "qr"]
         }
     },
     "test-linux1804-64-shippable/opt-awsy-tp6-e10s": {
