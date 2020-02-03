@@ -377,7 +377,11 @@ RUN_OPTIONS = {
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
     "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
-    "webgpu-e10s": {"run": {"type": ["webgpu", "e10s"]}}
+    "webgpu-e10s": {"run": {"type": ["webgpu", "e10s"]}},
+    "webgpu-sw-e10s": {"run": {"type": ["webgpu", "service-worker", "e10s"]}},
+    "webgpu-sw": {"run": {"type": ["webgpu", "service-worker"]}},
+    "webgpu-fis-e10s": {"run": {"type": ["webgpu", "fis", "e10s"]}},  # fission
+    "webgpu-fis": {"run": {"type": ["webgpu", "fis"]}},  # fission
 }
 
 TALOS_TEST = {
