@@ -149,9 +149,6 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
             if isinstance(log.test, list):
                 log.test = " ".join(log.test)
 
-            if suite_name.startswith("reftest"):
-                fix_reftest_names(log)
-
             accumulator.stats.action[log.action] += 1
             try:
                 accumulator.__getattribute__(log.action)(log)
@@ -399,76 +396,6 @@ def fix_suite_property_name(k):
     if k == "runinfo":
         return "run_info"
     return k
-
-
-def fix_reftest_names(log):
-    try:
-        # FIXES FOR REFTESTS
-        if not log.test:
-            pass
-        elif "/jsreftest.html?test=" in log.test:
-            # file:///builds/worker/workspace/build/tests/jsreftest/tests/jsreftest.html?test=test262/built-ins/Object/defineProperties/15.2.3.7-6-a-225.js
-            log.test = log.test.split("/jsreftest.html?test=")[1]
-        elif " == " in log.test and "/build/tests/reftest/tests/" in log.test:
-            # file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-4.html == file:///Z:/task_1506818146/build/tests/reftest/tests/layout/reftests/webm-video/poster-ref-black140x100.html
-            # file:///Z:/task_1506818146/build/tests/reftest/tests/dom/plugins/test/reftest/border-padding-3.html == http://localhost:49284/1506819618521/492/border-padding-3-ref.html"
-            # file:///Z:/task_1506819383/build/tests/reftest/tests/image/test/reftest/encoders-lossless/size-4x4.png == http://localhost:49245/1506819661277/48/encoder.html?img=size-4x4.png&mime=image/bmp&options=-moz-parse-options%3Abpp%3D32
-            # about:blank == file:///Z:/task_1525695436/build/tests/reftest/tests/layout/reftests/reftest-sanity/blank.html
-            sides = log.test.split(" == ")
-            sides = [
-                s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
-                for s in sides
-            ]
-            log.test = " == ".join(sides)
-        elif " != " in log.test and "/build/tests/reftest/tests/" in log.test:
-            sides = log.test.split(" != ")
-            sides = [
-                s.split("/build/tests/reftest/tests/")[-1] if "/build/tests/reftest/tests/" in s else s.split("/")[-1]
-                for s in sides
-            ]
-            log.test = " != ".join(sides)
-        elif " == " in log.test and ":8854/tests/" in log.test:
-            # http://10.0.2.2:8854/tests/layout/reftests/svg/marker-attribute-01.svg == http://10.0.2.2:8854/tests/layout/reftests/svg/pass.svg
-            lhs, rhs = log.test.split(" == ")
-            log.test = lhs.split(":8854/tests/")[-1] + " == " + rhs.split(":8854/tests/")[-1]
-        elif " == " in log.test and ":8888/tests/" in log.test:
-            # "view-source:http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2.html == http://10.0.2.2:8888/tests/parser/htmlparser/tests/reftest/bug535530-2-ref.html
-            lhs, rhs = log.test.split(" == ")
-            log.test = lhs.split(":8888/tests/")[-1] + " == " + rhs.split(":8888/tests/")[-1]
-        elif "/build/tests/reftest/tests/" in log.test:
-            # file:///builds/worker/workspace/build/tests/reftest/tests/layout/reftests/svg/load-only/filter-primitives-01.svg
-            log.test = log.test.split("/build/tests/reftest/tests/")[1]
-        elif " == " in log.test and log.test.startswith(("http://", "file:///")):
-            # REMOVE host:port/timestamp/test_num/ PREFIX
-            # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
-            lhs, rhs = log.test.split(" == ")
-            log.test = lhs.split("/")[-1] + " == " + rhs.split("/")[-1]
-        elif " != " in log.test and log.test.startswith(("http://", "file:///")):
-            # REMOVE host:port/timestamp/test_num/ PREFIX
-            # http://localhost:49385/1525698114573/208/bug1196784-with-srcset.html == http://localhost:49385/1525698114573/208/bug1196784-no-srcset.html
-            lhs, rhs = log.test.split(" != ")
-            log.test = lhs.split("/")[-1] + " != " + rhs.split("/")[-1]
-        elif " != http://10.0.2.2:8888/tests/" in log.test:
-            log.test = log.test.split(" != http://10.0.2.2:8888/tests/")[1]
-        elif " == http://localhost:" in log.test:
-            # data:text/html,<div>Text</div> == http://localhost:49385/1525698106181/5/default.html
-            lhs, rhs = log.test.split(" == ")
-            log.test = lhs + " == " + rhs.split("/")[-1]
-        elif log.test.startswith(("http://")):
-            # http://localhost:49391/1525812148499/12/752340.html
-            log.test = log.test.split("/")[-1]
-        elif log.test.startswith(("http://")):
-            # http://localhost:49391/1525812148499/12/752340.html
-            log.test = log.test.split("/")[-1]
-        elif "about:blank" in log.test:
-            pass  # IGNORE THIS
-        else:
-            Log.note("Did not simplify reftest {{test|quote}}", test=log.test)
-
-        if "task_" in log.test:
-            Log.warning("did not scrub task name from test name: {{name}}", name=log.test)
-    except Exception as e:
-        Log.error("programming error", cause=e)
 
 
 KNOWN_SUITE_PROPERTIES = {

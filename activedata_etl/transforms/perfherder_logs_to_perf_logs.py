@@ -205,7 +205,7 @@ def transform(source_key, perfherder, metadata, resources):
                 tuple(RAPTOR_BROWSERS)
             ):  # ACCEPT ALL RAPTOR NAMES,
                 pass
-            elif not perfherder.is_empty and framework_name != "job_resource_usage":
+            elif not perfherder.is_empty and framework_name not in ("job_resource_usage", "browsertime"):
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -225,6 +225,7 @@ def transform(source_key, perfherder, metadata, resources):
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
         metadata.result.extraOptions = perfherder.extraOptions
+        metadata.result.hgVersion = perfherder.hgVersion
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -559,6 +560,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "etl",
     "extraOptions",
     "framework",
+    "hgVersion",
     "is_empty",
     "lowerIsBetter",
     "name",
@@ -700,6 +702,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sccache cache_write_errors",
     "sccache hit rate",
     "sccache requests_not_cacheable",
+    "sessionrestore-many-windows",
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",

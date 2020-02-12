@@ -52,6 +52,7 @@ NOT_STRUCTURED_LOGS = [
     "_errorsummary.log",
     ".exe",
     ".extra",
+    ".dmg",
     ".dmp",
     "-grcov.zip",
     "-jsvm.zip",
