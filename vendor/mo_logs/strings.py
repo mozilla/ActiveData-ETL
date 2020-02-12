@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
 from __future__ import absolute_import, division, unicode_literals
@@ -15,13 +15,12 @@ import json as _json
 import math
 import re
 import string
-from collections import Mapping
 from datetime import date, datetime as builtin_datetime, timedelta
 from json.encoder import encode_basestring
 
 from mo_dots import Data, coalesce, get_module, is_data, is_list, wrap, is_sequence, NullType
 from mo_future import PY3, get_function_name, is_text, round as _round, text, transpose, xrange, zip_longest, \
-    binary_type
+    binary_type, Mapping
 
 from mo_logs.convert import datetime2string, datetime2unix, milli2datetime, unix2datetime, value2json
 
@@ -361,7 +360,7 @@ def trim(value):
 
 
 @formatter
-def between(value, prefix, suffix, start=0):
+def between(value, prefix=None, suffix=None, start=0):
     """
     Return first substring between `prefix` and `suffix`
     :param value:
@@ -383,9 +382,12 @@ def between(value, prefix, suffix, start=0):
         return None
     s += len(prefix)
 
-    e = value.find(suffix, s)
-    if e == -1:
-        return None
+    if suffix is None:
+        e = len(value)
+    else:
+        e = value.find(suffix, s)
+        if e == -1:
+            return None
 
     s = value.rfind(prefix, start, e) + len(prefix)  # WE KNOW THIS EXISTS, BUT THERE MAY BE A RIGHT-MORE ONE
 
@@ -496,10 +498,12 @@ _SNIP = "...<snip>..."
 
 @formatter
 def limit(value, length):
+    """
+    LIMIT THE STRING value TO GIVEN LENGTH, CHOPPING OUT THE MIDDLE IF REQUIRED
+    """
     if value == None:
         return None
     try:
-        # LIMIT THE STRING value TO GIVEN LENGTH, CHOPPING OUT THE MIDDLE IF REQUIRED
         if len(value) <= length:
             return value
         elif length < len(_SNIP) * 2:
@@ -535,7 +539,7 @@ THE REST OF THIS FILE IS TEMPLATE EXPANSION CODE USED BY mo-logs
 def expand_template(template, value):
     """
     :param template: A UNICODE STRING WITH VARIABLE NAMES IN MOUSTACHES `{{.}}`
-    :param value: Data HOLDING THE PARAMTER VALUES
+    :param value: Data HOLDING THE PARAMETER VALUES
     :return: UNICODE STRING WITH VARIABLES EXPANDED
     """
     try:
@@ -584,7 +588,7 @@ def deformat(value):
 
     FOR SOME REASON translate CAN NOT BE CALLED:
         ERROR: translate() takes exactly one argument (2 given)
-        File "C:\Python27\lib\string.py", line 493, in translate
+        File "C:\\Python27\\lib\\string.py", line 493, in translate
     """
     output = []
     for c in value:

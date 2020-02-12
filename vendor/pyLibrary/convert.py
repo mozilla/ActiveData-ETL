@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
 from __future__ import absolute_import, absolute_import, division, unicode_literals
@@ -40,7 +40,7 @@ json2value = mo_json.json2value
 
 
 def string2datetime(value, format=None):
-    return unix2datetime(Date(value, format).unix)
+    return Date(value, format).datetime
 
 
 def string2boolean(value):
@@ -70,7 +70,7 @@ def value2boolean(value):
 
 
 def str2datetime(value, format=None):
-    return unix2datetime(Date(value, format).unix)
+    return Date(value, format).datetime
 
 
 def datetime2string(value, format="%Y-%m-%d %H:%M:%S"):

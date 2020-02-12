@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, unicode_literals
 from copy import copy
 import re
 
+from jx_elasticsearch import elasticsearch
 from mo_dots import (
     Data,
     Null,
@@ -38,7 +39,7 @@ import mo_threads
 from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till
 from mo_times.dates import Date
 from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
-from pyLibrary.env import elasticsearch, http
+from pyLibrary.env import http
 from pyLibrary.meta import cache
 
 _hg_branches = None

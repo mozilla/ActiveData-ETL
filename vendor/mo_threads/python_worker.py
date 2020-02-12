@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import absolute_import, division, unicode_literals
 
@@ -93,7 +93,7 @@ def start():
     try:
         config = json2value(STDIN.readline().decode('utf8'))
         constants.set(config.constants)
-        Log.start(set_default(config.debug, {"logs": [{"type": "raw"}]}))
+        Log.start(config.debug + {"logs": [{"type": "raw"}]})
         command_loop({"config": config})
     except Exception as e:
         Log.error("problem staring worker", cause=e)

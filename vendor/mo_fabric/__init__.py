@@ -8,7 +8,6 @@
 #
 from __future__ import absolute_import, division, unicode_literals
 
-from mo_future import is_text, is_binary
 from datetime import datetime
 import os
 import sys
@@ -190,7 +189,7 @@ class LogStream(object):
 
 
 def note(template, **params):
-    if not is_text(template):
+    if not isinstance(template, text_type):
         Log.error("Log.note was expecting a unicode template")
 
     if len(template) > 10000:

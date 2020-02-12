@@ -5,14 +5,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 import base64
-from datetime import datetime
 import io
 import os
 import re
 import shutil
+from datetime import datetime
+from mimetypes import MimeTypes
 from tempfile import NamedTemporaryFile, mkdtemp
 
 from mo_dots import Null, coalesce, get_module, is_list
@@ -20,7 +21,7 @@ from mo_files import mimetype
 from mo_files.url import URL
 from mo_future import PY3, binary_type, text, is_text
 from mo_logs import Except, Log
-from mo_logs.exceptions import extract_stack
+from mo_logs.exceptions import get_stacktrace
 from mo_threads import Thread, Till
 
 
@@ -146,7 +147,6 @@ class File(object):
             elif self.abspath.endswith(".json"):
                 self._mime_type = mimetype.JSON
             else:
-                from mimetype import MimeTypes
                 mime = MimeTypes()
                 self._mime_type, _ = mime.guess_type(self.abspath)
                 if not self._mime_type:
@@ -187,7 +187,7 @@ class File(object):
         """
         RETURN NEW FILE WITH EXTENSION ADDED (OLD EXTENSION IS A SUFFIX)
         """
-        return File(self._filename + "." + text_type(ext))
+        return File(self._filename + "." + text(ext))
 
     def set_name(self, name):
         """
@@ -335,7 +335,7 @@ class File(object):
                 self.parent.create()
             with open(self._filename, "ab") as output_file:
                 for c in content:
-                    if isinstance(c, str):
+                    if not isinstance(c, text):
                         Log.error(u"expecting to write unicode only")
 
                     output_file.write(c.encode("utf8"))
@@ -450,7 +450,7 @@ class TempDirectory(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        Thread.run("delete dir " + self.name, delete_daemon, file=self, caller_stack=extract_stack(1))
+        Thread.run("delete dir " + self.name, delete_daemon, file=self, caller_stack=get_stacktrace(1))
 
 
 class TempFile(File):
@@ -472,7 +472,7 @@ class TempFile(File):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        Thread.run("delete file " + self.name, delete_daemon, file=self, caller_stack=extract_stack(1))
+        Thread.run("delete file " + self.name, delete_daemon, file=self, caller_stack=get_stacktrace(1))
 
 
 def _copy(from_, to_):
