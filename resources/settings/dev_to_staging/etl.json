@@ -127,7 +127,7 @@
 				"index": "pulse",
 				"type": "pulse_log",
 				"timeout": 300,
-				"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
+				"consistency": "one",  // WE ONLY NEED ONE SHARD TO BE AVAILABLE
 				"schema": {
 					"$ref": "//../../schema/pulse_logs.json"
 				},
@@ -190,9 +190,9 @@
 		{
 			"name": "taskcluster to test_result",
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b"
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -234,10 +234,10 @@
 		{
 			"name": "taskcluster to perfherder",
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
 				"public": true,
-				"key_format": "t.a:b"
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
@@ -323,9 +323,9 @@
 		{
 			"name": "codecoverage",
 			"source": {
-				"$ref": "file://~/private.json#aws_credentials",
 				"bucket": "active-data-task-cluster-normalized",
-				"key_format": "t.a:b"
+				"key_format": "t.a:b",
+				"$ref": "file://~/private.json#aws_credentials"
 			},
 			"destination": {
 				"$ref": "file://~/private.json#aws_credentials",
