@@ -1,4 +1,11 @@
 {
+    "build-android-aarch64-aws/debug": {
+        "action": {"type": "build"},
+        "build": {
+            "platform": "android",
+            "type": ["debug", "aarch64"]
+        }
+    },
     "build-android-aarch64-beta/debug": {
         "action": {"type": "build"},
         "build": {
@@ -165,9 +172,18 @@
             "name": "android-test"
         }}
     },
+    "build-android-test-debug": {"action": {"type": "build"}},
     "build-android-test/opt": {
         "action": {"type": "build"},
         "build": {
+            "platform": "android",
+            "type": ["opt"]
+        }
+    },
+    "build-android-x86-aws/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "x86-64",
             "platform": "android",
             "type": ["opt"]
         }
@@ -3671,6 +3687,20 @@
             "suite": {"name": "speedometer"}
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64-qr/debug-geckoview-reftest-e10s-7": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 7,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-qr/opt-geckoview-reftest-e10s-4": {
         "action": {"type": "test"},
         "build": {
@@ -3681,6 +3711,20 @@
         "run": {
             "browser": "geckoview",
             "chunk": 4,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-qr/opt-geckoview-reftest-e10s-8": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 8,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr"]
         }
@@ -4090,6 +4134,17 @@
         "run": {
             "suite": {"name": "crashtest"},
             "type": ["e10s"]
+        }
+    },
+    "test-linux1804-64/debug-mochitest-gpu-sw-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "service-worker", "e10s"]
         }
     },
     "test-linux1804-64/debug-mochitest-webgpu-sw-e10s": {
@@ -25854,6 +25909,17 @@
             "type": ["e10s"]
         }
     },
+    "test-macosx1014-64/opt-marionette-headless-e10s-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "marionette-headless"},
+            "type": ["e10s"]
+        }
+    },
     "test-macosx64-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -42067,6 +42133,17 @@
         "run": {
             "suite": {"name": "mochitest"},
             "type": ["gpu"]
+        }
+    },
+    "test-windows7-32/debug-mochitest-gpu-fis-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["gpu", "fis", "e10s"]
         }
     },
     "test-windows7-32/debug-mochitest-media-1": {

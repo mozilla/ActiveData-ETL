@@ -224,6 +224,7 @@ def transform(source_key, perfherder, metadata, resources):
         )
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
+        metadata.result.application = perfherder.application
         metadata.result.extraOptions = perfherder.extraOptions
         metadata.result.hgVersion = perfherder.hgVersion
 
@@ -537,7 +538,7 @@ RAPTOR_BROWSERS = [
     "-refbrow",
 ]
 
-KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
+KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage", "webgl"]
 
 KNOWN_SUBTEST_PROPERTIES = {
     "alertChangeType": "alert.change_type",
@@ -557,6 +558,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
     "alertChangeType",
     "alertThreshold",
+    "application",
     "etl",
     "extraOptions",
     "framework",
@@ -582,6 +584,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
 }
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
+    "about_newtab_with_snippets",
     "about_preferences_basic",
     "ares6-sm",
     "ares6-v8",

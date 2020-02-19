@@ -28,7 +28,18 @@ class TestBuildbotLogs(FuzzyTestCase):
 
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
-        self.settings = mo_json_config.get("file://~/private.json");
+        # ONLY NEEDED IF PUSHING RESULTS TO S3
+        # import mo_json_config
+        # self.settings = mo_json_config.get("file://~/private.json");
+
+    def test_single(self):
+        url = "https://firefoxci.taskcluster-artifacts.net/Pb5uFzfCQyuJnJ_5C7sKww/0/public/test_info/perfherder-data.json"
+        data = http.get_json(url)
+        for s in data.suites:
+            s.framework = data.framework
+            s.application = data.application
+            result = perfherder_logs_to_perf_logs.transform(Null, s, Data(), Null)
+            Log.note("{{result}}", result=result)
 
     def test_url(self):
         url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win64/1469025080/mozilla-inbound_win8_64_test-svgr-e10s-bm127-tests1-windows-build1138.txt.gz"
