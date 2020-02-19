@@ -350,13 +350,18 @@ RUN_OPTIONS = {
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
     "e10s": {"run": {"type": ["e10s"]}},
+    "e10s-e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
     "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
     "fis": {"run": {"type": ["fis"]}},  # fission
     "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
+    "gpu-fis-e10s": {"run": {"type": ["gpu", "fis", "e10s"]}},
+    "gpu-sw-e10s": {"run": {"type": ["gpu", "service-worker", "e10s"]}},
     "gpu": {"run": {"type": ["gpu"]}},
+    # "headless": {"run": {"type": ["headless"]}},
+    # "headless-e10s-e10s": {"run": {"type": ["headless", "e10s"]}},
     "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "no-accel": {"run": {"type": ["no-accel"]}},
@@ -554,6 +559,7 @@ TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-aarch64-aws": {"build": {"platform": "android", "type": ["aarch64"]}},
     "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -562,6 +568,7 @@ BUILD_PLATFORM = {
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "android-x86": {"build": {"cpu": "x86", "platform": "android"}},
     "android-x86_64": {"build": {"cpu": "x86-64", "platform": "android"}},
+    "android-x86-aws": {"build": {"cpu": "x86-64", "platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
@@ -694,6 +701,7 @@ TEST_OPTIONS = unwrap(
 BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL_BUILDS = {
+    "android-test-debug": {},
     "nightly": {"build": {"train": "nightly"}},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
