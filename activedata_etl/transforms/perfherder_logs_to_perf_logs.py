@@ -224,6 +224,7 @@ def transform(source_key, perfherder, metadata, resources):
         )
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
+        metadata.result.application = perfherder.application
         metadata.result.extraOptions = perfherder.extraOptions
         metadata.result.hgVersion = perfherder.hgVersion
 
@@ -557,6 +558,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
     "alertChangeType",
     "alertThreshold",
+    "application",
     "etl",
     "extraOptions",
     "framework",
