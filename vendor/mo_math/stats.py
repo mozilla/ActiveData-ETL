@@ -220,6 +220,11 @@ class ZeroMoment(object):
         self.S = args
 
     def __add__(self, other):
+        output = ZeroMoment()
+        output += other
+        return output
+
+    def __iadd__(self, other):
         if isinstance(other, ZeroMoment):
             return ZeroMoment(*array_add(self.S, other.S))
         elif hasattr(other, "__iter__"):
@@ -241,31 +246,13 @@ class ZeroMoment(object):
                 )
             )
 
-    def __sub__(self, other):
-        if isinstance(other, ZeroMoment):
-            return ZeroMoment(*tuple(map(sub, self.S, other.S)))
-        elif hasattr(other, "__iter__"):
-            return ZeroMoment(*tuple(map(sub, self.S, ZeroMoment.new_instance(other))))
-        elif other == None:
-            return self
-        else:
-            return ZeroMoment(
-                *tuple(
-                    map(
-                        sub,
-                        self.S,
-                        (1, other, pow(other, 2), pow(other, 3), pow(other, 4)),
-                    )
-                )
-            )
 
     @property
     def tuple(self):
         # RETURN AS ORDERED TUPLE
         return self.S
 
-    @property
-    def dict(self):
+    def __data__(self):
         # RETURN HASH OF SUMS
         return {"s" + text(i): m for i, m in enumerate(self.S)}
 

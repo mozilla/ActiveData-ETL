@@ -448,8 +448,8 @@ def stats(source_key, given_values, test, suite):
         )
 
         z = ZeroMoment.new_instance(clean_values)
-        s = Data()
-        for k, v in z.dict.items():
+        s = wrap(z.__data__())
+        for k, v in z.__data__().items():
             s[k] = v
         for k, v in ZeroMoment2Stats(z).items():
             s[k] = v
