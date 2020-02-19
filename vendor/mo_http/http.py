@@ -38,11 +38,12 @@ from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import Except
 from mo_threads import Lock, Till
+from mo_times import Timer
 from mo_times.durations import Duration
 from pyLibrary import convert
 from mo_http.big_data import ibytes2ilines, icompressed2ibytes, safe_size, ibytes2icompressed
 
-DEBUG = False
+DEBUG = True
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
 MIN_READ_SIZE = 8 * 1024
 ZIP_REQUEST = False
@@ -164,7 +165,8 @@ def request(method, url, headers=None, data=None, json=None, zip=None, retry=Non
                 DEBUG and Log.note(u"http {{method|upper}} to {{url}}", method=method, url=text(url))
                 request_count += 1
                 # return session.request(method=method, headers=headers, url=str(url), **kwargs)
-                return _session_request(session, url=str(url), headers=headers, data=data, json=None, kwargs=kwargs)
+                with Timer("call {{url}}", param={"url":str(url)}, verbose=DEBUG):
+                    return _session_request(session, url=str(url), headers=headers, data=data, json=None, kwargs=kwargs)
             except Exception as e:
                 e = Except.wrap(e)
                 if retry['http'] and str(url).startswith("https://") and "EOF occurred in violation of protocol" in e:
