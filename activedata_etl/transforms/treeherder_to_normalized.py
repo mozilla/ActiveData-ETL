@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from collections import Mapping
+import mo_math
 
 from activedata_etl import etl2key, key2etl
 from activedata_etl.transforms import TRY_AGAIN_LATER
@@ -17,9 +17,9 @@ from mo_dots import Data, listwrap, wrap, set_default
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings
-from mo_math import Math
 from mo_times.dates import Date
-from pyLibrary.env import elasticsearch, git
+from jx_elasticsearch import elasticsearch
+from pyLibrary.env import git
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -384,7 +384,7 @@ def coalesce_w_conflict_detection(source_key, *args):
     for a in args:
         if a == None:
             continue
-        if isinstance(a, Mapping) and not a:
+        if is_data(a) and not a:
             continue
         if output == None:
             output = a

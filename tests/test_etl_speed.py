@@ -9,10 +9,9 @@
 #
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
 from mo_logs import Log
 from mo_dots import Data
-from pyLibrary.env.big_data import GzipLines
+from mo_http.big_data import GzipLines
 from mo_files import File
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from mo_times.timer import Timer

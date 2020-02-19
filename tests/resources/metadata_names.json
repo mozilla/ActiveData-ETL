@@ -9,28 +9,25 @@
     "build-android-aarch64-beta/debug": {
         "action": {"type": "build"},
         "build": {
-            "cpu": "aarch64",
             "platform": "android",
             "train": "beta",
-            "type": ["debug"]
+            "type": ["debug", "aarch64"]
         }
     },
     "build-android-aarch64-gcp/opt": {
         "action": {"type": "build"},
         "build": {
-            "cpu": "aarch64",
             "platform": "android",
-            "type": ["opt"]
+            "type": ["opt", "aarch64"]
         },
         "run": {"cloud": "gcp"}
     },
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
-            "cpu": "aarch64",
             "platform": "android",
             "train": "nightly",
-            "type": ["opt"]
+            "type": ["opt", "aarch64"]
         }
     },
     "build-android-aarch64-release/debug": {
@@ -44,9 +41,8 @@
     "build-android-aarch64/opt": {
         "action": {"type": "build"},
         "build": {
-            "cpu": "aarch64",
             "platform": "android",
-            "type": ["opt"]
+            "type": ["opt", "aarch64"]
         }
     },
     "build-android-api-16-beta-test/opt": {
@@ -19304,9 +19300,9 @@
             "type": ["opt"]
         },
         "run": {
-            "browser": "baseline-firefox",
+            "browser": "firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc"},
+            "suite": {"name": "wasm-misc-baseline"},
             "type": ["e10s", "qr"]
         }
     },
@@ -22934,8 +22930,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-remote"},
-            "type": ["service-worker", "e10s"]
+            "suite": {"name": "mochitest-remote-sw"},
+            "type": ["e10s"]
         }
     },
     "test-linux64/debug-mochitest-sw-e10s-15": {
@@ -24949,9 +24945,9 @@
             "type": ["opt"]
         },
         "run": {
-            "browser": "baseline-firefox",
+            "browser": "firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc"},
+            "suite": {"name": "wasm-misc-baseline"},
             "type": ["e10s"]
         }
     },
@@ -43341,7 +43337,7 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6"},
-            "type": ["condprof", "e10s"]
+            "type": ["e10s", "condprof"]
         }
     },
     "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {

@@ -13,16 +13,16 @@ import re
 
 from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.transforms import ACTIVE_DATA_QUERY
-from jx_base.expressions import last
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
+from mo_dots.lists import last
 from mo_files import TempFile
 from mo_future import text
 from mo_json import stream
 from mo_logs import Log
 from mo_times import Timer, Date, Duration
-from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes
+from mo_http import http
+from mo_http.big_data import scompressed2ibytes
 
 
 class FileMapper(object):

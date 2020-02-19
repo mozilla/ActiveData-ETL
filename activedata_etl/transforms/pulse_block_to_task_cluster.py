@@ -9,8 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from collections import Mapping
-
+import mo_math
 import requests
 
 from activedata_etl import etl2key
@@ -26,18 +25,17 @@ from activedata_etl.transforms import (
     TC_MAIN_URL,
 )
 from jx_python import jx
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
+from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null, is_data
 from mo_files import URL
 from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import suppress_exception, Except
-from mo_math import Math
 from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
 from pyLibrary import convert
-from pyLibrary.env import http
+from mo_http import http
 
 DEBUG = False
 DISABLE_LOG_PARSING = False
@@ -578,7 +576,7 @@ def set_build_info(source_key, normalized, task, env, resources):
                     .replace("devedition", "firefox"),
                     consume(task, "payload.product").lower(),
                     "firefox"
-                    if isinstance(task.extra.suite, Mapping)
+                    if is_data(task.extra.suite)
                     and task.extra.suite.name.startswith("firefox")
                     else Null,
                     "firefox"
@@ -842,7 +840,7 @@ def get_tags(source_key, task_id, task, parent=None):
         elif isinstance(v, list):
             if len(v) == 1:
                 v = v[0]
-                if isinstance(v, Mapping):
+                if is_data(v):
                     for tt in get_tags(
                         source_key, task_id, Data(tags=v), parent=t["name"]
                     ):

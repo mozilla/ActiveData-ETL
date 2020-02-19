@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 from mo_future import text
 from mo_dots import Data, join_field, wrap
 from mo_logs import Log
-from pyLibrary.env import http
+from mo_http import http
 
 
 def normalize_resource_usage(url):

@@ -15,7 +15,8 @@ from mo_json import json2value
 from mo_logs import Log, strings
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http, git
+from pyLibrary.env import git
+from mo_http import http
 
 DEBUG = False
 DEBUG_SHOW_LINE = True

@@ -18,7 +18,7 @@ from mo_logs import Log
 from mo_threads import Till
 from mo_times import Timer, Date
 from pyLibrary import aws
-from pyLibrary.env import http
+from mo_http import http
 
 DEBUG = True
 SLEEP_ON_ERROR = 30

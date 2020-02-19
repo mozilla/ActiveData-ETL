@@ -20,7 +20,7 @@ from mo_logs import Except, Log
 from mo_math import MAX
 from mo_times.dates import Date
 from mo_times.durations import DAY, SECOND
-from pyLibrary.env import http
+from mo_http import http
 
 EXTRA_WAIT_TIME = 20 * SECOND  # WAIT TIME TO SEND TO AWS, IF WE wait_forever
 OLD_BRANCH = DAY

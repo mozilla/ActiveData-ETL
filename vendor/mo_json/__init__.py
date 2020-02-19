@@ -155,7 +155,7 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
     elif type_ is text:
         return scrub_text(value)
     elif type_ is float:
-        if mo_math.isnan(value) or mo_math.isinf(value):
+        if math.isnan(value) or math.isinf(value):
             return None
         return scrub_number(value)
     elif type_ is bool:

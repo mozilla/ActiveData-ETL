@@ -19,7 +19,7 @@ from mo_json import json2value
 from mo_logs import Log, strings, suppress_exception
 from mo_times import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
+from mo_http import http
 
 DEBUG = False
 

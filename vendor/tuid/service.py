@@ -9,7 +9,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import gc
-from mo_times import Timer
 from jx_python import jx
 from mo_dots import Null, coalesce, wrap
 from mo_future import text
@@ -20,7 +19,7 @@ from mo_logs import Log
 from mo_math.randoms import Random
 from mo_threads import Till, Thread, Lock
 from mo_times.durations import SECOND, HOUR, DAY
-from pyLibrary.env import http
+from mo_http import http
 from pyLibrary.meta import cache
 from pyLibrary.sql import sql_list, sql_iso
 from pyLibrary.sql.sqlite import quote_value, quote_list

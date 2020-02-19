@@ -25,7 +25,7 @@ from mo_logs.exceptions import Except
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from mo_times.dates import Date
 from mo_times.durations import DAY
-from pyLibrary.env import http
+from mo_http import http
 
 false = False
 true = True
@@ -103,7 +103,7 @@ class TestBuildbotLogs(FuzzyTestCase):
                 "$ref": "file://~/private.json#aws_credentials"
             },
             "constants": {
-                "pyLibrary.env.http.default_headers": {
+                "mo_http.http.default_headers": {
                     "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
                     "User-Agent": "ActiveData-ETL"
                 }
@@ -133,7 +133,7 @@ class TestBuildbotLogs(FuzzyTestCase):
                 "$ref": "file://~/private.json#aws_credentials"
             },
             "constants": {
-                "pyLibrary.env.http.default_headers": {
+                "mo_http.http.default_headers": {
                     "Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
                     "User-Agent": "ActiveData-ETL"
                 }

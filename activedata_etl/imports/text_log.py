@@ -12,6 +12,8 @@ from __future__ import unicode_literals
 import re
 from copy import copy
 
+import mo_math
+
 from activedata_etl.imports import buildbot
 from jx_python import jx
 from mo_dots import wrap, FlatList, Null, Data, unwrap, set_default
@@ -19,7 +21,7 @@ from mo_future import text
 from mo_json import json2value
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
-from mo_math import Math, MAX, MIN
+from mo_math import MAX, MIN
 from mo_times.dates import Date, unicode2Date
 from mo_times.durations import SECOND, MINUTE, HOUR, DAY
 from pyLibrary.convert import quote2string

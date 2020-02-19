@@ -8,19 +8,17 @@
 #
 from __future__ import unicode_literals
 
-from mo_future import text
-from mo_hg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
-from mo_dots import listwrap, unwrap, wrap, wrap_leaves
-from mo_logs import startup, constants
-from mo_logs import Log
-from pyLibrary.env import elasticsearch
-from mo_math import Math
-from jx_elasticsearch.es17 import FromES
+import mo_math
+from jx_elasticsearch import elasticsearch
+
 from mo_collections import UniqueIndex
+from mo_dots import listwrap, unwrap, wrap, wrap_leaves
+from mo_hg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
+from mo_logs import Log
+from mo_logs import startup, constants
 from mo_threads import Thread, Signal, MAIN_THREAD
 from mo_threads import Till
 from mo_times.dates import Date
-
 
 DEBUG = False
 MIN_DATE = Date("01 MAR 2015")
@@ -150,7 +148,7 @@ def getall(hg, es, please_stop):
 def backfill_repo(settings, please_stop):
     global current_revision
     hg = HgMozillaOrg(settings)
-    es = FromES(kwargs=settings.repo)
+    es = elasticsearch.Index(kwargs=settings.repo)
 
     frontier = UniqueIndex(keys=("changeset.id", "branch.name", "branch.locale"), fail_on_dup=False)
     frontier |= get_frontier(hg)

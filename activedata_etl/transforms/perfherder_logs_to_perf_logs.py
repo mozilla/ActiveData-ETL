@@ -490,10 +490,11 @@ def geo_mean(values):
     for d in values:
         for k, v in d.items():
             if v != 0:
-                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + mo_math.log(
-                    mo_math.abs(v)
-                )
-    return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
+                acc = agg[k]
+                if acc == None:
+                    acc = agg[k] = ZeroMoment.new_instance()
+                acc += mo_math.log(mo_math.abs(v))
+    return {k: mo_math.exp(v.stats.mean) for k, v in agg.items()}
 
 RAPTOR_BROWSERS = [
     "-chromium-cold",

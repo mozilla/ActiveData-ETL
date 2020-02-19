@@ -1,7 +1,7 @@
 {
 	"min_date": "01 JAN 2015",
 	"constants": {
-		"pyLibrary.env.http.default_headers": {
+		"mo_http.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		}

@@ -20,7 +20,7 @@ from mo_future import text
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
-from pyLibrary.env.big_data import ibytes2ilines
+from mo_http.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True

@@ -9,7 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-import mo_json_config
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs, EtlHeadGenerator
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import stats
@@ -19,7 +18,7 @@ from mo_logs import Log
 from mo_math.randoms import Random
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.aws import s3
-from pyLibrary.env import http
+from mo_http import http
 
 false = False
 true = True

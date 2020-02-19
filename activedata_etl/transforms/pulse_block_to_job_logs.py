@@ -17,7 +17,8 @@ from mo_dots import Data, wrap, coalesce
 from mo_logs import Log
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http, git
+from pyLibrary.env import git
+from mo_http import http
 
 DEBUG = False
 

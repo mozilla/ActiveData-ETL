@@ -23,7 +23,7 @@ from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process, Till
 from mo_times import Timer, Date
-from pyLibrary.env import http
+from mo_http import http
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True

@@ -16,7 +16,7 @@ from fabric.operations import get, sudo, put
 from fabric.state import env
 from mo_future import text
 
-from pyLibrary.env import http
+from mo_http import http
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce

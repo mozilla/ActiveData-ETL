@@ -44,7 +44,7 @@ import mo_threads
 from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till
 from mo_times.dates import Date
 from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
-from pyLibrary.env import http
+from mo_http import http
 from pyLibrary.meta import cache
 
 _hg_branches = None

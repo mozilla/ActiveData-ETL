@@ -21,7 +21,7 @@ from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_logs import Log
 from mo_threads import Till, Thread, Lock, Queue, Signal
 from mo_times.durations import DAY
-from pyLibrary.env import http
+from mo_http import http
 from pyLibrary.sql import sql_list, quote_set
 from tuid import sql
 

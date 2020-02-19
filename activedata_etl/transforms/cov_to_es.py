@@ -9,8 +9,6 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_logs.strings import expand_template
-
 from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, TRY_AGAIN_LATER

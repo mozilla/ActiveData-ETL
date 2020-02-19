@@ -21,7 +21,7 @@ from mo_json import json2value, stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer
 from mo_times.dates import Date
-from pyLibrary.env.big_data import scompressed2ibytes
+from mo_http.big_data import scompressed2ibytes
 
 
 class ETL(Transform):

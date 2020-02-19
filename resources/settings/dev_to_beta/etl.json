@@ -10,11 +10,11 @@
 		"keep_unknown_on_queue": false
 	},
 	"constants": {
-		"pyLibrary.env.http.default_headers": {
+		"mo_http.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		},
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
+		"mo_http.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"hg": {
 		"use_cache": true,

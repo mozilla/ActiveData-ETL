@@ -9,7 +9,6 @@
 from __future__ import unicode_literals
 
 import sys
-from collections import Mapping
 from copy import deepcopy
 
 import mo_dots
@@ -19,7 +18,7 @@ from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 from jx_python import jx
-from mo_dots import coalesce, listwrap, Data, Null, wrap
+from mo_dots import coalesce, listwrap, Data, Null, wrap, is_data
 from mo_future import text
 from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_kwargs import override
@@ -82,7 +81,13 @@ class ETL(Thread):
                 t_name = w.transformer
                 w._transformer = mo_dots.get_attr(sys.modules, t_name)
                 if not w._transformer:
-                    Log.error("Can not find {{path}} to transformer (are you sure you are pointing to a function?  Do you have all dependencies?)", path=t_name)
+                    Log.error(
+                        (
+                            "Can not find {{path}} to transformer "
+                            "(are you sure you are pointing to a function?  Do you have all dependencies?)"
+                        ),
+                        path=t_name
+                    )
                 elif isinstance(w._transformer, object.__class__) and issubclass(w._transformer, Transform):
                     # WE EXPECT A FUNCTION.  THE Transform INSTANCES ARE, AT LEAST, CALLABLE
                     w._transformer = w._transformer(w.config)
@@ -96,8 +101,8 @@ class ETL(Thread):
 
         self.resources = resources
         self.settings = kwargs
-        if isinstance(work_queue, Mapping):
-            self.work_queue = aws.Queue(work_queue) # work queue created
+        if is_data(work_queue):
+            self.work_queue = aws.Queue(work_queue)  # work queue created
         else:
             self.work_queue = work_queue
 
@@ -120,7 +125,8 @@ class ETL(Thread):
 
         if source_block.destination:
             # EXTRA FILTER BY destination
-            work_actions = [w for w in self.settings.workers if w.source.bucket == bucket and w.destination.bucket == source_block.destination]
+            work_actions = [w for w in self.settings.workers if
+                            w.source.bucket == bucket and w.destination.bucket == source_block.destination]
         else:
             work_actions = [w for w in self.settings.workers if w.source.bucket == bucket]
 
@@ -145,7 +151,8 @@ class ETL(Thread):
                     source = action._source.get_key(source_key)
                     source_key = source.key
 
-                destination_name = coalesce(action.destination.bucket, action.destination.host + "/" + action.destination.index)
+                destination_name = coalesce(action.destination.bucket,
+                                            action.destination.host + "/" + action.destination.index)
                 Log.note(
                     "Execute {{action}} on bucket={{source}} key={{key}} to destination={{dest}}",
                     action=action.name,
@@ -173,8 +180,19 @@ class ETL(Thread):
                 )
 
                 with Timer("process {{action}} for {{source}} ", param={"action": action.name, "source": source_key}):
-                    with MemorySample("processing {{action}} for {{source}} ", debug=False, action=action.name, source=source_key):
-                        new_keys = action._transformer(source_key, source, action._destination, resources=resources, please_stop=self.please_stop)
+                    with MemorySample(
+                        "processing {{action}} for {{source}} ",
+                        debug=False,
+                        action=action.name,
+                        source=source_key
+                    ):
+                        new_keys = action._transformer(
+                            source_key,
+                            source,
+                            action._destination,
+                            resources=resources,
+                            please_stop=self.please_stop
+                        )
 
                 if new_keys == None:
                     new_keys = set()
@@ -200,7 +218,7 @@ class ETL(Thread):
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
-                elif len(etl_ids) == 1 and key2etl(source_key).id==etl_ids[0]:
+                elif len(etl_ids) == 1 and key2etl(source_key).id == etl_ids[0]:
                     pass  # ok
                 else:
                     for i, eid in enumerate(etl_ids):
@@ -226,7 +244,8 @@ class ETL(Thread):
 
                 delete_me = old_keys - new_keys
                 if delete_me:
-                    Log.warning("delete keys in {{bucket}}?\n{{list}}", list=sorted(delete_me), bucket=action.destination.bucket)
+                    Log.warning("delete keys in {{bucket}}?\n{{list}}", list=sorted(delete_me),
+                                bucket=action.destination.bucket)
 
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
@@ -240,11 +259,12 @@ class ETL(Thread):
                             "date/time": now.format()
                         })
             except Exception as e:
+                e = Except.wrap(e)
                 if "Key {{key}} does not exist" in e:
                     err = Log.warning
                 elif "multiple keys in {{bucket}}" in e:
                     err = Log.warning
-                    if source_block.bucket=="ekyle-test-result":
+                    if source_block.bucket == "ekyle-test-result":
                         for k in action._source.list(prefix=key_prefix(source_key)):
                             action._source.delete_key(strip_extension(k.key))
                 elif "expecting keys to be contiguous" in e:
@@ -308,6 +328,7 @@ class ETL(Thread):
                             self.work_queue.rollback()
                     except Exception as e:
                         # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL HUMANS
+                        e = Except.wrap(e)
                         if "Shutdown detected." in e:
                             self.work_queue.rollback()
                             continue
@@ -353,6 +374,7 @@ class ETL(Thread):
             Log.warning("Failure in the ETL loop", cause=e)
             raise e
 
+
 sinks_locker = Lock()
 sinks = []  # LIST OF (settings, sink) PAIRS
 
@@ -380,13 +402,13 @@ def get_container(settings):
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
 
-
             es = elasticsearch.Cluster(kwargs=settings).get_or_create_index(kwargs=settings)
             output = es.threaded_queue(max_size=2000, batch_size=1000)
             setattr(output, "keys", lambda prefix: set())
 
             sinks.append((settings, output))
             return output
+
 
 # ToDo = DataClass("ToDo", [
 #     {
@@ -411,7 +433,6 @@ def get_container(settings):
 
 
 def main():
-
     try:
         settings = startup.read_settings(defs=[
             {
@@ -457,7 +478,7 @@ def main():
 
 def etl_one(settings):
     # where queue is first created/called
-    queue = Queue("temp work queue", max=2**32)
+    queue = Queue("temp work queue", max=2 ** 32)
     queue.__setattr__(str("commit"), Null)
     queue.__setattr__(str("rollback"), Null)
 
@@ -507,7 +528,7 @@ def parse_id_argument(id):
     if len(many) > 1:
         return many
     if id.find("..") >= 0:
-        #range of ids
+        # range of ids
         min_, max_ = list(map(int, map(strings.trim, id.split(".."))))
         return list(map(text, range(min_, max_ + 1)))
     else:
@@ -516,4 +537,3 @@ def parse_id_argument(id):
 
 if __name__ == "__main__":
     main()
-

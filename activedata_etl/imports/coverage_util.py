@@ -13,7 +13,7 @@ from jx_python import jx
 from mo_dots import listwrap
 from mo_logs import Log, Except
 from mo_times import Timer
-from pyLibrary.env import http
+from mo_http import http
 
 TUID_BLOCK_SIZE = 1000
 DEBUG = True

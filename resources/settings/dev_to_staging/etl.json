@@ -11,12 +11,12 @@
 		"min_attempts": 0
 	},
 	"constants": {
-		"pyLibrary.env.http.default_headers": {
+		"mo_http.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		},
-		"pyLibrary.env.http.DEBUG": false,
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000,
+		"mo_http.http.DEBUG": false,
+		"mo_http.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 		//		"jx_elasticsearch.meta.DEBUG": true,
 		//		"mo_hg.hg_mozilla_org.MAX_TODO_AGE": 31536000  // ONE YEAR

@@ -30,7 +30,7 @@ from mo_math.randoms import Random
 from mo_threads import Lock, ThreadedQueue, Till, THREAD_STOP, Thread, MAIN_THREAD
 from mo_times import Date, Timer, HOUR, dates
 from pyLibrary.convert import quote2string, value2number
-from pyLibrary.env import http
+from mo_http import http
 
 DEBUG = True
 DEBUG_METADATA_UPDATE = False

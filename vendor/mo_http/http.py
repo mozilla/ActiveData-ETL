@@ -12,7 +12,7 @@
 # WITH ADDED default_headers THAT CAN BE SET USING mo_logs.settings
 # EG
 # {"debug.constants":{
-#     "pyLibrary.env.http.default_headers":{"From":"klahnakoski@mozilla.com"}
+#     "mo_http.http.default_headers":{"From":"klahnakoski@mozilla.com"}
 # }}
 
 
@@ -40,7 +40,7 @@ from mo_logs.exceptions import Except
 from mo_threads import Lock, Till
 from mo_times.durations import Duration
 from pyLibrary import convert
-from pyLibrary.env.big_data import ibytes2ilines, icompressed2ibytes, safe_size, ibytes2icompressed
+from mo_http.big_data import ibytes2ilines, icompressed2ibytes, safe_size, ibytes2icompressed
 
 DEBUG = False
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -87,10 +87,10 @@ def request(method, url, headers=None, data=None, json=None, zip=None, retry=Non
 
     if not _warning_sent and not default_headers:
         Log.warning(text(
-            "The pyLibrary.env.http module was meant to add extra " +
+            "The mo_http.http module was meant to add extra " +
             "default headers to all requests, specifically the 'Referer' " +
             "header with a URL to the project. Use the `pyLibrary.debug.constants.set()` " +
-            "function to set `pyLibrary.env.http.default_headers`"
+            "function to set `mo_http.http.default_headers`"
         ))
     _warning_sent = True
 

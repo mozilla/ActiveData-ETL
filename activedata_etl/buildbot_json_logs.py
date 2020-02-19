@@ -28,8 +28,8 @@ from mo_times.durations import DAY
 from mo_times.timer import Timer
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
-from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes
+from mo_http import http
+from mo_http.big_data import scompressed2ibytes
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)

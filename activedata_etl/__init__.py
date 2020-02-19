@@ -8,10 +8,8 @@
 #
 from __future__ import unicode_literals
 
-from collections import Mapping
-
 from jx_python import jx
-from mo_dots import wrap, coalesce
+from mo_dots import wrap, coalesce, is_data
 from mo_future import text
 from mo_logs import Log, strings
 from pyLibrary.aws import s3
@@ -74,7 +72,7 @@ def _parse_key(elements):
         if isinstance(elements[0], text):
             return {"id": format_id(elements[0])}
         return elements[0]
-    if isinstance(elements, Mapping):
+    if is_data(elements):
         return elements
 
     for i in reversed(range(1, len(elements), 2)):
