@@ -9,17 +9,17 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from pyLibrary.aws import s3
-from mo_logs import Log
-from mo_dots import Null, listwrap, Data, wrap
-from pyLibrary.env import http
-from mo_json import ref
-from mo_math.randoms import Random
-from mo_testing.fuzzytestcase import FuzzyTestCase
+import mo_json_config
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.transforms import pulse_block_to_perfherder_logs, perfherder_logs_to_perf_logs, EtlHeadGenerator
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import stats
 from activedata_etl.transforms.pulse_block_to_perfherder_logs import extract_perfherder
+from mo_dots import Null, listwrap, Data
+from mo_logs import Log
+from mo_math.randoms import Random
+from mo_testing.fuzzytestcase import FuzzyTestCase
+from pyLibrary.aws import s3
+from pyLibrary.env import http
 
 false = False
 true = True
@@ -28,7 +28,7 @@ class TestBuildbotLogs(FuzzyTestCase):
 
     def __init__(self, *args, **kwargs):
         FuzzyTestCase.__init__(self, *args, **kwargs)
-        self.settings = ref.get("file://~/private.json");
+        self.settings = mo_json_config.get("file://~/private.json");
 
     def test_url(self):
         url = "http://archive.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-win64/1469025080/mozilla-inbound_win8_64_test-svgr-e10s-bm127-tests1-windows-build1138.txt.gz"
