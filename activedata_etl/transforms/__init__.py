@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from mo_dots import Data, literal_field, set_default
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value
 from mo_logs import Log, strings
 from mo_times.dates import Date
@@ -226,7 +226,7 @@ class EtlHeadGenerator(object):
     ):
         num = self.next_id
         self.next_id = num + 1
-        dest_key = self.source_key + "." + text_type(num)
+        dest_key = self.source_key + "." + text(num)
 
         dest_etl = set_default(
             {

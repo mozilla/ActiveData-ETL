@@ -44,16 +44,6 @@
 		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
-		"branches": {
-			"$ref": "#local_es_node",
-			"index": "branches",
-			"type": "branch",
-			"typed": false,
-			"timeout": 300,
-			"consistency": "one", // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"debug": false,
-			"limit_replicas": false
-		},
 		"repo": {
 			"$ref": "#local_es_node",
 			"index": "repo",

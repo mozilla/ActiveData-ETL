@@ -11,7 +11,7 @@ from __future__ import division, unicode_literals
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from mo_dots import Data, Null, coalesce, set_default, wrap
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value, scrub
 from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import Except
@@ -108,7 +108,7 @@ def process_unittest(source_key, etl_header, buildbot_summary, unittest_log, des
         })
     else:
         for i, t in enumerate(summary.tests):
-            key = source_key + "." + text_type(i)
+            key = source_key + "." + text(i)
             new_keys.append(key)
 
             new_data.append({
@@ -291,7 +291,7 @@ class LogSummary(object):
                         return
 
                 message = scrub(log.message)
-                if isinstance(message, text_type):
+                if isinstance(message, text):
                     message = strings.limit(message, 6000)
 
                 # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES

@@ -36,7 +36,7 @@ class TuidClient(object):
         self.push_queue = aws.Queue(push_queue) if push_queue else None
         self.config = kwargs
 
-        self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), kwargs=db)
+        self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), upgrade=False, kwargs=db)
 
         if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
             with self.db.transaction() as transaction:

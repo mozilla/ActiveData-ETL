@@ -985,7 +985,7 @@ class Cluster(object):
         try:
             response = http.put(url, **kwargs)
             if response.status_code not in [200]:
-                Log.error(response.reason + ": " + response.content).decode('utf8')
+                Log.error("{{reason}}: {{content|limit(3000)}}", reason=response.reason, content=response.content)
             if not response.content:
                 return Null
 

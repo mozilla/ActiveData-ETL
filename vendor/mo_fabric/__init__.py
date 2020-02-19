@@ -189,7 +189,7 @@ class LogStream(object):
 
 
 def note(template, **params):
-    if not isinstance(template, text_type):
+    if not isinstance(template, text):
         Log.error("Log.note was expecting a unicode template")
 
     if len(template) > 10000:

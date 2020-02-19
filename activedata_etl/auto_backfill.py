@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 import sys
 
 from activedata_etl.imports.s3_cache import S3Cache
@@ -47,7 +47,7 @@ def backfill_recent(cache, settings, index_queue, please_stop):
             " SELECT " +
             "    key, annotate" +
             " FROM files " +
-            " WHERE substr(name, 1, " + text_type(len(prefix)) + ")=" + db.quote_value(prefix) +
+            " WHERE substr(name, 1, " + text(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
             " AND last_modified > " + db.quote_value(too_old.unix)
         )
@@ -60,14 +60,14 @@ def backfill_recent(cache, settings, index_queue, please_stop):
         # HOW MANY WITH GIVEN PREFIX?
         result = db.query(
             " SELECT " +
-            "    substr(name, 1, " + text_type(len(prefix) + 1) + ") as prefix," +
+            "    substr(name, 1, " + text(len(prefix) + 1) + ") as prefix," +
             "    count(1) as number, " +
             "    avg(last_modified) as `avg` " +
             " FROM files " +
-            " WHERE substr(name, 1, " + text_type(len(prefix)) + ")=" + db.quote_value(prefix) +
+            " WHERE substr(name, 1, " + text(len(prefix)) + ")=" + db.quote_value(prefix) +
             " AND (annotate is NULL OR annotate <> " + QUOTED_INVALID + ")" +
             " AND last_modified > " + db.quote_value(too_old.unix) +
-            " GROUP BY substr(name, 1, " + text_type(len(prefix) + 1) + ")"
+            " GROUP BY substr(name, 1, " + text(len(prefix) + 1) + ")"
         )
 
         # TODO: PULL THE SAME COUNTS FROM ES, BUT GROUPBY ON _id IS BROKEN

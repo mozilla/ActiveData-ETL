@@ -28,10 +28,10 @@ from mo_dots import (
     unwraplist,
     wrap,
 )
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value
 from mo_logs import Log
-from mo_math import MIN, MAX, Math
+from mo_math import MIN, MAX
 from mo_math.stats import ZeroMoment2Stats, ZeroMoment
 from mo_threads import Lock
 from mo_times.dates import Date
@@ -85,7 +85,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 )
                 continue
 
-            if not isinstance(metadata.run.suite, text_type):
+            if not isinstance(metadata.run.suite, text):
                 metadata.run.suite = metadata.run.suite.fullname
 
             perf_records = transform(source_key, perfherder_record, metadata, resources)
@@ -97,7 +97,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                     "revision": git.get_revision(),
                     "timestamp": Date.now(),
                 }
-                key = source_key + "." + text_type(i)
+                key = source_key + "." + text(i)
                 records.append({"id": key, "value": p})
                 i += 1
         except Exception as e:
@@ -268,9 +268,9 @@ def transform(source_key, perfherder, metadata, resources):
                                         suite_name,
                                     ),
                                     {
-                                        "test": text_type(subtest.name)
+                                        "test": text(subtest.name)
                                         + "."
-                                        + text_type(g),
+                                        + text(g),
                                         "ordering": i,
                                     },
                                     subtest_template,
@@ -319,7 +319,7 @@ def transform(source_key, perfherder, metadata, resources):
                                         suite_name,
                                     ),
                                     {
-                                        "test": text_type(test_name) + "." + text_type(g),
+                                        "test": text(test_name) + "." + text(g),
                                         "ordering": i,
                                         "value": replicates[0] if len(sub_replicates) == 1 else None,
                                     },
@@ -438,13 +438,13 @@ def stats(source_key, given_values, test, suite):
 
         rejects = unwraplist(
             [
-                text_type(v)
+                text(v)
                 for v in given_values
-                if Math.is_nan(v) or not Math.is_finite(v)
+                if mo_math.is_nan(v) or not mo_math.is_finite(v)
             ]
         )
         clean_values = wrap(
-            [float(v) for v in given_values if not Math.is_nan(v) and Math.is_finite(v)]
+            [float(v) for v in given_values if not mo_math.is_nan(v) and mo_math.is_finite(v)]
         )
 
         z = ZeroMoment.new_instance(clean_values)
@@ -458,7 +458,7 @@ def stats(source_key, given_values, test, suite):
         s.median = mo_math.stats.median(clean_values, simple=False)
         s.last = clean_values.last()
         s.first = clean_values[0]
-        if Math.is_number(s.variance) and not Math.is_nan(s.variance):
+        if mo_math.is_number(s.variance) and not mo_math.is_nan(s.variance):
             s.std = sqrt(s.variance)
 
         good_excuse = [
@@ -490,8 +490,8 @@ def geo_mean(values):
     for d in values:
         for k, v in d.items():
             if v != 0:
-                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + Math.log(
-                    Math.abs(v)
+                agg[k] = coalesce(agg[k], ZeroMoment.new_instance()) + mo_math.log(
+                    mo_math.abs(v)
                 )
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 

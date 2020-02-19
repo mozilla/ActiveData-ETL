@@ -77,7 +77,7 @@ class ETL(Transform):
                     with TempFile() as tempfile:
                         Log.note("download {{url}}", url=a.url)
                         download_file(a.url, tempfile.abspath)
-                        with open(tempfile.abspath, b"rb") as fstream:
+                        with open(tempfile.abspath, str("rb")) as fstream:
                             with Timer("process {{url}}", param={"url": a.url}):
                                 destination.write_lines(
                                     dest_key,
@@ -101,7 +101,7 @@ class ETL(Transform):
                     with TempFile() as tempfile:
                         Log.note("download {{url}}", url=a.url)
                         download_file(a.url, tempfile.abspath)
-                        with open(tempfile.abspath, b"rb") as fstream:
+                        with open(tempfile.abspath, str("rb")) as fstream:
                             with Timer("process {{url}}", param={"url": a.url}):
                                 destination.write_lines(
                                     dest_key,

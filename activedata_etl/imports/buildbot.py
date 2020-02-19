@@ -10,7 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 import ast
 import re
 
@@ -18,9 +18,9 @@ from mo_dots import wrap, Data, coalesce, set_default, unwraplist, listwrap
 from mo_json import json2value, value2json
 from mo_logs.exceptions import suppress_exception
 from mo_logs import Log, strings
+from mo_math import is_integer, is_number
 from pyLibrary import convert
-from pyLibrary.env import elasticsearch
-from mo_math import Math
+from jx_elasticsearch import elasticsearch
 from mo_times.dates import Date, unicode2Date
 
 BUILDBOT_LOGS = "http://builddata.pub.build.mozilla.org/builddata/buildjson/"
@@ -149,7 +149,7 @@ class BuildbotTranslator(object):
         output.run.machine.aws_id = consume(props, "aws_instance_id")
         output.run.machine.name = coalesce(consume(props, "slavename"), consume(props, "slave"), output.run.machine.aws_id)
         split_name = output.run.machine.name.split("-")
-        if Math.is_integer(split_name[-1]):
+        if is_integer(split_name[-1]):
             # EXAMPLES
             # b-2008-ix-0106
             # t-w732-ix-047
@@ -384,7 +384,7 @@ def parse_test(test, output):
 
     # CHUNK NUMBER
     path = test.split("-")
-    if Math.is_integer(path[-1]):
+    if is_integer(path[-1]):
         output.run.chunk = int(path[-1])
         test = "-".join(path[:-1])
 
@@ -434,15 +434,15 @@ def normalize_other(other):
             Log.alert("unknown properties: {{name|json}}", name=unknown_properties)
         unknown_properties[k] += 1
         if isinstance(v, (list, dict, Data)):
-            unknown.append({"name": text_type(k), "value": value2json(v)})
-        elif Math.is_number(v):
-            unknown.append({"name": text_type(k), "value": convert.value2number(v)})
+            unknown.append({"name": text(k), "value": value2json(v)})
+        elif is_number(v):
+            unknown.append({"name": text(k), "value": convert.value2number(v)})
         elif v in [True, "true", "True"]:
-            unknown.append({"name": text_type(k), "value": True})
+            unknown.append({"name": text(k), "value": True})
         elif v in [False, "false", "False"]:
-            unknown.append({"name": text_type(k), "value": False})
-        elif isinstance(v, text_type):
-            unknown.append({"name": text_type(k), "value": v})
+            unknown.append({"name": text(k), "value": False})
+        elif isinstance(v, text):
+            unknown.append({"name": text(k), "value": v})
         else:
             Log.error("Do not know how to handle type {{type}}", type=v.__class__.__name__)
 

@@ -14,7 +14,7 @@ from activedata_etl import etl2key, key2etl
 from activedata_etl.s3_clear import Version
 from mo_collections import UniqueIndex
 from mo_dots import wrap
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
@@ -49,11 +49,11 @@ class S3Bucket(object):
 
     def find_keys(self, start, count, filter=None):
         digits = int(ceiling(log10(count - 1)))
-        prefix = text_type(start)[:-digits]
+        prefix = text(start)[:-digits]
 
         metas = self.bucket.metas(prefix=prefix)
-        min_ = Version(text_type(start))
-        max_ = Version(text_type(start+count))
+        min_ = Version(text(start))
+        max_ = Version(text(start+count))
         output = [m.key for m in metas if min_ <= Version(m.key) < max_]
 
         return set(output)
@@ -99,7 +99,7 @@ class S3Bucket(object):
             documents = UniqueIndex(keys="etl.id", data=documents)
             try:
                 content = self.bucket.read_lines(key)
-                old_docs = UniqueIndex(keys="etl.id", data=map(json2value, content))
+                old_docs = UniqueIndex(keys="etl.id", data=list(map(json2value, content)))
             except Exception as e:
                 Log.warning("problem looking at existing records", e)
                 # OLD FORMAT (etl header, followed by list of records)

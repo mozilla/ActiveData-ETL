@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from fabric.context_managers import cd
 from fabric.operations import run, sudo
 from fabric.state import env

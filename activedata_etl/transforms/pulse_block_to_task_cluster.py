@@ -28,7 +28,7 @@ from activedata_etl.transforms import (
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null
 from mo_files import URL
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata, strings
@@ -205,9 +205,9 @@ def process(source_key, source, destination, resources, please_stop=None):
             e = Except.wrap(e)
             if TRY_AGAIN_LATER in e:
                 raise e
-            elif Math.round(e.params.code, decimal=-2) == 500:
+            elif mo_math.round(e.params.code, decimal=-2) == 500:
                 Log.error(
-                    TRY_AGAIN_LATER, reason="error code " + text_type(e.params.code)
+                    TRY_AGAIN_LATER, reason="error code " + text(e.params.code)
                 )
             else:
                 Log.warning(
@@ -275,7 +275,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     features = consume(task, "payload.features")
     try:
-        if isinstance(features, text_type):
+        if isinstance(features, text):
             output.task.features = [features]
         elif all(isinstance(v, bool) for v in features.values()):
             output.task.features = [k if v else "!" + k for k, v in features.items()]
@@ -291,7 +291,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.task.capabilities = consume(task, "payload.capabilities")
 
     image = consume(task, "payload.image")
-    if isinstance(image, text_type):
+    if isinstance(image, text):
         output.task.image = {"path": image}
     else:
         output.task.image = image
@@ -304,7 +304,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
 
     run_id = coalesce(consume(tc_message, "runId"), len(task.runs) - 1)
     output.task.run = _normalize_task_run(task.runs[run_id])
-    output.task.runs = map(_normalize_task_run, consume(task, "runs"))
+    output.task.runs = list(map(_normalize_task_run, consume(task, "runs")))
     output.task.reboot = consume(task, "payload.reboot")
 
     output.task.scheduler.id = consume(task, "schedulerId")
@@ -380,7 +380,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
             cc for c in (command if command else cmd) for cc in listwrap(c)
         ]  # SOMETIMES A LIST OF LISTS
         output.task.command = " ".join(
-            map(convert.string2quote, map(text_type.strip, command))
+            map(convert.string2quote, map(text.strip, command))
         )
     except Exception as e:
         Log.error("problem", cause=e)
@@ -420,7 +420,7 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         - new_seen_tc_properties
     )
     if remaining_keys:
-        map(new_seen_tc_properties.add, remaining_keys)
+        list(map(new_seen_tc_properties.add, remaining_keys))
         Log.warning(
             "Some properties ({{props|json}}) are not consumed while processing key {{key}}",
             key=source_key,
@@ -463,7 +463,7 @@ def _normalize_run(source_key, normalized, task, env):
 
     # PARSE TEST SUITE NAME
     suite = consume(task, "extra.suite")
-    if isinstance(suite, text_type):
+    if isinstance(suite, text):
         suite = wrap({"name": suite})
     test = suite.name.lower()
 
@@ -491,7 +491,7 @@ def _normalize_run(source_key, normalized, task, env):
     # CHUNK NUMBER
     chunk = Null
     path = test.split("-")
-    if Math.is_integer(path[-1]):
+    if mo_math.is_integer(path[-1]):
         chunk = int(path[-1])
         test = "-".join(path[:-1])
     chunk = coalesce_w_conflict_detection(
@@ -808,8 +808,8 @@ def get_tags(source_key, task_id, task, parent=None):
     tags = []
     # SPECIAL CASES
     platforms = consume(task, "payload.properties.platforms")
-    if isinstance(platforms, text_type):
-        platforms = map(text_type.strip, platforms.split(","))
+    if isinstance(platforms, text):
+        platforms = list(map(text.strip, platforms.split(",")))
         tags.append({"name": "platforms", "value": platforms})
     link = consume(task, "payload.link")
     if link:
@@ -848,13 +848,13 @@ def get_tags(source_key, task_id, task, parent=None):
                     ):
                         clean_tags.append(tt)
                     continue
-                elif not isinstance(v, text_type):
+                elif not isinstance(v, text):
                     v = value2json(v)
-            # elif all(isinstance(vv, (text_type, float, int)) for vv in v):
+            # elif all(isinstance(vv, (text, float, int)) for vv in v):
             #     pass  # LIST OF PRIMITIVES IS OK
             else:
                 v = value2json(v)
-        elif not isinstance(v, text_type):
+        elif not isinstance(v, text):
             v = value2json(v)
         t["value"] = v
         verify_tag(source_key, task_id, t)
@@ -864,7 +864,7 @@ def get_tags(source_key, task_id, task, parent=None):
 
 
 def verify_tag(source_key, task_id, t):
-    if not isinstance(t["value"], text_type):
+    if not isinstance(t["value"], text):
         Log.error("Expecting unicode")
     if t["name"] not in KNOWN_TAGS:
         Log.warning(
@@ -1040,7 +1040,7 @@ def _object_to_array(value, key_name, value_name=None):
                     {
                         key_name: k,
                         value_name: strings.limit(v, 1000)
-                        if isinstance(v, text_type)
+                        if isinstance(v, text)
                         else v,
                     }
                     for k, v in value.items()

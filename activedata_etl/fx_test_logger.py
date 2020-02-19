@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from mo_threads.threads import MAIN_THREAD
 
 from mo_dots import wrap
@@ -76,7 +76,7 @@ def loop(settings):
     for d in data:
         Log.note("Update record {{filename}}", filename=d.filename)
         if d.key1 == None:
-            day = Math.floor((Date(d.timestamp) - ZERO_DAY) / DAY)
+            day = mo_math.floor((Date(d.timestamp) - ZERO_DAY) / DAY)
             if maxi.get(day) == None:
                 max_key = db.query("SELECT max(key2) FROM content WHERE key1=" + db.quote_value(day)).data[0][0]
                 if max_key == None:
@@ -87,7 +87,7 @@ def loop(settings):
             d.key2 = maxi[day]
             maxi[day] += 1
 
-        full_key = text_type(d.key1) + "." + text_type(d.key2)
+        full_key = text(d.key1) + "." + text(d.key2)
         destination.write_lines(key=full_key, lines=source.read_lines(d.filename))
         notify.add({
             "bucket": destination.bucket.name,

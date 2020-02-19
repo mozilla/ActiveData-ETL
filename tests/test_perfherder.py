@@ -24,6 +24,7 @@ from pyLibrary.env import http
 false = False
 true = True
 
+
 class TestBuildbotLogs(FuzzyTestCase):
 
     def __init__(self, *args, **kwargs):
@@ -48,7 +49,6 @@ class TestBuildbotLogs(FuzzyTestCase):
             return Null, Null
         seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Data(next=dummy), Null, Null)
         Log.note("{{output}}", output=all_perf)
-
 
     def test_capture(self):
         source_key = u'213657:13240348'

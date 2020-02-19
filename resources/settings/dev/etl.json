@@ -39,16 +39,6 @@
 		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
-		"branches": {
-			"host": {"$ref": "#local_es_node.host"},
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"debug": false,
-			"limit_replicas": true
-		},
 		"repo": {
 			"host": {"$ref": "#local_es_node.host"},
 			"port": 9200,

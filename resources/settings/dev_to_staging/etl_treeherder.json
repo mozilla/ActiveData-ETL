@@ -28,15 +28,6 @@
 			"timeout": 300,
 			"debug": false,
 			"limit_replicas": false
-		},
-		"branches": {
-			"host": "http://54.149.35.214",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": true
 		}
 	},
 	"debug": {
@@ -60,7 +51,7 @@
 				"log_type": "ses", "$ref": "file://~/private.json#aws_credentials",
 				"from_address": "klahnakoski@mozilla.com",
 				"to_address": "klahnakoski@mozilla.com",
-				"subject": "[ALERT][Dev] Problem with Treeherder ETL",
+				"subject": "[ALERT][Dev] Problem with Treeherder ETL"
 
 			}
 		]

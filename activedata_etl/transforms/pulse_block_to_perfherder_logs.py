@@ -12,7 +12,7 @@ from activedata_etl import etl2key
 from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from mo_dots import Data, wrap, coalesce, Null
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value, utf82unicode
 from mo_logs import Log, strings
 from mo_times.dates import Date
@@ -84,7 +84,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                 response = http.get(log_url)
                 if response.status_code == 404:
                     Log.alarm("PerfHerder log missing {{url}}", url=log_url)
-                    k = source_key + "." + text_type(counter)
+                    k = source_key + "." + text(counter)
                     try:
                         # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
                         dest_bucket.get_key(k)

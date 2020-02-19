@@ -20,11 +20,11 @@ from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 from jx_python import jx
 from mo_dots import coalesce, listwrap, Data, Null, wrap
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_kwargs import override
 from mo_logs import Log, startup, constants, strings
-from mo_logs.exceptions import suppress_exception
+from mo_logs.exceptions import suppress_exception, Except
 from mo_math import MIN
 from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock, Till, MAIN_THREAD
@@ -114,7 +114,7 @@ class ETL(Thread):
         # source_block is from the work_queue
         source_keys = listwrap(coalesce(source_block.key, source_block.keys))
 
-        if not isinstance(source_block.bucket, text_type):  # FIX MISTAKE
+        if not isinstance(source_block.bucket, text):  # FIX MISTAKE
             source_block.bucket = source_block.bucket.bucket
         bucket = source_block.bucket
 
@@ -136,7 +136,7 @@ class ETL(Thread):
 
         for action in work_actions:
             try:
-                source_key = text_type(source_keys[0])
+                source_key = text(source_keys[0])
                 if len(source_keys) > 1:
                     multi_source = action._source
                     source = ConcatSources([multi_source.get_key(k) for k in source_keys])
@@ -196,7 +196,7 @@ class ETL(Thread):
                     new_keys = set(new_keys)
 
                 # VERIFY KEYS
-                etls = map(key2etl, new_keys)
+                etls = list(map(key2etl, new_keys))
                 etl_ids = jx.sort(set(wrap(etls).id))
                 if len(new_keys) == 1 and list(new_keys)[0].endswith(source_key):
                     pass  # ok
@@ -294,7 +294,7 @@ class ETL(Thread):
                         Log.warning("Should never happen")
                         continue
 
-                    if isinstance(todo, text_type):
+                    if isinstance(todo, text):
                         Log.warning("Work queue had {{data|json}}, which is not valid", data=todo)
                         self.work_queue.commit()
                         continue
@@ -438,7 +438,7 @@ def main():
         stopper = Signal()
         for i in range(coalesce(settings.param.threads, 1)):
             ETL(
-                name="ETL Loop " + text_type(i),
+                name="ETL Loop " + text(i),
                 work_queue=settings.work_queue,
                 resources=resources,
                 workers=settings.workers,
@@ -458,8 +458,8 @@ def main():
 def etl_one(settings):
     # where queue is first created/called
     queue = Queue("temp work queue", max=2**32)
-    queue.__setattr__(b"commit", Null)
-    queue.__setattr__(b"rollback", Null)
+    queue.__setattr__(str("commit"), Null)
+    queue.__setattr__(str("rollback"), Null)
 
     settings.param.wait_forever = False
     for w in settings.workers:
@@ -476,6 +476,7 @@ def etl_one(settings):
                         key=k
                     ))
         except Exception as e:
+            e = Except.wrap(e)
             if "Key {{key}} does not exist" in e:
                 queue.add(Data(
                     bucket=w.source.bucket,
@@ -502,13 +503,13 @@ def etl_one(settings):
 
 
 def parse_id_argument(id):
-    many = map(strings.trim, id.split(","))
+    many = list(map(strings.trim, id.split(",")))
     if len(many) > 1:
         return many
     if id.find("..") >= 0:
         #range of ids
-        min_, max_ = map(int, map(strings.trim, id.split("..")))
-        return map(text_type, range(min_, max_ + 1))
+        min_, max_ = list(map(int, map(strings.trim, id.split(".."))))
+        return list(map(text, range(min_, max_ + 1)))
     else:
         return [id]
 

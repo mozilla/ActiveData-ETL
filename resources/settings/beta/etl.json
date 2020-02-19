@@ -21,15 +21,6 @@
 		"hg":{
 			"url": "https://hg.mozilla.org"
 		},
-		"branches": {
-			"host": "http://localhost",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": false
-		},
 		"repo": {
 			"host": "http://localhost",
 			"port": 9200,

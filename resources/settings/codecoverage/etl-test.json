@@ -22,16 +22,6 @@
 		"hg": {
 			"url": "https://hg.mozilla.org"
 		},
-		"branches": {
-			"host": "http://activedata.allizom.org",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"debug": false,
-			"limit_replicas": true
-		},
 		"repo": {
 			"host": "http://activedata.allizom.org",
 			"port": 9200,

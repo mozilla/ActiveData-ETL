@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from mo_threads import ThreadedQueue
 
 

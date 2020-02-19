@@ -367,8 +367,8 @@ def percentile(values, percent):
     if not N:
         return None
     k = (len(N) - 1) * percent
-    f = int(math.floor(k))
-    c = int(math.ceil(k))
+    f = int(mo_math.floor(k))
+    c = int(mo_math.ceil(k))
     if f == c:
         return N[int(k)]
     d0 = N[f] * (c - k)

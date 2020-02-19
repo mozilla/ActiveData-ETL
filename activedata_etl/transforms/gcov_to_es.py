@@ -18,7 +18,7 @@ from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from activedata_etl.transforms import ACTIVE_DATA_QUERY
 from mo_dots import set_default, Null
 from mo_files import File, TempDirectory
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value, value2json
 from mo_logs import Log, machine_metadata
 from mo_threads import Process, Till
@@ -123,7 +123,7 @@ def process_directory(source_key, tmpdir, gcno_file, gcda_file, destination, tas
                 continue
             new_record.source = source
             new_record.etl.id = count
-            new_record._id = file_id + "." + text_type(count)
+            new_record._id = file_id + "." + text(count)
             count += 1
             if DEBUG and (count % 10000 == 0):
                 Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(new_record))

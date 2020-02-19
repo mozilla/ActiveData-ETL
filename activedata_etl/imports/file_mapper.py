@@ -17,7 +17,7 @@ from jx_base.expressions import last
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
 from mo_files import TempFile
-from mo_future import text_type
+from mo_future import text
 from mo_json import stream
 from mo_logs import Log
 from mo_times import Timer, Date, Duration
@@ -74,7 +74,7 @@ class FileMapper(object):
                 with TempFile() as tempfile:
                     Log.note("download {{url}}", url=files_url)
                     download_file(files_url, tempfile.abspath)
-                    with open(tempfile.abspath, b"rb") as fstream:
+                    with open(tempfile.abspath, str("rb")) as fstream:
                         with Timer("process {{url}}", param={"url": files_url}):
                             count = 0
                             for data in stream.parse(
@@ -114,7 +114,7 @@ class FileMapper(object):
             if not found:
                 curr[p] = filename
                 return
-            elif isinstance(found, text_type):
+            elif isinstance(found, text):
                 if i + 1 >= len(path):
                     curr[p] = {".": filename}
                 else:
@@ -195,7 +195,7 @@ class FileMapper(object):
                 found = curr.get(p)
                 if not found:
                     break
-                elif isinstance(found, text_type):
+                elif isinstance(found, text):
                     if found == filename:
                         return {"name": found, "is_firefox": True}
                     else:
@@ -218,7 +218,7 @@ class FileMapper(object):
 
 def _values(curr):
     for v in curr.values():
-        if isinstance(v, text_type):
+        if isinstance(v, text):
             yield v
         else:
             for u in _values(v):

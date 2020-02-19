@@ -8,7 +8,7 @@
 #
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import HgMozillaOrg, DEFAULT_LOCALE
 from mo_dots import listwrap, unwrap, wrap, wrap_leaves
 from mo_logs import startup, constants
@@ -58,7 +58,7 @@ def get_frontier(hg):
         Log.note("Convert {{num}} docs to standard form", num=len(docs))
         for d in unwrap(docs):
             r = elasticsearch.scrub(wrap_leaves(d["fields"]))
-            before = Math.min(r.changeset.date, before)
+            before = mo_math.min(r.changeset.date, before)
             detailed.add(r)
             parents = listwrap(r.parents)
             if len(parents) == 1:
@@ -183,7 +183,7 @@ def main():
         constants.set(settings.constants)
         Log.start(settings.debug)
 
-        MIN_DATE = Math.min(Date(settings.min_date), Date("01 MAR 2015"))
+        MIN_DATE = mo_math.min(Date(settings.min_date), Date("01 MAR 2015"))
 
         stopper = Signal()
         Thread.run("backfill repo", backfill_repo, settings.hg, please_stop=stopper)

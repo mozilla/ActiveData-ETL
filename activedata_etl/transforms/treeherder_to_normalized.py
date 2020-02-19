@@ -156,7 +156,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     # RUN MACHINE
     new_treeherder.run.machine.name = machine_name = consume(raw_job, "machine.name")
     split_name = machine_name.split("-")
-    if Math.is_integer(split_name[-1]):
+    if mo_math.is_integer(split_name[-1]):
         new_treeherder.run.machine.pool = "-".join(split_name[:-1])
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
     new_treeherder.run.machine.architecture = consume(

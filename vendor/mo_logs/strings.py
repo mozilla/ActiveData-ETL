@@ -267,7 +267,7 @@ def round(value, decimal=None, digits=None, places=None):
 
     digits = coalesce(digits, places)
     if digits != None:
-        left_of_decimal = int(math.ceil(math.log10(abs(value))))
+        left_of_decimal = int(mo_math.ceil(mo_math.log10(abs(value))))
         decimal = digits - left_of_decimal
 
     right_of_decimal = max(decimal, 0)
@@ -291,7 +291,7 @@ def percent(value, decimal=None, digits=None, places=None):
 
     digits = coalesce(digits, places)
     if digits != None:
-        left_of_decimal = int(math.ceil(math.log10(abs(value)))) + 2
+        left_of_decimal = int(mo_math.ceil(mo_math.log10(abs(value)))) + 2
         decimal = digits - left_of_decimal
 
     decimal = coalesce(decimal, 0)

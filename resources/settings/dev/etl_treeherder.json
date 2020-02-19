@@ -28,15 +28,6 @@
 			"timeout": 300,
 			"debug": false,
 			"limit_replicas": false
-		},
-		"branches": {
-			"host": "http://54.149.35.214",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": true
 		}
 	},
 	"debug": {

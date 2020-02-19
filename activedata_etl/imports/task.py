@@ -12,7 +12,7 @@ from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
 from mo_dots import Data, coalesce, set_default, unwrap
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import Log, strings
 from mo_logs.strings import between
@@ -555,7 +555,7 @@ TEST_SUITE = {
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
+TEST_CHUNK = {text(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},

@@ -15,7 +15,7 @@ from copy import copy
 from activedata_etl.imports import buildbot
 from jx_python import jx
 from mo_dots import wrap, FlatList, Null, Data, unwrap, set_default
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value
 from mo_logs import Log, strings
 from mo_logs.exceptions import Except
@@ -100,7 +100,7 @@ def process_tc_live_backing_log(source_key, all_log_lines, from_url, task_record
                     task_step = task_steps[step_name] = Data()
                     task_step.step = step_name
                     action.timings.append(task_step)
-                task_step.start_time = Math.min(task_step.start_time, tc_timestamp)
+                task_step.start_time = mo_math.min(task_step.start_time, tc_timestamp)
                 task_step.end_time = MAX([task_step.end_time, tc_timestamp])
             else:
                 # OLD, NON-PREFIXED, FORMAT IS LEGITIMATE
@@ -203,7 +203,7 @@ def process_tc_live_backing_log(source_key, all_log_lines, from_url, task_record
 
             start_time = MIN([start_time, timestamp])
             end_time = MAX([end_time, timestamp])
-            task_step.start_time = Math.min(task_step.start_time, timestamp)
+            task_step.start_time = mo_math.min(task_step.start_time, timestamp)
             task_step.end_time = MAX([task_step.end_time, timestamp])
 
             harness_step = harness_steps.get(harness_step_name)
@@ -519,7 +519,7 @@ class NewHarnessLines(object):
         #     Log.error("not expected")
         # if self.time_zone is None:
         #     self.time_skew = last_timestamp - timestamp
-        #     self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+        #     self.time_zone = mo_math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
         #     if DEBUG:
         #         Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         # timestamp += self.time_zone
@@ -581,7 +581,7 @@ class OldHarnessLines(object):
             timestamp += DAY
         if self.time_zone is None:
             self.time_skew = last_timestamp - timestamp
-            self.time_zone = Math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
+            self.time_zone = mo_math.ceiling((self.time_skew - MAX_HARNESS_TIMING_ERROR) / HOUR) * HOUR
             if DEBUG:
                 Log.note("Harness time zone is {{zone}}", zone=self.time_zone / HOUR)
         timestamp += self.time_zone
@@ -635,7 +635,7 @@ class BuilderLines(object):
             return None
 
         try:
-            parts = map(text_type.strip, line[10:-10].split("("))
+            parts = list(map(text.strip, line[10:-10].split("(")))
             if parts[0].startswith("master_lag:"):
                 return None
             if parts[0] == "Skipped":
@@ -679,7 +679,7 @@ class BuilderLines(object):
 
         timestamp = Date(_time[3:-1], "%Y-%m-%d %H:%M:%S.%f")
         if self.time_zone is None:
-            self.time_zone = Math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
+            self.time_zone = mo_math.ceiling((start_time - timestamp - MAX_TIMING_ERROR) / HOUR) * HOUR
             if DEBUG:
                 Log.note("Builder time zone is {{zone}}", zone=self.time_zone/HOUR)
         timestamp += self.time_zone
