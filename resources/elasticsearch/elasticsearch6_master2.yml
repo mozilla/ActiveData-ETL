@@ -32,4 +32,7 @@ http.cors.enabled: true
 http.cors.allow-origin: "*"
 http.max_content_length: 1000mb
 
+# THIS IS A TRANSIENT SETTING, MAYBE WE CAN SET IT HERE
+xpack.monitoring.collection.enabled: true
+
 network.host : _site_, _local_
