@@ -405,7 +405,7 @@ class Index(object):
             suffix = "/_search?scroll=" + scroll if scroll else "/_search"
             url = self.path + suffix
 
-            DEBUG and Log.note("Query: {{url}}\n{{query|indent}}", url=url, query=query)
+            self.debug and Log.note("Query: {{url}}\n{{query|indent}}", url=url, query=query)
             return self.cluster.post(
                 url,
                 data=query,

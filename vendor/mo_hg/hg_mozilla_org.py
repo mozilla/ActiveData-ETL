@@ -249,7 +249,7 @@ class HgMozillaOrg(object):
         self.last_cache_miss = Date.now()
         if next_cache_miss > self.last_cache_miss:
             Log.note(
-                "delaying next hg call for {{seconds|round(decimal=1)}}",
+                "delaying next hg call for {{seconds|round(decimal=1)}} seconds",
                 seconds=next_cache_miss - self.last_cache_miss,
             )
             Till(till=next_cache_miss.unix).wait()

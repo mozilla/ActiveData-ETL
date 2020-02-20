@@ -10,14 +10,12 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-import math
 import sys
 from math import sqrt
 
 from mo_dots import Data, Null, coalesce
 from mo_future import text, zip_longest
 from mo_logs import Log
-
 from mo_math import OR, almost_equal
 from mo_math.vendor import strangman
 
