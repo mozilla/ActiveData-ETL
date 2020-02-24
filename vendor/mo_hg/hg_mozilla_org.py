@@ -819,6 +819,8 @@ def _get_url(url, branch, **kwargs):
     with Explanation("get push from {{url}}", url=url, debug=DEBUG):
         response = http.get(url, **kwargs)
         data = json2value(response.content.decode("utf8"))
+        if data.error.startswith("unknown revision"):
+            Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
         if is_text(data) and data.startswith("unknown revision"):
             Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
         branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH

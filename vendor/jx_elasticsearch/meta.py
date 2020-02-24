@@ -590,10 +590,9 @@ class ElasticsearchMetadata(Namespace):
                     "size": 0,
                 }
 
-                result = self.es_cluster.get_index(
-                    index=es_index,
-                    read_only=True
-                ).search(es_query)
+                result = self.es_cluster.post(
+                    "/" + es_index + "/_search", data=es_query
+                )
                 agg_results = result.aggregations
                 count = result.hits.total
                 cardinality = coalesce(

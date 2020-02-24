@@ -579,6 +579,8 @@ def sort(data, fieldnames=None, already_normalized=False):
 
         if is_list(data):
             output = FlatList([unwrap(d) for d in sort_using_cmp(data, cmp=comparer)])
+        elif is_text(data):
+            Log.error("Do not know how to handle")
         elif hasattr(data, "__iter__"):
             output = FlatList(
                 [unwrap(d) for d in sort_using_cmp(list(data), cmp=comparer)]

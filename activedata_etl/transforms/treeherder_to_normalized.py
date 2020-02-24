@@ -16,7 +16,7 @@ from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_dots import Data, listwrap, wrap, set_default
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
-from mo_logs import Log, machine_metadata, strings
+from mo_logs import Log, machine_metadata, strings, Except
 from mo_times.dates import Date
 from jx_elasticsearch import elasticsearch
 from pyLibrary.env import git
@@ -58,6 +58,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized = elasticsearch.scrub(normalized)
             output.append(normalized)
         except Exception as e:
+            e = Except.wrap(e)
             if TRY_AGAIN_LATER in e:
                 raise e
             Log.warning(

@@ -39,7 +39,9 @@ def ones(dim):
 
 def _apply(func):
     def output(value):
-        if hasattr(value, "__iter__"):
+        if is_text(value):
+            return func(value)
+        elif hasattr(value, "__iter__"):
             return [output(v) for v in value]
         else:
             return func(value)
@@ -52,7 +54,9 @@ def _reduce(func):
         if depth == axis:
             return func
 
-        if hasattr(values[0], "__iter__"):
+        if is_text(values[0]):
+            return func(values)
+        elif hasattr(values[0], "__iter__"):
             return [func(v) for v in values]
         else:
             return func(values)

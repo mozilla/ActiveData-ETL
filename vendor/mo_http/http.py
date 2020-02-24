@@ -163,10 +163,12 @@ def request(method, url, headers=None, data=None, json=None, zip=None, retry=Non
                 Till(seconds=retry.sleep).wait()
 
             try:
-                DEBUG and Log.note(u"http {{method|upper}} to {{url}}", method=method, url=text(url))
                 request_count += 1
-                # return session.request(method=method, headers=headers, url=str(url), **kwargs)
-                with Timer("call {{url}}", param={"url":str(url)}, verbose=DEBUG):
+                with Timer(
+                    "http {{method|upper}} to {{url}}",
+                    param={"method": method, "url": text(url)},
+                    verbose=DEBUG
+                ):
                     return _session_request(session, url=str(url), headers=headers, data=data, json=None, kwargs=kwargs)
             except Exception as e:
                 e = Except.wrap(e)

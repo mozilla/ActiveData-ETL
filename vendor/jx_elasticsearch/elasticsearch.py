@@ -288,6 +288,8 @@ class Index(object):
             return
         if isinstance(records, generator_types):
             Log.error("single use generators no longer accepted")
+        if is_text(records):
+            Log.error("records must have __iter__")
         if not hasattr(records, "__iter__"):
             Log.error("records must have __iter__")
 
