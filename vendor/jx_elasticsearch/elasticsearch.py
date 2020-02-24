@@ -10,6 +10,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import re
+from collections import namedtuple
 from copy import deepcopy
 
 from jx_base import Column
@@ -46,6 +47,8 @@ LF = "\n".encode('utf8')
 
 STALE_METADATA = HOUR
 DATA_KEY = text("data")
+
+IndexAlias = namedtuple("IndexAlias", ["index", "alias"])
 
 
 class Index(object):
@@ -641,10 +644,9 @@ class Cluster(object):
     def get_best_matching_index(self, index, alias=None):
         indexes = jx.sort(
             [
-                ai_pair
+                Data(index=i, alias=a)
                 for pattern in [re.escape(index) + SUFFIX_PATTERN]
-                for ai_pair in self.get_aliases()
-                for a, i in [(ai_pair.alias, ai_pair.index)]
+                for i, a in self.get_aliases()
                 if (a == index and alias == None) or
                    (re.match(pattern, i) and alias == None) or
                    (i == index and (alias == None or a == None or a == alias))
@@ -659,9 +661,9 @@ class Cluster(object):
         ALIAS YET BECAUSE INCOMPLETE
         """
         output = sort([
-            a.index
-            for a in self.get_aliases()
-            if re.match(re.escape(alias) + "\\d{8}_\\d{6}", a.index) and not a.alias
+            p.index
+            for p in self.get_aliases()
+            if re.match(re.escape(alias) + "\\d{8}_\\d{6}", p.index) and not p.alias
         ])
         return output
 
@@ -798,19 +800,19 @@ class Cluster(object):
         except Exception as e:
             Log.error("Problem with call to {{url}}", url=url, cause=e)
 
-    def get_aliases(self):
+    def get_aliases(self, after=None):
         """
         RETURN LIST OF {"alias":a, "index":i} PAIRS
         ALL INDEXES INCLUDED, EVEN IF NO ALIAS {"alias":Null}
         """
-        for index, desc in self.get_metadata().indices.items():
+        for index, desc in self.get_metadata(after=after).indices.items():
             if not desc["aliases"]:
-                yield wrap({"index": index})
+                yield IndexAlias(index, None)
             elif desc['aliases'][0] == index:
                 Log.error("should not happen")
             else:
-                for a in desc["aliases"]:
-                    yield wrap({"index": index, "alias": a})
+                for alias in desc["aliases"]:
+                    yield IndexAlias(index, alias)
 
     def get_metadata(self, after=None):
         now = Date.now()
@@ -895,8 +897,10 @@ class Cluster(object):
                 Log.error(quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error(
-                    "Shard failures {{failures|indent}}",
-                    failures=details._shards.failures.reason
+                    "{{num}} orf {{total}} shard failures {{failures|indent}}",
+                    failures=details._shards.failures.reason,
+                    num=details._shards.failed,
+                    total=details._shards.total
                 )
             return details
         except Exception as e:
