@@ -808,7 +808,19 @@ class ElasticsearchMetadata(Namespace):
 
                     for g, index_columns in jx.groupby(old_columns, "es_index"):
                         # TRIGGER COLUMN UNIFICATION BEFORE WE DO ANALYSIS
-                        self.get_columns(g.es_index)
+                        try:
+                           self.get_columns(g.es_index)
+                        except Exception as e:
+                            if "{{table|quote}} does not exist" in e:
+                                self.meta.columns.update(
+                                    {
+                                        "clear": ".",
+                                        "where": {"eq": {"es_index": g.es_index}},
+                                    }
+                                )
+                                continue
+                            Log.warning("problem getting column info on {{table}}", table=g.es_index, cause=e)
+
                         self.todo.extend(
                             (c, max(last_good_update, c.last_updated))
                             for c in index_columns
@@ -816,11 +828,11 @@ class ElasticsearchMetadata(Namespace):
 
                     META_COLUMNS_DESC.last_updated = now
 
-                pair = self.todo.pop(Till(seconds=(10 * MINUTE).seconds))
-                if pair:
-                    if pair is THREAD_STOP:
+                work_item = self.todo.pop(Till(seconds=(10 * MINUTE).seconds))
+                if work_item:
+                    if work_item is THREAD_STOP:
                         continue
-                    column, after = pair
+                    column, after = work_item
 
                     now = Date.now()
                     with Timer(
@@ -828,7 +840,8 @@ class ElasticsearchMetadata(Namespace):
                         param={"table": column.es_index, "column": column.es_column},
                         verbose=DEBUG,
                     ):
-                        if column.es_index not in (n for p in self.es_cluster.get_aliases(after=after) for n in p):
+                        all_tables = [n for p in self.es_cluster.get_aliases(after=after) for n in (p.index, p.alias)]
+                        if column.es_index not in all_tables:
                             DEBUG and Log.note(
                                 "{{column.es_column}} of {{column.es_index}} does not exist",
                                 column=column,

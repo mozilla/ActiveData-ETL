@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
+import ast
 import re
 from collections import namedtuple
 from copy import deepcopy
@@ -25,12 +26,11 @@ from mo_json.typed_encoder import BOOLEAN_TYPE, EXISTS_TYPE, NESTED_TYPE, NUMBER
     json_type_to_inserter_type
 from mo_kwargs import override
 from mo_logs import Log, strings
-from mo_logs.exceptions import Except
+from mo_logs.exceptions import Except, suppress_exception
 from mo_math import is_integer, is_number
 from mo_math.randoms import Random
 from mo_threads import Lock, ThreadedQueue, Till, THREAD_STOP, Thread, MAIN_THREAD
 from mo_times import Date, Timer, HOUR, dates
-from pyLibrary.convert import quote2string, value2number
 from mo_http import http
 
 DEBUG = True
@@ -47,8 +47,6 @@ LF = "\n".encode('utf8')
 
 STALE_METADATA = HOUR
 DATA_KEY = text("data")
-
-IndexAlias = namedtuple("IndexAlias", ["index", "alias"])
 
 
 class Index(object):
@@ -644,9 +642,10 @@ class Cluster(object):
     def get_best_matching_index(self, index, alias=None):
         indexes = jx.sort(
             [
-                Data(index=i, alias=a)
+                p
                 for pattern in [re.escape(index) + SUFFIX_PATTERN]
-                for i, a in self.get_aliases()
+                for p in self.get_aliases()
+                for i, a in [(p.index, p.alias)]
                 if (a == index and alias == None) or
                    (re.match(pattern, i) and alias == None) or
                    (i == index and (alias == None or a == None or a == alias))
@@ -807,12 +806,12 @@ class Cluster(object):
         """
         for index, desc in self.get_metadata(after=after).indices.items():
             if not desc["aliases"]:
-                yield IndexAlias(index, None)
+                yield Data(index=index)
             elif desc['aliases'][0] == index:
                 Log.error("should not happen")
             else:
                 for alias in desc["aliases"]:
-                    yield IndexAlias(index, alias)
+                    yield Data(index=index, alias=alias)
 
     def get_metadata(self, after=None):
         now = Date.now()
@@ -1782,3 +1781,22 @@ class IterableBytes(object):
 
 
 lists.sequence_types = lists.sequence_types + (IterableBytes,)
+
+
+def quote2string(value):
+    with suppress_exception:
+        return ast.literal_eval(value)
+
+
+def value2number(v):
+    try:
+        if isinstance(v, float) and round(v, 0) != v:
+            return v
+            # IF LOOKS LIKE AN INT, RETURN AN INT
+        return int(v)
+    except Exception:
+        try:
+            return float(v)
+        except Exception as e:
+            Log.error("Not a number ({{value}})",  value= v, cause=e)
+

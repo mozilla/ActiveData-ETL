@@ -43,7 +43,8 @@ from mo_times.durations import Duration
 from pyLibrary import convert
 from mo_http.big_data import ibytes2ilines, icompressed2ibytes, safe_size, ibytes2icompressed
 
-DEBUG = True
+
+DEBUG = False
 FILE_SIZE_LIMIT = 100 * 1024 * 1024
 MIN_READ_SIZE = 8 * 1024
 ZIP_REQUEST = False
