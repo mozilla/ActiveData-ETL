@@ -8,21 +8,20 @@
 #
 from __future__ import unicode_literals
 
-from mo_future import items
-
 from activedata_etl import etl2path
 from activedata_etl import key2etl
 from jx_python import jx
 from jx_python.containers.list_usingPythonList import ListContainer
 from mo_dots import coalesce, wrap, Null
+from mo_future import items
 from mo_json import json2value, value2json, CAN_NOT_DECODE_JSON
 from mo_kwargs import override
 from mo_logs import Log
-from mo_logs.exceptions import suppress_exception, Except, Explanation
+from mo_logs.exceptions import Except
 from mo_math.randoms import Random
 from mo_threads import Lock
 from mo_times.dates import Date, unicode2Date, unix2Date
-from mo_times.durations import Duration, MINUTE
+from mo_times.durations import Duration
 from mo_times.timer import Timer
 from pyLibrary.aws.s3 import strip_extension, KEY_IS_WRONG_FORMAT
 from pyLibrary.env import elasticsearch
