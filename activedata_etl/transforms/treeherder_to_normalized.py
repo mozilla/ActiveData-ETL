@@ -13,7 +13,7 @@ import mo_math
 
 from activedata_etl import etl2key, key2etl
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import Data, listwrap, wrap, set_default
+from mo_dots import Data, listwrap, wrap, set_default, is_data
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings, Except

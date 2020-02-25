@@ -398,7 +398,7 @@ def bytes2sha1(value):
 def value2intlist(value):
     if value == None:
         return []
-    elif is_many(value, '__iter__'):
+    elif is_many(value):
         output = [int(d) for d in value if d != "" and d != None]
         return output
     elif isinstance(value, int):
@@ -407,6 +407,7 @@ def value2intlist(value):
         return []
     else:
         return [int(value)]
+
 
 def value2int(value):
     if value == None:
