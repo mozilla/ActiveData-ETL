@@ -85,7 +85,7 @@
 				"index": "treeherder",
 				"id":{
 					"field": "job.id",
-					"version": "etl.timestamp"
+					"version": "last_modified"
 				},
 				"type": "th_job",
 				"typed": true,
