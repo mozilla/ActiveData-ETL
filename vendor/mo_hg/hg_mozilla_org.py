@@ -514,7 +514,9 @@ class HgMozillaOrg(object):
             files=r.files,
             backedoutby=r.backedoutby,
             backsoutnodes=r.backsoutnodes,
-            bug=mo_math.UNION((r.bugs, self._extract_bug_id(r.description))),
+            bug=mo_math.UNION(
+                ([int(b) for b in r.bugs.no], self._extract_bug_id(r.description))
+            ),
         )
         rev = Revision(
             branch=found_revision.branch,
@@ -552,6 +554,11 @@ class HgMozillaOrg(object):
         r.treeherderrepourl = None
         r.backsoutnodes = None
         r.treeherderrepo = None
+        r.perfherderurl = None
+        r.branch = None
+        r.phase = None
+        r.rev = None
+        r.tags = None
 
         set_default(rev, r)
 
