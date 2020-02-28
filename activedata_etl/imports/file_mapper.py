@@ -19,7 +19,7 @@ from mo_dots.lists import last
 from mo_files import TempFile
 from mo_future import text
 from mo_json import stream
-from mo_logs import Log
+from mo_logs import Log, Except
 from mo_times import Timer, Date, Duration
 from mo_http import http
 from mo_http.big_data import scompressed2ibytes
@@ -89,6 +89,15 @@ class FileMapper(object):
                             )
                 return
             except Exception as e:
+                e = Except.wrap(e)
+                # Log.warning(
+                #     "Can not read {{url}} for key {{key}}",
+                #     url=files_url,
+                #     key=source_key,
+                #     cause=e
+                # )
+
+                # TODO: THIS IS HAPPENING MORE THAN EXPECTED
                 Log.note(
                     "Can not read {{url}} for key {{key}}",
                     url=files_url,

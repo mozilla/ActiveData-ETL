@@ -12,6 +12,8 @@ from __future__ import absolute_import, division, unicode_literals
 from copy import copy
 import re
 
+import mo_math
+
 from jx_elasticsearch import elasticsearch
 from mo_dots import (
     Data,
@@ -24,7 +26,8 @@ from mo_dots import (
     unwraplist,
     wrap,
 )
-from mo_future import binary_type, is_text, text
+from mo_dots.lists import last
+from mo_future import binary_type, is_text, text, first
 from mo_hg.parse import diff_to_json, diff_to_moves
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
@@ -82,7 +85,6 @@ MAX_DIFF_SIZE = 1000
 DIFF_URL = "{{location}}/raw-rev/{{rev}}"
 FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
 
-
 last_called_url = {}
 
 
@@ -117,27 +119,11 @@ class HgMozillaOrg(object):
         with Explanation("Test connect with hg"):
             http.head(self.settings.hg.url)
 
-        set_default(
-            repo,
-            {
-                "type": "revision",
-                "schema": revision_schema,
-            }
-        )
+        set_default(repo, {"type": "revision", "schema": revision_schema,})
         kwargs.branches = set_default(
-            {
-                "index": repo.index + "-branches",
-                "type": "branch",
-            },
-            repo,
+            {"index": repo.index + "-branches", "type": "branch",}, repo,
         )
-        moves = set_default(
-            {
-                "index": repo.index + "-moves",
-            },
-            repo,
-        )
-
+        moves = set_default({"index": repo.index + "-moves",}, repo,)
 
         self.branches = _hg_branches.get_branches(kwargs=kwargs)
         cluster = elasticsearch.Cluster(kwargs=repo)
@@ -162,7 +148,7 @@ class HgMozillaOrg(object):
         while not please_stop:
             with Explanation("looking for work"):
                 try:
-                    branch, revisions = self.todo.pop(till=please_stop)
+                    branch, revisions, after = self.todo.pop(till=please_stop)
                 except Exception as e:
                     if please_stop:
                         break
@@ -176,7 +162,7 @@ class HgMozillaOrg(object):
                 for r in list(revisions):
                     try:
                         rev = self.get_revision(
-                            Revision(branch=branch, changeset={"id": r})
+                            Revision(branch=branch, changeset={"id": r}), after=after
                         )
                         if DAEMON_DEBUG:
                             Log.note(
@@ -209,7 +195,9 @@ class HgMozillaOrg(object):
                     self._find_revision(r)
 
     @cache(duration=HOUR, lock=True)
-    def get_revision(self, revision, locale=None, get_diff=False, get_moves=True):
+    def get_revision(
+        self, revision, locale=None, get_diff=False, get_moves=True, after=None
+    ):
         """
         EXPECTING INCOMPLETE revision OBJECT
         RETURNS revision
@@ -223,7 +211,7 @@ class HgMozillaOrg(object):
             return Null
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         output = self._get_from_elasticsearch(
-            revision, locale=locale, get_diff=get_diff
+            revision, locale=locale, get_diff=get_diff, after=after
         )
         if output:
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
@@ -237,8 +225,8 @@ class HgMozillaOrg(object):
                 revision=output.changeset.id,
             )
             if output.push.date >= Date.now() - MAX_TODO_AGE:
-                self.todo.add((output.branch, listwrap(output.parents)))
-                self.todo.add((output.branch, listwrap(output.children)))
+                self.todo.add((output.branch, listwrap(output.parents), None))
+                self.todo.add((output.branch, listwrap(output.children), None))
             if output.push.date:
                 return output
 
@@ -278,37 +266,45 @@ class HgMozillaOrg(object):
             self.branches = _hg_branches.get_branches(kwargs=self.settings)
 
         push = self._get_push(found_revision.branch, found_revision.changeset.id)
+        id12 = found_revision.changeset.id[0:12]
 
-        url1 = (
-            found_revision.branch.url.rstrip("/")
-            + "/json-info?node="
-            + found_revision.changeset.id[0:12]
-        )
-        url2 = (
-            found_revision.branch.url.rstrip("/")
-            + "/json-rev/"
-            + found_revision.changeset.id[0:12]
+        url1 = found_revision.branch.url.rstrip("/") + "/json-info?node=" + id12
+        url2 = found_revision.branch.url.rstrip("/") + "/json-rev/" + id12
+        url3 = (
+            found_revision.branch.url.rstrip("/") + "/json-automationrelevance/" + id12
         )
         with Explanation("get revision from {{url}}", url=url1, debug=DEBUG):
             raw_rev2 = Null
+            automation_details = Null
             try:
                 raw_rev1 = self._get_raw_json_info(url1, found_revision.branch)
                 raw_rev2 = self._get_raw_json_rev(url2, found_revision.branch)
+                automation_details = self._get_raw_json_rev(url3, found_revision.branch)
             except Exception as e:
                 if "Hg denies it exists" in e:
                     raw_rev1 = Data(node=revision.changeset.id)
                 else:
                     raise e
+
+            raw_rev3_changeset = first(
+                r for r in automation_details.changesets if r.node[:12] == id12
+            )
+            if last(automation_details.changesets) != raw_rev3_changeset:
+                Log.note("interesting")
+
             output = self._normalize_revision(
-                set_default(raw_rev1, raw_rev2),
+                set_default(raw_rev1, raw_rev2, raw_rev3_changeset),
                 found_revision,
                 push,
                 get_diff,
                 get_moves,
             )
             if output.push.date >= Date.now() - MAX_TODO_AGE:
-                self.todo.add((output.branch, listwrap(output.parents)))
-                self.todo.add((output.branch, listwrap(output.children)))
+                self.todo.add((output.branch, listwrap(output.parents), None))
+                self.todo.add((output.branch, listwrap(output.children), None))
+                self.todo.add(
+                    (output.branch, listwrap(output.backsoutnodes), output.push.date)
+                )
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
@@ -317,8 +313,16 @@ class HgMozillaOrg(object):
             return output
 
     def _get_from_elasticsearch(
-        self, revision, locale=None, get_diff=False, get_moves=True
+        self,
+        revision,
+        locale=None,
+        get_diff=False,
+        get_moves=True,
+        after=None,  # RETURN RECORDS ETLed AFTER GIVEN TIME
     ):
+        """
+        MAKE CALL TO ES
+        """
         rev = revision.changeset.id
         if self.repo.cluster.version.startswith("1.7."):
             query = {
@@ -338,7 +342,13 @@ class HgMozillaOrg(object):
                                         )
                                     }
                                 },
-                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
+                                {
+                                    "range": {
+                                        "etl.timestamp": {
+                                            "gt": Date.max(after, MIN_ETL_AGE)
+                                        }
+                                    }
+                                },
                             ]
                         },
                     }
@@ -359,7 +369,13 @@ class HgMozillaOrg(object):
                                     )
                                 }
                             },
-                            {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
+                            {
+                                "range": {
+                                    "etl.timestamp": {
+                                        "gt": Date.max(after, MIN_ETL_AGE)
+                                    }
+                                }
+                            },
                         ]
                     }
                 },
@@ -368,7 +384,6 @@ class HgMozillaOrg(object):
 
         for attempt in range(3):
             try:
-                docs = None
                 if get_moves:
                     with self.moves_locker:
                         docs = self.moves.search(query).hits.hits
@@ -466,7 +481,7 @@ class HgMozillaOrg(object):
             data = self._get_and_retry(url, branch)
             # QUEUE UP THE OTHER CHANGESETS IN THE PUSH
             self.todo.add(
-                (branch, [c.node for cs in data.values().changesets for c in cs])
+                (branch, [c.node for cs in data.values().changesets for c in cs], None)
             )
             pushes = [
                 Push(id=int(index), date=_push.date, user=_push.user)
@@ -493,25 +508,27 @@ class HgMozillaOrg(object):
         changeset = Changeset(
             id=r.node,
             id12=r.node[0:12],
-            author=r.user,
+            author=coalesce(r.author, r.user),
             description=strings.limit(coalesce(r.description, r.desc), 2000),
             date=parse_hg_date(r.date),
             files=r.files,
-            backedoutby=r.backedoutby if r.backedoutby else None,
-            bug=self._extract_bug_id(r.description),
+            backedoutby=r.backedoutby,
+            backsoutnodes=r.backsoutnodes,
+            bug=mo_math.UNION((r.bugs, self._extract_bug_id(r.description))),
         )
         rev = Revision(
             branch=found_revision.branch,
             index=r.rev,
             changeset=changeset,
-            parents=unwraplist(list(set(r.parents))),
-            children=unwraplist(list(set(r.children))),
+            parents=set(r.parents),
+            children=set(r.children),
             push=push,
             phase=r.phase,
             bookmarks=unwraplist(r.bookmarks),
             landingsystem=r.landingsystem,
             etl={"timestamp": Date.now().unix, "machine": machine_metadata},
         )
+        rev = elasticsearch.scrub(rev)
 
         r.pushuser = None
         r.pushdate = None
@@ -527,6 +544,14 @@ class HgMozillaOrg(object):
         r.children = None
         r.bookmarks = None
         r.landingsystem = None
+        r.extra = None
+        r.author = None
+        r.pushhead = None
+        r.reviewers = None
+        r.bugs = None
+        r.treeherderrepourl = None
+        r.backsoutnodes = None
+        r.treeherderrepo = None
 
         set_default(rev, r)
 
@@ -901,4 +926,12 @@ KNOWN_TAGS = {
     "phase",
     "bookmarks",
     "landingsystem",
+    "extra",
+    "author",
+    "pushhead",
+    "reviewers",
+    "bugs",
+    "treeherderrepourl",
+    "backsoutnodes",
+    "treeherderrepo",
 }

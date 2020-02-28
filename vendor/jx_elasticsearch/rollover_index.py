@@ -8,11 +8,12 @@
 #
 from __future__ import unicode_literals
 
+import re
+
 from jx_elasticsearch import elasticsearch
 from jx_python import jx
-from jx_python.containers.list_usingPythonList import ListContainer
 from mo_dots import Null, coalesce, wrap
-from mo_future import items
+from mo_future import items, sort_using_key
 from mo_json import CAN_NOT_DECODE_JSON, json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
@@ -80,11 +81,16 @@ class RolloverIndex(object):
         with self.locker:
             queue = self.known_queues.get(rounded_timestamp.unix)
         if queue == None:
-            candidates = jx.run({
-                "from": ListContainer(".", [p for p in self.cluster.get_aliases()]),
-                "where": {"regex": {"index": self.settings.index + "\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d"}},
-                "sort": "index"
-            })
+            candidates = sort_using_key(
+                filter(
+                    lambda r: re.match(
+                        re.escape(self.settings.index) + r"\d\d\d\d\d\d\d\d_\d\d\d\d\d\d$",
+                        r['index']
+                    ),
+                    self.cluster.get_aliases()
+                ),
+                key=lambda r: r['index']
+            )
             best = None
             for c in candidates:
                 c = wrap(c)

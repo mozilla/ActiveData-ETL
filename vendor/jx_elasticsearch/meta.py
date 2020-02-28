@@ -135,7 +135,9 @@ class ElasticsearchMetadata(Namespace):
         # TODO: fix monitor so it does not bring down ES
         if ENABLE_META_SCAN:
             self.worker = Thread.run(
-                "refresh metadata", self.monitor, parent_thread=MAIN_THREAD
+                "refresh metadata",
+                self.monitor,
+                parent_thread=MAIN_THREAD
             )
         else:
             self.worker = Thread.run(
@@ -537,6 +539,26 @@ class ElasticsearchMetadata(Namespace):
                             "cardinality": cardinality,
                             "partitions": [False, True],
                             "multi": 1,
+                            "last_updated": now,
+                        },
+                        "clear": ["partitions"],
+                        "where": {
+                            "eq": {
+                                "es_index": column.es_index,
+                                "es_column": column.es_column,
+                            }
+                        },
+                    }
+                )
+                return
+            elif "_covered." in column.es_column or "_uncovered." in column.es_column:
+                # DO NOT EVEN LOOK AT THESE COLUMNS
+                self.meta.columns.update(
+                    {
+                        "set": {
+                            "count": 1000*1000,
+                            "cardinality": 10000,
+                            "multi": 10000,
                             "last_updated": now,
                         },
                         "clear": ["partitions"],

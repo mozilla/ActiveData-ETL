@@ -15,6 +15,7 @@ from activedata_etl import etl2key
 from activedata_etl.imports.coverage_util import download_file, LANGUAGE_MAPPINGS, tuid_batches
 from mo_dots import wrap, set_default
 from mo_files import TempFile
+from mo_future import NEXT
 from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
@@ -190,7 +191,7 @@ def process_per_test_artifact(source_key, resources, destination, task_cluster_r
                             cause=e
                         )
 
-    counter = count_generator().next
+    counter = NEXT(count_generator())
 
     with TempFile() as temp_file:
         with Timer("Downloading {{url}}", param={"url": artifact.url}):
