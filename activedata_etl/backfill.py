@@ -26,7 +26,7 @@ from pyLibrary.env.git import get_remote_revision
 
 
 def diff(settings, please_stop=None):
-    if not settings.elasticsearch.id_field:
+    if settings.elasticsearch and not settings.elasticsearch.id_field:
         Log.error("Expecting an `id_field` property")
     settings.range.min = coalesce(settings.range.min, settings.start, 0)
 
@@ -36,20 +36,23 @@ def diff(settings, please_stop=None):
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    esq = jx_elasticsearch.new_instance(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
+    if settings.elasticsearch:
+        esq = jx_elasticsearch.new_instance(settings.elasticsearch)
 
-    if settings.git:
-        rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"prefix": {"etl.revision": rev[0:12]}}
+        if settings.git:
+            rev = get_remote_revision(settings.git.url, settings.git.branch)
+            es_filter = {"prefix": {"etl.revision": rev[0:12]}}
+        else:
+            es_filter = coalesce(settings.es_filter, {"match_all": {}})
+
+        # EVERYTHING FROM ELASTICSEARCH
+        in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
+        if not in_es:
+            Log.alert("nothing in es to backfill")
+            return
     else:
-        es_filter = coalesce(settings.es_filter, {"match_all": {}})
-
-    # EVERYTHING FROM ELASTICSEARCH
-    in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
-    if not in_es:
-        Log.alert("nothing in es to backfill")
-        return
+        in_es = set()
 
     in_range = None
     if settings.range:
@@ -62,6 +65,10 @@ def diff(settings, please_stop=None):
         )
         in_range = set(range(_min, _max))
         in_es &= in_range
+
+        if not in_range - in_es:
+            Log.note("Nothing to do")
+            return
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)
 
