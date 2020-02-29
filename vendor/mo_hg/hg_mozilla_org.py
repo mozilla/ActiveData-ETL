@@ -27,6 +27,7 @@ from mo_dots import (
     wrap,
 )
 from mo_dots.lists import last
+from mo_files import URL
 from mo_future import binary_type, is_text, text, first
 from mo_hg.parse import diff_to_json, diff_to_moves
 from mo_hg.repos.changesets import Changeset
@@ -44,7 +45,7 @@ from mo_logs.exceptions import (
 from mo_logs.strings import expand_template
 from mo_math.randoms import Random
 import mo_threads
-from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till
+from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till, Signal
 from mo_times.dates import Date
 from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
 from mo_http import http
@@ -82,7 +83,6 @@ MIN_ETL_AGE = Date("03may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPL
 UNKNOWN_PUSH = "Unknown push {{revision}}"
 
 MAX_DIFF_SIZE = 1000
-DIFF_URL = "{{location}}/raw-rev/{{rev}}"
 FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
 
 last_called_url = {}
@@ -162,7 +162,11 @@ class HgMozillaOrg(object):
                 for r in list(revisions):
                     try:
                         rev = self.get_revision(
-                            Revision(branch=branch, changeset={"id": r}), after=after
+                            Revision(branch=branch, changeset={"id": r}),
+                            None,
+                            False,
+                            True,
+                            None
                         )
                         if DAEMON_DEBUG:
                             Log.note(
@@ -211,7 +215,7 @@ class HgMozillaOrg(object):
             return Null
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         output = self._get_from_elasticsearch(
-            revision, locale=locale, get_diff=get_diff, after=after
+            revision, locale=locale, get_diff=get_diff, get_moves=get_moves, after=after
         )
         if output:
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
@@ -560,6 +564,7 @@ class HgMozillaOrg(object):
         r.rev = None
         r.tags = None
 
+
         set_default(rev, r)
 
         # ADD THE DIFF
@@ -576,7 +581,6 @@ class HgMozillaOrg(object):
             )
             with self.repo_locker:
                 self.repo.add({"id": _id, "value": rev})
-
             if get_moves:
                 rev.changeset.moves = self._get_moves_from_hg(rev)
                 with self.moves_locker:
@@ -741,13 +745,14 @@ class HgMozillaOrg(object):
             except Exception as e:
                 pass
 
-            url = expand_template(
-                DIFF_URL, {"location": revision.branch.url, "rev": changeset_id}
-            )
+            url = URL(revision.branch.url) / "raw-rev" / changeset_id
             DEBUG and Log.note("get unified diff from {{url}}", url=url)
             try:
                 response = http.get(url)
-                diff = response.content.decode("utf8")
+                try:
+                    diff = response.content.decode("utf8")
+                except Exception as e:
+                    diff = response.content.decode("latin1")
                 json_diff = diff_to_json(diff)
                 num_changes = _count(c for f in json_diff for c in f.changes)
                 if json_diff:
@@ -815,9 +820,7 @@ class HgMozillaOrg(object):
             except Exception as e:
                 pass
 
-            url = expand_template(
-                DIFF_URL, {"location": revision.branch.url, "rev": changeset_id}
-            )
+            url = URL(revision.branch.url) / "raw-rev" / changeset_id
             DEBUG and Log.note("get unified diff from {{url}}", url=url)
             try:
                 moves = http.get(url).content.decode(
@@ -855,7 +858,7 @@ def _get_url(url, branch, **kwargs):
             Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
         if is_text(data) and data.startswith("unknown revision"):
             Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
-        branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
+        # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
         return data
 
 
@@ -941,4 +944,5 @@ KNOWN_TAGS = {
     "treeherderrepourl",
     "backsoutnodes",
     "treeherderrepo",
+    "perfherderurl"
 }
