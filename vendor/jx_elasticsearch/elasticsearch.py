@@ -898,7 +898,7 @@ class Cluster(object):
                 Log.error(quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error(
-                    "{{num}} orf {{total}} shard failures {{failures|indent}}",
+                    "{{num}} of {{total}} shard failures {{failures|indent}}",
                     failures=details._shards.failures.reason,
                     num=details._shards.failed,
                     total=details._shards.total
@@ -1802,3 +1802,35 @@ def value2number(v):
         except Exception as e:
             Log.error("Not a number ({{value}})",  value= v, cause=e)
 
+
+
+def separate_base_blob(blob, assets_keys):
+    """Split a full or partial Release into two separate dictionaries containing the base in one,
+    and the assets in the other.
+        :param blob: The Release to split
+        :type blob: dict
+        :param assets_keys: The keys that should end up in the `assets`.
+        :type assets_keys: dict
+        :return: tuple of base (dict) and assets (dict)
+        :rtype: tuple
+    """
+
+    # include blob
+    if not assets_keys:
+        return blob
+
+    # everything is already included
+    if assets_keys == store:
+        return {}
+
+    # add fancy null-checks
+    assets_keys = wrap(assets_keys)
+
+    # please include everything
+    if assets_keys["*"] == store:
+        return {}
+
+    return wrap({
+        k: separate_base_blob(v, assets_keys[k])
+        for k, v in blob.items()
+    })
