@@ -538,7 +538,7 @@ RAPTOR_BROWSERS = [
     "-refbrow",
 ]
 
-KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage", "webgl"]
+KNOWN_PERFHERDER_OPTIONS = ["pgo", "e10s", "stylo", "coverage"]
 
 KNOWN_SUBTEST_PROPERTIES = {
     "alertChangeType": "alert.change_type",
