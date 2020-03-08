@@ -326,9 +326,9 @@ TEST_PLATFORM = {
     },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "macosx64": {"build": {"platform": "macosx64"}},
     "linux1804-32": {"build": {"platform": "linux32"}},
     "linux1804-64": {"build": {"platform": "linux64"}},
+    "macosx64": {"build": {"platform": "macosx64"}},
     "macosx1010-64": {"build": {"platform": "macosx64"}},
     "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
@@ -337,6 +337,7 @@ TEST_PLATFORM = {
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
+    "vismet-linux64": {"build": {"platform": "linux64"}},
     "vismet-android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
     "vismet-windows7-32": {"build": {"platform": "win32"}},
@@ -403,6 +404,7 @@ RAPTOR_TEST = {
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-cpu-memory-idle-bg",
         "scn-cpu-memory-idle",
         "scn-cpu-idle",
         "scn-power-idle-bg",
@@ -523,6 +525,7 @@ TEST_SUITE = {
         "mochitest-jetpack",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-plain",
         "mochitest-remote-sw",
         "mochitest-remote",
         "mochitest-thunderbird",
@@ -703,6 +706,7 @@ BUILD_STEPS = {"upload-symbols": {}}
 SPECIAL_BUILDS = {
     "android-test-debug": {},
     "nightly": {"build": {"train": "nightly"}},
+    "nightly-lib-push-firebase": {"build": {"train": "nightly"}},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },

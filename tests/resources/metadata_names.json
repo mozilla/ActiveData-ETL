@@ -514,6 +514,10 @@
             "type": ["opt"]
         }
     },
+    "build-nightly-lib-push-firebase": {
+        "action": {"type": "build"},
+        "build": {"train": "nightly"}
+    },
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
         "build": {
@@ -3508,6 +3512,19 @@
             "type": ["1proc"]
         }
     },
+    "test-android-em-7.0-x86_64/debug-geckoview-mochitest-plain-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 1,
+            "suite": {"name": "mochitest-plain"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-em-7.0-x86_64/debug-jsreftest-e10s-6": {
         "action": {"type": "test"},
         "build": {
@@ -3685,6 +3702,20 @@
             "browser": "fennec",
             "framework": "raptor",
             "suite": {"name": "speedometer"}
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-qr/debug-geckoview-reftest-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 1,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64-qr/debug-geckoview-reftest-e10s-7": {
@@ -4056,6 +4087,19 @@
             "type": ["1proc"]
         }
     },
+    "test-android-hw-p2-8-0-arm7-api-16/pgo-raptor-scn-cpu-memory-idle-bg-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "raptor",
+            "suite": {"name": "scn-cpu-memory-idle-bg"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-arm7-api-16/pgo-raptor-scn-power-idle-bg-fenix-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -4102,11 +4146,35 @@
             "type": ["e10s"]
         }
     },
+    "test-linux1804-64-asan/opt-mochitest-plain-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "asan"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "mochitest-plain"},
+            "type": ["e10s"]
+        }
+    },
     "test-linux1804-64-qr/debug-mochitest-webgpu-e10s": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
             "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["webgpu", "e10s", "qr"]
+        }
+    },
+    "test-linux1804-64-shippable-qr/opt-mochitest-webgpu-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
         },
         "run": {
             "suite": {"name": "mochitest"},
@@ -20188,6 +20256,19 @@
             "type": ["profile", "fis", "e10s"]
         }
     },
+    "test-linux64-shippable/opt-talos-webgl-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "talos",
+            "suite": "webgl",
+            "type": ["e10s"]
+        }
+    },
     "test-linux64-shippable/opt-test-verify-gpu": {
         "action": {"type": "test"},
         "build": {
@@ -25909,6 +25990,18 @@
             "type": ["e10s"]
         }
     },
+    "test-macosx1014-64/debug-mochitest-plain-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-plain"},
+            "type": ["e10s"]
+        }
+    },
     "test-macosx1014-64/opt-marionette-headless-e10s-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -28883,6 +28976,20 @@
             "framework": "browsertime",
             "site": "youtube",
             "suite": {"name": "tp6m"}
+        }
+    },
+    "test-vismet-linux64-shippable/opt-browsertime-tp6-firefox-amazon": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "amazon",
+            "suite": {"name": "tp6"}
         }
     },
     "test-vismet-macosx1014-64-shippable/opt-browsertime-tp6-firefox-condprof-amazon": {
@@ -36167,6 +36274,17 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-windows10-64/debug-mochitest-webgpu-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["webgpu", "e10s"]
+        }
+    },
     "test-windows10-64/debug-mozmill-1": {
         "action": {"type": "test"},
         "build": {
@@ -38670,6 +38788,18 @@
             "type": ["opt"]
         },
         "run": {"suite": {"name": "xpcshell"}}
+    },
+    "test-windows7-32-mingwclang/debug-mochitest-webgpu-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "compiler": ["clang"],
+            "platform": "win32",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest"},
+            "type": ["webgpu", "e10s"]
+        }
     },
     "test-windows7-32-msvc/debug-mochitest-devtools-chrome-e10s-8": {
         "action": {"type": "test"},
