@@ -648,6 +648,15 @@
             "type": ["opt"]
         }
     },
+    "build-win64-aarch64-devedition/opt-upload-symbols": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "win64",
+            "train": "devedition",
+            "type": ["opt"]
+        }
+    },
     "build-win64-aarch64-eme/opt": {
         "action": {"type": "build"},
         "build": {

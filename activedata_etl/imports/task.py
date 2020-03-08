@@ -587,20 +587,18 @@ BUILD_PLATFORM = {
     "linux1804-32": {"build": {"platform": "linux32"}},
     "linux1804-64": {"build": {"platform": "linux64"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
     "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
-    "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
-    "win64-dmd": {"build": {"platform": "win64"}},
 }
 
 BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-devedition": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
     },  # ENCRYPTED MEDIA EXTENSIONS
