@@ -7,5 +7,5 @@ fabric<2.0
 fabric2
 # ecdsa required by fabric (but not installed by pip)
 ecdsa
-psutil
+psutil==5.6.7
 pympler
