@@ -1,4 +1,4 @@
-ujson
+ujson==1.35
 BeautifulSoup4
 boto
 requests
