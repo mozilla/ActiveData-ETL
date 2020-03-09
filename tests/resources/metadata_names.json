@@ -3911,6 +3911,34 @@
             "suite": {"name": "unity-webgl"}
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-benchmark-speedometer-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "browsertime",
+            "suite": {"name": "benchmark-speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-benchmark-speedometer-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "browsertime",
+            "suite": {"name": "benchmark-speedometer"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-scn-power-idle-bg-fennec-1proc": {
         "action": {"type": "perf"},
         "build": {

@@ -399,6 +399,7 @@ RAPTOR_TEST = {
     for t in [
         "ares6",
         "assorted-dom",
+        "benchmark-speedometer",
         "gdocs",
         "jetstream2",
         "motionmark-animometer",

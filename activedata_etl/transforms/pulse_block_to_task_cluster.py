@@ -1122,6 +1122,7 @@ BUILD_TYPES = {
 
 BUILD_TYPE_KEYS = set(BUILD_TYPES.keys())
 PAYLOAD_PROPERTIES = {
+    "actions",
     "aliases_entries",
     "apks.armv7_v15",
     "apks.x86",
@@ -1155,7 +1156,9 @@ PAYLOAD_PROPERTIES = {
     "fake",
     "google_play_track",
     "graphs",  # POINTER TO graph.json ARTIFACT
+    "ignore_closed_tree",
     "is_partner_repack_public",
+    "l10n_bump_info",
     "l10n_changesets",
     "locales",
     "locale",
@@ -1166,6 +1169,7 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
+
     "platforms",
     "publish_rules",
     "purge-caches-exit-status",
@@ -1185,6 +1189,7 @@ PAYLOAD_PROPERTIES = {
     "see",
     "script_repo_revision",
     "signingManifest",
+    "source_repo",
     "sourcestamp.repository",
     "stage-product",
     "submission_entries",
