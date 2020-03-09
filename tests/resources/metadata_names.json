@@ -514,10 +514,11 @@
             "type": ["opt"]
         }
     },
-    "build-nightly-lib-push-firebase": {
-        "action": {"type": "build"},
-        "build": {"train": "nightly"}
-    },
+    "build-nightly-browser-storage-memory": {"action": {"type": "build"}},
+    "build-nightly-concept-toolbar": {"action": {"type": "build"}},
+    "build-nightly-feature-media": {"action": {"type": "build"}},
+    "build-nightly-lib-push-firebase": {"action": {"type": "build"}},
+    "build-nightly-support-test": {"action": {"type": "build"}},
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
         "build": {

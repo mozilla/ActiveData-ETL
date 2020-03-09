@@ -705,7 +705,11 @@ BUILD_STEPS = {"upload-symbols": {}}
 SPECIAL_BUILDS = {
     "android-test-debug": {},
     "nightly": {"build": {"train": "nightly"}},
-    "nightly-lib-push-firebase": {"build": {"train": "nightly"}},
+    "nightly-lib-push-firebase": {},
+    "nightly-support-test": {},
+    "nightly-browser-storage-memory": {},
+    "nightly-feature-media": {},
+    "nightly-concept-toolbar": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },

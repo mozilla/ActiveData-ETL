@@ -766,13 +766,14 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvg_static",
     "tsvgx",
     "twinopen",
+    "unity-webgl",
     "update_sparse",  # VCS
     "update",  # VCS
     "v8_7",
     "webconsole-metrics",
-    "webgl",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
+    "webgl",
     "xperf",
     "XUL section sizes",
 ]
