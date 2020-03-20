@@ -324,9 +324,9 @@ TEST_PLATFORM = {
     },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "macosx64": {"build": {"platform": "macosx64"}},
     "linux1804-32": {"build": {"platform": "linux32"}},
     "linux1804-64": {"build": {"platform": "linux64"}},
+    "macosx64": {"build": {"platform": "macosx64"}},
     "macosx1010-64": {"build": {"platform": "macosx64"}},
     "macosx1014-64": {"build": {"platform": "macosx64"}},
     "windows8-64": {"build": {"platform": "win64"}},
@@ -335,6 +335,7 @@ TEST_PLATFORM = {
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
+    "vismet-linux64": {"build": {"platform": "linux64"}},
     "vismet-android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
     "vismet-windows7-32": {"build": {"platform": "win32"}},
@@ -396,11 +397,13 @@ RAPTOR_TEST = {
     for t in [
         "ares6",
         "assorted-dom",
+        "benchmark-speedometer",
         "gdocs",
         "jetstream2",
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-cpu-memory-idle-bg",
         "scn-cpu-memory-idle",
         "scn-cpu-idle",
         "scn-power-idle-bg",
@@ -521,6 +524,7 @@ TEST_SUITE = {
         "mochitest-jetpack",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-plain",
         "mochitest-remote-sw",
         "mochitest-remote",
         "mochitest-thunderbird",
@@ -582,20 +586,18 @@ BUILD_PLATFORM = {
     "linux1804-32": {"build": {"platform": "linux32"}},
     "linux1804-64": {"build": {"platform": "linux64"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
     "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
-    "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
-    "win64-dmd": {"build": {"platform": "win64"}},
 }
 
 BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-devedition": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
     },  # ENCRYPTED MEDIA EXTENSIONS
@@ -701,6 +703,11 @@ BUILD_STEPS = {"upload-symbols": {}}
 SPECIAL_BUILDS = {
     "android-test-debug": {},
     "nightly": {"build": {"train": "nightly"}},
+    "nightly-lib-push-firebase": {},
+    "nightly-support-test": {},
+    "nightly-browser-storage-memory": {},
+    "nightly-feature-media": {},
+    "nightly-concept-toolbar": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },

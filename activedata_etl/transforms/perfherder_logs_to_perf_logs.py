@@ -205,7 +205,7 @@ def transform(source_key, perfherder, metadata, resources):
                 tuple(RAPTOR_BROWSERS)
             ):  # ACCEPT ALL RAPTOR NAMES,
                 pass
-            elif not perfherder.is_empty and framework_name not in ("job_resource_usage", "browsertime"):
+            elif not perfherder.is_empty and framework_name not in ("raptor", "job_resource_usage", "browsertime"):
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -657,6 +657,7 @@ KNOWN_PERFHERDER_TESTS = [
     "kraken",
     "NSPR section sizes",
     "NSS section sizes",
+    "mach_artifact_toolchain",
     "media_tests",
     "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
@@ -766,12 +767,14 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvg_static",
     "tsvgx",
     "twinopen",
+    "unity-webgl",
     "update_sparse",  # VCS
     "update",  # VCS
     "v8_7",
     "webconsole-metrics",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
+    "webgl",
     "xperf",
     "XUL section sizes",
 ]
