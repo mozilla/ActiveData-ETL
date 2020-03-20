@@ -619,6 +619,7 @@ KNOWN_PERFHERDER_TESTS = [
     "dromaeo_dom",
     "dromaeojs",
     "Explicit Memory",
+    "fetch_content",
     "flex",
     "GfxBench",
     "GfxQcmsPerf_Bgra",

@@ -17,19 +17,7 @@ from mo_future import is_text, text
 from mo_math import MIN, is_nan, is_number, abs, floor, round
 from mo_times.vendor.dateutil.relativedelta import relativedelta
 
-_Date = None
-_Log = None
-
-
-def _delayed_import():
-    global _Date
-    global _Log
-
-    from mo_times.dates import Date as _Date
-    from mo_logs import Log as _Log
-
-    _ = _Date
-    _ = _Log
+Date = lambda v: None  # DUMMY, FOR NOW
 
 
 class Duration(object):
@@ -64,9 +52,8 @@ class Duration(object):
     @staticmethod
     def range(start, stop, step):
         if not step:
-            if not _Log:
-                _delayed_import()
-            _Log.error("Expecting a non-zero duration for interval")
+            from mo_logs import Log
+            Log.error("Expecting a non-zero duration for interval")
         output = []
         c = start
         while c < stop:
@@ -83,14 +70,11 @@ class Duration(object):
         return output
 
     def __radd__(self, other):
-        if not _Date:
-            _delayed_import()
-
         if other == None:
             return None
         if isinstance(other, datetime.datetime):
-            return _Date(other).add(self)
-        elif isinstance(other, _Date):
+            return Date(other).add(self)
+        elif isinstance(other, Date):
             return other.add(self)
         return self + other
 
@@ -148,6 +132,9 @@ class Duration(object):
 
     def __rtruediv__(self, other):
         return self.__rdiv__(other)
+
+    def __rdiv__(self, other):
+        return Date(other)/self
 
     def __sub__(self, duration):
         output = Duration(0)
@@ -320,7 +307,7 @@ def _string2Duration(text):
     if text == "" or text == "zero":
         return ZERO
 
-    amount, interval = re.match(r"([\d\.]*)(.*)", text).groups()
+    amount, interval = re.match(r"([\d.]*)(.*)", text).groups()
     amount = int(amount) if amount else 1
 
     if MILLI_VALUES[interval] == None:

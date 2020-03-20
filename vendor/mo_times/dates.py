@@ -10,18 +10,18 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-from mo_future import is_text, is_binary
-from datetime import date, datetime, timedelta
-from decimal import Decimal
 import math
 import re
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 from time import time as _time
 
+import mo_math
 from mo_dots import Null, NullType, coalesce
+from mo_future import is_text
 from mo_future import long, none_type, text, unichr
 from mo_logs import Except
 from mo_logs.strings import deformat
-import mo_math
 from mo_times.durations import Duration, MILLI_VALUES
 from mo_times.vendor.dateutil.parser import parse as parse_date
 
@@ -563,3 +563,9 @@ def _mod(value, mod=1):
         return (value % mod + mod) % mod
     else:
         return value % mod
+
+
+# EXPORTS
+from mo_times import durations
+
+durations.Date = Date
