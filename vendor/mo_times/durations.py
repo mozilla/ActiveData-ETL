@@ -61,8 +61,6 @@ class Duration(object):
             c += step
         return output
 
-
-
     def __add__(self, other):
         output = Duration(0)
         output.milli = self.milli + other.milli
@@ -89,7 +87,6 @@ class Duration(object):
         output.milli = -self.milli
         output.month = -self.month
         return output
-
 
     def __rmul__(self, amount):
         amount = float(amount)
@@ -119,13 +116,17 @@ class Duration(object):
 
             output = floor(m / amount.month) + r
             return output
+        elif isinstance(amount, Duration):
+            return self.milli / amount.milli
         elif is_number(amount):
+            # ASSUME amount IS DATE
             output = Duration(0)
             output.milli = self.milli / amount
             output.month = self.month / amount
             return output
         else:
-            return self.milli / amount.milli
+            from mo_logs import Log
+            Log.error("Do not know how to handle")
 
     def __truediv__(self, other):
         return self.__div__(other)
