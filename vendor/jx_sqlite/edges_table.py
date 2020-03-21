@@ -15,7 +15,7 @@ import mo_math
 from jx_base.domains import DefaultDomain, DurationDomain, TimeDomain
 from jx_base.language import is_op
 from jx_python import jx
-from jx_sqlite import ColumnMapping, STATS, _make_column_name, get_column, sql_aggs, sql_text_array_to_set, \
+from jx_sqlite.utils import ColumnMapping, STATS, _make_column_name, get_column, sql_aggs, sql_text_array_to_set, \
     untyped_column, PARENT, UID
 from jx_sqlite.container import DIGITS_TABLE
 from jx_sqlite.expressions._utils import SQLang, sql_type_to_json_type
@@ -228,12 +228,12 @@ class EdgesTable(SetOpTable):
                     domain_nested_path = domain_columns[0].nested_path
                 domain_table = quote_column(concat_field(self.snowflake.fact_name, domain_nested_path[0]))
                 limit = mo_math.min(query.limit, query_edge.domain.limit)
-                domain = (
-                    SQL_SELECT + sql_list(sql_alias(g, n) for n, g in zip(domain_names, vals)) +
-                    SQL_FROM + domain_table + nest_to_alias["."] +
-                    SQL_GROUPBY + sql_list(vals) +
-                    SQL_ORDERBY + sql_count(SQL_ONE) + SQL_DESC +
-                    SQL_LIMIT + text(limit)
+                domain = ConcatSQL(
+                    SQL_SELECT, sql_list(sql_alias(g, n) for n, g in zip(domain_names, vals)),
+                    SQL_FROM, sql_alias(domain_table, nest_to_alias["."]),
+                    SQL_GROUPBY, sql_list(vals),
+                    SQL_ORDERBY, sql_count(SQL_ONE), SQL_DESC,
+                    SQL_LIMIT, quote_value(limit)
                 )
                 where = None
                 join_type = SQL_LEFT_JOIN if query_edge.allowNulls else SQL_INNER_JOIN
@@ -258,18 +258,19 @@ class EdgesTable(SetOpTable):
                     domain_nested_path = domain_columns[0].nested_path
                 domain_table = quote_column(concat_field(self.snowflake.fact_name, domain_nested_path[0]))
                 limit = mo_math.min(query.limit, query_edge.domain.limit)
-                domain = (
-                    SQL_SELECT + sql_list(sql_alias(g, n) for n, g in zip(domain_names, vals)) +
-                    SQL_FROM + domain_table + " " + nest_to_alias["."] +
-                    SQL_WHERE + SQL_AND.join(g + SQL_IS_NOT_NULL for g in vals) +
-                    SQL_GROUPBY + sql_list(g for g in vals) +
-                    SQL_ORDERBY + sql_list(sql_count(SQL_ONE) + SQL_DESC for _ in vals) +
-                    SQL_LIMIT + quote_value(limit)
+                domain = ConcatSQL(
+                    SQL_SELECT,
+                    sql_list(sql_alias(g, n) for n, g in zip(domain_names, vals)),
+                    SQL_FROM, sql_alias(domain_table, nest_to_alias["."]),
+                    SQL_WHERE, SQL_AND.join(g + SQL_IS_NOT_NULL for g in vals),
+                    SQL_GROUPBY, sql_list(g for g in vals),
+                    SQL_ORDERBY, sql_list(sql_count(SQL_ONE) + SQL_DESC for _ in vals),
+                    SQL_LIMIT, quote_value(limit)
                 )
 
-                domain = (
-                    SQL_SELECT + sql_list(map(quote_column, domain_names)) +
-                    SQL_FROM + sql_iso(domain)
+                domain = ConcatSQL(
+                    SQL_SELECT , sql_list(map(quote_column, domain_names)) ,
+                    SQL_FROM , sql_iso(domain)
                 )
                 if query_edge.allowNulls:
                     domain += (
@@ -463,11 +464,11 @@ class EdgesTable(SetOpTable):
 
         all_parts = []
 
-        primary = sql_iso(
-            SQL_SELECT + sql_list(select_clause) +
-            SQL_FROM + from_sql +
-            SQL_WHERE + main_filter
-        ) + nest_to_alias["."]
+        primary = sql_alias(sql_iso(
+            SQL_SELECT, sql_list(select_clause),
+            SQL_FROM, from_sql,
+            SQL_WHERE, main_filter
+        ), nest_to_alias["."])
 
         edge_sql = []
         for edge_index, query_edge in enumerate(query.edges):

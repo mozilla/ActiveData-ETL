@@ -13,13 +13,13 @@ from __future__ import absolute_import, division, unicode_literals
 
 from jx_base import Column, generateGuid
 from jx_base.expressions import jx_expression
-from jx_sqlite import GUID, ORDER, PARENT, UID, get_if_type, get_jx_type, typed_column, untyped_column
+from jx_sqlite.utils import GUID, ORDER, PARENT, UID, get_if_type, get_jx_type, typed_column, untyped_column
 from jx_sqlite.base_table import BaseTable
 from jx_sqlite.expressions._utils import json_type_to_sql_type
 from jx_sqlite.sqlite import json_type_to_sqlite_type, quote_column, quote_value, sql_alias
 from mo_collections.queue import Queue
 from mo_dots import Data, Null, concat_field, listwrap, startswith_field, unwrap, wrap, \
-    is_many
+    is_many, is_data
 from mo_future import text, first
 from mo_json import STRUCT, NESTED, OBJECT
 from mo_logs import Log

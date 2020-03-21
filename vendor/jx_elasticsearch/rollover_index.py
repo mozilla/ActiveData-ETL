@@ -19,7 +19,7 @@ from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import Except
 from mo_math.randoms import Random
-from mo_threads import Lock
+from mo_threads import Lock, Thread
 from mo_times.dates import Date, unicode2Date, unix2Date
 from mo_times.durations import Duration
 from mo_times.timer import Timer
@@ -112,10 +112,13 @@ class RolloverIndex(object):
             else:
                 es = self.cluster.get_or_create_index(read_only=False, alias=best.alias, index=best.index, kwargs=self.settings)
 
-            try:
-                es.set_refresh_interval(seconds=60 * 10, timeout=5)
-            except Exception:
-                Log.note("Could not set refresh interval for {{index}}", index=es.settings.index)
+            def refresh(please_stop):
+                try:
+                    es.set_refresh_interval(seconds=60 * 10, timeout=5)
+                except Exception:
+                    Log.note("Could not set refresh interval for {{index}}", index=es.settings.index)
+
+            Thread.run("refresh", refresh)
 
             self._delete_old_indexes(candidates)
             threaded_queue = es.threaded_queue(max_size=self.settings.queue_size, batch_size=self.settings.batch_size, silent=True)

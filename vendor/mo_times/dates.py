@@ -69,6 +69,16 @@ class Date(object):
     def __int__(self):
         return int(self.unix)
 
+    def ceiling(self, duration=Null):
+        if duration.month:
+            from mo_logs import Log
+
+            Log.error("do not know how to handle")
+
+        neg_self = _unix2Date(-self.unix)
+        neg_floor = neg_self.floor(duration)
+        return _unix2Date(-neg_floor.unix)
+
     def floor(self, duration=None):
         if duration is None:  # ASSUME DAY
             return _unix2Date(math.floor(self.unix / 86400) * 86400)

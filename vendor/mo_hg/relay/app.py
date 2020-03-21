@@ -11,7 +11,7 @@ import os
 import flask
 from flask import Flask, Response
 
-from mo_hg.cache import Cache
+from mo_hg.relay.cache import Cache
 from mo_json import value2json
 from mo_logs import Except, Log, constants, startup
 from mo_logs.strings import unicode2utf8

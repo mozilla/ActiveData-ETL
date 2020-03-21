@@ -143,7 +143,7 @@ class Sqlite(DB):
             "Sqlite version {{version}}", version=_sqlite3.sqlite_version
         )
         try:
-            if db == None:
+            if not isinstance(db, _sqlite3.Connection):
                 self.db = _sqlite3.connect(
                     database=coalesce(self.filename, ":memory:"),
                     check_same_thread=False,

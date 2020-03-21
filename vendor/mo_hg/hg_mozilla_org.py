@@ -27,7 +27,7 @@ from mo_dots import (
     wrap,
 )
 from mo_dots.lists import last
-from mo_files import URL
+from mo_files import URL, File
 from mo_future import binary_type, is_text, text, first
 from mo_hg.parse import diff_to_json, diff_to_moves
 from mo_hg.repos.changesets import Changeset
@@ -81,6 +81,7 @@ DAEMON_RECENT_HG_PULL = 2  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (O
 MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("03may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 UNKNOWN_PUSH = "Unknown push {{revision}}"
+IGNORE_MERGE_DIFFS = True
 
 MAX_DIFF_SIZE = 1000
 FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
@@ -481,7 +482,6 @@ class HgMozillaOrg(object):
 
         url = branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + changeset_id
         with Explanation("Pulling pushlog from {{url}}", url=url, debug=DEBUG):
-            Log.note("Reading pushlog from {{url}}", url=url, changeset=changeset_id)
             data = self._get_and_retry(url, branch)
             # QUEUE UP THE OTHER CHANGESETS IN THE PUSH
             self.todo.add(
@@ -753,10 +753,12 @@ class HgMozillaOrg(object):
                     diff = response.content.decode("utf8")
                 except Exception as e:
                     diff = response.content.decode("latin1")
+
+                # File("tests/resources/big.patch").write_bytes(response.content)
                 json_diff = diff_to_json(diff)
                 num_changes = _count(c for f in json_diff for c in f.changes)
                 if json_diff:
-                    if revision.changeset.description.startswith("merge "):
+                    if IGNORE_MERGE_DIFFS and revision.changeset.description.startswith("merge "):
                         return None  # IGNORE THE MERGE CHANGESETS
                     elif num_changes < MAX_DIFF_SIZE:
                         return json_diff
@@ -851,15 +853,14 @@ def _trim(url):
 
 
 def _get_url(url, branch, **kwargs):
-    with Explanation("get push from {{url}}", url=url, debug=DEBUG):
-        response = http.get(url, **kwargs)
-        data = json2value(response.content.decode("utf8"))
-        if data.error.startswith("unknown revision"):
-            Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
-        if is_text(data) and data.startswith("unknown revision"):
-            Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
-        # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
-        return data
+    response = http.get(url, **kwargs)
+    data = json2value(response.content.decode("utf8"))
+    if data.error.startswith("unknown revision"):
+        Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
+    if is_text(data) and data.startswith("unknown revision"):
+        Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
+    # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
+    return data
 
 
 def parse_hg_date(date):

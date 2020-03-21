@@ -19,7 +19,7 @@ from jx_base.expressions import TupleOp, Variable, jx_expression
 from jx_base.language import is_op
 from jx_base.query import QueryOp
 from jx_python import jx
-from jx_sqlite import GUID, sql_aggs, unique_name, untyped_column
+from jx_sqlite.utils import GUID, sql_aggs, unique_name, untyped_column
 from jx_sqlite.base_table import BaseTable
 from jx_sqlite.expressions._utils import SQLang
 from jx_sqlite.groupby_table import GroupbyTable

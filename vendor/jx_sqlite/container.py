@@ -10,10 +10,10 @@ from __future__ import absolute_import, division, unicode_literals
 
 from mo_json import STRING
 
-from mo_dots import concat_field
+from mo_dots import concat_field, set_default
 
 from jx_base import Facts, Column
-from jx_sqlite import UID, GUID, DIGITS_TABLE, ABOUT_TABLE
+from jx_sqlite.utils import UID, GUID, DIGITS_TABLE, ABOUT_TABLE
 from jx_sqlite.namespace import Namespace
 from jx_sqlite.query_table import QueryTable
 from jx_sqlite.snowflake import Snowflake
@@ -40,12 +40,18 @@ _config = None
 
 class Container(object):
     @override
-    def __init__(self, db=None):
+    def __init__(
+            self,
+            db=None,  # EXISTING Sqlite3 DATBASE, OR CONFIGURATION FOR Sqlite DB
+            filename=None,  # FILE FOR THE DATABASE (None FOR MEMORY DATABASE)
+            kwargs=None   # See Sqlite parameters
+    ):
         global _config
         if isinstance(db, Sqlite):
             self.db = db
         else:
-            self.db = db = Sqlite(db)
+            # PASS CALL PARAMETERS TO Sqlite
+            self.db = db = Sqlite(filename=filename, kwargs=set_default({}, db, kwargs))
 
         self.db.create_new_functions()  # creating new functions: regexp
 

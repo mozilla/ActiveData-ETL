@@ -1130,7 +1130,7 @@ class Alias(object):
                 settings = self.cluster.get("/" + full_name + "/_mapping")[full_name]
             else:
                 index = self.cluster.get_best_matching_index(alias).index
-                settings = self.cluster.get_metadata().indices[index]
+                settings = self.cluster.get_metadata().indices[literal_field(index)]
 
             # FIND MAPPING WITH MOST PROPERTIES (AND ASSUME THAT IS THE CANONICAL TYPE)
             type, props = _get_best_type_from_mapping(settings.mappings)

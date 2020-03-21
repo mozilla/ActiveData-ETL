@@ -16,7 +16,7 @@ from flask import Response
 from mo_dots import coalesce
 from mo_files.url import URL
 from mo_future import text, xrange
-from mo_hg.rate_logger import RateLogger
+from mo_hg.relay.rate_logger import RateLogger
 from mo_json import value2json
 from mo_kwargs import override
 from mo_logs import Log
