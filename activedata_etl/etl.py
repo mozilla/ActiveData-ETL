@@ -307,8 +307,9 @@ class ETL(Thread):
                         else:
                             self.work_queue.rollback()
                     except Exception as e:
-                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL
+                        # WE CERTAINLY EXPECT TO GET HERE IF SHUTDOWN IS DETECTED, NO NEED TO TELL HUMANS
                         if "Shutdown detected." in e:
+                            self.work_queue.rollback()
                             continue
 
                         previous_attempts = coalesce(todo.previous_attempts, 0)

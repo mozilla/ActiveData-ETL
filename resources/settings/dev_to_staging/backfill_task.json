@@ -2,10 +2,14 @@
 	"no_checks": true,
 	"range": {"min":2186240, "max":2186754},
 	"limit": 10000,
-	"git":{
-		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
-		"branch": "etl"
-	},
+	"es_filter":{"and": [
+		{"gte":{"etl\\.timestamp":{"date":"2019-11-01"}}},
+		{"lt":{"etl\\.timestamp":{"date":"2019-11-23"}}}
+	]},
+//	"git":{
+//		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+//		"branch": "etl"
+//	},
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
 		"name": "active-data-index-es5",
 		"$ref": "file://~/private.json#aws_credentials"
@@ -16,7 +20,8 @@
 		"key_format": "t.a:b.c",
 		"prefix": "tc."
 	},
-	"elasticsearch": {  //WHERE WE CAN QUERY TO FIND WHAT IS DONE ALREADY
+	"elasticsearch": {
+		// ES USED TO DETERMINE WHAT IS MISSING
 		"id_field": "etl.source.id",
 		"host": "http://activedata.allizom.org",
 		"port": 9200,
@@ -26,8 +31,14 @@
 		"schema": {
 			"$ref": "//../../schema/task_cluster.json"
 				},
-		"debug": true,
+		"debug": false,
 		"limit_replicas": false
+	},
+	"constants": {
+		"pyLibrary.env.http.default_headers": {
+			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
+			"User-Agent": "ActiveData-ETL"
+		}
 	},
 	"debug": {
 		"trace": true,

@@ -118,7 +118,7 @@ def main():
         if not instances:
             Log.alert("No instances found. DONE.")
             return
-        for g, members in jx.groupby(instances, size=1):
+        for g, members in jx.groupby(instances, size=40):
             # TODO: A THREAD POOL WOULD BE NICE
             # pool = Thread.pool(40)
             # for i in instances: pool("refresh etl", _refresh_etl, i, settings, cw)
@@ -130,7 +130,7 @@ def main():
                 for t in threads:
                     t.join()
     except Exception as e:
-        Log.error("Problem with etl", cause=e)
+        Log.warning("Problem with etl! Shutting down.", cause=e)
     finally:
         MAIN_THREAD.stop()
 

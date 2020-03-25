@@ -48,6 +48,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     perf = http.get_json(artifact.url)
                     for t in perf.suites:
                         t.framework = perf.framework
+                        t.application = perf.application
                         t.task = pulse_record
                         _, t.etl = etl_header_gen.next(etl_task, url=artifact.url)
                     all_perf.extend(perf.suites)

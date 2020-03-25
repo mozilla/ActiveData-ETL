@@ -263,10 +263,12 @@ _option_map = {
     "jsdcov": ["jsdcov"],
     "lto": ["lto"],  # LINK TIME OPTIMIZATION
     "make": ["make"],
-    "Nightlies": ["Nightlies"],
+    "nightly": ["nightly"],
+    "Nightlies": ["nightly"],
     "nostylo": ["stylo-disabled"],
     "opt": ["opt"],
     "pgo": ["pgo"],
+    "tsan": ["tsan"],
     "x64": ["x64"],
     "x86": ["x86"],
     "release": ["release"],
@@ -291,13 +293,18 @@ def pull_details(source_key, details, new_treeherder):
         elif d.title == "buildbot_request_id":
             new_treeherder.run.buildbot.id = d.value
         elif d.title == "Inspect Task":
-            if d.url.startswith("https://tools.taskcluster.net/task-inspector/#"):
+            ci_tc = "https://firefox-ci-tc.services.mozilla.com/tasks/"
+            if d.url.startswith(ci_tc):
+                new_treeherder.run.taskcluster.id = d.url[len(ci_tc):]
+            elif d.url.startswith("https://tools.taskcluster.net/task-inspector/#"):
                 new_treeherder.run.taskcluster.id = strings.between(
-                    d.url, "https://tools.taskcluster.net/task-inspector/#", "/"
+                    d.url,
+                    "https://tools.taskcluster.net/task-inspector/#",
+                    "/"
                 )
             else:
                 Log.warning(
-                    "Can not extract task for ket {{key}} from {{url}}",
+                    "Can not extract task for key {{key}} from {{url}}",
                     key=source_key,
                     url=d.url,
                 )
@@ -358,6 +365,8 @@ def pull_details(source_key, details, new_treeherder):
                 )
             elif any(map(d.value.startswith, KNOWN_VALUES)):
                 pass
+            elif d.value in d.url:
+                pass
             else:
                 KNOWN_VALUES.append(d.value)
                 Log.warning(
@@ -415,6 +424,7 @@ KNOWN_VALUES = [
 
 
 NON_HG_BRANCHES = [
+    "android-components",
     'ci-taskgraph',
     "bmo-master",
     "fenix",

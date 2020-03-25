@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import datetime
-from copy import copy
 from math import sqrt
 
 import mo_math
@@ -206,7 +205,7 @@ def transform(source_key, perfherder, metadata, resources):
                 tuple(RAPTOR_BROWSERS)
             ):  # ACCEPT ALL RAPTOR NAMES,
                 pass
-            elif not perfherder.is_empty and framework_name != "job_resource_usage":
+            elif not perfherder.is_empty and framework_name not in ("raptor", "job_resource_usage", "browsertime"):
                 Log.warning(
                     "While processing {{uid}}, found unknown perfherder suite by name of {{name|quote}} (run.type={{metadata.run.type}}, build.type={{metadata.build.type}})",
                     uid=source_key,
@@ -225,7 +224,9 @@ def transform(source_key, perfherder, metadata, resources):
         )
         metadata.result.suite = metadata.run.suite = suite_name
         metadata.result.framework = metadata.run.framework = perfherder.framework
+        metadata.result.application = perfherder.application
         metadata.result.extraOptions = perfherder.extraOptions
+        metadata.result.hgVersion = perfherder.hgVersion
 
         mainthread_transform(perfherder.results_aux)
         mainthread_transform(perfherder.results_xperf)
@@ -245,7 +246,8 @@ def transform(source_key, perfherder, metadata, resources):
                 "change_type": perfherder.alertChangeType,
             },
             "type": perfherder.type,
-            "server_url": perfherder.serverUrl
+            "server_url": perfherder.serverUrl,
+            "tags": perfherder.tags
         }
 
         total = FlatList()
@@ -493,10 +495,12 @@ def geo_mean(values):
                 )
     return {k: Math.exp(v.stats.mean) for k, v in agg.items()}
 
-
 RAPTOR_BROWSERS = [
     "-chromium-cold",
+    "-chromium-live",
     "-chromium",
+    "-chrome-cold",
+    "-chrome-live",
     "-chrome",
     "-fenix-cold-live",
     "-fenix-cold",
@@ -506,10 +510,19 @@ RAPTOR_BROWSERS = [
     "-fenix-cold",
     "-fenix",
     "-fennec64-cold",
+    "-fennec64-power",
     "-fennec64",
-    "-fennec-power",
+    "-fennec68-cold",
+    "-fennec68-power",
+    "-fennec68",
     "-fennec-cold",
+    "-fennec-power",
     "-fennec",
+    "-firefox-live-cumulative-power",
+    "-firefox-live-utilization-power",
+    "-firefox-live-watts-power",
+    "-firefox-live-frequency-cpu-power",
+    "-firefox-live-frequency-gpu-power",
     "-firefox-live",
     "-firefox-cold",
     "-firefox",
@@ -520,6 +533,7 @@ RAPTOR_BROWSERS = [
     "-geckoview-power",
     "-geckoview-%change-power",
     "-geckoview",
+    "-refbrow-cold",
     "-refbrow-power",
     "-refbrow",
 ]
@@ -544,9 +558,11 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "_id",
     "alertChangeType",
     "alertThreshold",
+    "application",
     "etl",
     "extraOptions",
     "framework",
+    "hgVersion",
     "is_empty",
     "lowerIsBetter",
     "name",
@@ -560,6 +576,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
     "shouldAlert",
     "subtests",
     "summary",
+    "tags",
     "type",
     "unit",
     "units",
@@ -567,6 +584,7 @@ KNOWN_PERFHERDER_PROPERTIES = {
 }
 KNOWN_PERFHERDER_TESTS = [
     # BE SURE TO PUT THE LONGEST STRINGS FIRST
+    "about_newtab_with_snippets",
     "about_preferences_basic",
     "ares6-sm",
     "ares6-v8",
@@ -600,6 +618,7 @@ KNOWN_PERFHERDER_TESTS = [
     "dromaeo_dom",
     "dromaeojs",
     "Explicit Memory",
+    "fetch_content",
     "flex",
     "GfxBench",
     "GfxQcmsPerf_Bgra",
@@ -637,11 +656,13 @@ KNOWN_PERFHERDER_TESTS = [
     "kraken",
     "NSPR section sizes",
     "NSS section sizes",
+    "mach_artifact_toolchain",
     "media_tests",
     "mochitest-browser-chrome-screenshots",
     "mochitest-browser-chrome",
     "motionmark_animometer",
     "motionmark_htmlsuite",
+    "motionmark_webgl",
     "motionmark, transformed",
     "motionmark",
     "netmonitor-metrics",
@@ -662,6 +683,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall_pull_fullcheckout",
     "overall_pull_emptywdir",
     "overall_pull_populatedwdir",
+    "overall_pull_rmwdir",
     "overall_pull",  # VCS
     "overall",  # VCS
     "perf_reftest_singletons",
@@ -678,12 +700,15 @@ KNOWN_PERFHERDER_TESTS = [
     "quantum_pageload_youtube",
     "rasterflood_gradient",
     "rasterflood_svg",
+    "realworld-webextensions",
     "removed_missing_shared_store",
+    "remove_locked_wdir",
     "remove_shared_store_active_lock",
     "Resident Memory",
     "sccache cache_write_errors",
     "sccache hit rate",
     "sccache requests_not_cacheable",
+    "sessionrestore-many-windows",
     "sessionrestore_many_windows",
     "sessionrestore_no_auto_restore",
     "sessionrestore",
@@ -692,6 +717,7 @@ KNOWN_PERFHERDER_TESTS = [
     "six-speed",
     "sparse_update_config",  # VCS
     "speedometer",
+    "startup_about_home_paint_realworld_webextensions",
     "startup_about_home_paint",
     "Strings",
     "stylebench",
@@ -740,12 +766,14 @@ KNOWN_PERFHERDER_TESTS = [
     "tsvg_static",
     "tsvgx",
     "twinopen",
+    "unity-webgl",
     "update_sparse",  # VCS
     "update",  # VCS
     "v8_7",
     "webconsole-metrics",
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
+    "webgl",
     "xperf",
     "XUL section sizes",
 ]

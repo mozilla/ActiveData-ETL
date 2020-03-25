@@ -33,7 +33,7 @@ OVERWRITE_RESOURCE = True
 
 class TestMetadataName(FuzzyTestCase):
     def test_basic(self):
-        Log.alert("If you see any results, then you have OVERWRITE_RESOURCE = True and tests are not passing")
+        Log.alert("If you see any results, then you have OVERWRITE_RESOURCE = True and tests are FAILING")
         with Timer("test time"):
             resource = File("tests/resources/metadata_names.json")
             tests = unwrap(resource.read_json(leaves=False, flexible=False))
@@ -51,7 +51,7 @@ class TestMetadataName(FuzzyTestCase):
 
     def test_one(self):
         test = decode_metatdata_name(
-            Null, "test-linux64/opt-raptor-wasm-misc-ion-firefox-e10s"
+            Null, "test-windows10-64-shippable/opt-browsertime-tp6-1-chrome-cold-e10s"
         )
         expected = {
             "action": {"type": "raptor"},

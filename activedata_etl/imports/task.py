@@ -76,9 +76,22 @@ NULL_TASKS = (
     "Buildbot/mozharness S3 uploader",
     "balrog-",
     "beetmover-",
-    "build-signing-",
+    "build-browser-",
+    "build-bundle-",
+    "build-concept-",
+    "build-debug",
     "build-docker_image-",
     "build-docker-image-",
+    "build-feature-",
+    "build-lib-",
+    "build-release-",
+    "build-samples-",
+    "build-service-",
+    "build-signing-",
+    "build-snapshot-",
+    "build-support-",
+    "build-tooling-",
+    "build-ui-",
     "checksums-signing-",
     "Cron task for ",
     "partials-signing-",
@@ -132,17 +145,19 @@ CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
         "debug": {},
+        "ui": {},
+        "nightly": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "action": {"type": "perf"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
@@ -160,6 +175,41 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
         },
+        # BROWSERTIME
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        # BROWSERTIME SITES
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        # BASIC TEST FORMAT
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
         },
@@ -167,17 +217,14 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}": {"action": {"type": "test"}},
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "test"}
@@ -229,12 +276,11 @@ CATEGORIES = {
             "build": {"train": "nightly"},
             "action": {"type": "build"},
         },
-        "{{SPECIAL}}": {"action": {"type": "build"}},
+        "{{SPECIAL_BUILDS}}": {"action": {"type": "build"}},
     },
     "desktop-test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "test"}
@@ -247,16 +293,13 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
-            "run": {"type": ["chunked"]},
-            "action": {"type": "test"},
+            "action": {"type": "test"}
         },
     },
 }
@@ -273,6 +316,7 @@ TEST_PLATFORM = {
     "android-hw-p2-8-1-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
+    "android-hw-p2-8-0-android-aarch64": {"build": {"cpu": "aarch64", "platform": "android"}},
     "android-4": {"build": {"platform": "android"}},
     "android-7.0-x86": {"build": {"platform": "android"}},
     "android-emu-4.3-arm7-api-16": {"build": {"platform": "android"}},
@@ -282,6 +326,8 @@ TEST_PLATFORM = {
     },
     "linux32": {"build": {"platform": "linux32"}},
     "linux64": {"build": {"platform": "linux64"}},
+    "linux1804-32": {"build": {"platform": "linux32"}},
+    "linux1804-64": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx1010-64": {"build": {"platform": "macosx64"}},
     "macosx1014-64": {"build": {"platform": "macosx64"}},
@@ -291,21 +337,32 @@ TEST_PLATFORM = {
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
+    "vismet-linux64": {"build": {"platform": "linux64"}},
+    "vismet-android-hw-p2-8-0-android": {"build": {"platform": "android"}},
+    "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
+    "vismet-windows7-32": {"build": {"platform": "win32"}},
 }
 
 RUN_OPTIONS = {
     "1proc": {"run": {"type": ["1proc"]}},
+    "condprof-e10s": {"run": {"type": ["condprof", "e10s"]}},
     "profiling": {"run": {"type": ["profile"]}},
+    "profiling-fis-e10s": {"run": {"type": ["profile", "fis", "e10s"]}},
     "profiling-e10s": {"run": {"type": ["profile", "e10s"]}},
     "profiling-1proc": {"run": {"type": ["profile", "1proc"]}},
     "e10s": {"run": {"type": ["e10s"]}},
+    "e10s-e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
     "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
     "fis": {"run": {"type": ["fis"]}},  # fission
     "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
     "gpu-e10s": {"run": {"type": ["gpu", "e10s"]}},
+    "gpu-fis-e10s": {"run": {"type": ["gpu", "fis", "e10s"]}},
+    "gpu-sw-e10s": {"run": {"type": ["gpu", "service-worker", "e10s"]}},
     "gpu": {"run": {"type": ["gpu"]}},
+    # "headless": {"run": {"type": ["headless"]}},
+    # "headless-e10s-e10s": {"run": {"type": ["headless", "e10s"]}},
     "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "no-accel": {"run": {"type": ["no-accel"]}},
@@ -326,6 +383,11 @@ RUN_OPTIONS = {
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
     "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
+    "webgpu-e10s": {"run": {"type": ["webgpu", "e10s"]}},
+    "webgpu-sw-e10s": {"run": {"type": ["webgpu", "service-worker", "e10s"]}},
+    "webgpu-sw": {"run": {"type": ["webgpu", "service-worker"]}},
+    "webgpu-fis-e10s": {"run": {"type": ["webgpu", "fis", "e10s"]}},  # fission
+    "webgpu-fis": {"run": {"type": ["webgpu", "fis"]}},  # fission
 }
 
 TALOS_TEST = {
@@ -337,11 +399,13 @@ RAPTOR_TEST = {
     for t in [
         "ares6",
         "assorted-dom",
+        "benchmark-speedometer",
         "gdocs",
         "jetstream2",
         "motionmark-animometer",
         "motionmark-htmlsuite",
         "motionmark",
+        "scn-cpu-memory-idle-bg",
         "scn-cpu-memory-idle",
         "scn-cpu-idle",
         "scn-power-idle-bg",
@@ -358,12 +422,19 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback-h264-power",
         "youtube-playback",
     ]
 }
 
 
 def match_tp6(name):
+    """
+    MATCH tp6-<TEST>-<TEST_CHUNK>-<BROWSER>
+    :param name:
+    :return:
+    """
+
     for suite in ["tp6", "tp6m"]:
         prefix = suite + "-"
         if name.startswith(prefix):
@@ -383,20 +454,31 @@ def match_tp6(name):
 RAPTOR_TEST["tp6"] = match_tp6
 RAPTOR_TEST["tp6m"] = match_tp6
 
+
+SITE = {s: {"run": {"site": s}} for s in ["amazon", "bing-search", "facebook", "google", "google-search", "yahoo-news", "youtube", "wikipedia"]}
+
 BROWSER = {
+    "chrome-cold": {"run": {"browser": "chrome"}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium"}},
     "chromium": {"run": {"browser": "chromium"}},
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
     "fenix-cold": {"run": {"browser": "fenix"}},
     "fenix": {"run": {"browser": "fenix"}},
+    "firefox-cold-condprof": {
+        "run": {"browser": "firefox", "type": ["condprof"]}
+    },  # https://searchfox.org/mozilla-central/source/testing/condprofile/README.rst
     "firefox-cold": {"run": {"browser": "firefox"}},
+    "firefox-condprof": {"run": {"browser": "firefox", "type": ["condprof"]}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec": {"run": {"browser": "fennec"}},
     "fennec-cold": {"run": {"browser": "fennec"}},
     "fennec64": {"run": {"browser": "fennec"}},
     "fennec64-cold": {"run": {"browser": "fennec"}},
+    "fennec68": {"run": {"browser": "fennec"}},
+    "fennec68-cold": {"run": {"browser": "fennec"}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
+    "geckoview-cpu-memory-power": {"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
     "geckoview-cpu": {"run": {"browser": "geckoview"}},
     "geckoview-cold": {"run": {"browser": "geckoview"}},
@@ -442,9 +524,9 @@ TEST_SUITE = {
         "mochitest-devtools-webreplay",
         "mochitest-devtools-chrome",
         "mochitest-jetpack",
-        "mochitest-gpu",
         "mochitest-media",
         "mochitest-plain-headless",
+        "mochitest-plain",
         "mochitest-remote-sw",
         "mochitest-remote",
         "mochitest-thunderbird",
@@ -456,12 +538,12 @@ TEST_SUITE = {
         "mochitest-webgl",
         "mochitest",
         "mozmill",
-        "reftest",
         "reftest-fonts",
         "reftest-gpu",
         "reftest-gpu-fonts",
         "reftest-no-accel",
         "reftest-no-accel-fonts",
+        "reftest",
         "robocop",
         "telemetry-tests-client",
         "test-coverage",
@@ -469,6 +551,7 @@ TEST_SUITE = {
         "test-verify",
         "test-verify-wpt",
         "web-platform-tests",
+        "web-platform-tests-crashtests",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
         "web-platform-tests-wdspec-headless",
@@ -480,6 +563,7 @@ TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-aarch64-aws": {"build": {"platform": "android", "type": ["aarch64"]}},
     "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -488,6 +572,7 @@ BUILD_PLATFORM = {
     "android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "android-x86": {"build": {"cpu": "x86", "platform": "android"}},
     "android-x86_64": {"build": {"cpu": "x86-64", "platform": "android"}},
+    "android-x86-aws": {"build": {"cpu": "x86-64", "platform": "android"}},
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
@@ -496,23 +581,25 @@ BUILD_PLATFORM = {
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
-    "fat-aar-android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
+    "fat-aar-android-geckoview": {
+        "build": {"platform": "android", "product": "geckoview"}
+    },
     "linux": {"build": {"platform": "linux"}},
+    "linux1804-32": {"build": {"platform": "linux32"}},
+    "linux1804-64": {"build": {"platform": "linux64"}},
     "linux64": {"build": {"platform": "linux64"}},
-    "linux64-dmd": {"build": {"platform": "linux64"}},
     "macosx64": {"build": {"platform": "macosx64"}},
     "macosx": {"build": {"platform": "maxosx"}},
     "reference-browser": {},
     "win32": {"build": {"platform": "win32"}},
-    "win32-dmd": {"build": {"platform": "win32"}},
     "win64": {"build": {"platform": "win64"}},
-    "win64-dmd": {"build": {"platform": "win64"}},
 }
 
 BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-devedition": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
     },  # ENCRYPTED MEDIA EXTENSIONS
@@ -523,7 +610,6 @@ BUILD_OPTIONS = {
     "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
     "aarch64": {"build": {"cpu": "aarch64"}},
-
     "add-on-devel": {},
     "armel": {"build": {"cpu": "arm"}},
     "armhf": {"build": {"cpu": "arm"}},
@@ -569,11 +655,14 @@ BUILD_OPTIONS = {
     "pytests": {},
     "release-test": {},
     "release": {"build": {"train": "release"}},
+    "reproduced": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "s390x": {"build": {"cpu": "s390"}},
     "test": {},
+    "tsan-fuzzing": {"build": {"type": ["tsan", "fuzzing"]}},
+    "tsan": {"build": {"type": ["tsan"]}},
     "tup": {"build": {"type": ["tup"]}},
     "universal": {},
     "without-google-play-services": {},
@@ -613,7 +702,14 @@ TEST_OPTIONS = unwrap(
 
 BUILD_STEPS = {"upload-symbols": {}}
 
-SPECIAL = {
+SPECIAL_BUILDS = {
+    "android-test-debug": {},
+    "nightly": {"build": {"train": "nightly"}},
+    "nightly-lib-push-firebase": {},
+    "nightly-support-test": {},
+    "nightly-browser-storage-memory": {},
+    "nightly-feature-media": {},
+    "nightly-concept-toolbar": {},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
