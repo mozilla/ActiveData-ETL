@@ -1,6 +1,6 @@
 cluster.name: ActiveData-es6
 
-node.name: 4
+node.name: backup4
 node.master: false
 node.data: true
 node.ingest: true
