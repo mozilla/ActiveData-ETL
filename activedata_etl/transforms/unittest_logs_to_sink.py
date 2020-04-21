@@ -10,6 +10,7 @@ from __future__ import division, unicode_literals
 
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
+from jx_python import jx
 from mo_dots import Data, Null, coalesce, set_default, wrap
 from mo_future import text_type
 from mo_json import json2value, scrub
@@ -222,7 +223,7 @@ class LogSummary(object):
                                 continue
                             for test in tests:
                                 self.test_to_group[test] = group
-                        self.groups = set(v.keys()) - {"default"}
+                        self.groups = jx.sort(set(v.keys()) - {"default"})
                 except Exception as e:
                     Log.warning(
                         "can not process the suite_start.tests dictionary for {{key}}\n{{example|json|indent}}",

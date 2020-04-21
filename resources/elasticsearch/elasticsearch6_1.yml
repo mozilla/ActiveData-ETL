@@ -5,6 +5,7 @@ node.master: false
 node.data: true
 node.ingest: true
 node.attr.zone: primary
+node.attr.cluster: activedata
 
 cluster.routing.allocation.awareness.attributes: zone
 cluster.routing.allocation.enable: none
