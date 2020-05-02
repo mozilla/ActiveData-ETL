@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from mo_logs import Log
-from pyLibrary.env import http
+from mo_http import http
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from activedata_etl.transforms.pulse_block_to_job_logs import process_text_log
 

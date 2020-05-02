@@ -151,8 +151,14 @@ def coco_format(details):
 
 
 def n_tuple(values, length):
-    output = values[:length]
-    output = output + [Null]*(length-len(output))
+    """
+    RETURN A LIST OF length
+    """
+    output = [None] * length
+    for i, v in enumerate(values):
+        if i >= length:
+            break
+        output[i] = v
     return output
 
 

@@ -14,11 +14,10 @@ from __future__ import unicode_literals
 import hashlib
 
 import mo_json_config
+from jx_elasticsearch import elasticsearch
 from mo_files import File
 from mo_logs import Log
 from mo_threads import THREAD_STOP
-from pyLibrary import convert
-from pyLibrary.env import elasticsearch
 
 es_config = mo_json_config.get("file://resources/settings/codecoverage/push_cv_to_es.json").elasticsearch
 
@@ -30,7 +29,7 @@ queue = es.threaded_queue(batch_size=100)
 dir_ = File("../CoverageUtils-Trung/ActivData/transformed")
 for f in dir_.children:
     Log.note("Adding data from {{file}}", file=f.abspath)
-    for line in convert.utf82unicode(f.read_bytes()).splitlines():
+    for line in f.read_bytes().decode('utf8').splitlines():
         queue.add({"id": hashlib.md5(line).hexdigest(), "json": line})
 
 queue.add(THREAD_STOP)

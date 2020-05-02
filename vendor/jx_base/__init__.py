@@ -5,21 +5,24 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 from uuid import uuid4
 
-from mo_dots import wrap, coalesce, listwrap
-from mo_future import text_type
-from mo_json import value2json
+from jx_base.expressions import jx_expression
+from jx_python.expressions import Literal, Python
+from mo_dots import coalesce, listwrap, wrap
+from mo_dots.datas import register_data
+from mo_dots.lists import last
+from mo_future import is_text, text
+from mo_json import value2json, true, false, null
 from mo_logs import Log
 from mo_logs.strings import expand_template, quote
-from jx_base.expressions import jx_expression
-from jx_python.expressions import Python, Literal
+
+
+ENABLE_CONSTRAINTS = True
 
 
 def generateGuid():
@@ -34,7 +37,7 @@ def generateGuid():
     print(a)
     print(uuid.UUID(a).hex)
     """
-    return text_type(uuid4())
+    return text(uuid4())
 
 
 def _exec(code, name):
@@ -48,7 +51,7 @@ def _exec(code, name):
         Log.error("Can not make class\n{{code}}", code=code, cause=e)
 
 
-_ = listwrap
+_ = listwrap, last, true, false, null
 
 
 def DataClass(name, columns, constraint=None):
@@ -77,7 +80,7 @@ def DataClass(name, columns, constraint=None):
     columns = wrap(
         [
             {"name": c, "required": True, "nulls": False, "type": object}
-            if isinstance(c, text_type)
+            if is_text(c)
             else c
             for c in columns
         ]
@@ -93,6 +96,7 @@ def DataClass(name, columns, constraint=None):
     code = expand_template(
         """
 from __future__ import unicode_literals
+from mo_future import is_text, is_binary
 from collections import Mapping
 
 meta = None
@@ -104,10 +108,16 @@ class {{class_name}}(Mapping):
 
 
     def _constraint(row, rownum, rows):
-        try:
-            return {{constraint_expr}}
-        except Exception as e:
-            return False
+        code = {{constraint_expr|quote}}
+        if {{constraint_expr}}:
+            return
+        Log.error(
+            "constraint\\n{" + "{code}}\\nnot satisfied {" + "{expect}}\\n{" + "{value|indent}}",
+            code={{constraint_expr|quote}}, 
+            expect={{constraint}}, 
+            value=row,
+            cause=e
+        )
 
     def __init__(self, **kwargs):
         if not kwargs:
@@ -124,8 +134,7 @@ class {{class_name}}(Mapping):
         if illegal:
             Log.error("{"+"{names}} are not a valid properties", names=illegal)
 
-        if not self._constraint(0, [self]):
-            Log.error("constraint not satisfied {"+"{expect}}\\n{"+"{value|indent}}", expect={{constraint}}, value=self)
+        self._constraint(0, [self])
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -137,9 +146,12 @@ class {{class_name}}(Mapping):
     def __setattr__(self, item, value):
         if item not in {{slots}}:
             Log.error("{"+"{item|quote}} not valid attribute", item=item)
+
+        if value==None and item in {{required}}:
+            Log.error("Expecting property {"+"{item}}", item=item)
+
         object.__setattr__(self, item, value)
-        if not self._constraint(0, [self]):
-            Log.error("constraint not satisfied {"+"{expect}}\\n{"+"{value|indent}}", expect={{constraint}}, value=self)
+        self._constraint(0, [self])
 
     def __getattr__(self, item):
         Log.error("{"+"{item|quote}} not valid attribute", item=item)
@@ -188,25 +200,21 @@ class {{class_name}}(Mapping):
             "types": "{"
             + (",".join(quote(k) + ": " + v.__name__ for k, v in types.items()))
             + "}",
-            "constraint_expr": Python[jx_expression(constraint)].to_python(),
+            "constraint_expr": Python[jx_expression(not ENABLE_CONSTRAINTS or constraint)].to_python(),
             "constraint": value2json(constraint),
         },
     )
 
-    return _exec(code, name)
+    output = _exec(code, name)
+    register_data(output)
+    return output
 
 
-class TableDesc(
-    DataClass(
-        "Table",
-        ["name", "url", "query_path", "timestamp"],
-        constraint={"and": [{"eq": [{"last": "query_path"}, {"literal": "."}]}]},
-    )
-):
-    @property
-    def columns(self):
-        raise NotImplementedError()
-        # return singlton.get_columns(table_name=self.name)
+TableDesc = DataClass(
+    "Table",
+    ["name", "url", "query_path", {"name": "last_updated", "nulls": False}, "columns"],
+    constraint={"and": [{"eq": [{"last": "query_path"}, {"literal": "."}]}]},
+)
 
 
 Column = DataClass(
@@ -221,22 +229,34 @@ Column = DataClass(
         "nested_path",  # AN ARRAY OF PATHS (FROM DEEPEST TO SHALLOWEST) INDICATING THE JSON SUB-ARRAYS
         {"name": "count", "nulls": True},
         {"name": "cardinality", "nulls": True},
-        {"name": "multi", "nulls": True},
+        {"name": "multi", "nulls": False},
         {"name": "partitions", "nulls": True},
         "last_updated",
     ],
     constraint={
         "and": [
+            {"not": {"find": {"es_column": "null"}}},
             {"not": {"eq": {"es_column": "string"}}},
+            {"not": {"eq": {"es_type": "object", "jx_type": "exists"}}},
             {"eq": [{"last": "nested_path"}, {"literal": "."}]},
+            {
+                "when": {"eq": [{"literal": ".~N~"}, {"right": {"es_column": 4}}]},
+                "then": {"gt": {"multi": 1}},
+                "else": True,
+            },
+            {
+                "when": {"gte": [{"count": "nested_path"}, 2]},
+                "then": {"ne": [{"first": {"right": {"nested_path": 2}}}, {"literal": "."}]},  # SECOND-LAST ELEMENT
+                "else": True
+            }
         ]
     },
 )
-
-
 from jx_base.container import Container
 from jx_base.namespace import Namespace
 from jx_base.facts import Facts
 from jx_base.snowflake import Snowflake
 from jx_base.table import Table
 from jx_base.schema import Schema
+
+

@@ -17,8 +17,8 @@ from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap
 from mo_dots.objects import datawrap
 from mo_fabric import Connection
-from mo_files import File
-from mo_logs import Log, constants, startup
+from mo_files import TempFile, File
+from mo_logs import Log, startup, constants
 from mo_threads import Thread
 from pyLibrary.aws import aws_retry
 
@@ -100,6 +100,52 @@ def _stop_indexer(config, instance, please_stop):
             ip=instance.ip_address,
             cause=e
         )
+
+def _upgrade_elasticsearch(config, instance, please_stop):
+    # copy image of new es
+
+
+    # copy new config file(s)
+    # ENSURE CONFIG EXPECTS TWO MASTERS
+
+
+    # bounce es
+    try:
+        with Connection(kwargs=config, host=instance.ip_address) as conn:
+            # stop es instance
+            conn.sudo("supervisorctl stop es")
+
+            # backup config file
+            conn.run("rm -fr ~/temp", warn=True)
+            conn.run("mkdir ~/temp")
+            with TempFile() as tempfile:
+                conn.get("/usr/local/elasticsearch/config/elasticsearch.yml", tempfile)
+                # ENSURE CONFIG EXPECTS TWO MASTERS
+                tempfile.write(tempfile.read().replace("discovery.zen.minimum_master_nodes: 1", "discovery.zen.minimum_master_nodes: 2"))
+                conn.put(tempfile, "/usr/local/elasticsearch/config/elasticsearch.yml")
+            conn.run("cp /usr/local/elasticsearch/config/* ~/temp")
+
+            # copy image of new es
+            conn.put("resources/binaries/elasticsearch-6.5.4.tar.gz", "~/elasticsearch-6.5.4.tar.gz")
+            conn.run("tar zxfv elasticsearch-6.5.4.tar.gz")
+            conn.run("cp -R elasticsearch-6.5.4/* /usr/local/elasticsearch/")
+            conn.run("rm -fr elasticsearch*")
+
+            # COPY CONFIG FILES
+            conn.run("cp  ~/temp/* /usr/local/elasticsearch/config")
+
+            # START ES
+            conn.sudo("supervisorctl start es")
+
+    except Exception as e:
+        Log.warning(
+            "could not upgrade ES {{instance_id}} ({{name}}) at {{ip}}",
+            instance_id=instance.id,
+            name=instance.tags["Name"],
+            ip=instance.ip_address,
+            cause=e
+        )
+
 
 
 WHITESPACE = re.compile(r"\s+")
@@ -222,7 +268,7 @@ def main():
         else:
             raise Log.error("Expecting --start or --stop or --update")
 
-        for g, ii in jx.groupby(instances, size=10):
+        for g, ii in jx.chunk(instances, size=20):
             threads = [
                 Thread.run(i.name, method, settings.fabric, i)
                 for i in ii

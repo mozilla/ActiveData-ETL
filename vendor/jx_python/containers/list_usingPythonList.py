@@ -5,31 +5,27 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 import itertools
-from collections import Mapping
 from copy import copy
 
 import jx_base
 from jx_base import Container
-from jx_base.expressions import jx_expression, Expression, Variable, TRUE
-from jx_python.expression_compiler import compile_expression
-from jx_python.expressions import jx_expression_to_function, Python
+from jx_base.expressions import TRUE, Variable
+from jx_base.language import is_expression, is_op
+from jx_base.meta_columns import get_schema_from_list
+from jx_base.schema import Schema
+from jx_python.convert import list2cube, list2table
+from jx_python.expressions import jx_expression_to_function
 from jx_python.lists.aggs import is_aggs, list_aggs
-from jx_python.meta import get_schema_from_list
 from mo_collections import UniqueIndex
-from mo_dots import Data, wrap, listwrap, unwraplist, unwrap, Null
-from mo_future import sort_using_key
+from mo_dots import Data, Null, is_data, is_list, listwrap, unwrap, unwraplist, wrap, coalesce
+from mo_future import first, sort_using_key
 from mo_logs import Log
 from mo_threads import Lock
-from pyLibrary import convert
-
-_get = object.__getattribute__
 
 
 class ListContainer(Container, jx_base.Namespace, jx_base.Table):
@@ -44,7 +40,7 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
             self._schema = get_schema_from_list(name, data)
         else:
             self._schema = schema
-        self.name = name
+        self.name = coalesce(name, ".")
         self.data = data
         self.locker = Lock()  # JUST IN CASE YOU WANT TO DO MORE THAN ONE THING
 
@@ -74,7 +70,7 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
         output = self
         if is_aggs(q):
             output = list_aggs(output.data, q)
-        else:  # SETOP
+        else:
             try:
                 if q.filter != None or q.esfilter != None:
                     Log.error("use 'where' clause")
@@ -89,7 +85,8 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
 
             if q.select:
                 output = output.select(q.select)
-        #TODO: ADD EXTRA COLUMN DESCRIPTIONS TO RESULTING SCHEMA
+
+        # TODO: ADD EXTRA COLUMN DESCRIPTIONS TO RESULTING SCHEMA
         for param in q.window:
             output.window(param)
 
@@ -145,9 +142,9 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
         return self.where(where)
 
     def where(self, where):
-        if isinstance(where, Mapping):
+        if is_data(where):
             temp = jx_expression_to_function(where)
-        elif isinstance(where, Expression):
+        elif is_expression(where):
             temp = jx_expression_to_function(where)
         else:
             temp = where
@@ -162,7 +159,7 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
         :param select: the variable to extract from list
         :return:  a simple list of the extraction
         """
-        if isinstance(select, list):
+        if is_list(select):
             return [(d[s] for s in select) for d in self.data]
         else:
             return [d[select] for d in self.data]
@@ -170,16 +167,16 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
     def select(self, select):
         selects = listwrap(select)
 
-        if len(selects) == 1 and isinstance(selects[0].value, Variable) and selects[0].value.var == ".":
+        if len(selects) == 1 and is_op(selects[0].value, Variable) and selects[0].value.var == ".":
             new_schema = self.schema
             if selects[0].name == ".":
                 return self
         else:
             new_schema = None
 
-        if isinstance(select, list):
+        if is_list(select):
             if all(
-                isinstance(s.value, Variable) and s.name == s.value.var
+                is_op(s.value, Variable) and s.name == s.value.var
                 for s in select
             ):
                 names = set(s.value.var for s in select)
@@ -192,11 +189,11 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
                     output[n] = unwraplist(p(wrap(d)))
                 return unwrap(output)
 
-            new_data = map(selector, self.data)
+            new_data = list(map(selector, self.data))
         else:
             select_value = jx_expression_to_function(select.value)
-            new_data = map(select_value, self.data)
-            if isinstance(select.value, Variable):
+            new_data = list(map(select_value, self.data))
+            if is_op(select.value, Variable):
                 column = copy(first(c for c in self.schema.columns if c.name == select.value.var))
                 column.name = '.'
                 new_schema = Schema("from " + self.name, [column])
@@ -208,15 +205,11 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
         jx.window(self.data, window)
         return self
 
-    def having(self, having):
-        _ = having
-        raise NotImplementedError()
-
     def format(self, format):
         if format == "table":
-            frum = convert.list2table(self.data, self._schema.lookup.keys())
+            frum = list2table(self.data, self._schema.lookup.keys())
         elif format == "cube":
-            frum = convert.list2cube(self.data, self.schema.lookup.keys())
+            frum = list2cube(self.data, self.schema.lookup.keys())
         else:
             frum = self.__data__()
 
@@ -275,8 +268,6 @@ class ListContainer(Container, jx_base.Namespace, jx_base.Table):
     def __len__(self):
         return len(self.data)
 
-    # class Namespace(jx_base.Namespace):
-
     def get_snowflake(self, name):
         if self.name != name:
             Log.error("This container only has table by name of {{name}}", name=name)
@@ -302,18 +293,10 @@ def _exec(code):
         Log.error("Could not execute {{code|quote}}", code=code, cause=e)
 
 
-
-
-from jx_base.schema import Schema
 from jx_python import jx
-
 
 DUAL = ListContainer(
     name="dual",
     data=[{}],
     schema=Schema(table_name="dual", columns=UniqueIndex(keys=("name",)))
 )
-
-
-def first(values):
-    return iter(values).next()

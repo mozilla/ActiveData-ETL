@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from mo_dots import Null, Data
 from mo_testing.fuzzytestcase import FuzzyTestCase
-from pyLibrary.env import http
+from mo_http import http
 from tests import Destination
 
 false = False

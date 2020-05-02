@@ -6,13 +6,11 @@
 #
 from __future__ import division, unicode_literals
 
-from collections import Mapping
-
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
-from mo_dots import Data, coalesce, set_default, unwrap
-from mo_future import text_type
+from mo_dots import Data, coalesce, set_default, unwrap, is_data
+from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import Log, strings
 from mo_logs.strings import between
@@ -122,7 +120,7 @@ class Matcher(object):
     def match(self, name):
         if self.pattern:
             for k, v in self.pattern.items():
-                if isinstance(v, Mapping):
+                if is_data(v):
                     # TODO: CONVERT THESE PREFIX MATCHES TO SHORT NAME PULLERS
                     if name.startswith(k):
                         match = self.child.match(name[len(k) :])
@@ -561,7 +559,7 @@ TEST_SUITE = {
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
+TEST_CHUNK = {text(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},

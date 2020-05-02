@@ -5,23 +5,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 import os
 import platform
 import sys
-from collections import Mapping
 from datetime import datetime
 
-from mo_dots import coalesce, listwrap, wrap, unwraplist, FlatList, Data
-from mo_future import text_type, PY3
-from mo_logs import constants
-from mo_logs.exceptions import Except, suppress_exception, LogItem
-from mo_logs.strings import indent
+from mo_dots import Data, FlatList, coalesce, is_data, is_list, listwrap, unwraplist, wrap
+from mo_future import PY3, is_text, text
+from mo_logs import constants, exceptions, strings
+from mo_logs.exceptions import Except, LogItem, suppress_exception
+from mo_logs.strings import CR, indent
 
 _Thread = None
 if PY3:
@@ -77,7 +74,7 @@ class Log(object):
             from mo_threads import profiles
             profiles.enable_profilers(settings.cprofile.filename)
 
-        if settings.profile is True or (isinstance(settings.profile, Mapping) and settings.profile.enabled):
+        if settings.profile is True or (is_data(settings.profile) and settings.profile.enabled):
             Log.error("REMOVED 2018-09-02, Activedata revision 3f30ff46f5971776f8ba18")
             # from mo_logs import profiles
             #
@@ -91,10 +88,11 @@ class Log(object):
         if settings.constants:
             constants.set(settings.constants)
 
-        if settings.log:
+        logs = coalesce(settings.log, settings.logs)
+        if logs:
             cls.logging_multi = StructuredLogger_usingMulti()
-            for log in listwrap(settings.log):
-                Log.add_log(Log.new_instance(log))
+            for log in listwrap(logs):
+                Log._add_log(Log.new_instance(log))
 
             from mo_logs.log_usingThread import StructuredLogger_usingThread
             cls.main_log = StructuredLogger_usingThread(cls.logging_multi)
@@ -115,16 +113,19 @@ class Log(object):
 
         if settings["class"]:
             if settings["class"].startswith("logging.handlers."):
-                from mo_logs.log_usingLogger import StructuredLogger_usingLogger
+                from mo_logs.log_usingHandler import StructuredLogger_usingHandler
 
-                return StructuredLogger_usingLogger(settings)
+                return StructuredLogger_usingHandler(settings)
             else:
                 with suppress_exception:
                     from mo_logs.log_usingLogger import make_log_from_settings
 
                     return make_log_from_settings(settings)
-                  # OH WELL :(
+                # OH WELL :(
 
+        if settings.log_type == "logger":
+            from mo_logs.log_usingLogger import StructuredLogger_usingLogger
+            return StructuredLogger_usingLogger(settings)
         if settings.log_type == "file" or settings.file:
             return StructuredLogger_usingFile(settings.file)
         if settings.log_type == "file" or settings.filename:
@@ -151,11 +152,19 @@ class Log(object):
             from mo_logs.log_usingNothing import StructuredLogger
             return StructuredLogger()
 
-        Log.error("Log type of {{log_type|quote}} is not recognized", log_type=settings.log_type)
+        Log.error("Log type of {{config|json}} is not recognized", config=settings)
 
     @classmethod
-    def add_log(cls, log):
+    def _add_log(cls, log):
         cls.logging_multi.add_log(log)
+
+    @classmethod
+    def set_logger(cls, logger):
+        if cls.logging_multi:
+            cls.logging_multi.add_log(logger)
+        else:
+            from mo_logs.log_usingThread import StructuredLogger_usingThread
+            cls.main_log = StructuredLogger_usingThread(logger)
 
     @classmethod
     def note(
@@ -175,7 +184,7 @@ class Log(object):
         :return:
         """
         timestamp = datetime.utcnow()
-        if not isinstance(template, text_type):
+        if not is_text(template):
             Log.error("Log.note was expecting a unicode template")
 
         Log._annotate(
@@ -209,7 +218,7 @@ class Log(object):
         :return:
         """
         timestamp = datetime.utcnow()
-        if not isinstance(template, text_type):
+        if not is_text(template):
             Log.error("Log.warning was expecting a unicode template")
 
         if isinstance(default_params, BaseException):
@@ -221,7 +230,7 @@ class Log(object):
 
         params = Data(dict(default_params, **more_params))
         cause = unwraplist([Except.wrap(c) for c in listwrap(cause)])
-        trace = exceptions.extract_stack(stack_depth + 1)
+        trace = exceptions.get_stacktrace(stack_depth + 1)
 
         e = Except(exceptions.UNEXPECTED, template=template, params=params, cause=cause, trace=trace)
         Log._annotate(
@@ -248,7 +257,7 @@ class Log(object):
         :return:
         """
         timestamp = datetime.utcnow()
-        format = ("*" * 80) + "\n" + indent(template, prefix="** ").strip() + "\n" + ("*" * 80)
+        format = ("*" * 80) + CR + indent(template, prefix="** ").strip() + CR + ("*" * 80)
         Log._annotate(
             LogItem(
                 context=exceptions.ALARM,
@@ -282,7 +291,7 @@ class Log(object):
         :return:
         """
         timestamp = datetime.utcnow()
-        if not isinstance(template, text_type):
+        if not is_text(template):
             Log.error("Log.warning was expecting a unicode template")
 
         if isinstance(default_params, BaseException):
@@ -294,7 +303,7 @@ class Log(object):
 
         params = Data(dict(default_params, **more_params))
         cause = unwraplist([Except.wrap(c) for c in listwrap(cause)])
-        trace = exceptions.extract_stack(stack_depth + 1)
+        trace = exceptions.get_stacktrace(stack_depth + 1)
 
         e = Except(exceptions.WARNING, template=template, params=params, cause=cause, trace=trace)
         Log._annotate(
@@ -323,7 +332,7 @@ class Log(object):
         :param more_params: *any more parameters (which will overwrite default_params)
         :return:
         """
-        if not isinstance(template, text_type):
+        if not is_text(template):
             sys.stderr.write(str("Log.error was expecting a unicode template"))
             Log.error("Log.error was expecting a unicode template")
 
@@ -336,7 +345,7 @@ class Log(object):
         add_to_trace = False
         if cause == None:
             causes = None
-        elif isinstance(cause, list):
+        elif is_list(cause):
             causes = []
             for c in listwrap(cause):  # CAN NOT USE LIST-COMPREHENSION IN PYTHON3 (EXTRA STACK DEPTH FROM THE IN-LINED GENERATOR)
                 causes.append(Except.wrap(c, stack_depth=1))
@@ -347,7 +356,7 @@ class Log(object):
             causes = None
             Log.error("can only accept Exception, or list of exceptions")
 
-        trace = exceptions.extract_stack(stack_depth + 1)
+        trace = exceptions.get_stacktrace(stack_depth + 1)
 
         if add_to_trace:
             cause[0].trace.extend(trace[1:])
@@ -373,19 +382,19 @@ class Log(object):
 
         item.format = strings.limit(item.format, 10000)
         if item.format == None:
-            format = text_type(item)
+            format = text(item)
         else:
             format = item.format.replace("{{", "{{params.")
-        if not format.startswith("\n") and format.find("\n") > -1:
-            format = "\n" + format
+        if not format.startswith(CR) and format.find(CR) > -1:
+            format = CR + format
 
         if cls.trace:
             log_format = item.format = "{{machine.name}} (pid {{machine.pid}}) - {{timestamp|datetime}} - {{thread.name}} - \"{{location.file}}:{{location.line}}\" - ({{location.method}}) - " + format
             f = sys._getframe(stack_depth + 1)
             item.location = {
                 "line": f.f_lineno,
-                "file": text_type(f.f_code.co_filename),
-                "method": text_type(f.f_code.co_name)
+                "file": text(f.f_code.co_filename),
+                "method": text(f.f_code.co_name)
             }
             thread = _Thread.current()
             item.thread = {"name": thread.name, "id": thread.id}
@@ -405,9 +414,9 @@ def _same_frame(frameA, frameB):
 # GET THE MACHINE METADATA
 machine_metadata = wrap({
     "pid":  os.getpid(),
-    "python": text_type(platform.python_implementation()),
-    "os": text_type(platform.system() + platform.release()).strip(),
-    "name": text_type(platform.node())
+    "python": text(platform.python_implementation()),
+    "os": text(platform.system() + platform.release()).strip(),
+    "name": text(platform.node())
 })
 
 

@@ -15,7 +15,7 @@
 	"constants":{
 		"pyLibrary.sql.sqlite.DEBUG_INSERT": false,
 		"pyLibrary.sql.sqlite.DEBUG": false,
-		"pyLibrary.env.http.default_headers":{"from": "Dave Hunt <dhunt@mozilla.com>"}
+		"mo_http.http.default_headers":{"from": "Dave Hunt <dhunt@mozilla.com>"}
 	},
 	"debug":{
 		"trace": true,

@@ -1,0 +1,11 @@
+{
+	"source": {
+		"host": "http://localhost",
+		"port": 9201,
+		"typed": true,
+		"debug": true
+	},
+	"debug": {
+		"trace": true
+	}
+}

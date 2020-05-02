@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value, value2json
 from pyLibrary.aws.s3 import Connection
 from mo_logs import startup

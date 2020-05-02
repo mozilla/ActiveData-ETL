@@ -10,6 +10,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from jx_sqlite.sqlite import Sqlite, quote_value, quote_list, sql_insert
 from mo_dots import wrap, coalesce
 from mo_json import json2value, value2json
 from mo_kwargs import override
@@ -17,9 +18,7 @@ from mo_logs import Log
 from mo_threads import Till
 from mo_times import Timer, Date
 from pyLibrary import aws
-from pyLibrary.env import http
-from pyLibrary.sql import sql_iso, sql_list
-from pyLibrary.sql.sqlite import Sqlite, quote_value, quote_list
+from mo_http import http
 
 DEBUG = True
 SLEEP_ON_ERROR = 30
@@ -37,7 +36,7 @@ class TuidClient(object):
         self.push_queue = aws.Queue(push_queue) if push_queue else None
         self.config = kwargs
 
-        self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), kwargs=db)
+        self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), upgrade=False, kwargs=db)
 
         if not self.db.query("SELECT name FROM sqlite_master WHERE type='table';").data:
             with self.db.transaction() as transaction:
@@ -125,15 +124,12 @@ class TuidClient(object):
                     if new_response.data and any(r.tuids for r in new_response.data):
                         try:
                             with self.db.transaction() as transaction:
-
-
-                                command = "INSERT INTO tuid (revision, file, tuids) VALUES " + sql_list(
-                                    quote_list((revision, r.path, value2json(r.tuids)))
+                                command = sql_insert("tuid", [
+                                    {"revision": revision, "file": r.path, "tuids": value2json(r.tuids)}
                                     for r in new_response.data
                                     if r.tuids != None
-                                )
-                                if not command.endswith(" VALUES "):
-                                    transaction.execute(command)
+                                ])
+                                transaction.execute(command)
                         except Exception as e:
                             Log.error("can not insert {{data|json}}", data=new_response.data, cause=e)
                 self.num_bad_requests = 0

@@ -19,7 +19,7 @@ from mo_json import stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env.big_data import ibytes2ilines
+from mo_http.big_data import ibytes2ilines
 
 DO_AGGR = True  # This flag will aggregate coverage information per source file.
 ENABLE_METHOD_COVERAGE = False

@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from activedata_etl import key2etl, etl2path
 from mo_files import File
 from mo_logs import Log, startup, strings
@@ -153,10 +153,10 @@ class Version(object):
         return b".".join(str(p) for p in self.path)
 
     def __unicode__(self):
-        return ".".join(text_type(p) for p in self.path)
+        return ".".join(text(p) for p in self.path)
 
     def __data__(self):
-        return "\".".join(text_type(p) for p in self.path) + "\""
+        return "\".".join(text(p) for p in self.path) + "\""
 
 
 def comparePath(a, b):

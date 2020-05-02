@@ -5,31 +5,27 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http:# mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
-from jx_base.expressions import NULL, LeavesOp, Variable
+from jx_base.expressions import LeavesOp, NULL, Variable
+from jx_base.language import is_op
 from jx_base.query import DEFAULT_LIMIT
-from jx_elasticsearch import post as es_post
-from jx_elasticsearch.es52.expressions import split_expression_by_depth, AndOp, ES52
-from jx_elasticsearch.es52.setop import format_dispatch, get_pull_function, get_pull
-from jx_elasticsearch.es52.util import jx_sort_to_es_sort, es_query_template
+from jx_elasticsearch.es52.expressions import AndOp, ES52, split_expression_by_depth, MATCH_ALL
+from jx_elasticsearch.es52.set_op import set_formatters, get_pull, get_pull_function
+from jx_elasticsearch.es52.util import es_query_template, jx_sort_to_es_sort
 from jx_python.expressions import jx_expression_to_function
-from mo_dots import split_field, FlatList, listwrap, literal_field, coalesce, Data, concat_field, set_default, relative_field, startswith_field, wrap, unwrap
+from mo_dots import Data, FlatList, coalesce, concat_field, is_list as is_list_, listwrap, literal_field, \
+    relative_field, set_default, split_field, startswith_field, unwrap, wrap
 from mo_future import zip_longest
 from mo_json import NESTED
-from mo_json.typed_encoder import untype_path
+from mo_json.typed_encoder import untype_path, untyped
 from mo_logs import Log
 from mo_threads import Thread
 from mo_times.timer import Timer
-from pyLibrary import convert
 
 EXPRESSION_PREFIX = "_expr."
-
-_ = convert
 
 
 def is_deepop(es, query):
@@ -37,7 +33,8 @@ def is_deepop(es, query):
         return False
     if all(s.aggregate not in (None, "none") for s in listwrap(query.select)):
         return False
-    if len(split_field(query.frum.name)) > 1:
+    # THE schema.name SHOWS THE REAL NESTED DEPTH
+    if len(split_field(query.frum.schema.name)) > 1:
         return True
 
     # ASSUME IT IS NESTED IF WE ARE ASKING FOR NESTED COLUMNS
@@ -73,9 +70,7 @@ def es_deepop(es, query):
                 "must_not": {
                     "nested": {
                         "path": query_path,
-                        "query": {
-                            "match_all": {}
-                        }
+                        "query": MATCH_ALL
                     }
                 }
             }
@@ -93,13 +88,13 @@ def es_deepop(es, query):
 
     es_query.stored_fields = []
 
-    is_list = isinstance(query.select, list)
+    is_list = is_list_(query.select)
     selects = wrap([unwrap(s.copy()) for s in listwrap(query.select)])
     new_select = FlatList()
 
     put_index = 0
     for select in selects:
-        if isinstance(select.value, LeavesOp) and isinstance(select.value.term, Variable):
+        if is_op(select.value, LeavesOp) and is_op(select.value.term, Variable):
             # IF THERE IS A *, THEN INSERT THE EXTRA COLUMNS
             leaves = schema.leaves(select.value.term.var)
             col_names = set()
@@ -123,7 +118,7 @@ def es_deepop(es, query):
                 if n.name.startswith("..") and n.name.lstrip(".") not in col_names:
                     n.put.name = n.name = n.name.lstrip(".")
                     col_names.add(n.name)
-        elif isinstance(select.value, Variable):
+        elif is_op(select.value, Variable):
             net_columns = schema.leaves(select.value.var)
             if not net_columns:
                 new_select.append({
@@ -134,23 +129,24 @@ def es_deepop(es, query):
                 })
             else:
                 for n in net_columns:
-                    pull = get_pull_function(n)
                     if n.nested_path[0] == ".":
                         if n.jx_type == NESTED:
                             continue
                         es_query.stored_fields += [n.es_column]
 
-                    # WE MUST FIGURE OUT WHICH NAMESSPACE s.value.var IS USING SO WE CAN EXTRACT THE child
+                    if len(n.nested_path[0]) > len(query_path):
+                        # SELECTING INNER PROPERTIES IS NOT ALLOWED
+                        continue
+                    # WE MUST FIGURE OUT WHICH NAMESPACE s.value.var IS USING SO WE CAN EXTRACT THE child
                     for np in n.nested_path:
                         c_name = untype_path(relative_field(n.name, np))
                         if startswith_field(c_name, select.value.var):
                             child = relative_field(c_name, select.value.var)
                             break
                     else:
-                        continue
-                        # REMOVED BECAUSE SELECTING INNER PROPERTIES IS NOT ALLOWED
-                        # child = relative_field(untype_path(relative_field(n.name, n.nested_path[0])), s.value.var)
+                        raise Log.error("Not expected")
 
+                    pull = get_pull_function(n)
                     new_select.append({
                         "name": select.name,
                         "pull": pull,
@@ -187,19 +183,17 @@ def es_deepop(es, query):
     # <COMPLICATED> ES needs two calls to get all documents
     more = []
     def get_more(please_stop):
-        more.append(es_post(
-            es,
+        more.append(es.search(
             Data(
                 query=more_filter,
                 stored_fields=es_query.stored_fields
-            ),
-            query.limit
+            )
         ))
     if more_filter:
         need_more = Thread.run("get more", target=get_more)
 
     with Timer("call to ES") as call_timer:
-        data = es_post(es, es_query, query.limit)
+        data = es.search(es_query)
 
     # EACH A HIT IS RETURNED MULTIPLE TIMES FOR EACH INNER HIT, WITH INNER HIT INCLUDED
     def inners():
@@ -216,7 +210,7 @@ def es_deepop(es, query):
     # </COMPLICATED>
 
     try:
-        formatter, groupby_formatter, mime_type = format_dispatch[query.format]
+        formatter, row_formatter, mime_type = set_formatters[query.format]
 
         output = formatter(inners(), new_select, query)
         output.meta.timing.es = call_timer.duration

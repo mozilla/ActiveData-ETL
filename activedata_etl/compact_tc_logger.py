@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from activedata_etl import key2etl
 
 from mo_json import json2value, value2json
@@ -62,7 +62,7 @@ def writer(bucket, please_stop):
 
 def write_file(acc, bucket, files, g):
     key_num = START - g
-    key = text_type(key_num) + ":" + text_type(int(key_num / 10) * 1000 + RANDOM)
+    key = text(key_num) + ":" + text(int(key_num / 10) * 1000 + RANDOM)
     Log.note("Write new file {{file}}", file=key)
     etl = key2etl(key)
     for a in acc:
@@ -83,7 +83,7 @@ def loop_all(bucket, please_stop):
             if k > START:
                 continue
             try:
-                compact(bucket.get_key(text_type(k)))
+                compact(bucket.get_key(text(k)))
             except Exception as e:
                 Log.warning("could not process", cause=e)
     finally:

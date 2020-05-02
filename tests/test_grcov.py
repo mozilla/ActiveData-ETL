@@ -16,7 +16,7 @@ from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
-from pyLibrary.env import http
+from mo_http import http
 from test_gcov import Destination
 from tuid.client import TuidClient
 

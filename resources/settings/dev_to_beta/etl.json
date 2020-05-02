@@ -10,26 +10,16 @@
 		"keep_unknown_on_queue": false
 	},
 	"constants": {
-		"pyLibrary.env.http.default_headers": {
+		"mo_http.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		},
-		"pyLibrary.env.big_data.MAX_STRING_SIZE": 10000000
+		"mo_http.big_data.MAX_STRING_SIZE": 10000000
 	},
 	"hg": {
 		"use_cache": true,
 		"hg":{
 			"url": "https://hg.mozilla.org"
-		},
-		"branches": {
-			"host": "http://192.168.2.98",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"debug": false,
-			"limit_replicas": false,
-			"use_cache": true
 		},
 		"repo": {
 			"host": "http://localhost",

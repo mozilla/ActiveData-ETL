@@ -8,11 +8,9 @@
 #
 from __future__ import unicode_literals
 
-from collections import Mapping
-
 from jx_python import jx
-from mo_dots import wrap, coalesce
-from mo_future import text_type
+from mo_dots import wrap, coalesce, is_data
+from mo_future import text
 from mo_logs import Log, strings
 from pyLibrary.aws import s3
 
@@ -58,23 +56,23 @@ def format_id(value):
     try:
         return int(value)
     except Exception:
-        return text_type(value)
+        return text(value)
 
 
 def _parse_key(elements):
     """
     EXPECTING ALTERNATING LIST OF operands AND operators
     """
-    if isinstance(elements, text_type):
+    if isinstance(elements, text):
         try:
             return {"id": format_id(elements)}
         except Exception as e:
             Log.error("problem", e)
     if isinstance(elements, list) and len(elements) == 1:
-        if isinstance(elements[0], text_type):
+        if isinstance(elements[0], text):
             return {"id": format_id(elements[0])}
         return elements[0]
-    if isinstance(elements, Mapping):
+    if is_data(elements):
         return elements
 
     for i in reversed(range(1, len(elements), 2)):
@@ -90,7 +88,7 @@ def etl2key(etl):
     source = etl
     seq = []
     while source:
-        seq.append(text_type(format_id(coalesce(source.id, source.code))))
+        seq.append(text(format_id(coalesce(source.id, source.code))))
         if source.type == "join":
             seq.append(".")
         else:
