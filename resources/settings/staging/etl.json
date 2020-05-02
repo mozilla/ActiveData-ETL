@@ -159,6 +159,7 @@
 			"destination": {
 				"bucket": "active-data-task-cluster-normalized",
 				"public": true,
+				"debug": true,
 				"key_format": "t.a:b",
 				"$ref": "file://~/private.json#aws_credentials"
 			},

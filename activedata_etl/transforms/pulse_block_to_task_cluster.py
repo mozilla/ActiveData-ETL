@@ -1310,6 +1310,7 @@ KNOWN_TAGS = {
     "index.expires",
     "index.rank",
     "installer_path",
+    # "l10n_bump_info",
     "l10n_changesets",
     "last-watershed",
     "limit-locales",

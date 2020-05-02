@@ -27,13 +27,20 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 from mo_http import http
-from mo_http.big_data import LazyLines, MAX_STRING_SIZE, ibytes2ilines, safe_size, scompressed2ibytes
+from mo_http.big_data import (
+    LazyLines,
+    MAX_STRING_SIZE,
+    ibytes2ilines,
+    safe_size,
+    scompressed2ibytes,
+)
 
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
 VALID_KEY = r"\d+([.:]\d+)*"
 KEY_IS_WRONG_FORMAT = "key {{key}} in bucket {{bucket}} is of the wrong format"
+
 
 class File(object):
     def __init__(self, bucket, key):
@@ -67,7 +74,7 @@ class Connection(object):
         aws_access_key_id=None,  # CREDENTIAL
         aws_secret_access_key=None,  # CREDENTIAL
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
-        kwargs=None
+        kwargs=None,
     ):
         self.settings = kwargs
 
@@ -75,13 +82,13 @@ class Connection(object):
             if not kwargs.region:
                 self.connection = boto.connect_s3(
                     aws_access_key_id=unwrap(self.settings.aws_access_key_id),
-                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
+                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key),
                 )
             else:
                 self.connection = boto.s3.connect_to_region(
                     self.settings.region,
                     aws_access_key_id=unwrap(self.settings.aws_access_key_id),
-                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key)
+                    aws_secret_access_key=unwrap(self.settings.aws_secret_access_key),
                 )
         except Exception as e:
             Log.error("Problem connecting to S3", e)
@@ -93,12 +100,10 @@ class Connection(object):
         if self.connection:
             self.connection.close()
 
-
     def get_bucket(self, name):
         output = SkeletonBucket()
         output.bucket = self.connection.get_bucket(name, validate=False)
         return output
-
 
 
 class Bucket(object):
@@ -120,7 +125,7 @@ class Bucket(object):
         region=None,  # NAME OF AWS REGION, REQUIRED FOR SOME BUCKETS
         public=False,
         debug=False,
-        kwargs=None
+        kwargs=None,
     ):
         self.settings = kwargs
         self.connection = None
@@ -129,9 +134,13 @@ class Bucket(object):
 
         try:
             self.connection = Connection(kwargs).connection
-            self.bucket = self.connection.get_bucket(self.settings.bucket, validate=False)
+            self.bucket = self.connection.get_bucket(
+                self.settings.bucket, validate=False
+            )
         except Exception as e:
-            Log.error("Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e)
+            Log.error(
+                "Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e
+            )
 
     def __enter__(self):
         return self
@@ -147,7 +156,11 @@ class Bucket(object):
         if must_exist:
             meta = self.get_meta(key)
             if not meta:
-                Log.error("Key {{key}} does not exist in bucket {{bucket}}", key=key, bucket=self.bucket.name)
+                Log.error(
+                    "Key {{key}} does not exist in bucket {{bucket}}",
+                    key=key,
+                    bucket=self.bucket.name,
+                )
             key = strip_extension(meta.key)
         return File(self, key)
 
@@ -200,13 +213,18 @@ class Bucket(object):
                     "multiple keys in {{bucket}} with prefix={{prefix|quote}}: {{list}}",
                     bucket=self.name,
                     prefix=key,
-                    list=[k.name for k in metas]
+                    list=[k.name for k in metas],
                 )
             if not perfect and error:
                 Log.error("Problem with key request", error)
             return coalesce(perfect, favorite)
         except Exception as e:
-            Log.error(READ_ERROR+" can not read {{key}} from {{bucket}}", key=key, bucket=self.bucket.name, cause=e)
+            Log.error(
+                READ_ERROR + " can not read {{key}} from {{bucket}}",
+                key=key,
+                bucket=self.bucket.name,
+                cause=e,
+            )
 
     def keys(self, prefix=None, delimiter=None):
         """
@@ -217,14 +235,25 @@ class Bucket(object):
         if delimiter:
             # WE REALLY DO NOT GET KEYS, BUT RATHER Prefix OBJECTS
             # AT LEAST THEY ARE UNIQUE
-            candidates = [k.name.rstrip(delimiter) for k in self.bucket.list(prefix=str(prefix), delimiter=str(delimiter))]
+            candidates = [
+                k.name.rstrip(delimiter)
+                for k in self.bucket.list(prefix=str(prefix), delimiter=str(delimiter))
+            ]
         else:
-            candidates = [strip_extension(k.key) for k in self.bucket.list(prefix=str(prefix))]
+            candidates = [
+                strip_extension(k.key) for k in self.bucket.list(prefix=str(prefix))
+            ]
 
         if prefix == None:
             return set(c for c in candidates if c != "0.json")
         else:
-            return set(k for k in candidates if k == prefix or k.startswith(prefix + ".") or k.startswith(prefix + ":"))
+            return set(
+                k
+                for k in candidates
+                if k == prefix
+                or k.startswith(prefix + ".")
+                or k.startswith(prefix + ":")
+            )
 
     def metas(self, prefix=None, limit=None, delimiter=None):
         """
@@ -234,13 +263,19 @@ class Bucket(object):
         keys = self.bucket.list(prefix=str(prefix), delimiter=str(delimiter))
         prefix_len = len(prefix)
         output = []
-        for i, k in enumerate(k for k in keys if len(k.key) == prefix_len or k.key[prefix_len] in [".", ":"]):
-            output.append({
-                "key": strip_extension(k.key),
-                "etag": convert.quote2string(k.etag),
-                "expiry_date": Date(k.expiry_date),
-                "last_modified": Date(k.last_modified)
-            })
+        for i, k in enumerate(
+            k
+            for k in keys
+            if len(k.key) == prefix_len or k.key[prefix_len] in [".", ":"]
+        ):
+            output.append(
+                {
+                    "key": strip_extension(k.key),
+                    "etag": convert.quote2string(k.etag),
+                    "expiry_date": Date(k.expiry_date),
+                    "last_modified": Date(k.last_modified),
+                }
+            )
             if i >= limit:
                 break
         return wrap(output)
@@ -261,7 +296,7 @@ class Bucket(object):
         elif source.key.endswith(".gz"):
             json = convert.zip2bytes(json)
 
-        return json.decode('utf8')
+        return json.decode("utf8")
 
     def read_bytes(self, key):
         source = self.get_meta(key)
@@ -275,7 +310,7 @@ class Bucket(object):
             if source.key.endswith(".gz"):
                 return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
             else:
-                return source.read().decode('utf8').split("\n")
+                return source.read().decode("utf8").split("\n")
 
         if source.key.endswith(".gz"):
             return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
@@ -301,13 +336,13 @@ class Bucket(object):
                 Log.note(
                     "Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",
                     file_length=file_length,
-                    string_length=string_length
+                    string_length=string_length,
                 )
                 value.seek(0)
                 storage.set_contents_from_file(value, headers=headers)
 
                 if self.settings.public:
-                    storage.set_acl('public-read')
+                    storage.set_acl("public-read")
                 return
 
             if len(value) > 20 * 1000 and not disable_zip:
@@ -317,7 +352,7 @@ class Bucket(object):
                     value = convert.bytes2zip(value)
                     key += ".json.gz"
                 else:
-                    value = convert.bytes2zip(value).encode('utf8')
+                    value = convert.bytes2zip(value).encode("utf8")
                     key += ".json.gz"
                 headers = {"Content-Type": mimetype.ZIP}
             else:
@@ -332,14 +367,14 @@ class Bucket(object):
             storage.set_contents_from_string(value, headers=headers)
 
             if self.settings.public:
-                storage.set_acl('public-read')
+                storage.set_acl("public-read")
         except Exception as e:
             Log.error(
                 "Problem writing {{bytes}} bytes to {{key}} in {{bucket}}",
                 key=key,
                 bucket=self.bucket.name,
                 bytes=len(value),
-                cause=e
+                cause=e,
             )
 
     def write_lines(self, key, lines):
@@ -347,9 +382,9 @@ class Bucket(object):
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
         buff = TemporaryFile()
-        buff.name = str(key + ".json")  # USED BY gzip TO SET INTERNAL NAME
+        Log.note("Temp file {{filename}}", filename=buff.name)
         try:
-            archive = gzip.GzipFile(fileobj=buff, mode='w')
+            archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0
             for l in lines:
                 if is_many(l):
@@ -368,22 +403,32 @@ class Bucket(object):
             retry = 3
             while retry:
                 try:
-                    with Timer("Sending {{count}} lines in {{file_length|comma}} bytes for {{key}}", {"key": key, "file_length": file_length, "count": count}, verbose=self.settings.debug):
+                    with Timer(
+                        "Sending {{count}} lines in {{file_length|comma}} bytes for {{key}}",
+                        {"key": key, "file_length": file_length, "count": count},
+                        verbose=self.settings.debug,
+                    ):
                         buff.seek(0)
-                        storage.set_contents_from_file(buff, headers={"Content-Type": mimetype.ZIP})
+                        storage.set_contents_from_file(
+                            buff, headers={"Content-Type": mimetype.ZIP}
+                        )
                     break
                 except Exception as e:
                     e = Except.wrap(e)
                     retry -= 1
-                    if retry == 0 or 'Access Denied' in e or "No space left on device" in e:
+                    if (
+                        retry == 0
+                        or "Access Denied" in e
+                        or "No space left on device" in e
+                    ):
                         Log.error("could not push data to s3", cause=e)
                     else:
-                        Log.warning("could not push data to s3", cause=e)
+                        Log.warning("could not push data to s3, will retry", cause=e)
         finally:
             buff.close()
 
         if self.settings.public:
-            storage.set_acl('public-read')
+            storage.set_acl("public-read")
         return
 
     @property
@@ -395,17 +440,14 @@ class Bucket(object):
             return
 
         if self.key_format != _scrub_key(key):
-            Log.error(
-                KEY_IS_WRONG_FORMAT,
-                key=key,
-                bucket=self.bucket.name
-            )
+            Log.error(KEY_IS_WRONG_FORMAT, key=key, bucket=self.bucket.name)
 
 
 class SkeletonBucket(Bucket):
     """
     LET CALLER WORRY ABOUT SETTING PROPERTIES
     """
+
     def __init__(self):
         object.__init__(self)
         self.connection = None
@@ -413,12 +455,12 @@ class SkeletonBucket(Bucket):
         self.key_format = None
 
 
-content_keys={
+content_keys = {
     "key": text,
     "lastmodified": Date,
     "etag": text,
     "size": int,
-    "storageclass": text
+    "storageclass": text,
 }
 
 
@@ -447,20 +489,23 @@ class PublicBucket(object):
         #         <Size>10037</Size>
         #         <StorageClass>STANDARD</StorageClass>
         state = Data()
-        state.prefix =prefix
+        state.prefix = prefix
         state.delimiter = delimiter
         state.marker = marker
         state.get_more = True
 
         def more():
             xml = http.get(self.url + "?" + value2url_param(state)).content
-            data = BeautifulSoup(xml, 'xml')
+            data = BeautifulSoup(xml, "xml")
 
             state.get_more = data.find("istruncated").contents[0] == "true"
             contents = data.findAll("contents")
             if len(contents):
-               state.marker = contents[-1].find("key").contents[0]
-            return [{k: t(d.find(k).contents[0]) for k, t in content_keys.items()} for d in contents]
+                state.marker = contents[-1].find("key").contents[0]
+            return [
+                {k: t(d.find(k).contents[0]) for k, t in content_keys.items()}
+                for d in contents
+            ]
 
         while state.get_more:
             content = more()
@@ -482,7 +527,7 @@ def strip_extension(key):
 
 def _unzip(compressed):
     buff = StringIO(compressed)
-    archive = zipfile.ZipFile(buff, mode='r')
+    archive = zipfile.ZipFile(buff, mode="r")
     return archive.read(archive.namelist()[0])
 
 

@@ -3547,6 +3547,7 @@
             "type": ["e10s"]
         }
     },
+	"test-android-em-7.0-x86_64/opt-geckoview-junit-e10s-multi-e10s": {},
     "test-android-em-7.0-x86_64/opt-crashtest-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -3980,6 +3981,20 @@
             "framework": "raptor",
             "suite": {"name": "scn-power-idle"},
             "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-youtube-playback-widevine-h264-sfr-fennec68-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-h264-sfr"},
+            "type": ["1proc"]
         }
     },
     "test-android-hw-p2-8-0-arm7-api-16-nightly/opt-raptor-speedometer-fennec": {

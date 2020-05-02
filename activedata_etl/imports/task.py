@@ -422,6 +422,7 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback-widevine-h264-sfr",
         "youtube-playback-h264-power",
         "youtube-playback",
     ]
