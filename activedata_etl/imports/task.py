@@ -505,6 +505,7 @@ TEST_SUITE = {
         "crashtest",
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
+        "geckoview-junit-e10s-multi",
         "geckoview-junit",
         "geckoview-cold",
         "geckoview-memory",

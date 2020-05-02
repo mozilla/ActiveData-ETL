@@ -11,21 +11,17 @@ from __future__ import absolute_import, division, unicode_literals
 
 import gzip
 import zipfile
-from tempfile import TemporaryFile
+from tempfile import NamedTemporaryFile
 
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
-from mo_files import mimetype
+from mo_math.randoms import Random
 
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
+from mo_files import mimetype
 from mo_files.url import value2url_param
 from mo_future import StringIO, is_binary, text
-from mo_kwargs import override
-from mo_logs import Except, Log
-from mo_times.dates import Date
-from mo_times.timer import Timer
-from pyLibrary import convert
 from mo_http import http
 from mo_http.big_data import (
     LazyLines,
@@ -34,6 +30,11 @@ from mo_http.big_data import (
     safe_size,
     scompressed2ibytes,
 )
+from mo_kwargs import override
+from mo_logs import Except, Log
+from mo_times.dates import Date
+from mo_times.timer import Timer
+from pyLibrary import convert
 
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -381,9 +382,8 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
-        buff = TemporaryFile()
-        Log.note("Temp file {{filename}}", filename=buff.name)
-        try:
+        with NamedTemporaryFile(prefix=Random.base64(20)) as buff:
+            Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0
             for l in lines:
@@ -424,8 +424,6 @@ class Bucket(object):
                         Log.error("could not push data to s3", cause=e)
                     else:
                         Log.warning("could not push data to s3, will retry", cause=e)
-        finally:
-            buff.close()
 
         if self.settings.public:
             storage.set_acl("public-read")
