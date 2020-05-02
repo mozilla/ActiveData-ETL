@@ -145,7 +145,7 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/el
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 
-#INSTALL PYTHON27
+# INSTALL PYTHON27
 sudo yum -y install python27
 sudo pip install --upgrade pip
 #rm -fr /home/ec2-user/temp
