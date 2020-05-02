@@ -48,10 +48,13 @@ from mo_dots import (
     wrap,
     listwrap, unwrap)
 from mo_dots.lists import last
-from mo_future import first, long, none_type, text
+from mo_future import first, long, none_type, text, is_text
 from mo_json import BOOLEAN, EXISTS, OBJECT, STRUCT
 from mo_json.typed_encoder import (
+    BOOLEAN_TYPE,
     EXISTS_TYPE,
+    NUMBER_TYPE,
+    STRING_TYPE,
     unnest_path,
     untype_path,
     NESTED_TYPE, get_nested_path)
@@ -235,10 +238,13 @@ class ElasticsearchMetadata(Namespace):
 
         column_names = {c.es_column for c in columns}
         # DELETE SOME COLUMNS
-        current_columns = self.meta.columns.find(alias)
-        for c in current_columns:
-            if c.es_column not in column_names:
-                self.meta.columns.remove(c, now)
+        try:
+            current_columns = self.meta.columns.find(alias)
+            for c in current_columns:
+                if c.es_column not in column_names:
+                    self.meta.columns.remove(c, now)
+        except Exception as e:
+            Log.warning("problem removing columns from {{table}}", table=alias, cause=e)
 
         # ASK FOR COLUMNS TO BE RE-SCANNED
         rescan = [
@@ -1142,6 +1148,57 @@ class Schema(jx_base.Schema):
                 return set(output)
         return set()
 
+    def new_leaves(self, column_name):
+        """
+        :param column_name:
+        :return: ALL COLUMNS THAT START WITH column_name, INCLUDING DEEP COLUMNS
+        """
+        column_name = unnest_path(column_name)
+        columns = self.columns
+        all_paths = self.snowflake.sorted_query_paths
+
+        output = {}
+        for c in columns:
+            if c.name == "_id" and column_name != "_id":
+                continue
+            if c.jx_type in OBJECTS:
+                continue
+            if c.cardinality == 0:
+                continue
+            for path in all_paths:
+                if not startswith_field(
+                    unnest_path(relative_field(c.name, path)), column_name
+                ):
+                    continue
+                existing = output.get(path)
+                if not existing:
+                    output[path] = [c]
+                    continue
+                if len(path) > len(c.nested_path[0]):
+                    continue
+                if any(
+                    "." + t + "." in c.es_column
+                    for t in (STRING_TYPE, NUMBER_TYPE, BOOLEAN_TYPE)
+                ):
+                    # ELASTICSEARCH field TYPES ARE NOT ALLOWED
+                    continue
+                # ONLY THE DEEPEST COLUMN WILL BE CHOSEN
+                output[path].append(c)
+        return set(output.values())
+
+    def both_leaves(self, column_name):
+        old = self.old_leaves(column_name)
+        new = self.new_leaves(column_name)
+
+        if old != new:
+            Log.error(
+                "not the same: {{old}}, {{new}}",
+                old=[c.name for c in old],
+                new=[c.name for c in new],
+            )
+
+        return new
+
     def values(self, column_name, exclude_type=STRUCT):
         """
         RETURN ALL COLUMNS THAT column_name REFERS TO
@@ -1248,5 +1305,129 @@ python_type_to_es_type = {
     datetime: "double",
     date: "double",
 }
+
+_merge_es_type = {
+    "undefined": {
+        "undefined": "undefined",
+        "boolean": "boolean",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": "object",
+        "nested": "nested",
+    },
+    "boolean": {
+        "undefined": "boolean",
+        "boolean": "boolean",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "integer": {
+        "undefined": "integer",
+        "boolean": "integer",
+        "integer": "integer",
+        "long": "long",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "long": {
+        "undefined": "long",
+        "boolean": "long",
+        "integer": "long",
+        "long": "long",
+        "float": "double",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "float": {
+        "undefined": "float",
+        "boolean": "float",
+        "integer": "float",
+        "long": "double",
+        "float": "float",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "double": {
+        "undefined": "double",
+        "boolean": "double",
+        "integer": "double",
+        "long": "double",
+        "float": "double",
+        "double": "double",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "number": {
+        "undefined": "number",
+        "boolean": "number",
+        "integer": "number",
+        "long": "number",
+        "float": "number",
+        "double": "number",
+        "number": "number",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "string": {
+        "undefined": "string",
+        "boolean": "string",
+        "integer": "string",
+        "long": "string",
+        "float": "string",
+        "double": "string",
+        "number": "string",
+        "string": "string",
+        "object": None,
+        "nested": None,
+    },
+    "object": {
+        "undefined": "object",
+        "boolean": None,
+        "integer": None,
+        "long": None,
+        "float": None,
+        "double": None,
+        "number": None,
+        "string": None,
+        "object": "object",
+        "nested": "nested",
+    },
+    "nested": {
+        "undefined": "nested",
+        "boolean": None,
+        "integer": None,
+        "long": None,
+        "float": None,
+        "double": None,
+        "number": None,
+        "string": None,
+        "object": "nested",
+        "nested": "nested",
+    },
+}
+
 
 OBJECTS = (OBJECT, EXISTS)

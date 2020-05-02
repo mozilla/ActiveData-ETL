@@ -86,11 +86,13 @@ class QueryTable(GroupbyTable, Facts):
 
         return wrap([{c: v for c, v in zip(column_names, r)} for r in result.data])
 
-    def query(self, query):
+    def query(self, query=None):
         """
         :param query:  JSON Query Expression, SET `format="container"` TO MAKE NEW TABLE OF RESULT
         :return:
         """
+        if not query:
+            query = {}
         if not query.get('from'):
             query['from'] = self.name
         elif not startswith_field(query['from'], self.name):

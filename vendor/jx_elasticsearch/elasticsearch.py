@@ -30,7 +30,7 @@ from mo_logs.exceptions import Except, suppress_exception
 from mo_math import is_integer, is_number
 from mo_math.randoms import Random
 from mo_threads import Lock, ThreadedQueue, Till, THREAD_STOP, Thread, MAIN_THREAD
-from mo_times import Date, Timer, HOUR, dates
+from mo_times import Date, Timer, HOUR, dates, Duration
 from mo_http import http
 
 DEBUG = True
@@ -386,7 +386,7 @@ class Index(object):
         if seconds <= 0:
             interval = -1
         else:
-            interval = text(seconds) + "s"
+            interval = text(int(seconds)) + "s"
 
         if self.cluster.version.startswith(("1.4.", "1.5.", "1.6.", "1.7.", "5.", "6.")):
             result = self.cluster.put(
@@ -563,11 +563,11 @@ class Cluster(object):
 
         def set_refresh(please_stop):
             try:
-                known_index.set_refresh_interval(seconds=int(dates.parse(kwargs.refresh_interval).seconds))
+                known_index.set_refresh_interval(seconds=Duration(kwargs.refresh_interval).seconds)
             except Exception as e:
                 Log.warning("could not set refresh interval for {{index}}", index=known_index.settings.index, cause=e)
         if kwargs.refresh_interval:
-            Thread.run("setting refresh interval", set_refresh, parent_thread=MAIN_THREAD)
+            Thread.run("setting refresh interval", set_refresh, parent_thread=MAIN_THREAD).release()
         else:
             pass
         return known_index
@@ -898,7 +898,7 @@ class Cluster(object):
                 Log.error(quote2string(details.error))
             if details._shards.failed > 0:
                 Log.error(
-                    "{{num}} of {{total}} shard failures {{failures|indent}}",
+                    "{{num}} orf {{total}} shard failures {{failures|indent}}",
                     failures=details._shards.failures.reason,
                     num=details._shards.failed,
                     total=details._shards.total
@@ -1802,35 +1802,3 @@ def value2number(v):
         except Exception as e:
             Log.error("Not a number ({{value}})",  value= v, cause=e)
 
-
-
-def separate_base_blob(blob, assets_keys):
-    """Split a full or partial Release into two separate dictionaries containing the base in one,
-    and the assets in the other.
-        :param blob: The Release to split
-        :type blob: dict
-        :param assets_keys: The keys that should end up in the `assets`.
-        :type assets_keys: dict
-        :return: tuple of base (dict) and assets (dict)
-        :rtype: tuple
-    """
-
-    # include blob
-    if not assets_keys:
-        return blob
-
-    # everything is already included
-    if assets_keys == store:
-        return {}
-
-    # add fancy null-checks
-    assets_keys = wrap(assets_keys)
-
-    # please include everything
-    if assets_keys["*"] == store:
-        return {}
-
-    return wrap({
-        k: separate_base_blob(v, assets_keys[k])
-        for k, v in blob.items()
-    })

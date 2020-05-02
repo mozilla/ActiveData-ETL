@@ -17,7 +17,19 @@ from mo_future import is_text, text
 from mo_math import MIN, is_nan, is_number, abs, floor, round
 from mo_times.vendor.dateutil.relativedelta import relativedelta
 
-Date = lambda v: None  # DUMMY, FOR NOW
+_Date = None
+_Log = None
+
+
+def _delayed_import():
+    global _Date
+    global _Log
+
+    from mo_times.dates import Date as _Date
+    from mo_logs import Log as _Log
+
+    _ = _Date
+    _ = _Log
 
 
 class Duration(object):
@@ -52,14 +64,17 @@ class Duration(object):
     @staticmethod
     def range(start, stop, step):
         if not step:
-            from mo_logs import Log
-            Log.error("Expecting a non-zero duration for interval")
+            if not _Log:
+                _delayed_import()
+            _Log.error("Expecting a non-zero duration for interval")
         output = []
         c = start
         while c < stop:
             output.append(c)
             c += step
         return output
+
+
 
     def __add__(self, other):
         output = Duration(0)
@@ -68,11 +83,14 @@ class Duration(object):
         return output
 
     def __radd__(self, other):
+        if not _Date:
+            _delayed_import()
+
         if other == None:
             return None
         if isinstance(other, datetime.datetime):
-            return Date(other).add(self)
-        elif isinstance(other, Date):
+            return _Date(other).add(self)
+        elif isinstance(other, _Date):
             return other.add(self)
         return self + other
 
@@ -87,6 +105,7 @@ class Duration(object):
         output.milli = -self.milli
         output.month = -self.month
         return output
+
 
     def __rmul__(self, amount):
         amount = float(amount)
@@ -116,26 +135,19 @@ class Duration(object):
 
             output = floor(m / amount.month) + r
             return output
-        elif isinstance(amount, Duration):
-            return self.milli / amount.milli
         elif is_number(amount):
-            # ASSUME amount IS DATE
             output = Duration(0)
             output.milli = self.milli / amount
             output.month = self.month / amount
             return output
         else:
-            from mo_logs import Log
-            Log.error("Do not know how to handle")
+            return self.milli / amount.milli
 
     def __truediv__(self, other):
         return self.__div__(other)
 
     def __rtruediv__(self, other):
         return self.__rdiv__(other)
-
-    def __rdiv__(self, other):
-        return Date(other)/self
 
     def __sub__(self, duration):
         output = Duration(0)
@@ -308,7 +320,7 @@ def _string2Duration(text):
     if text == "" or text == "zero":
         return ZERO
 
-    amount, interval = re.match(r"([\d.]*)(.*)", text).groups()
+    amount, interval = re.match(r"([\d\.]*)(.*)", text).groups()
     amount = int(amount) if amount else 1
 
     if MILLI_VALUES[interval] == None:
