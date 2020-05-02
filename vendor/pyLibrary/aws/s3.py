@@ -16,6 +16,7 @@ from tempfile import TemporaryFile
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
+from mo_files import mimetype
 
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
 from mo_files.url import value2url_param
@@ -290,14 +291,20 @@ class Bucket(object):
                 if disable_zip:
                     storage = self.bucket.new_key(str(key + ".json"))
                     string_length = len(value)
+                    headers = {"Content-Type": mimetype.JSON}
                 else:
                     storage = self.bucket.new_key(str(key + ".json.gz"))
                     string_length = len(value)
                     value = convert.bytes2zip(value)
+                    headers = {"Content-Type": mimetype.ZIP}
                 file_length = len(value)
-                Log.note("Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",  file_length= file_length,  string_length=string_length)
+                Log.note(
+                    "Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",
+                    file_length=file_length,
+                    string_length=string_length
+                )
                 value.seek(0)
-                storage.set_contents_from_file(value)
+                storage.set_contents_from_file(value, headers=headers)
 
                 if self.settings.public:
                     storage.set_acl('public-read')
@@ -312,16 +319,17 @@ class Bucket(object):
                 else:
                     value = convert.bytes2zip(value).encode('utf8')
                     key += ".json.gz"
-
+                headers = {"Content-Type": mimetype.ZIP}
             else:
                 self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
                     key += ".json"
                 else:
                     key += ".json"
+                headers = {"Content-Type": mimetype.JSON}
 
             storage = self.bucket.new_key(str(key))
-            storage.set_contents_from_string(value)
+            storage.set_contents_from_string(value, headers=headers)
 
             if self.settings.public:
                 storage.set_acl('public-read')
@@ -339,36 +347,39 @@ class Bucket(object):
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
         buff = TemporaryFile()
-        archive = gzip.GzipFile(fileobj=buff, mode='w')
-        count = 0
-        for l in lines:
-            if is_many(l):
-                for ll in l:
-                    archive.write(ll.encode("utf8"))
+        try:
+            archive = gzip.GzipFile(fileobj=buff, mode='w')
+            count = 0
+            for l in lines:
+                if is_many(l):
+                    for ll in l:
+                        archive.write(ll.encode("utf8"))
+                        archive.write(b"\n")
+                        count += 1
+                else:
+                    archive.write(l.encode("utf8"))
                     archive.write(b"\n")
                     count += 1
-            else:
-                archive.write(l.encode("utf8"))
-                archive.write(b"\n")
-                count += 1
 
-        archive.close()
-        file_length = buff.tell()
+            archive.close()
+            file_length = buff.tell()
 
-        retry = 3
-        while retry:
-            try:
-                with Timer("Sending {{count}} lines in {{file_length|comma}} bytes for {{key}}", {"key": key, "file_length": file_length, "count": count}, verbose=self.settings.debug):
-                    buff.seek(0)
-                    storage.set_contents_from_file(buff)
-                break
-            except Exception as e:
-                e = Except.wrap(e)
-                retry -= 1
-                if retry == 0 or 'Access Denied' in e or "No space left on device" in e:
-                    Log.error("could not push data to s3", cause=e)
-                else:
-                    Log.warning("could not push data to s3", cause=e)
+            retry = 3
+            while retry:
+                try:
+                    with Timer("Sending {{count}} lines in {{file_length|comma}} bytes for {{key}}", {"key": key, "file_length": file_length, "count": count}, verbose=self.settings.debug):
+                        buff.seek(0)
+                        storage.set_contents_from_file(buff, headers={"Content-Type": mimetype.ZIP})
+                    break
+                except Exception as e:
+                    e = Except.wrap(e)
+                    retry -= 1
+                    if retry == 0 or 'Access Denied' in e or "No space left on device" in e:
+                        Log.error("could not push data to s3", cause=e)
+                    else:
+                        Log.warning("could not push data to s3", cause=e)
+        finally:
+            buff.close()
 
         if self.settings.public:
             storage.set_acl('public-read')

@@ -26,7 +26,7 @@ from activedata_etl.transforms import (
 )
 from jx_python import jx
 from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null, is_data
-from mo_files import URL
+from mo_files import URL, mimetype
 from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value, value2json
@@ -745,7 +745,7 @@ def get_build_task(source_key, resources, normalized_task):
                 port=coalesce(resources.local_es_node.port, 9200),
                 path="task/task/_search",
             ),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": mimetype.JSON},
             data={
                 "query": {"terms": {"task.id": build_task_id}},
                 "from": 0,
