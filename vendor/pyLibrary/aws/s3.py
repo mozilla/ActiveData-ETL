@@ -347,6 +347,7 @@ class Bucket(object):
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
         buff = TemporaryFile()
+        buff.name = str(key + ".json")  # USED BY gzip TO SET INTERNAL NAME
         try:
             archive = gzip.GzipFile(fileobj=buff, mode='w')
             count = 0

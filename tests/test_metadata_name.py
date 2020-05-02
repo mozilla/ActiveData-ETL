@@ -51,16 +51,12 @@ class TestMetadataName(FuzzyTestCase):
 
     def test_one(self):
         test = decode_metatdata_name(
-            Null, "test-windows10-64-shippable/opt-browsertime-tp6-1-chrome-cold-e10s"
+            Null, "test-linux64-ccov/opt-awsy"
         )
         expected = {
-            "action": {"type": "raptor"},
-            "build": {"type": ["opt"], "platform": "linux64"},
-            "run": {
-                "type": ["e10s"],
-                "suite": {"name": "wasm-misc-ion"},
-                "browser": "firefox",
-            },
+            "action": {"type": "test"},
+            "build": {"platform":"linux64", "type": {"opt", "ccov"}},
+            "run": {"suite": {"name": "awsy"}}
         }
 
         self.assertEqual(test, expected)

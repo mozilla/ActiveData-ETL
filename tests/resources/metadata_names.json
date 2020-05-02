@@ -4210,6 +4210,15 @@
             "type": ["e10s"]
         }
     },
+    "test-linux1804-64-ccov/opt-web-platform-tests-reftest-backlog-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "ccov"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-reftest"}},
+        "type": ["e10s"]
+    },
     "test-linux1804-64-qr/debug-mochitest-webgpu-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -36675,6 +36684,18 @@
             "chunk": 9,
             "suite": {"name": "web-platform-tests"}
         }
+    },
+    "test-windows10-64/debug-web-platform-tests-backlog-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests"}
+        },
+        "type": ["e10s"]
     },
     "test-windows10-64/debug-web-platform-tests-reftests": {
         "action": {"type": "test"},

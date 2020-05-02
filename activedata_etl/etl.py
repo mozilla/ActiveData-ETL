@@ -17,6 +17,8 @@ from activedata_etl.sinks.dummy_sink import DummySink
 from activedata_etl.sinks.s3_bucket import S3Bucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
+from jx_elasticsearch import elasticsearch
+from jx_elasticsearch.rollover_index import RolloverIndex
 from jx_python import jx
 from mo_dots import coalesce, listwrap, Data, Null, wrap, is_data
 from mo_future import text
@@ -30,8 +32,6 @@ from mo_threads import Thread, Signal, Queue, Lock, Till, MAIN_THREAD
 from mo_times import Timer, Date, SECOND
 from pyLibrary import aws
 from pyLibrary.aws.s3 import strip_extension, key_prefix, KEY_IS_WRONG_FORMAT
-from jx_elasticsearch import elasticsearch
-from jx_elasticsearch.rollover_index import RolloverIndex
 from pyLibrary.meta import MemorySample
 from tuid.client import TuidClient
 

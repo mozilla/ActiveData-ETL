@@ -343,6 +343,7 @@ TEST_PLATFORM = {
 
 RUN_OPTIONS = {
     "1proc": {"run": {"type": ["1proc"]}},
+    "backlog-e10s": {"type": ["e10s"]},
     "condprof-e10s": {"run": {"type": ["condprof", "e10s"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-fis-e10s": {"run": {"type": ["profile", "fis", "e10s"]}},
@@ -577,8 +578,8 @@ BUILD_PLATFORM = {
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
-    "android-test-ccov": {
-        "build": {"platform": "android", "type": ["ccov"]},
+    "android-test": {
+        "build": {"platform": "android"},
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
