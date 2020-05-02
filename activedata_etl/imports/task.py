@@ -551,7 +551,9 @@ TEST_SUITE = {
         "test-verify",
         "test-verify-wpt",
         "web-platform-tests",
+        "web-platform-tests-crashtest",
         "web-platform-tests-crashtests",
+        "web-platform-tests-reftest",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
         "web-platform-tests-wdspec-headless",
@@ -680,6 +682,7 @@ TEST_OPTIONS = unwrap(
     set_default(
         {  # NOTICE THESE ALL INCLUDE run.type
             "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+            "devedition": {"build": {"train": "devedition"}},
             "gradle": {"run": {"type": ["gradle"]}},
             "lto": {"run": {"type": ["lto"]}},
             "mingw32": {"run": {"type": ["mingw32"]}},
