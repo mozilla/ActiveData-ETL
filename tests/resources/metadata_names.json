@@ -9,25 +9,28 @@
     "build-android-aarch64-beta/debug": {
         "action": {"type": "build"},
         "build": {
+            "cpu": "aarch64",
             "platform": "android",
             "train": "beta",
-            "type": ["debug", "aarch64"]
+            "type": ["debug"]
         }
     },
     "build-android-aarch64-gcp/opt": {
         "action": {"type": "build"},
         "build": {
+            "cpu": "aarch64",
             "platform": "android",
-            "type": ["opt", "aarch64"]
+            "type": ["opt"]
         },
         "run": {"cloud": "gcp"}
     },
     "build-android-aarch64-nightly/opt": {
         "action": {"type": "build"},
         "build": {
+            "cpu": "aarch64",
             "platform": "android",
             "train": "nightly",
-            "type": ["opt", "aarch64"]
+            "type": ["opt"]
         }
     },
     "build-android-aarch64-release/debug": {
@@ -41,8 +44,9 @@
     "build-android-aarch64/opt": {
         "action": {"type": "build"},
         "build": {
+            "cpu": "aarch64",
             "platform": "android",
-            "type": ["opt", "aarch64"]
+            "type": ["opt"]
         }
     },
     "build-android-api-16-beta-test/opt": {
@@ -3736,6 +3740,20 @@
             "chunk": 7,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-qr/debug-geckoview-reftest-qr-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 2,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr", "qr"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64-qr/opt-geckoview-reftest-e10s-4": {
@@ -19406,9 +19424,9 @@
             "type": ["opt"]
         },
         "run": {
-            "browser": "firefox",
+            "browser": "baseline-firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc-baseline"},
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s", "qr"]
         }
     },
@@ -23049,8 +23067,8 @@
             "type": ["debug"]
         },
         "run": {
-            "suite": {"name": "mochitest-remote-sw"},
-            "type": ["e10s"]
+            "suite": {"name": "mochitest-remote"},
+            "type": ["service-worker", "e10s"]
         }
     },
     "test-linux64/debug-mochitest-sw-e10s-15": {
@@ -25064,9 +25082,9 @@
             "type": ["opt"]
         },
         "run": {
-            "browser": "firefox",
+            "browser": "baseline-firefox",
             "framework": "raptor",
-            "suite": {"name": "wasm-misc-baseline"},
+            "suite": {"name": "wasm-misc"},
             "type": ["e10s"]
         }
     },
@@ -43554,7 +43572,7 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6"},
-            "type": ["e10s", "condprof"]
+            "type": ["condprof", "e10s"]
         }
     },
     "test-windows7-32/opt-raptor-wasm-godot-firefox-e10s": {
