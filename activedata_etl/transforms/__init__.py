@@ -122,7 +122,7 @@ class Transform(object):
         raise NotImplementedError
 
 
-def verify_blobber_file(line_number, name, url):
+def get_test_result_content(line_number, name, url):
     """
     :param line_number:  for debugging
     :param name:  for debugging

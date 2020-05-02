@@ -164,10 +164,10 @@ class HgMozillaOrg(object):
                     try:
                         rev = self.get_revision(
                             Revision(branch=branch, changeset={"id": r}),
-                            None,
-                            False,
-                            True,
-                            None
+                            None,  # local
+                            False,  # get_diff
+                            True,  # get_moves
+                            after  # after
                         )
                         if DAEMON_DEBUG:
                             Log.note(
@@ -329,63 +329,31 @@ class HgMozillaOrg(object):
         MAKE CALL TO ES
         """
         rev = revision.changeset.id
-        if self.repo.cluster.version.startswith("1.7."):
-            query = {
-                "query": {
-                    "filtered": {
-                        "query": {"match_all": {}},
-                        "filter": {
-                            "and": [
-                                {"term": {"changeset.id12": rev[0:12]}},
-                                {"term": {"branch.name": revision.branch.name}},
-                                {
-                                    "term": {
-                                        "branch.locale": coalesce(
-                                            locale,
-                                            revision.branch.locale,
-                                            DEFAULT_LOCALE,
-                                        )
-                                    }
-                                },
-                                {
-                                    "range": {
-                                        "etl.timestamp": {
-                                            "gt": Date.max(after, MIN_ETL_AGE)
-                                        }
-                                    }
-                                },
-                            ]
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"changeset.id12": rev[0:12]}},
+                        {"term": {"branch.name": revision.branch.name}},
+                        {
+                            "term": {
+                                "branch.locale": coalesce(
+                                    locale, revision.branch.locale, DEFAULT_LOCALE
+                                )
+                            }
                         },
-                    }
-                },
-                "size": 20,
-            }
-        else:
-            query = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"term": {"changeset.id12": rev[0:12]}},
-                            {"term": {"branch.name": revision.branch.name}},
-                            {
-                                "term": {
-                                    "branch.locale": coalesce(
-                                        locale, revision.branch.locale, DEFAULT_LOCALE
-                                    )
+                        {
+                            "range": {
+                                "etl.timestamp": {
+                                    "gt": Date.max(after, MIN_ETL_AGE)
                                 }
-                            },
-                            {
-                                "range": {
-                                    "etl.timestamp": {
-                                        "gt": Date.max(after, MIN_ETL_AGE)
-                                    }
-                                }
-                            },
-                        ]
-                    }
-                },
-                "size": 20,
-            }
+                            }
+                        },
+                    ]
+                }
+            },
+            "size": 20,
+        }
 
         for attempt in range(3):
             try:
@@ -659,32 +627,28 @@ class HgMozillaOrg(object):
         )
         queue.add(THREAD_STOP)
 
-        problems = []
-
         def _find(please_stop):
             for b in queue:
                 if please_stop:
                     return
                 try:
-                    url = b.url + "json-info?node=" + revision
+                    url = b.url.rstrip("/") + "/json-info?node=" + revision
                     rev = self.get_revision(
                         Revision(branch=b, changeset={"id": revision})
                     )
                     with locker:
                         output.append(rev)
                     Log.note("Revision found at {{url}}", url=url)
-                except Exception as f:
-                    problems.append(f)
+                except Exception:
+                    pass
 
-        threads = []
-        for i in range(3):
-            threads.append(
-                Thread.run("find changeset " + text(i), _find, please_stop=please_stop)
-            )
+        threads = [
+            Thread.run("find changeset " + text(i), _find, please_stop=please_stop)
+            for i in range(3)
+        ]
 
         for t in threads:
-            with assert_no_exception:
-                t.join()
+            t.join()
 
         return output
 

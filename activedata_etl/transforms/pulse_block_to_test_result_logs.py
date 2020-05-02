@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from activedata_etl.transforms import EtlHeadGenerator, verify_blobber_file
+from activedata_etl.transforms import EtlHeadGenerator, get_test_result_content
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record, transform_buildbot
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from mo_dots import Data
@@ -40,7 +40,7 @@ def process(source_key, source, destination, resources, please_stop=None):
     for e in existing_keys:
         destination.delete_key(e)
 
-    all_lines = list(enumerate(source.read().decode('utf8').split("\n")))  # NOT EXPECTED TO BE BIG, AND GENERATOR MAY TAKE TOO LONG
+    all_lines = list(enumerate(source.read().decode('utf8').split("\n")))  # GENERATOR MAY TAKE TOO LONG
     for i, line in all_lines:
         if fast_forward:
             continue
@@ -73,7 +73,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                         Log.note("Line {{line}}: found structured log with NULL url", line=i)
                     continue
 
-                log_content, num_lines = verify_blobber_file(i, name, url)
+                log_content, num_lines = get_test_result_content(i, name, url)
                 if not log_content:
                     continue
 
