@@ -132,7 +132,6 @@ class Bucket(object):
         except Exception as e:
             Log.error("Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e)
 
-
     def __enter__(self):
         return self
 
@@ -182,7 +181,7 @@ class Bucket(object):
             error = None
             for m in metas:
                 try:
-                    simple = strip_extension(text(m.key))
+                    simple = strip_extension(m.key)
                     if conforming:
                         self._verify_key_format(simple)
                     if simple == key:
@@ -462,6 +461,7 @@ class PublicBucket(object):
 
 
 def strip_extension(key):
+    key = text(key)
     e = key.find(".json")
     if e == -1:
         return key
