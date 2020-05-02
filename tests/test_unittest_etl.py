@@ -22,7 +22,7 @@ true = True
 class TestUnittestETL(FuzzyTestCase):
 
     def test_one_file(self):
-        url = "https://firefoxci.taskcluster-artifacts.net/CoFjOQCxRS2DdsiNTv6FIQ/0/public/test_info//xpcshell_raw.log"
+        url = "https://firefox-ci-tc.services.mozilla.com/api/queue/v1/task/JoOsJPGjQ2iXoL3NewYT2w/artifacts/public/test_info//wpt_raw.log"
 
         response = http.get(url)
 

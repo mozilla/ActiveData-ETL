@@ -1,6 +1,6 @@
 cluster.name: ActiveData-es6
 
-node.name: backup2
+node.name: 4
 node.master: false
 node.data: true
 node.ingest: true
@@ -32,7 +32,7 @@ path.logs: /data1/logs
 
 discovery.ec2.endpoint: ec2.us-west-2.amazonaws.com
 discovery.zen.hosts_provider: ec2
-discovery.zen.minimum_master_nodes: 2
+discovery.zen.minimum_master_nodes: 1
 
 
 http.compression: true

@@ -32564,6 +32564,19 @@
             "suite": {"name": "web-platform-tests"}
         }
     },
+    "test-windows10-64-devedition/opt-web-platform-tests-reftest-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "train": "devedition",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-devedition/opt-web-platform-tests-reftests": {
         "action": {"type": "test"},
         "build": {
@@ -34311,6 +34324,18 @@
             "type": ["qr"]
         }
     },
+    "test-windows10-64-qr/debug-web-platform-tests-reftest-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-windows10-64-qr/opt-awsy-tp6-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -34580,6 +34605,18 @@
             "framework": "talos",
             "suite": "tp5o",
             "type": ["qr"]
+        }
+    },
+    "test-windows10-64-qr/opt-web-platform-tests-reftest-fis-e10s-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s", "fis", "qr"]
         }
     },
     "test-windows10-64-ref-hw-2017/opt-raptor-tp6-7-firefox-e10s": {
@@ -42885,6 +42922,18 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "test-windows7-32/debug-web-platform-tests-reftest-e10s-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s"]
         }
     },
     "test-windows7-32/debug-web-platform-tests-reftests": {
