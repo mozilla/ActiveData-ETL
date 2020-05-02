@@ -14,7 +14,7 @@ from mo_json import json2value
 from mo_logs import Log, machine_metadata
 
 from activedata_etl.imports.task import minimize_task
-from activedata_etl.transforms import verify_blobber_file, EtlHeadGenerator
+from activedata_etl.transforms import get_test_result_content, EtlHeadGenerator
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest
 from mo_times.dates import Date
 
@@ -55,7 +55,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             if Date(a.expires) < Date.now():
                 Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
                 continue  # ARTIFACT IS GONE
-            lines, num_bytes = verify_blobber_file(j, a.name, a.url)
+            lines, _ = get_test_result_content(j, a.name, a.url)
             if lines:
                 dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
                 dest_etl.machine = machine_metadata
