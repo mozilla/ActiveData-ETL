@@ -157,13 +157,13 @@ class Bucket(object):
             full_key = self.get_meta(key, conforming=False)
             if full_key == None:
                 return
-            self.bucket.delete_key(full_key)
+            self.bucket.delete_key(str(full_key))
         except Exception as e:
             self.get_meta(key, conforming=False)
             raise e
 
     def delete_keys(self, keys):
-        self.bucket.delete_keys(keys)
+        self.bucket.delete_keys([str(k) for k in keys])
 
     def get_meta(self, key, conforming=True):
         """
@@ -173,8 +173,8 @@ class Bucket(object):
         :return: METADATA, IF UNIQUE, ELSE ERROR
         """
         try:
-            metas = list(self.bucket.list(prefix=key))
-            metas = wrap([m for m in metas if m.name.find(".json") != -1])
+            metas = list(self.bucket.list(prefix=str(key)))
+            metas = wrap([m for m in metas if text(m.name).find(".json") != -1])
 
             perfect = Null
             favorite = Null
@@ -182,7 +182,7 @@ class Bucket(object):
             error = None
             for m in metas:
                 try:
-                    simple = strip_extension(m.key)
+                    simple = strip_extension(text(m.key))
                     if conforming:
                         self._verify_key_format(simple)
                     if simple == key:
@@ -217,9 +217,9 @@ class Bucket(object):
         if delimiter:
             # WE REALLY DO NOT GET KEYS, BUT RATHER Prefix OBJECTS
             # AT LEAST THEY ARE UNIQUE
-            candidates = [k.name.rstrip(delimiter) for k in self.bucket.list(prefix=prefix, delimiter=delimiter)]
+            candidates = [k.name.rstrip(delimiter) for k in self.bucket.list(prefix=str(prefix), delimiter=str(delimiter))]
         else:
-            candidates = [strip_extension(k.key) for k in self.bucket.list(prefix=prefix)]
+            candidates = [strip_extension(k.key) for k in self.bucket.list(prefix=str(prefix))]
 
         if prefix == None:
             return set(c for c in candidates if c != "0.json")
@@ -231,7 +231,7 @@ class Bucket(object):
         RETURN THE METADATA DESCRIPTORS FOR EACH KEY
         """
         limit = coalesce(limit, TOO_MANY_KEYS)
-        keys = self.bucket.list(prefix=prefix, delimiter=delimiter)
+        keys = self.bucket.list(prefix=str(prefix), delimiter=str(delimiter))
         prefix_len = len(prefix)
         output = []
         for i, k in enumerate(k for k in keys if len(k.key) == prefix_len or k.key[prefix_len] in [".", ":"]):
@@ -289,10 +289,10 @@ class Bucket(object):
         try:
             if hasattr(value, "read"):
                 if disable_zip:
-                    storage = self.bucket.new_key(key + ".json")
+                    storage = self.bucket.new_key(str(key + ".json"))
                     string_length = len(value)
                 else:
-                    storage = self.bucket.new_key(key + ".json.gz")
+                    storage = self.bucket.new_key(str(key + ".json.gz"))
                     string_length = len(value)
                     value = convert.bytes2zip(value)
                 file_length = len(value)
@@ -305,8 +305,8 @@ class Bucket(object):
                 return
 
             if len(value) > 20 * 1000 and not disable_zip:
-                self.bucket.delete_key(key + ".json")
-                self.bucket.delete_key(key + ".json.gz")
+                self.bucket.delete_key(str(key + ".json"))
+                self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
                     value = convert.bytes2zip(value)
                     key += ".json.gz"
@@ -315,13 +315,13 @@ class Bucket(object):
                     key += ".json.gz"
 
             else:
-                self.bucket.delete_key(key + ".json.gz")
+                self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
                     key += ".json"
                 else:
                     key += ".json"
 
-            storage = self.bucket.new_key(key)
+            storage = self.bucket.new_key(str(key))
             storage.set_contents_from_string(value)
 
             if self.settings.public:
@@ -337,7 +337,7 @@ class Bucket(object):
 
     def write_lines(self, key, lines):
         self._verify_key_format(key)
-        storage = self.bucket.new_key(key + ".json.gz")
+        storage = self.bucket.new_key(str(key + ".json.gz"))
 
         buff = TemporaryFile()
         archive = gzip.GzipFile(fileobj=buff, mode='w')
