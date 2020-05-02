@@ -153,10 +153,10 @@ class Bucket(object):
     def delete_key(self, key):
         # self._verify_key_format(key)  DO NOT VERIFY, DELETE BAD KEYS ANYWAY!!
         try:
-            full_key = self.get_meta(key, conforming=False)
-            if full_key == None:
+            meta = self.get_meta(key, conforming=False)
+            if meta == None:
                 return
-            self.bucket.delete_key(str(full_key))
+            self.bucket.delete_key(meta.key)
         except Exception as e:
             self.get_meta(key, conforming=False)
             raise e
