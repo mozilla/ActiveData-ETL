@@ -750,6 +750,7 @@ SPECIAL_BUILDS = {
     "nightly-support-test": {},
     "nightly": {"build": {"train": "nightly"}},
     "notarization-poller-macosx64-shippable/opt":{},
+    "notarization-part-1-macosx64-shippable/opt":{},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },

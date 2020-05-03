@@ -540,6 +540,7 @@
     "build-nightly-support-locale": {"action": {"type": "build"}},
     "build-nightly-support-sync-telemetry": {"action": {"type": "build"}},
     "build-nightly-support-test": {"action": {"type": "build"}},
+    "build-notarization-part-1-macosx64-shippable/opt": {"action": {"type": "build"}},
     "build-notarization-poller-macosx64-shippable/opt": {"action": {"type": "build"}},
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
