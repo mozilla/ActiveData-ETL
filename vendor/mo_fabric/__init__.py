@@ -42,10 +42,12 @@ class Connection(object):
         kwargs=None,
     ):
         connect_kwargs = set_default(
-            {}, connect_kwargs, {"key_filename": File(key_filename).abspath}
+            {},
+            connect_kwargs,
+            {"key_filename": [File(f).abspath for f in listwrap(key_filename)]}
         )
 
-        key_filenames = listwrap(coalesce(connect_kwargs.key_filename, key_filename))
+        key_filenames = connect_kwargs.key_filename
 
         self.stdout = LogStream(host, "stdout")
         self.stderr = LogStream(host, "stderr")
