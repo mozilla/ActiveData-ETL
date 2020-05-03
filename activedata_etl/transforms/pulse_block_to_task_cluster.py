@@ -1220,6 +1220,7 @@ PAYLOAD_PROPERTIES = {
     "unsignedArtifacts",
     "update_line",
     "upload_date",
+    "uuid_manifest",
     "VERIFY_CONFIG",
     "version_bump_info",
     "version",
