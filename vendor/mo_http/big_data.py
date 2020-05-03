@@ -294,7 +294,11 @@ def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
     :return:
     """
     decode = get_decoder(encoding=encoding, flexible=flexible)
-    _buffer = next(generator)
+    try:
+        _buffer = next(generator)
+    except StopIteration:
+        return
+
     s = 0
     e = _buffer.find(b"\n")
     while True:

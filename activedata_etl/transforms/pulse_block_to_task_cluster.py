@@ -815,6 +815,7 @@ def get_tags(source_key, task_id, task, parent=None):
 
     consume(task, "extra.action.context.parameters")  # TOO MANY COMBINATIONS
     consume(task, "extra.action.context.input")
+    consume(task, "payload.l10n_bump_info")
 
     # VARIOUS LOCATIONS TO FIND TAGS
     t = consume(task, "tags").leaves()
@@ -1156,13 +1157,6 @@ PAYLOAD_PROPERTIES = {
     "graphs",  # POINTER TO graph.json ARTIFACT
     "ignore_closed_tree",
     "is_partner_repack_public",
-    "l10n_bump_info",
-    "l10n_bump_info.name",
-    "l10n_bump_info.path",
-    "l10n_bump_info.version_path",
-    "l10n_bump_info.revision_url",
-    "l10n_bump_info.platform_configs.path",
-    "l10n_bump_info.platform_configs.platforms",
     "l10n_changesets",
     "locales",
     "locale",
@@ -1311,7 +1305,6 @@ KNOWN_TAGS = {
     "index.expires",
     "index.rank",
     "installer_path",
-    # "l10n_bump_info",
     "l10n_changesets",
     "last-watershed",
     "limit-locales",

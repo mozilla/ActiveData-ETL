@@ -19596,6 +19596,20 @@
             "type": ["e10s", "fis", "qr"]
         }
     },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-vp9-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-vp9-sfr"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-linux64-shippable-qr/opt-raptor-youtube-playback-widevine-hfr-firefox-fis-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -29180,6 +29194,18 @@
         "run": {
             "chunk": 2,
             "suite": {"name": "xpcshell"}
+        }
+    },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-23-cold-performance-test-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "browsertime",
+            "suite": {"name": "tp6m"}
         }
     },
     "test-vismet-android-hw-p2-8-0-android-aarch64/pgo-browsertime-tp6m-geckoview-cold-youtube": {

@@ -424,6 +424,7 @@ RAPTOR_TEST = {
         "wasm-misc",
         "webaudio",
         "youtube-playback-av1-sfr",
+        "youtube-playback-vp9-sfr",
         "youtube-playback-widevine-hfr",
         "youtube-playback-widevine-h264-sfr",
         "youtube-playback-widevine-vp9-sfr",
@@ -464,6 +465,7 @@ RAPTOR_TEST["tp6m"] = match_tp6
 SITE = {s: {"run": {"site": s}} for s in ["amazon", "bing-search", "facebook", "google", "google-search", "yahoo-news", "youtube", "wikipedia"]}
 
 BROWSER = {
+    "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
     "chrome-cold": {"run": {"browser": "chrome"}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium"}},
