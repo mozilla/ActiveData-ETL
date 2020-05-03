@@ -16,6 +16,8 @@ from datetime import datetime
 from mimetypes import MimeTypes
 from tempfile import NamedTemporaryFile, mkdtemp
 
+from mo_math.randoms import Random
+
 from mo_dots import Null, coalesce, get_module, is_list
 from mo_files import mimetype
 from mo_files.url import URL
@@ -466,7 +468,7 @@ class TempFile(File):
     def __init__(self, filename=None):
         if isinstance(filename, File):
             return
-        self.temp = NamedTemporaryFile(delete=False)
+        self.temp = NamedTemporaryFile(prefix=Random.base64(20), delete=False)
         self.temp.close()
         File.__init__(self, self.temp.name)
 

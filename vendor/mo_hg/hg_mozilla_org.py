@@ -46,6 +46,7 @@ from mo_logs.strings import expand_template
 from mo_math.randoms import Random
 import mo_threads
 from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till, Signal
+from mo_times import Timer
 from mo_times.dates import Date
 from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
 from mo_http import http
@@ -166,9 +167,11 @@ class HgMozillaOrg(object):
                             Revision(branch=branch, changeset={"id": r}),
                             None,  # local
                             False,  # get_diff
-                            True,  # get_moves
-                            after  # after
+                            True  # get_moves
                         )
+                        if after and after > rev.etl.timestamp:
+                            rev = self._get_from_hg(revision=rev)
+
                         if DAEMON_DEBUG:
                             Log.note(
                                 "found revision with push date {{date|datetime}}",
@@ -201,7 +204,7 @@ class HgMozillaOrg(object):
 
     @cache(duration=HOUR, lock=True)
     def get_revision(
-        self, revision, locale=None, get_diff=False, get_moves=True, after=None
+        self, revision, locale=None, get_diff=False, get_moves=True
     ):
         """
         EXPECTING INCOMPLETE revision OBJECT
@@ -216,7 +219,7 @@ class HgMozillaOrg(object):
             return Null
         locale = coalesce(locale, revision.branch.locale, DEFAULT_LOCALE)
         output = self._get_from_elasticsearch(
-            revision, locale=locale, get_diff=get_diff, get_moves=get_moves, after=after
+            revision, locale=locale, get_diff=get_diff, get_moves=get_moves
         )
         if output:
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
@@ -235,6 +238,11 @@ class HgMozillaOrg(object):
             if output.push.date:
                 return output
 
+        return self._get_from_hg(revision, locale, get_diff, get_moves)
+
+    def _get_from_hg(
+        self, revision, locale=None, get_diff=False, get_moves=True
+    ):
         # RATE LIMIT CALLS TO HG (CACHE MISSES)
         next_cache_miss = self.last_cache_miss + (
             Random.float(WAIT_AFTER_CACHE_MISS * 2) * SECOND
@@ -247,6 +255,7 @@ class HgMozillaOrg(object):
             )
             Till(till=next_cache_miss.unix).wait()
 
+        # CLEAN UP BRANCH NAME
         found_revision = copy(revision)
         if isinstance(found_revision.branch, (text, binary_type)):
             lower_name = found_revision.branch.lower()
@@ -267,9 +276,11 @@ class HgMozillaOrg(object):
                 )
                 return Null
 
+        # REFRESH BRANCHES, IF TOO OLD
         if Date.now() - Date(b.etl.timestamp) > _hg_branches.OLD_BRANCH:
             self.branches = _hg_branches.get_branches(kwargs=self.settings)
 
+        # FIND THE PUSH
         push = self._get_push(found_revision.branch, found_revision.changeset.id)
         id12 = found_revision.changeset.id[0:12]
 
@@ -322,8 +333,7 @@ class HgMozillaOrg(object):
         revision,
         locale=None,
         get_diff=False,
-        get_moves=True,
-        after=None,  # RETURN RECORDS ETLed AFTER GIVEN TIME
+        get_moves=True
     ):
         """
         MAKE CALL TO ES
@@ -345,7 +355,7 @@ class HgMozillaOrg(object):
                         {
                             "range": {
                                 "etl.timestamp": {
-                                    "gt": Date.max(after, MIN_ETL_AGE)
+                                    "gt": MIN_ETL_AGE
                                 }
                             }
                         },
@@ -357,12 +367,13 @@ class HgMozillaOrg(object):
 
         for attempt in range(3):
             try:
-                if get_moves:
-                    with self.moves_locker:
-                        docs = self.moves.search(query).hits.hits
-                else:
-                    with self.repo_locker:
-                        docs = self.repo.search(query).hits.hits
+                with Timer("get from elasticsearch", too_long=2*SECOND):
+                    if get_moves:
+                        with self.moves_locker:
+                            docs = self.moves.search(query).hits.hits
+                    else:
+                        with self.repo_locker:
+                            docs = self.repo.search(query).hits.hits
                 if len(docs) == 0:
                     return None
                 best = docs[0]._source
