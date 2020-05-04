@@ -9,11 +9,11 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-from copy import copy
 import re
+from copy import copy
 
 import mo_math
-
+import mo_threads
 from jx_elasticsearch import elasticsearch
 from mo_dots import (
     Data,
@@ -27,29 +27,26 @@ from mo_dots import (
     wrap,
 )
 from mo_dots.lists import last
-from mo_files import URL, File
+from mo_files import URL
 from mo_future import binary_type, is_text, text, first
 from mo_hg.parse import diff_to_json, diff_to_moves
 from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
+from mo_http import http
 from mo_json import json2value
 from mo_kwargs import override
 from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import (
     Except,
     Explanation,
-    assert_no_exception,
     suppress_exception,
 )
-from mo_logs.strings import expand_template
 from mo_math.randoms import Random
-import mo_threads
-from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till, Signal
+from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till
 from mo_times import Timer
 from mo_times.dates import Date
 from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
-from mo_http import http
 from pyLibrary.meta import cache
 
 _hg_branches = None
@@ -85,7 +82,6 @@ UNKNOWN_PUSH = "Unknown push {{revision}}"
 IGNORE_MERGE_DIFFS = True
 
 MAX_DIFF_SIZE = 1000
-FILE_URL = "{{location}}/raw-file/{{rev}}{{path}}"
 
 last_called_url = {}
 
@@ -232,9 +228,6 @@ class HgMozillaOrg(object):
                 locale=locale,
                 revision=output.changeset.id,
             )
-            if output.push.date >= Date.now() - MAX_TODO_AGE:
-                self.todo.add((output.branch, listwrap(output.parents), None))
-                self.todo.add((output.branch, listwrap(output.children), None))
             if output.push.date:
                 return output
 
@@ -316,17 +309,18 @@ class HgMozillaOrg(object):
                 get_moves,
             )
             if output.push.date >= Date.now() - MAX_TODO_AGE:
-                self.todo.add((output.branch, listwrap(output.parents), None))
-                self.todo.add((output.branch, listwrap(output.children), None))
-                self.todo.add(
+                self.todo.extend([
+                    (output.branch, listwrap(output.parents), None),
+                    (output.branch, listwrap(output.children), None),
                     (output.branch, listwrap(output.backsoutnodes), output.push.date)
-                )
+                ])
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
             if not get_moves:
                 output.changeset.moves = None
-            return output
+
+        return output
 
     def _get_from_elasticsearch(
         self,
@@ -421,33 +415,17 @@ class HgMozillaOrg(object):
 
     @cache(duration=HOUR, lock=True)
     def _get_push(self, branch, changeset_id):
-        if self.repo.cluster.version.startswith("1.7."):
-            query = {
-                "query": {
-                    "filtered": {
-                        "query": {"match_all": {}},
-                        "filter": {
-                            "and": [
-                                {"term": {"branch.name": branch.name}},
-                                {"prefix": {"changeset.id": changeset_id[0:12]}},
-                            ]
-                        },
-                    }
-                },
-                "size": 1,
-            }
-        else:
-            query = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"term": {"branch.name": branch.name}},
-                            {"prefix": {"changeset.id": changeset_id[0:12]}},
-                        ]
-                    }
-                },
-                "size": 1,
-            }
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"branch.name": branch.name}},
+                        {"prefix": {"changeset.id": changeset_id[0:12]}},
+                    ]
+                }
+            },
+            "size": 1,
+        }
 
         try:
             # ALWAYS TRY ES FIRST
@@ -682,44 +660,10 @@ class HgMozillaOrg(object):
 
         @cache(duration=MINUTE, lock=True)
         def inner(changeset_id):
-            if self.repo.cluster.version.startswith("1.7."):
-                query = {
-                    "query": {
-                        "filtered": {
-                            "query": {"match_all": {}},
-                            "filter": {
-                                "and": [
-                                    {"prefix": {"changeset.id": changeset_id}},
-                                    {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
-                                ]
-                            },
-                        }
-                    },
-                    "size": 1,
-                }
-            else:
-                query = {
-                    "query": {
-                        "bool": {
-                            "must": [
-                                {"prefix": {"changeset.id": changeset_id}},
-                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
-                            ]
-                        }
-                    },
-                    "size": 1,
-                }
-
-            try:
-                # ALWAYS TRY ES FIRST
-                with self.repo_locker:
-                    response = self.repo.search(query)
-                    json_diff = response.hits.hits[0]._source.changeset.diff
-                if json_diff:
-                    return json_diff
-            except Exception as e:
-                pass
-
+            # ALWAYS TRY ES FIRST
+            json_diff = _get_changeset_from_es(self.repo, changeset_id).changeset.diff
+            if json_diff:
+                return json_diff
             url = URL(revision.branch.url) / "raw-rev" / changeset_id
             DEBUG and Log.note("get unified diff from {{url}}", url=url)
             try:
@@ -759,50 +703,16 @@ class HgMozillaOrg(object):
 
         @cache(duration=MINUTE, lock=True)
         def inner(changeset_id):
-            if self.moves.cluster.version.startswith("1.7."):
-                query = {
-                    "query": {
-                        "filtered": {
-                            "query": {"match_all": {}},
-                            "filter": {
-                                "and": [
-                                    {"prefix": {"changeset.id": changeset_id}},
-                                    {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
-                                ]
-                            },
-                        }
-                    },
-                    "size": 1,
-                }
-            else:
-                query = {
-                    "query": {
-                        "bool": {
-                            "must": [
-                                {"prefix": {"changeset.id": changeset_id}},
-                                {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
-                            ]
-                        }
-                    },
-                    "size": 1,
-                }
-
-            try:
-                # ALWAYS TRY ES FIRST
-                with self.moves_locker:
-                    response = self.moves.search(query)
-                    moves = response.hits.hits[0]._source.changeset.moves
-                if moves:
-                    return moves
-            except Exception as e:
-                pass
+            # ALWAYS TRY ES FIRST
+            moves = _get_changeset_from_es(self.moves, changeset_id).changeset.moves
+            if moves:
+                return moves
 
             url = URL(revision.branch.url) / "raw-rev" / changeset_id
             DEBUG and Log.note("get unified diff from {{url}}", url=url)
             try:
-                moves = http.get(url).content.decode(
-                    "latin1"
-                )  # THE ENCODING DOES NOT MATTER BECAUSE WE ONLY USE THE '+', '-' PREFIXES IN THE DIFF
+                # THE ENCODING DOES NOT MATTER BECAUSE WE ONLY USE THE '+', '-' PREFIXES IN THE DIFF
+                moves = http.get(url).content.decode("latin1")
                 return diff_to_moves(text(moves))
             except Exception as e:
                 Log.warning("could not get unified diff from {{url}}", url=url, cause=e)
@@ -810,16 +720,7 @@ class HgMozillaOrg(object):
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
-        response = http.get(
-            expand_template(
-                FILE_URL,
-                {
-                    "location": revision.branch.url,
-                    "rev": revision.changeset.id,
-                    "path": file_path,
-                },
-            )
-        )
+        response = http.get(URL(revision.branch.url) / "raw-file" / revision.changeset.id / file_path)
         return response.content.decode("utf8", "replace")
 
 
@@ -836,6 +737,24 @@ def _get_url(url, branch, **kwargs):
         Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
     # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
     return data
+
+
+def _get_changeset_from_es(es, changeset_id):
+    try:
+        response = es.search({
+            "query": {
+                "bool": {
+                    "must": [
+                        {"prefix": {"changeset.id": changeset_id}},
+                        {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
+                    ]
+                }
+            },
+            "size": 1,
+        })
+        return response.hits.hits[0]._source
+    except Exception:
+        return Null
 
 
 def parse_hg_date(date):
