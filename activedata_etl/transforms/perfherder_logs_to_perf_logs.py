@@ -689,6 +689,7 @@ KNOWN_PERFHERDER_TESTS = [
     "overall",  # VCS
     "perf_reftest_singletons",
     "perf_reftest",  # THIS ONE HAS THE COMPARISION RESULTS
+    "PermissionManagerTester",
     "PermissionManager",
     "pdfpaint",
     "pull_errored",  # VCS

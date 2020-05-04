@@ -549,6 +549,7 @@
             "train": "release"
         }
     },
+    "build-src": {"action": {"type": "build"}},
     "build-win32-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -672,6 +673,15 @@
             "type": ["opt"]
         }
     },
+    "build-win64-aarch64-devedition-no-eme/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "win64",
+            "train": "devedition",
+            "type": ["opt", "no-eme"]
+        }
+    },
     "build-win64-aarch64-devedition/opt-upload-symbols": {
         "action": {"type": "build"},
         "build": {
@@ -703,7 +713,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "nightly",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-nightly-no-eme/opt-upload-symbols": {
@@ -712,7 +722,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "nightly",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable-no-eme/opt": {
@@ -721,7 +731,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable-no-eme/opt-upload-symbols": {
@@ -730,7 +740,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable/opt": {
@@ -3708,6 +3718,32 @@
             "type": ["1proc"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-browsertime-tp6m-live-chrome-m-cold-bbc-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "bbc",
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-browsertime-tp6m-live-chrome-m-cold-microsoft-support-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "microsoft-support",
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -4359,6 +4395,30 @@
         "run": {
             "suite": {"name": "mochitest"},
             "type": ["webgpu", "service-worker", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-xpcshell-spi-nw-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"},
+            "type": ["spi", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-xpcshell-spi-nw-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "xpcshell"},
+            "type": ["spi", "e10s"]
         }
     },
     "test-linux1804-64/opt-mochitest-webgpu-fis-e10s": {
@@ -29197,6 +29257,9 @@
             "suite": {"name": "xpcshell"}
         }
     },
+    "test-ui-browser": {},
+    "test-ui-glean": {},
+    "test-unit-browser-engine-gecko-nightly": {},
     "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-23-cold-performance-test-arm64-v8a": {
         "action": {"type": "perf"},
         "build": {

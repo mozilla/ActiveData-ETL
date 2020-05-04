@@ -142,9 +142,6 @@ class Matcher(object):
 CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
-        "debug": {},
-        "ui": {},
-        "nightly": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
         },
@@ -207,6 +204,23 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "browsertime"},
         },
+        # BROWSERTIME tp6m
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
         # BASIC TEST FORMAT
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -254,6 +268,7 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "talos"},
         },
+        "{{SPECIAL_TESTS}}": {}
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
@@ -368,6 +383,7 @@ RUN_OPTIONS = {
     "no-accel": {"run": {"type": ["no-accel"]}},
     "qr-e10s": {"run": {"type": ["e10s", "qr"]}},
     "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
+    "spi-nw-e10s": {"run": {"type": ["spi", "e10s"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
     "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
@@ -461,8 +477,13 @@ def match_tp6(name):
 RAPTOR_TEST["tp6"] = match_tp6
 RAPTOR_TEST["tp6m"] = match_tp6
 
-
-SITE = {s: {"run": {"site": s}} for s in ["amazon", "bing-search", "facebook", "google", "google-search", "yahoo-news", "youtube", "wikipedia"]}
+SITE = {
+    s: {"run": {"site": s}}
+    for s in [
+        "amazon", "bbc", "bing-search", "facebook", "google", "google-search", "microsoft-support", "yahoo-news",
+         "youtube", "wikipedia"
+    ]
+}
 
 BROWSER = {
     "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
@@ -493,6 +514,7 @@ BROWSER = {
     "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
+    "live-chrome-m-cold": {"run": {"browser": "chrome"}},
     "mobile-fenix": {"run": {"browser": "mobile-fenix"}},
     "refbrow-cold": {"run": {"browser": "reference browser"}},
     "refbrow": {"run": {"browser": "reference browser"}},
@@ -612,16 +634,17 @@ BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-devedition-no-eme": {"build": {"cpu": "aarch64", "train": "devedition", "type": ["no-eme"]}},
     "aarch64-devedition": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
     },  # ENCRYPTED MEDIA EXTENSIONS
     "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
-    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly", "type": ["no-eme"]}},
     "aarch64-msvc": {"build": {"cpu": "aarch64"}},
     "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
-    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable", "type": ["no-eme"]}},
     "aarch64": {"build": {"cpu": "aarch64"}},
     "add-on-devel": {},
     "armel": {"build": {"cpu": "arm"}},
@@ -657,7 +680,7 @@ BUILD_OPTIONS = {
     "mipsel": {"build": {"cpu": "mips"}},
     "mips64el": {"build": {"cpu": "mips64"}},
     "msvc": {},
-    "no-eme": {},
+    "no-eme": {"build": {"type": ["no-eme"]}},  # ENCRYPTED MEDIA EXTENSIONS
     "noopt": {},
     "nightly": {"build": {"train": "nightly"}},
     "opt": {"build": {"type": ["opt"]}},
@@ -751,9 +774,19 @@ SPECIAL_BUILDS = {
     "nightly": {"build": {"train": "nightly"}},
     "notarization-poller-macosx64-shippable/opt":{},
     "notarization-part-1-macosx64-shippable/opt":{},
+    "src":{},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
+}
+
+SPECIAL_TESTS ={
+    "debug": {},
+    "ui-browser": {},
+    "ui-glean": {},
+    "ui": {},
+    "nightly": {},
+    "unit-browser-engine-gecko-nightly":{}
 }
 
 COMPILED_CATEGORIES = {
