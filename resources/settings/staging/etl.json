@@ -16,6 +16,7 @@
 			"User-Agent": "ActiveData-ETL"
 		},
 		"mo_http.http.DEBUG": false,
+		"jx_elasticsearch.meta.ENABLE_META_SCAN": false,
 		"mo_http.big_data.MAX_STRING_SIZE": 10000000,
 		"activedata_etl.transforms.pulse_block_to_test_result_logs.PARSE_TRY": true
 	},

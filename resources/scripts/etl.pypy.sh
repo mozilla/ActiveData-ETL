@@ -1,4 +1,4 @@
-cd /home/ubuntu/ActiveData-ETL/
+cd /home/ec2-user/ActiveData-ETL/
 git checkout etl
 git pull origin etl
 

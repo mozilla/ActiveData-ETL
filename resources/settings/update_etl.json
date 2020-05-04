@@ -3,7 +3,7 @@
 	"aws":{"$ref":"//~/private.json#aws_credentials"},
 	"fabric": {
 		//USED IN Fabric's `env` GLOBAL CONFIG OBJECT
-		"user": "ubuntu",
+		"user": "ec2-user",
 		"$ref": "~/private.json#fabric",
 		"disable_known_hosts": true,
 		"port": 22,

@@ -77,7 +77,7 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
 
 def _update_ssh(conn):
     public_key = File("d:/activedata.pub.ssh")
-    with conn.cd("/home/ubuntu"):
+    with conn.cd("/home/ec2-user"):
         conn.put(public_key, ".ssh/authorized_keys")
         conn.run("chmod 600 .ssh/authorized_keys")
 
