@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
 from __future__ import absolute_import, division, unicode_literals
@@ -34,7 +34,6 @@ from mo_hg.repos.changesets import Changeset
 from mo_hg.repos.pushs import Push
 from mo_hg.repos.revisions import Revision, revision_schema
 from mo_http import http
-from mo_json import json2value
 from mo_kwargs import override
 from mo_logs import Log, machine_metadata, strings
 from mo_logs.exceptions import (
@@ -95,10 +94,9 @@ class HgMozillaOrg(object):
     @override
     def __init__(
         self,
-        hg=None,  # CONNECT TO hg
+        hg=None,  # hg CONNECTION INFO
         repo=None,  # CONNECTION INFO FOR ES CACHE
         use_cache=False,  # True IF WE WILL USE THE ES FOR DOWNLOADING BRANCHES
-        timeout=30 * SECOND,
         kwargs=None,
     ):
         if not _hg_branches:
@@ -110,7 +108,11 @@ class HgMozillaOrg(object):
         self.moves_locker = Lock()
         self.todo = mo_threads.Queue("todo for hg daemon", max=DAEMON_QUEUE_SIZE)
         self.settings = kwargs
-        self.timeout = Duration(timeout)
+        self.hg = Data(
+            url=hg.url,
+            timeout=Duration(coalesce(hg.timeout, "30second")).seconds,
+            retry={"times": 3, "sleep": DAEMON_HG_INTERVAL},
+        )
         self.last_cache_miss = Date.now()
 
         # VERIFY CONNECTIVITY
@@ -119,9 +121,9 @@ class HgMozillaOrg(object):
 
         set_default(repo, {"type": "revision", "schema": revision_schema,})
         kwargs.branches = set_default(
-            {"index": repo.index + "-branches", "type": "branch",}, repo,
+            {"index": repo.index + "-branches", "type": "branch"}, repo,
         )
-        moves = set_default({"index": repo.index + "-moves",}, repo,)
+        moves = set_default({"index": repo.index + "-moves"}, repo,)
 
         self.branches = _hg_branches.get_branches(kwargs=kwargs)
         cluster = elasticsearch.Cluster(kwargs=repo)
@@ -163,7 +165,7 @@ class HgMozillaOrg(object):
                             Revision(branch=branch, changeset={"id": r}),
                             None,  # local
                             False,  # get_diff
-                            True  # get_moves
+                            True,  # get_moves
                         )
                         if after and after > rev.etl.timestamp:
                             rev = self._get_from_hg(revision=rev)
@@ -199,9 +201,7 @@ class HgMozillaOrg(object):
                     self._find_revision(r)
 
     @cache(duration=HOUR, lock=True)
-    def get_revision(
-        self, revision, locale=None, get_diff=False, get_moves=True
-    ):
+    def get_revision(self, revision, locale=None, get_diff=False, get_moves=True):
         """
         EXPECTING INCOMPLETE revision OBJECT
         RETURNS revision
@@ -233,9 +233,7 @@ class HgMozillaOrg(object):
 
         return self._get_from_hg(revision, locale, get_diff, get_moves)
 
-    def _get_from_hg(
-        self, revision, locale=None, get_diff=False, get_moves=True
-    ):
+    def _get_from_hg(self, revision, locale=None, get_diff=False, get_moves=True):
         # RATE LIMIT CALLS TO HG (CACHE MISSES)
         next_cache_miss = self.last_cache_miss + (
             Random.float(WAIT_AFTER_CACHE_MISS * 2) * SECOND
@@ -276,19 +274,15 @@ class HgMozillaOrg(object):
         # FIND THE PUSH
         push = self._get_push(found_revision.branch, found_revision.changeset.id)
         id12 = found_revision.changeset.id[0:12]
+        base_url = URL(found_revision.branch.url)
 
-        url1 = found_revision.branch.url.rstrip("/") + "/json-info?node=" + id12
-        url2 = found_revision.branch.url.rstrip("/") + "/json-rev/" + id12
-        url3 = (
-            found_revision.branch.url.rstrip("/") + "/json-automationrelevance/" + id12
-        )
-        with Explanation("get revision from {{url}}", url=url1, debug=DEBUG):
+        with Explanation("get revision from {{url}}", url=base_url, debug=DEBUG):
             raw_rev2 = Null
             automation_details = Null
             try:
-                raw_rev1 = self._get_raw_json_info(url1, found_revision.branch)
-                raw_rev2 = self._get_raw_json_rev(url2, found_revision.branch)
-                automation_details = self._get_raw_json_rev(url3, found_revision.branch)
+                raw_rev1 = self._get_raw_json_info((base_url / "json-info") + {"node": id12})
+                raw_rev2 = self._get_raw_json_rev(base_url / "json-rev" / id12)
+                automation_details = self._get_raw_json_rev(base_url / "json-automationrelevance" / id12)
             except Exception as e:
                 if "Hg denies it exists" in e:
                     raw_rev1 = Data(node=revision.changeset.id)
@@ -309,11 +303,17 @@ class HgMozillaOrg(object):
                 get_moves,
             )
             if output.push.date >= Date.now() - MAX_TODO_AGE:
-                self.todo.extend([
-                    (output.branch, listwrap(output.parents), None),
-                    (output.branch, listwrap(output.children), None),
-                    (output.branch, listwrap(output.backsoutnodes), output.push.date)
-                ])
+                self.todo.extend(
+                    [
+                        (output.branch, listwrap(output.parents), None),
+                        (output.branch, listwrap(output.children), None),
+                        (
+                            output.branch,
+                            listwrap(output.backsoutnodes),
+                            output.push.date,
+                        ),
+                    ]
+                )
 
             if not get_diff:  # DIFF IS BIG, DO NOT KEEP IT IF NOT NEEDED
                 output.changeset.diff = None
@@ -323,11 +323,7 @@ class HgMozillaOrg(object):
         return output
 
     def _get_from_elasticsearch(
-        self,
-        revision,
-        locale=None,
-        get_diff=False,
-        get_moves=True
+        self, revision, locale=None, get_diff=False, get_moves=True
     ):
         """
         MAKE CALL TO ES
@@ -346,13 +342,7 @@ class HgMozillaOrg(object):
                                 )
                             }
                         },
-                        {
-                            "range": {
-                                "etl.timestamp": {
-                                    "gt": MIN_ETL_AGE
-                                }
-                            }
-                        },
+                        {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
                     ]
                 }
             },
@@ -361,7 +351,7 @@ class HgMozillaOrg(object):
 
         for attempt in range(3):
             try:
-                with Timer("get from elasticsearch", too_long=2*SECOND):
+                with Timer("get from elasticsearch", too_long=2 * SECOND):
                     if get_moves:
                         with self.moves_locker:
                             docs = self.moves.search(query).hits.hits
@@ -398,8 +388,8 @@ class HgMozillaOrg(object):
         return None
 
     @cache(duration=HOUR, lock=True)
-    def _get_raw_json_info(self, url, branch):
-        raw_revs = self._get_and_retry(url, branch)
+    def _get_raw_json_info(self, url):
+        raw_revs = self._get_and_retry(url)
         if "(not in 'served' subset)" in raw_revs:
             Log.error("Tried {{url}}. Hg denies it exists.", url=url)
         if is_text(raw_revs) and raw_revs.startswith("unknown revision '"):
@@ -409,8 +399,8 @@ class HgMozillaOrg(object):
         return raw_revs.values()[0]
 
     @cache(duration=HOUR, lock=True)
-    def _get_raw_json_rev(self, url, branch):
-        raw_rev = self._get_and_retry(url, branch)
+    def _get_raw_json_rev(self, url):
+        raw_rev = self._get_and_retry(url)
         return raw_rev
 
     @cache(duration=HOUR, lock=True)
@@ -439,7 +429,7 @@ class HgMozillaOrg(object):
 
         url = branch.url.rstrip("/") + "/json-pushes?full=1&changeset=" + changeset_id
         with Explanation("Pulling pushlog from {{url}}", url=url, debug=DEBUG):
-            data = self._get_and_retry(url, branch)
+            data = self._get_and_retry(url)
             # QUEUE UP THE OTHER CHANGESETS IN THE PUSH
             self.todo.add(
                 (branch, [c.node for cs in data.values().changesets for c in cs], None)
@@ -521,7 +511,6 @@ class HgMozillaOrg(object):
         r.rev = None
         r.tags = None
 
-
         set_default(rev, r)
 
         # ADD THE DIFF
@@ -555,52 +544,44 @@ class HgMozillaOrg(object):
 
         return rev
 
-    def _get_and_retry(self, url, branch, **kwargs):
-        """
-        requests 2.5.0 HTTPS IS A LITTLE UNSTABLE
-        """
-        kwargs = set_default(kwargs, {"timeout": self.timeout.seconds})
+    def _get_and_retry(self, url):
         try:
-            output = _get_url(url, branch, **kwargs)
-            return output
+            data = http.get_json(**set_default({"url": url}, self.hg))
+            if data.error.startswith("unknown revision"):
+                Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
+            if is_text(data) and data.startswith("unknown revision"):
+                Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
+            # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
+            return data
         except Exception as e:
-            if UNKNOWN_PUSH in e:
-                Log.error("Tried {{url}} and failed", {"url": url}, cause=e)
+            path = url.split("/")
+            if path[3] == "l10n-central":
+                # FROM https://hg.mozilla.org/l10n-central/tr/json-pushes?full=1&changeset=a6eeb28458fd
+                # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
+                path = path[0:3] + ["mozilla-central"] + path[5:]
+                return self._get_and_retry("/".join(path))
+            elif len(path) > 5 and path[5] == "mozilla-aurora":
+                # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
+                # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
+                path = path[0:4] + ["mozilla-aurora"] + path[7:]
+                return self._get_and_retry("/".join(path))
+            elif len(path) > 5 and path[5] == "mozilla-beta":
+                # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
+                # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
+                path = path[0:4] + ["mozilla-beta"] + path[7:]
+                return self._get_and_retry("/".join(path))
+            elif len(path) > 7 and path[5] == "mozilla-release":
+                # FROM https://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+                # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
+                path = path[0:4] + ["mozilla-release"] + path[7:]
+                return self._get_and_retry("/".join(path))
+            elif len(path) > 5 and path[4] == "autoland":
+                # FROM https://hg.mozilla.org/build/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+                # TO  https://hg.mozilla.org/integration/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
+                path = path[0:3] + ["try"] + path[5:]
+                return self._get_and_retry("/".join(path))
 
-        try:
-            (Till(seconds=5)).wait()
-            return _get_url(url.replace("https://", "http://"), branch, **kwargs)
-        except Exception as f:
-            pass
-
-        path = url.split("/")
-        if path[3] == "l10n-central":
-            # FROM https://hg.mozilla.org/l10n-central/tr/json-pushes?full=1&changeset=a6eeb28458fd
-            # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
-            path = path[0:3] + ["mozilla-central"] + path[5:]
-            return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif len(path) > 5 and path[5] == "mozilla-aurora":
-            # FROM https://hg.mozilla.org/releases/l10n/mozilla-aurora/pt-PT/json-pushes?full=1&changeset=b44a8c68fc60
-            # TO   https://hg.mozilla.org/releases/mozilla-aurora/json-pushes?full=1&changeset=b44a8c68fc60
-            path = path[0:4] + ["mozilla-aurora"] + path[7:]
-            return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif len(path) > 5 and path[5] == "mozilla-beta":
-            # FROM https://hg.mozilla.org/releases/l10n/mozilla-beta/lt/json-pushes?full=1&changeset=03fbf7556c94
-            # TO   https://hg.mozilla.org/releases/mozilla-beta/json-pushes?full=1&changeset=b44a8c68fc60
-            path = path[0:4] + ["mozilla-beta"] + path[7:]
-            return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif len(path) > 7 and path[5] == "mozilla-release":
-            # FROM https://hg.mozilla.org/releases/l10n/mozilla-release/en-GB/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
-            # TO   https://hg.mozilla.org/releases/mozilla-release/json-pushes?full=1&changeset=57f513ab03308adc7aa02cc2ea8d73fe56ae644b
-            path = path[0:4] + ["mozilla-release"] + path[7:]
-            return self._get_and_retry("/".join(path), branch, **kwargs)
-        elif len(path) > 5 and path[4] == "autoland":
-            # FROM https://hg.mozilla.org/build/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
-            # TO  https://hg.mozilla.org/integration/autoland/json-pushes?full=1&changeset=3ccccf8e5036179a3178437cabc154b5e04b333d
-            path = path[0:3] + ["try"] + path[5:]
-            return self._get_and_retry("/".join(path), branch, **kwargs)
-
-        Log.error("Tried {{url}} twice.  Both failed.", {"url": url}, cause=[e, f])
+            raise e
 
     @cache(duration=HOUR, lock=True)
     def _find_revision(self, revision):
@@ -677,7 +658,10 @@ class HgMozillaOrg(object):
                 json_diff = diff_to_json(diff)
                 num_changes = _count(c for f in json_diff for c in f.changes)
                 if json_diff:
-                    if IGNORE_MERGE_DIFFS and revision.changeset.description.startswith("merge "):
+                    if (
+                        IGNORE_MERGE_DIFFS
+                        and revision.changeset.description.startswith("merge ")
+                    ):
                         return None  # IGNORE THE MERGE CHANGESETS
                     elif num_changes < MAX_DIFF_SIZE:
                         return json_diff
@@ -720,7 +704,9 @@ class HgMozillaOrg(object):
         return inner(revision.changeset.id)
 
     def _get_source_code_from_hg(self, revision, file_path):
-        response = http.get(URL(revision.branch.url) / "raw-file" / revision.changeset.id / file_path)
+        response = http.get(
+            URL(revision.branch.url) / "raw-file" / revision.changeset.id / file_path
+        )
         return response.content.decode("utf8", "replace")
 
 
@@ -728,30 +714,21 @@ def _trim(url):
     return url.split("/json-pushes?")[0].split("/json-info?")[0].split("/json-rev/")[0]
 
 
-def _get_url(url, branch, **kwargs):
-    response = http.get(url, **kwargs)
-    data = json2value(response.content.decode("utf8"))
-    if data.error.startswith("unknown revision"):
-        Log.error(UNKNOWN_PUSH, revision=strings.between(data.error, "'", "'"))
-    if is_text(data) and data.startswith("unknown revision"):
-        Log.error(UNKNOWN_PUSH, revision=strings.between(data, "'", "'"))
-    # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
-    return data
-
-
 def _get_changeset_from_es(es, changeset_id):
     try:
-        response = es.search({
-            "query": {
-                "bool": {
-                    "must": [
-                        {"prefix": {"changeset.id": changeset_id}},
-                        {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
-                    ]
-                }
-            },
-            "size": 1,
-        })
+        response = es.search(
+            {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"prefix": {"changeset.id": changeset_id}},
+                            {"range": {"etl.timestamp": {"gt": MIN_ETL_AGE}}},
+                        ]
+                    }
+                },
+                "size": 1,
+            }
+        )
         return response.hits.hits[0]._source
     except Exception:
         return Null
@@ -839,5 +816,5 @@ KNOWN_TAGS = {
     "treeherderrepourl",
     "backsoutnodes",
     "treeherderrepo",
-    "perfherderurl"
+    "perfherderurl",
 }

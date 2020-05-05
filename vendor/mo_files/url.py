@@ -73,6 +73,12 @@ class URL(object):
         output.path = output.path.rstrip('/') + "/" + other.lstrip('/')
         return output
 
+    def __add__(self, other):
+        if is_data(other):
+            self.query += other
+        else:
+            Log.error("can only add data for query parameters")
+
     def __unicode__(self):
         return self.__str__().decode('utf8')  # ASSUME chr<128 ARE VALID UNICODE
 

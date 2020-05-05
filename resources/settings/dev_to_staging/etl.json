@@ -42,7 +42,8 @@
 	"hg": {
 		"use_cache": true,
 		"hg": {
-			"url": "https://hg.mozilla.org"
+			"url": "https://hg.mozilla.org",
+			"timeout": "minute"
 		},
 		"repo": {
 			"$ref": "#local_es_node",
