@@ -154,6 +154,24 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "test"}
         },
+        # RAPTOR
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
@@ -480,8 +498,33 @@ RAPTOR_TEST["tp6m"] = match_tp6
 SITE = {
     s: {"run": {"site": s}}
     for s in [
-        "amazon", "bbc", "bing-search", "facebook", "google", "google-search", "microsoft-support", "yahoo-news",
-         "youtube", "wikipedia"
+        "amazon",
+        "apple",
+        "bbc",
+        "binast-instagram",
+        "bing-search",
+        "docs",
+        "ebay",
+        "facebook-redesign",
+        "facebook",
+        "fandom",
+        "google-search",
+        "google",
+        "imdb",
+        "instagram",
+        "microsoft-support",
+        "microsoft",
+        "netflix",
+        "outlook",
+        "paypal",
+        "slides",
+        "tumblr",
+        "twitter",
+        "twitch",
+        "yandex",
+        "yahoo-news",
+        "youtube",
+        "wikipedia"
     ]
 }
 

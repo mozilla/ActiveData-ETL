@@ -25289,6 +25289,279 @@
             "suite": {"name": "mozmill"}
         }
     },
+    "test-linux64/opt-raptor-tp6-firefox-cold-apple-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "apple",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-binast-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "binast-instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-docs-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "docs",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-ebay-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "ebay",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-facebook-redesign-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "facebook-redesign",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-fandom-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "fandom",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-google-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "google",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-imdb-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "imdb",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-microsoft-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "microsoft",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-netflix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "netflix",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-outlook-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "outlook",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-paypal-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "paypal",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-slides-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "slides",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-tumblr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "tumblr",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-twitch-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "twitch",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-twitter-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "twitter",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-wikipedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "wikipedia",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-yahoo-news-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "yahoo-news",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-yandex-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "yandex",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-youtube-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "youtube",
+            "type": ["e10s"]
+        }
+    },
     "test-linux64/opt-raptor-wasm-godot-cranelift-firefox-e10s": {
         "action": {"type": "perf"},
         "build": {
