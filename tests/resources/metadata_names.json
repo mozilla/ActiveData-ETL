@@ -3628,6 +3628,33 @@
             "suite": {"name": "tp6m"}
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-fenix-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "browsertime",
+            "site": "instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-live-fenix-cold-expedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "browsertime",
+            "site": "expedia",
+            "suite": {"name": "tp6m-live"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16/opt-mochitest-9": {
         "action": {"type": "test"},
         "build": {
@@ -4025,6 +4052,20 @@
         }
     },
     "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-speedometer-mobile-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-speedometer-mobile-geckoview-e10s": {
         "action": {"type": "perf"},
         "build": {
             "cpu": "aarch64",

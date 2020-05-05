@@ -36,6 +36,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
+DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
 MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -383,7 +384,7 @@ class Bucket(object):
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
         with NamedTemporaryFile(prefix=Random.hex(30)) as buff:
-            Log.note("Temp file {{filename}}", filename=buff.name)
+            DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0
             for l in lines:

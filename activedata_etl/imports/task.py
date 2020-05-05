@@ -505,6 +505,7 @@ SITE = {
         "bing-search",
         "docs",
         "ebay",
+        "expedia",
         "facebook-redesign",
         "facebook",
         "fandom",
@@ -559,6 +560,7 @@ BROWSER = {
     "geckoview": {"run": {"browser": "geckoview"}},
     "live-chrome-m-cold": {"run": {"browser": "chrome"}},
     "mobile-fenix": {"run": {"browser": "mobile-fenix"}},
+    "mobile-geckoview": {"run": {"browser": "mobile-fenix"}},
     "refbrow-cold": {"run": {"browser": "reference browser"}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }

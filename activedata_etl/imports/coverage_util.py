@@ -44,7 +44,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
             sources = listwrap(sources)
             filenames = [s[path].name for s in sources if has_tuids(s)]
 
-            with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
+            with Timer("markup sources for {{num}} files", {"num": len(filenames)}, too_long=1):
                 # WHAT DO WE HAVE
                 found = resources.tuid_mapper.get_tuids(branch, revision, filenames)
                 if found == None:
