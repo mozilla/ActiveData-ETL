@@ -383,7 +383,7 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
-        with NamedTemporaryFile(prefix=Random.hex(30)) as buff:
+        with NamedTemporaryFile(prefix=Random.filename()) as buff:
             DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0

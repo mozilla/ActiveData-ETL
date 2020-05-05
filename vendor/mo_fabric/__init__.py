@@ -105,7 +105,7 @@ class Connection(object):
             remote = self.conn.command_cwds[-1].rstrip("/'") + "/" + remote
 
         if use_sudo:
-            filename = "/tmp/" + Random.hex(20)
+            filename = "/tmp/" + Random.filename()
             self.sudo("cp " + remote + " " + filename)
             self.sudo("chmod a+r " + filename)
             self.conn.get(filename, File(local).abspath)
@@ -118,7 +118,7 @@ class Connection(object):
             remote = self.conn.command_cwds[-1].rstrip("/'") + "/" + remote
 
         if use_sudo:
-            filename = "/tmp/" + Random.hex(20)
+            filename = "/tmp/" + Random.filename()
             self.conn.put(File(local).abspath, filename)
             self.sudo("cp " + filename + " " + remote)
             self.sudo("rm " + filename)

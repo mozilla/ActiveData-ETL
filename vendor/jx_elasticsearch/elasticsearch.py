@@ -1425,7 +1425,7 @@ def get_encoder(id_info):
 
 
 def random_id():
-    return Random.hex(40)
+    return Random.base64(25, extra="-_")
 
 
 def _merge_mapping(a, b):

@@ -468,7 +468,7 @@ class TempFile(File):
     def __init__(self, filename=None):
         if isinstance(filename, File):
             return
-        self.temp = NamedTemporaryFile(prefix=Random.hex(30), delete=False)
+        self.temp = NamedTemporaryFile(prefix=Random.filename(), delete=False)
         self.temp.close()
         File.__init__(self, self.temp.name)
 
