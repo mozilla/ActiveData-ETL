@@ -180,19 +180,13 @@ class ETL(Thread):
                 )
 
                 with Timer("process {{action}} for {{source}} ", param={"action": action.name, "source": source_key}):
-                    with MemorySample(
-                        "processing {{action}} for {{source}} ",
-                        debug=False,
-                        action=action.name,
-                        source=source_key
-                    ):
-                        new_keys = action._transformer(
-                            source_key,
-                            source,
-                            action._destination,
-                            resources=resources,
-                            please_stop=self.please_stop
-                        )
+                    new_keys = action._transformer(
+                        source_key,
+                        source,
+                        action._destination,
+                        resources=resources,
+                        please_stop=self.please_stop
+                    )
 
                 if new_keys == None:
                     new_keys = set()
