@@ -264,9 +264,6 @@ class ETL(Thread):
                     err = Log.warning
                 elif "multiple keys in {{bucket}}" in e:
                     err = Log.warning
-                    if source_block.bucket == "ekyle-test-result":
-                        for k in action._source.list(prefix=key_prefix(source_key)):
-                            action._source.delete_key(strip_extension(k.key))
                 elif "expecting keys to be contiguous" in e:
                     err = Log.warning
                 elif "Expecting a pure key" in e:
@@ -297,9 +294,8 @@ class ETL(Thread):
                                 todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
                             else:
                                 todo = self.work_queue.pop()
-                        if not todo:
-                            break  # please_stop MUST HAVE BEEN TRIGGERED
-
+                        if please_stop:
+                            break
                     else:
                         # using --key= so will not be an aws.Queue, instead it will be a local queue
                         if isinstance(self.work_queue, aws.Queue):

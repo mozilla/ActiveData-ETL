@@ -39,7 +39,7 @@ class Queue(object):
         kwargs=None
     ):
         self.settings = kwargs
-        self.pending = []
+        self.pending = []  # MESSAGES READ, BUT NOT CONFIRMED
 
         if kwargs.region not in [r.name for r in sqs.regions()]:
             Log.error("Can not find region {{region}} in {{regions}}", region=kwargs.region, regions=[r.name for r in sqs.regions()])
