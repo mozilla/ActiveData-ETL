@@ -18,7 +18,6 @@ from boto.s3.connection import Location
 from bs4 import BeautifulSoup
 
 import mo_files
-from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_math.randoms import Random
 
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
@@ -445,6 +444,8 @@ class Bucket(object):
                 for l, r in zip_longest(lines, result):
                     assertAlmostEqual(l, r, msg="S3 is different")
             except Exception as e:
+                from activedata_etl.transforms import TRY_AGAIN_LATER
+
                 Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
             finally:
                 mo_files.File(tempfile).delete()
