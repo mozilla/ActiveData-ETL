@@ -254,7 +254,14 @@ class RolloverIndex(object):
                     Log.warning("Could not process {{key}} because of bad JSON. Never trying again.", key=key, cause=e)
                     pass
                 else:
-                    Log.warning("Could not process {{key}} after {{duration|round(places=2)}}seconds", key=key, duration=timer.duration.seconds, cause=e)
+                    Log.warning(
+                        "Could not process {{key}} line {{line}} from {{source}} after {{duration|round(places=2)}}seconds",
+                        source=source.name,
+                        line=rownum,
+                        key=key,
+                        duration=timer.duration.seconds,
+                        cause=e
+                    )
                     done_copy = None
 
         if done_copy:
