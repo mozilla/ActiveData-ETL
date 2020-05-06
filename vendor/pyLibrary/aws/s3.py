@@ -16,12 +16,14 @@ from tempfile import NamedTemporaryFile
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
+
+from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_math.randoms import Random
 
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
 from mo_files import mimetype
 from mo_files.url import value2url_param
-from mo_future import StringIO, is_binary, text
+from mo_future import StringIO, is_binary, text, zip_longest
 from mo_http import http
 from mo_http.big_data import (
     LazyLines,
@@ -32,10 +34,12 @@ from mo_http.big_data import (
 )
 from mo_kwargs import override
 from mo_logs import Except, Log
+from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
+VERFIY = True
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -383,7 +387,11 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
-        with NamedTemporaryFile(prefix=Random.filename()) as buff:
+        if VERFIY:
+            lines = list(lines)
+
+        with NamedTemporaryFile(prefix=Random.filename(), delete=not VERFIY) as buff:
+            tempfile = buff.name
             DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0
@@ -428,6 +436,19 @@ class Bucket(object):
 
         if self.settings.public:
             storage.set_acl("public-read")
+
+        if VERFIY:
+            try:
+                with open(tempfile, mode="rb") as source:
+                    result = list(ibytes2ilines(scompressed2ibytes(source)))
+                    for l, r in zip_longest(lines, result):
+                        assertAlmostEqual(l, r, msg="file is different")
+
+                result = list(self.read_lines(key))
+                for l, r in zip_longest(lines, result):
+                    assertAlmostEqual(l, r, msg="S3 is different")
+            except Exception as e:
+                Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
         return
 
     @property
