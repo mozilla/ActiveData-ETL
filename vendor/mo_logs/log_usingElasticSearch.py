@@ -5,17 +5,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import absolute_import, division, unicode_literals
 
-from collections import Mapping
 from datetime import date, datetime
 import sys
 
 from jx_python import jx
-from mo_dots import FlatList, coalesce, listwrap, set_default, wrap
-from mo_future import binary_type, number_types, text_type
+from mo_dots import coalesce, listwrap, set_default, wrap, is_data, is_sequence
+from mo_future import number_types, text, is_text, is_binary
 from mo_json import datetime2unix, json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log, strings
@@ -26,12 +25,12 @@ from mo_threads import Queue, THREAD_STOP, Thread, Till
 from mo_times import Duration, MINUTE
 from mo_times.dates import datetime2unix
 from pyLibrary.convert import bytes2base64
-from pyLibrary.env.rollover_index import RolloverIndex
+from jx_elasticsearch.rollover_index import RolloverIndex
 
 MAX_BAD_COUNT = 5
 LOG_STRING_LENGTH = 2000
-PAUSE_AFTER_GOOD_INSERT = 1
-PAUSE_AFTER_BAD_INSERT = 60
+PAUSE_AFTER_GOOD_INSERT = 60
+PAUSE_AFTER_BAD_INSERT = 600
 
 
 class StructuredLogger_usingElasticSearch(StructuredLogger):
@@ -44,6 +43,7 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         type="log",
         queue_size=1000,
         batch_size=100,
+        refresh_interval="1second",
         kwargs=None,
     ):
         """
@@ -52,20 +52,25 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
         kwargs.timeout = Duration(coalesce(kwargs.timeout, "30second")).seconds
         kwargs.retry.times = coalesce(kwargs.retry.times, 3)
         kwargs.retry.sleep = Duration(coalesce(kwargs.retry.sleep, MINUTE)).seconds
-
         kwargs.host = Random.sample(listwrap(host), 1)[0]
 
         rollover_interval = coalesce(kwargs.rollover.interval, kwargs.rollover.max, "year")
         rollover_max = coalesce(kwargs.rollover.max, kwargs.rollover.interval, "year")
 
+        schema = set_default(
+            kwargs.schema,
+            {"mappings": {kwargs.type: {"properties": {"~N~": {"type": "nested"}}}}},
+            json2value(value2json(SCHEMA), leaves=True)
+        )
+
         self.es = RolloverIndex(
             rollover_field={"get": [{"first": "."}, {"literal": "timestamp"}]},
             rollover_interval=rollover_interval,
             rollover_max=rollover_max,
-            schema=set_default(kwargs.schema, json2value(value2json(SCHEMA), leaves=True)),
+            schema=schema,
             limit_replicas=True,
             typed=True,
-            id={"id": "_id"},  # USE DEFAULT id AND version
+            read_only=False,
             kwargs=kwargs,
         )
         self.batch_size = batch_size
@@ -79,7 +84,7 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
             params.format = None
             self.queue.add({"value": _deep_json_to_string(params, 3)}, timeout=3 * 60)
         except Exception as e:
-            sys.stdout.write(text_type(Except.wrap(e)))
+            sys.stdout.write(text(Except.wrap(e)))
         return self
 
     def _insert_loop(self, please_stop=None):
@@ -91,16 +96,21 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
                     Till(seconds=PAUSE_AFTER_GOOD_INSERT).wait()
                     continue
 
-                for g, mm in jx.groupby(messages, size=self.batch_size):
+                for g, mm in jx.chunk(messages, size=self.batch_size):
                     scrubbed = []
                     for i, message in enumerate(mm):
                         if message is THREAD_STOP:
                             please_stop.go()
                             continue
                         try:
-                            messages = flatten_causal_chain(message.value)
+                            chain = flatten_causal_chain(message.value)
                             scrubbed.append(
-                                {"value": [_deep_json_to_string(m, depth=3) for m in messages]}
+                                {
+                                    "value": [
+                                        _deep_json_to_string(link, depth=3)
+                                        for link in chain
+                                    ]
+                                }
                             )
                         except Exception as e:
                             Log.warning("Problem adding to scrubbed list", cause=e)
@@ -115,6 +125,7 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
                         "Given up trying to write debug logs to ES index {{index}}",
                         index=self.es.settings.index,
                     )
+                    break
                 Till(seconds=PAUSE_AFTER_BAD_INSERT).wait()
 
         # CONTINUE TO DRAIN THIS QUEUE
@@ -137,7 +148,7 @@ class StructuredLogger_usingElasticSearch(StructuredLogger):
 def flatten_causal_chain(log_item, output=None):
     output = output or []
 
-    if isinstance(log_item, text_type):
+    if is_text(log_item):
         output.append({"template": log_item})
         return
 
@@ -154,18 +165,18 @@ def _deep_json_to_string(value, depth):
     :param depth: THE MAX DEPTH OF PROPERTIES, DEEPER WILL BE STRING-IFIED
     :return: FLATTER STRUCTURE
     """
-    if isinstance(value, Mapping):
+    if is_data(value):
         if depth == 0:
             return strings.limit(value2json(value), LOG_STRING_LENGTH)
 
         return {k: _deep_json_to_string(v, depth - 1) for k, v in value.items()}
-    elif isinstance(value, (list, FlatList, tuple)):
+    elif is_sequence(value):
         return strings.limit(value2json(value), LOG_STRING_LENGTH)
     elif isinstance(value, number_types):
         return value
-    elif isinstance(value, text_type):
+    elif is_text(value):
         return strings.limit(value, LOG_STRING_LENGTH)
-    elif isinstance(value, binary_type):
+    elif is_binary(value):
         return strings.limit(bytes2base64(value), LOG_STRING_LENGTH)
     elif isinstance(value, (date, datetime)):
         return datetime2unix(value)
@@ -180,6 +191,6 @@ SCHEMA = {
             "dynamic_templates": [
                 {"everything_else": {"match": "*", "mapping": {"index": False}}}
             ]
-        }
+        },
     },
 }

@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
 
 from __future__ import division
 from __future__ import unicode_literals
@@ -13,7 +13,7 @@ from jx_python import jx
 from mo_dots import listwrap
 from mo_logs import Log, Except
 from mo_times import Timer
-from pyLibrary.env import http
+from mo_http import http
 
 TUID_BLOCK_SIZE = 1000
 DEBUG = True
@@ -44,7 +44,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
             sources = listwrap(sources)
             filenames = [s[path].name for s in sources if has_tuids(s)]
 
-            with Timer("markup sources for {{num}} files", {"num": len(filenames)}):
+            with Timer("markup sources for {{num}} files", {"num": len(filenames)}, too_long=1):
                 # WHAT DO WE HAVE
                 found = resources.tuid_mapper.get_tuids(branch, revision, filenames)
                 if found == None:
@@ -87,7 +87,7 @@ def tuid_batches(source_key, task_cluster_record, resources, iterator, path="fil
                     cause=e
                 )
 
-    for g, records in jx.groupby(iterator, size=TUID_BLOCK_SIZE):
+    for g, records in jx.chunk(iterator, size=TUID_BLOCK_SIZE):
         _annotate_sources(records)
         for r in records:
             yield r

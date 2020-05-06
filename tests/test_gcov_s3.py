@@ -4,18 +4,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
 import unittest
 
-from activedata_etl.transforms import gcov_to_es
+
 from activedata_etl.sinks import s3_bucket
-from pyLibrary import convert
-from pyLibrary.dot import Null
-from pyLibrary.debugs import startup
+from mo_logs import startup
 
 
 class TestGcovS3(unittest.TestCase):

@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -47,7 +47,7 @@ def work(settings):
     # REWRITE THE BUCKETS WITH CONTENT
     done = Queue(settings.queue)
     num_messages = len(all_messages)
-    for i, messages in jx.groupby(all_messages.values(), size=7000):
+    for i, messages in jx.chunk(all_messages.values(), size=7000):
         id = START + i
         if id >= STOP:
             Log.error("not expected")

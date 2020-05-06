@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -14,20 +14,19 @@ from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms import EtlHeadGenerator, Transform
 from jx_python import jx
-from jx_python.expressions import jx_expression_to_function
 from mo_dots import listwrap, wrap, Data, Null
 from mo_files import TempFile
+from mo_http.big_data import scompressed2ibytes
 from mo_json import json2value, stream, value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer
 from mo_times.dates import Date
-from pyLibrary.env.big_data import scompressed2ibytes
 
 
 class ETL(Transform):
 
     def __init__(self, config):
-        self.filter = jx_expression_to_function(config.task_filter)
+        self.filter = jx.get(config.task_filter)
 
     def __call__(self, source_key, source, destination, resources, please_stop=None):
         """
@@ -77,7 +76,7 @@ class ETL(Transform):
                     with TempFile() as tempfile:
                         Log.note("download {{url}}", url=a.url)
                         download_file(a.url, tempfile.abspath)
-                        with open(tempfile.abspath, b"rb") as fstream:
+                        with open(tempfile.abspath, str("rb")) as fstream:
                             with Timer("process {{url}}", param={"url": a.url}):
                                 destination.write_lines(
                                     dest_key,
@@ -101,7 +100,7 @@ class ETL(Transform):
                     with TempFile() as tempfile:
                         Log.note("download {{url}}", url=a.url)
                         download_file(a.url, tempfile.abspath)
-                        with open(tempfile.abspath, b"rb") as fstream:
+                        with open(tempfile.abspath, str("rb")) as fstream:
                             with Timer("process {{url}}", param={"url": a.url}):
                                 destination.write_lines(
                                     dest_key,

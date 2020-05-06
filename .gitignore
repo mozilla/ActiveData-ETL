@@ -10,7 +10,6 @@
 *.pyc
 nohup.out
 log.txt
-/resources/binaries/jre-8u131-linux-x64.rpm
 /tests/resources/mochitest_chunk_2
 /tuid.sqlite
 /vendor/pyLibrary/vendor/sqlite

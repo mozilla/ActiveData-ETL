@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -61,7 +61,7 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
             conn.sudo("rm -fr /tmp/grcov*")
             with conn.cd("~/ActiveData-ETL/"):
                 result = conn.run("git pull origin etl", warn=True)
-                if "Already up-to-date." in result:
+                if "Already up-to-date." in result or "Already up to date." in result:
                     Log.note("No change required")
                     if cpu_percent > 50:
                         return
@@ -77,7 +77,7 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
 
 def _update_ssh(conn):
     public_key = File("d:/activedata.pub.ssh")
-    with conn.cd("/home/ubuntu"):
+    with conn.cd("/home/ec2-user"):
         conn.put(public_key, ".ssh/authorized_keys")
         conn.run("chmod 600 .ssh/authorized_keys")
 
@@ -118,7 +118,7 @@ def main():
         if not instances:
             Log.alert("No instances found. DONE.")
             return
-        for g, members in jx.groupby(instances, size=40):
+        for g, members in jx.chunk(instances, size=40):
             # TODO: A THREAD POOL WOULD BE NICE
             # pool = Thread.pool(40)
             # for i in instances: pool("refresh etl", _refresh_etl, i, settings, cw)

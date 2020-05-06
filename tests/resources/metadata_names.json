@@ -173,6 +173,7 @@
         }}
     },
     "build-android-test-debug": {"action": {"type": "build"}},
+    "build-android-test-nightly": {"action": {"type": "build"}},
     "build-android-test/opt": {
         "action": {"type": "build"},
         "build": {
@@ -276,6 +277,7 @@
             "type": ["opt"]
         }
     },
+    "build-fennec-nightly": {"action": {"type": "build"}},
     "build-linux-reproduced/opt": {
         "action": {"type": "build"},
         "build": {
@@ -363,13 +365,6 @@
         "build": {
             "platform": "linux64",
             "type": ["opt", "ccov", "fuzzing"]
-        }
-    },
-    "build-linux64-lto/opt": {
-        "action": {"type": "build"},
-        "build": {
-            "platform": "linux64",
-            "type": ["opt", "lto"]
         }
     },
     "build-linux64-mips/opt": {
@@ -514,11 +509,39 @@
             "type": ["opt"]
         }
     },
+    "build-nightly": {
+        "action": {"type": "build"},
+        "build": {"train": "nightly"}
+    },
+    "build-nightly-browser-awesomebar": {"action": {"type": "build"}},
+    "build-nightly-browser-errorpages": {"action": {"type": "build"}},
+    "build-nightly-browser-state": {"action": {"type": "build"}},
     "build-nightly-browser-storage-memory": {"action": {"type": "build"}},
+    "build-nightly-browser-storage-sync": {"action": {"type": "build"}},
+    "build-nightly-browser-tabstray": {"action": {"type": "build"}},
+    "build-nightly-concept-engine": {"action": {"type": "build"}},
     "build-nightly-concept-toolbar": {"action": {"type": "build"}},
+    "build-nightly-feature-app-links": {"action": {"type": "build"}},
+    "build-nightly-feature-contextmenu": {"action": {"type": "build"}},
+    "build-nightly-feature-findinpage": {"action": {"type": "build"}},
     "build-nightly-feature-media": {"action": {"type": "build"}},
+    "build-nightly-feature-p2p": {"action": {"type": "build"}},
+    "build-nightly-feature-privatemode": {"action": {"type": "build"}},
+    "build-nightly-feature-push": {"action": {"type": "build"}},
+    "build-nightly-feature-qr": {"action": {"type": "build"}},
+    "build-nightly-feature-sitepermissions": {"action": {"type": "build"}},
+    "build-nightly-lib-fetch-httpurlconnection": {"action": {"type": "build"}},
+    "build-nightly-lib-fetch-okhttp": {"action": {"type": "build"}},
     "build-nightly-lib-push-firebase": {"action": {"type": "build"}},
+    "build-nightly-service-fretboard": {"action": {"type": "build"}},
+    "build-nightly-service-telemetry": {"action": {"type": "build"}},
+    "build-nightly-support-base": {"action": {"type": "build"}},
+    "build-nightly-support-ktx": {"action": {"type": "build"}},
+    "build-nightly-support-locale": {"action": {"type": "build"}},
+    "build-nightly-support-sync-telemetry": {"action": {"type": "build"}},
     "build-nightly-support-test": {"action": {"type": "build"}},
+    "build-notarization-part-1-macosx64-shippable/opt": {"action": {"type": "build"}},
+    "build-notarization-poller-macosx64-shippable/opt": {"action": {"type": "build"}},
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
         "build": {
@@ -526,6 +549,7 @@
             "train": "release"
         }
     },
+    "build-src": {"action": {"type": "build"}},
     "build-win32-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -649,6 +673,15 @@
             "type": ["opt"]
         }
     },
+    "build-win64-aarch64-devedition-no-eme/opt": {
+        "action": {"type": "build"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "win64",
+            "train": "devedition",
+            "type": ["opt", "no-eme"]
+        }
+    },
     "build-win64-aarch64-devedition/opt-upload-symbols": {
         "action": {"type": "build"},
         "build": {
@@ -680,7 +713,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "nightly",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-nightly-no-eme/opt-upload-symbols": {
@@ -689,7 +722,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "nightly",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable-no-eme/opt": {
@@ -698,7 +731,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable-no-eme/opt-upload-symbols": {
@@ -707,7 +740,7 @@
             "cpu": "aarch64",
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "no-eme"]
         }
     },
     "build-win64-aarch64-shippable/opt": {
@@ -3558,6 +3591,17 @@
             "type": ["e10s"]
         }
     },
+    "test-android-em-7.0-x86_64/opt-geckoview-junit-e10s-multi-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "geckoview-junit-e10s-multi"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16-pgo/opt-raptor-tp6m-1-fenix": {
         "action": {"type": "perf"},
         "build": {
@@ -3582,6 +3626,33 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6m"}
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-fenix-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "browsertime",
+            "site": "instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-live-fenix-cold-expedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "browsertime",
+            "site": "expedia",
+            "suite": {"name": "tp6m-live"},
+            "type": ["e10s"]
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16/opt-mochitest-9": {
@@ -3674,6 +3745,32 @@
             "type": ["1proc"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-browsertime-tp6m-live-chrome-m-cold-bbc-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "bbc",
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/pgo-browsertime-tp6m-live-chrome-m-cold-microsoft-support-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "chrome",
+            "framework": "browsertime",
+            "site": "microsoft-support",
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16/pgo-raptor-speedometer-geckoview-cpu-memory-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -3740,6 +3837,20 @@
             "chunk": 7,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-qr/debug-geckoview-reftest-qr-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["debug"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "chunk": 2,
+            "suite": {"name": "reftest"},
+            "type": ["e10s", "qr", "qr"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64-qr/opt-geckoview-reftest-e10s-4": {
@@ -3940,6 +4051,34 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-speedometer-mobile-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-speedometer-mobile-geckoview-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-scn-power-idle-bg-fennec-1proc": {
         "action": {"type": "perf"},
         "build": {
@@ -3966,6 +4105,20 @@
             "framework": "raptor",
             "suite": {"name": "scn-power-idle"},
             "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-raptor-youtube-playback-widevine-h264-sfr-fennec68-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-h264-sfr"},
+            "type": ["1proc"]
         }
     },
     "test-android-hw-p2-8-0-arm7-api-16-nightly/opt-raptor-speedometer-fennec": {
@@ -4196,6 +4349,15 @@
             "type": ["e10s"]
         }
     },
+    "test-linux1804-64-ccov/opt-web-platform-tests-reftest-backlog-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "ccov"]
+        },
+        "run": {"suite": {"name": "web-platform-tests-reftest"}},
+        "type": ["e10s"]
+    },
     "test-linux1804-64-qr/debug-mochitest-webgpu-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -4207,12 +4369,24 @@
             "type": ["webgpu", "e10s", "qr"]
         }
     },
+    "test-linux1804-64-qr/debug-web-platform-tests-backlog-fis-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "web-platform-tests-backlog"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
     "test-linux1804-64-shippable-qr/opt-mochitest-webgpu-e10s": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest"},
@@ -4262,6 +4436,30 @@
         "run": {
             "suite": {"name": "mochitest"},
             "type": ["webgpu", "service-worker", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-xpcshell-spi-nw-e10s-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "xpcshell"},
+            "type": ["spi", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-xpcshell-spi-nw-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "xpcshell"},
+            "type": ["spi", "e10s"]
         }
     },
     "test-linux1804-64/opt-mochitest-webgpu-fis-e10s": {
@@ -18664,7 +18862,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-base-dmd"},
@@ -18676,7 +18874,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-base"},
@@ -18688,7 +18886,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-dmd"},
@@ -18700,7 +18898,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy"},
@@ -18712,7 +18910,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -18727,7 +18925,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -18742,7 +18940,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -18757,7 +18955,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "cppunit"},
@@ -18769,7 +18967,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "crashtest"},
@@ -18781,7 +18979,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "gtest"},
@@ -18793,7 +18991,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -18806,7 +19004,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -18819,7 +19017,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -18832,7 +19030,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -18845,7 +19043,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-a11y"},
@@ -18857,7 +19055,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -18870,7 +19068,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -18883,7 +19081,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -18896,7 +19094,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -18909,7 +19107,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -18922,7 +19120,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -18935,7 +19133,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -18948,7 +19146,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -18961,7 +19159,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest"},
@@ -18973,7 +19171,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -18986,7 +19184,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -18999,7 +19197,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -19012,7 +19210,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -19025,7 +19223,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -19038,7 +19236,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -19051,7 +19249,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-webgl1-core"},
@@ -19063,7 +19261,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-webgl1-ext"},
@@ -19075,7 +19273,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19089,7 +19287,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19103,7 +19301,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19117,7 +19315,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19131,7 +19329,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19145,7 +19343,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19159,7 +19357,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19174,7 +19372,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19189,7 +19387,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19204,7 +19402,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19219,7 +19417,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19234,7 +19432,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19249,7 +19447,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19264,7 +19462,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19279,7 +19477,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19293,7 +19491,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19308,7 +19506,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19323,7 +19521,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19337,7 +19535,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19351,7 +19549,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "baseline-firefox",
@@ -19365,7 +19563,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19379,7 +19577,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19393,7 +19591,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19407,7 +19605,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "baseline-firefox",
@@ -19421,7 +19619,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19435,7 +19633,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19449,7 +19647,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19463,7 +19661,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -19472,12 +19670,96 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-av1-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-av1-sfr"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-av1-sfr-firefox-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-av1-sfr"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-vp9-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-vp9-sfr"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-widevine-hfr-firefox-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-hfr"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-widevine-vp9-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-vp9-sfr"},
+            "type": ["e10s", "qr"]
+        }
+    },
+    "test-linux64-shippable-qr/opt-raptor-youtube-playback-widevine-vp9-sfr-firefox-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-vp9-sfr"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
     "test-linux64-shippable-qr/opt-reftest-e10s-1": {
         "action": {"type": "test"},
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -19490,7 +19772,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -19503,7 +19785,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -19516,7 +19798,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -19529,7 +19811,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -19542,7 +19824,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -19555,7 +19837,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 7,
@@ -19568,7 +19850,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 8,
@@ -19581,7 +19863,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19594,7 +19876,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19607,7 +19889,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19620,7 +19902,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19633,7 +19915,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19646,7 +19928,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19659,7 +19941,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19672,7 +19954,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19685,7 +19967,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19698,7 +19980,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19711,7 +19993,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19724,7 +20006,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19737,7 +20019,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19750,7 +20032,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19763,7 +20045,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19776,7 +20058,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -19789,7 +20071,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -19802,7 +20084,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 10,
@@ -19815,7 +20097,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 11,
@@ -19828,7 +20110,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 12,
@@ -19841,7 +20123,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -19854,7 +20136,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -19867,7 +20149,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -19880,7 +20162,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -19893,7 +20175,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -19906,7 +20188,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 7,
@@ -19919,7 +20201,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 8,
@@ -19932,7 +20214,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 9,
@@ -19945,7 +20227,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -19958,7 +20240,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -19971,7 +20253,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -19984,7 +20266,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -19997,7 +20279,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -20010,7 +20292,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -20023,7 +20305,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -20036,7 +20318,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -20049,7 +20331,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -20062,7 +20344,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -20075,7 +20357,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -20088,7 +20370,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -20101,7 +20383,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -20114,7 +20396,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -20127,7 +20409,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 7,
@@ -20140,7 +20422,7 @@
         "build": {
             "platform": "linux64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 8,
@@ -25048,6 +25330,279 @@
             "suite": {"name": "mozmill"}
         }
     },
+    "test-linux64/opt-raptor-tp6-firefox-cold-apple-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "apple",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-binast-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "binast-instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-docs-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "docs",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-ebay-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "ebay",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-facebook-redesign-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "facebook-redesign",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-fandom-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "fandom",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-google-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "google",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-imdb-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "imdb",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-instagram-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "instagram",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-microsoft-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "microsoft",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-netflix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "netflix",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-outlook-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "outlook",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-paypal-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "paypal",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-slides-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "slides",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-tumblr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "tumblr",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-twitch-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "twitch",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-twitter-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "twitter",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-wikipedia-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "wikipedia",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-yahoo-news-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "yahoo-news",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-yandex-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "yandex",
+            "type": ["e10s"]
+        }
+    },
+    "test-linux64/opt-raptor-tp6-firefox-cold-youtube-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "youtube",
+            "type": ["e10s"]
+        }
+    },
     "test-linux64/opt-raptor-wasm-godot-cranelift-firefox-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -25948,7 +26503,7 @@
         "build": {
             "platform": "macosx64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 7,
@@ -26025,6 +26580,20 @@
             "browser": "firefox",
             "framework": "raptor",
             "suite": {"name": "youtube-playback-h264-power"},
+            "type": ["e10s"]
+        }
+    },
+    "test-macosx1014-64-shippable/opt-raptor-youtube-playback-h264-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "macosx64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-h264-sfr"},
             "type": ["e10s"]
         }
     },
@@ -27536,7 +28105,7 @@
         "build": {
             "platform": "macosx64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "crashtest"},
@@ -27548,7 +28117,7 @@
         "build": {
             "platform": "macosx64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -27561,7 +28130,7 @@
         "build": {
             "platform": "macosx64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -29002,6 +29571,21 @@
             "suite": {"name": "xpcshell"}
         }
     },
+    "test-ui-browser": {},
+    "test-ui-glean": {},
+    "test-unit-browser-engine-gecko-nightly": {},
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-23-cold-performance-test-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "browsertime",
+            "suite": {"name": "tp6m"}
+        }
+    },
     "test-vismet-android-hw-p2-8-0-android-aarch64/pgo-browsertime-tp6m-geckoview-cold-youtube": {
         "action": {"type": "perf"},
         "build": {
@@ -29043,6 +29627,20 @@
             "site": "amazon",
             "suite": {"name": "tp6"},
             "type": ["condprof"]
+        }
+    },
+    "test-vismet-windows10-64-shippable/opt-browsertime-tp6-firefox-amazon": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "amazon",
+            "suite": {"name": "tp6"}
         }
     },
     "test-vismet-windows7-32-shippable/opt-browsertime-tp6-firefox-amazon": {
@@ -32568,6 +33166,19 @@
             "suite": {"name": "web-platform-tests"}
         }
     },
+    "test-windows10-64-devedition/opt-web-platform-tests-reftest-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "train": "devedition",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-devedition/opt-web-platform-tests-reftests": {
         "action": {"type": "test"},
         "build": {
@@ -34315,6 +34926,18 @@
             "type": ["qr"]
         }
     },
+    "test-windows10-64-qr/debug-web-platform-tests-reftest-e10s-3": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 3,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s", "qr"]
+        }
+    },
     "test-windows10-64-qr/opt-awsy-tp6-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -34586,6 +35209,18 @@
             "type": ["qr"]
         }
     },
+    "test-windows10-64-qr/opt-web-platform-tests-reftest-fis-e10s-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
     "test-windows10-64-ref-hw-2017/opt-raptor-tp6-7-firefox-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -34600,12 +35235,38 @@
             "type": ["e10s"]
         }
     },
+    "test-windows10-64-ref-hw-2017/opt-raptor-youtube-playback-h264-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-h264-sfr"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-ref-hw-2017/opt-raptor-youtube-playback-widevine-vp9-sfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-vp9-sfr"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows10-64-shippable-qr/opt-awsy-base-dmd-e10s": {
         "action": {"type": "test"},
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-base-dmd"},
@@ -34617,7 +35278,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-base"},
@@ -34629,7 +35290,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy-dmd"},
@@ -34641,7 +35302,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "awsy"},
@@ -34653,7 +35314,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "crashtest"},
@@ -34665,7 +35326,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -34678,7 +35339,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -34691,7 +35352,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -34704,7 +35365,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -34717,7 +35378,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -34730,7 +35391,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest"},
@@ -34742,7 +35403,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-media"},
@@ -34754,7 +35415,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-media"},
@@ -34766,7 +35427,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-webgl1-core"},
@@ -34778,7 +35439,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-webgl1-ext"},
@@ -34790,7 +35451,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "mochitest-webgl2-core"},
@@ -34802,7 +35463,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -34815,7 +35476,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -34828,7 +35489,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -34841,7 +35502,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -34854,7 +35515,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34868,7 +35529,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34882,7 +35543,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34896,7 +35557,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34910,7 +35571,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34924,7 +35585,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34938,7 +35599,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34953,7 +35614,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34968,7 +35629,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34983,7 +35644,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -34998,7 +35659,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35013,7 +35674,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35028,7 +35689,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35043,7 +35704,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35058,7 +35719,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35073,7 +35734,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35087,7 +35748,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35102,7 +35763,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35117,7 +35778,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35131,7 +35792,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35145,7 +35806,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "browser": "firefox",
@@ -35154,12 +35815,26 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-windows10-64-shippable-qr/opt-raptor-youtube-playback-widevine-hfr-firefox-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt", "qr"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-hfr"},
+            "type": ["e10s", "fis", "qr"]
+        }
+    },
     "test-windows10-64-shippable-qr/opt-reftest-e10s-1": {
         "action": {"type": "test"},
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -35172,7 +35847,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -35185,7 +35860,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35198,7 +35873,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35211,7 +35886,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35224,7 +35899,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35237,7 +35912,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35250,7 +35925,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35263,7 +35938,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35276,7 +35951,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35289,7 +35964,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35302,7 +35977,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35315,7 +35990,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35328,7 +36003,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35341,7 +36016,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35354,7 +36029,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35367,7 +36042,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "framework": "talos",
@@ -35380,7 +36055,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "suite": {"name": "web-platform-tests-crashtests"},
@@ -35392,7 +36067,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -35405,7 +36080,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 10,
@@ -35418,7 +36093,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 11,
@@ -35431,7 +36106,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 12,
@@ -35444,7 +36119,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -35457,7 +36132,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -35470,7 +36145,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -35483,7 +36158,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -35496,7 +36171,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -35509,7 +36184,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 7,
@@ -35522,7 +36197,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 8,
@@ -35535,7 +36210,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 9,
@@ -35548,7 +36223,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -35561,7 +36236,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -35574,7 +36249,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 3,
@@ -35587,7 +36262,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 4,
@@ -35600,7 +36275,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 5,
@@ -35613,7 +36288,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 6,
@@ -35626,7 +36301,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 1,
@@ -35639,7 +36314,7 @@
         "build": {
             "platform": "win64",
             "train": "shippable",
-            "type": ["opt"]
+            "type": ["opt", "qr"]
         },
         "run": {
             "chunk": 2,
@@ -35718,6 +36393,20 @@
             "framework": "browsertime",
             "site": "wikipedia",
             "suite": {"name": "tp6"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows10-64-shippable/opt-raptor-youtube-playback-widevine-hfr-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-widevine-hfr"},
             "type": ["e10s"]
         }
     },
@@ -36623,6 +37312,18 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "test-windows10-64/debug-web-platform-tests-backlog-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "web-platform-tests-backlog"},
+            "type": ["e10s"]
         }
     },
     "test-windows10-64/debug-web-platform-tests-reftests": {
@@ -42889,6 +43590,18 @@
         "run": {
             "chunk": 9,
             "suite": {"name": "web-platform-tests"}
+        }
+    },
+    "test-windows7-32/debug-web-platform-tests-reftest-e10s-5": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 5,
+            "suite": {"name": "web-platform-tests-reftest"},
+            "type": ["e10s"]
         }
     },
     "test-windows7-32/debug-web-platform-tests-reftests": {

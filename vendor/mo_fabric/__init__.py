@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import absolute_import, division, unicode_literals
 
@@ -17,10 +17,12 @@ from mo_logs.exceptions import Except
 
 from mo_dots import set_default, unwrap, wrap, listwrap, coalesce
 from mo_files import File
-from mo_future import text_type
+from mo_future import text, is_text
 from mo_kwargs import override
 from mo_logs import Log, exceptions, machine_metadata
 from mo_math.randoms import Random
+from mo_threads import Thread
+from mo_threads.threads import RegisterThread
 
 
 class Connection(object):
@@ -39,8 +41,13 @@ class Connection(object):
         key_filename=None,  # part of connect_kwargs
         kwargs=None,
     ):
-        connect_kwargs = wrap(coalesce(connect_kwargs, {}))
-        key_filenames = listwrap(coalesce(connect_kwargs.key_filename, key_filename))
+        connect_kwargs = set_default(
+            {},
+            connect_kwargs,
+            {"key_filename": [File(f).abspath for f in listwrap(key_filename)]}
+        )
+
+        key_filenames = connect_kwargs.key_filename
 
         self.stdout = LogStream(host, "stdout")
         self.stderr = LogStream(host, "stderr")
@@ -84,7 +91,7 @@ class Connection(object):
                 return False
             else:
                 return True
-        except Exception:
+        except Exception as e:
             return False
 
     def warn_only(self):
@@ -98,7 +105,7 @@ class Connection(object):
             remote = self.conn.command_cwds[-1].rstrip("/'") + "/" + remote
 
         if use_sudo:
-            filename = "/tmp/" + Random.hex(20)
+            filename = "/tmp/" + Random.filename()
             self.sudo("cp " + remote + " " + filename)
             self.sudo("chmod a+r " + filename)
             self.conn.get(filename, File(local).abspath)
@@ -111,7 +118,7 @@ class Connection(object):
             remote = self.conn.command_cwds[-1].rstrip("/'") + "/" + remote
 
         if use_sudo:
-            filename = "/tmp/" + Random.hex(20)
+            filename = "/tmp/" + Random.filename()
             self.conn.put(File(local).abspath, filename)
             self.sudo("cp " + filename + " " + remote)
             self.sudo("rm " + filename)
@@ -167,29 +174,30 @@ class LogStream(object):
         self.part_line = EMPTY
 
     def write(self, value):
-        lines = value.split(CR)
-        if len(lines) == 1:
-            self.part_line += lines[0]
-            return
+        with RegisterThread(name=self.name):
+            lines = value.split(CR)
+            if len(lines) == 1:
+                self.part_line += lines[0]
+                return
 
-        prefix = self.part_line
-        for line in lines[0:-1]:
-            full_line = prefix + line
-            note(
-                "{{name}} ({{type}}): {{line}}",
-                name=self.name,
-                type=self.type,
-                line=full_line,
-            )
-            prefix = EMPTY
-        self.part_line = lines[-1]
+            prefix = self.part_line
+            for line in lines[0:-1]:
+                full_line = prefix + line
+                note(
+                    "{{name}} ({{type}}): {{line}}",
+                    name=self.name,
+                    type=self.type,
+                    line=full_line,
+                )
+                prefix = EMPTY
+            self.part_line = lines[-1]
 
     def flush(self):
         pass
 
 
 def note(template, **params):
-    if not isinstance(template, text_type):
+    if not is_text(template):
         Log.error("Log.note was expecting a unicode template")
 
     if len(template) > 10000:
@@ -202,6 +210,7 @@ def note(template, **params):
             "timestamp": datetime.utcnow(),
             "machine": machine_metadata,
             "context": exceptions.NOTE,
+            "thread": Thread.current()
         }
     )
 
@@ -216,8 +225,8 @@ def note(template, **params):
         f = sys._getframe(1)
         log_params.location = {
             "line": f.f_lineno,
-            "file": text_type(f.f_code.co_filename.split(os.sep)[-1]),
-            "method": text_type(f.f_code.co_name),
+            "file": text(f.f_code.co_filename.split(os.sep)[-1]),
+            "method": text(f.f_code.co_name),
         }
     else:
         log_template = "{{timestamp|datetime}} - " + template.replace("{{", "{{params.")

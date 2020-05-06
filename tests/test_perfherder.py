@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -18,10 +18,11 @@ from mo_logs import Log
 from mo_math.randoms import Random
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from pyLibrary.aws import s3
-from pyLibrary.env import http
+from mo_http import http
 
 false = False
 true = True
+
 
 class TestBuildbotLogs(FuzzyTestCase):
 
@@ -48,7 +49,6 @@ class TestBuildbotLogs(FuzzyTestCase):
         seen, all_perf = extract_perfherder(http.get(url).all_lines, Null, Data(next=dummy), Null, Null)
         Log.note("{{output}}", output=all_perf)
 
-
     def test_capture(self):
         source_key = u'213657:13240348'
         source = s3.Bucket(bucket="active-data-pulse-beta", kwargs=self.settings.aws).get_key(source_key)
@@ -69,7 +69,6 @@ class TestBuildbotLogs(FuzzyTestCase):
         dest_bucket = S3Bucket(bucket="active-data-perf-dev", kwargs=self.settings.aws)
         resources = Null
         perfherder_logs_to_perf_logs.process(source_key, source, dest_bucket, resources, please_stop=None)
-
 
     def test_perfherder_transform_c(self):
         source_key = u'307827:30747788.7'

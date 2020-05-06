@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
 
 from __future__ import division
 from __future__ import unicode_literals
@@ -13,16 +13,16 @@ import re
 
 from activedata_etl.imports.coverage_util import download_file
 from activedata_etl.transforms import ACTIVE_DATA_QUERY
-from jx_base.expressions import last
 from jx_python.expressions import jx_expression_to_function
 from mo_dots import coalesce
+from mo_dots.lists import last
 from mo_files import TempFile
-from mo_future import text_type
+from mo_future import text
 from mo_json import stream
-from mo_logs import Log
+from mo_logs import Log, Except
 from mo_times import Timer, Date, Duration
-from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes
+from mo_http import http
+from mo_http.big_data import scompressed2ibytes
 
 
 class FileMapper(object):
@@ -74,7 +74,7 @@ class FileMapper(object):
                 with TempFile() as tempfile:
                     Log.note("download {{url}}", url=files_url)
                     download_file(files_url, tempfile.abspath)
-                    with open(tempfile.abspath, b"rb") as fstream:
+                    with open(tempfile.abspath, str("rb")) as fstream:
                         with Timer("process {{url}}", param={"url": files_url}):
                             count = 0
                             for data in stream.parse(
@@ -89,6 +89,15 @@ class FileMapper(object):
                             )
                 return
             except Exception as e:
+                e = Except.wrap(e)
+                # Log.warning(
+                #     "Can not read {{url}} for key {{key}}",
+                #     url=files_url,
+                #     key=source_key,
+                #     cause=e
+                # )
+
+                # TODO: THIS IS HAPPENING MORE THAN EXPECTED
                 Log.note(
                     "Can not read {{url}} for key {{key}}",
                     url=files_url,
@@ -114,7 +123,7 @@ class FileMapper(object):
             if not found:
                 curr[p] = filename
                 return
-            elif isinstance(found, text_type):
+            elif isinstance(found, text):
                 if i + 1 >= len(path):
                     curr[p] = {".": filename}
                 else:
@@ -195,7 +204,7 @@ class FileMapper(object):
                 found = curr.get(p)
                 if not found:
                     break
-                elif isinstance(found, text_type):
+                elif isinstance(found, text):
                     if found == filename:
                         return {"name": found, "is_firefox": True}
                     else:
@@ -218,7 +227,7 @@ class FileMapper(object):
 
 def _values(curr):
     for v in curr.values():
-        if isinstance(v, text_type):
+        if isinstance(v, text):
             yield v
         else:
             for u in _values(v):

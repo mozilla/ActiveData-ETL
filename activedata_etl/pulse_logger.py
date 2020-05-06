@@ -4,12 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
 from mo_dots import set_default, coalesce, listwrap
 from pyLibrary import aws
@@ -36,7 +36,7 @@ def log_loop(settings, synch, queue, bucket, please_stop):
         work_queue = None
 
     try:
-        for i, g in jx.groupby(queue, size=settings.param.size):
+        for i, g in jx.chunk(queue, size=settings.param.size):
             Log.note(
                 "Preparing {{num}} pulse messages to bucket={{bucket}}",
                 num=len(g),
@@ -44,9 +44,9 @@ def log_loop(settings, synch, queue, bucket, please_stop):
             )
 
             if settings.destination.key_prefix:
-                full_key = settings.destination.key_prefix + "." + text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
+                full_key = settings.destination.key_prefix + "." + text(synch.next_key) + ":" + text(MIN(g.get("_meta.count")))
             else:
-                full_key = text_type(synch.next_key) + ":" + text_type(MIN(g.get("_meta.count")))
+                full_key = text(synch.next_key) + ":" + text(MIN(g.get("_meta.count")))
             try:
                 output = [
                     set_default(

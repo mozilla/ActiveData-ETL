@@ -6,13 +6,11 @@
 #
 from __future__ import division, unicode_literals
 
-from collections import Mapping
-
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
-from mo_dots import Data, coalesce, set_default, unwrap
-from mo_future import text_type
+from mo_dots import Data, coalesce, set_default, unwrap, is_data
+from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_logs import Log, strings
 from mo_logs.strings import between
@@ -122,7 +120,7 @@ class Matcher(object):
     def match(self, name):
         if self.pattern:
             for k, v in self.pattern.items():
-                if isinstance(v, Mapping):
+                if is_data(v):
                     # TODO: CONVERT THESE PREFIX MATCHES TO SHORT NAME PULLERS
                     if name.startswith(k):
                         match = self.child.match(name[len(k) :])
@@ -144,9 +142,6 @@ class Matcher(object):
 CATEGORIES = {
     # TODO: USE A FORMAL PARSER??
     "test-": {
-        "debug": {},
-        "ui": {},
-        "nightly": {},
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
         },
@@ -159,6 +154,24 @@ CATEGORIES = {
         "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}": {
             "action": {"type": "test"}
         },
+        # RAPTOR
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-raptor-tp6-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "raptor"},
+        },
+
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-raptor-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
@@ -209,6 +222,23 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "browsertime"},
         },
+        # BROWSERTIME tp6m
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-tp6m-{{BROWSER}}-{{SITE}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
         # BASIC TEST FORMAT
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -256,6 +286,7 @@ CATEGORIES = {
             "action": {"type": "perf"},
             "run": {"framework": "talos"},
         },
+        "{{SPECIAL_TESTS}}": {}
     },
     "build-": {
         "{{BUILD_PLATFORM}}/{{BUILD_TYPE}}": {"action": {"type": "build"}},
@@ -341,10 +372,12 @@ TEST_PLATFORM = {
     "vismet-android-hw-p2-8-0-android": {"build": {"platform": "android"}},
     "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
     "vismet-windows7-32": {"build": {"platform": "win32"}},
+    "vismet-windows10-64": {"build": {"platform": "win64"}},
 }
 
 RUN_OPTIONS = {
     "1proc": {"run": {"type": ["1proc"]}},
+    "backlog-e10s": {"type": ["e10s"]},
     "condprof-e10s": {"run": {"type": ["condprof", "e10s"]}},
     "profiling": {"run": {"type": ["profile"]}},
     "profiling-fis-e10s": {"run": {"type": ["profile", "fis", "e10s"]}},
@@ -366,7 +399,9 @@ RUN_OPTIONS = {
     "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "no-accel": {"run": {"type": ["no-accel"]}},
+    "qr-e10s": {"run": {"type": ["e10s", "qr"]}},
     "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
+    "spi-nw-e10s": {"run": {"type": ["spi", "e10s"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
     "spi": {"run": {"type": ["spi"]}},
     "stylo": {"build": {"type": ["stylo"]}},
@@ -422,6 +457,12 @@ RAPTOR_TEST = {
         "wasm-misc-ion",
         "wasm-misc",
         "webaudio",
+        "youtube-playback-av1-sfr",
+        "youtube-playback-vp9-sfr",
+        "youtube-playback-widevine-hfr",
+        "youtube-playback-widevine-h264-sfr",
+        "youtube-playback-widevine-vp9-sfr",
+        "youtube-playback-h264-sfr",
         "youtube-playback-h264-power",
         "youtube-playback",
     ]
@@ -454,10 +495,42 @@ def match_tp6(name):
 RAPTOR_TEST["tp6"] = match_tp6
 RAPTOR_TEST["tp6m"] = match_tp6
 
-
-SITE = {s: {"run": {"site": s}} for s in ["amazon", "bing-search", "facebook", "google", "google-search", "yahoo-news", "youtube", "wikipedia"]}
+SITE = {
+    s: {"run": {"site": s}}
+    for s in [
+        "amazon",
+        "apple",
+        "bbc",
+        "binast-instagram",
+        "bing-search",
+        "docs",
+        "ebay",
+        "expedia",
+        "facebook-redesign",
+        "facebook",
+        "fandom",
+        "google-search",
+        "google",
+        "imdb",
+        "instagram",
+        "microsoft-support",
+        "microsoft",
+        "netflix",
+        "outlook",
+        "paypal",
+        "slides",
+        "tumblr",
+        "twitter",
+        "twitch",
+        "yandex",
+        "yahoo-news",
+        "youtube",
+        "wikipedia"
+    ]
+}
 
 BROWSER = {
+    "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
     "chrome-cold": {"run": {"browser": "chrome"}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium"}},
@@ -485,6 +558,9 @@ BROWSER = {
     "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
+    "live-chrome-m-cold": {"run": {"browser": "chrome"}},
+    "mobile-fenix": {"run": {"browser": "mobile-fenix"}},
+    "mobile-geckoview": {"run": {"browser": "mobile-fenix"}},
     "refbrow-cold": {"run": {"browser": "reference browser"}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }
@@ -504,6 +580,7 @@ TEST_SUITE = {
         "crashtest",
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
+        "geckoview-junit-e10s-multi",
         "geckoview-junit",
         "geckoview-cold",
         "geckoview-memory",
@@ -550,16 +627,19 @@ TEST_SUITE = {
         "test-coverage-wpt",
         "test-verify",
         "test-verify-wpt",
-        "web-platform-tests",
+        "web-platform-tests-backlog",
+        "web-platform-tests-crashtest",
         "web-platform-tests-crashtests",
+        "web-platform-tests-reftest",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
         "web-platform-tests-wdspec-headless",
+        "web-platform-tests",
         "xpcshell",
     ]
 }
 
-TEST_CHUNK = {text_type(i): {"run": {"chunk": i}} for i in range(3000)}
+TEST_CHUNK = {text(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
     "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
@@ -576,8 +656,8 @@ BUILD_PLATFORM = {
     "android-api-16-old-id": {"build": {"platform": "android"}},
     "android-api-16": {"build": {"platform": "android"}},
     "android-api": {"build": {"platform": "android"}},
-    "android-test-ccov": {
-        "build": {"platform": "android", "type": ["ccov"]},
+    "android-test": {
+        "build": {"platform": "android"},
         "run": {"suite": {"name": "android-test", "fullname": "android-test"}},
     },
     "android": {"build": {"platform": "android"}},
@@ -599,16 +679,17 @@ BUILD_OPTIONS = {
     "aarch64-asan-fuzzing": {"build": {"cpu": "aarch64", "type": ["asan", "fuzzing"]}},
     "aarch64-beta": {"build": {"cpu": "aarch64", "train": "beta"}},
     "aarch64-devedition-nightly": {"build": {"cpu": "aarch64", "train": "devedition"}},
+    "aarch64-devedition-no-eme": {"build": {"cpu": "aarch64", "train": "devedition", "type": ["no-eme"]}},
     "aarch64-devedition": {"build": {"cpu": "aarch64", "train": "devedition"}},
     "aarch64-eme": {
         "build": {"cpu": "aarch64", "type": ["eme"]}
     },  # ENCRYPTED MEDIA EXTENSIONS
     "aarch64-gcp": {"build": {"cpu": "aarch64"}, "run": {"cloud": "gcp"}},
     "aarch64-nightly": {"build": {"cpu": "aarch64", "train": "nightly"}},
-    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly"}},
+    "aarch64-nightly-no-eme": {"build": {"cpu": "aarch64", "train": "nightly", "type": ["no-eme"]}},
     "aarch64-msvc": {"build": {"cpu": "aarch64"}},
     "aarch64-shippable": {"build": {"cpu": "aarch64", "train": "shippable"}},
-    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable"}},
+    "aarch64-shippable-no-eme": {"build": {"cpu": "aarch64", "train": "shippable", "type": ["no-eme"]}},
     "aarch64": {"build": {"cpu": "aarch64"}},
     "add-on-devel": {},
     "armel": {"build": {"cpu": "arm"}},
@@ -644,7 +725,7 @@ BUILD_OPTIONS = {
     "mipsel": {"build": {"cpu": "mips"}},
     "mips64el": {"build": {"cpu": "mips64"}},
     "msvc": {},
-    "no-eme": {},
+    "no-eme": {"build": {"type": ["no-eme"]}},  # ENCRYPTED MEDIA EXTENSIONS
     "noopt": {},
     "nightly": {"build": {"train": "nightly"}},
     "opt": {"build": {"type": ["opt"]}},
@@ -657,6 +738,7 @@ BUILD_OPTIONS = {
     "release": {"build": {"train": "release"}},
     "reproduced": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
+    "shippable-qr": {"build": {"train": "shippable", "type": ["qr"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "s390x": {"build": {"cpu": "s390"}},
@@ -680,6 +762,7 @@ TEST_OPTIONS = unwrap(
     set_default(
         {  # NOTICE THESE ALL INCLUDE run.type
             "asan-qr": {"build": {"type": ["asan"]}, "run": {"type": ["qr"]}},
+            "devedition": {"build": {"train": "devedition"}},
             "gradle": {"run": {"type": ["gradle"]}},
             "lto": {"run": {"type": ["lto"]}},
             "mingw32": {"run": {"type": ["mingw32"]}},
@@ -704,15 +787,51 @@ BUILD_STEPS = {"upload-symbols": {}}
 
 SPECIAL_BUILDS = {
     "android-test-debug": {},
-    "nightly": {"build": {"train": "nightly"}},
-    "nightly-lib-push-firebase": {},
-    "nightly-support-test": {},
+    "android-test-nightly":{},
+    "fennec-nightly":{},
+    "nightly-browser-awesomebar": {},
+    "nightly-browser-errorpages": {},
+    "nightly-browser-state": {},
     "nightly-browser-storage-memory": {},
-    "nightly-feature-media": {},
+    "nightly-browser-storage-sync": {},
+    "nightly-browser-tabstray": {},
+    "nightly-concept-engine": {},
     "nightly-concept-toolbar": {},
+    "nightly-feature-app-links": {},
+    "nightly-feature-contextmenu": {},
+    "nightly-feature-findinpage": {},
+    "nightly-feature-media": {},
+    "nightly-feature-p2p": {},
+    "nightly-feature-privatemode": {},
+    "nightly-feature-push": {},
+    "nightly-feature-qr": {},
+    "nightly-feature-sitepermissions": {},
+    "nightly-lib-fetch-httpurlconnection": {},
+    "nightly-lib-fetch-okhttp": {},
+    "nightly-lib-push-firebase": {},
+    "nightly-service-fretboard": {},
+    "nightly-service-telemetry": {},
+    "nightly-support-base": {},
+    "nightly-support-ktx": {},
+    "nightly-support-locale": {},
+    "nightly-support-sync-telemetry": {},
+    "nightly-support-test": {},
+    "nightly": {"build": {"train": "nightly"}},
+    "notarization-poller-macosx64-shippable/opt":{},
+    "notarization-part-1-macosx64-shippable/opt":{},
+    "src":{},
     "reference-browser-geckoNightlyX86Release": {
         "build": {"product": "reference-browser", "train": "release"}
     },
+}
+
+SPECIAL_TESTS ={
+    "debug": {},
+    "ui-browser": {},
+    "ui-glean": {},
+    "ui": {},
+    "nightly": {},
+    "unit-browser-engine-gecko-nightly":{}
 }
 
 COMPILED_CATEGORIES = {

@@ -9,10 +9,9 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import gc
-from mo_times import Timer
 from jx_python import jx
 from mo_dots import Null, coalesce, wrap
-from mo_future import text_type
+from mo_future import text
 from mo_hg.hg_mozilla_org import HgMozillaOrg
 from mo_files.url import URL
 from mo_kwargs import override
@@ -20,7 +19,7 @@ from mo_logs import Log
 from mo_math.randoms import Random
 from mo_threads import Till, Thread, Lock
 from mo_times.durations import SECOND, HOUR, DAY
-from pyLibrary.env import http
+from mo_http import http
 from pyLibrary.meta import cache
 from pyLibrary.sql import sql_list, sql_iso
 from pyLibrary.sql.sqlite import quote_value, quote_list
@@ -314,7 +313,7 @@ class TUIDService:
         try:
             Log.note("Searching through changelog {{url}}", url=clog_url)
             clog_obj = http.get_json(clog_url, retry=RETRY)
-            if isinstance(clog_obj, (text_type, str)):
+            if isinstance(clog_obj, (text, str)):
                 Log.note(
                     "Revision {{cset}} does not exist in the {{branch}} branch",
                     cset=revision, branch=branch
@@ -476,7 +475,7 @@ class TUIDService:
 
         if len(latestFileMod_inserts) > 0:
             with self.conn.transaction() as transaction:
-                for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                     transaction.execute(
                         "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                         sql_list(quote_list(i) for i in inserts_list)
@@ -514,7 +513,7 @@ class TUIDService:
                 Log.note("Finished updating frontiers. Updating DB table `latestFileMod`...")
                 if len(latestFileMod_inserts) > 0:
                     with self.conn.transaction() as transaction:
-                        for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                        for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                             transaction.execute(
                                 "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                                 sql_list(quote_list(i) for i in inserts_list)
@@ -620,7 +619,7 @@ class TUIDService:
 
         if len(list_to_insert) > 0:
             count = 0
-            for _, inserts_list in jx.groupby(list_to_insert, size=SQL_BATCH_SIZE):
+            for _, inserts_list in jx.chunk(list_to_insert, size=SQL_BATCH_SIZE):
                 transaction.execute(
                     "INSERT INTO temporal (tuid, revision, file, line)"
                     " VALUES " +
@@ -685,7 +684,7 @@ class TUIDService:
             try:
                 Log.note("Searching through changelog {{url}}", url=jsonrev_url)
                 clog_obj = http.get_json(jsonrev_url, retry=RETRY)
-                if isinstance(clog_obj, (text_type, str)):
+                if isinstance(clog_obj, (text, str)):
                     Log.error(
                         "Revision {{cset}} does not exist in the {{branch}} branch",
                         cset=curr_rev, branch=repo
@@ -807,7 +806,7 @@ class TUIDService:
             anns_added_by_other_thread = {}
             if len(ann_inserts) > 0:
                 ann_inserts = list(set(ann_inserts))
-                for _, tmp_inserts in jx.groupby(ann_inserts, size=SQL_ANN_BATCH_SIZE):
+                for _, tmp_inserts in jx.chunk(ann_inserts, size=SQL_ANN_BATCH_SIZE):
                     # Check if any were added in the mean time by another thread
                     recomputed_inserts = []
                     for rev, filename, tuids in tmp_inserts:
@@ -899,7 +898,7 @@ class TUIDService:
             try:
                 Log.note("Searching through changelog {{url}}", url=clog_url)
                 clog_obj = http.get_json(clog_url, retry=RETRY)
-                if isinstance(clog_obj, (text_type, str)):
+                if isinstance(clog_obj, (text, str)):
                     Log.error(
                         "Revision {{cset}} does not exist in the {{branch}} branch",
                         cset=final_rev, branch=self.config.hg.branch
@@ -1220,7 +1219,7 @@ class TUIDService:
             # No need to double-check if latesteFileMods has been updated before,
             # we perform an insert or replace any way.
             if len(latestFileMod_inserts) > 0:
-                for _, inserts_list in jx.groupby(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
+                for _, inserts_list in jx.chunk(latestFileMod_inserts.values(), size=SQL_BATCH_SIZE):
                     transaction.execute(
                         "INSERT OR REPLACE INTO latestFileMod (file, revision) VALUES " +
                         sql_list(quote_list(i) for i in inserts_list)
@@ -1229,7 +1228,7 @@ class TUIDService:
             anns_added_by_other_thread = {}
             if len(ann_inserts) > 0:
                 ann_inserts = list(set(ann_inserts))
-                for _, tmp_inserts in jx.groupby(ann_inserts, size=SQL_ANN_BATCH_SIZE):
+                for _, tmp_inserts in jx.chunk(ann_inserts, size=SQL_ANN_BATCH_SIZE):
                     # Check if any were added in the mean time by another thread
                     recomputed_inserts = []
                     for rev, filename, string_tuids in tmp_inserts:
@@ -1288,7 +1287,7 @@ class TUIDService:
         if repo is None:
             repo = self.config.hg.branch
 
-        for _, new_files in jx.groupby(files, size=chunk):
+        for _, new_files in jx.chunk(files, size=chunk):
             for count, file in enumerate(new_files):
                 new_files[count] = file.lstrip('/')
 
@@ -1382,7 +1381,7 @@ class TUIDService:
 
             # If it's not defined at this revision, we need to add it in
             errored = False
-            if isinstance(annotated_object, (text_type, str)):
+            if isinstance(annotated_object, (text, str)):
                 errored = True
                 Log.warning(
                     "{{file}} does not exist in the revision={{cset}} branch={{branch_name}}",
@@ -1489,7 +1488,7 @@ class TUIDService:
                     else:
                         lines_to_insert = new_line_origins.values()
 
-                    for _, part_of_insert in jx.groupby(lines_to_insert, size=SQL_BATCH_SIZE):
+                    for _, part_of_insert in jx.chunk(lines_to_insert, size=SQL_BATCH_SIZE):
                         transaction.execute(
                             "INSERT INTO temporal (tuid, file, revision, line)"
                             " VALUES " +

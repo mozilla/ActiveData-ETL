@@ -4,16 +4,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
-from collections import Mapping
-
 from activedata_etl.etl import parse_id_argument
 from jx_base import container
-from mo_dots import coalesce, unwrap, Data, wrap
+from jx_elasticsearch import elasticsearch
+from jx_elasticsearch.rollover_index import RolloverIndex
+from mo_dots import coalesce, unwrap, Data, wrap, is_data
 from mo_logs import Log, machine_metadata, startup, constants
 from mo_logs.exceptions import Explanation, WarnOnException
 from mo_math import MAX
@@ -22,8 +22,6 @@ from mo_threads import Process, Thread, Signal, Queue, Till, THREAD_STOP, MAIN_T
 from mo_times.timer import Timer
 from pyLibrary import aws
 from pyLibrary.aws import s3
-from pyLibrary.env import elasticsearch
-from pyLibrary.env.rollover_index import RolloverIndex
 
 split = {}
 empty_bucket_complaint_sent = False
@@ -43,8 +41,8 @@ def splitter(work_queue, please_stop):
             continue
 
         message, payload = pair
-        if not isinstance(payload, Mapping):
-            Log.error("Not expecting a Mapping payload with `key` and `bucket` properties")
+        if not is_data(payload):
+            Log.error("Not expecting a Data payload with `key` and `bucket` properties")
 
         key = payload.key
         with Explanation("Indexing records from {{bucket}}", bucket=payload.bucket):
@@ -207,8 +205,8 @@ def main():
 
         please_stop = Signal()
         aws_shutdown = Signal("aws shutdown")
-        aws_shutdown.on_go(shutdown_local_es_node)
-        aws_shutdown.on_go(please_stop.go)
+        aws_shutdown.then(shutdown_local_es_node)
+        aws_shutdown.then(please_stop.go)
         aws.capture_termination_signal(aws_shutdown)
 
         Thread.run("splitter", safe_splitter, main_work_queue, please_stop=please_stop)

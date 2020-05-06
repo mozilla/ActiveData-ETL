@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import absolute_import
 from __future__ import division
@@ -14,6 +14,7 @@ import os
 
 import flask
 from flask import Flask, Response
+from mo_files import mimetype
 
 from mo_dots import listwrap, coalesce, unwraplist
 from mo_json import value2json, json2value
@@ -122,7 +123,7 @@ def tuid_endpoint(path):
             formatter(response),
             status=200 if completed else 202,
             headers={
-                "Content-Type": "application/json"
+                "Content-Type": mimetype.JSON
             }
         )
     except Exception as e:

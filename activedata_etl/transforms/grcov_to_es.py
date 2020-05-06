@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
 
 from __future__ import division
 from __future__ import unicode_literals
@@ -16,11 +16,11 @@ from activedata_etl.imports.coverage_util import download_file, tuid_batches
 from activedata_etl.imports.parse_lcov import parse_lcov_coverage
 from mo_dots import set_default
 from mo_files import TempFile
-from mo_future import text_type
+from mo_future import text
 from mo_json import value2json
 from mo_logs import Log, machine_metadata
 from mo_times import Timer, Date
-from pyLibrary.env.big_data import ibytes2ilines
+from mo_http.big_data import ibytes2ilines
 
 IGNORE_ZERO_COVERAGE = False
 IGNORE_METHOD_COVERAGE = True
@@ -86,7 +86,7 @@ def process_grcov_artifact(source_key, resources, destination, artifact, task_cl
                 ):
                     template_record.source = source
                     template_record.etl.id = count
-                    template_record._id = file_id + "." + text_type(count)
+                    template_record._id = file_id + "." + text(count)
                     count += 1
                     if DEBUG and (count % 10000 == 0):
                         Log.note("Processed {{num}} coverage records\n{{example}}", num=count, example=value2json(template_record))

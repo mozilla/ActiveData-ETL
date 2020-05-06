@@ -4,12 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from activedata_etl import key2etl, etl2path
 from mo_dots import unwrap
 from pyLibrary.aws import s3
@@ -50,7 +50,7 @@ def main():
                 Log.note("will remove {{key}}", key=k)
                 delete_me.append(k)
 
-        for g, kk in jx.groupby(delete_me, size=1000):
+        for g, kk in jx.chunk(delete_me, size=1000):
             Log.note("delete {{num}} keys", num=len(kk))
             bucket.delete_keys(kk)
 

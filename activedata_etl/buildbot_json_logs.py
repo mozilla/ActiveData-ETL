@@ -4,14 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
 from tempfile import TemporaryFile
 
-from mo_future import text_type
+from mo_future import text
 
 from jx_python import jx
 from mo_dots import Data
@@ -28,8 +28,8 @@ from mo_times.durations import DAY
 from mo_times.timer import Timer
 from pyLibrary.aws import s3, Queue
 from pyLibrary.convert import string2datetime
-from pyLibrary.env import http
-from pyLibrary.env.big_data import scompressed2ibytes
+from mo_http import http
+from mo_http.big_data import scompressed2ibytes
 
 REFERENCE_DATE = Date("1 JAN 2015")
 EARLIEST_CONSIDERATION_DATE = Date.today() - (90 * DAY)
@@ -68,7 +68,7 @@ def parse_day(settings, p, force=False):
     day = Date(string2datetime(p[7:17], format="%Y-%m-%d"))
     day_num = int((day - REFERENCE_DATE) / DAY)
     day_url = settings.source.url + p
-    key0 = text_type(day_num) + ".0"
+    key0 = text(day_num) + ".0"
 
     if day < EARLIEST_CONSIDERATION_DATE or Date.today() <= day:
         # OUT OF BOUNDS, TODAY IS NOT COMPLETE
@@ -96,7 +96,7 @@ def parse_day(settings, p, force=False):
     )
     tasks = get_all_tasks(day_url)
     first = None
-    for group_number, ts in jx.groupby(tasks, size=100):
+    for group_number, ts in jx.chunk(tasks, size=100):
         if DEBUG:
             Log.note("Processing #{{day}}, block {{block}}", day=day_num, block=group_number)
 
@@ -127,7 +127,7 @@ def parse_day(settings, p, force=False):
             first = parsed
             continue
 
-        key = text_type(day_num) + "." + text_type(group_number)
+        key = text(day_num) + "." + text(group_number)
 
         def upload(key, lines, please_stop):
             try:
@@ -153,7 +153,7 @@ def parse_day(settings, p, force=False):
         Log.error("How did this happen?")
 
     # WRITE FIRST BLOCK
-    key0 = text_type(day_num) + ".0"
+    key0 = text(day_num) + ".0"
     destination.write_lines(key=key0, lines=first)
     notify.add({"key": key0, "bucket": destination.name, "timestamp": Date.now()})
 

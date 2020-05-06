@@ -4,18 +4,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
 from mo_dots import Data, literal_field, set_default
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value
 from mo_logs import Log, strings
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http, git
+from pyLibrary.env import git
+from mo_http import http
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -38,6 +39,10 @@ STRUCTURED_LOG_ENDINGS = [
     '_raw.log',
     '.jsonl'
 ]
+
+
+
+
 NOT_STRUCTURED_LOGS = [
     ".apk",
     "/awsy_raw.log",
@@ -117,98 +122,20 @@ class Transform(object):
         raise NotImplementedError
 
 
-def verify_blobber_file(line_number, name, url):
+def get_test_result_content(line_number, name, url):
     """
     :param line_number:  for debugging
     :param name:  for debugging
     :param url:  TO BE READ
     :return:  RETURNS BYTES **NOT** UNICODE
     """
-    if not name.startswith("public/"):
-        return None, 0
-    if any(map(name.endswith, NOT_STRUCTURED_LOGS)):
-        return None, 0
-    if (name.find("/jscov_") >= 0 or name.find("/jsdcov_") >= 0 or name.find("code-coverage")) and name.endswith(".json"):
-        return None, 0
-    if name.find("/test_info/memory-report-") >= 0:
-        return None, 0
-    if TOO_MANY_NON_JSON_LINES[literal_field(name)] >= TOO_MANY_FAILS:
-        return None, 0
-
-    with Timer("Read {{name}}: {{url}}", {"name": name, "url": url}, silent=not DEBUG):
-        response = http.get(url)
-
-        try:
-            logs = response.all_lines
-        except Exception as e:
-            if name.endswith("_raw.log"):
-                Log.error(
-                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
-                    line=line_number,
-                    name=name,
-                    url=url,
-                    cause=e
-                )
-            if DEBUG:
-                Log.note(
-                    "Line {{line}}: {{name}} = {{url}} is NOT structured log",
-                    line=line_number,
-                    name=name,
-                    url=url
-                )
-            return None, 0
-
     if any(name.endswith(e) for e in STRUCTURED_LOG_ENDINGS):
         # FAST TRACK THE FILES WE SUSPECT TO BE STRUCTURED LOGS ALREADY
+        response = http.get(url)
+        logs = response.all_lines
         return logs, "unknown"
 
-    # DETECT IF THIS IS A STRUCTURED LOG
-
-    with Timer("Structured log detection {{name}} {{url}}:", {"name": name, "url": url}):
-        try:
-            total = 0  # ENSURE WE HAVE A SIDE EFFECT
-            count = 0
-            bad = 0
-            for blobber_line in logs:
-                blobber_line = strings.strip(blobber_line)
-                if not blobber_line:
-                    continue
-
-                try:
-                    total += len(json2value(blobber_line))
-                    count += 1
-                except Exception as e:
-                    if DEBUG:
-                        Log.note("Not JSON: {{line}}",
-                            name= name,
-                            line= blobber_line)
-                    bad += 1
-                    if bad > 4:
-                        TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
-                        Log.error("Too many bad lines")
-
-            if count == 0:
-                # THERE SHOULD BE SOME JSON TO BE A STRUCTURED LOG
-                TOO_MANY_NON_JSON_LINES[literal_field(name)] += 1
-                Log.error("No JSON lines found")
-
-        except Exception as e:
-            if name.endswith("_raw.log") and "No JSON lines found" not in e:
-                Log.error(
-                    "Line {{line}}: {{name}} is NOT structured log",
-                    line=line_number,
-                    name=name,
-                    cause=e
-                )
-            if DEBUG:
-                Log.note(
-                    "Line {{line}}: {{name}} is NOT structured log",
-                    line=line_number,
-                    name=name
-                )
-            return None, 0
-
-    return logs, count
+    return None, 0
 
 
 class EtlHeadGenerator(object):
@@ -227,7 +154,7 @@ class EtlHeadGenerator(object):
     ):
         num = self.next_id
         self.next_id = num + 1
-        dest_key = self.source_key + "." + text_type(num)
+        dest_key = self.source_key + "." + text(num)
 
         dest_etl = set_default(
             {

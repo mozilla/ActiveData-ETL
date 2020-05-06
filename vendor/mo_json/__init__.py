@@ -5,22 +5,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 import math
 import re
-from collections import Mapping
-from datetime import date, timedelta, datetime
-from decimal import Decimal
 
-from mo_dots import FlatList, NullType, Data, wrap_leaves, wrap, Null, SLOT
+from mo_dots import Data, FlatList, Null, NullType, SLOT, is_data, wrap, wrap_leaves
 from mo_dots.objects import DataObject
-from mo_future import text_type, none_type, long, binary_type, PY2, items
-from mo_logs import Except, strings, Log
+from mo_future import PY2, integer_types, is_binary, is_text, items, long, none_type, text
+from mo_logs import Except, Log, strings
 from mo_logs.strings import expand_template
 from mo_times import Date, Duration
 
@@ -32,16 +29,21 @@ IS_NULL = '0'
 BOOLEAN = 'boolean'
 INTEGER = 'integer'
 NUMBER = 'number'
+TIME = 'time'
+INTERVAL = 'interval'
 STRING = 'string'
 OBJECT = 'object'
 NESTED = "nested"
 EXISTS = "exists"
 
-ALL_TYPES = {IS_NULL: IS_NULL, BOOLEAN: BOOLEAN, INTEGER: INTEGER, NUMBER: NUMBER, STRING: STRING, OBJECT: OBJECT, NESTED: NESTED, EXISTS: EXISTS}
-JSON_TYPES = [BOOLEAN, INTEGER, NUMBER, STRING, OBJECT]
-PRIMITIVE = [EXISTS, BOOLEAN, INTEGER, NUMBER, STRING]
-STRUCT = [EXISTS, OBJECT, NESTED]
+ALL_TYPES = {IS_NULL: IS_NULL, BOOLEAN: BOOLEAN, INTEGER: INTEGER, NUMBER: NUMBER, TIME:TIME, INTERVAL:INTERVAL, STRING: STRING, OBJECT: OBJECT, NESTED: NESTED, EXISTS: EXISTS}
+JSON_TYPES = (BOOLEAN, INTEGER, NUMBER, STRING, OBJECT)
+NUMBER_TYPES = (INTEGER, NUMBER)
+PRIMITIVE = (EXISTS, BOOLEAN, INTEGER, NUMBER, TIME, INTERVAL, STRING)
+STRUCT = (EXISTS, OBJECT, NESTED)
 
+
+true, false, null = True, False, None
 
 _get = object.__getattribute__
 
@@ -81,14 +83,14 @@ def float2json(value):
         digits, more_digits = _snap_to_base_10(mantissa)
         int_exp = int(str_exp) + more_digits
         if int_exp > 15:
-            return sign + digits[0] + '.' + (digits[1:].rstrip('0') or '0') + u"e" + text_type(int_exp)
+            return sign + digits[0] + '.' + (digits[1:].rstrip('0') or '0') + u"e" + text(int_exp)
         elif int_exp >= 0:
             return sign + (digits[:1 + int_exp] + '.' + digits[1 + int_exp:].rstrip('0')).rstrip('.')
         elif -4 < int_exp:
             digits = ("0" * (-int_exp)) + digits
             return sign + (digits[:1] + '.' + digits[1:].rstrip('0')).rstrip('.')
         else:
-            return sign + digits[0] + '.' + (digits[1:].rstrip('0') or '0') + u"e" + text_type(int_exp)
+            return sign + digits[0] + '.' + (digits[1:].rstrip('0') or '0') + u"e" + text(int_exp)
     except Exception as e:
         from mo_logs import Log
         Log.error("not expected", e)
@@ -103,7 +105,7 @@ def _snap_to_base_10(mantissa):
         if f9 == 0:
             return '1000000000000000', 1
         elif f9 < f0:
-            digits = text_type(int(digits[:f9]) + 1) + ('0' * (16 - f9))
+            digits = text(int(digits[:f9]) + 1) + ('0' * (16 - f9))
         else:
             digits = digits[:f0]+('0'*(16-f0))
     return digits, 0
@@ -125,7 +127,7 @@ def _keep_whitespace(value):
         return None
 
 
-def _trim_whitespace(value):
+def trim_whitespace(value):
     value_ = value.strip()
     if value_:
         return value_
@@ -150,7 +152,7 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
 
     if type_ in (none_type, NullType):
         return None
-    elif type_ is text_type:
+    elif type_ is text:
         return scrub_text(value)
     elif type_ is float:
         if math.isnan(value) or math.isinf(value):
@@ -158,7 +160,7 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
         return scrub_number(value)
     elif type_ is bool:
         return value
-    elif type_ in (int, long):
+    elif type_ in integer_types:
         return scrub_number(value)
     elif type_ in (date, datetime):
         return scrub_number(datetime2unix(value))
@@ -169,12 +171,12 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
     elif type_ is Duration:
         return scrub_number(value.seconds)
     elif type_ is str:
-        return utf82unicode(value)
+        return value.decode('utf8')
     elif type_ is Decimal:
         return scrub_number(value)
     elif type_ is Data:
         return _scrub(_get(value, SLOT), is_done, stack, scrub_text, scrub_number)
-    elif isinstance(value, Mapping):
+    elif is_data(value):
         _id = id(value)
         if _id in is_done:
             Log.warning("possible loop in structure detected")
@@ -183,16 +185,16 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
 
         output = {}
         for k, v in value.items():
-            if isinstance(k, text_type):
+            if is_text(k):
                 pass
-            elif isinstance(k, binary_type):
+            elif is_binary(k):
                 k = k.decode('utf8')
             # elif hasattr(k, "__unicode__"):
-            #     k = text_type(k)
+            #     k = text(k)
             else:
                 Log.error("keys must be strings")
             v = _scrub(v, is_done, stack, scrub_text, scrub_number)
-            if v != None or isinstance(v, Mapping):
+            if v != None or is_data(v):
                 output[k] = v
 
         is_done.discard(_id)
@@ -226,7 +228,7 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
             output.append(v)
         return output
     elif hasattr(value, '__call__'):
-        return text_type(repr(value))
+        return text(repr(value))
     else:
         return _scrub(DataObject(value), is_done, stack, scrub_text, scrub_number)
 
@@ -240,7 +242,7 @@ def value2json(obj, pretty=False, sort_keys=False, keep_whitespace=True):
     :return:
     """
     if FIND_LOOPS:
-        obj = scrub(obj, scrub_text=_keep_whitespace if keep_whitespace else _trim_whitespace())
+        obj = scrub(obj, scrub_text=_keep_whitespace if keep_whitespace else trim_whitespace())
     try:
         json = json_encoder(obj, pretty=pretty)
         if json == None:
@@ -254,7 +256,7 @@ def value2json(obj, pretty=False, sort_keys=False, keep_whitespace=True):
             return json
         except Exception:
             pass
-        Log.error("Can not encode into JSON: {{value}}", value=text_type(repr(obj)), cause=e)
+        Log.error("Can not encode into JSON: {{value}}", value=text(repr(obj)), cause=e)
 
 
 def remove_line_comment(line):
@@ -291,7 +293,7 @@ def json2value(json_string, params=Null, flexible=False, leaves=False):
     :param leaves: ASSUME JSON KEYS ARE DOT-DELIMITED
     :return: Python value
     """
-    if not isinstance(json_string, text_type):
+    if not is_text(json_string) and json_string.__class__.__name__ != "FileString":
         Log.error("only unicode json accepted")
 
     try:
@@ -310,7 +312,7 @@ def json2value(json_string, params=Null, flexible=False, leaves=False):
             json_string = expand_template(json_string, params)
 
         try:
-            value = wrap(json_decoder(text_type(json_string)))
+            value = wrap(json_decoder(text(json_string)))
         except Exception as e:
             Log.error("can not decode\n{{content}}", content=json_string, cause=e)
 
@@ -361,10 +363,6 @@ else:
         return separator.join('{:02X}'.format(x) for x in value)
 
 
-def utf82unicode(value):
-    return value.decode('utf8')
-
-
 def datetime2unix(d):
     try:
         if d == None:
@@ -383,32 +381,34 @@ def datetime2unix(d):
 
 
 python_type_to_json_type = {
-    int: NUMBER,
-    text_type: STRING,
+    int: INTEGER,
+    text: STRING,
     float: NUMBER,
+    Decimal: NUMBER,
     bool: BOOLEAN,
     NullType: OBJECT,
     none_type: OBJECT,
     Data: OBJECT,
     dict: OBJECT,
     object: OBJECT,
-    Mapping: OBJECT,
     list: NESTED,
     set: NESTED,
     # tuple: NESTED,  # DO NOT INCLUDE, WILL HIDE LOGIC ERRORS
     FlatList: NESTED,
-    Date: NUMBER
+    Date: TIME,
+    datetime: TIME,
+    date: TIME,
 }
 
 if PY2:
     python_type_to_json_type[str] = STRING
-    python_type_to_json_type[long] = NUMBER
+    python_type_to_json_type[long] = INTEGER
+
 
 for k, v in items(python_type_to_json_type):
     python_type_to_json_type[k.__name__] = v
 
-
-_merge_order= {
+_merge_order = {
     BOOLEAN: 1,
     INTEGER: 2,
     NUMBER: 3,

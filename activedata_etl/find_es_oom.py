@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -14,9 +14,9 @@ import re
 from boto import ec2 as boto_ec2
 from fabric.operations import get, sudo, put
 from fabric.state import env
-from mo_future import text_type
+from mo_future import text
 
-from pyLibrary.env import http
+from mo_http import http
 
 from mo_collections import UniqueIndex
 from mo_dots import unwrap, wrap, coalesce
@@ -82,7 +82,7 @@ def _config_fabric(connect, instance):
     env.host_string = instance.ip_address
 
     def new_error(template, *args, **kwargs):
-        Log.error(text_type(template), *args, **kwargs)
+        Log.error(text(template), *args, **kwargs)
 
     env.abort_exception = new_error
 

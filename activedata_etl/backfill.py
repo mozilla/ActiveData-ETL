@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -13,11 +13,11 @@ import jx_elasticsearch
 from jx_base.expressions import TRUE
 from jx_python import jx
 from mo_dots import coalesce
-from mo_future import text_type
+from mo_future import text
 from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import suppress_exception
-from mo_math import Math, MAX, MIN
+from mo_math import MAX, MIN, ceiling, log10
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import aws
@@ -26,7 +26,7 @@ from pyLibrary.env.git import get_remote_revision
 
 
 def diff(settings, please_stop=None):
-    if not settings.elasticsearch.id_field:
+    if settings.elasticsearch and not settings.elasticsearch.id_field:
         Log.error("Expecting an `id_field` property")
     settings.range.min = coalesce(settings.range.min, settings.start, 0)
 
@@ -36,24 +36,39 @@ def diff(settings, please_stop=None):
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return
 
-    esq = jx_elasticsearch.new_instance(settings.elasticsearch)
     source_bucket = s3.Bucket(settings.source)
+    if settings.elasticsearch:
+        esq = jx_elasticsearch.new_instance(settings.elasticsearch)
 
-    if settings.git:
-        rev = get_remote_revision(settings.git.url, settings.git.branch)
-        es_filter = {"prefix": {"etl.revision": rev[0:12]}}
+        if settings.git:
+            rev = get_remote_revision(settings.git.url, settings.git.branch)
+            es_filter = {"prefix": {"etl.revision": rev[0:12]}}
+        else:
+            es_filter = coalesce(settings.es_filter, {"match_all": {}})
+
+        # EVERYTHING FROM ELASTICSEARCH
+        in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
+        if not in_es:
+            Log.alert("nothing in es to backfill")
+            return
     else:
-        es_filter = coalesce(settings.es_filter, {"match_all": {}})
+        in_es = set()
 
-    # EVERYTHING FROM ELASTICSEARCH
-    in_es = get_all_in_es(esq, settings.range, es_filter, settings.elasticsearch.id_field)
     in_range = None
     if settings.range:
         max_in_es = MAX(in_es)
         _min = coalesce(settings.range.min, 0)
-        _max = coalesce(settings.range.max, coalesce(settings.limit, 0) + max_in_es + 1, _min + 1000000)
+        _max = coalesce(
+            settings.range.max,
+            coalesce(settings.limit, 0) + max_in_es + 1,
+            _min + coalesce(settings.limit, 1000000)
+        )
         in_range = set(range(_min, _max))
         in_es &= in_range
+
+        if not in_range - in_es:
+            Log.note("Nothing to do")
+            return
 
     remaining_in_s3 = get_all_s3(in_es, in_range, settings)
 
@@ -71,7 +86,7 @@ def diff(settings, please_stop=None):
 
     source_prefix = coalesce(settings.source.prefix, "")
     for i, p in enumerate(remaining_in_s3):
-        all_keys = source_bucket.keys(source_prefix + text_type(p))
+        all_keys = source_bucket.keys(source_prefix + text(p))
         Log.note("{{count}}. {{key}} has {{num}} subkeys, added to {{queue}}", count=i, key=p, num=len(all_keys), queue=work_queue.name)
         with Timer("insert into aws sqs", silent=len(all_keys) == 1):
             work_queue.extend([
@@ -124,10 +139,10 @@ def get_all_s3(in_es, in_range, settings):
     bucket = s3.Bucket(settings.source)
     limit = coalesce(settings.limit, 1000)
     max_allowed = MAX([settings.range.max, MAX(in_es)])
-    extra_digits = Math.ceiling(Math.log10(MIN([max_allowed-settings.range.min, limit])))
+    extra_digits = ceiling(log10(MIN([max_allowed-settings.range.min, limit])))
     source_prefix = coalesce(settings.source.prefix, "")
 
-    prefix = text_type(max(in_range - in_es))[:-extra_digits]
+    prefix = text(max(in_range - in_es))[:-extra_digits]
     prefix_max = int(prefix + ("999999999999"[:extra_digits]))
     while prefix != "0" and len(in_s3) < limit and min_range <= prefix_max:
         # EVERYTHING FROM S3
@@ -162,7 +177,7 @@ def get_all_s3(in_es, in_range, settings):
 
         if prefix == "":
             break
-        prefix = text_type(int(prefix) - 1)
+        prefix = text(int(prefix) - 1)
         prefix_max = int(prefix + ("999999999999"[:extra_digits]))
 
     in_s3 = jx.reverse(jx.sort(in_s3))[:limit:]

@@ -9,7 +9,7 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text_type
+from mo_future import text
 from mo_kwargs import override
 
 from mo_dots import listwrap
@@ -78,7 +78,7 @@ class S3Cache(object):
                     " SELECT max(" + selector + ") as " + self.db.quote_column("max") +
                     " FROM files " +
                     " WHERE bucket=" + self.db.quote_value(bucket.name) +
-                    " AND substr(name, 1, " + text_type(len(prefix)) + ")=" + self.db.quote_value(prefix)
+                    " AND substr(name, 1, " + text(len(prefix)) + ")=" + self.db.quote_value(prefix)
                 )
                 maximum = result.data[0][0]
                 for mp in listwrap(self.settings.min_primary):
@@ -88,7 +88,7 @@ class S3Cache(object):
                             maximum = mini
 
                 if maximum:
-                    biggest = prefix + "." + text_type(maximum)
+                    biggest = prefix + "." + text(maximum)
                 else:
                     biggest = prefix + "."
             else:
@@ -99,11 +99,11 @@ class S3Cache(object):
                 )
                 maximum = result.data[0][0]
                 if maximum:
-                    biggest = text_type(maximum)
+                    biggest = text(maximum)
                 else:
                     biggest = None
             bad_count = 0
-            for g, metas in jx.groupby(bucket.bucket.list(prefix=prefix, marker=biggest), size=100):
+            for g, metas in jx.chunk(bucket.bucket.list(prefix=prefix, marker=biggest), size=100):
                 if please_stop:
                     Log.error("Request to stop encountered")
                 if bad_count > 100:

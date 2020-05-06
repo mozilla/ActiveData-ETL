@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
@@ -16,7 +16,7 @@ from activedata_etl.imports.file_mapper import FileMapper
 from activedata_etl.imports.task import minimize_task
 from activedata_etl.transforms.grcov_to_es import process_grcov_artifact
 from mo_dots import Null, Data
-from pyLibrary.env import http
+from mo_http import http
 from test_gcov import Destination
 from tuid.client import TuidClient
 

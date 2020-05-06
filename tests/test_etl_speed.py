@@ -5,18 +5,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
 from __future__ import division
-from pyLibrary import convert
 from mo_logs import Log
 from mo_dots import Data
-from pyLibrary.env.big_data import GzipLines
+from mo_http.big_data import GzipLines
 from mo_files import File
 from mo_testing.fuzzytestcase import FuzzyTestCase
 from mo_times.timer import Timer
-from activedata_etl.transforms import verify_blobber_file
+from activedata_etl.transforms import get_test_result_content
 from activedata_etl.transforms.unittest_logs_to_sink import process_unittest_in_s3
 
 
@@ -53,7 +52,7 @@ class TestEtlSpeed(FuzzyTestCase):
             }
         }
         Log.start(debug_settings)
-        verify_blobber_file(
+        get_test_result_content(
             0,
             "jetpack-package_raw.log",
             "http://mozilla-releng-blobs.s3.amazonaws.com/blobs/try/sha512/2d6892a08b84499c0e8cc0b81a32c830f6505fc2812a61e136ae4eb2ecfde0aac3e6358e9d27b76171869e0cc4368418e4dfca9378e69982681213354a2057ac"

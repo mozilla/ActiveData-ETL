@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import unicode_literals
 
@@ -14,12 +14,12 @@ from activedata_etl.transforms import EtlHeadGenerator
 from activedata_etl.transforms.pulse_block_to_es import scrub_pulse_record
 from activedata_etl.transforms.pulse_block_to_perfherder_logs import PERFHERDER_PREFIXES
 from mo_dots import Data, FlatList, Null, unwraplist, wrap
-from mo_future import text_type
+from mo_future import text
 from mo_json import json2value
 from mo_logs import Log, strings, suppress_exception
 from mo_times import Date
 from mo_times.timer import Timer
-from pyLibrary.env import http
+from mo_http import http
 
 DEBUG = False
 
@@ -71,7 +71,7 @@ def process(source_key, source, dest_bucket, resources, please_stop=None):
                     response = http.get(log_url)
                     if response.status_code == 404:
                         Log.alarm("PerfHerder log missing {{url}}", url=log_url)
-                        k = source_key + "." + text_type(i)
+                        k = source_key + "." + text(i)
                         try:
                             # IF IT EXISTS WE WILL ASSUME SOME PAST PROCESS TRANSFORMED THE MISSING DATA ALREADY
                             dest_bucket.get_key(k)

@@ -4,22 +4,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+# Contact: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 from __future__ import division
 from __future__ import unicode_literals
 
-from collections import Mapping
+import mo_math
 
 from activedata_etl import etl2key, key2etl
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import Data, listwrap, wrap, set_default
+from mo_dots import Data, listwrap, wrap, set_default, is_data
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
-from mo_logs import Log, machine_metadata, strings
-from mo_math import Math
+from mo_logs import Log, machine_metadata, strings, Except
 from mo_times.dates import Date
-from pyLibrary.env import elasticsearch, git
+from jx_elasticsearch import elasticsearch
+from pyLibrary.env import git
 
 DEBUG = True
 DISABLE_LOG_PARSING = False
@@ -58,6 +58,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             normalized = elasticsearch.scrub(normalized)
             output.append(normalized)
         except Exception as e:
+            e = Except.wrap(e)
             if TRY_AGAIN_LATER in e:
                 raise e
             Log.warning(
@@ -156,7 +157,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     # RUN MACHINE
     new_treeherder.run.machine.name = machine_name = consume(raw_job, "machine.name")
     split_name = machine_name.split("-")
-    if Math.is_integer(split_name[-1]):
+    if mo_math.is_integer(split_name[-1]):
         new_treeherder.run.machine.pool = "-".join(split_name[:-1])
     new_treeherder.run.machine.os = consume(raw_job, "signature.machine_os_name")
     new_treeherder.run.machine.architecture = consume(
@@ -384,7 +385,7 @@ def coalesce_w_conflict_detection(source_key, *args):
     for a in args:
         if a == None:
             continue
-        if isinstance(a, Mapping) and not a:
+        if is_data(a) and not a:
             continue
         if output == None:
             output = a

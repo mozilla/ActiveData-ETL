@@ -11,7 +11,7 @@
 		"min_attempts": 0
 	},
 	"constants": {
-		"pyLibrary.env.http.default_headers": {
+		"mo_http.http.default_headers": {
 			"Referer": "https://wiki.mozilla.org/Auto-tools/Projects/ActiveData",
 			"User-Agent": "ActiveData-ETL"
 		},
@@ -21,16 +21,6 @@
 		"use_cache": true,
 		"hg": {
 			"url": "https://hg.mozilla.org"
-		},
-		"branches": {
-			"host": "http://activedata.allizom.org",
-			"port": 9200,
-			"index": "branches",
-			"type": "branch",
-			"timeout": 300,
-			"consistency": "one",   // WE ONLY NEED ONE SHARD TO BE AVAILABLE
-			"debug": false,
-			"limit_replicas": true
 		},
 		"repo": {
 			"host": "http://activedata.allizom.org",
