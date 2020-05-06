@@ -17,6 +17,7 @@ import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
 
+import mo_files
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from mo_math.randoms import Random
 
@@ -449,6 +450,8 @@ class Bucket(object):
                     assertAlmostEqual(l, r, msg="S3 is different")
             except Exception as e:
                 Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
+            finally:
+                mo_files.File(tempfile).delete()
         return
 
     @property
