@@ -39,7 +39,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
-VERFIY = True
+VERIFY_UPLOAD = False
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -383,10 +383,10 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
-        if VERFIY:
+        if VERIFY_UPLOAD:
             lines = list(lines)
 
-        with NamedTemporaryFile(prefix=Random.filename(), delete=not VERFIY) as buff:
+        with NamedTemporaryFile(prefix=Random.filename(), delete=not VERIFY_UPLOAD) as buff:
             tempfile = buff.name
             DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
@@ -433,7 +433,7 @@ class Bucket(object):
         if self.settings.public:
             storage.set_acl("public-read")
 
-        if VERFIY:
+        if VERIFY_UPLOAD:
             try:
                 with open(tempfile, mode="rb") as source:
                     result = list(ibytes2ilines(scompressed2ibytes(source)))
