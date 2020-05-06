@@ -149,6 +149,9 @@ def process(source_key, source, destination, resources, please_stop=None):
                         elif "DECRYPTION_FAILED_OR_BAD_RECORD_MAC" in e:
                             # HAPPENS WHEN ETL RUNS BEFORE AWS HAS MACHINE FULLY SETUP
                             Log.error(TRY_AGAIN_LATER, reason="Unhappy network state", cause=e)
+                        elif "Error -3 while decompressing data: incorrect data check" in e:
+                            # HAPPENS WHEN ETL RUNS BEFORE AWS HAS MACHINE FULLY SETUP
+                            Log.error(TRY_AGAIN_LATER, reason="Unhappy network state", cause=e)
                         elif TRY_AGAIN_LATER in e:
                             Log.error(
                                 "Aborting processing of {{url}} for key={{key}}",
