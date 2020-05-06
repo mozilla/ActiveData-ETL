@@ -315,7 +315,7 @@ class HttpResponse(Response):
 
             if self.headers.get('content-encoding') == 'gzip':
                 return ibytes2ilines(icompressed2ibytes(iterator), encoding=encoding, flexible=flexible)
-            elif self.headers.get('content-type') == mimetype.ZIP:
+            elif self.headers.get('content-type') in [mimetype.ZIP, mimetype.GZIP]:
                 return ibytes2ilines(icompressed2ibytes(iterator), encoding=encoding, flexible=flexible)
             elif self.url.endswith('.gz'):
                 return ibytes2ilines(icompressed2ibytes(iterator), encoding=encoding, flexible=flexible)

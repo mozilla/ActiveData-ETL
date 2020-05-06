@@ -317,7 +317,10 @@ def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
                     yield decode(_buffer)
                 return
 
-        yield decode(_buffer[s:e])
+        try:
+            yield decode(_buffer[s:e])
+        except Exception as ex:
+            Log.error("could not decode line {{line}}", line=_buffer[s:e], cause=ex)
         s = e + 1
         e = _buffer.find(b"\n", s)
 
