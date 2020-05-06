@@ -313,14 +313,10 @@ class Bucket(object):
         source = self.get_meta(key)
         if source is None:
             Log.error("{{key}} does not exist", key=key)
-        if source.size < MAX_STRING_SIZE:
-            if source.key.endswith(".gz"):
-                return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
-            else:
-                return source.read().decode("utf8").split("\n")
-
-        if source.key.endswith(".gz"):
+        elif source.key.endswith(".gz"):
             return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
+        elif source.size < MAX_STRING_SIZE:
+            return source.read().decode("utf8").split("\n")
         else:
             return LazyLines(source)
 
