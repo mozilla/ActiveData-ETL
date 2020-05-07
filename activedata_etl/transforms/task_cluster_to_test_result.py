@@ -39,9 +39,9 @@ def process(source_key, source, destination, resources, please_stop=None):
         destination.delete_key(e)
 
     file_num = 0
-    lines = list(source.read_lines())
+    task_lines = list(source.read_lines())
 
-    for i, line in enumerate(lines):
+    for i, line in enumerate(task_lines):
         if please_stop:
             Log.error("Shutdown detected. Stopping early")
 

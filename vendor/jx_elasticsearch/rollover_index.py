@@ -255,9 +255,9 @@ class RolloverIndex(object):
                     pass
                 else:
                     Log.warning(
-                        "Could not process {{key}} line {{line}} from {{source}} after {{duration|round(places=2)}}seconds",
+                        "Could not process {{key}} line {{rownum}} from {{source}} after {{duration|round(places=2)}}seconds",
                         source=source.name,
-                        line=rownum,
+                        rownum=rownum,
                         key=key,
                         duration=timer.duration.seconds,
                         cause=e

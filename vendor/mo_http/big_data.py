@@ -164,12 +164,11 @@ class LazyLines(object):
     SIMPLE LINE ITERATOR, BUT WITH A BIT OF CACHING TO LOOK LIKE AN ARRAY
     """
 
-    def __init__(self, source, encoding="utf8"):
+    def __init__(self, source):
         """
-        ASSUME source IS A LINE ITERATOR OVER utf8 ENCODED BYTE STREAM
+        ASSUME source IS A LINE ITERATOR
         """
         self.source = source
-        self.encoding = encoding
         self._iter = self.__iter__()
         self._last = None
         self._next = 0
@@ -220,7 +219,8 @@ class CompressedLines(LazyLines):
         LIKE LazyLines, BUT HAS POTENTIAL TO seek()
         """
         self.compressed = compressed
-        LazyLines.__init__(self, None, encoding=encoding)
+        self.encoding = encoding
+        LazyLines.__init__(self, None)
         self._iter = self.__iter__()
 
     def __iter__(self):
@@ -317,12 +317,19 @@ def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
                     yield decode(_buffer)
                 return
 
-        yield decode(_buffer[s:e])
+        try:
+            yield decode(_buffer[s:e])
+        except Exception as ex:
+            Log.error("could not decode line {{line}}", line=_buffer[s:e], cause=ex)
         s = e + 1
         e = _buffer.find(b"\n", s)
 
 
 def ibytes2icompressed(source):
+    """"
+    :param source: ITERATOR OF BYTES
+    :return: ITERATOR OF BYTES (COMPRESSED)
+    """
     yield (
         b'\037\213\010\000' +  # Gzip file, deflate, no filename
         struct.pack('<L', long(time.time())) +  # compression start time
@@ -352,7 +359,7 @@ class GzipLines(CompressedLines):
 
     def __iter__(self):
         buff = BytesIO(self.compressed)
-        return LazyLines(gzip.GzipFile(fileobj=buff, mode='r'), encoding=self.encoding).__iter__()
+        return LazyLines(sbytes2ilines(gzip.GzipFile(fileobj=buff, mode='r'), encoding=self.encoding)).__iter__()
 
 
 class ZipfileLines(CompressedLines):
@@ -370,7 +377,7 @@ class ZipfileLines(CompressedLines):
         if len(names) != 1:
             Log.error("*.zip file has {{num}} files, expecting only one.",  num= len(names))
         stream = archive.open(names[0], "r")
-        return LazyLines(sbytes2ilines(stream), encoding=self.encoding).__iter__()
+        return LazyLines(sbytes2ilines(stream, encoding=self.encoding)).__iter__()
 
 
 def icompressed2ibytes(source):

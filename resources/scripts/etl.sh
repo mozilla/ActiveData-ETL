@@ -3,8 +3,8 @@ export PYTHONPATH=.:vendor
 git checkout etl
 git pull origin etl
 
-python2 activedata_etl/etl.py --settings=resources/settings/staging/etl.json
-python2 activedata_etl/etl.py --settings=resources/settings/staging/etl.json  --key=tc.624745
+python3.7 activedata_etl/etl.py --settings=resources/settings/staging/etl.json
+python3.7 activedata_etl/etl.py --settings=resources/settings/staging/etl.json  --key=tc.2993193
 #disown -h
 #tail -f  results/logs/etl.log
 

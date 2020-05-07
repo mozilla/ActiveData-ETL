@@ -16,12 +16,14 @@ from tempfile import NamedTemporaryFile
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
+
+import mo_files
 from mo_math.randoms import Random
 
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
 from mo_files import mimetype
 from mo_files.url import value2url_param
-from mo_future import StringIO, is_binary, text
+from mo_future import StringIO, is_binary, text, zip_longest
 from mo_http import http
 from mo_http.big_data import (
     LazyLines,
@@ -32,10 +34,12 @@ from mo_http.big_data import (
 )
 from mo_kwargs import override
 from mo_logs import Except, Log
+from mo_testing.fuzzytestcase import assertAlmostEqual
 from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
+VERIFY_UPLOAD = False
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -308,14 +312,10 @@ class Bucket(object):
         source = self.get_meta(key)
         if source is None:
             Log.error("{{key}} does not exist", key=key)
-        if source.size < MAX_STRING_SIZE:
-            if source.key.endswith(".gz"):
-                return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
-            else:
-                return source.read().decode("utf8").split("\n")
-
-        if source.key.endswith(".gz"):
+        elif source.key.endswith(".gz"):
             return LazyLines(ibytes2ilines(scompressed2ibytes(source)))
+        elif source.size < MAX_STRING_SIZE:
+            return source.read().decode("utf8").split("\n")
         else:
             return LazyLines(source)
 
@@ -333,7 +333,7 @@ class Bucket(object):
                     storage = self.bucket.new_key(str(key + ".json.gz"))
                     string_length = len(value)
                     value = convert.bytes2zip(value)
-                    headers = {"Content-Type": mimetype.ZIP}
+                    headers = {"Content-Type": mimetype.GZIP}
                 file_length = len(value)
                 Log.note(
                     "Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",
@@ -356,7 +356,7 @@ class Bucket(object):
                 else:
                     value = convert.bytes2zip(value).encode("utf8")
                     key += ".json.gz"
-                headers = {"Content-Type": mimetype.ZIP}
+                headers = {"Content-Type": mimetype.GZIP}
             else:
                 self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
@@ -383,7 +383,11 @@ class Bucket(object):
         self._verify_key_format(key)
         storage = self.bucket.new_key(str(key + ".json.gz"))
 
-        with NamedTemporaryFile(prefix=Random.filename()) as buff:
+        if VERIFY_UPLOAD:
+            lines = list(lines)
+
+        with NamedTemporaryFile(prefix=Random.filename(), delete=not VERIFY_UPLOAD) as buff:
+            tempfile = buff.name
             DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
             archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
             count = 0
@@ -411,7 +415,7 @@ class Bucket(object):
                     ):
                         buff.seek(0)
                         storage.set_contents_from_file(
-                            buff, headers={"Content-Type": mimetype.ZIP}
+                            buff, headers={"Content-Type": mimetype.GZIP}
                         )
                     break
                 except Exception as e:
@@ -428,6 +432,23 @@ class Bucket(object):
 
         if self.settings.public:
             storage.set_acl("public-read")
+
+        if VERIFY_UPLOAD:
+            try:
+                with open(tempfile, mode="rb") as source:
+                    result = list(ibytes2ilines(scompressed2ibytes(source)))
+                    for l, r in zip_longest(lines, result):
+                        assertAlmostEqual(l, r, msg="file is different")
+
+                result = list(self.read_lines(key))
+                for l, r in zip_longest(lines, result):
+                    assertAlmostEqual(l, r, msg="S3 is different")
+            except Exception as e:
+                from activedata_etl.transforms import TRY_AGAIN_LATER
+
+                Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
+            finally:
+                mo_files.File(tempfile).delete()
         return
 
     @property

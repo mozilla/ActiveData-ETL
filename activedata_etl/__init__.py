@@ -8,11 +8,12 @@
 #
 from __future__ import unicode_literals
 
+from pyLibrary.aws import s3
+
 from jx_python import jx
 from mo_dots import wrap, coalesce, is_data
 from mo_future import text
 from mo_logs import Log, strings
-from pyLibrary.aws import s3
 
 
 def key2etl(key):
