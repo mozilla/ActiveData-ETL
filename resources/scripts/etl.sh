@@ -4,7 +4,7 @@ git checkout etl
 git pull origin etl
 
 python3.7 activedata_etl/etl.py --settings=resources/settings/staging/etl.json
-python3.7 activedata_etl/etl.py --settings=resources/settings/staging/etl.json  --key=tc.2993193
+python3.7 activedata_etl/etl.py --settings=resources/settings/staging/etl.json  --key=tc.2992893
 #disown -h
 #tail -f  results/logs/etl.log
 
