@@ -44,7 +44,9 @@ class File(object):
         :param key: BASE64 AES KEY USED ON ENCRYPTED FILES
         :param mime_type: IN THE UNLIKELY CASE YOU WISH TO DICTATE THE mimetype
         """
-        if isinstance(filename, text):
+        if isinstance(filename, File):
+            return
+        if not isinstance(filename, text):
             Log.error('Expecting string, not {{type}}', type=type(filename).__name__)
 
         self.key = base642bytearray(key)
@@ -56,9 +58,8 @@ class File(object):
             home_path = os.path.expanduser("~")
             if os.sep == "\\":
                 home_path = home_path.replace(os.sep, "/")
-            if home_path.endswith("/"):
-                home_path = home_path[:-1]
-            filename = home_path + filename[1::]
+            home_path = home_path.rstrip("/")
+            filename = home_path + "/" + filename[1::].lstrip("/")
         self._filename = filename.replace(os.sep, "/")  # USE UNIX STANDARD
 
         while self._filename.find(".../") >= 0:
@@ -85,7 +86,7 @@ class File(object):
 
     @property
     def filename(self):
-        return self._filename.replace("/", os.sep)
+        return self._filename
 
     @property
     def abspath(self):
@@ -107,7 +108,7 @@ class File(object):
         """
         ADD suffix TO THE filename (NOT INCLUDING THE FILE EXTENSION)
         """
-        return File(add_suffix(self._filename, suffix))
+        return add_suffix(self._filename, suffix)
 
     @property
     def extension(self):
@@ -401,6 +402,12 @@ class File(object):
         except Exception as e:
             return False
 
+    @property
+    def length(self):
+        return os.path.getsize(self._filename)
+
+    size = length
+
     def __bool__(self):
         return self.__nonzero__()
 
@@ -575,7 +582,7 @@ def delete_daemon(file, caller_stack, please_stop):
 
 def add_suffix(filename, suffix):
     """
-    ADD suffix TO THE filename (NOT INCLUDING THE FILE EXTENSION)
+    ADD .suffix TO THE filename (NOT INCLUDING THE FILE EXTENSION)
     """
     path = filename.split("/")
     parts = path[-1].split(".")
