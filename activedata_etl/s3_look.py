@@ -16,7 +16,7 @@ from jx_python import jx
 from mo_logs import Log
 from mo_logs import startup
 from mo_times.timer import Timer
-from pyLibrary import aws
+from pyLibrary.aws import sqs
 from pyLibrary.aws.s3 import Bucket
 from pyLibrary.convert import json2value
 
@@ -53,7 +53,7 @@ def list_file_contents(settings, key):
 
 
 def list_queue(settings, num=10):
-    queue = aws.Queue(settings)
+    queue = sqs.Queue(settings)
     for i in range(num):
         content = queue.pop()
         Log.note("{{content}}",  content=content)

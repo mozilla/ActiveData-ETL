@@ -19,6 +19,7 @@ from mo_threads import Till
 from mo_times import Timer, Date
 from pyLibrary import aws
 from mo_http import http
+from pyLibrary.aws import sqs
 
 DEBUG = True
 SLEEP_ON_ERROR = 30
@@ -33,7 +34,7 @@ class TuidClient(object):
         self.num_bad_requests = 0
         self.endpoint = endpoint
         self.timeout = timeout
-        self.push_queue = aws.Queue(push_queue) if push_queue else None
+        self.push_queue = sqs.Queue(push_queue) if push_queue else None
         self.config = kwargs
 
         self.db = Sqlite(filename=coalesce(db.filename, "tuid_client.sqlite"), upgrade=False, kwargs=db)

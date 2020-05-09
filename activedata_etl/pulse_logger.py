@@ -9,20 +9,22 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text
 from activedata_etl.synchro import SynchState, SYNCHRONIZATION_KEY
-from mo_dots import set_default, coalesce, listwrap
-from pyLibrary import aws
-from mo_json import json2value, value2json
 from pyLibrary.collections import MAX, MIN
 from pyLibrary.collections.persistent_queue import PersistentQueue
+
+from jx_python import jx
+from mo_dots import set_default, coalesce, listwrap
+from mo_future import text
+from mo_json import value2json
+from mo_logs import Log
 from mo_logs import startup, constants
 from mo_logs.exceptions import Except
-from mo_logs import Log
-from pyLibrary.env import pulse
-from jx_python import jx
 from mo_threads import Thread, MAIN_THREAD
 from mo_times.dates import Date
+from pyLibrary import aws
+from pyLibrary.aws import sqs
+from pyLibrary.env import pulse
 
 
 # ONLY DEPLOY OFF THE pulse-logger BRANCH
@@ -31,7 +33,7 @@ from mo_times.dates import Date
 def log_loop(settings, synch, queue, bucket, please_stop):
     queue_name = coalesce(settings.work_queue, settings.notify)
     if queue_name:
-        work_queue = aws.Queue(queue_name)
+        work_queue = sqs.Queue(queue_name)
     else:
         work_queue = None
 

@@ -12,16 +12,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text
-from pyLibrary import aws
-from mo_logs import startup
 from mo_logs import Log
+from mo_logs import startup
 from mo_times.durations import SECOND
+from pyLibrary.aws import sqs
 
 
 def copy_queue(settings):
-    source = aws.Queue(settings.source)
-    destination = aws.Queue(settings.destination)
+    source = sqs.Queue(settings.source)
+    destination = sqs.Queue(settings.destination)
 
     while True:
         m = source.pop(wait=10*SECOND)

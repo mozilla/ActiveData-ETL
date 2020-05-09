@@ -11,19 +11,16 @@ from __future__ import absolute_import, division, unicode_literals
 
 import gzip
 import zipfile
-from tempfile import NamedTemporaryFile
 
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
 
 import mo_files
-from mo_math.randoms import Random
-
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
 from mo_files import mimetype
 from mo_files.url import value2url_param
-from mo_future import StringIO, is_binary, text, zip_longest
+from mo_future import StringIO, is_binary, text
 from mo_http import http
 from mo_http.big_data import (
     LazyLines,
@@ -439,7 +436,7 @@ class Bucket(object):
                     # full_url = "https://"+self.name+".s3-us-west-2.amazonaws.com/"+storage.key.replace(":", "%3A")
                     # https://active-data-test-result.s3-us-west-2.amazonaws.com/tc.1524896%3A152488763.0.json.gz
 
-                    # dest_bucket = S3Bucket(bucket="self.name", kwargs=self.settings.aws)
+                    # dest_bucket = s3.MultiBucket(bucket="self.name", kwargs=self.settings.aws)
 
                     result = list(self.read_lines(strip_extension(key)))
                     assertAlmostEqual(result, lines, result, msg="S3 is different")

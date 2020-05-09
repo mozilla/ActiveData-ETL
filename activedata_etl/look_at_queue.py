@@ -14,11 +14,11 @@ from __future__ import unicode_literals
 
 from mo_logs import Log
 from mo_logs import startup
-from pyLibrary import aws
+from pyLibrary.aws import sqs
 
 
 def list_queue(settings, num):
-    queue = aws.Queue(settings)
+    queue = sqs.Queue(settings)
     for i in range(num):
         content = queue.pop()
         Log.note("\n{{content|json}}", content=content)
@@ -26,7 +26,7 @@ def list_queue(settings, num):
 
 
 def scrub_queue(settings):
-    queue = aws.Queue(settings)
+    queue = sqs.Queue(settings)
 
     existing = set()
 
