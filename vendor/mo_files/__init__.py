@@ -47,7 +47,7 @@ class File(object):
         if isinstance(filename, File):
             return
         if not isinstance(filename, text):
-            Log.error('Expecting string, not {{type}}', type=type(filename).__name__)
+            Log.error(u"Expecting string, not {{type}}", type=type(filename).__name__)
 
         self.key = base642bytearray(key)
         self._mime_type = mime_type
@@ -210,13 +210,14 @@ class File(object):
                 content = f.read().decode(encoding)
                 return content
 
-    def read_zipfile(self, encoding='utf8'):
+    def read_zipfile(self, encoding="utf8"):
         """
         READ FIRST FILE IN ZIP FILE
         :param encoding:
         :return: STRING
         """
         from zipfile import ZipFile
+
         with ZipFile(self.abspath) as zipped:
             for num, zip_name in enumerate(zipped.namelist()):
                 return zipped.open(zip_name).read().decode(encoding)
@@ -249,7 +250,9 @@ class File(object):
                 else:
                     return f.read()
         except Exception as e:
-            Log.error(u"Problem reading file {{filename}}", filename=self.abspath, cause=e)
+            Log.error(
+                u"Problem reading file {{filename}}", filename=self.abspath, cause=e
+            )
 
     def write_bytes(self, content):
         if not self.parent.exists:
@@ -269,7 +272,9 @@ class File(object):
             self.parent.create()
         with open(self._filename, "wb") as f:
             if is_list(content) and self.key:
-                Log.error(u"list of data and keys are not supported, encrypt before sending to file")
+                Log.error(
+                    u"list of data and keys are not supported, encrypt before sending to file"
+                )
 
             if is_list(content):
                 pass
@@ -283,6 +288,7 @@ class File(object):
                     Log.error(u"Expecting unicode data only")
                 if self.key:
                     from mo_math.aes_crypto import encrypt
+
                     f.write(encrypt(d, self.key).encode("utf8"))
                 else:
                     f.write(d.encode("utf8"))
@@ -300,13 +306,17 @@ class File(object):
 
                 with io.open(path, "rb") as f:
                     for line in f:
-                        yield line.decode('utf8').rstrip()
+                        yield line.decode("utf8").rstrip()
             except Exception as e:
-                Log.error(u"Can not read line from {{filename}}", filename=self._filename, cause=e)
+                Log.error(
+                    u"Can not read line from {{filename}}",
+                    filename=self._filename,
+                    cause=e,
+                )
 
         return output()
 
-    def append(self, content, encoding='utf8'):
+    def append(self, content, encoding="utf8"):
         """
         add a line to file
         """
@@ -354,12 +364,20 @@ class File(object):
     def backup(self):
         path = self._filename.split("/")
         names = path[-1].split(".")
-        if len(names) == 1 or names[0] == '':
-            backup = File(self._filename + ".backup " + datetime.utcnow().strftime("%Y%m%d %H%M%S"))
+        if len(names) == 1 or names[0] == "":
+            backup = File(
+                self._filename
+                + ".backup "
+                + datetime.utcnow().strftime("%Y%m%d %H%M%S")
+            )
         else:
             backup = File.new_instance(
                 "/".join(path[:-1]),
-                ".".join(names[:-1]) + ".backup " + datetime.now().strftime("%Y%m%d %H%M%S") + "." + names[-1]
+                ".".join(names[:-1])
+                + ".backup "
+                + datetime.now().strftime("%Y%m%d %H%M%S")
+                + "."
+                + names[-1],
             )
         File.copy(self, backup)
         return backup
@@ -368,7 +386,11 @@ class File(object):
         try:
             os.makedirs(self._filename)
         except Exception as e:
-            Log.error(u"Could not make directory {{dir_name}}", dir_name=self._filename, cause=e)
+            Log.error(
+                u"Could not make directory {{dir_name}}",
+                dir_name=self._filename,
+                cause=e,
+            )
 
     @property
     def children(self):
@@ -454,7 +476,12 @@ class TempDirectory(File):
     def __exit__(self, exc_type, exc_val, exc_tb):
         from mo_threads import Thread
 
-        Thread.run("delete dir " + self.name, delete_daemon, file=self, caller_stack=get_stacktrace(1)).release()
+        Thread.run(
+            "delete dir " + self.name,
+            delete_daemon,
+            file=self,
+            caller_stack=get_stacktrace(1),
+        ).release()
 
 
 class TempFile(File):
@@ -479,7 +506,12 @@ class TempFile(File):
     def __exit__(self, exc_type, exc_val, exc_tb):
         from mo_threads import Thread
 
-        Thread.run("delete file " + self.name, delete_daemon, file=self, caller_stack=get_stacktrace(1)).release()
+        Thread.run(
+            "delete file " + self.name,
+            delete_daemon,
+            file=self,
+            caller_stack=get_stacktrace(1),
+        ).release()
 
 
 def _copy(from_, to_):
@@ -491,12 +523,16 @@ def _copy(from_, to_):
 
 
 if PY3:
+
     def base642bytearray(value):
         if value == None:
             return bytearray(b"")
         else:
             return bytearray(base64.b64decode(value))
+
+
 else:
+
     def base642bytearray(value):
         if value == None:
             return bytearray(b"")
@@ -508,27 +544,32 @@ def datetime2string(value, format="%Y-%m-%d %H:%M:%S"):
     try:
         return value.strftime(format)
     except Exception as e:
-        Log.error(u"Can not format {{value}} with {{format}}", value=value, format=format, cause=e)
+        Log.error(
+            u"Can not format {{value}} with {{format}}",
+            value=value,
+            format=format,
+            cause=e,
+        )
 
 
 def join_path(*path):
     def scrub(i, p):
         p = p.replace(os.sep, "/")
-        if p in ('', '/'):
+        if p in ("", "/"):
             return "."
-        if p[-1] == '/':
+        if p[-1] == "/":
             p = p[:-1]
-        if i > 0 and p[0] == '/':
+        if i > 0 and p[0] == "/":
             p = p[1:]
         return p
 
     path = [p._filename if isinstance(p, File) else p for p in path]
-    abs_prefix = ''
+    abs_prefix = ""
     if path and path[0]:
-        if path[0][0] == '/':
-            abs_prefix = '/'
+        if path[0][0] == "/":
+            abs_prefix = "/"
             path[0] = path[0][1:]
-        elif os.sep == '\\' and path[0][1:].startswith(':/'):
+        elif os.sep == "\\" and path[0][1:].startswith(":/"):
             # If windows, then look for the "c:/" prefix
             abs_prefix = path[0][0:3]
             path[0] = path[0][3:]
@@ -542,7 +583,7 @@ def join_path(*path):
             pass
         elif s == "..":
             if simpler:
-                if simpler[-1] == '..':
+                if simpler[-1] == "..":
                     simpler.append(s)
                 else:
                     simpler.pop()
@@ -559,7 +600,7 @@ def join_path(*path):
         else:
             joined = "."
     else:
-        joined = abs_prefix + ('/'.join(simpler))
+        joined = abs_prefix + ("/".join(simpler))
 
     return joined
 
