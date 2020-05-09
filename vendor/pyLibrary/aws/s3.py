@@ -330,7 +330,7 @@ class Bucket(object):
                     storage = self.bucket.new_key(str(key + ".json.gz"))
                     string_length = len(value)
                     value = convert.bytes2zip(value)
-                    headers = {"Content-Type": mimetype.GZIP}
+                    headers = {"Content-Type": mimetype.BINARY}
                 file_length = len(value)
                 Log.note(
                     "Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",
@@ -353,7 +353,7 @@ class Bucket(object):
                 else:
                     value = convert.bytes2zip(value).encode("utf8")
                     key += ".json.gz"
-                headers = {"Content-Type": mimetype.GZIP}
+                headers = {"Content-Type": mimetype.BINARY}
             else:
                 self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
@@ -409,7 +409,7 @@ class Bucket(object):
                         verbose=self.settings.debug,
                     ):
                         storage.set_contents_from_filename(
-                            tempfile.abspath, headers={"Content-Type": mimetype.GZIP}
+                            tempfile.abspath, headers={"Content-Type": mimetype.BINARY}
                         )
                     break
                 except Exception as e:
