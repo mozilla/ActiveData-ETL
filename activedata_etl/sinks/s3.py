@@ -24,7 +24,11 @@ from pyLibrary.aws import s3
 from pyLibrary.aws.s3 import key_prefix
 
 
-class S3Bucket(object):
+class MultiBucket(object):
+    """
+    ENSURE THE RECORDS ARE SORTED INTO THE CORRECT KEYS FOR EACH BUCKET
+    """
+
 
     @override
     def __init__(

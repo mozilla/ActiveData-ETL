@@ -304,12 +304,13 @@ def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
     while True:
         while e == -1:
             try:
+                if s:
+                    _buffer = _buffer[s:]
                 next_block = next(generator)
-                _buffer = _buffer[s:] + next_block
+                _buffer = _buffer + next_block
                 s = 0
                 e = _buffer.find(b"\n")
             except StopIteration:
-                _buffer = _buffer[s:]
                 del generator
                 if closer:
                     closer()
@@ -320,7 +321,13 @@ def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
         try:
             yield decode(_buffer[s:e])
         except Exception as ex:
-            Log.error("could not decode line {{line}}", line=_buffer[s:e], cause=ex)
+            if hasattr(ex, "start"):
+                line = _buffer[s:e]
+                i = ex.start
+                seq = line[:i].decode("latin1"), "["+hex(ord(line[i]))+"]", line[i+1:].decode("latin1")
+                Log.warning("could not decode line {{seq|json}}", seq=seq, cause=ex)
+            else:
+                Log.warning("could not decode line {{line}}", line=_buffer[s:e], cause=ex)
         s = e + 1
         e = _buffer.find(b"\n", s)
 
@@ -389,10 +396,10 @@ def icompressed2ibytes(source):
     last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
     bytes_count = 0
     for bytes_ in source:
-        try:
-            data = decompressor.decompress(bytes_)
-        except Exception as e:
-            Log.error("problem", cause=e)
+
+        data = decompressor.decompress(bytes_)
+
+
         bytes_count += len(data)
         if mo_math.floor(last_bytes_count, 1000000) != mo_math.floor(bytes_count, 1000000):
             last_bytes_count = bytes_count

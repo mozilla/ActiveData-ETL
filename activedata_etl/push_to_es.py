@@ -21,7 +21,7 @@ from mo_math.randoms import Random
 from mo_threads import Process, Thread, Signal, Queue, Till, THREAD_STOP, MAIN_THREAD
 from mo_times.timer import Timer
 from pyLibrary import aws
-from pyLibrary.aws import s3
+from pyLibrary.aws import s3, sqs
 
 split = {}
 empty_bucket_complaint_sent = False
@@ -182,7 +182,7 @@ def main():
                             bucket=bucket.name
                         ))
         else:
-            main_work_queue = aws.Queue(kwargs=settings.work_queue)
+            main_work_queue = sqs.Queue(kwargs=settings.work_queue)
         Log.note("Listen to queue {{queue}}, and read off of {{s3}}", queue=settings.work_queue.name, s3=settings.workers.source.bucket)
 
         for w in settings.workers:

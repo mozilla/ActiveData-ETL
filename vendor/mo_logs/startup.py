@@ -15,6 +15,8 @@ import os
 import sys
 import tempfile
 
+from mo_future import text
+
 import mo_json_config
 from mo_dots import coalesce, listwrap, unwrap, wrap
 from mo_files import File
@@ -80,7 +82,7 @@ def read_settings(defs=None, filename=None, default_filename=None, complain=True
         default_filename,
         "./config.json"
     )
-    settings_file = File(args.filename)
+    settings_file = File(text(args.filename))
     if settings_file.exists:
         Log.note("Using {{filename}} for configuration", filename=settings_file.abspath)
     else:

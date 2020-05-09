@@ -9,24 +9,23 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text
 import sys
 
 from activedata_etl.imports.s3_cache import S3Cache
-from mo_dots import Data
-from pyLibrary import aws
-from mo_logs import startup, constants
-from mo_logs import Log
-
-from mo_json import value2json
-from mo_http import http
 from jx_python import jx
-from pyLibrary.sql.sqlite import Sqlite
+from jx_sqlite.sqlite import Sqlite
+from mo_dots import Data
+from mo_future import text
+from mo_http import http
+from mo_json import value2json
+from mo_logs import Log
+from mo_logs import startup, constants
 from mo_threads import Thread
 from mo_threads import Till
 from mo_times.dates import Date
 from mo_times.durations import Duration
 from mo_times.timer import Timer
+from pyLibrary.aws import sqs
 
 ACTIVE_DATA = "http://activedata.allizom.org/query"
 RUN_TIME = 10 * 60
@@ -155,7 +154,7 @@ def main():
         ])
         constants.set(settings.constants)
         Log.start(settings.debug)
-        queue = aws.Queue(settings.work_queue)
+        queue = sqs.Queue(settings.work_queue)
 
         threads = [
             Thread.run("backfill " + w.name, backfill_recent, settings.cache, w, queue)

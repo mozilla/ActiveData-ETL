@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import unittest
 
 
-from activedata_etl.sinks import s3_bucket
+from activedata_etl.sinks import s3
 from mo_logs import startup
 
 
@@ -20,7 +20,7 @@ class TestGcovS3(unittest.TestCase):
     def test_parsing(self):
 
         settings = startup.read_settings(filename="resources/settings/codecoverage/etl.json")
-        destination = s3_bucket.S3Bucket(settings.workers[0].destination)
+        destination = s3.MultiBucket(settings.workers[0].destination)
 
         # read from "results/ccov/gcov_parsing_result.txt"
         # to create a list of records
@@ -29,7 +29,7 @@ class TestGcovS3(unittest.TestCase):
 
         # gcov_to_es.process_directory(
         #     source_dir="tests/resources/ccov/atk",
-        #     destination= s3_bucket.S3Bucket(settings.workers[0].destination),
+        #     destination= s3.MultiBucket(settings.workers[0].destination),
         #     task_cluster_record=Null,
         #     file_etl=Null
         # )

@@ -9,15 +9,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text
 from activedata_etl import key2etl, etl2path
+from jx_python import jx
 from mo_files import File
+from mo_future import text
 from mo_logs import Log, startup, strings
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary import aws
+from pyLibrary.aws import sqs
 from pyLibrary.aws.s3 import Connection, key_prefix
-from jx_python import jx
 
 
 def main():
@@ -60,7 +60,7 @@ def main():
         ])
         Log.start(settings.debug)
 
-        with aws.Queue(settings.work_queue) as work_queue:
+        with sqs.Queue(settings.work_queue) as work_queue:
             source = Connection(settings.aws).get_bucket(settings.args.bucket)
 
             if settings.args.file:

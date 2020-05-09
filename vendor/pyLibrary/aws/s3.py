@@ -11,19 +11,16 @@ from __future__ import absolute_import, division, unicode_literals
 
 import gzip
 import zipfile
-from tempfile import NamedTemporaryFile
 
 import boto
 from boto.s3.connection import Location
 from bs4 import BeautifulSoup
 
 import mo_files
-from mo_math.randoms import Random
-
 from mo_dots import Data, Null, coalesce, unwrap, wrap, is_many
 from mo_files import mimetype
 from mo_files.url import value2url_param
-from mo_future import StringIO, is_binary, text, zip_longest
+from mo_future import StringIO, is_binary, text
 from mo_http import http
 from mo_http.big_data import (
     LazyLines,
@@ -39,7 +36,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
-VERIFY_UPLOAD = False
+VERIFY_UPLOAD = True
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -333,7 +330,7 @@ class Bucket(object):
                     storage = self.bucket.new_key(str(key + ".json.gz"))
                     string_length = len(value)
                     value = convert.bytes2zip(value)
-                    headers = {"Content-Type": mimetype.GZIP}
+                    headers = {"Content-Type": mimetype.BINARY}
                 file_length = len(value)
                 Log.note(
                     "Sending contents with length {{file_length|comma}} (from string with length {{string_length|comma}})",
@@ -356,7 +353,7 @@ class Bucket(object):
                 else:
                     value = convert.bytes2zip(value).encode("utf8")
                     key += ".json.gz"
-                headers = {"Content-Type": mimetype.GZIP}
+                headers = {"Content-Type": mimetype.BINARY}
             else:
                 self.bucket.delete_key(str(key + ".json.gz"))
                 if is_binary(value):
@@ -386,36 +383,33 @@ class Bucket(object):
         if VERIFY_UPLOAD:
             lines = list(lines)
 
-        with NamedTemporaryFile(prefix=Random.filename(), delete=not VERIFY_UPLOAD) as buff:
-            tempfile = buff.name
-            DEBUG and Log.note("Temp file {{filename}}", filename=buff.name)
-            archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
-            count = 0
-            for l in lines:
-                if is_many(l):
-                    for ll in l:
-                        archive.write(ll.encode("utf8"))
+        with mo_files.TempFile() as tempfile:
+            with open(tempfile.abspath, "wb") as buff:
+                DEBUG and Log.note("Temp file {{filename}}", filename=tempfile.abspath)
+                archive = gzip.GzipFile(filename=str(key + ".json"), fileobj=buff, mode="w")
+                count = 0
+                for l in lines:
+                    if is_many(l):
+                        for ll in l:
+                            archive.write(ll.encode("utf8"))
+                            archive.write(b"\n")
+                            count += 1
+                    else:
+                        archive.write(l.encode("utf8"))
                         archive.write(b"\n")
                         count += 1
-                else:
-                    archive.write(l.encode("utf8"))
-                    archive.write(b"\n")
-                    count += 1
-
-            archive.close()
-            file_length = buff.tell()
+                archive.close()
 
             retry = 3
             while retry:
                 try:
                     with Timer(
                         "Sending {{count}} lines in {{file_length|comma}} bytes for {{key}}",
-                        {"key": key, "file_length": file_length, "count": count},
+                        {"key": key, "file_length": tempfile.length, "count": count},
                         verbose=self.settings.debug,
                     ):
-                        buff.seek(0)
-                        storage.set_contents_from_file(
-                            buff, headers={"Content-Type": mimetype.GZIP}
+                        storage.set_contents_from_filename(
+                            tempfile.abspath, headers={"Content-Type": mimetype.BINARY}
                         )
                     break
                 except Exception as e:
@@ -430,25 +424,27 @@ class Bucket(object):
                     else:
                         Log.warning("could not push data to s3, will retry", cause=e)
 
-        if self.settings.public:
-            storage.set_acl("public-read")
+            if self.settings.public:
+                storage.set_acl("public-read")
 
-        if VERIFY_UPLOAD:
-            try:
-                with open(tempfile, mode="rb") as source:
-                    result = list(ibytes2ilines(scompressed2ibytes(source)))
-                    for l, r in zip_longest(lines, result):
-                        assertAlmostEqual(l, r, msg="file is different")
+            if VERIFY_UPLOAD:
+                try:
+                    with open(tempfile.abspath, mode="rb") as source:
+                        result = list(ibytes2ilines(scompressed2ibytes(source)))
+                        assertAlmostEqual(result, lines, msg="file is different")
 
-                result = list(self.read_lines(key))
-                for l, r in zip_longest(lines, result):
-                    assertAlmostEqual(l, r, msg="S3 is different")
-            except Exception as e:
-                from activedata_etl.transforms import TRY_AGAIN_LATER
+                    # full_url = "https://"+self.name+".s3-us-west-2.amazonaws.com/"+storage.key.replace(":", "%3A")
+                    # https://active-data-test-result.s3-us-west-2.amazonaws.com/tc.1524896%3A152488763.0.json.gz
 
-                Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
-            finally:
-                mo_files.File(tempfile).delete()
+                    # dest_bucket = s3.MultiBucket(bucket="self.name", kwargs=self.settings.aws)
+
+                    result = list(self.read_lines(strip_extension(key)))
+                    assertAlmostEqual(result, lines, result, msg="S3 is different")
+
+                except Exception as e:
+                    from activedata_etl.transforms import TRY_AGAIN_LATER
+
+                    Log.error(TRY_AGAIN_LATER, reason="did not pass verification", cause=e)
         return
 
     @property

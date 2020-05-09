@@ -14,7 +14,7 @@ from copy import deepcopy
 import mo_dots
 from activedata_etl import key2etl
 from activedata_etl.sinks.dummy_sink import DummySink
-from activedata_etl.sinks.s3_bucket import S3Bucket
+from activedata_etl.sinks.s3 import MultiBucket
 from activedata_etl.sinks.split import Split
 from activedata_etl.transforms import Transform
 from jx_elasticsearch import elasticsearch
@@ -31,6 +31,7 @@ from mo_testing import fuzzytestcase
 from mo_threads import Thread, Signal, Queue, Lock, Till, MAIN_THREAD
 from mo_times import Timer, Date, SECOND
 from pyLibrary import aws
+from pyLibrary.aws import sqs
 from pyLibrary.aws.s3 import KEY_IS_WRONG_FORMAT
 from tuid.client import TuidClient
 
@@ -96,12 +97,12 @@ class ETL(Thread):
 
             w._notify = []
             for notify in listwrap(w.notify):
-                w._notify.append(aws.Queue(notify))  # notify tells which queue to put in
+                w._notify.append(sqs.Queue(notify))  # notify tells which queue to put in
 
         self.resources = resources
         self.settings = kwargs
         if is_data(work_queue):
-            self.work_queue = aws.Queue(work_queue)  # work queue created
+            self.work_queue = sqs.Queue(work_queue)  # work queue created
         else:
             self.work_queue = work_queue
 
@@ -242,7 +243,7 @@ class ETL(Thread):
 
                 # WE DO NOT PUT KEYS ON WORK QUEUE IF ALREADY NOTIFYING SOME OTHER
                 # AND NOT GOING TO AN S3 BUCKET
-                if not action._notify and isinstance(action._destination, (aws.s3.Bucket, S3Bucket)):
+                if not action._notify and isinstance(action._destination, (aws.s3.Bucket, MultiBucket)):
                     for k in old_keys | new_keys:
                         now = Date.now()
                         self.work_queue.add({
@@ -283,15 +284,15 @@ class ETL(Thread):
                     if self.settings.wait_forever:
                         todo = None
                         while not please_stop and not todo:
-                            if isinstance(self.work_queue, aws.Queue):
+                            if isinstance(self.work_queue, sqs.Queue):
                                 todo = self.work_queue.pop(wait=EXTRA_WAIT_TIME)
                             else:
                                 todo = self.work_queue.pop()
                         if please_stop:
                             break
                     else:
-                        # using --key= so will not be an aws.Queue, instead it will be a local queue
-                        if isinstance(self.work_queue, aws.Queue):
+                        # using --key= so will not be an sqs.Queue, instead it will be a local queue
+                        if isinstance(self.work_queue, sqs.Queue):
                             todo = self.work_queue.pop()
                         else:
                             todo = self.work_queue.pop(till=Till(till=Date.now().unix))
@@ -381,7 +382,7 @@ def get_container(settings):
                 with suppress_exception:
                     fuzzytestcase.assertAlmostEqual(e[0], settings)
                     return e[1]
-            output = S3Bucket(settings)
+            output = MultiBucket(settings)
             sinks.append((settings, output))
             return output
     else:

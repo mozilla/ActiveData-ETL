@@ -20,8 +20,7 @@ from mo_logs.exceptions import suppress_exception
 from mo_math import MAX, MIN, ceiling, log10
 from mo_times.dates import Date
 from mo_times.timer import Timer
-from pyLibrary import aws
-from pyLibrary.aws import s3
+from pyLibrary.aws import s3, sqs
 from pyLibrary.env.git import get_remote_revision
 
 
@@ -31,7 +30,7 @@ def diff(settings, please_stop=None):
     settings.range.min = coalesce(settings.range.min, settings.start, 0)
 
     # SHOULD WE PUSH?
-    work_queue = aws.Queue(kwargs=settings.work_queue)
+    work_queue = sqs.Queue(kwargs=settings.work_queue)
     if not settings.no_checks and len(work_queue) > 100:
         Log.alert("{{queue}} queue has {{num}} elements, adding more is not a good idea", queue=work_queue.name, num=len(work_queue))
         return

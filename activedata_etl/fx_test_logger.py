@@ -9,17 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_future import text
-from mo_threads.threads import MAIN_THREAD
-
-from mo_dots import wrap
-from mo_logs import Log, startup, constants
-from mo_math import Math
-from mo_times import Date, DAY
-from pyLibrary import aws
-from pyLibrary.aws import s3
 from jx_python import jx
-from pyLibrary.sql.sqlite import Sqlite
+from jx_sqlite.sqlite import Sqlite
+from mo_dots import wrap
+from mo_future import text
+from mo_logs import Log, startup, constants
+from mo_threads.threads import MAIN_THREAD
+from mo_times import Date, DAY
+from pyLibrary.aws import s3, sqs
 
 ZERO_DAY = Date("1 jan 2015")
 
@@ -36,7 +33,7 @@ def make_db(db):
 def loop(settings):
     source = s3.PublicBucket(kwargs=settings.source)
     destination = s3.Bucket(settings.destination)
-    notify = aws.Queue(settings.notify)
+    notify = sqs.Queue(settings.notify)
 
     db = Sqlite(
         filename="./results/" + "s3." + settings.source.name + ".sqlite",
