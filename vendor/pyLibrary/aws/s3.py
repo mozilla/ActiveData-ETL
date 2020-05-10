@@ -36,7 +36,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
-VERIFY_UPLOAD = True
+VERIFY_UPLOAD = False
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -432,11 +432,6 @@ class Bucket(object):
                     with open(tempfile.abspath, mode="rb") as source:
                         result = list(ibytes2ilines(scompressed2ibytes(source)))
                         assertAlmostEqual(result, lines, msg="file is different")
-
-                    # full_url = "https://"+self.name+".s3-us-west-2.amazonaws.com/"+storage.key.replace(":", "%3A")
-                    # https://active-data-test-result.s3-us-west-2.amazonaws.com/tc.1524896%3A152488763.0.json.gz
-
-                    # dest_bucket = s3.MultiBucket(bucket="self.name", kwargs=self.settings.aws)
 
                     result = list(self.read_lines(strip_extension(key)))
                     assertAlmostEqual(result, lines, result, msg="S3 is different")
