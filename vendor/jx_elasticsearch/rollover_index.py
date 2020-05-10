@@ -20,7 +20,7 @@ from mo_kwargs import override
 from mo_logs import Log
 from mo_logs.exceptions import Except
 from mo_math.randoms import Random
-from mo_threads import Lock, Thread
+from mo_threads import Lock, Thread, Till
 from mo_times.dates import Date, unicode2Date, unix2Date
 from mo_times.durations import Duration
 from mo_times.timer import Timer
@@ -106,7 +106,11 @@ class RolloverIndex(object):
                         es.add_alias(self.settings.index)
                     except Exception as e:
                         e = Except.wrap(e)
-                        if "IndexAlreadyExistsException" not in e:
+                        if "IndexAlreadyExistsException" in e:
+                            pass
+                        elif '"type":"resource_already_exists_exception"' in e:
+                            pass
+                        else:
                             Log.error("Problem creating index", cause=e)
                         return self._get_queue(row)  # TRY AGAIN
             else:
