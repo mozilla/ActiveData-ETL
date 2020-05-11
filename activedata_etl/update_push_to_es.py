@@ -178,12 +178,12 @@ def _update_indexxer(config, instance, please_stop):
             _disable_oom_on_es(conn)
             with conn.cd("/home/ec2-user/ActiveData-ETL/"):
                 result = conn.run("git pull origin push-to-es6")
-            if "Already up-to-date." in result or "Already up to date." in result:
-                Log.note("No change required")
-                return
+                if "Already up-to-date." in result or "Already up to date." in result:
+                    Log.note("No change required")
+                    return
 
-            # ENSURE REQUIREMENTS UPDATED, RESTART
-            conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+                # ENSURE REQUIREMENTS UPDATED, RESTART
+                conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
             conn.sudo("supervisorctl restart push_to_es:*")
     except Exception as e:
         Log.warning(
