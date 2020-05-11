@@ -213,9 +213,11 @@ class RolloverIndex(object):
         pending = []  # FOR WHEN WE DO NOT HAVE QUEUE YET
         for key in keys:
             timer = Timer("Process {{key}}", param={"key": key}, verbose=DEBUG)
+            rownum = None
             try:
                 with timer:
-                    for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    for i, line in enumerate(source.read_lines(strip_extension(key))):
+                        rownum = i
                         if not line:
                             continue
 
