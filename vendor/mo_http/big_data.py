@@ -19,7 +19,7 @@ from tempfile import TemporaryFile
 import mo_math
 from mo_future import PY3, long, text, next
 from mo_logs import Log
-from mo_logs.exceptions import suppress_exception
+from mo_logs.exceptions import suppress_exception, Except
 
 # LIBRARY TO DEAL WITH BIG DATA ARRAYS AS ITERATORS OVER (IR)REGULAR SIZED
 # BLOCKS, OR AS ITERATORS OVER LINES
@@ -392,14 +392,33 @@ def icompressed2ibytes(source):
     :param source: GENERATOR OF COMPRESSED BYTES
     :return: GENERATOR OF BYTES
     """
-    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    def ignore_crc():
+        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        residue = b""  # HANG ON TO LAST 8 BYTES, WHICH IS CRC AND LENGTH http://www.zlib.org/rfc-gzip.html#crc-code
+        for bytes_ in source:
+            if len(bytes_) > 8:
+                yield decompressor.decompress(residue)
+                yield decompressor.decompress(bytes_[:-8])
+                residue = bytes_[-8:]
+            else:
+                residue += bytes_
+                if len(residue) > 8:
+                    yield decompressor.decompress(residue[:-8])
+                    residue = residue[-8:]
+
+        try:
+            yield decompressor.decompress(residue)
+        except Exception as e:
+            e = Except.wrap(e)
+            if "incorrect data check" in e:
+                Log.warning("CRC check failed, data ingested anyway", cause=e)
+                return
+            else:
+                raise e
+
     last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
     bytes_count = 0
-    for bytes_ in source:
-
-        data = decompressor.decompress(bytes_)
-
-
+    for data in ignore_crc():
         bytes_count += len(data)
         if mo_math.floor(last_bytes_count, 1000000) != mo_math.floor(bytes_count, 1000000):
             last_bytes_count = bytes_count
@@ -474,7 +493,15 @@ def get_decoder(encoding, flexible=False):
         return do_decode1
     else:
         def do_decode2(v):
-            return v.decode(encoding)
+            try:
+                return v.decode(encoding)
+            except UnicodeDecodeError as e:
+                # FIX SINGLE BIT ERROR
+                v = v[:e.start] + chr(0x7F & ord(v[e.start])) + v[e.start + 1:]
+                return do_decode2(v)
+            except Exception as e:
+                e = Except.wrap(e)
+                raise e
         return do_decode2
 
 
