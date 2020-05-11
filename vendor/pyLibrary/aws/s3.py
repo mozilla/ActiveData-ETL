@@ -140,6 +140,7 @@ class Bucket(object):
             self.bucket = self.connection.get_bucket(
                 self.settings.bucket, validate=False
             )
+            self.bucket.key_class = ReportKey
         except Exception as e:
             Log.error(
                 "Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e
@@ -558,3 +559,20 @@ def _scrub_key(key):
 
 def key_prefix(key):
     return int(key.split(":")[0].split(".")[0])
+
+
+class ReportKey(boto.s3.key.Key):
+    log_headers = [
+        "Content-Type".lower(),
+        "Content-Length".lower(),
+        "x-amz-id-2".lower(),
+        'x-amz-request-id'.lower(),
+    ]
+
+    def handle_addl_headers(self, headers):
+        Log.note(
+            "Added {{key}} to bucket {{bucket}} with {{response|json}}",
+            key=self.key,
+            bucket=self.bucket.name,
+            response={k: v for k, v in headers if k.lower() in self.log_headers}
+        )

@@ -15,6 +15,7 @@ from jx_python import jx
 from mo_dots import Null, coalesce, wrap
 from mo_dots.lists import last
 from mo_future import items, sort_using_key
+from mo_http.big_data import CRC_CHECK_FAILED
 from mo_json import CAN_NOT_DECODE_JSON, json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
@@ -258,6 +259,9 @@ class RolloverIndex(object):
                     pass
                 elif CAN_NOT_DECODE_JSON in e:
                     Log.warning("Could not process {{key}} because of bad JSON. Never trying again.", key=key, cause=e)
+                    pass
+                elif CRC_CHECK_FAILED in e:
+                    Log.warning("Could not process {{key}}, but the whole file seems fine. Data considered added.", key=key, cause=e)
                     pass
                 else:
                     Log.warning(

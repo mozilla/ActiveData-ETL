@@ -268,19 +268,19 @@ class CompressedLines(LazyLines):
 
 def compressed_bytes2ibytes(compressed, size):
     """
-    CONVERT AN ARRAY OF BYTES TO A BYTE-BLOCK GENERATOR
-    USEFUL IN THE CASE WHEN WE WANT TO LIMIT HOW MUCH WE FEED ANOTHER
-    GENERATOR (LIKE A DECOMPRESSOR)
+    CONVERT AN ARRAY OF COMPRESSED BYTES TO A GENERATOR OF BYTES
     """
-
+    Log.error("not tested")
     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-
-    for i in range(0, mo_math.ceiling(len(compressed), size), size):
-        try:
-            block = compressed[i: i + size]
-            yield decompressor.decompress(block)
-        except Exception as e:
-            Log.error("Not expected", e)
+    maxx = mo_math.floor(len(compressed)-8, size)
+    for i in range(0, maxx, size):
+        yield decompressor.decompress(compressed[i: i + size])
+    yield decompressor.decompress(compressed[maxx:-8])
+    # PERFORM THE CRC CHECK AS SEPARATE STEP
+    try:
+        yield decompressor.decompress(compressed[-8:])
+    except Exception as e:
+        Log.error(CRC_CHECK_FAILED, cause=e)
 
 
 def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
@@ -392,7 +392,9 @@ def icompressed2ibytes(source):
     :param source: GENERATOR OF COMPRESSED BYTES
     :return: GENERATOR OF BYTES
     """
-    def ignore_crc():
+    def separate_crc():
+        # ENSURE THE CRC CHECK IS DONE IN SEPARATE AND LAST STEP
+        # THIS ALLOWS ITERATORS TO DECIDE HOW TO HANDLE (IGNORE, REPORT OR CANCEL)
         decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
         residue = b""  # HANG ON TO LAST 8 BYTES, WHICH IS CRC AND LENGTH http://www.zlib.org/rfc-gzip.html#crc-code
         for bytes_ in source:
@@ -407,18 +409,14 @@ def icompressed2ibytes(source):
                     residue = residue[-8:]
 
         try:
+            # THIS WILL RAISE THE CRC ERROR, IF ANY
             yield decompressor.decompress(residue)
         except Exception as e:
-            e = Except.wrap(e)
-            if "incorrect data check" in e:
-                Log.warning("CRC check failed, data ingested anyway", cause=e)
-                return
-            else:
-                raise e
+            Log.error(CRC_CHECK_FAILED, cause=e)
 
     last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
     bytes_count = 0
-    for data in ignore_crc():
+    for data in separate_crc():
         bytes_count += len(data)
         if mo_math.floor(last_bytes_count, 1000000) != mo_math.floor(bytes_count, 1000000):
             last_bytes_count = bytes_count
@@ -535,3 +533,6 @@ def bytes2zip(bytes):
     archive.write(bytes)
     archive.close()
     return buff.getvalue()
+
+
+CRC_CHECK_FAILED = "CRC check failed"
