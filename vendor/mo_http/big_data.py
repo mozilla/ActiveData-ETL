@@ -27,6 +27,7 @@ from mo_logs.exceptions import suppress_exception, Except
 DEBUG = False
 MIN_READ_SIZE = 8 * 1024
 MAX_STRING_SIZE = 1 * 1024 * 1024
+FIX_SINGLE_BIT_ERROR = True
 
 
 class FileString(text):
@@ -494,11 +495,10 @@ def get_decoder(encoding, flexible=False):
             try:
                 return v.decode(encoding)
             except UnicodeDecodeError as e:
-                # FIX SINGLE BIT ERROR
-                v = v[:e.start] + chr(0x7F & ord(v[e.start])) + v[e.start + 1:]
-                return do_decode2(v)
+                if FIX_SINGLE_BIT_ERROR:
+                    v = v[:e.start] + chr(0x7F & ord(v[e.start])) + v[e.start + 1:]
+                    return do_decode2(v)
             except Exception as e:
-                e = Except.wrap(e)
                 raise e
         return do_decode2
 

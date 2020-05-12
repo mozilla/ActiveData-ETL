@@ -261,7 +261,7 @@ class RolloverIndex(object):
                     Log.warning("Could not process {{key}} because of bad JSON. Never trying again.", key=key, cause=e)
                     pass
                 elif CRC_CHECK_FAILED in e:
-                    Log.warning("Could not process {{key}}, but the whole file seems fine. Data considered added.", key=key, cause=e)
+                    Log.warning("Added data for {{key}}; whole file seems fine, except for CRC.", key=key, cause=e)
                     pass
                 else:
                     Log.warning(
