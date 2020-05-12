@@ -36,7 +36,7 @@ from mo_times.dates import Date
 from mo_times.timer import Timer
 from pyLibrary import convert
 
-VERIFY_UPLOAD = True
+VERIFY_UPLOAD = False
 DEBUG = False
 TOO_MANY_KEYS = 1000 * 1000 * 1000
 READ_ERROR = "S3 read error"
@@ -140,6 +140,7 @@ class Bucket(object):
             self.bucket = self.connection.get_bucket(
                 self.settings.bucket, validate=False
             )
+            self.bucket.key_class = ReportKey
         except Exception as e:
             Log.error(
                 "Problem connecting to {{bucket}}", bucket=self.settings.bucket, cause=e
@@ -433,11 +434,6 @@ class Bucket(object):
                         result = list(ibytes2ilines(scompressed2ibytes(source)))
                         assertAlmostEqual(result, lines, msg="file is different")
 
-                    # full_url = "https://"+self.name+".s3-us-west-2.amazonaws.com/"+storage.key.replace(":", "%3A")
-                    # https://active-data-test-result.s3-us-west-2.amazonaws.com/tc.1524896%3A152488763.0.json.gz
-
-                    # dest_bucket = s3.MultiBucket(bucket="self.name", kwargs=self.settings.aws)
-
                     result = list(self.read_lines(strip_extension(key)))
                     assertAlmostEqual(result, lines, result, msg="S3 is different")
 
@@ -563,3 +559,20 @@ def _scrub_key(key):
 
 def key_prefix(key):
     return int(key.split(":")[0].split(".")[0])
+
+
+class ReportKey(boto.s3.key.Key):
+    log_headers = [
+        "Content-Type".lower(),
+        "Content-Length".lower(),
+        "x-amz-id-2".lower(),
+        'x-amz-request-id'.lower(),
+    ]
+
+    def handle_addl_headers(self, headers):
+        Log.note(
+            "Added {{key}} to bucket {{bucket}} with {{response|json}}",
+            key=self.key,
+            bucket=self.bucket.name,
+            response={k: v for k, v in headers if k.lower() in self.log_headers}
+        )

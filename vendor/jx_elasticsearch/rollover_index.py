@@ -15,6 +15,7 @@ from jx_python import jx
 from mo_dots import Null, coalesce, wrap
 from mo_dots.lists import last
 from mo_future import items, sort_using_key
+from mo_http.big_data import CRC_CHECK_FAILED
 from mo_json import CAN_NOT_DECODE_JSON, json2value, value2json
 from mo_kwargs import override
 from mo_logs import Log
@@ -106,7 +107,11 @@ class RolloverIndex(object):
                         es.add_alias(self.settings.index)
                     except Exception as e:
                         e = Except.wrap(e)
-                        if "IndexAlreadyExistsException" not in e:
+                        if "IndexAlreadyExistsException" in e:
+                            pass
+                        elif '"type":"resource_already_exists_exception"' in e:
+                            pass
+                        else:
                             Log.error("Problem creating index", cause=e)
                         return self._get_queue(row)  # TRY AGAIN
             else:
@@ -209,9 +214,11 @@ class RolloverIndex(object):
         pending = []  # FOR WHEN WE DO NOT HAVE QUEUE YET
         for key in keys:
             timer = Timer("Process {{key}}", param={"key": key}, verbose=DEBUG)
+            rownum = None
             try:
                 with timer:
-                    for rownum, line in enumerate(source.read_lines(strip_extension(key))):
+                    for i, line in enumerate(source.read_lines(strip_extension(key))):
+                        rownum = i
                         if not line:
                             continue
 
@@ -252,6 +259,9 @@ class RolloverIndex(object):
                     pass
                 elif CAN_NOT_DECODE_JSON in e:
                     Log.warning("Could not process {{key}} because of bad JSON. Never trying again.", key=key, cause=e)
+                    pass
+                elif CRC_CHECK_FAILED in e:
+                    Log.warning("Added data for {{key}}; whole file seems fine, except for CRC.", key=key, cause=e)
                     pass
                 else:
                     Log.warning(

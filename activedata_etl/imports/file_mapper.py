@@ -279,6 +279,7 @@ KNOWN_FAILURES = {
         {"suffix": {".": "/safe_conversions_impl.h"}},
         {"suffix": {".": "/safe_conversions.h"}},
         {"suffix": {".": "/src/result.rs"}},
+        {"suffix": {".": "/src/lib.rs"}},
         {"suffix": {".": "/./decode.h"}},
         {"prefix": {".": "data:"}},
         {"prefix": {".": "javascript:"}},

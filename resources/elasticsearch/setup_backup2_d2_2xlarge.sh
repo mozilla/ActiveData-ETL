@@ -145,35 +145,35 @@ sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/el
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch
 
 
-#INSTALL PYTHON27
-sudo yum -y install python27
-sudo pip install --upgrade pip
-#rm -fr /home/ec2-user/temp
-#mkdir  /home/ec2-user/temp
-#cd /home/ec2-user/temp
-#wget https://bootstrap.pypa.io/get-pip.py
-#sudo python27 get-pip.py
-#sudo ln -s /usr/local/bin/pip /usr/bin/pip
+# PYTHON EXISTS
+#sudo yum -y install python27
+#sudo pip install --upgrade pip
+rm -fr /home/ec2-user/temp
+mkdir  /home/ec2-user/temp
+cd /home/ec2-user/temp
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
+sudo ln -s /usr/local/bin/pip /usr/bin/pip
 
 #INSTALL MODIFIED SUPERVISOR
 sudo yum install -y libffi-devel
 sudo yum install -y openssl-devel
 sudo yum groupinstall -y "Development tools"
 
-sudo /usr/local/bin/pip install pyopenssl
-sudo /usr/local/bin/pip install ndg-httpsclient
-sudo /usr/local/bin/pip install pyasn1
-sudo /usr/local/bin/pip install requests
-sudo /usr/local/bin/pip install fabric==1.10.2
-sudo /usr/local/bin/pip install supervisor-plus-cron
+sudo pip install pyopenssl
+sud0 pip install ndg-httpsclient
+sudo pip install pyasn1
+sudo pip install requests
+sudo pip install fabric==1.10.2
+sudo pip install supervisor-plus-cron
 
 cd /usr/bin
-sudo ln -s /usr/local/bin/supervisorctl supervisorctl
+#sudo ln -s /usr/local/bin/supervisorctl supervisorctl
 
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/supervisord.conf /etc/supervisord.conf
 
 #START DAEMON (OR THROW ERROR IF RUNNING ALREADY)
-sudo /usr/local/bin/supervisord -c /etc/supervisord.conf
+sudo /usr/bin/supervisord -c /etc/supervisord.conf
 sudo supervisorctl reread
 sudo supervisorctl update
 
@@ -181,7 +181,7 @@ sudo supervisorctl update
 # ONLY FOR TEST STARTUP
 cd ~/ActiveData-ETL/
 git pull origin push-to-es6
-sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup2.yml /usr/local/elasticsearch/config/elasticsearch.yml
+sudo cp ~/ActiveData-ETL/resources/elasticsearch/elasticsearch6_backup4.yml /usr/local/elasticsearch/config/elasticsearch.yml
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/jvm.options /usr/local/elasticsearch/config/jvm.options
 sudo cp ~/ActiveData-ETL/resources/elasticsearch/log4j2.properties /usr/local/elasticsearch/config/log4j2.properties
 sudo chown -R ec2-user:ec2-user /usr/local/elasticsearch

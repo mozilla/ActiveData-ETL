@@ -19,7 +19,7 @@ from tempfile import TemporaryFile
 import mo_math
 from mo_future import PY3, long, text, next
 from mo_logs import Log
-from mo_logs.exceptions import suppress_exception
+from mo_logs.exceptions import suppress_exception, Except
 
 # LIBRARY TO DEAL WITH BIG DATA ARRAYS AS ITERATORS OVER (IR)REGULAR SIZED
 # BLOCKS, OR AS ITERATORS OVER LINES
@@ -27,6 +27,7 @@ from mo_logs.exceptions import suppress_exception
 DEBUG = False
 MIN_READ_SIZE = 8 * 1024
 MAX_STRING_SIZE = 1 * 1024 * 1024
+FIX_SINGLE_BIT_ERROR = True
 
 
 class FileString(text):
@@ -268,19 +269,19 @@ class CompressedLines(LazyLines):
 
 def compressed_bytes2ibytes(compressed, size):
     """
-    CONVERT AN ARRAY OF BYTES TO A BYTE-BLOCK GENERATOR
-    USEFUL IN THE CASE WHEN WE WANT TO LIMIT HOW MUCH WE FEED ANOTHER
-    GENERATOR (LIKE A DECOMPRESSOR)
+    CONVERT AN ARRAY OF COMPRESSED BYTES TO A GENERATOR OF BYTES
     """
-
+    Log.error("not tested")
     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
-
-    for i in range(0, mo_math.ceiling(len(compressed), size), size):
-        try:
-            block = compressed[i: i + size]
-            yield decompressor.decompress(block)
-        except Exception as e:
-            Log.error("Not expected", e)
+    maxx = mo_math.floor(len(compressed)-8, size)
+    for i in range(0, maxx, size):
+        yield decompressor.decompress(compressed[i: i + size])
+    yield decompressor.decompress(compressed[maxx:-8])
+    # PERFORM THE CRC CHECK AS SEPARATE STEP
+    try:
+        yield decompressor.decompress(compressed[-8:])
+    except Exception as e:
+        Log.error(CRC_CHECK_FAILED, cause=e)
 
 
 def ibytes2ilines(generator, encoding="utf8", flexible=False, closer=None):
@@ -392,14 +393,31 @@ def icompressed2ibytes(source):
     :param source: GENERATOR OF COMPRESSED BYTES
     :return: GENERATOR OF BYTES
     """
-    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    def separate_crc():
+        # ENSURE THE CRC CHECK IS DONE IN SEPARATE AND LAST STEP
+        # THIS ALLOWS ITERATORS TO DECIDE HOW TO HANDLE (IGNORE, REPORT OR CANCEL)
+        decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        residue = b""  # HANG ON TO LAST 8 BYTES, WHICH IS CRC AND LENGTH http://www.zlib.org/rfc-gzip.html#crc-code
+        for bytes_ in source:
+            if len(bytes_) > 8:
+                yield decompressor.decompress(residue)
+                yield decompressor.decompress(bytes_[:-8])
+                residue = bytes_[-8:]
+            else:
+                residue += bytes_
+                if len(residue) > 8:
+                    yield decompressor.decompress(residue[:-8])
+                    residue = residue[-8:]
+
+        try:
+            # THIS WILL RAISE THE CRC ERROR, IF ANY
+            yield decompressor.decompress(residue)
+        except Exception as e:
+            Log.error(CRC_CHECK_FAILED, cause=e)
+
     last_bytes_count = 0  # Track the last byte count, so we do not show too many debug lines
     bytes_count = 0
-    for bytes_ in source:
-
-        data = decompressor.decompress(bytes_)
-
-
+    for data in separate_crc():
         bytes_count += len(data)
         if mo_math.floor(last_bytes_count, 1000000) != mo_math.floor(bytes_count, 1000000):
             last_bytes_count = bytes_count
@@ -474,7 +492,14 @@ def get_decoder(encoding, flexible=False):
         return do_decode1
     else:
         def do_decode2(v):
-            return v.decode(encoding)
+            try:
+                return v.decode(encoding)
+            except UnicodeDecodeError as e:
+                if FIX_SINGLE_BIT_ERROR:
+                    v = v[:e.start] + chr(0x7F & ord(v[e.start])) + v[e.start + 1:]
+                    return do_decode2(v)
+            except Exception as e:
+                raise e
         return do_decode2
 
 
@@ -508,3 +533,6 @@ def bytes2zip(bytes):
     archive.write(bytes)
     archive.close()
     return buff.getvalue()
+
+
+CRC_CHECK_FAILED = "CRC check failed"

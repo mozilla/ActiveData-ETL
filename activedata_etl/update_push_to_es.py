@@ -102,13 +102,6 @@ def _stop_indexer(config, instance, please_stop):
         )
 
 def _upgrade_elasticsearch(config, instance, please_stop):
-    # copy image of new es
-
-
-    # copy new config file(s)
-    # ENSURE CONFIG EXPECTS TWO MASTERS
-
-
     # bounce es
     try:
         with Connection(kwargs=config, host=instance.ip_address) as conn:
@@ -156,7 +149,7 @@ def _restart_indexxer(conn):
 
     result = conn.sudo("supervisorctl restart push_to_es:*")
     if "unix:///tmp/supervisor.sock no such file" not in result:
-        return
+        return  # HAPPENS WHEN FILE IS IN TEMP DIRECTORY, AND THEN DELETED
 
     # HUNT DOWN THE PROCESS AND TELL IT TO EXIT
     result = conn.run("ps -eo pid,%cpu,%mem,command | grep pypy")
@@ -187,11 +180,11 @@ def _update_indexxer(config, instance, please_stop):
                 result = conn.run("git pull origin push-to-es6")
                 if "Already up-to-date." in result or "Already up to date." in result:
                     Log.note("No change required")
-                else:
-                    # RESTART ANYWAY, SO WE USE LATEST INDEX
-                    conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
-                    with conn.warn_only():
-                        _restart_indexxer(conn)
+                    return
+
+                # ENSURE REQUIREMENTS UPDATED, RESTART
+                conn.run("~/pypy/bin/pypy -m pip install -r requirements.txt")
+            conn.sudo("supervisorctl restart push_to_es:*")
     except Exception as e:
         Log.warning(
             "could not update {{instance_id}} ({{name}}) at {{ip}}",
@@ -277,7 +270,7 @@ def main():
             for t in threads:
                 t.join()
     except Exception as e:
-        Log.error("Problem with etl", e)
+        Log.error("Problem with update", e)
     finally:
         Log.stop()
 
