@@ -170,12 +170,17 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     )
 
     # ACTION
-    new_treeherder.action.start_time = consume(raw_job, "start_time")
-    new_treeherder.action.end_time = consume(raw_job, "end_time")
     new_treeherder.action.request_time = consume(raw_job, "submit_time")
-    new_treeherder.action.duration = (
-        new_treeherder.action.end_time - new_treeherder.action.start_time
-    )
+    new_treeherder.action.start_time = consume(raw_job, "start_time")
+
+    if new_treeherder.action.start_time:
+        new_treeherder.action.end_time = consume(raw_job, "end_time")
+        new_treeherder.action.duration = (
+            new_treeherder.action.end_time - new_treeherder.action.start_time
+        )
+    else:
+        new_treeherder.action.start_time = None  # ENSURE NOT ZERO
+
     new_treeherder.last_modified = consume(raw_job, "last_modified")
 
     new_treeherder.failure.auto_classification = consume(raw_job, "autoclassify_status")
