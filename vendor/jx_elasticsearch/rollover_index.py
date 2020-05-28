@@ -316,6 +316,14 @@ def fix(source_key, rownum, line, source, sample_only_filter, sample_size):
     elif '"resource_usage":' in line:
         value = _fix(value)
 
+    if value.action.start_time == 0:
+        value.action.start_time = None
+        value.action.duration = None
+
+    if value.action.end_time == 0:
+        value.action.end_time = None
+        value.action.duration = None
+
     row = {"value": value}
     return row, False
 
