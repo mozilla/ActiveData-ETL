@@ -13,7 +13,7 @@ import mo_math
 
 from activedata_etl import etl2key, key2etl
 from activedata_etl.transforms import TRY_AGAIN_LATER
-from mo_dots import Data, listwrap, wrap, set_default, is_data
+from mo_dots import Data, listwrap, wrap, set_default, is_data, Null
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings, Except
@@ -171,15 +171,10 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     # ACTION
     new_treeherder.action.request_time = consume(raw_job, "submit_time")
-    new_treeherder.action.start_time = consume(raw_job, "start_time")
 
-    if new_treeherder.action.start_time:
-        new_treeherder.action.end_time = consume(raw_job, "end_time")
-        new_treeherder.action.duration = (
-            new_treeherder.action.end_time - new_treeherder.action.start_time
-        )
-    else:
-        new_treeherder.action.start_time = None  # ENSURE NOT ZERO
+    new_treeherder.action.start_time = start_time = consume(raw_job, "start_time") or Null
+    new_treeherder.action.end_time = end_time = consume(raw_job, "end_time") or Null
+    new_treeherder.action.duration = end_time - start_time
 
     new_treeherder.last_modified = consume(raw_job, "last_modified")
 

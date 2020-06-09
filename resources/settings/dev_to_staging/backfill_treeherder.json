@@ -12,8 +12,8 @@
 //		2019-01-01	43466.00	1461.00
 
 
-		"min": 1930,
-		"max": 1999
+		"min": 1500,
+		"max": 1930
 	},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"destination": "activedata-treeherder", // HUMANE HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 //	"git": {
