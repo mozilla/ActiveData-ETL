@@ -275,6 +275,7 @@
     "build-bundle-debug": {},
     "build-concept-sync": {},
     "build-debug": {},
+    "build-fat-aar-android-geckoview-fat-aar-shippable/opt": {"action": {"type": "build"}},
     "build-fat-aar-android-geckoview-fat-aar/opt": {
         "action": {"type": "build"},
         "build": {
@@ -3617,6 +3618,8 @@
             "type": ["e10s"]
         }
     },
+    "test-android-feature-sitepermissions": {},
+    "test-android-feature-top-sites": {},
     "test-android-hw-g5-7-0-arm7-api-16-pgo/opt-raptor-tp6m-1-fenix": {
         "action": {"type": "perf"},
         "build": {
@@ -3641,6 +3644,22 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6m"}
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-google-maps-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "google-maps",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-live-fenix-cold-urbandictionary-define-e10s": {
@@ -3946,6 +3965,23 @@
             "cold_start": true,
             "framework": "browsertime",
             "site": "allrecipes",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-geckoview-cold-web-de-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "web-de",
             "suite": {"name": "tp6m"},
             "type": ["e10s"]
         }
@@ -43012,6 +43048,81 @@
             "cold_start": true,
             "framework": "raptor",
             "site": "google-mail",
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-tp6-firefox-cold-google-mail-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "cold_start": true,
+            "framework": "raptor",
+            "site": "google-mail",
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-tp6-firefox-cold-imgur-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "cold_start": true,
+            "framework": "raptor",
+            "site": "imgur",
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-tp6-firefox-cold-linkedin-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "cold_start": true,
+            "framework": "raptor",
+            "site": "linkedin",
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-tp6-firefox-cold-pinterest-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "cold_start": true,
+            "framework": "raptor",
+            "site": "pinterest",
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-tp6-firefox-cold-reddit-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "cold_start": true,
+            "framework": "raptor",
+            "site": "reddit",
             "type": ["e10s"]
         }
     },

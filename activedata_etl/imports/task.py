@@ -520,6 +520,7 @@ SITE = {
         "facebook",
         "fandom",
         "google-mail",
+        "google-maps",
         "google-search-restaurants",
         "google-search",
         "google",
@@ -547,6 +548,7 @@ SITE = {
         "yahoo-news",
         "youtube-watch",
         "youtube",
+        "web-de",
         "wikipedia"
     ]
 }
@@ -810,6 +812,7 @@ BUILD_STEPS = {"upload-symbols": {}}
 SPECIAL_BUILDS = {
     "android-test-debug": {},
     "android-test-nightly":{},
+    "fat-aar-android-geckoview-fat-aar-shippable/opt":{},
     "fennec-nightly":{},
     "nightly-browser-awesomebar": {},
     "nightly-browser-errorpages": {},
@@ -849,6 +852,8 @@ SPECIAL_BUILDS = {
 }
 
 SPECIAL_TESTS ={
+    "android-feature-sitepermissions":{},
+    "android-feature-top-sites":{},
     "debug": {},
     "ui-browser": {},
     "ui-glean": {},
