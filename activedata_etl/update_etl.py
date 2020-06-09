@@ -47,7 +47,15 @@ def _get_managed_instances(ec2_conn, name):
 def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
     try:
         with Connection(host=instance.ip_address, kwargs=settings.fabric) as conn:
-            # _update_ssh(conn)
+            processes = conn.sudo("ps -eo pid,command | grep supervisord")
+            supervisord_processes = [
+                line
+                for line in processes.stdout.split("\n")
+                if '-c /etc/supervisord.conf' in line
+            ]
+
+            if len(supervisord_processes) != 1:
+                Log.error("expecting only one supervisor daemon")
 
             cpu_percent = get_cpu(cw, instance)
             Log.note(
@@ -66,14 +74,16 @@ def _refresh_etl(instance, settings, cw, ec2_conn, please_stop):
                     if cpu_percent > 50:
                         return
                     Log.note("{{ip}} - Low CPU implies problem, restarting anyway", ip=instance.ip_address)
-                conn.sudo("supervisorctl restart all")
-    except Exception as e:
-        e = Except.wrap(e)
-        if "No authentication methods available" in e:
-            Log.warning("Missing private key to connect?", cause=e)
+
+            conn.sudo("supervisorctl restart all")
+    except Exception as cause:
+        cause = Except.wrap(cause)
+        if "No authentication methods available" in cause:
+            Log.warning("Missing private key to connect?", cause=cause)
         else:
             ec2_conn.terminate_instances([instance.id])
-            Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=e)
+            Log.warning("Problem resetting {{instance}}, TERMINATED!", instance=instance.id, cause=cause)
+
 
 def _update_ssh(conn):
     public_key = File("d:/activedata.pub.ssh")
