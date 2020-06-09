@@ -564,7 +564,6 @@ def key_prefix(key):
 class ReportKey(boto.s3.key.Key):
     log_headers = [
         "Content-Type".lower(),
-        "Content-Length".lower(),
         "x-amz-id-2".lower(),
         'x-amz-request-id'.lower(),
     ]
