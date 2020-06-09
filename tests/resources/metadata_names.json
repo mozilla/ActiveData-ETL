@@ -29865,6 +29865,42 @@
             }
         }
     },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-ebay-kleinanzeigen-search": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "ebay-kleinanzeigen-search",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-facebook": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "facebook",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
     "test-vismet-android-hw-g5-7-0-arm7-api-16/pgo-browsertime-tp6m-geckoview-cold-bbc": {
         "action": {"type": "perf"},
         "build": {
@@ -36202,6 +36238,20 @@
             "framework": "raptor",
             "suite": {"name": "tp6-binast-1"},
             "type": ["e10s", "qr", "qr"]
+        }
+    },
+    "test-windows10-64-shippable-qr/opt-raptor-tp6-firefox-sheets-fis-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "site": "sheets",
+            "type": ["e10s", "fis", "qr", "qr"]
         }
     },
     "test-windows10-64-shippable-qr/opt-raptor-wasm-godot-firefox-e10s": {

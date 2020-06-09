@@ -512,6 +512,7 @@ SITE = {
         "booking",
         "cnn-ampstories",
         "docs",
+        "ebay-kleinanzeigen-search",
         "ebay-kleinanzeigen",
         "ebay",
         "expedia",
