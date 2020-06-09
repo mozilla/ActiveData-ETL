@@ -6,6 +6,8 @@
 #
 from __future__ import division, unicode_literals
 
+from collections import OrderedDict
+
 from activedata_etl.transforms.perfherder_logs_to_perf_logs import (
     KNOWN_PERFHERDER_TESTS,
 )
@@ -139,8 +141,9 @@ class Matcher(object):
         return None
 
 
-CATEGORIES = {
+CATEGORIES = OrderedDict({
     # TODO: USE A FORMAL PARSER??
+    "test-vismet-": {},
     "test-": {
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{BROWSER}}-{{TEST_SUITE}}-{{RUN_OPTIONS}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -333,7 +336,13 @@ CATEGORIES = {
             "action": {"type": "test"}
         },
     },
+})
+
+CATEGORIES["test-vismet-"] = {
+    k: set_default({"run": {"suite": {"type": "vismet"}}}, v)
+    for k, v in CATEGORIES["test-"].items()
 }
+
 
 TEST_PLATFORM = {
     "android-4.2-x86": {"build": {"platform": "android"}},
@@ -368,11 +377,6 @@ TEST_PLATFORM = {
     "windows10-64": {"build": {"platform": "win64"}},
     "windows10": {"build": {"platform": "win64"}},
     "windows7-32": {"build": {"platform": "win32"}},
-    "vismet-linux64": {"build": {"platform": "linux64"}},
-    "vismet-android-hw-p2-8-0-android": {"build": {"platform": "android"}},
-    "vismet-macosx1014-64": {"build": {"platform": "macosx64"}},
-    "vismet-windows7-32": {"build": {"platform": "win32"}},
-    "vismet-windows10-64": {"build": {"platform": "win64"}},
 }
 
 RUN_OPTIONS = {
@@ -498,32 +502,50 @@ RAPTOR_TEST["tp6m"] = match_tp6
 SITE = {
     s: {"run": {"site": s}}
     for s in [
+        "allrecipes",
         "amazon",
         "apple",
         "bbc",
         "binast-instagram",
+        "bing",
         "bing-search",
+        "booking",
+        "cnn-ampstories",
         "docs",
+        "ebay-kleinanzeigen",
         "ebay",
         "expedia",
+        "facebook-cristiano",
         "facebook-redesign",
         "facebook",
         "fandom",
+        "google-mail",
+        "google-search-restaurants",
         "google-search",
         "google",
         "imdb",
+        "imgur",
         "instagram",
+        # "kleinanzeigen",
+        "linkedin",
         "microsoft-support",
         "microsoft",
         "netflix",
+        "office",
         "outlook",
         "paypal",
+        "pinterest",
+        "reddit",
+        "sheets",
         "slides",
         "tumblr",
         "twitter",
         "twitch",
+        "urbandictionary-define",
         "yandex",
+        "yahoo-mail",
         "yahoo-news",
+        "youtube-watch",
         "youtube",
         "wikipedia"
     ]
@@ -531,37 +553,37 @@ SITE = {
 
 BROWSER = {
     "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
-    "chrome-cold": {"run": {"browser": "chrome"}},
+    "chrome-cold": {"run": {"browser": "chrome", "cold_start": True}},
     "chrome": {"run": {"browser": "chrome"}},
-    "chromium-cold": {"run": {"browser": "chromium"}},
+    "chromium-cold": {"run": {"browser": "chromium", "cold_start": True}},
     "chromium": {"run": {"browser": "chromium"}},
     "baseline-firefox": {"run": {"browser": "baseline-firefox"}},
-    "fenix-cold": {"run": {"browser": "fenix"}},
+    "fenix-cold": {"run": {"browser": "fenix", "cold_start": True}},
     "fenix": {"run": {"browser": "fenix"}},
     "firefox-cold-condprof": {
-        "run": {"browser": "firefox", "type": ["condprof"]}
+        "run": {"browser": "firefox", "cold_start": True, "type": ["condprof"]}
     },  # https://searchfox.org/mozilla-central/source/testing/condprofile/README.rst
-    "firefox-cold": {"run": {"browser": "firefox"}},
+    "firefox-cold": {"run": {"browser": "firefox", "cold_start": True}},
     "firefox-condprof": {"run": {"browser": "firefox", "type": ["condprof"]}},
     "firefox": {"run": {"browser": "firefox"}},
     "fennec": {"run": {"browser": "fennec"}},
-    "fennec-cold": {"run": {"browser": "fennec"}},
+    "fennec-cold": {"run": {"browser": "fennec", "cold_start": True}},
     "fennec64": {"run": {"browser": "fennec"}},
-    "fennec64-cold": {"run": {"browser": "fennec"}},
+    "fennec64-cold": {"run": {"browser": "fennec", "cold_start": True}},
     "fennec68": {"run": {"browser": "fennec"}},
-    "fennec68-cold": {"run": {"browser": "fennec"}},
+    "fennec68-cold": {"run": {"browser": "fennec", "cold_start": True}},
     "geckoview-power": {"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory-power": {"run": {"browser": "geckoview"}},
     "geckoview-cpu-memory": {"run": {"browser": "geckoview"}},
     "geckoview-cpu": {"run": {"browser": "geckoview"}},
-    "geckoview-cold": {"run": {"browser": "geckoview"}},
+    "geckoview-cold": {"run": {"browser": "geckoview", "cold_start": True}},
     "geckoview-live": {"run": {"browser": "geckoview"}},
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
-    "live-chrome-m-cold": {"run": {"browser": "chrome"}},
+    "live-chrome-m-cold": {"run": {"browser": "chrome", "cold_start": True}},
     "mobile-fenix": {"run": {"browser": "mobile-fenix"}},
     "mobile-geckoview": {"run": {"browser": "mobile-fenix"}},
-    "refbrow-cold": {"run": {"browser": "reference browser"}},
+    "refbrow-cold": {"run": {"browser": "reference browser", "cold_start": True}},
     "refbrow": {"run": {"browser": "reference browser"}},
 }
 
@@ -582,7 +604,6 @@ TEST_SUITE = {
         "firefox-ui-functional-remote",
         "geckoview-junit-e10s-multi",
         "geckoview-junit",
-        "geckoview-cold",
         "geckoview-memory",
         "geckoview",
         "gtest",
@@ -604,7 +625,6 @@ TEST_SUITE = {
         "mochitest-media",
         "mochitest-plain-headless",
         "mochitest-plain",
-        "mochitest-remote-sw",
         "mochitest-remote",
         "mochitest-thunderbird",
         "mochitest-valgrind",
@@ -638,12 +658,13 @@ TEST_SUITE = {
         "xpcshell",
     ]
 }
+TEST_SUITE["geckoview-cold"] = {"run": {"suite": {"name": "geckoview"}}, "cold_start": True}
 
 TEST_CHUNK = {text(i): {"run": {"chunk": i}} for i in range(3000)}
 
 BUILD_PLATFORM = {
-    "android-aarch64": {"build": {"platform": "android", "type": ["aarch64"]}},
-    "android-aarch64-aws": {"build": {"platform": "android", "type": ["aarch64"]}},
+    "android-aarch64": {"build": {"platform": "android", "cpu": "aarch64"}},
+    "android-aarch64-aws": {"build": {"platform": "android", "cpu": "aarch64"}},
     "android-geckoview": {"build": {"platform": "android", "product": "geckoview"}},
     "android-hw-g5-7-0-arm7-api-16": {"build": {"platform": "android"}},
     "android-hw-gs3-7-1-arm7-api-16": {"build": {"platform": "android"}},
@@ -697,6 +718,7 @@ BUILD_OPTIONS = {
     "asan-fuzzing": {"build": {"type": ["asan", "fuzzing"]}},
     "asan-fuzzing-ccov": {"build": {"type": ["asan", "fuzzing", "ccov"]}},
     "asan-reporter": {"build": {"type": ["asan"]}},
+    "asan-reporter-shippable": {"build": {"type": ["asan"], "train": "shippable"}},
     "asan": {"build": {"type": ["asan"]}},
     "base-toolchains": {},
     "base-toolchains-clang": {},
@@ -738,7 +760,7 @@ BUILD_OPTIONS = {
     "release": {"build": {"train": "release"}},
     "reproduced": {},
     "rusttests": {"build": {"type": ["rusttests"]}},
-    "shippable-qr": {"build": {"train": "shippable", "type": ["qr"]}},
+    "shippable-qr": {"build": {"train": "shippable"}, "run": {"type": ["qr"]}},
     "shippable": {"build": {"train": "shippable"}},
     "stylo-only": {"build": {"type": ["stylo-only"]}},
     "s390x": {"build": {"cpu": "s390"}},
@@ -817,6 +839,7 @@ SPECIAL_BUILDS = {
     "nightly-support-sync-telemetry": {},
     "nightly-support-test": {},
     "nightly": {"build": {"train": "nightly"}},
+    "normandy-devtools": {},
     "notarization-poller-macosx64-shippable/opt":{},
     "notarization-part-1-macosx64-shippable/opt":{},
     "src":{},

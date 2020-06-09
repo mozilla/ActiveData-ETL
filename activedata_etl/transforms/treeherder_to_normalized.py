@@ -223,7 +223,7 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
 
     remainder = raw_treeherder.leaves()
     if remainder:
-        Log.error(
+        Log.warning(
             "Did not process {{paths}} for key={{key}}",
             key=source_key,
             paths=[k for k, _ in remainder],
