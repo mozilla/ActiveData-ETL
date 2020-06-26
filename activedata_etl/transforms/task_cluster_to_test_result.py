@@ -52,17 +52,20 @@ def process(source_key, source, destination, resources, please_stop=None):
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(artifacts)):
-            if Date(a.expires) < Date.now():
-                Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
-                continue  # ARTIFACT IS GONE
-            lines, _ = get_test_result_content(j, a.name, a.url)
-            if lines:
-                dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
-                dest_etl.machine = machine_metadata
-                dest_etl.url = a.url
-                process_unittest(dest_key, dest_etl, task, lines, destination, please_stop=please_stop)
-                file_num += 1
-                output.append(dest_key)
+            try:
+                lines, _ = get_test_result_content(j, a.name, a.url)
+                if lines:
+                    dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
+                    dest_etl.machine = machine_metadata
+                    dest_etl.url = a.url
+                    process_unittest(dest_key, dest_etl, task, lines, destination, please_stop=please_stop)
+                    file_num += 1
+                    output.append(dest_key)
+            except Exception as cause:
+                if Date(a.expires) < Date.now():
+                    Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
+                    continue  # ARTIFACT IS GONE
+                Log.error("could not access {{url}}", url=a.url, cause=cause)
 
     return output
 

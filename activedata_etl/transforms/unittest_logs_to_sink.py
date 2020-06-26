@@ -277,7 +277,6 @@ class LogSummary(object):
         test.end_time = log.time
         test.stats[log.status.lower()] += 1
 
-
         if log.subtest:
             ok = log.expected == None or log.expected == log.status
 
