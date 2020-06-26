@@ -237,6 +237,8 @@ def read_actions(source_key, normalized, url):
         e = Except.wrap(e)
         if "Connection broken: error(104," in e:
             Log.error(TRY_AGAIN_LATER, reason="broken connection")
+        elif "'Connection aborted.', ConnectionResetError" in e:
+            Log.error(TRY_AGAIN_LATER, reason="broken connection")
         elif "'Connection aborted.', BadStatusLine" in e:
             Log.error(TRY_AGAIN_LATER, reason="broken connection")
         elif "Read timed out" in e:
@@ -1249,6 +1251,8 @@ KNOWN_TAGS = {
     "chunks",
     "CI",
     "code-review.phabricator-build-target",
+    "code-review.repository",
+    "code-review.revision",
     "context.firedBy",
     "context.flattenedDeep",
     "context.flettenedDeep",
