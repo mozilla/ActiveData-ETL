@@ -272,6 +272,7 @@ _option_map = {
     "tsan": ["tsan"],
     "x64": ["x64"],
     "x86": ["x86"],
+    "raptor": ["raptor"],
     "release": ["release"],
 }
 

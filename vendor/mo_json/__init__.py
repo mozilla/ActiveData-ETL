@@ -205,6 +205,8 @@ def _scrub(value, is_done, stack, scrub_text, scrub_number):
             v = _scrub(v, is_done, stack, scrub_text, scrub_number)
             output.append(v)
         return output # if output else None
+    elif type_ is set:
+        return list(sorted(value))
     elif type_ is type:
         return value.__name__
     elif type_.__name__ == "bool_":  # DEAR ME!  Numpy has it's own booleans (value==False could be used, but 0==False in Python.  DOH!)

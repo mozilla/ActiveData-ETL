@@ -459,6 +459,7 @@
             "type": ["opt", "tsan"]
         }
     },
+    "build-linux64/opt-2": {"action": {"type": "build"}},
     "build-macosx64-add-on-devel/opt": {
         "action": {"type": "build"},
         "build": {
@@ -564,6 +565,7 @@
     "build-normandy-devtools": {"action": {"type": "build"}},
     "build-notarization-part-1-macosx64-shippable/opt": {"action": {"type": "build"}},
     "build-notarization-poller-macosx64-shippable/opt": {"action": {"type": "build"}},
+    "build-raptor": {"action": {"type": "build"}},
     "build-reference-browser-geckoNightlyX86Release": {
         "action": {"type": "build"},
         "build": {
@@ -3792,6 +3794,20 @@
             "framework": "browsertime",
             "site": "instagram",
             "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-live-chrome-m-cold-google-accounts-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "google-accounts",
             "type": ["e10s"]
         }
     },

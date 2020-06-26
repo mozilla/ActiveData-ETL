@@ -154,7 +154,7 @@ def n_tuple(values, length):
     """
     RETURN A LIST OF length
     """
-    output = [None] * length
+    output = [Null] * length
     for i, v in enumerate(values):
         if i >= length:
             break
