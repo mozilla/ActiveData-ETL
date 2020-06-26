@@ -8,10 +8,12 @@
 #
 from __future__ import division, unicode_literals
 
+from mo_dots.lists import last
+
 from activedata_etl.transforms import TRY_AGAIN_LATER
 from activedata_etl.transforms.pulse_block_to_es import transform_buildbot
 from jx_python import jx
-from mo_dots import Data, Null, coalesce, set_default, wrap
+from mo_dots import Data, Null, coalesce, set_default, wrap, listwrap
 from mo_future import text, is_text
 from mo_json import json2value, scrub
 from mo_logs import Log, machine_metadata, strings
@@ -25,12 +27,6 @@ from mo_times.dates import parse
 
 DEBUG = True
 ACCESS_DENIED = "Access Denied to {{url}} in {{key}}"
-
-
-def last(l):
-    if not l:
-        return None
-    return l[len(l)-1]
 
 
 def process_unittest_in_s3(source_key, source, destination, resources, please_stop=None):
@@ -152,7 +148,7 @@ def accumulate_logs(source_key, url, lines, suite_name, please_stop):
 
             accumulator.stats.action[log.action] += 1
             try:
-                accumulator.__getattribute__(log.action)(log)
+                getattr(accumulator, log.action)(log)
             except AttributeError:
                 pass
 
@@ -275,16 +271,18 @@ class LogSummary(object):
             # }
             Log.warning("Log has blank 'test' property! Do not know how to handle. In {{key}} ", key=self.source_key)
             return
-
         self.logs.setdefault(log.test, []).append(log)
         test = self._get_test(log)
         test.stats.action.test_status += 1
         test.end_time = log.time
         test.stats[log.status.lower()] += 1
 
+
         if log.subtest:
-            ok = True if log.expected == None or log.expected == log.status else False
+            ok = log.expected == None or log.expected == log.status
+
             if not ok:
+                # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
                 if test.subtests:
                     last_test = last(test.subtests)
                     if last_test.name == log.subtest:
@@ -295,13 +293,15 @@ class LogSummary(object):
                 if is_text(message):
                     message = strings.limit(message, 6000)
 
-                # WE CAN NOT AFFORD TO STORE ALL SUBTESTS, ONLY THE FAILURES
+                ki = set(i for i in listwrap(log.known_intermittent))
                 test.subtests += [{
                     "name": log.subtest,
                     "subtest": log.subtest,
                     "ok": ok,
-                    "status": log.status.lower(),
-                    "expected": log.expected.lower(),
+                    "ok_intermittent": ok or log.status in ki,
+                    "known_intermittent": ki,
+                    "status": log.status,
+                    "expected": log.expected,
                     "timestamp": log.time,
                     "message": message,
                     "ordering": len(test.subtests)
@@ -343,9 +343,16 @@ class LogSummary(object):
     def test_end(self, log):
         self.logs.setdefault(log.test, []).append(log)
         test = self._get_test(log)
-        test.ok = True if log.expected == None or log.expected == log.status else False
+
+        test.ok = log.expected == None or log.expected == log.status
+        test.known_intermittent = ki = set(i for i in listwrap(log.known_intermittent))
+        test.ok_intermittent = test.ok or log.status in ki
+
         if not all(test.subtests.ok):
             test.ok = False
+        if not all(test.subtests.ok_intermittent):
+            test.ok_intermittent = False
+
         test.status = log.status
         test.expected = coalesce(log.expected, log.status)
         test.end_time = log.time
