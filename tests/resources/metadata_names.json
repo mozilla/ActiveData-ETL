@@ -536,15 +536,20 @@
     "build-nightly-browser-tabstray": {"action": {"type": "build"}},
     "build-nightly-concept-engine": {"action": {"type": "build"}},
     "build-nightly-concept-toolbar": {"action": {"type": "build"}},
+    "build-nightly-feature-accounts-push": {"action": {"type": "build"}},
     "build-nightly-feature-app-links": {"action": {"type": "build"}},
     "build-nightly-feature-contextmenu": {"action": {"type": "build"}},
     "build-nightly-feature-findinpage": {"action": {"type": "build"}},
     "build-nightly-feature-media": {"action": {"type": "build"}},
     "build-nightly-feature-p2p": {"action": {"type": "build"}},
     "build-nightly-feature-privatemode": {"action": {"type": "build"}},
+    "build-nightly-feature-prompts": {"action": {"type": "build"}},
     "build-nightly-feature-push": {"action": {"type": "build"}},
     "build-nightly-feature-qr": {"action": {"type": "build"}},
+    "build-nightly-feature-session": {"action": {"type": "build"}},
     "build-nightly-feature-sitepermissions": {"action": {"type": "build"}},
+    "build-nightly-feature-toolbar": {"action": {"type": "build"}},
+    "build-nightly-lib-crash": {"action": {"type": "build"}},
     "build-nightly-lib-fetch-httpurlconnection": {"action": {"type": "build"}},
     "build-nightly-lib-fetch-okhttp": {"action": {"type": "build"}},
     "build-nightly-lib-push-firebase": {"action": {"type": "build"}},
@@ -555,6 +560,7 @@
     "build-nightly-support-locale": {"action": {"type": "build"}},
     "build-nightly-support-sync-telemetry": {"action": {"type": "build"}},
     "build-nightly-support-test": {"action": {"type": "build"}},
+    "build-nightly-support-webextensions": {"action": {"type": "build"}},
     "build-normandy-devtools": {"action": {"type": "build"}},
     "build-notarization-part-1-macosx64-shippable/opt": {"action": {"type": "build"}},
     "build-notarization-poller-macosx64-shippable/opt": {"action": {"type": "build"}},
@@ -3618,6 +3624,8 @@
             "type": ["e10s"]
         }
     },
+    "test-android-feature-containers": {},
+    "test-android-feature-pwa": {},
     "test-android-feature-sitepermissions": {},
     "test-android-feature-top-sites": {},
     "test-android-hw-g5-7-0-arm7-api-16-pgo/opt-raptor-tp6m-1-fenix": {
@@ -3644,6 +3652,62 @@
             "chunk": 1,
             "framework": "raptor",
             "suite": {"name": "tp6m"}
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-mobile-fenix-youtube-playback-av1-sfr-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-av1-sfr"},
+            "type": ["wr", "e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-mobile-fenix-youtube-playback-h264-sfr-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-h264-sfr"},
+            "type": ["wr", "e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-mobile-fenix-youtube-playback-h264-std-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-h264-std"},
+            "type": ["wr", "e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-mobile-fenix-youtube-playback-vp9-sfr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-vp9-sfr"},
+            "type": ["e10s"]
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-google-maps-e10s": {
@@ -3676,6 +3740,45 @@
             "site": "urbandictionary-define",
             "suite": {"name": "tp6m-live"},
             "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-mobile-fenix-youtube-playback-widevine-h264-sfr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-widevine-h264-sfr"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-mobile-fenix-youtube-playback-widevine-h264-sfr-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-widevine-h264-sfr"},
+            "type": ["wr", "e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-mobile-fenix-youtube-playback-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback"},
+            "type": ["wr", "e10s"]
         }
     },
     "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-fenix-instagram-e10s": {
@@ -3969,6 +4072,40 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-geckoview-cold-espn-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "espn",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-geckoview-cold-jianshu-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "jianshu",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-geckoview-cold-web-de-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -3984,6 +4121,20 @@
             "site": "web-de",
             "suite": {"name": "tp6m"},
             "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/opt-browsertime-mobile-fenix-youtube-playback-av1-sfr-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "mobile-fenix",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-av1-sfr"},
+            "type": ["wr", "e10s"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {
@@ -4184,6 +4335,22 @@
             "browser": "mobile-fenix",
             "framework": "browsertime",
             "suite": {"name": "speedometer"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/pgo-browsertime-tp6m-fenix-cold-bing-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fenix",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "bing",
+            "suite": {"name": "tp6m"},
             "type": ["e10s"]
         }
     },
@@ -4455,6 +4622,17 @@
         "run": {
             "chunk": 3,
             "suite": {"name": "mochitest-plain"},
+            "type": ["e10s"]
+        }
+    },
+    "test-linux1804-64-asan/opt-web-platform-tests-print-reftest-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt", "asan"]
+        },
+        "run": {
+            "suite": {"name": "web-platform-tests-print-reftest"},
             "type": ["e10s"]
         }
     },
@@ -29847,6 +30025,24 @@
     "test-ui-browser": {},
     "test-ui-glean": {},
     "test-unit-browser-engine-gecko-nightly": {},
+    "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-amazon-search": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "amazon-search",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
     "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-bing": {
         "action": {"type": "perf"},
         "build": {
@@ -29895,6 +30091,58 @@
             "cold_start": true,
             "framework": "browsertime",
             "site": "facebook",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-jianshu": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "jianshu",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-stackoverflow": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "stackoverflow",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-geckoview-cnn": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "framework": "browsertime",
+            "site": "cnn",
             "suite": {
                 "name": "tp6m",
                 "type": "vismet"
@@ -30036,6 +30284,24 @@
             "site": "youtube",
             "suite": {
                 "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/pgo-browsertime-tp6m-live-fenix-cold-facebook-cristiano": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["pgo"]
+        },
+        "run": {
+            "browser": "fenix",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "facebook-cristiano",
+            "suite": {
+                "name": "tp6m-live",
                 "type": "vismet"
             }
         }
@@ -43187,6 +43453,20 @@
             "browser": "firefox",
             "framework": "raptor",
             "suite": {"name": "youtube-playback"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-shippable/opt-raptor-youtube-playback-h264-firefox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "win32",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "raptor",
+            "suite": {"name": "youtube-playback-h264"},
             "type": ["e10s"]
         }
     },

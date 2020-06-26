@@ -1185,6 +1185,7 @@ PAYLOAD_PROPERTIES = {
     "osGroups",
     "partials",
     "partial_versions",
+    "partners",
 
     "platforms",
     "publish_rules",

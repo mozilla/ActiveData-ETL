@@ -191,6 +191,23 @@ CATEGORIES = OrderedDict({
             "action": {"type": "perf"},
             "run": {"framework": "raptor"},
         },
+        # BROWSERTIME (browser first)
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{BROWSER}}-{{RAPTOR_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{BROWSER}}-{{RAPTOR_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{BROWSER}}-{{RAPTOR_TEST}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}-{{TEST_OPTIONS}}/{{BUILD_TYPE}}-browsertime-{{BROWSER}}-{{RAPTOR_TEST}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
         # BROWSERTIME
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-{{RAPTOR_TEST}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
             "action": {"type": "perf"},
@@ -427,6 +444,8 @@ RUN_OPTIONS = {
     "webgpu-sw": {"run": {"type": ["webgpu", "service-worker"]}},
     "webgpu-fis-e10s": {"run": {"type": ["webgpu", "fis", "e10s"]}},  # fission
     "webgpu-fis": {"run": {"type": ["webgpu", "fis"]}},  # fission
+    "wr-e10s": {"run": {"type": ["wr", "e10s"]}},  # wr = webrender
+
 }
 
 TALOS_TEST = {
@@ -462,12 +481,14 @@ RAPTOR_TEST = {
         "wasm-misc",
         "webaudio",
         "youtube-playback-av1-sfr",
+        "youtube-playback-h264-power",
+        "youtube-playback-h264-sfr",
+        "youtube-playback-h264-std",
+        "youtube-playback-h264",
         "youtube-playback-vp9-sfr",
         "youtube-playback-widevine-hfr",
         "youtube-playback-widevine-h264-sfr",
         "youtube-playback-widevine-vp9-sfr",
-        "youtube-playback-h264-sfr",
-        "youtube-playback-h264-power",
         "youtube-playback",
     ]
 }
@@ -503,6 +524,7 @@ SITE = {
     s: {"run": {"site": s}}
     for s in [
         "allrecipes",
+        "amazon-search",
         "amazon",
         "apple",
         "bbc",
@@ -511,10 +533,12 @@ SITE = {
         "bing-search",
         "booking",
         "cnn-ampstories",
+        "cnn",
         "docs",
         "ebay-kleinanzeigen-search",
         "ebay-kleinanzeigen",
         "ebay",
+        "espn",
         "expedia",
         "facebook-cristiano",
         "facebook-redesign",
@@ -528,6 +552,7 @@ SITE = {
         "imdb",
         "imgur",
         "instagram",
+        "jianshu",
         # "kleinanzeigen",
         "linkedin",
         "microsoft-support",
@@ -540,6 +565,7 @@ SITE = {
         "reddit",
         "sheets",
         "slides",
+        "stackoverflow",
         "tumblr",
         "twitter",
         "twitch",
@@ -653,6 +679,7 @@ TEST_SUITE = {
         "web-platform-tests-backlog",
         "web-platform-tests-crashtest",
         "web-platform-tests-crashtests",
+        "web-platform-tests-print-reftest",
         "web-platform-tests-reftest",
         "web-platform-tests-reftests",
         "web-platform-tests-wdspec",
@@ -816,6 +843,7 @@ SPECIAL_BUILDS = {
     "fat-aar-android-geckoview-fat-aar-shippable/opt":{},
     "fennec-nightly":{},
     "nightly-browser-awesomebar": {},
+    "nightly-feature-accounts-push":{},
     "nightly-browser-errorpages": {},
     "nightly-browser-state": {},
     "nightly-browser-storage-memory": {},
@@ -829,9 +857,13 @@ SPECIAL_BUILDS = {
     "nightly-feature-media": {},
     "nightly-feature-p2p": {},
     "nightly-feature-privatemode": {},
+    "nightly-feature-prompts":{},
     "nightly-feature-push": {},
+    "nightly-feature-session": {},
+    "nightly-feature-toolbar": {},
     "nightly-feature-qr": {},
     "nightly-feature-sitepermissions": {},
+    "nightly-lib-crash":{},
     "nightly-lib-fetch-httpurlconnection": {},
     "nightly-lib-fetch-okhttp": {},
     "nightly-lib-push-firebase": {},
@@ -842,6 +874,7 @@ SPECIAL_BUILDS = {
     "nightly-support-locale": {},
     "nightly-support-sync-telemetry": {},
     "nightly-support-test": {},
+    "nightly-support-webextensions": {},
     "nightly": {"build": {"train": "nightly"}},
     "normandy-devtools": {},
     "notarization-poller-macosx64-shippable/opt":{},
@@ -853,6 +886,8 @@ SPECIAL_BUILDS = {
 }
 
 SPECIAL_TESTS ={
+    "android-feature-containers":{},
+    "android-feature-pwa":{},
     "android-feature-sitepermissions":{},
     "android-feature-top-sites":{},
     "debug": {},

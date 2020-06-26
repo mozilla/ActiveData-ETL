@@ -720,6 +720,7 @@ KNOWN_PERFHERDER_TESTS = [
     "sparse_update_config",  # VCS
     "speedometer",
     "startup_about_home_paint_realworld_webextensions",
+    "startup_about_home_paint_cached",
     "startup_about_home_paint",
     "Strings",
     "stylebench",
