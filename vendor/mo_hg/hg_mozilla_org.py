@@ -45,7 +45,7 @@ from mo_math.randoms import Random
 from mo_threads import Lock, Queue, THREAD_STOP, Thread, Till
 from mo_times import Timer
 from mo_times.dates import Date
-from mo_times.durations import DAY, Duration, HOUR, MINUTE, SECOND
+from mo_times.durations import Duration, HOUR, MINUTE, SECOND, MONTH
 from pyLibrary.meta import cache
 
 _hg_branches = None
@@ -75,7 +75,7 @@ WAIT_AFTER_CACHE_MISS = 30  # HOW LONG TO WAIT BETWEEN CACHE MISSES
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
 DAEMON_RECENT_HG_PULL = 2  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
-MAX_TODO_AGE = DAY  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
+MAX_TODO_AGE = MONTH  # THE DAEMON WILL NEVER STOP SCANNING; DO NOT ADD OLD REVISIONS TO THE todo QUEUE
 MIN_ETL_AGE = Date("03may2018").unix  # ARTIFACTS OLDER THAN THIS IN ES ARE REPLACED
 UNKNOWN_PUSH = "Unknown push {{revision}}"
 IGNORE_MERGE_DIFFS = True

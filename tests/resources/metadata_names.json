@@ -561,6 +561,7 @@
     "build-nightly-support-locale": {"action": {"type": "build"}},
     "build-nightly-support-sync-telemetry": {"action": {"type": "build"}},
     "build-nightly-support-test": {"action": {"type": "build"}},
+    "build-nightly-support-test-appservices": {"action": {"type": "build"}},
     "build-nightly-support-webextensions": {"action": {"type": "build"}},
     "build-normandy-devtools": {"action": {"type": "build"}},
     "build-notarization-part-1-macosx64-shippable/opt": {"action": {"type": "build"}},
@@ -3709,6 +3710,22 @@
             "browser": "mobile-fenix",
             "framework": "browsertime",
             "suite": {"name": "youtube-playback-vp9-sfr"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-bing-search-restaurants-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "geckoview",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "bing-search-restaurants",
+            "suite": {"name": "tp6m"},
             "type": ["e10s"]
         }
     },
@@ -30253,7 +30270,37 @@
             }
         }
     },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-16-cold-nightly-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "browsertime",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
     "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-23-cold-performance-test-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "framework": "browsertime",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-7-cold-nightly-arm64-v8a": {
         "action": {"type": "perf"},
         "build": {
             "cpu": "aarch64",

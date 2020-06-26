@@ -529,8 +529,9 @@ SITE = {
         "apple",
         "bbc",
         "binast-instagram",
-        "bing",
+        "bing-search-restaurants",
         "bing-search",
+        "bing",
         "booking",
         "cnn-ampstories",
         "cnn",
@@ -583,6 +584,8 @@ SITE = {
 
 BROWSER = {
     "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
+    "7-cold-nightly-arm64-v8a":{},
+    "16-cold-nightly-arm64-v8a":{},
     "chrome-cold": {"run": {"browser": "chrome", "cold_start": True}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium", "cold_start": True}},
@@ -875,6 +878,7 @@ SPECIAL_BUILDS = {
     "nightly-support-ktx": {},
     "nightly-support-locale": {},
     "nightly-support-sync-telemetry": {},
+    "nightly-support-test-appservices": {},
     "nightly-support-test": {},
     "nightly-support-webextensions": {},
     "nightly": {"build": {"train": "nightly"}},
