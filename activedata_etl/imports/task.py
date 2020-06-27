@@ -422,6 +422,7 @@ RUN_OPTIONS = {
     "no-accel": {"run": {"type": ["no-accel"]}},
     "qr-e10s": {"run": {"type": ["e10s", "qr"]}},
     "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
+    "spi-nw-1proc": {"run": {"type": ["1proc", "spi"]}},
     "spi-nw-e10s": {"run": {"type": ["spi", "e10s"]}},
     "spi-e10s": {"run": {"type": ["e10s", "spi"]}},
     "spi": {"run": {"type": ["spi"]}},
@@ -444,7 +445,8 @@ RUN_OPTIONS = {
     "webgpu-sw": {"run": {"type": ["webgpu", "service-worker"]}},
     "webgpu-fis-e10s": {"run": {"type": ["webgpu", "fis", "e10s"]}},  # fission
     "webgpu-fis": {"run": {"type": ["webgpu", "fis"]}},  # fission
-    "wr-e10s": {"run": {"type": ["wr", "e10s"]}},  # wr = webrender
+    "wr-1proc": {"run": {"type": ["webrender", "1proc"]}},  # wr = webrender
+    "wr-e10s": {"run": {"type": ["webrender", "e10s"]}},  # wr = webrender
 
 }
 
@@ -650,6 +652,7 @@ TEST_SUITE = {
         "mochitest-a11y",
         "mochitest-browser-chrome",
         "mochitest-browser-screenshots",
+        "mochitest-chrome-gpu",
         "mochitest-chrome",
         "mochitest-clipboard",
         "mochitest-devtools-webreplay",
@@ -871,6 +874,7 @@ SPECIAL_BUILDS = {
     "nightly-lib-crash": {},
     "nightly-lib-fetch-httpurlconnection": {},
     "nightly-lib-fetch-okhttp": {},
+    "nightly-lib-nearby": {},
     "nightly-lib-push-firebase": {},
     "nightly-service-fretboard": {},
     "nightly-service-telemetry": {},

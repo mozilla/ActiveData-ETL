@@ -3713,6 +3713,21 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-fennec-cnn-wr-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "browsertime",
+            "site": "cnn",
+            "suite": {"name": "tp6m"},
+            "type": ["wr", "1proc"]
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-geckoview-cold-bing-search-restaurants-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -4086,6 +4101,22 @@
             "chunk": 8,
             "suite": {"name": "reftest"},
             "type": ["e10s", "qr"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-fennec-bbc-wr-1proc": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fennec",
+            "framework": "browsertime",
+            "site": "bbc",
+            "suite": {"name": "tp6m"},
+            "type": ["wr", "1proc"]
         }
     },
     "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-geckoview-cold-allrecipes-e10s": {
@@ -4736,6 +4767,40 @@
             "type": ["e10s"]
         }
     },
+    "test-linux1804-64/debug-mochitest-a11y-spi-nw-1proc": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-a11y"},
+            "type": ["1proc", "spi"]
+        }
+    },
+    "test-linux1804-64/debug-mochitest-chrome-gpu-spi-nw-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-chrome-gpu"},
+            "type": ["spi", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-mochitest-chrome-spi-nw-1proc-1": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 1,
+            "suite": {"name": "mochitest-chrome"},
+            "type": ["1proc", "spi"]
+        }
+    },
     "test-linux1804-64/debug-mochitest-gpu-sw-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -4747,6 +4812,7 @@
             "type": ["gpu", "service-worker", "e10s"]
         }
     },
+    "test-linux1804-64/debug-mochitest-webgpu-spi-nw-e10s": {},
     "test-linux1804-64/debug-mochitest-webgpu-sw-e10s": {
         "action": {"type": "test"},
         "build": {
