@@ -420,6 +420,8 @@ RUN_OPTIONS = {
     "no-accel-1proc": {"run": {"type": ["no-accel", "1proc"]}},
     "no-accel-e10s": {"run": {"type": ["no-accel", "e10s"]}},
     "no-accel": {"run": {"type": ["no-accel"]}},
+    "oop-fis-e10s": {"run": {"type": ["oop", "fis", "e10s"]}},
+    "oop-e10s": {"run": {"type": ["oop", "e10s"]}},
     "qr-e10s": {"run": {"type": ["e10s", "qr"]}},
     "spi-1proc": {"run": {"type": ["1proc", "spi"]}},
     "spi-nw-1proc": {"run": {"type": ["1proc", "spi"]}},

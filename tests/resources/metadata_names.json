@@ -4732,6 +4732,18 @@
             "type": ["e10s", "fis", "qr"]
         }
     },
+    "test-linux1804-64-qr/opt-mochitest-webgl2-ext-oop-fis-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl2-ext"},
+            "type": ["oop", "fis", "e10s", "qr"]
+        }
+    },
     "test-linux1804-64-shippable-qr/opt-mochitest-webgpu-e10s": {
         "action": {"type": "test"},
         "build": {
@@ -44120,6 +44132,17 @@
             "suite": {"name": "mochitest-webgl"}
         }
     },
+    "test-windows7-32/debug-mochitest-webgl2-core-oop-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["debug"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-webgl2-core"},
+            "type": ["oop", "e10s"]
+        }
+    },
     "test-windows7-32/debug-mozmill-1": {
         "action": {"type": "test"},
         "build": {
@@ -45149,6 +45172,28 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "test-windows7-32/opt-mochitest-webgl1-ext-oop-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-webgl1-ext"},
+            "type": ["oop", "e10s"]
+        }
+    },
+    "test-windows7-32/opt-mochitest-webgl2-core-oop-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-webgl2-core"},
+            "type": ["oop", "e10s"]
         }
     },
     "test-windows7-32/opt-mozmill-1": {
