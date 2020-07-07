@@ -329,7 +329,8 @@ class LogSummary(object):
 
         test = self._get_test(log)
         test.ok = False
-        test.crash=True,
+        test.ok_intermittent = False
+        test.crash = True,
 
         test.status = log.status
         test.end_time = log.time
@@ -381,6 +382,7 @@ class LogSummary(object):
                 continue
 
             t.ok = False
+            t.ok_intermittent = False
 
             t.missing_test_end = True
 
@@ -395,6 +397,7 @@ class LogSummary(object):
                 break
 
         self.stats.ok = sum(1 for t in tests if t.ok)
+        self.stats.ok_intermittent = sum(1 for t in tests if t.ok_intermittent)
         self.test_to_group = None  # REMOVED
         return self
 
