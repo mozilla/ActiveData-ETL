@@ -17,7 +17,8 @@ from decimal import Decimal
 from json.encoder import encode_basestring
 from math import floor
 
-from mo_dots import Data, FlatList, Null, NullType, SLOT, is_data, is_list, unwrap
+from mo_dots import Data, FlatList, NullType, SLOT, is_data, is_list, unwrap
+from mo_dots.lists import clamp
 from mo_future import PYPY, binary_type, is_binary, is_text, long, sort_using_key, text, utf8_json_encoder, xrange
 from mo_json import ESCAPE_DCT, float2json, scrub
 from mo_logs import Except
@@ -355,7 +356,7 @@ def pretty_json(value):
             max_len = max(*[len(j) for j in js])
             if len(js) < ARRAY_MIN_ITEMS and max_len <= ARRAY_ITEM_MAX_LENGTH and max(*[j.find("\n") for j in js]) == -1:
                 # ALL TINY VALUES
-                num_columns = max(1, min(ARRAY_MAX_COLUMNS, int(floor((ARRAY_ROW_LENGTH + 2.0) / float(max_len + 2)))))  # +2 TO COMPENSATE FOR COMMAS
+                num_columns = clamp(int(floor((ARRAY_ROW_LENGTH + 2.0) / float(max_len + 2))), 1, ARRAY_MAX_COLUMNS)  # +2 TO COMPENSATE FOR COMMAS
                 if len(js) <= num_columns:  # DO NOT ADD \n IF ONLY ONE ROW
                     return "[" + PRETTY_COMMA.join(js) + "]"
                 if num_columns == 1:  # DO NOT rjust IF THERE IS ONLY ONE COLUMN

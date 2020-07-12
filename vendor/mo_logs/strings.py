@@ -19,6 +19,7 @@ from datetime import date, datetime as builtin_datetime, timedelta
 from json.encoder import encode_basestring
 
 from mo_dots import Data, coalesce, get_module, is_data, is_list, wrap, is_sequence, NullType
+from mo_dots.lists import clamp
 from mo_future import PY3, get_function_name, is_text, round as _round, text, transpose, xrange, zip_longest, \
     binary_type, Mapping
 from mo_logs.convert import datetime2string, datetime2unix, milli2datetime, unix2datetime, value2json
@@ -642,7 +643,7 @@ def _simple_expand(template, seq):
 
         path = ops[0]
         var = path.lstrip(".")
-        depth = min(len(seq), max(1, len(path) - len(var)))
+        depth = clamp(len(path) - len(var), 1, len(seq))
         try:
             val = seq[-depth]
             if var:

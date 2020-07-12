@@ -182,6 +182,10 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
     new_treeherder.failure.classification = consume(raw_job, "failure_classification")
     new_treeherder.failure.notes = consume(raw_job, "job_note")
 
+    new_treeherder.text_log_error = consume(raw_job, "text_log_error")
+    for tle in listwrap(new_treeherder.text_log_error):
+        tle.line = strings.limit(tle.line, 1000)
+
     new_treeherder.repo = {
         "branch": {"name": new_treeherder.build.branch},
         "changeset": {"id": new_treeherder.build.revision},

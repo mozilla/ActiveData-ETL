@@ -75,12 +75,12 @@ class FlatList(list):
             if i is None:
                 i = 0
             else:
-                i = min(max(i, 0), length)
+                i = clamp(i, 0, length)
             j = index.stop
             if j is None:
                 j = length
             else:
-                j = max(min(j, length), 0)
+                j = clamp(j, 0, length)
             return FlatList(_get_list(self)[i:j])
 
         if not isinstance(index, int) or index < 0 or len(_get_list(self)) <= index:
@@ -316,6 +316,16 @@ def last(values):
             return first(values)
 
     return values
+
+
+def clamp(value, min_, max_):
+    """
+    RETURN VALUE BETWEEN min_ AND max_ (INCLUSIVE)
+    :param value:
+    :param min_:
+    :param max_:
+    """
+    return min(max(value, min_), max_)
 
 
 FlatList.EMPTY = Null
