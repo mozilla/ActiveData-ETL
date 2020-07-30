@@ -92,6 +92,7 @@ NULL_TASKS = (
     "build-ui-",
     "checksums-signing-",
     "Cron task for ",
+    "docker-image-",
     "partials-signing-",
     "partials-",
     "repackage-l10n-",
