@@ -1398,6 +1398,7 @@ KNOWN_TAGS = {
     "useCloudMirror",
     "who",
     "worker-implementation",
+    "xpi-name",
 } | PAYLOAD_PROPERTIES
 
 

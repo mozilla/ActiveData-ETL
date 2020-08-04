@@ -285,6 +285,7 @@
         }
     },
     "build-fennec-nightly": {"action": {"type": "build"}},
+    "build-firefox-voice": {"action": {"type": "build"}},
     "build-linux-reproduced/opt": {
         "action": {"type": "build"},
         "build": {

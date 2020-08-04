@@ -876,6 +876,7 @@ SPECIAL_BUILDS = {
     "android-test-nightly": {},
     "fat-aar-android-geckoview-fat-aar-shippable/opt": {},
     "fennec-nightly": {},
+    "firefox-voice": {},
     "linux64/opt-2": {},  # SOME GARBAGE
     "nightly-browser-awesomebar": {},
     "nightly-feature-accounts-push": {},
