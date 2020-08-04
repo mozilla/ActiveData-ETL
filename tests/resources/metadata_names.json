@@ -3630,6 +3630,7 @@
     },
     "test-android-feature-containers": {},
     "test-android-feature-pwa": {},
+    "test-android-feature-share": {},
     "test-android-feature-sitepermissions": {},
     "test-android-feature-top-sites": {},
     "test-android-hw-g5-7-0-arm7-api-16-pgo/opt-raptor-tp6m-1-fenix": {
@@ -4881,6 +4882,18 @@
             "chunk": 3,
             "suite": {"name": "xpcshell"},
             "type": ["spi", "e10s"]
+        }
+    },
+    "test-linux1804-64/opt-mochitest-webgl2-ext-gli-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-webgl2-ext-gli"},
+            "type": ["e10s"]
         }
     },
     "test-linux1804-64/opt-mochitest-webgpu-fis-e10s": {
@@ -27205,6 +27218,17 @@
             "type": ["e10s"]
         }
     },
+    "test-macosx1014-64/opt-mochitest-webgl1-ext-gli-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "macosx64",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-webgl1-ext-gli"},
+            "type": ["e10s"]
+        }
+    },
     "test-macosx64-devedition/opt-cppunit": {
         "action": {"type": "test"},
         "build": {
@@ -30267,6 +30291,23 @@
             }
         }
     },
+    "test-vismet-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-4-cold-nightly-armeabi-v7a": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "nightly",
+            "chunk": 4,
+            "cold_start": true,
+            "framework": "browsertime",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
     "test-vismet-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-geckoview-cnn": {
         "action": {"type": "perf"},
         "build": {
@@ -30379,6 +30420,9 @@
             "type": ["opt"]
         },
         "run": {
+            "browser": "nightly",
+            "chunk": 16,
+            "cold_start": true,
             "framework": "browsertime",
             "suite": {
                 "name": "tp6m",
@@ -30394,6 +30438,7 @@
             "type": ["opt"]
         },
         "run": {
+            "chunk": 23,
             "framework": "browsertime",
             "suite": {
                 "name": "tp6m",
@@ -30409,6 +30454,9 @@
             "type": ["opt"]
         },
         "run": {
+            "browser": "nightly",
+            "chunk": 7,
+            "cold_start": true,
             "framework": "browsertime",
             "suite": {
                 "name": "tp6m",
@@ -30485,6 +30533,24 @@
                 "name": "tp6",
                 "type": "vismet"
             }
+        }
+    },
+    "test-vismet-linux64-shippable/opt-browsertime-tp6-firefox-amazon-wr": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "linux64",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "firefox",
+            "framework": "browsertime",
+            "site": "amazon",
+            "suite": {
+                "name": "tp6",
+                "type": "vismet"
+            },
+            "type": ["webrender"]
         }
     },
     "test-vismet-macosx1014-64-shippable/opt-browsertime-tp6-firefox-condprof-amazon": {

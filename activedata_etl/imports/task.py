@@ -259,6 +259,16 @@ CATEGORIES = OrderedDict({
             "action": {"type": "perf"},
             "run": {"framework": "browsertime"},
         },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{TEST_CHUNK}}-{{BROWSER}}-{{RUN_OPTIONS}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+        "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-browsertime-tp6m-{{TEST_CHUNK}}-{{BROWSER}}": {
+            "action": {"type": "perf"},
+            "run": {"framework": "browsertime"},
+        },
+
+
         # BASIC TEST FORMAT
         "{{TEST_PLATFORM}}/{{BUILD_TYPE}}-{{TEST_SUITE}}-{{TEST_CHUNK}}": {
             "action": {"type": "test"}
@@ -451,7 +461,7 @@ RUN_OPTIONS = {
     "webgpu-fis": {"run": {"type": ["webgpu", "fis"]}},  # fission
     "wr-1proc": {"run": {"type": ["webrender", "1proc"]}},  # wr = webrender
     "wr-e10s": {"run": {"type": ["webrender", "e10s"]}},  # wr = webrender
-
+    "wr": {"run": {"type": ["webrender"]}},  # wr = webrender
 }
 
 TALOS_TEST = {
@@ -589,9 +599,9 @@ SITE = {
 }
 
 BROWSER = {
-    "23-cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
-    "7-cold-nightly-arm64-v8a":{},
-    "16-cold-nightly-arm64-v8a":{},
+    "cold-performance-test-arm64-v8a": {},  # NOT A CLUE WHAT THIS IS
+    "cold-nightly-arm64-v8a":{"run": {"browser": "nightly", "cold_start": True}},
+    "cold-nightly-armeabi-v7a": {"run": {"browser": "nightly", "cold_start": True}},
     "chrome-cold": {"run": {"browser": "chrome", "cold_start": True}},
     "chrome": {"run": {"browser": "chrome"}},
     "chromium-cold": {"run": {"browser": "chromium", "cold_start": True}},
@@ -669,8 +679,10 @@ TEST_SUITE = {
         "mochitest-thunderbird",
         "mochitest-valgrind",
         "mochitest-webgl1-core",
+        "mochitest-webgl1-ext-gli",
         "mochitest-webgl1-ext",
         "mochitest-webgl2-core",
+        "mochitest-webgl2-ext-gli",
         "mochitest-webgl2-ext",
         "mochitest-webgl",
         "mochitest",
@@ -901,17 +913,18 @@ SPECIAL_BUILDS = {
     },
 }
 
-SPECIAL_TESTS ={
-    "android-feature-containers":{},
-    "android-feature-pwa":{},
-    "android-feature-sitepermissions":{},
-    "android-feature-top-sites":{},
+SPECIAL_TESTS = {
+    "android-feature-containers": {},
+    "android-feature-pwa": {},
+    "android-feature-sitepermissions": {},
+    "android-feature-top-sites": {},
+    "android-feature-share": {},
     "debug": {},
     "ui-browser": {},
     "ui-glean": {},
     "ui": {},
     "nightly": {},
-    "unit-browser-engine-gecko-nightly":{}
+    "unit-browser-engine-gecko-nightly": {}
 }
 
 COMPILED_CATEGORIES = {
