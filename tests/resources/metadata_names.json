@@ -556,6 +556,7 @@
     "build-nightly-lib-push-firebase": {"action": {"type": "build"}},
     "build-nightly-service-fretboard": {"action": {"type": "build"}},
     "build-nightly-service-telemetry": {"action": {"type": "build"}},
+    "build-nightly-simulation": {"action": {"type": "build"}},
     "build-nightly-support-base": {"action": {"type": "build"}},
     "build-nightly-support-ktx": {"action": {"type": "build"}},
     "build-nightly-support-locale": {"action": {"type": "build"}},
@@ -4822,6 +4823,18 @@
         "run": {
             "suite": {"name": "mochitest"},
             "type": ["gpu", "service-worker", "e10s"]
+        }
+    },
+    "test-linux1804-64/debug-mochitest-plain-fis-xorig-e10s-8": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "linux64",
+            "type": ["debug"]
+        },
+        "run": {
+            "chunk": 8,
+            "suite": {"name": "mochitest-plain"},
+            "type": ["e10s", "xorig", "e10s"]
         }
     },
     "test-linux1804-64/debug-mochitest-webgpu-spi-nw-e10s": {

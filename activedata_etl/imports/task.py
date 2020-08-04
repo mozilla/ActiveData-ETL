@@ -408,6 +408,7 @@ RUN_OPTIONS = {
     "e10s-e10s": {"run": {"type": ["e10s"]}},
     "e10": {"run": {"type": ["e10s"]}},  # TYPO
     "e10s-spi": {"run": {"type": ["e10s", "spi"]}},
+    "fis-xorig-e10s": {"run": {"type": ["e10s", "xorig", "e10s"]}},
     "fis-e10s": {"run": {"type": ["e10s", "fis"]}},
     "fis": {"run": {"type": ["fis"]}},  # fission
     "gpu-1proc": {"run": {"type": ["gpu", "1proc"]}},
@@ -881,6 +882,7 @@ SPECIAL_BUILDS = {
     "nightly-lib-push-firebase": {},
     "nightly-service-fretboard": {},
     "nightly-service-telemetry": {},
+    "nightly-simulation": {},
     "nightly-support-base": {},
     "nightly-support-ktx": {},
     "nightly-support-locale": {},

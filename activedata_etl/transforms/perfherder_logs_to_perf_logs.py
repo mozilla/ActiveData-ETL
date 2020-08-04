@@ -604,6 +604,8 @@ KNOWN_PERFHERDER_TESTS = [
     "bloom_basic_singleton",
     "bloom_basic",
     "build times",
+    "bugbug_push_schedules_time",
+    "bugbug_push_schedules_retries",
     "cart",
     "chromez",
     "chrome",
