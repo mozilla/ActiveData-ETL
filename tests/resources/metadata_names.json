@@ -3762,6 +3762,37 @@
             "type": ["e10s"]
         }
     },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-live-chrome-m-cold-stackoverflow-question-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "stackoverflow-question",
+            "suite": {"name": "tp6m-live"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-live-chrome-m-cold-wikia-marvel-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "wikia-marvel-e10s",
+            "suite": {"name": "tp6m-live"}
+        }
+    },
     "test-android-hw-g5-7-0-arm7-api-16-shippable/opt-browsertime-tp6m-live-fenix-cold-urbandictionary-define-e10s": {
         "action": {"type": "perf"},
         "build": {
@@ -3842,6 +3873,22 @@
             "cold_start": true,
             "framework": "browsertime",
             "site": "google-accounts",
+            "suite": {"name": "tp6m-live"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-g5-7-0-arm7-api-16/opt-browsertime-tp6m-live-chrome-m-cold-medium-article-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "medium-article",
+            "suite": {"name": "tp6m-live"},
             "type": ["e10s"]
         }
     },
@@ -3978,6 +4025,7 @@
             "cold_start": true,
             "framework": "browsertime",
             "site": "bbc",
+            "suite": {"name": "tp6m-live"},
             "type": ["e10s"]
         }
     },
@@ -3992,6 +4040,7 @@
             "cold_start": true,
             "framework": "browsertime",
             "site": "microsoft-support",
+            "suite": {"name": "tp6m-live"},
             "type": ["e10s"]
         }
     },
@@ -4105,6 +4154,38 @@
             "type": ["e10s", "qr"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-mobile-refbrow-youtube-playback-vp9-sfr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "refbrow",
+            "framework": "browsertime",
+            "suite": {"name": "youtube-playback-vp9-sfr"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-chrome-m-cold-amazon-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "train": "shippable",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "amazon",
+            "suite": {"name": "tp6m"},
+            "type": ["e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64-shippable/opt-browsertime-tp6m-fennec-bbc-wr-1proc": {
         "action": {"type": "perf"},
         "build": {
@@ -4203,6 +4284,38 @@
             "type": ["webrender", "e10s"]
         }
     },
+    "test-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-live-chrome-m-cold-rumble-fox-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "chrome",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "rumble-fox",
+            "suite": {"name": "tp6m-live"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-live-fenix-cold-people-article-wr-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "cold_start": true,
+            "framework": "browsertime",
+            "site": "people-article",
+            "suite": {"name": "tp6m-live"},
+            "type": ["webrender", "e10s"]
+        }
+    },
     "test-android-hw-p2-8-0-android-aarch64/opt-mochitest-webgl-10": {
         "action": {"type": "test"},
         "build": {
@@ -4226,6 +4339,20 @@
             "browser": "fenix",
             "framework": "raptor",
             "suite": {"name": "scn-cpu-idle"},
+            "type": ["e10s"]
+        }
+    },
+    "test-android-hw-p2-8-0-android-aarch64/opt-raptor-scn-cpu-memory-power-idle-fenix-e10s": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "fenix",
+            "framework": "raptor",
+            "suite": {"name": "scn-cpu-memory-power-idle"},
             "type": ["e10s"]
         }
     },
@@ -30412,6 +30539,24 @@
             }
         }
     },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-10-cold-nightly-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "nightly",
+            "chunk": 10,
+            "cold_start": true,
+            "framework": "browsertime",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
     "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-16-cold-nightly-arm64-v8a": {
         "action": {"type": "perf"},
         "build": {
@@ -30439,6 +30584,24 @@
         },
         "run": {
             "chunk": 23,
+            "framework": "browsertime",
+            "suite": {
+                "name": "tp6m",
+                "type": "vismet"
+            }
+        }
+    },
+    "test-vismet-android-hw-p2-8-0-android-aarch64/opt-browsertime-tp6m-25-cold-nightly-arm64-v8a": {
+        "action": {"type": "perf"},
+        "build": {
+            "cpu": "aarch64",
+            "platform": "android",
+            "type": ["opt"]
+        },
+        "run": {
+            "browser": "nightly",
+            "chunk": 25,
+            "cold_start": true,
             "framework": "browsertime",
             "suite": {
                 "name": "tp6m",
@@ -39915,6 +40078,19 @@
             "suite": {"name": "mochitest-media"}
         }
     },
+    "test-windows7-32-devedition/opt-mochitest-media-gli-e10s-2": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "train": "devedition",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 2,
+            "suite": {"name": "mochitest-media-gli"},
+            "type": ["e10s"]
+        }
+    },
     "test-windows7-32-devedition/opt-mochitest-webgl-1": {
         "action": {"type": "test"},
         "build": {
@@ -40009,6 +40185,31 @@
         "run": {
             "chunk": 8,
             "suite": {"name": "mochitest-webgl"}
+        }
+    },
+    "test-windows7-32-devedition/opt-mochitest-webgl2-core-gli-e10s": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "train": "devedition",
+            "type": ["opt"]
+        },
+        "run": {
+            "suite": {"name": "mochitest-webgl2-core-gli"},
+            "type": ["e10s"]
+        }
+    },
+    "test-windows7-32-devedition/opt-mochitest-webgl2-ext-gli-e10s-4": {
+        "action": {"type": "test"},
+        "build": {
+            "platform": "win32",
+            "train": "devedition",
+            "type": ["opt"]
+        },
+        "run": {
+            "chunk": 4,
+            "suite": {"name": "mochitest-webgl2-ext-gli"},
+            "type": ["e10s"]
         }
     },
     "test-windows7-32-devedition/opt-reftest-1": {
