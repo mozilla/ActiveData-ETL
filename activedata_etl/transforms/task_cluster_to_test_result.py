@@ -9,6 +9,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+from mo_future import first
+
 from mo_dots import listwrap
 from mo_json import json2value
 from mo_logs import Log, machine_metadata
@@ -48,7 +50,9 @@ def process(source_key, source, destination, resources, please_stop=None):
         task = json2value(line)
         etl = task.etl
         artifacts = task.task.artifacts
+        tags = task.task.tags  # KEEP THE TAGS
         minimize_task(task)
+        task.task.tags = tags
 
         # REVIEW THE ARTIFACTS, LOOK FOR STRUCTURED LOGS
         for j, a in enumerate(listwrap(artifacts)):
@@ -58,15 +62,24 @@ def process(source_key, source, destination, resources, please_stop=None):
                     dest_key, dest_etl = etl_header_gen.next(etl, name=a.name)
                     dest_etl.machine = machine_metadata
                     dest_etl.url = a.url
-                    process_unittest(dest_key, dest_etl, task, lines, destination, please_stop=please_stop)
+                    process_unittest(
+                        dest_key,
+                        dest_etl,
+                        task,
+                        lines,
+                        destination,
+                        please_stop=please_stop,
+                    )
                     file_num += 1
                     output.append(dest_key)
             except Exception as cause:
                 if Date(a.expires) < Date.now():
-                    Log.note("Expired url: expires={{date}} url={{url}}", date=Date(a.expires), url=a.url)
+                    Log.note(
+                        "Expired url: expires={{date}} url={{url}}",
+                        date=Date(a.expires),
+                        url=a.url,
+                    )
                     continue  # ARTIFACT IS GONE
                 Log.error("could not access {{url}}", url=a.url, cause=cause)
 
     return output
-
-
