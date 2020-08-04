@@ -554,7 +554,7 @@ class HgMozillaOrg(object):
             # branch.url = _trim(url)  # RECORD THIS SUCCESS IN THE BRANCH
             return data
         except Exception as e:
-            path = url.split("/")
+            path = text(url).split("/")
             if path[3] == "l10n-central":
                 # FROM https://hg.mozilla.org/l10n-central/tr/json-pushes?full=1&changeset=a6eeb28458fd
                 # TO   https://hg.mozilla.org/mozilla-central/json-pushes?full=1&changeset=a6eeb28458fd
