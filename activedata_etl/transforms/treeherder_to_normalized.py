@@ -10,16 +10,14 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import mo_math
-
 from activedata_etl import etl2key, key2etl
-from activedata_etl.transforms import TRY_AGAIN_LATER
-from activedata_etl.transforms.pulse_block_to_task_cluster import coalesce_w_conflict_detection
-from mo_dots import Data, listwrap, wrap, set_default, is_data, Null
+from activedata_etl.transforms import TRY_AGAIN_LATER, coalesce_w_conflict_detection
+from jx_elasticsearch import elasticsearch
+from mo_dots import Data, listwrap, wrap, set_default, Null
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
 from mo_logs import Log, machine_metadata, strings, Except
 from mo_times.dates import Date
-from jx_elasticsearch import elasticsearch
 from pyLibrary.env import git
 
 DEBUG = True

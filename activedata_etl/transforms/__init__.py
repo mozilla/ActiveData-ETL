@@ -9,14 +9,14 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-from mo_dots import Data, literal_field, set_default
+from mo_json import null
+from mo_logs import Log
+
+from mo_dots import Data, set_default, Null
 from mo_future import text
-from mo_json import json2value
-from mo_logs import Log, strings
-from mo_times.dates import Date
-from mo_times.timer import Timer
-from pyLibrary.env import git
 from mo_http import http
+from mo_times.dates import Date
+from pyLibrary.env import git
 
 DEBUG = False
 DEBUG_SHOW_LINE = True
@@ -169,4 +169,74 @@ class EtlHeadGenerator(object):
 
         return dest_key, dest_etl
 
+
+def coalesce_w_conflict_detection(source_key, *args):
+    if len(args) < 2:
+        Log.error("bad call to coalesce, expecting source_key as first parameter")
+
+    output = KNOWN_COALESCE_CONFLICTS.get(args, Null)
+    if output is not Null:
+        return output
+
+    output = Null
+    for a in args:
+        if a == None:
+            continue
+        if output == None:
+            output = a
+        elif a != output:
+            Log.warning(
+                "tried to coalesce {{values_|json}} while processing {{key}}",
+                key=source_key,
+                values_=args,
+            )
+        else:
+            pass
+    return output
+
+
+KNOWN_COALESCE_CONFLICTS = {
+    (null, null, null, null, null, "mozilla-esr78", null, "comm-esr78"): (
+        "mozilla-esr78"
+    ),
+    (null, null, null, null, null, null, "firefox", null, null, null, "browser",): (
+        "firefox"
+    ),
+    (null, null, null, null, "mozilla-central", null, "comm-central",): (
+        "mozilla-central"
+    ),
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null,): (
+        "thunderbird"
+    ),
+    (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-central", null, "try-comm-central",): (
+        "mozilla-central"
+    ),
+    (null, null, null, null, null, "mozilla-central", null, "comm-central",): (
+        "mozilla-central"
+    ),
+    (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
+    (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60",): (
+        "mozilla-esr60"
+    ),
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta",): (
+        "gecko-dev.git"
+    ),
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release",): (
+        "gecko-dev.git"
+    ),
+    (null, null, null, null, null, "try", null, "try-comm-central"): "try",
+    ("jsreftest", "reftest"): "jsreftest",
+    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null,): (
+        "win64-aarch64-devedition"
+    ),
+    ("android-x86_64", null, "android", null, null): "android-x86_64",
+    (null, null, null, null, null, null, "thunderbird", null, null, null, "mail",): (
+        "thunderbird"
+    ),
+    (null, null, null, null, null, "mozilla-esr68", null, "comm-esr68"): (
+        "mozilla-esr68"
+    ),
+}
 
