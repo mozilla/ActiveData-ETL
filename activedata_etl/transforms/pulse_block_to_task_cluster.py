@@ -25,7 +25,16 @@ from activedata_etl.transforms import (
     TC_MAIN_URL,
 )
 from jx_python import jx
-from mo_dots import set_default, Data, unwraplist, listwrap, wrap, coalesce, Null, is_data
+from mo_dots import (
+    set_default,
+    Data,
+    unwraplist,
+    listwrap,
+    wrap,
+    coalesce,
+    Null,
+    is_data,
+)
 from mo_files import URL, mimetype
 from mo_future import text
 from mo_hg.hg_mozilla_org import minimize_repo
@@ -78,9 +87,7 @@ def process(source_key, source, destination, resources, please_stop=None):
                 if not source_etl:
                     # USE ONE SOURCE ETL, OTHERWISE WE MAKE TOO MANY KEYS
                     source_etl = etl
-                    if (
-                        not source_etl.source.source
-                    ):  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+                    if not source_etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
                         source_etl.source.type = "join"
                         source_etl.source.source = {"id": "tc"}
 
@@ -123,10 +130,14 @@ def process(source_key, source, destination, resources, please_stop=None):
 
             # get the artifact list for the taskId
             try:
-                artifacts = normalized.task.artifacts = http.get_json(
-                    strings.expand_template(TC_ARTIFACTS_URL, {"task_id": task_id}),
-                    retry=TC_RETRY,
-                ).artifacts
+                artifacts = normalized.task.artifacts = (
+                    http
+                    .get_json(
+                        strings.expand_template(TC_ARTIFACTS_URL, {"task_id": task_id}),
+                        retry=TC_RETRY,
+                    )
+                    .artifacts
+                )
             except Exception as e:
                 Log.error(
                     TRY_AGAIN_LATER,
@@ -148,10 +159,17 @@ def process(source_key, source, destination, resources, please_stop=None):
                             pass
                         elif "DECRYPTION_FAILED_OR_BAD_RECORD_MAC" in e:
                             # HAPPENS WHEN ETL RUNS BEFORE AWS HAS MACHINE FULLY SETUP
-                            Log.error(TRY_AGAIN_LATER, reason="Unhappy network state", cause=e)
-                        elif "Error -3 while decompressing data: incorrect data check" in e:
+                            Log.error(
+                                TRY_AGAIN_LATER, reason="Unhappy network state", cause=e
+                            )
+                        elif (
+                            "Error -3 while decompressing data: incorrect data check"
+                            in e
+                        ):
                             # HAPPENS WHEN ETL RUNS BEFORE AWS HAS MACHINE FULLY SETUP
-                            Log.error(TRY_AGAIN_LATER, reason="Unhappy network state", cause=e)
+                            Log.error(
+                                TRY_AGAIN_LATER, reason="Unhappy network state", cause=e
+                            )
                         elif TRY_AGAIN_LATER in e:
                             Log.error(
                                 "Aborting processing of {{url}} for key={{key}}",
@@ -174,9 +192,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             if not source_etl:
                 # USE ONE SOURCE ETL, OTHERWISE WE MAKE TOO MANY KEYS
                 source_etl = etl
-                if (
-                    not source_etl.source.source
-                ):  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
+                if not source_etl.source.source:  # FIX ONCE TC LOGGER IS USING "tc" PREFIX FOR KEYS
                     source_etl.source.type = "join"
                     source_etl.source.source = {"id": "tc"}
             normalized.etl = {
@@ -210,9 +226,7 @@ def process(source_key, source, destination, resources, please_stop=None):
             if TRY_AGAIN_LATER in e:
                 raise e
             elif mo_math.round(e.params.code, decimal=-2) == 500:
-                Log.error(
-                    TRY_AGAIN_LATER, reason="error code " + text(e.params.code)
-                )
+                Log.error(TRY_AGAIN_LATER, reason="error code " + text(e.params.code))
             else:
                 Log.warning(
                     "TaskCluster line not processed for key {{key}}: {{line|quote}}",
@@ -385,9 +399,9 @@ def _normalize(source_key, task_id, tc_message, task, resources):
         command = [
             cc for c in (command if command else cmd) for cc in listwrap(c)
         ]  # SOMETIMES A LIST OF LISTS
-        output.task.command = " ".join(
-            map(convert.string2quote, map(text.strip, command))
-        )
+        output.task.command = " ".join(map(
+            convert.string2quote, map(text.strip, command)
+        ))
     except Exception as e:
         Log.error("problem", cause=e)
 
@@ -406,7 +420,8 @@ def _normalize(source_key, task_id, tc_message, task, resources):
                 pass
             else:
                 Log.warning(
-                    "extra.treeherder platform does not match treeherder for key {{key}}",
+                    "extra.treeherder platform does not match treeherder for key"
+                    " {{key}}",
                     key=source_key,
                 )
         except Exception:
@@ -421,14 +436,12 @@ def _normalize(source_key, task_id, tc_message, task, resources):
     output.run.type = unwraplist(list(set(listwrap(output.run.type))))
 
     # PROPERTIES THAT HAVE NOT BEEN HANDLED
-    remaining_keys = (
-        set(k for k, v in task.leaves())
-        - new_seen_tc_properties
-    )
+    remaining_keys = set(k for k, v in task.leaves()) - new_seen_tc_properties
     if remaining_keys:
         list(map(new_seen_tc_properties.add, remaining_keys))
         Log.warning(
-            "Some properties ({{props|json}}) are not consumed while processing key {{key}}",
+            "Some properties ({{props|json}}) are not consumed while processing key"
+            " {{key}}",
             key=source_key,
             props=remaining_keys,
         )
@@ -530,20 +543,18 @@ def _normalize_run(source_key, normalized, task, env):
     metadata_name = consume(task, "metadata.name")
     set_default(
         normalized,
-        {
-            "run": {
-                "key": coalesce(
-                    consume(task, "payload.buildername"), consume(task, "tags.label")
-                ),
-                "name": metadata_name,
-                "machine": normalized.treeherder.machine,
-                "suite": {"name": test, "flavor": flavor, "fullname": fullname},
-                "chunk": chunk,
-                "type": unwraplist(list(set(run_type))),
-                # "trigger": trigger,
-                "timestamp": normalized.task.run.start_time,
-            }
-        },
+        {"run": {
+            "key": coalesce(
+                consume(task, "payload.buildername"), consume(task, "tags.label")
+            ),
+            "name": metadata_name,
+            "machine": normalized.treeherder.machine,
+            "suite": {"name": test, "flavor": flavor, "fullname": fullname},
+            "chunk": chunk,
+            "type": unwraplist(list(set(run_type))),
+            # "trigger": trigger,
+            "timestamp": normalized.task.run.start_time,
+        }},
         decode_metatdata_name(source_key, metadata_name),
     )
 
@@ -563,75 +574,69 @@ def set_build_info(source_key, normalized, task, env, resources):
 
     set_default(
         normalized,
-        {
-            "build": {
-                "id": coalesce_w_conflict_detection(
-                    source_key,
-                    consume(task, "extra.buildid"),
-                    consume(task, "payload.releaseProperties.buildid"),
-                ),
-                "name": consume(task, "extra.build_name"),
-                "product": coalesce_w_conflict_detection(
-                    source_key,
-                    consume(task, "payload.properties.product").lower(),
-                    consume(task, "payload.releaseProperties.appName").lower(),
-                    consume(task, "tags.build_props.product").lower(),
-                    consume(task, "extra.build_props.product").lower(),
-                    task.extra.treeherder.productName.lower(),
-                    consume(task, "extra.build_product").lower(),
-                    consume(task, "extra.product")
-                    .lower()
-                    .replace("devedition", "firefox"),
-                    consume(task, "payload.product").lower(),
-                    "firefox"
-                    if is_data(task.extra.suite)
-                    and task.extra.suite.name.startswith("firefox")
-                    else Null,
-                    "firefox"
-                    if any(
-                        r.startswith("index.gecko.v2.try.latest.firefox.")
-                        for r in normalized.task.routes
-                    )
-                    else Null,
-                    consume(task, "extra.app-name"),
-                ),
-                "platform": coalesce_w_conflict_detection(
-                    source_key,
-                    _simplify_platform(
-                        consume(task, "payload.releaseProperties.platform")
-                    ),
-                    _simplify_platform(task.extra.treeherder.build.platform),
-                    _simplify_platform(task.extra.treeherder.machine.platform),
-                    consume(task, "extra.build_props.platform"),
-                    consume(task, "extra.platform"),
-                ),
-                # MOZILLA_BUILD_URL looks like this:
-                # https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2
-                "url": env.MOZILLA_BUILD_URL,
-                "revision": coalesce_w_conflict_detection(
-                    source_key,
-                    consume(task, "tags.build_props.revision"),
-                    consume(task, "extra.build_props.revision"),
-                    consume(task, "payload.sourcestamp.revision"),
-                    consume(task, "payload.properties.revision"),
-                    env.GECKO_HEAD_REV,
-                ),
-                "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
-                "version": coalesce_w_conflict_detection(
-                    source_key,
-                    consume(task, "extra.build_props.version"),
-                    consume(task, "tags.build_props.version"),
-                    consume(task, "payload.releaseProperties.appVersion"),
-                    consume(task, "payload.app_version"),
-                ),
-                "channel": coalesce_w_conflict_detection(
-                    source_key,
-                    consume(task, "payload.properties.channels"),
-                    consume(task, "extra.channel"),
-                    consume(task, "payload.channel"),
-                ),
-            }
-        },
+        {"build": {
+            "id": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "extra.buildid"),
+                consume(task, "payload.releaseProperties.buildid"),
+            ),
+            "name": consume(task, "extra.build_name"),
+            "product": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "payload.properties.product").lower(),
+                consume(task, "payload.releaseProperties.appName").lower(),
+                consume(task, "tags.build_props.product").lower(),
+                consume(task, "extra.build_props.product").lower(),
+                task.extra.treeherder.productName.lower(),
+                consume(task, "extra.build_product").lower(),
+                consume(task, "extra.product").lower().replace("devedition", "firefox"),
+                consume(task, "payload.product").lower(),
+                "firefox"
+                if is_data(task.extra.suite)
+                and task.extra.suite.name.startswith("firefox")
+                else Null,
+                "firefox"
+                if any(
+                    r.startswith("index.gecko.v2.try.latest.firefox.")
+                    for r in normalized.task.routes
+                )
+                else Null,
+                consume(task, "extra.app-name"),
+            ),
+            "platform": coalesce_w_conflict_detection(
+                source_key,
+                _simplify_platform(consume(task, "payload.releaseProperties.platform")),
+                _simplify_platform(task.extra.treeherder.build.platform),
+                _simplify_platform(task.extra.treeherder.machine.platform),
+                consume(task, "extra.build_props.platform"),
+                consume(task, "extra.platform"),
+            ),
+            # MOZILLA_BUILD_URL looks like this:
+            # https://queue.taskcluster.net/v1/task/e6TfNRfiR3W7ZbGS6SRGWg/artifacts/public/build/target.tar.bz2
+            "url": env.MOZILLA_BUILD_URL,
+            "revision": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "tags.build_props.revision"),
+                consume(task, "extra.build_props.revision"),
+                consume(task, "payload.sourcestamp.revision"),
+                consume(task, "payload.properties.revision"),
+                env.GECKO_HEAD_REV,
+            ),
+            "type": listwrap({"dbg": "debug"}.get(build_type, build_type)),
+            "version": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "extra.build_props.version"),
+                consume(task, "tags.build_props.version"),
+                consume(task, "payload.releaseProperties.appVersion"),
+                consume(task, "payload.app_version"),
+            ),
+            "channel": coalesce_w_conflict_detection(
+                source_key,
+                consume(task, "payload.properties.channels"),
+                consume(task, "extra.channel"),
+                consume(task, "payload.channel"),
+            ),
+        }},
     )
 
     if "-ccov" in normalized.build.platform:
@@ -648,9 +653,10 @@ def set_build_info(source_key, normalized, task, env, resources):
         consume(task, "payload.releaseProperties.branch"),
         consume(task, "payload.branch"),
         consume(task, "payload.sourcestamp.branch").split("/")[-1],
-        env.GECKO_HEAD_REPOSITORY.strip("/").split("/")[
-            -1
-        ],  # will look like "https://hg.mozilla.org/try/"
+        env
+        .GECKO_HEAD_REPOSITORY
+        .strip("/")
+        .split("/")[-1],  # will look like "https://hg.mozilla.org/try/"
         consume(task, "payload.properties.repo_path").split("/")[-1],
         env.MH_BRANCH,
     )
@@ -687,14 +693,12 @@ def set_build_info(source_key, normalized, task, env, resources):
             normalized.treeherder[l] = v
 
     # BUILD TYPES ARE SEPARATED BY DASH (-) AND SLASH (/)
-    collection = normalized.treeherder.collection = wrap(
-        {
-            kkk: v
-            for k, v in treeherder.collection.items()
-            for kk in k.split("/")
-            for kkk in kk.split("-")
-        }
-    )
+    collection = normalized.treeherder.collection = wrap({
+        kkk: v
+        for k, v in treeherder.collection.items()
+        for kk in k.split("/")
+        for kkk in kk.split("-")
+    })
     for k, v in BUILD_TYPES.items():
         if collection[k]:
             normalized.build.type += v
@@ -733,12 +737,10 @@ def get_build_task(source_key, resources, normalized_task):
     # "type":"opt",
     # "revision":"571286200177ae7ddfa1893c6b42853b60f2e81e"
 
-    build_task_id = listwrap(
-        coalesce(
-            strings.between(normalized_task.build.url, "task/", "/"),
-            normalized_task.task.dependencies,
-        )
-    )
+    build_task_id = listwrap(coalesce(
+        strings.between(normalized_task.build.url, "task/", "/"),
+        normalized_task.task.dependencies,
+    ))
     if not build_task_id:
         Log.warning(
             "Could not find build.url {{task}} in {{key}}",
@@ -789,9 +791,11 @@ def get_build_task(source_key, resources, normalized_task):
         return Null
 
     if normalized_task.build.revision12 != None:
-        candidate = candidates.filter(
-            lambda c: c.build.revision12 == normalized_task.build.revision12
-        ).last()
+        candidate = (
+            candidates
+            .filter(lambda c: c.build.revision12 == normalized_task.build.revision12)
+            .last()
+        )
 
         if not candidate:
             # if normalized_task.repo.branch.name in ["mozilla-central"]:
@@ -799,7 +803,8 @@ def get_build_task(source_key, resources, normalized_task):
             #     # TODO: REMOVE AFTER 2018, THEN FIGURE OUT IF THE TEST CAN RESOLVE TO THE CORRECT BUILD
             #     return None
             Log.warning(
-                "Could not find matching build task {{build}} for test {{task}} in {{key}}",
+                "Could not find matching build task {{build}} for test {{task}} in"
+                " {{key}}",
                 task=normalized_task.task.id,
                 build=build_task_id,
                 key=source_key,
@@ -885,121 +890,48 @@ def verify_tag(source_key, task_id, t):
 
 null = Null
 KNOWN_COALESCE_CONFLICTS = {
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "firefox",
-        null,
-        null,
-        null,
-        "browser",
-    ): "firefox",
-    (
-        null,
-        null,
-        null,
-        null,
-        "mozilla-central",
-        null,
-        "comm-central",
-    ): "mozilla-central",
-    (
-        null,
-        "thunderbird",
-        null,
-        null,
-        null,
-        null,
-        "firefox",
-        null,
-        null,
-        null,
-        null,
-    ): "thunderbird",
+    (null, null, null, null, null, "mozilla-esr78", null, "comm-esr78"): (
+        "mozilla-esr78"
+    ),
+    (null, null, null, null, null, null, "firefox", null, null, null, "browser",): (
+        "firefox"
+    ),
+    (null, null, null, null, "mozilla-central", null, "comm-central",): (
+        "mozilla-central"
+    ),
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null,): (
+        "thunderbird"
+    ),
     (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        "mozilla-central",
-        null,
-        "try-comm-central",
-    ): "mozilla-central",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        "mozilla-central",
-        null,
-        "comm-central",
-    ): "mozilla-central",
+    (null, null, null, null, null, "mozilla-central", null, "try-comm-central",): (
+        "mozilla-central"
+    ),
+    (null, null, null, null, null, "mozilla-central", null, "comm-central",): (
+        "mozilla-central"
+    ),
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        "mozilla-esr60",
-        null,
-        "comm-esr60",
-    ): "mozilla-esr60",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        "gecko-dev.git",
-        null,
-        "mozilla-beta",
-    ): "gecko-dev.git",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        "gecko-dev.git",
-        null,
-        "mozilla-release",
-    ): "gecko-dev.git",
+    (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60",): (
+        "mozilla-esr60"
+    ),
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta",): (
+        "gecko-dev.git"
+    ),
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release",): (
+        "gecko-dev.git"
+    ),
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
     ("jsreftest", "reftest"): "jsreftest",
-    (
-        "win64-aarch64-devedition",
-        null,
-        "windows2012-aarch64-devedition",
-        null,
-        null,
-    ): "win64-aarch64-devedition",
+    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null,): (
+        "win64-aarch64-devedition"
+    ),
     ("android-x86_64", null, "android", null, null): "android-x86_64",
-    (
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        "thunderbird",
-        null,
-        null,
-        null,
-        "mail",
-    ): "thunderbird",
-    (
-        null, null, null, null,
-        null, "mozilla-esr68", null, "comm-esr68"
-    ): "mozilla-esr68",
+    (null, null, null, null, null, null, "thunderbird", null, null, null, "mail",): (
+        "thunderbird"
+    ),
+    (null, null, null, null, null, "mozilla-esr68", null, "comm-esr68"): (
+        "mozilla-esr68"
+    ),
 }
 
 
@@ -1042,17 +974,13 @@ def _object_to_array(value, key_name, value_name=None):
         if value_name == None:
             return unwraplist([set_default(v, {key_name: k}) for k, v in value.items()])
         else:
-            return unwraplist(
-                [
-                    {
-                        key_name: k,
-                        value_name: strings.limit(v, 1000)
-                        if isinstance(v, text)
-                        else v,
-                    }
-                    for k, v in value.items()
-                ]
-            )
+            return unwraplist([
+                {
+                    key_name: k,
+                    value_name: strings.limit(v, 1000) if isinstance(v, text) else v,
+                }
+                for k, v in value.items()
+            ])
     except Exception as e:
         Log.error("unexpected", cause=e)
 
@@ -1171,7 +1099,7 @@ PAYLOAD_PROPERTIES = {
     "merge_info.base_tag",
     "merge_info.copy_files",
     "merge_info.end_tag",
-    "merge_info.from_branch"
+    "merge_info.from_branch",
     "merge_info.from_repo",
     "merge_info.merge_old_head",
     "merge_info.replacements",
@@ -1188,7 +1116,6 @@ PAYLOAD_PROPERTIES = {
     "partials",
     "partial_versions",
     "partners",
-
     "platforms",
     "publish_rules",
     "purge-caches-exit-status",

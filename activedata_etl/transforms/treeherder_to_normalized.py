@@ -13,6 +13,7 @@ import mo_math
 
 from activedata_etl import etl2key, key2etl
 from activedata_etl.transforms import TRY_AGAIN_LATER
+from activedata_etl.transforms.pulse_block_to_task_cluster import coalesce_w_conflict_detection
 from mo_dots import Data, listwrap, wrap, set_default, is_data, Null
 from mo_hg.hg_mozilla_org import minimize_repo
 from mo_json import json2value
@@ -383,27 +384,6 @@ def pull_details(source_key, details, new_treeherder):
         else:
             Log.warning("can not process detail with title of {{title}}", title=d.title)
     new_treeherder.job.details = details
-
-
-def coalesce_w_conflict_detection(source_key, *args):
-    output = None
-    for a in args:
-        if a == None:
-            continue
-        if is_data(a) and not a:
-            continue
-        if output == None:
-            output = a
-        elif a != output:
-            Log.warning(
-                "tried to coalesce {{values_|json}} while processing {{key}}",
-                key=source_key,
-                values_=args,
-            )
-        else:
-            pass
-    return output
-
 
 def consume(props, key):
     output = props[key]
