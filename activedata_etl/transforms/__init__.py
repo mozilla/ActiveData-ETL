@@ -196,47 +196,24 @@ def coalesce_w_conflict_detection(source_key, *args):
 
 
 KNOWN_COALESCE_CONFLICTS = {
-    (null, null, null, null, null, "mozilla-esr78", null, "comm-esr78"): (
-        "mozilla-esr78"
-    ),
-    (null, null, null, null, null, null, "firefox", null, null, null, "browser",): (
-        "firefox"
-    ),
-    (null, null, null, null, "mozilla-central", null, "comm-central",): (
-        "mozilla-central"
-    ),
-    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null,): (
-        "thunderbird"
-    ),
+    (null, null, "win64", null, "win64-aarch64"): "win64",
+    (null, null, "linux32", null, "linux-i686"): "linux32",
+    (null, null, null, null, null, "mozilla-esr78", null, "comm-esr78"): "mozilla-esr78",
+    (null, null, null, null, null, null, "firefox", null, null, null, "browser",): "firefox",
+    (null, null, null, null, "mozilla-central", null, "comm-central",): "mozilla-central",
+    (null, "thunderbird", null, null, null, null, "firefox", null, null, null, null,): "thunderbird",
     (null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
-    (null, null, null, null, null, "mozilla-central", null, "try-comm-central",): (
-        "mozilla-central"
-    ),
-    (null, null, null, null, null, "mozilla-central", null, "comm-central",): (
-        "mozilla-central"
-    ),
+    (null, null, null, null, null, "mozilla-central", null, "try-comm-central",): "mozilla-central",
+    (null, null, null, null, null, "mozilla-central", null, "comm-central",): "mozilla-central",
     (null, null, null, null, null, "mozilla-beta", null, "comm-beta"): "mozilla-beta",
-    (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60",): (
-        "mozilla-esr60"
-    ),
-    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta",): (
-        "gecko-dev.git"
-    ),
-    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release",): (
-        "gecko-dev.git"
-    ),
+    (null, null, null, null, null, "mozilla-esr60", null, "comm-esr60",): "mozilla-esr60",
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-beta",): "gecko-dev.git",
+    (null, null, null, null, null, "gecko-dev.git", null, "mozilla-release",): "gecko-dev.git",
     (null, null, null, null, null, "try", null, "try-comm-central"): "try",
     ("jsreftest", "reftest"): "jsreftest",
-    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null,): (
-        "win64-aarch64-devedition"
-    ),
+    ("win64-aarch64-devedition", null, "windows2012-aarch64-devedition", null, null,): "win64-aarch64-devedition",
     ("android-x86_64", null, "android", null, null): "android-x86_64",
-    (null, null, null, null, null, null, "thunderbird", null, null, null, "mail",): (
-        "thunderbird"
-    ),
-    (null, null, null, null, null, "mozilla-esr68", null, "comm-esr68"): (
-        "mozilla-esr68"
-    ),
+    (null, null, null, null, null, null, "thunderbird", null, null, null, "mail",): "thunderbird",
+    (null, null, null, null, null, "mozilla-esr68", null, "comm-esr68"): "mozilla-esr68",
 }
-
