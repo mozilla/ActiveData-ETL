@@ -99,7 +99,6 @@ def normalize(source_key, resources, raw_treeherder, new_treeherder):
         consume(raw_job, "job_type.job_group"),
         consume(raw_job, "signature.job_group_name"),
         consume(raw_job, "job_group.name"),
-        consume(raw_job, "job_group"),
     )
 
     new_treeherder.job.guid = consume(raw_job, "guid")
