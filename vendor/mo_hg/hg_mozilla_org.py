@@ -491,6 +491,7 @@ class HgMozillaOrg(object):
         r.desc = None
         r.description = None
         r.date = None
+        r.diff = None
         r.files = None
         r.backedoutby = None
         r.parents = None
@@ -515,7 +516,15 @@ class HgMozillaOrg(object):
 
         # ADD THE DIFF
         if get_diff:
+            # TODO Use `r.diff` rather than querying for it. Just need to make
+            # sure they are both in the same format to avoid breaking
+            # consumers.
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
+
+        # Ensure 'files' is a list of paths. After Mercurial 5.5 each file
+        # object became `{'file': <path>, 'status': 'modified'}`.
+        if rev.files and isinstance(rev.files[0], dict):
+            rev.files = [d['file'] for d in rev.files]
 
         try:
             _id = (
@@ -817,4 +826,5 @@ KNOWN_TAGS = {
     "backsoutnodes",
     "treeherderrepo",
     "perfherderurl",
+    "diff",
 }
