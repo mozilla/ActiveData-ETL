@@ -456,13 +456,21 @@ class HgMozillaOrg(object):
                 url=found_revision.branch.url,
             )
 
+        # Ensure 'files' is a list of paths. After Mercurial 5.5 each file
+        # object became `{'file': <path>, 'status': 'modified'}`.
+        files = set()
+        for f in r.files:
+            if isinstance(f, Data):
+                f = f['file']
+            files.add(f)
+
         changeset = Changeset(
             id=r.node,
             id12=r.node[0:12],
             author=coalesce(r.author, r.user),
             description=strings.limit(coalesce(r.description, r.desc), 2000),
             date=parse_hg_date(r.date),
-            files=r.files,
+            files=sorted(files),
             backedoutby=r.backedoutby,
             backsoutnodes=r.backsoutnodes,
             bug=mo_math.UNION(
@@ -520,11 +528,6 @@ class HgMozillaOrg(object):
             # sure they are both in the same format to avoid breaking
             # consumers.
             rev.changeset.diff = self._get_json_diff_from_hg(rev)
-
-        # Ensure 'files' is a list of paths. After Mercurial 5.5 each file
-        # object became `{'file': <path>, 'status': 'modified'}`.
-        if rev.files and isinstance(rev.files[0], dict):
-            rev.files = [d['file'] for d in rev.files]
 
         try:
             _id = (
