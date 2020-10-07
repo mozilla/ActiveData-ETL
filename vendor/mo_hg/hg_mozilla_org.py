@@ -276,6 +276,7 @@ class HgMozillaOrg(object):
         id12 = found_revision.changeset.id[0:12]
         base_url = URL(found_revision.branch.url)
 
+        Log.note("Querying {{url}} for {{rev}}", url=base_url, rev=id12)
         with Explanation("get revision from {{url}}", url=base_url, debug=DEBUG):
             raw_rev2 = Null
             automation_details = Null
