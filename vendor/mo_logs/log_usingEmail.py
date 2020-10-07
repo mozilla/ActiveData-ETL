@@ -46,8 +46,8 @@ class StructuredLogger_usingEmail(StructuredLogger):
 
         settings = {
             "log_type":"email",
-            "from_address": "klahnakoski@mozilla.com",
-            "to_address": "klahnakoski@mozilla.com",
+            "from_address": "active-data-maintainers@mozilla.com",
+            "to_address": "active-data-maintainers@mozilla.com",
             "cc":[
                 {"to_address":"me@example.com", "where":{"eq":{"template":"gr"}}}
             ],

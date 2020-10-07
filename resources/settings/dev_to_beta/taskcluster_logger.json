@@ -31,8 +31,8 @@
 			{"log_type":"console"},
 			{
 				"log_type":"email",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
+				"from_address": "active-data-maintainers@mozilla.com",
+				"to_address": "active-data-maintainers@mozilla.com",
 				"subject": "[ALERT][beta]Problem in Task Cluster Logger",
 				"$ref":"file://~/private.json#email"
 

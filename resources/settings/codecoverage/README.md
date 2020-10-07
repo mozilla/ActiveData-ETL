@@ -54,7 +54,7 @@ You must make your own `codecoverage.json` file. The config files in the repo as
         "email":{
             "host": "smtp.gmail.com",
             "port": 465,
-            "username": "klahnakoski@mozilla.com",
+            "username": "active-data-maintainers@mozilla.com",
             "password": "password",
             "use_ssl": 1
         },

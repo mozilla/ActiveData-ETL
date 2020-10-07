@@ -37,8 +37,8 @@
 			},
 			{
 				"log_type": "email",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
+				"from_address": "active-data-maintainers@mozilla.com",
+				"to_address": "active-data-maintainers@mozilla.com",
 				"subject": "[ALERT][DEV] Problem reading branches from hg.mozilla.org",
 				"$ref": "file://~/codecoverage.json#email"
 			}

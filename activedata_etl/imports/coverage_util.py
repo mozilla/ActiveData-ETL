@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Contact: Kyle Lahnakoski (klahnakoski@mozilla.com)
+# Contact: ActiveData Maintainers (active-data-maintainers@mozilla.com)
 
 from __future__ import division
 from __future__ import unicode_literals

@@ -38,8 +38,8 @@
 			},
 			{
 				"log_type":"email",
-				"from_address": "klahnakoski@mozilla.com",
-				"to_address": "klahnakoski@mozilla.com",
+				"from_address": "active-data-maintainers@mozilla.com",
+				"to_address": "active-data-maintainers@mozilla.com",
 				"subject": "[ALERT][Beta]Problem in Pulse Logger",
 				"$ref":"file://~/private.json#email"
 

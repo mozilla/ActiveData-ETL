@@ -12,7 +12,7 @@
 # WITH ADDED default_headers THAT CAN BE SET USING mo_logs.settings
 # EG
 # {"debug.constants":{
-#     "mo_http.http.default_headers":{"From":"klahnakoski@mozilla.com"}
+#     "mo_http.http.default_headers":{"From":"active-data-maintainers@mozilla.com"}
 # }}
 
 
