@@ -9,7 +9,7 @@ Requirements
 
 * Local installation of Elasticsearch 1.7.x (**This is an old version**)
 * Elasticsearch Head will give you a view into your cluster health: `sudo bin/plugin install mobz/elasticsearch-head`
-* Forked-and-cloned copy of `git clone https://github.com/klahnakoski/ActiveData-ETL.git`
+* Forked-and-cloned copy of `git clone https://github.com/mozilla/ActiveData-ETL.git`
 
 
 Install
@@ -17,7 +17,7 @@ Install
 
 Fork the ActiveData-ETL repo, then clone it locally:
 
-    git clone https://github.com/klahnakoski/ActiveData-ETL.git
+    git clone https://github.com/mozilla/ActiveData-ETL.git
 
 be sure to use the `codecoverage` branch
 

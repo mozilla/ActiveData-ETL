@@ -1,7 +1,7 @@
 {
 	"no_checks": false,
 	"git": {
-		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+		"url":"https://github.com/mozilla/ActiveData-ETL.git",
 		"branch":"etl"
 	},
 	"range": {"min":280000},
