@@ -132,7 +132,7 @@ sudo yum install -y git-core
 #CLONE THE primary BRANCH
 cd ~
 rm -fr ~/ActiveData-ETL
-git clone https://github.com/klahnakoski/ActiveData-ETL.git
+git clone https://github.com/mozilla/ActiveData-ETL.git
 cd ~/ActiveData-ETL
 git checkout push-to-es6
 

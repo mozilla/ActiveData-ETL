@@ -7,7 +7,7 @@
 	},
 	"destination": "active-data-jobs", //HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 	"git": {
-		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
+		"url": "https://github.com/mozilla/ActiveData-ETL.git",
 		"branch": "etl"
 	},
 	"source": {

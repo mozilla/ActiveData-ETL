@@ -3,7 +3,7 @@
 	"range": {"min":2270000, "max":2285517},
 	"limit": 1,
 	"git": {
-		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
+		"url": "https://github.com/mozilla/ActiveData-ETL.git",
 		"branch": "etl"
 	},
 	"work_queue": {  //FILL THIS TO TRIGGER ETL ACTION
