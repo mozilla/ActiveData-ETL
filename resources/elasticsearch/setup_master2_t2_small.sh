@@ -82,7 +82,7 @@ ln -s  /data1/logs /home/ec2-user/logs
 
 # CLONE ActiveData-ETL
 cd ~
-git clone https://github.com/klahnakoski/ActiveData-ETL.git
+git clone https://github.com/mozilla/ActiveData-ETL.git
 git checkout dev
 git pull origin dev
 

@@ -17,7 +17,7 @@
 	},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"destination": "activedata-treeherder", // HUMANE HINT ON WHAT ETL TASK WILL DEAL WITH THE QUEUED MESSAGE
 //	"git": {
-//		"url": "https://github.com/klahnakoski/ActiveData-ETL.git",
+//		"url": "https://github.com/mozilla/ActiveData-ETL.git",
 //		"branch": "etl"
 //	},
 	"source": {

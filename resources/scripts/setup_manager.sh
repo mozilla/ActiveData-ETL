@@ -32,7 +32,7 @@ sudo ln -s /home/ec2-user/logs logs
 #}
 # INSTALL BUILDBOT IMPORT
 cd  /home/ec2-user
-git clone https://github.com/klahnakoski/ActiveData-ETL.git
+git clone https://github.com/mozilla/ActiveData-ETL.git
 cd /home/ec2-user/ActiveData-ETL/
 git checkout manager
 
@@ -59,7 +59,7 @@ sudo /usr/local/bin/pip install -r requirements.txt
 #}
 # INSTALL SpotManager
 cd  /home/ec2-user
-git clone https://github.com/klahnakoski/SpotManager.git
+git clone https://github.com/mozilla/ActiveData-SpotManager.git
 cd /home/ec2-user/SpotManager/
 git checkout manager
 sudo /usr/local/bin/pip install -r requirements.txt

@@ -6,7 +6,7 @@
 	},
 	"limit": 1000,
 	"git":{
-		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+		"url":"https://github.com/mozilla/ActiveData-ETL.git",
 		"branch":"etl"
 	},
 	"es_filter":{"lt":{"etl\\.timestamp":{"date":"2019-11-23"}}},

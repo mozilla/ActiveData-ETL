@@ -59,7 +59,7 @@ It is 2016, and Python is still hard on Windows.  It would be [a nice question f
 Configuration Files
 -------------------
 
-The configuration files, located in [`resources/settings`](https://github.com/klahnakoski/ActiveData-ETL/tree/dev/resources/settings), often point to a `private.json` config file outside the repository tree.  This file holds the credentials and access info required, and looks something like this:
+The configuration files, located in [`resources/settings`](https://github.com/mozilla/ActiveData-ETL/tree/dev/resources/settings), often point to a `private.json` config file outside the repository tree.  This file holds the credentials and access info required, and looks something like this:
 
 	{
 	    "email":{

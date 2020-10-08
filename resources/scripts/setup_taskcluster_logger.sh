@@ -7,7 +7,7 @@ sudo python27 get-pip.py
 
 cd  /home/ec2-user
 sudo yum -y install git
-git clone https://github.com/klahnakoski/ActiveData-ETL.git
+git clone https://github.com/mozilla/ActiveData-ETL.git
 cd /home/ec2-user/ActiveData-ETL/
 git checkout tc-logger
 

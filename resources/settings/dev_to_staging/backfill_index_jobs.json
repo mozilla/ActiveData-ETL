@@ -3,7 +3,7 @@
 	"range": {"max": 1000},  // RANGE OF ID THAT ARE CONSIDERED FOR PUSHING
 	"no_checks": true,
 	"git":{
-		"url":"https://github.com/klahnakoski/ActiveData-ETL.git",
+		"url":"https://github.com/mozilla/ActiveData-ETL.git",
 		"branch":"etl"
 	},
 	"source": {
