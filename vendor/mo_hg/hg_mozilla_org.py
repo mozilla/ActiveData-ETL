@@ -71,7 +71,7 @@ DAEMON_WAIT_AFTER_TIMEOUT = 10 * 60  # IF WE SEE A TIMEOUT, THEN WAIT
 WAIT_AFTER_NODE_FAILURE = (
     10 * 60
 )  # IF WE SEE A NODE FAILURE OR CLUSTER FAILURE, THEN WAIT
-WAIT_AFTER_CACHE_MISS = 120  # HOW LONG TO WAIT BETWEEN CACHE MISSES
+WAIT_AFTER_CACHE_MISS = 60 * 4  # HOW LONG IN SECONDS TO WAIT BETWEEN CACHE MISSES
 DAEMON_DO_NO_SCAN = ["try"]  # SOME BRANCHES ARE NOT WORTH SCANNING
 DAEMON_QUEUE_SIZE = 2 ** 15
 DAEMON_RECENT_HG_PULL = 2  # DETERMINE IF WE GOT DATA FROM HG (RECENT), OR ES (OLDER)
@@ -236,7 +236,7 @@ class HgMozillaOrg(object):
     def _get_from_hg(self, revision, locale=None, get_diff=False, get_moves=True):
         # RATE LIMIT CALLS TO HG (CACHE MISSES)
         next_cache_miss = self.last_cache_miss + (
-            Random.float(WAIT_AFTER_CACHE_MISS * 2) * SECOND
+            Random.float(WAIT_AFTER_CACHE_MISS) * SECOND
         )
         self.last_cache_miss = Date.now()
         if next_cache_miss > self.last_cache_miss:
