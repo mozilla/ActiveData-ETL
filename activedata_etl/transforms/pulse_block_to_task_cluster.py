@@ -1245,6 +1245,7 @@ KNOWN_TAGS = {
     "suite.flavor",
     "suite.name",
     "tasks_for",
+    "tests_grouped",
     "test-type",
     "treeherderEnv",
     "updater-platform",
