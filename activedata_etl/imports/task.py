@@ -454,6 +454,8 @@ RUN_OPTIONS = {
     "sw-e10s": {"run": {"type": ["service-worker", "e10s"]}},
     "sw-1proc": {"run": {"type": ["service-worker", "1proc"]}},
     "sw": {"run": {"type": ["service-worker"]}},
+    "swr": {"run": {"type": ["webrender-sw"]}},
+    "swr-e10s": {"run": {"type": ["webrender-sw", "e10s"]}},
     "webgpu-e10s": {"run": {"type": ["webgpu", "e10s"]}},
     "webgpu-spi-nw-e10s": {"run": {"type": ["webgpu", "spi", "e10s"]}},
     "webgpu-sw-e10s": {"run": {"type": ["webgpu", "service-worker", "e10s"]}},
