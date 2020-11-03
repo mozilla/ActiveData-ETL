@@ -643,6 +643,7 @@ BROWSER = {
     "geckoview-memory": {"run": {"browser": "geckoview"}},
     "geckoview": {"run": {"browser": "geckoview"}},
     "live-chrome-m-cold": {"run": {"browser": "chrome", "cold_start": True}},
+    "live-firefox-cold": {"run": {"browser": "firefox", "cold_start": True}},
     "mobile-fenix": {"run": {"browser": "mobile-fenix"}},
     "mobile-geckoview": {"run": {"browser": "mobile-fenix"}},
     "mobile-refbrow": {"run": {"browser": "refbrow"}},
