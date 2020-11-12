@@ -425,6 +425,7 @@ KNOWN_TEST_PROPERTIES = {
     "jitflags",
     "js_source",
     "pid",
+    "shell_args",
     "source",
     "thread",
 }
