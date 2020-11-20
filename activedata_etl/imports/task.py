@@ -667,6 +667,7 @@ TEST_SUITE = {
         "firefox-ui-functional-local",
         "firefox-ui-functional-remote",
         "geckoview-junit-e10s-multi",
+        "geckoview-junit-e10s-single",
         "geckoview-junit",
         "geckoview-memory",
         "geckoview",
