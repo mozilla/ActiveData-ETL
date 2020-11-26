@@ -1085,6 +1085,7 @@ PAYLOAD_PROPERTIES = {
 }
 
 KNOWN_TAGS = {
+    "action",
     "action.name",
     "action.context",
     "action.context.clientId",
