@@ -779,6 +779,7 @@ KNOWN_PERFHERDER_TESTS = [
     "web-tooling-benchmark-sm",
     "web-tooling-benchmark-v8",
     "webgl",
+    "webgl-gli",
     "xperf",
     "XUL section sizes",
 ]
