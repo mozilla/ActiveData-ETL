@@ -802,6 +802,7 @@ BUILD_OPTIONS = {
     "checkstyle": {},
     "debug": {"build": {"type": ["debug"]}},
     "devedition": {"build": {"train": "devedition"}},
+    "devedition-qr": {"build": {"train": "devedition"}, "run": {"type": ["qr"]}},
     "dmd": {},
     "fat-aar": {},
     "findbugs": {},
