@@ -677,6 +677,7 @@ TEST_SUITE = {
         "jittest",
         "jittgst",  # SPELLING MISTAKE
         "jsreftest",
+        "marionette-framescript",
         "marionette-headless",
         "marionette-media",
         "marionette-stream",
